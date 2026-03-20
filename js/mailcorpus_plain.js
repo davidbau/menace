@@ -8073,6 +8073,7 @@ export const TALK_CORPUS = {
   // -----------------------------------------------------------------------
   arnold: {
     names: ['ken', 'arnold', 'ken arnold'],
+    verbosity: 0.2,
     wpm: 85,
     typoRate: 0.02,
     thinkMs: [400, 1200],

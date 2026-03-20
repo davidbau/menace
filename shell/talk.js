@@ -103,6 +103,9 @@ class RemoteEngine {
         this._fallbacks = character.fallbacks || ['hmm'];
         this._spontaneous = character.spontaneous || [];
         this._greeting = character.greeting || null;
+        // verbosity: 0=strongly prefer short, 0.5=uniform, 1=strongly prefer long
+        // default 0.7 biases towards longer responses across all characters
+        this._verbosity = character.verbosity ?? 0.7;
 
         this._state = 'idle'; // idle | thinking | composing | awaiting_reply
 
@@ -135,10 +138,24 @@ class RemoteEngine {
         return a;
     }
 
-    // Draw next index from deck, reshuffling when exhausted (Feature 1)
-    _drawFrom(deck, size) {
+    // Draw next index from deck, reshuffling when exhausted (Feature 1).
+    // Uses verbosity to bias towards longer (more lines) or shorter responses.
+    // verbosity 0.5 = uniform; 1 = prefer longest; 0 = prefer shortest.
+    _drawFrom(deck, size, responses) {
         if (deck.length === 0) deck.push(...this._makeDeck(size));
-        return deck.shift();
+        if (!responses || this._verbosity === 0.5) return deck.shift();
+        // Weighted selection: weight = lineCount ^ (2*verbosity - 1)
+        const exp = 2 * this._verbosity - 1;
+        const weights = deck.map(i => Math.pow((responses[i].split('\n').length), exp));
+        const total = weights.reduce((s, w) => s + w, 0);
+        let r = Math.random() * total;
+        let chosen = 0;
+        for (let i = 0; i < weights.length; i++) {
+            r -= weights[i];
+            if (r <= 0) { chosen = i; break; }
+        }
+        deck.splice(chosen, 1);
+        return deck.length === 0 ? (deck.push(...this._makeDeck(size)), chosen) : chosen;
     }
 
     // Push topic to front of stack, keep last 3 (Feature 2)
@@ -208,7 +225,7 @@ class RemoteEngine {
             this._pushTopic(p.topic ?? String(best));
 
             // Feature 1: draw next response from shuffled deck
-            const ri = this._drawFrom(this._patternDecks[best], p.responses.length);
+            const ri = this._drawFrom(this._patternDecks[best], p.responses.length, p.responses);
 
             // Feature 4: note any pending beat for this pattern
             if (p.beat) this._pendingBeat = p.beat;
@@ -229,7 +246,7 @@ class RemoteEngine {
         }
 
         // Feature 1: draw next fallback from shuffled deck
-        const fi = this._drawFrom(this._fallbackDeck, this._fallbacks.length);
+        const fi = this._drawFrom(this._fallbackDeck, this._fallbacks.length, this._fallbacks);
         return this._fallbacks[fi];
     }
 
