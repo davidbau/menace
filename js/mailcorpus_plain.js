@@ -9862,5 +9862,569 @@ export const TALK_CORPUS = {
     ],
   },
 
+  // -----------------------------------------------------------------------
+  // lebling -- Dave Lebling, Zork co-author, MIT AI Lab
+  // finger plan: >inventory / You are carrying: / a leaflet / a brass lantern / a sword
+  // -----------------------------------------------------------------------
+  lebling: {
+    wpm: 62,
+    typoRate: 0.03,
+    thinkMs: [1200, 3500],
+    triggerWords: 4,
+    greeting: 'hello',
+    patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'pretty well, thanks\nbeen working on some new room descriptions for the dungeon section\nthe language has to do the work that graphics would do elsewhere\nevery word matters when the room is the only thing the player can see',
+          'good\ni have been thinking a lot about how players build mental maps from text\nit is different from how you navigate a physical space\nyou have to give them reliable landmarks and consistent geometry\notherwise they feel lost and frustrated rather than pleasantly puzzled',
+          'fine\nstill tinkering with the zork parser\nthe tricky part is handling synonyms gracefully\n"put sword in basket" and "place blade inside wicker container" should both work\nand they do now, mostly',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'writing room descriptions for the lower levels of the dungeon\nwe have a coal mine section that i am particularly happy with\nthe darkness there is different from ordinary dungeon darkness\nyou can feel it, if that makes sense for text',
+          'working on the noun phrase parser\nhandling "the rusty iron key" vs "a key" vs just "key"\nthe definite article matters -- if you say "the key" you expect there to be only one key in scope\nif we have two keys and you say "the key" we need to ask which one',
+          'mostly writing and revising\nzork needs a lot of room descriptions, and each one has to be precise\nyou cannot say "there are some things here" -- you have to name them\nand the names have to be memorable enough that the player can refer to them later',
+        ],
+      },
+      {
+        re: /\b(i\s+)?(just\s+)?(died|die|keep\s+dying|got\s+killed|was\s+killed|died\s+again)\b/i,
+        responses: [
+          'the thief?\nhe tends to appear when you least expect him and he fights dirty\nthe trick is not to get cornered\nif you give him room to maneuver he will sometimes just take something and leave',
+          'death in zork is gentler than in hack or rogue -- you can restore from a saved position\nbut we still tried to make it feel like something was lost\nthe game world should feel like it has consequences even if you can undo them',
+          'what got you\nthe troll? the grue?\nthe grue is interesting because it is entirely invisible -- the threat is entirely in the player\'s imagination\nwe just say "you are likely to be eaten by a grue" and players fill in the rest',
+        ],
+      },
+      {
+        re: /\b(zork|adventure|text\s+adventure|interactive\s+fiction|if)\b/i,
+        responses: [
+          'zork started as a project to see what we could do with adventure on a timesharing machine\nwill crowther\'s original was remarkable for 1976 but it was limited by the pdp-10 memory\nwe had more memory to work with at the ai lab so we went much bigger\nbigger world, bigger vocabulary, much more complex puzzles',
+          'the thing that separates interactive fiction from just a game is that the world has to feel coherent\nif you can pick up an object, you should be able to use it as the object it is\na lamp should light things, a key should open things that match it\nif the logic is arbitrary the player loses trust and stops experimenting',
+          'i have played rogue and hack both\nthey are genuinely different games from what we are doing\nrogue is procedural and roguelike -- the world regenerates, the skill is in adapting\nzork is a fixed puzzle that rewards careful observation and memory\nboth are valid, they are just solving different problems',
+        ],
+      },
+      {
+        re: /\b(parser|command|input|verb|noun)\b/i,
+        responses: [
+          'the parser is really the interface to the whole world\nif the parser rejects a reasonable command the player feels stupid\nbut if it accepts too much you get nonsense interactions\nthe goal is: accept everything the player might naturally try, reject gracefully what you cannot handle',
+          'verb-noun is the minimum\nbut "put thing in other thing" requires a preposition and two noun phrases\nand "give the guard the key" requires indirect objects\nour parser handles all of those, which is not trivial in fortran\nmdl made it somewhat easier because we had proper list structures',
+          'what really surprised me was how much the parser shapes player behavior\nif players discover that "examine" gives more detail than "look at", they start examining everything\nif "read" gives different output from "examine" on text objects, players learn to try both\nthe parser teaches players how to play the game',
+        ],
+      },
+      {
+        re: /\b(dungeon|maze|twisty|passages|room)\b/i,
+        responses: [
+          'the maze of twisty little passages is crowther\'s\nhe put it in the original adventure as a real puzzle\nwe kept a version of it in zork but tried to make our geography more logical overall\na dungeon should feel like it was built for a reason, even if that reason is forgotten',
+          'room descriptions have to do a lot of work\nthey set atmosphere, they list the relevant objects, they suggest what actions might be possible\nand they have to be short enough that players will actually read them\nlong descriptions get skipped after the first visit',
+          'the geometry of the zork dungeon is consistent -- i drew a map while we were building it\nif you go north from room A and south from room B and end up in the same place, that is a bug\nplayers build mental maps and they notice when the geometry is wrong\nit breaks the illusion',
+        ],
+      },
+      {
+        re: /\b(crowther|adventure|colossal)\b/i,
+        responses: [
+          'will crowther\'s adventure is the origin of the whole genre\nhe was a caver, a real caver, and he based the cave geography on mammoth cave in kentucky\nthat groundedness is why it felt real -- it was real, or nearly\nzork built on that but invented its geography whole cloth',
+          'what crowther did that was revolutionary was natural language input\nbefore that, games had menus or single keystrokes\ntyping "go north" or "take lamp" felt like talking to the game\nthat is still the core of what makes interactive fiction feel different',
+          'don woods expanded adventure significantly in 1977\nadded the endgame, added more objects, added the scoring system\nby the time we saw it at the ai lab it was already a classic\nbut we thought we could go further with the world-building\nand i think we did',
+        ],
+      },
+      {
+        re: /\b(hack|rogue|game|compare|difference)\b/i,
+        responses: [
+          'rogue and hack are dungeon crawlers -- the goal is survival and resource management\nzork is an exploration and puzzle game -- the goal is understanding the world\nboth use the dungeon as a metaphor but they use it very differently\nhack asks "can you survive?" and zork asks "can you figure it out?"',
+          'the procedural generation in hack is genuinely impressive\nfenlason built something that creates playable dungeons out of an algorithm\nwe hand-crafted every room in zork, which means more control but much more labor\ni am not sure which approach is right -- they are just different choices',
+          'one thing i notice is that in hack and rogue, the player character has no voice\nyou are a symbol on a screen\nin zork we wrote the player character\'s situation into the room descriptions\nyou wake up in a field, you see a white house, you have a purpose even if it is not stated\nthat framing changes how players relate to the game',
+        ],
+      },
+      {
+        re: /\b(mit|ai\s*lab|mdl|muddle|lisp)\b/i,
+        responses: [
+          'we wrote zork in mdl, which is a lisp dialect developed at the ai lab\nit made some things much easier -- proper list structures, garbage collection, easy to prototype\nbut it also meant the game could only run on the big machines with enough memory\nblank figured out how to compile it down to something smaller, which is how infocom happened',
+          'the ai lab in the late 70s was a remarkable place\npeople were working on natural language understanding, on vision, on planning\nzork was almost a side project in that context\nbut the work on the parser drew on real ideas from computational linguistics\nhow do you parse a sentence when you do not know in advance what words will appear',
+          'mdl was a good language for this kind of work\nwe could represent the game world as data structures and manipulate them\nif a room had exits, they were a list you could inspect and modify\nif an object had properties, they were an association list\nthat made the game logic surprisingly clean even for a complex world',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'i see\nwhat were you trying to do when that happened',
+          'right\nhave you tried examining the objects in the room',
+          'ok\nwhat does the game say when you do that',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'that is a reasonable hypothesis\nthe only way to test it in zork is to try the action and see what happens',
+          'interesting\nwhat makes you think that',
+          'could be\nthe game tends to be consistent about that kind of thing\ntry it and see',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what exactly are you trying to do\nsometimes rephrasing the command helps',
+          'the parser should accept most natural phrasings\nwhat command did you type and what did the game say',
+          'if the game says "i do not understand that" try a simpler form\nverb noun is always a safe baseline',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nthen the next step is probably the puzzle to the north',
+          'right\nhave you tried examining everything in the room',
+          'yes\nand what happened after that',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'all right\nwhat did you try instead',
+          'fair\nthe game has a lot of paths\nwhat section are you in',
+          'ok\ntell me what you are working on',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'that is the right state of mind for a puzzle game actually\nnot knowing means you have not ruled things out yet\ntry examining everything you have not examined',
+          'when i am stuck i go back to basics -- read every room description carefully and look for something i missed',
+          'sometimes the answer is in an object description you only glanced at\ntry reading things again',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes, really\nzork has been in development since 1977 and the world keeps growing',
+          'seriously\nwe put a lot of work into the details\nthat is kind of the point',
+          'it surprised me too when i first played it through from a player perspective\nwe know the answers so we sometimes forget how strange the puzzles look from outside',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'which puzzle\nsome of them are genuinely hard and meant to be\nbut if it feels unfair rather than challenging, i want to know',
+          'hard is acceptable\nunfair is not\nthe difference is whether the player has all the information they need\nif they do and it is still hard, that is a good puzzle',
+          'tell me specifically which part\nwe have playtested a lot but we have blind spots\nif something is consistently too hard we should know',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'glad you think so\nzork is a labor of love at this point\nthere is a lot of world in there',
+          'thank you\nwe put a lot of thought into the details\nit is nice when people notice',
+          'yeah, i am pretty happy with how that part came out\nsome of the puzzle design really clicked',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because the world has to be consistent\nif something works one way in one room it should work the same way everywhere\nthat consistency is what makes puzzles feel fair',
+          'good question\nthe short answer is that everything in zork has to serve the player\'s experience\nif it does not help orient them or give them something to do, we cut it',
+          'what specifically are you asking about\nthe parser, the world design, or one of the puzzles',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'what i mean is that the parser is really a world model\nit is not just matching verbs and nouns -- it is resolving references in a simulated world\nif you say "take the key" the game has to figure out which key, whether you can reach it, whether you are holding too much already\nthat is surprisingly complex',
+          'the key insight about interactive fiction is that the writing and the programming are the same thing\na room description that mentions an object creates an object the player can interact with\nif you write "there is a rusty sword on the floor" and do not implement that sword, you have made a broken promise',
+          'what makes a good puzzle is that all the information is present, you just have not connected the dots yet\nno puzzle should require external knowledge or guessing\neverything the player needs should be findable in the game world\nthat is the design principle we try to hold to',
+        ],
+      },
+    ],
+    fallbacks: [
+      'what part of the dungeon are you in',
+      'have you tried examining the objects more carefully',
+      'what does the room description say',
+      'the parser usually accepts verb-noun or verb-noun-preposition-noun',
+      '{word}\nwhat does the game say when you try that',
+      'interesting\ntell me more about {word}',
+      'i would need more context to say\nwhat is the situation',
+      'that sounds like it might be in the lower levels\nhave you gotten past the troll yet',
+    ],
+    spontaneous: [
+      'just finished writing the coal mine description\ni think it is one of the better ones',
+      'the grue is entirely imaginary but players are more scared of it than of the troll\nwords are powerful',
+      'trying to figure out the right difficulty curve for the endgame puzzles',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // blank -- Marc Blank, Zork co-author, Z-machine architect
+  // -----------------------------------------------------------------------
+  blank: {
+    wpm: 70,
+    typoRate: 0.04,
+    thinkMs: [800, 2500],
+    triggerWords: 4,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'fine\ndeep in the z-machine instruction set right now\ntrying to get the branch encoding right so short branches fit in one byte',
+          'ok\nworking on the compiler output\nthe object table format is almost finalized',
+          'good\nportability tests are looking better\nran it on three different machine architectures yesterday and it works on all of them',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'working on the z-machine\nit is a virtual machine that runs zork bytecode\nthe point is portability -- you write the interpreter once per platform and then zork runs everywhere\nright now zork only runs on machines with mdl, which is a very short list',
+          'finalizing the z-machine object table format\nobjects have properties, attributes, and a containment hierarchy\ngetting the encoding compact enough to fit in the 64k address space is the main constraint',
+          'debugging the compiler\nwe compile mdl zork source down to z-machine bytecode\nthe compiler is mostly working but there are edge cases in the branch encoding that are wrong',
+        ],
+      },
+      {
+        re: /\b(i\s+)?(just\s+)?(died|die|keep\s+dying|got\s+killed|was\s+killed|died\s+again)\b/i,
+        responses: [
+          'which monster\nzork monsters are not random -- they have specific locations and behaviors\nknowing which one tells me which part of the dungeon you are in',
+          'death in zork is recoverable\nyou can restore from a saved game\nwe made that choice deliberately -- the puzzles are hard enough without permanent death',
+          'the troll is the first serious combat encounter\nthe trick is that you need the right weapon\na sword works, a knife does not\nif you do not have a sword, run',
+        ],
+      },
+      {
+        re: /\b(z.machine|zmachine|virtual\s+machine|vm|portable|portability)\b/i,
+        responses: [
+          'the z-machine is a virtual machine designed specifically to run zork\nthe key insight is that you write one interpreter per platform and then the game runs everywhere\nright now zork only exists in mdl and requires a big timesharing machine\nwith the z-machine it could run on a microcomputer with 64k',
+          'portability was the whole motivation\nthe original zork runs on a pdp-10 with mdl\nthat limits your audience to universities and research labs with the right hardware\na virtual machine lets us target any machine that someone writes an interpreter for\nand writing an interpreter is much easier than porting the whole game',
+          'the design tradeoff is between expressiveness and efficiency\na richer instruction set makes the compiler output smaller\nbut a simpler instruction set makes the interpreter easier to write\nwe went for something in the middle -- a few powerful instructions for common operations, simpler ones for the rest',
+        ],
+      },
+      {
+        re: /\b(zork|adventure|infocom)\b/i,
+        responses: [
+          'zork started at the mit ai lab in 1977\nlebling, anderson, daniels, and me\nit grew out of playing crowther\'s adventure on the pdp-10\nwe thought we could do something bigger and more sophisticated, and we did',
+          'infocom is the company we formed to actually distribute zork commercially\nthe z-machine makes that possible -- we can ship a data file and a small interpreter\nthe interpreter is different for each platform but the game file is the same\nthat is the whole business model',
+          'the thing that distinguishes zork from adventure is scale and writing quality\ncrowther\'s cave has maybe 100 locations\nzork has several times that, with much more varied terrain and more complex puzzles\nbut the core idea -- type commands, get responses, explore a world -- is crowther\'s',
+        ],
+      },
+      {
+        re: /\b(compiler|interpreter|bytecode|instruction\s+set)\b/i,
+        responses: [
+          'the compiler takes the mdl source of zork and produces a bytecode file\nthat file is what the z-machine interpreter executes\nthe bytecode is compact -- we need the whole game to fit in 64k or close to it\ncompression decisions at the bytecode level have a real impact on what fits',
+          'the z-machine instruction set has about 100 instructions\nmost are straightforward: load, store, call, return, branch\nbut there are also specialized ones for string encoding, object manipulation, and i/o\nthe specialized ones are there because they appear so often in the compiled output that making them one byte saves significant space',
+          'the interpreter is actually the easy part compared to the compiler\nan interpreter for a stack machine is a loop with a switch on the opcode\nthe hard part is the object system and the string encoding\nstrings in the z-machine are huffman-compressed using a fixed 40-character alphabet',
+        ],
+      },
+      {
+        re: /\b(parser|language|natural\s+language|input)\b/i,
+        responses: [
+          'the parser in zork is written in mdl and compiles down to z-machine bytecode like everything else\nit is actually one of the larger components\nit does real noun phrase parsing -- articles, adjectives, multiple objects in one command',
+          'the interesting design decision is how much of the grammar to hard-code\nwe have a verb table and a noun table, and the parser tries to match input against known patterns\nbut it is not a general natural language parser -- it only handles constructions that make sense as game commands',
+          'parser quality matters a lot to the player experience\nif the parser rejects a reasonable command with "i do not understand" the player feels frustrated rather than challenged\nwe spent a lot of time on synonym lists and alternate phrasings\nit is unglamorous work but it makes a big difference',
+        ],
+      },
+      {
+        re: /\b(hack|rogue|game|compare)\b/i,
+        responses: [
+          'hack and rogue solve a different problem\nthey generate content procedurally so each game is different\nzork is hand-crafted -- every room, every object, every puzzle is authored\nboth approaches have merits but they produce very different player experiences',
+          'the random dungeon approach means you can play hack many times and always have a new layout\nbut it also means the world cannot be as carefully designed as a fixed one\nzork trades replayability for craft\ni think both tradeoffs are defensible',
+          'from a systems perspective, hack is interesting because fenlason fits a whole game in a fairly small amount of code\nzork is much larger in both source and runtime\nbut zork also has much more authored content -- thousands of room descriptions and puzzle logic',
+        ],
+      },
+      {
+        re: /\b(memory|size|fit|small|64k)\b/i,
+        responses: [
+          '64k is the z-machine address space\nit is enough for zork part 1 but not all of original zork\nwhich is why we are splitting it into parts for the commercial release\nzork 1 is the entrance and upper dungeon\nzork 2 gets to the midgame\nzork 3 is the endgame',
+          'memory constraints drive every design decision in the z-machine\nshort branch encoding: one byte if the offset fits, two bytes otherwise\nabbreviated string table: common substrings get a one-byte code\nobject property encoding: variable length so small properties take less space\neverything is about fitting more game into 64k',
+          'the 64k limit comes from the address space in the instruction encoding\nwe use 16-bit addresses, which gives 64k locations\nwe could have done 32-bit but that doubles the size of every pointer in the bytecode\n64k turns out to be enough if you are careful, and we are being careful',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nwhat does the game output say',
+          'right\nwhich part of the dungeon',
+          'noted\nwhat command did you type',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'test it\ntype the command and see what happens',
+          'what does the room description say\nstart there',
+          'interesting\nthat would be consistent with how that section works',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what exactly are you typing\nand what does the game respond',
+          'the parser has good coverage but some phrasings do not parse\ntry a shorter form',
+          'what is the full sequence\nwhat you typed and what the game said',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat happened after that',
+          'right\nand then what',
+          'good\nwhat does the game say now',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat part are you stuck on',
+          'fair\nwhat is the situation',
+          'all right\nwhat did you try',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'try examining the objects in the room\nroom descriptions mention the important ones but examining gives more detail',
+          'what have you tried so far\nsometimes process of elimination is the right approach',
+          'look for something you have not examined yet\nzork puzzles usually have all the information in the game',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\nthe z-machine stuff is genuinely new -- nobody has done this before for a game',
+          'seriously\nit all fits in 64k\nor close enough that we are splitting it into three games',
+          'yes really\nvirtual machine design is not that complicated once you have the basic model',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'which puzzle specifically\nsome of them are designed to be hard but none should be unfair',
+          'the difficult ones usually require combining information from different parts of the dungeon\ndo you have everything you found earlier',
+          'if a puzzle feels impossible it usually means there is a piece of information you are missing\nnot a piece you need external knowledge for -- something in the game',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'thanks\nthe z-machine design has been a good project\nportability was a real problem and this solves it cleanly',
+          'yeah\nzork has come a long way since the original mdl version\nit runs on microcomputers now, which was unimaginable in 1977',
+          'right\nthe bytecode approach is elegant once you have the instruction set right',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because portability was the problem we needed to solve\nzork locked to one machine type is a dead end commercially\nthe z-machine lets us target whatever machine people are buying',
+          'the 64k limit is a consequence of using 16-bit addresses in the bytecode\nit was a deliberate tradeoff -- smaller pointers mean smaller bytecode',
+          'what specifically are you asking about',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'the z-machine works like this: we have a bytecode file, the story file, which contains the game data and bytecode instructions\nthe interpreter is a program on your machine that reads the story file and executes it\nyou write the interpreter once per platform and then any z-machine story file runs on that platform',
+          'the instruction set has about 100 opcodes\nmost are standard: push, pop, call, return, branch, load, store\nthe interesting ones are object operations: insert_obj, remove_obj, get_child, get_sibling\nthose make the object containment hierarchy cheap to manipulate',
+          'the string encoding is the most exotic part\nwe use a modified huffman coding with a 40-character alphabet -- a-z plus some punctuation\ncommon substrings go in an abbreviation table and get a two-byte encoding\nit gets the text to about half the size of raw ascii which matters a lot when you are fitting a game in 64k',
+        ],
+      },
+    ],
+    fallbacks: [
+      'what part of the game are you working through',
+      'what does the room description say',
+      'try a shorter command form',
+      'what exactly did you type',
+      '{word}\nwhat does the parser do with that',
+      'does the game recognize {word} as an object',
+      'the z-machine stuff is getting there',
+      'save often -- the puzzles get harder',
+    ],
+    spontaneous: [
+      'branch encoding is finally working right\nshort branches fit in one byte now',
+      'the object table format is locked in\ncompiler output is getting smaller',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // brouwer -- Andries Brouwer, Dutch mathematician, NetHack developer
+  // -----------------------------------------------------------------------
+  brouwer: {
+    wpm: 55,
+    typoRate: 0.02,
+    thinkMs: [1500, 4000],
+    triggerWords: 4,
+    greeting: 'hello',
+    patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'well, thank you\nI have been working on the connectivity proof for the dungeon generator\nthe current code can produce disconnected rooms in certain configurations\nI have a patch that fixes this but I want to verify it is correct before submitting',
+          'fine\nstuck on a graph theory problem in the level generator\nit is straightforward but I want to be careful about the corner cases',
+          'good\nwriting up some notes on the topology of the hack dungeon\nfenlason\'s generator is clever but there are some configurations it does not handle correctly',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'I am analyzing the dungeon level generator\nfenlason\'s code places rooms and then connects them\nbut the connectivity guarantee is not as strong as it should be\nI am building a graph where rooms are nodes and corridors are edges, and verifying that the graph is connected',
+          'working on a patch for the room connectivity bug\nthe issue is that the room placement algorithm can create a room that is geometrically reachable but not connected by corridors\nmy fix adds a check after generation and adds a corridor if any component is isolated',
+          'reading through the hack source\nI am particularly interested in the level generation and the save/restore code\nboth have interesting structural properties that I want to understand before I start patching',
+        ],
+      },
+      {
+        re: /\b(i\s+)?(just\s+)?(died|die|keep\s+dying|got\s+killed|was\s+killed|died\s+again)\b/i,
+        responses: [
+          'on which level and to which monster\nthe statistics of death in hack are interesting\nmost deaths cluster at certain depth ranges where monster difficulty jumps discontinuously',
+          'death in hack is permanent by design\nbut it also means the game is short enough to replay\nif you died on level 4, starting over is not a large cost\nwhat killed you',
+          'the permadeath mechanic creates an interesting information structure\neach death teaches you something about the game\'s probability distribution\nafter enough deaths you build a good model of the risks at each depth\nwhat did you learn this time',
+        ],
+      },
+      {
+        re: /\b(nethack|patch|topology|graph|level\s+generation)\b/i,
+        responses: [
+          'I have been contributing patches to hack since fenlason released it\nmy main interest is the level generator\nit uses a fairly simple random room placement algorithm but it has some correctness issues\nthe connectivity property -- that every room is reachable from every other room -- is not always satisfied',
+          'the level generator works by placing rooms, then connecting adjacent rooms with corridors\nthe connectivity bug arises when a room is surrounded on all sides by other rooms but not directly connected to any of them\nmy patch does a depth-first search after generation and adds corridors to any isolated components',
+          'topology in the mathematical sense is about which rooms are reachable from which other rooms\nit is a property of the graph structure, not the geometric layout\ntwo dungeons with very different shapes can have the same topological structure if the connectivity is the same',
+        ],
+      },
+      {
+        re: /\b(connected|graph|connectivity|unreachable|isolated)\b/i,
+        responses: [
+          'connectivity is the fundamental property we need\nif any room is unreachable, the game is broken -- an item placed there is ungetable\nverifying connectivity requires a graph traversal: start at one room, do a depth-first or breadth-first search, check that you visit every room',
+          'the graph of the dungeon has rooms as nodes and corridors as edges\na connected graph has a path between every pair of nodes\nif the graph is disconnected, there exists at least one room from which some other room cannot be reached\nthis is provably fixable by adding one corridor per disconnected component',
+          'I found three configurations in fenlason\'s room placement code where connectivity can fail\nthe first is a room placed in a corner with no adjacent corridors\nthe second is a room island surrounded by a ring of other rooms\nthe third is a corridor that should connect two sections but terminates early due to a boundary check',
+        ],
+      },
+      {
+        re: /\b(dungeon|level|geometry|room|corridor)\b/i,
+        responses: [
+          'the dungeon geometry in hack is a 22x80 grid\nrooms are rectangular and placed at random positions\ncorridors connect adjacent rooms\nthe geometric constraints are simple but the combinatorics of placement create interesting configurations',
+          'a well-formed dungeon level has the following properties:\nevery room is reachable, no two rooms overlap, corridors do not create loops that are too short\nfenlason\'s generator satisfies the first and second most of the time but the third creates some awkward geometries',
+          'the corridor algorithm is depth-first\nit picks a room, tries to connect it to the nearest unconnected room, and recurses\nbut "nearest" is defined geometrically, not topologically\nthis is where the connectivity bug enters -- geometric proximity does not guarantee a valid path',
+        ],
+      },
+      {
+        re: /\b(hack|rogue|bug|fix|patch)\b/i,
+        responses: [
+          'I have submitted several patches to fenlason\nthe connectivity fix is the most important\nbut there are also smaller issues: a monster pathfinding problem in narrow corridors, a counting error in the shop pricing, an off-by-one in the stairs placement',
+          'the interesting thing about hack bugs is that most of them are in the level generator or the monster AI\nthe item handling code is relatively clean\nfenlason did good work there\nbut generating a valid connected dungeon is a harder algorithmic problem than it looks',
+          'rogue has similar level generation issues\nthe graph connectivity property is easy to state and hard to guarantee without an explicit check\nI believe rogue also does not verify connectivity, which means it can also generate unreachable rooms\nbut I have not analyzed the rogue source as carefully',
+        ],
+      },
+      {
+        re: /\b(algorithm|recursive|depth.first|backtrack)\b/i,
+        responses: [
+          'depth-first search is my preferred tool for connectivity verification\nyou maintain a visited set, start at any node, and recursively visit all neighbors\nat the end, any node not in the visited set is unreachable\nthe algorithm is O(V + E) where V is rooms and E is corridors -- very fast for a dungeon',
+          'the corridor generation algorithm in hack is essentially a spanning tree construction\nyou want a tree that connects all rooms with minimum total corridor length\nbut the greedy nearest-neighbor approach does not always produce a connected result\na proper spanning tree algorithm like Kruskal\'s would be provably correct',
+          'backtracking in the room placement algorithm would be the clean fix\nif you cannot connect a room after placement, backtrack and try a different position\nbut this changes the character of the dungeon significantly\nmy approach is to do a post-generation connectivity check and patch any failures\nit is less elegant but it preserves the existing level geometry',
+        ],
+      },
+      {
+        re: /\b(mathematics|math|topology|graph\s+theory|proof)\b/i,
+        responses: [
+          'graph theory is the right framework for thinking about dungeon connectivity\na dungeon is a graph: rooms are vertices, corridors are edges\nthe property we want -- that every room is reachable -- is exactly the property of graph connectedness\nand graph connectedness has well-known polynomial-time algorithms',
+          'I am a mathematician by training\nI work on algebraic topology and combinatorics\nhack is interesting to me partly because the dungeon generator is essentially a computational geometry problem\nand partly because the game itself involves navigating a topological space\nthe two kinds of topology are not the same, but they rhyme',
+          'a formal proof that the patched generator always produces connected dungeons would require showing that the post-generation repair step successfully connects every disconnected component\nthis is straightforward: each repair step adds one edge to the graph, and we run repair steps until no disconnected components remain\nthe loop terminates because each step strictly reduces the number of components',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'I see\nand what does the dungeon look like at that point',
+          'understood\nwhich level are you on',
+          'I see\nwhat were you doing when that happened',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'that is a reasonable hypothesis\nhow would you verify it',
+          'interesting\nwhat evidence do you have for that',
+          'possibly\nbut we should check it rather than assume',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what specifically is happening\nbe precise about the conditions',
+          'what have you tried\nand what was the result each time',
+          'let us think about this carefully\nwhat is the exact situation',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nand what follows from that',
+          'correct\nso the next step is clear',
+          'yes\nand the implication is',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'I see\nthen what is the actual situation',
+          'understood\nwhat is happening instead',
+          'alright\ntell me what you observe',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'that is a starting point, not an ending point\nwhat information do we have to work with',
+          'when I do not know something I enumerate the possibilities systematically\nwhat are the options',
+          'not knowing is fine\nwhat can we verify',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\nthe connectivity bug is real and reproducible\nI have a test case that triggers it reliably',
+          'seriously\ngraph connectivity is easy to check but fenlason\'s generator does not check it\nthe consequence is occasional unreachable rooms',
+          'yes\nit is surprising that such a simple property can be violated by a reasonable-looking algorithm\nbut it happens',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'hard problems usually become easier when you decompose them\nwhat specifically is difficult',
+          'I understand\nwhich aspect is causing trouble',
+          'difficulty is often a sign that the framing is wrong\nlet us try a different approach to the problem',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yes, the graph-theoretic approach does have a certain elegance\nthe problem and the solution are both expressible in the same framework',
+          'I find it satisfying when mathematical tools apply cleanly to engineering problems\nthis is one of those cases',
+          'thank you\nI hope the patch will be useful',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because the connectivity property is not automatically maintained by the room placement algorithm\nit requires an explicit verification step',
+          'the root cause is that geometric proximity and graph connectivity are different properties\nan algorithm that ensures geometric coverage does not automatically ensure graph connectivity',
+          'what specifically are you asking about',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'the connectivity verification works as follows\nrepresent the dungeon as a graph: each room is a node, each corridor is an edge\ndo a depth-first search starting from room zero\nany room not reached by the search is a disconnected component\nadd a corridor from the disconnected room to the nearest connected room\nrepeat until no disconnected components remain',
+          'the core issue is that fenlason\'s generator places rooms and then connects them\nbut it connects them using a geometric heuristic -- connect to the nearest room in each cardinal direction\nthis heuristic can fail when rooms are arranged in certain configurations\nmy patch adds a verification pass after the initial connection step',
+          'graph theory gives us precise language for what we want from a dungeon\nwe want a connected graph where every vertex is reachable from every other vertex\nthe complement of connectedness is the existence of a cut vertex or an isolated component\nmy patch detects and repairs isolated components; it does not address cut vertices, which is a separate issue',
+        ],
+      },
+    ],
+    fallbacks: [
+      'what specifically do you observe',
+      'can you describe the conditions more precisely',
+      'let us approach this systematically',
+      'what have you verified so far',
+      '{word}\nwhat is the precise definition you are using',
+      'tell me more about {word} -- what specifically is happening',
+      'that is interesting\nwhat is the exact configuration',
+      'I would need more detail to say anything useful',
+    ],
+    spontaneous: [
+      'the connectivity patch is ready\nI am writing up the analysis before submitting it',
+      'I found another case where the room placement can fail\nit is related to the boundary conditions in the corridor algorithm',
+      'reading through the rogue source now\nthe level generator has similar issues to hack',
+    ],
+  },
+
 };
 
