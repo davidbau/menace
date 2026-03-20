@@ -14024,6 +14024,14 @@ Validation:
   - **exercise() gaps**: uhitm.js has 9/19 C exercise calls (10 missing in uncommon paths:
     egg splat, boomerang catch, demon summoning, monster defense). dothrow.js has 5/7
     (missing: boomerang catch, toss_up). Low impact for current sessions.
+  - **mhitm_ad_* three-path gap**: C's mhitm_ad_acid/sgld/famn/were etc. have three
+    separate code paths: uhitm (player attacks), mhitu (monster attacks player), mhitm
+    (monster-vs-monster). Each path has different RNG calls and exercise calls. JS
+    conflates these into one path, causing wrong RNG consumption when a monster
+    attacks the player. Example: mhitm_ad_acid: C's mhitu path has `!rn2(3)` guard +
+    exercise(A_STR, FALSE), but JS uses the mhitm path with rn2(30) + rn2(6)
+    unconditionally. Fixing requires separating the three paths per function.
+    This likely affects sessions with monster combat (most sessions).
 
 - 2026-03-19: Oracle mapgen alignment removal (`af5b8ce1e`) regressed 3 sessions.
   - The divergence is in `_dungeonAlign` during `makelevel()` for special levels.
