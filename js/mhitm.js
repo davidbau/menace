@@ -46,6 +46,7 @@ import { find_mac } from './worn.js';
 import { mon_wield_item, possibly_unwield, hitval } from './weapon.js';
 import { spec_dbon } from './artifact.js';
 import { resist } from './zap.js';
+import { breamm, spitmm, thrwmm } from './mthrowu.js';
 
 // NATTK, STRAT_WAITFORU imported from const.js
 let farNoise = false;
@@ -728,9 +729,11 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
         case AT_WEAP:
             // C ref: mhitm.c:393-416 — weapon attack
             if (distmin(magr.mx, magr.my, mdef.mx, mdef.my) > 1) {
-                // Ranged attack — simplified: skip
-                strike = 0;
-                attk = 0;
+                // C ref: mhitm.c:393-398 — ranged weapon attack (thrwmm)
+                res[i] = await thrwmm(magr, mdef, map, ctx?.player, display, _gstate);
+                if (res[i] & M_ATTK_AGR_DIED) return res[i];
+                strike = (res[i] !== M_ATTK_MISS) ? 1 : 0;
+                attk = 1;
                 break;
             }
             // C ref: mhitm.c:406-410 — wield best melee weapon
@@ -826,13 +829,28 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
             }
             break;
 
-        case AT_BREA:
-        case AT_SPIT:
-            // C ref: mhitm.c:538-564 — ranged attacks not at point blank
-            // Simplified: skip ranged m-vs-m for now
-            strike = 0;
-            attk = 0;
+        case AT_BREA: {
+            // C ref: mhitm.c:538-549 — breath attack at range 2..BOLT_LIM
+            const r_dist_b = distmin(magr.mx, magr.my, mdef.mx, mdef.my);
+            if (r_dist_b >= BOLT_LIM || r_dist_b < 2)
+                continue;
+            res[i] = await breamm(magr, mattk, mdef, map, ctx?.player, display, _gstate);
+            if (res[i] & M_ATTK_AGR_DIED) return res[i];
+            strike = (res[i] !== M_ATTK_MISS) ? 1 : 0;
+            attk = 1;
             break;
+        }
+        case AT_SPIT: {
+            // C ref: mhitm.c:550-564 — spit attack at range 2..BOLT_LIM
+            const r_dist_s = distmin(magr.mx, magr.my, mdef.mx, mdef.my);
+            if (r_dist_s >= BOLT_LIM || r_dist_s < 2)
+                continue;
+            res[i] = await spitmm(magr, mattk, mdef, map, ctx?.player, display, _gstate);
+            if (res[i] & M_ATTK_AGR_DIED) return res[i];
+            strike = (res[i] !== M_ATTK_MISS) ? 1 : 0;
+            attk = 1;
+            break;
+        }
 
         default:
             strike = 0;

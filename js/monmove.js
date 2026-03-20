@@ -7,7 +7,7 @@
 // - dochug: no Conflict handling (C:870), no covetous/quest/vault guards
 // - dochug: m_respond() partially implemented — shrieker rn2(10) consumed but makemon stubbed,
 //           medusa gazemu stubbed, erinyes aggravate implemented
-// - dochug: find_defensive/find_misc stubbed (return false, no RNG consumed)
+// - dochug: find_defensive/find_misc implemented in muse.js (2500+ lines)
 // - dochug: mind_blast RNG-faithful (rn2(20) gate, hero lock-on, monster loop), losehp stubbed
 // - dochug: flees_light: artifact_light only checks Sunsword and gold dragon scales (C:555)
 // - m_move: no boulder-pushing by strong monsters (C:2020)
