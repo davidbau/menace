@@ -1,6 +1,103 @@
 # Game Loop Reorder Plan
 
-## Review Notes — Follow-up (requested review of specific concerns)
+## Review Notes — Narrowed Owner-Boundary Verification
+
+### 1. monster_nearby / stop_occupation boundary: CORRECT
+
+**C** (allmain.c:602-616):
+```c
+(*occupation)();           // run one occupation callback
+if (monster_nearby()) {    // check AFTER callback, BEFORE return
+    stop_occupation();
+    reset_eat();
+}
+runmode_delay_output();
+return;                    // return to outer loop
+```
+
+**Branch** (`runOccupationStep`):
+```javascript
+const cont = await occ.fn(game);        // run one occupation callback
+if (game.occupation && monsterNearby(…)) // check AFTER callback
+    await stop_occupation(game);
+return { ran: true, prompt: … };         // return to caller
+```
+
+The `monster_nearby()` / `stop_occupation()` check happens at the same
+owner boundary in both: after the occupation callback, before returning
+to the loop. **Verified correct.**
+
+### 2. runmode_delay_output attachment: NOT APPLICABLE
+
+C calls `runmode_delay_output()` at line 615, after `stop_occupation()`
+and before `return`. This function only does anything when `context.run`
+or `multi` is active AND `flags.runmode != RUN_TPORT`. For occupation
+steps, `context.run` is 0 (occupations don't set it), so
+`runmode_delay_output()` is a no-op. The branch doesn't call it in the
+occupation path, which is correct — it would do nothing.
+
+If a future scenario requires it, it can be added after
+`runOccupationStep` returns and before `continue`. **No action needed.**
+
+### 3. Prompt-producing occupation callbacks: CORRECT
+
+C's occupation callback can return 0 (done), non-zero (continue), or
+trigger prompts mid-callback. In C, prompts block synchronously via
+`nhgetch()` inside the callback — the occupation owns input throughout.
+
+The branch's `runOccupationStep` handles this via `cont === 'prompt'`:
+when the occupation pauses on a prompt, it returns `{ prompt: true }`.
+The caller in `_gameLoopStep` sees `step.prompt` would be true, but
+looking at the code — the occupation path in `_gameLoopStep` does:
+```javascript
+await advanceTimedTurn(this, {});
+await runOccupationStep(this);
+this.renderAndAutosave({ autosave: true });
+continue;
+```
+
+When `runOccupationStep` returns with `prompt: true`, the code still
+does `renderAndAutosave` then `continue`. On the next iteration,
+`this.occupation` is still set (not cleared), so the occupation branch
+fires again. But `hasPendingCommandBoundaryDismiss` won't trigger because
+there's no --More-- from the prompt — the prompt will be handled by
+`promptStep` inside `runOneCommandCycle` on a subsequent key.
+
+Wait — actually the prompt path is more subtle. When an occupation
+pauses on a prompt, the NEXT key should go to the prompt handler, NOT
+to another occupation step. The `_gameLoopStep` loop would check
+`this.occupation` (still true) and try to run another occupation step
++ advanceTimedTurn, which is wrong.
+
+However, `_drainOccupation` (which is still called from
+`finalizeTimedCommand` in `run_command`) handles prompt breaks with
+`if (step.prompt) break;`. The `_gameLoopStep` occupation path does NOT
+have this break — it always `continue`s.
+
+**This needs verification:** does any session use prompt-producing
+occupations (eating tin with "Langstroth's?" prompt)? If so, the
+`_gameLoopStep` path might re-enter `advanceTimedTurn` when it should
+instead consume the prompt key. The old `_drainOccupation` correctly
+breaks on prompt. The `_gameLoopStep` path should also check
+`step.prompt` and, if true, fall through to the `nhgetch` path instead
+of `continue`-ing.
+
+**Suggested fix:**
+```javascript
+if (this.multi >= 0 && this.occupation) {
+    await advanceTimedTurn(this, {});
+    const step = await runOccupationStep(this);
+    this.renderAndAutosave({ autosave: true });
+    if (step.prompt) {
+        // Occupation paused on a prompt — next key goes to prompt handler,
+        // not another occupation step. Fall through to nhgetch.
+    } else {
+        continue;
+    }
+}
+```
+
+## Review Notes — Broad Assessment (from original plan author)
 
 ### Occupation ordering: RESOLVED — branch is correct
 
