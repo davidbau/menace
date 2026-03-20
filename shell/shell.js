@@ -41,7 +41,17 @@ export class Shell {
         if (typeof this.display.cursSet === 'function') this.display.cursSet(1);
         this.scrollBuffer = [];
 
-        if (options.interrupt) {
+        if (options.rows !== undefined) {
+            // Pre-captured rows from localStorage context (coming from another page)
+            for (const row of (options.rows || [])) this.scrollBuffer.push(row);
+            if (options.rows && options.rows.length > 0) {
+                this._addLine('^C', PROMPT_COLOR);
+                this._addLine('Interrupt', OUTPUT_COLOR);
+            } else {
+                this._addLine(`[returned from ${options.app || 'game'}]`, OUTPUT_COLOR);
+            }
+            this._addLine('', OUTPUT_COLOR);
+        } else if (options.interrupt) {
             // Capture current screen content, then scroll it up with ^C
             this._captureScreen();
             this._addLine('^C', PROMPT_COLOR);
@@ -609,7 +619,7 @@ export class Shell {
 // getch: async function returning a character code
 // Show a login prompt and loop until rodney/yendor is entered.
 // Then run a clean shell session; on exit, loop back to login prompt.
-async function runLoginLoop(display, getch, lifecycle) {
+export async function runLoginLoop(display, getch, lifecycle) {
     while (true) {
         display.clearScreen();
         display.putstr(0, 0, 'Welcome to Menace', CLR_WHITE);

@@ -5,7 +5,29 @@
 import { CLR_RED, CLR_YELLOW, CLR_BRIGHT_GREEN, CLR_WHITE, CLR_GRAY, CLR_ORANGE } from './display.js';
 import { loadScores, formatTopTenHeader, formatTopTenEntry } from './topten.js';
 import { VERSION_MAJOR, VERSION_MINOR, PATCHLEVEL } from './const.js';
-import { runShell } from '../shell/shell.js';
+const SHELL_CONTEXT_KEY = 'shell_context';
+
+function captureDisplayRows(display) {
+    if (!display || !display.grid) return null;
+    const rows = [];
+    for (let r = 0; r < (display.rows || 24); r++) {
+        let lastNonSpace = -1;
+        const cells = [];
+        for (let c = 0; c < (display.cols || 80); c++) {
+            const cell = display.grid[r]?.[c];
+            const ch = cell?.ch || ' ';
+            cells.push({ ch, color: cell?.color });
+            if (ch !== ' ') lastNonSpace = c;
+        }
+        if (lastNonSpace >= 0) {
+            rows.push({
+                text: cells.slice(0, lastNonSpace + 1).map(c => c.ch).join(''),
+                colors: cells.slice(0, lastNonSpace + 1).map(c => c.color),
+            });
+        }
+    }
+    return rows.length > 0 ? rows : null;
+}
 
 // NETHACK logo — hand-crafted 5×5 pixel-art letterforms
 // Uses sub-block characters (▀▄▌▐▜▛▟▙) to smooth diagonals in N, A, C, K.
@@ -196,11 +218,15 @@ export class Promo {
             sceneIdx++;
         }
 
-        // Ctrl-C: enter secret shell instead of starting a game
+        // Ctrl-C: enter the shell (navigate to /shell/ with captured screen context)
         if (pressedKey === 3) {
-            await runShell(display, nhgetch, { restart: onPlay }, { interrupt: true });
-            // After shell exits, return to promo loop
-            return this.run(display, nhgetch, onPlay);
+            localStorage.setItem(SHELL_CONTEXT_KEY, JSON.stringify({
+                app: 'nethack',
+                user: 'rodney',
+                rows: captureDisplayRows(display),
+            }));
+            window.location.href = '/shell/';
+            return;
         }
 
         onPlay();

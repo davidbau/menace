@@ -16,8 +16,9 @@ async function startGame() {
 
   try {
     await initGame(seed, display, input);
-    // Game ended normally — return to the main shell
-    window.location.href = '/?shell=1';
+    // Game ended normally — return to the shell
+    localStorage.setItem('shell_context', JSON.stringify({ app: 'rogue', user: 'rodney', rows: null }));
+    window.location.href = '/shell/';
   } catch (e) {
     console.error('Rogue error:', e);
   }

@@ -10,15 +10,40 @@ import { VERSION_STRING } from './const.js';
 import { nhgetch } from './input.js';
 import { Promo } from './promo.js';
 import { nhfetch } from './origin_awaits.js';
-import { runShell } from '../shell/shell.js';
 window.MENACE_VERSION = VERSION_STRING;
+
+function captureDisplayRows(display) {
+    if (!display || !display.grid) return null;
+    const rows = [];
+    for (let r = 0; r < (display.rows || 24); r++) {
+        let lastNonSpace = -1;
+        const cells = [];
+        for (let c = 0; c < (display.cols || 80); c++) {
+            const cell = display.grid[r]?.[c];
+            const ch = cell?.ch || ' ';
+            cells.push({ ch, color: cell?.color });
+            if (ch !== ' ') lastNonSpace = c;
+        }
+        if (lastNonSpace >= 0) {
+            rows.push({
+                text: cells.slice(0, lastNonSpace + 1).map(c => c.ch).join(''),
+                colors: cells.slice(0, lastNonSpace + 1).map(c => c.color),
+            });
+        }
+    }
+    return rows.length > 0 ? rows : null;
+}
 
 function createBrowserLifecycle(display, promo, restart) {
     return {
         restart,
         promo: () => promo.run(display, nhgetch, restart),
-        shell: async () => {
-            await runShell(display, nhgetch, { restart }, { interrupt: true });
+        shell: () => {
+            localStorage.setItem('shell_context', JSON.stringify({
+                app: 'nethack', user: 'rodney',
+                rows: captureDisplayRows(display),
+            }));
+            window.location.href = '/shell/';
         },
         replaceUrlParams: (params) => {
             const url = new URL(window.location.href);
@@ -73,14 +98,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     const promo = new Promo();
     registerMenuApis(display, promo, restart);
 
-    // If arriving from hack/rogue quit with ?shell=1, enter shell directly
+    // Legacy redirect: ?shell=1 links now go to /shell/
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('shell') === '1') {
-        // Clear the ?shell=1 from URL to hide the secret
-        window.history.replaceState({}, '', window.location.pathname);
-        await runShell(display, nhgetch, { restart });
-        // After shell exits, go to promo
-        await promo.run(display, nhgetch, restart);
+        window.location.replace('/shell/');
         return;
     }
 

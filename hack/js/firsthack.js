@@ -88,8 +88,9 @@ async function startGame() {
     await gameLoop(seed);
   } catch (e) {
     if (e instanceof GameOver) {
-      // Return to the main shell — like logging out of hack
-      window.location.href = '/?shell=1';
+      // Return to the shell — like logging out of hack
+      localStorage.setItem('shell_context', JSON.stringify({ app: 'hack', user: 'rodney', rows: null }));
+      window.location.href = '/shell/';
       return;
     } else {
       console.error('Hack error:', e);

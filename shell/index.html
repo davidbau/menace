@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A simulated 1982 Unix shell — the secret heart of Mazes of Menace.">
+  <meta name="theme-color" content="#f9f7f1">
+  <title>Unix Shell 1982 -- Mazes of Menace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="preload" href="../assets/fonts/DejaVuSansMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/fonts/dejavu-sans-mono.css">
+  <style>
+    /* ============================================================
+       Design Tokens
+       ============================================================ */
+    :root {
+      --color-bg: #f9f7f1;
+      --color-text: #333;
+      --color-text-muted: #666;
+      --color-accent: #6b2c2c;
+      --color-accent-dark: #4a2020;
+      --color-terminal-bg: #000;
+      --color-terminal-border: #2a2a2a;
+      --color-shadow: rgba(0, 0, 0, 0.15);
+      --font-mono: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace;
+      --font-serif: 'EB Garamond', Georgia, serif;
+      --game-font-size: 16px;
+      --game-line-height: 1.1875;
+      --transition-fast: 0.2s;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-serif);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    #nav-spacer {
+      flex-shrink: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5em;
+      padding: 0.5em 0;
+      font-size: calc(var(--game-font-size) * 1.0);
+      justify-content: center;
+      width: 100%;
+      order: -2;
+    }
+
+    #nav a {
+      color: var(--color-accent-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color var(--transition-fast);
+    }
+
+    #nav a:hover {
+      color: var(--color-accent);
+      text-decoration: underline;
+    }
+
+    #main {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      order: 0;
+    }
+
+    #shell-container {
+      background: var(--color-terminal-bg);
+      border: 3px solid var(--color-terminal-border);
+      padding: 6px;
+      box-shadow: 0 4px 12px var(--color-shadow), 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 16px;
+      min-width: calc(var(--game-font-size) * 80 * 0.60205078125 + 34px);
+      min-height: calc(var(--game-font-size) * 24 * var(--game-line-height) + 34px);
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    #shell-container:focus-within {
+      border-color: var(--color-accent);
+      box-shadow: 0 4px 12px var(--color-shadow), 0 0 0 2px rgba(107,44,44,0.2);
+    }
+
+    #shell-container * {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #loading {
+      color: var(--color-text-muted);
+      font-family: var(--font-serif);
+      font-size: 15px;
+      padding: 20px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-align: center;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      #loading { animation: pulse 2s ease-in-out infinite; }
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+      filter: drop-shadow(0 2px 8px var(--color-shadow));
+    }
+
+    #controls button {
+      background: var(--color-bg);
+      border: 2px solid var(--color-accent);
+      color: var(--color-accent);
+      padding: 0.4em 0.8em;
+      font-size: calc(var(--game-font-size) * 1.0);
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all var(--transition-fast);
+      font-family: var(--font-serif);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .mono-char { font-family: var(--font-mono); }
+
+    #controls button:hover { background: var(--color-accent); color: #fff; }
+    #controls button:active { transform: scale(0.95); }
+
+    #panel-toggle.menu-open {
+      background: var(--color-accent);
+      color: var(--color-bg);
+    }
+
+    #hamburger-menu {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      flex-direction: column;
+      background: var(--color-bg);
+      border: 2px solid var(--color-accent);
+      border-radius: 4px;
+      min-width: 200px;
+      box-shadow: 0 4px 16px var(--color-shadow);
+      z-index: 100;
+    }
+
+    #hamburger-menu.open { display: flex; }
+
+    #hamburger-menu .hm-item {
+      background: none;
+      border: none;
+      border-radius: 0;
+      color: var(--color-accent);
+      padding: 0.25em 1em;
+      text-align: left;
+      cursor: pointer;
+      font-family: var(--font-serif);
+      font-size: calc(var(--game-font-size) * 1.0);
+      white-space: nowrap;
+      width: 100%;
+      transition: background var(--transition-fast), color var(--transition-fast);
+      filter: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .hm-check { display: inline-block; width: 1.2em; }
+
+    #hamburger-menu .hm-item:hover:not(:disabled) {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    #hamburger-menu .hm-item:disabled { opacity: 0.35; cursor: default; }
+
+    .hm-divider { border-top: 1px solid var(--color-accent); margin: 0.3em 0; }
+
+    body.dark-mode {
+      --color-bg: #111;
+      --color-text: #aaa;
+      --color-text-muted: #888;
+      --color-accent: #555;
+      --color-accent-dark: #888;
+      --color-shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    body.dark-mode #controls button { background: #222; }
+    body.dark-mode #controls button:hover { background: #333; border-color: #666; }
+    body.dark-mode #hamburger-menu { background: #222; }
+    body.dark-mode #hamburger-menu .hm-item { background: #222; color: #888; }
+    body.dark-mode #hamburger-menu .hm-item:hover:not(:disabled) { background: #444; color: #ccc; }
+    body.dark-mode .hm-divider { border-top-color: #444; }
+    body.dark-mode #docs-overlay { background: #1a1a1a; }
+
+    body.fullscreen-mode {
+      background: #000;
+      overflow: hidden;
+    }
+
+    body.fullscreen-mode #nav,
+    body.fullscreen-mode #nav-spacer,
+    body.fullscreen-mode #controls { display: none; }
+
+    body.fullscreen-mode #shell-container {
+      border: none;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    #docs-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 100;
+      background: var(--color-bg);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s;
+      overflow-y: auto;
+    }
+
+    #docs-overlay.open { opacity: 1; visibility: visible; }
+
+    #minimap-dismiss {
+      position: fixed;
+      z-index: 103;
+      width: 26px;
+      height: 26px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #fffff8;
+      color: #1a1a1a;
+      border: 1px solid rgba(0,0,0,0.25);
+      border-radius: 50%;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, background 0.15s ease;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    #minimap-dismiss:hover { background: #f0ebe0; border-color: rgba(0,0,0,0.4); }
+
+    body.docs-mode.minimap-hover #minimap-dismiss { opacity: 1; }
+
+    body.docs-standalone #page,
+    body.docs-standalone #minimap-dismiss { display: none !important; }
+
+    #docs-content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 2em 1.5em 4em;
+      font-size: 18px;
+      line-height: 1.65;
+    }
+
+    #docs-content h1 { font-size: 2em; color: var(--color-accent-dark); margin: 0 0 0.3em; font-weight: 600; }
+    #docs-content h2 { font-size: 1.4em; color: var(--color-accent-dark); margin: 1.8em 0 0.5em; font-weight: 600; border-bottom: 1px solid #ddd; padding-bottom: 0.2em; }
+    #docs-content h3 { font-size: 1.15em; color: var(--color-accent); margin: 1.4em 0 0.4em; font-weight: 600; }
+    #docs-content p { margin: 0.8em 0; }
+    #docs-content a { color: var(--color-accent); text-decoration: none; }
+    #docs-content a:hover { text-decoration: underline; }
+    #docs-content blockquote { border-left: 3px solid var(--color-accent); margin: 1em 0; padding: 0.5em 1em; color: var(--color-text-muted); font-style: italic; }
+    #docs-content pre, #docs-content code { font-family: var(--font-mono); font-size: 0.82em; }
+    #docs-content pre { background: #f0ede6; padding: 1em; border-radius: 4px; overflow-x: auto; line-height: 1.4; margin: 1em 0; }
+    #docs-content code { background: #f0ede6; padding: 0.15em 0.4em; border-radius: 3px; }
+    #docs-content pre code { background: none; padding: 0; }
+    #docs-content hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+    #docs-content ul, #docs-content ol { margin: 0.8em 0; padding-left: 1.5em; }
+    #docs-content li { margin: 0.3em 0; }
+    #docs-content img { max-width: 100%; height: auto; display: block; margin: 1.5em auto; border-radius: 4px; }
+    #docs-content table { border-collapse: collapse; margin: 1em 0; font-size: 0.92em; }
+    #docs-content th, #docs-content td { border: 1px solid #ccc; padding: 0.35em 0.75em; text-align: left; }
+    #docs-content th { background: #f0ede6; font-weight: 600; color: var(--color-accent-dark); }
+    #docs-content tr:nth-child(even) td { background: #faf8f4; }
+
+    body.docs-mode #page {
+      position: fixed;
+      z-index: 102;
+      width: fit-content;
+      cursor: grab;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      border-radius: 8px;
+      outline: 3px solid var(--color-accent);
+      overflow: hidden;
+      transition: transform 0.4s ease, box-shadow 0.4s ease, left 0.4s ease, top 0.4s ease;
+      pointer-events: auto;
+    }
+
+    body.docs-mode #page:hover {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+      outline-color: var(--color-accent-dark);
+    }
+
+    body.docs-mode #nav,
+    body.docs-mode #nav-spacer,
+    body.docs-mode #controls { display: none; }
+
+    @media (max-width: 700px) {
+      #nav { font-size: 14px; gap: 1em; padding: 0.5em; }
+    }
+  </style>
+</head>
+<body>
+  <div id="page">
+    <nav id="nav" role="navigation">
+      <a href="#reflections" id="reflections-link">Reflections on 1982</a>
+    </nav>
+    <main id="main">
+      <div id="shell-container">
+        <div id="loading">Loading shell...</div>
+      </div>
+    </main>
+    <div id="controls">
+      <button id="font-smaller" title="Decrease font size" aria-label="Decrease font size" tabindex="-1"><span class="mono-char">A</span>&#x2212;</button>
+      <button id="font-larger" title="Increase font size" aria-label="Increase font size" tabindex="-1"><span class="mono-char">A</span>+</button>
+      <button id="panel-toggle" title="Game menu" aria-label="Open game menu" tabindex="-1">&#x2630;</button>
+      <div id="hamburger-menu">
+        <button class="hm-item" id="hm-reset-opts"><span class="hm-check"></span>Reset options</button>
+        <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-nethack"><span class="hm-check"></span>Play NetHack</button>
+        <button class="hm-item" id="hm-hack"><span class="hm-check"></span>Play Hack (1982)</button>
+        <button class="hm-item" id="hm-rogue"><span class="hm-check"></span>Play Rogue (1980)</button>
+        <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-fullscreen"><span class="hm-check"></span>Fullscreen</button>
+        <button class="hm-item" id="hm-darkmode"><span class="hm-check"></span>Dark mode</button>
+      </div>
+    </div>
+    <div id="nav-spacer"></div>
+  </div>
+
+  <!-- Documentation overlay -->
+  <div id="docs-overlay">
+    <div id="docs-content"></div>
+  </div>
+  <button id="minimap-dismiss" title="Dismiss minimap" aria-label="Dismiss minimap"><svg width="14" height="14" viewBox="0 0 12 12"><line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="2" x2="2" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+
+  <script>
+  /* Line-height pre-computation */
+  (function() {
+    var FONT_FAMILY = '"DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace';
+    function measureLineHeight(fontSize) {
+      try {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        ctx.font = fontSize + 'px ' + FONT_FAMILY;
+        var m = ctx.measureText('\u2502');
+        if (m.fontBoundingBoxAscent != null && m.fontBoundingBoxDescent != null) {
+          var h = Math.floor(m.fontBoundingBoxAscent + m.fontBoundingBoxDescent);
+          return Math.max(h / fontSize, 1.0);
+        }
+      } catch(e) {}
+      return 1.1875;
+    }
+    function currentFontSize() {
+      try { return parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) { return 16; }
+    }
+    function applyLineHeight() {
+      var lh = measureLineHeight(currentFontSize());
+      document.documentElement.style.setProperty('--game-line-height', lh);
+    }
+    applyLineHeight();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(applyLineHeight);
+    }
+    window._applyLineHeight = applyLineHeight;
+  })();
+
+  /* Apply saved font size immediately */
+  (function() {
+    var container = document.getElementById('shell-container');
+    if (!container) return;
+    var sz = 16;
+    try { sz = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+    container.style.fontSize = sz + 'px';
+    document.documentElement.style.setProperty('--game-font-size', sz + 'px');
+    if (window._applyLineHeight) window._applyLineHeight();
+  })();
+
+  /* Remove loading div once terminal appears */
+  (function() {
+    var container = document.getElementById('shell-container');
+    if (!container) return;
+    var observer = new MutationObserver(function() {
+      var term = container.querySelector('#terminal');
+      if (term) {
+        var loading = document.getElementById('loading');
+        if (loading) loading.remove();
+        var sz = 16;
+        try { sz = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+        term.style.fontSize = sz + 'px';
+        observer.disconnect();
+      }
+    });
+    observer.observe(container, { childList: true });
+  })();
+
+  /* Nav spacer */
+  (function() {
+    var nav = document.getElementById('nav');
+    var spacer = document.getElementById('nav-spacer');
+    if (!nav || !spacer) return;
+    function sync() { spacer.style.height = nav.offsetHeight + 'px'; }
+    sync();
+    if (window.ResizeObserver) new ResizeObserver(sync).observe(nav);
+    window.addEventListener('resize', sync);
+  })();
+
+  /* Dark mode */
+  (function() {
+    function getColorScheme() {
+      try {
+        var opts = JSON.parse(localStorage.getItem('menace-options')) || {};
+        if ('darkmode' in opts) return String(opts.darkmode) || 'system';
+        var legacy = localStorage.getItem('menace-theme');
+        return legacy === 'dark' ? 'dark' : legacy === 'light' ? 'light' : 'system';
+      } catch(e) { return 'system'; }
+    }
+    function applyColorScheme(scheme) {
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.body.classList.toggle('dark-mode',
+        scheme === 'dark' || (scheme === 'system' && prefersDark));
+    }
+    applyColorScheme(getColorScheme());
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (getColorScheme() === 'system') applyColorScheme('system');
+      });
+    }
+    window._toggleDarkMode = function() {
+      var isDark = document.body.classList.contains('dark-mode');
+      var next = isDark ? 'light' : 'dark';
+      applyColorScheme(next);
+      try {
+        var opts = JSON.parse(localStorage.getItem('menace-options')) || {};
+        opts.darkmode = next;
+        localStorage.setItem('menace-options', JSON.stringify(opts));
+      } catch(e) {}
+    };
+  })();
+
+  /* Font size controls */
+  (function() {
+    function applyFontSize(size) {
+      document.documentElement.style.setProperty('--game-font-size', size + 'px');
+      if (window._applyLineHeight) window._applyLineHeight();
+      var container = document.getElementById('shell-container');
+      if (container) container.style.fontSize = size + 'px';
+      var term = container && container.querySelector('#terminal');
+      if (term) term.style.fontSize = size + 'px';
+    }
+    window._applyFontSize = applyFontSize;
+
+    document.getElementById('font-smaller').addEventListener('click', function() {
+      var size = 16;
+      try { size = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+      size = Math.max(12, size - 2);
+      applyFontSize(size);
+      try { localStorage.setItem('menace-font-size', size); } catch(e) {}
+      this.blur();
+    });
+
+    document.getElementById('font-larger').addEventListener('click', function() {
+      var size = 16;
+      try { size = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+      size = Math.min(24, size + 2);
+      applyFontSize(size);
+      try { localStorage.setItem('menace-font-size', size); } catch(e) {}
+      this.blur();
+    });
+  })();
+
+  /* Hamburger menu */
+  (function() {
+    var panelToggle = document.getElementById('panel-toggle');
+    var menu = document.getElementById('hamburger-menu');
+    var menuBackdrop = null;
+
+    function isOpen() { return menu.classList.contains('open'); }
+
+    function openMenu() {
+      var hasOptions = false;
+      try { hasOptions = !!(localStorage.getItem('menace-options') || localStorage.getItem('menace-font-size')); } catch(e) {}
+      document.getElementById('hm-reset-opts').disabled = !hasOptions;
+
+      var isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+      document.querySelector('#hm-fullscreen .hm-check').textContent = isFs ? '\u2713' : '';
+
+      var isDark = document.body.classList.contains('dark-mode');
+      document.querySelector('#hm-darkmode .hm-check').textContent = isDark ? '\u2713' : '';
+
+      if (!menuBackdrop) {
+        menuBackdrop = document.createElement('div');
+        menuBackdrop.style.cssText = 'position:fixed;inset:0;z-index:9;';
+        menuBackdrop.addEventListener('mousedown', closeMenu);
+        document.body.appendChild(menuBackdrop);
+      }
+      menu.classList.add('open');
+      panelToggle.classList.add('menu-open');
+    }
+
+    function closeMenu() {
+      if (menuBackdrop) { document.body.removeChild(menuBackdrop); menuBackdrop = null; }
+      menu.classList.remove('open');
+      panelToggle.classList.remove('menu-open');
+    }
+
+    panelToggle.addEventListener('click', function() {
+      if (isOpen()) closeMenu(); else openMenu();
+      this.blur();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isOpen()) closeMenu();
+    });
+
+    document.getElementById('font-smaller').addEventListener('mousedown', closeMenu);
+    document.getElementById('font-larger').addEventListener('mousedown', closeMenu);
+
+    document.getElementById('hm-nethack').addEventListener('click', function() { window.location.href = '../'; });
+    document.getElementById('hm-hack').addEventListener('click', function() { window.location.href = '../hack/'; });
+    document.getElementById('hm-rogue').addEventListener('click', function() { window.location.href = '../rogue/'; });
+
+    document.getElementById('hm-reset-opts').addEventListener('click', function() {
+      if (this.disabled) return;
+      try { localStorage.removeItem('menace-options'); } catch(e) {}
+      try { localStorage.removeItem('menace-font-size'); } catch(e) {}
+      var container = document.getElementById('shell-container');
+      if (container) container.style.fontSize = '16px';
+      closeMenu();
+    });
+
+    document.getElementById('hm-darkmode').addEventListener('click', function() {
+      if (window._toggleDarkMode) window._toggleDarkMode();
+      closeMenu();
+    });
+
+    document.getElementById('hm-fullscreen').addEventListener('click', function() {
+      closeMenu();
+      if (window._toggleFullscreen) window._toggleFullscreen();
+    });
+  })();
+
+  /* Fullscreen */
+  (function() {
+    var preFontSize = null;
+
+    function computeFullscreenFontSize() {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var ref = 100;
+      var testEl = document.createElement('span');
+      testEl.style.cssText = 'position:fixed;visibility:hidden;font-family:"DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono",monospace;font-size:' + ref + 'px;line-height:1;';
+      testEl.textContent = '0';
+      document.body.appendChild(testEl);
+      var chWidth = testEl.offsetWidth;
+      document.body.removeChild(testEl);
+      var fromW = Math.floor(vw * ref / (80 * chWidth));
+      var lineH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--game-line-height')) || 1.1875;
+      var fromH = Math.floor(vh / (24 * lineH));
+      return Math.max(8, Math.min(fromW, fromH));
+    }
+
+    var supportsKeyboardLock = ('keyboard' in navigator) && ('lock' in navigator.keyboard);
+
+    function onFullscreenChange() {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      if (fsEl) {
+        document.body.classList.add('fullscreen-mode');
+        if (supportsKeyboardLock) navigator.keyboard.lock(['Escape']).catch(function() {});
+        if (window._applyFontSize) window._applyFontSize(computeFullscreenFontSize());
+      } else {
+        document.body.classList.remove('fullscreen-mode');
+        if (supportsKeyboardLock) navigator.keyboard.unlock();
+        if (window._applyFontSize && preFontSize) window._applyFontSize(preFontSize);
+        preFontSize = null;
+      }
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    window.addEventListener('resize', function() {
+      if (document.body.classList.contains('fullscreen-mode') && window._applyFontSize) {
+        window._applyFontSize(computeFullscreenFontSize());
+      }
+    });
+
+    window._toggleFullscreen = function() {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      if (fsEl) {
+        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
+      } else {
+        try { preFontSize = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+        var el = document.documentElement;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+        if (req) req.call(el).catch(function() {});
+      }
+    };
+  })();
+
+  /* Docs overlay — loads REFLECTIONS.md at #reflections */
+  (function() {
+    var overlay = document.getElementById('docs-overlay');
+    var content = document.getElementById('docs-content');
+    var dismissBtn = document.getElementById('minimap-dismiss');
+    var reflLink = document.getElementById('reflections-link');
+    var page = document.getElementById('page');
+    var loadedDocs = {};
+    var currentDoc = null;
+    var docsOpen = false;
+
+    function renderMarkdown(md) {
+      var html = '';
+      var lines = md.split('\n');
+      var inPre = false, inList = false, inTable = false;
+      var bqLines = [], inBlockquote = false;
+      var paraLines = [];
+
+      function flushPara() {
+        if (paraLines.length) { html += '<p>' + processInline(paraLines.join(' ')) + '</p>\n'; paraLines = []; }
+      }
+      function flushTable() {
+        if (inTable) { html += '</tbody></table>\n'; inTable = false; }
+      }
+      function flushBq() {
+        if (bqLines.length) { html += '<blockquote>' + processInline(bqLines.join(' ')) + '</blockquote>\n'; bqLines = []; }
+        inBlockquote = false;
+      }
+      function processInline(text) {
+        text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure><img alt="$1" src="$2"><figcaption>$1</figcaption></figure>');
+        text = text.replace(/\[([^\]]+)\]\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+        return text;
+      }
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.match(/^```/)) {
+          flushPara(); flushBq();
+          if (!inPre) { if (inList) { html += '</ul>\n'; inList = false; } html += '<pre><code>'; inPre = true; }
+          else { html += '</code></pre>\n'; inPre = false; }
+          continue;
+        }
+        if (inPre) { html += line.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '\n'; continue; }
+        if (line.trim() === '') { flushPara(); flushBq(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } continue; }
+        if (line.match(/^>\s?/)) {
+          flushPara(); inBlockquote = true;
+          var bqText = line.replace(/^>\s?/, '');
+          if (bqText.trim() === '') { flushBq(); } else { bqLines.push(bqText); }
+          continue;
+        } else if (inBlockquote) { flushBq(); }
+        var hMatch = line.match(/^(#{1,6})\s+(.+)/);
+        if (hMatch) { flushPara(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } html += '<h' + hMatch[1].length + '>' + processInline(hMatch[2]) + '</h' + hMatch[1].length + '>\n'; continue; }
+        if (line.match(/^---+\s*$/)) { flushPara(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } html += '<hr>\n'; continue; }
+        if (line.match(/^[-*]\s+/)) { flushPara(); flushTable(); if (!inList) { html += '<ul>\n'; inList = true; } html += '<li>' + processInline(line.replace(/^[-*]\s+/, '')) + '</li>\n'; continue; }
+        if (inList) { html += '</ul>\n'; inList = false; }
+        if (line.match(/^\|/) && line.match(/\|$/)) {
+          flushPara();
+          var cells = line.replace(/^\||\|$/g, '').split('|');
+          if (cells.every(function(c) { return c.trim().match(/^[-: ]+$/); })) continue;
+          var isHeader = !inTable && lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/);
+          if (isHeader) {
+            html += '<table><thead><tr>';
+            cells.forEach(function(c) { html += '<th>' + processInline(c.trim()) + '</th>'; });
+            html += '</tr></thead><tbody>\n';
+            inTable = true;
+          } else {
+            if (!inTable) { html += '<table><tbody>\n'; inTable = true; }
+            html += '<tr>';
+            cells.forEach(function(c) { html += '<td>' + processInline(c.trim()) + '</td>'; });
+            html += '</tr>\n';
+          }
+          continue;
+        }
+        if (inTable) { flushTable(); }
+        paraLines.push(line.trim());
+      }
+      flushPara();
+      if (inPre) html += '</code></pre>\n';
+      if (inList) html += '</ul>\n';
+      flushBq(); flushTable();
+      return html;
+    }
+
+    var MM_OPTS_KEY = 'menace-options';
+    var MM_EDGE = 14, MM_MIN = 0.15, MM_MAX = 0.90, MM_SNAP = 15, MM_DEFAULT_SCALE = 0.50;
+    var mmState = null, mmDidMove = false, mmOverlay = null;
+
+    function computeAnchor(left, top, w, h) {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var cx = left + w/2, cy = top + h/2;
+      var dL = left, dR = vw-left-w, dCH = Math.abs(cx-vw/2);
+      var dT = top,  dB = vh-top-h,  dCV = Math.abs(cy-vh/2);
+      return {
+        hSide: (dL<=dR&&dL<=dCH)?'l':(dR<=dL&&dR<=dCH)?'r':'c',
+        vSide: (dT<=dB&&dT<=dCV)?'t':(dB<=dT&&dB<=dCV)?'b':'m',
+      };
+    }
+    function mmParse(str) {
+      var h='r',hOff=10,v='b',vOff=10,scale=MM_DEFAULT_SCALE;
+      var re=/([lrcbtms])([+-]?\d+)?/g, m;
+      while ((m=re.exec(str||''))!==null) {
+        var n=m[2]!==undefined?parseInt(m[2],10):null;
+        if      (m[1]==='l'){h='l';hOff=n!==null?n:10;}
+        else if (m[1]==='r'){h='r';hOff=n!==null?n:10;}
+        else if (m[1]==='c'){h='c';hOff=n!==null?n:0;}
+        else if (m[1]==='t'){v='t';vOff=n!==null?n:10;}
+        else if (m[1]==='b'){v='b';vOff=n!==null?n:10;}
+        else if (m[1]==='m'){v='m';vOff=n!==null?n:0;}
+        else if (m[1]==='s'){scale=(n!==null?n:50)/100;}
+      }
+      return {hSide:h,hOff:hOff,vSide:v,vOff:vOff,scale:scale};
+    }
+    function mmLoad() {
+      try { return (JSON.parse(localStorage.getItem(MM_OPTS_KEY))||{}).minimap||''; } catch(e){return '';}
+    }
+    function mmSave(left, top, scale) {
+      var vw=window.innerWidth, vh=window.innerHeight;
+      var nw=page.scrollWidth, nh=page.scrollHeight;
+      var w=nw*scale, h=nh*scale;
+      var anch=computeAnchor(left,top,w,h);
+      var hOff=anch.hSide==='l'?left:anch.hSide==='r'?vw-left-w:(left+w/2)-vw/2;
+      var vOff=anch.vSide==='t'?top:anch.vSide==='b'?vh-top-h:(top+h/2)-vh/2;
+      var str=anch.hSide+Math.round(hOff)+anch.vSide+Math.round(vOff)+'s'+Math.round(scale*100);
+      try {
+        var opts=JSON.parse(localStorage.getItem(MM_OPTS_KEY))||{};
+        opts.minimap=str;
+        localStorage.setItem(MM_OPTS_KEY,JSON.stringify(opts));
+      } catch(e){}
+    }
+    function mmRestore() {
+      var d=mmParse(mmLoad());
+      var nw=page.scrollWidth, nh=page.scrollHeight;
+      var vw=window.innerWidth, vh=window.innerHeight;
+      var maxFit=Math.min(MM_MAX,(vw-20)/nw,(vh-20)/nh);
+      var scale=Math.min(d.scale,Math.max(MM_MIN,maxFit));
+      var w=nw*scale, h=nh*scale, left, top;
+      if      (d.hSide==='l') left=d.hOff;
+      else if (d.hSide==='r') left=vw-w-d.hOff;
+      else                    left=vw/2+d.hOff-w/2;
+      if      (d.vSide==='t') top=d.vOff;
+      else if (d.vSide==='b') top=vh-h-d.vOff;
+      else                    top=vh/2+d.vOff-h/2;
+      left=Math.max(-(w*0.8),Math.min(vw-w*0.2,left));
+      top =Math.max(-(h*0.8),Math.min(vh-h*0.2,top));
+      return {left:left,top:top,scale:scale};
+    }
+    function mmApply(pos, instant) {
+      if (instant) { page.style.transition='none'; page.offsetHeight; }
+      page.style.left=pos.left+'px'; page.style.top=pos.top+'px';
+      page.style.right='auto'; page.style.bottom='auto';
+      page.style.transformOrigin='top left';
+      page.style.transform='scale('+pos.scale+')';
+      if (instant) { page.offsetHeight; page.style.transition=''; }
+    }
+    function mmClearStyles() {
+      page.style.left=page.style.top=page.style.right=page.style.bottom='';
+      page.style.transform=page.style.transformOrigin=page.style.transition='';
+      page.style.cursor='';
+    }
+    function mmEdges(e) {
+      var rect=page.getBoundingClientRect();
+      var x=e.clientX-rect.left, y=e.clientY-rect.top, w=rect.width, h=rect.height;
+      return {L:x<MM_EDGE,R:x>w-MM_EDGE,T:y<MM_EDGE,B:y>h-MM_EDGE,rect:rect,w:w,h:h};
+    }
+    function mmCursorForEdges(ed) {
+      if(ed.L&&ed.T)return 'nw-resize'; if(ed.R&&ed.T)return 'ne-resize';
+      if(ed.L&&ed.B)return 'sw-resize'; if(ed.R&&ed.B)return 'se-resize';
+      if(ed.L)return 'w-resize'; if(ed.R)return 'e-resize';
+      if(ed.T)return 'n-resize'; if(ed.B)return 's-resize';
+      return 'grab';
+    }
+    function mmUpdateCursor(e) {
+      if (mmState) return;
+      page.style.cursor=mmCursorForEdges(mmEdges(e));
+    }
+
+    page.addEventListener('mousemove', function(e) { if (docsOpen) mmUpdateCursor(e); });
+    page.addEventListener('mousedown', function(e) {
+      if (!docsOpen) return;
+      e.preventDefault();
+      var ed=mmEdges(e), onEdge=ed.L||ed.R||ed.T||ed.B;
+      var scale=page.scrollWidth?ed.w/page.scrollWidth:MM_DEFAULT_SCALE;
+      mmState={mode:onEdge?'resize':'drag',edges:ed,mx0:e.clientX,my0:e.clientY,
+               left0:ed.rect.left,top0:ed.rect.top,w0:ed.w,h0:ed.h,scale0:scale,
+               nw:page.scrollWidth,nh:page.scrollHeight,
+               anchor:computeAnchor(ed.rect.left,ed.rect.top,ed.w,ed.h)};
+      mmDidMove=false;
+      var cur=onEdge?mmCursorForEdges(ed):'grabbing';
+      mmOverlay=document.createElement('div');
+      mmOverlay.style.cssText='position:fixed;inset:0;z-index:9999;cursor:'+cur;
+      document.body.appendChild(mmOverlay);
+      page.style.transition='none';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!mmState) return;
+      var dx=e.clientX-mmState.mx0, dy=e.clientY-mmState.my0;
+      if (Math.abs(dx)>2||Math.abs(dy)>2) mmDidMove=true;
+      var pos;
+      if (mmState.mode==='drag') {
+        pos={left:mmState.left0+dx, top:mmState.top0+dy, scale:mmState.scale0};
+      } else {
+        var ed=mmState.edges;
+        var newW=mmState.w0+(ed.R?dx:ed.L?-dx:0);
+        var newH=mmState.h0+(ed.B?dy:ed.T?-dy:0);
+        var vw=window.innerWidth, vh=window.innerHeight;
+        var maxScale=Math.min((vw-20)/mmState.nw,(vh-20)/mmState.nh,MM_MAX);
+        var scale=Math.max(MM_MIN,Math.min(maxScale,Math.max(newW/mmState.nw,newH/mmState.nh)));
+        var w=mmState.nw*scale, h=mmState.nh*scale;
+        var left=ed.L?mmState.left0+mmState.w0-w:mmState.left0;
+        var top=ed.T?mmState.top0+mmState.h0-h:mmState.top0;
+        pos={left:left,top:top,scale:scale};
+      }
+      mmApply(pos, false);
+    });
+    document.addEventListener('mouseup', function(e) {
+      if (!mmState) return;
+      if (mmOverlay) { document.body.removeChild(mmOverlay); mmOverlay=null; }
+      if (mmDidMove) {
+        var rect=page.getBoundingClientRect();
+        var scale=page.scrollWidth?rect.width/page.scrollWidth:MM_DEFAULT_SCALE;
+        mmSave(rect.left,rect.top,scale);
+      }
+      mmState=null;
+    });
+
+    function openDocs(animate, docFile, hash) {
+      if (!loadedDocs[docFile]) {
+        fetch('../' + docFile)
+          .then(function(r) { return r.text(); })
+          .then(function(md) {
+            loadedDocs[docFile] = renderMarkdown(md);
+            if (currentDoc === docFile) content.innerHTML = loadedDocs[docFile];
+          })
+          .catch(function() { content.innerHTML = '<p>Could not load document. <a href="../' + docFile + '">View directly</a>.</p>'; });
+        content.innerHTML = '<p style="padding:2em;color:#999">Loading...</p>';
+      } else {
+        content.innerHTML = loadedDocs[docFile];
+      }
+      currentDoc = docFile;
+      docsOpen = true;
+      overlay.classList.add('open');
+      document.body.classList.add('docs-mode');
+      dismissBtn.style.display = 'flex';
+      if (animate) {
+        var pos = mmRestore();
+        mmApply(pos, true);
+      }
+      history.replaceState(null, '', hash);
+    }
+
+    function closeDocs() {
+      docsOpen = false;
+      overlay.classList.remove('open');
+      document.body.classList.remove('docs-mode');
+      document.body.classList.remove('minimap-hover');
+      dismissBtn.style.display = 'none';
+      dismissBtn.style.opacity = '0';
+      dismissBtn.style.pointerEvents = 'none';
+      mmClearStyles();
+      history.replaceState(null, '', window.location.pathname);
+    }
+
+    function dismissMinimap() {
+      closeDocs();
+    }
+
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay || e.target === content) return;
+      var link = e.target.closest('a');
+      if (!link) closeDocs();
+    });
+
+    page.addEventListener('mouseenter', function() {
+      if (docsOpen) document.body.classList.add('minimap-hover');
+    });
+    page.addEventListener('mouseleave', function() {
+      document.body.classList.remove('minimap-hover');
+    });
+
+    if (reflLink) {
+      reflLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (docsOpen && currentDoc === 'REFLECTIONS.md') closeDocs();
+        else openDocs(true, 'REFLECTIONS.md', '#reflections');
+      });
+    }
+
+    dismissBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dismissMinimap();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (docsOpen) { document.body.classList.remove('minimap-hover'); }
+    }, true);
+
+    window.addEventListener('popstate', function() {
+      if (document.body.classList.contains('docs-standalone')) {
+        document.body.classList.remove('docs-standalone');
+        closeDocs();
+      }
+    });
+
+    if (window.location.hash === '#reflections') {
+      setTimeout(function() { openDocs(false, 'REFLECTIONS.md', '#reflections'); }, 100);
+    }
+  })();
+  </script>
+
+  <script type="module" src="js/entry.js"></script>
+</body>
+</html>
