@@ -9,7 +9,8 @@ import { IS_DOOR, D_LOCKED, D_CLOSED, D_ISOPEN, D_BROKEN, D_NODOOR,
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { Luck, acurr } from './attrib.js';
-import { x_monnam, is_watch } from './mondata.js';
+import { x_monnam } from './do_name.js';
+import { is_watch } from './mondata.js';
 import { KICKING_BOOTS } from './objects.js';
 import { mondead, angry_guards, wake_nearto } from './mon.js';
 import { newsym } from './display.js';
