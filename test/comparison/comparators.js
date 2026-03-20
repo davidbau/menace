@@ -578,7 +578,7 @@ export function isIgnorableEventEntry(entry) {
             || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_')
             || entry.startsWith('^runstep[')
             || entry.startsWith('^place[') || entry.startsWith('^remove[')
-            || entry.startsWith('^repaint['));
+            || entry.startsWith('^repaint[') || entry.startsWith('^more['));
 }
 
 function isTestMoveEvent(entry) {

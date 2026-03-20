@@ -2,6 +2,7 @@
 // Provides an async input queue plus module-level wrappers used by game code.
 
 import { CLR_GRAY } from './render.js';
+import { pushRngLogEntry } from './rng.js';
 import { recordKey, isReplayMode, getNextReplayKey } from './keylog.js';
 import {
     CMDQ_KEY, CMDQ_EXTCMD, CMDQ_DIR, CMDQ_USER_INPUT, CMDQ_INT,
@@ -616,6 +617,8 @@ export async function more(display, {
     refreshStatus = true,
 } = {}) {
     if (!display) return;
+    const topMsg = display?.topMessage || '';
+    pushRngLogEntry(`^more[${site || 'unknown'}${topMsg ? ',' + topMsg.substring(0, 40) : ''}]`);
     const ctxGame = game ?? activeGame ?? null;
     const readMoreKey = (typeof readKey === 'function')
         ? readKey
