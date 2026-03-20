@@ -91,13 +91,18 @@ Key observations:
    - whether `runmode_delay_output()` stays attached to the same iteration
    - whether prompt-producing occupation callbacks still preserve single-owner input semantics
 
-2. **`--More--` dismiss boundary.** The `hasPendingCommandBoundaryDismiss`
-   function reads display state to decide if a --More-- needs dismissing
-   before continuation work. This is pragmatic but fragile — it couples the
-   game loop to display state. C doesn't have this check; C's `more()`
-   fires synchronously during the operation that produces the message,
-   blocking until dismissed. Consider whether the JS message/display
-   system should handle this more naturally instead of polling.
+2. **`--More--` dismiss boundary is partly shared infrastructure, not purely branch logic.**
+   The `hasPendingCommandBoundaryDismiss` function does read display state,
+   but the core boundary rule already exists in shared `nhgetch({ commandBoundary: true })`
+   handling and was introduced by earlier parity fixes for canned follow-up
+   commands and prompt-boundary ownership. So this is not just branch-local
+   improvisation. The real concern is narrower:
+   - whether `_gameLoopStep()` should need its own extra pre-continuation check,
+     or whether the shared command-boundary/input layer can own all of that logic
+   - whether the specific predicates (`messageNeedsMoreBoundary`,
+     `moreMarkerActive`, visible `--More--`) are exactly the right owner signals
+   In other words, this is a maintainability/scope question, not proof that the
+   branch is inventing a brand-new non-C mechanism.
 
 3. **`finalizeTimedCommand` and `_drainOccupation` still exist.** The
    branch extracted helpers but kept the old drain loops. The `while (true)`
