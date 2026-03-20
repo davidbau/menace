@@ -195,9 +195,9 @@ when I stand in front of a classroom now, I honestly wonder what field I
 need to be teaching.
 
 When I was a student, CS was about writing programs. Algorithms, data
-structures, systems, languages. You learned to think computationally:
-to decompose problems, to manage complexity, to build things out of logic
-and patience. The craft of programming was the core of it.
+structures, systems, languages. Thinking computationally, decomposing
+problems, managing complexity. Learning to build things out of logic and
+patience. The craft of assembling programs was at the core of it.
 
 What is the core of it now? My students can get an AI agent to write code
 that would have taken me a week, in ten minutes. The mechanical skill of
