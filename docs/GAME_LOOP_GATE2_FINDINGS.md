@@ -351,3 +351,50 @@ Branch state after this sync:
   - `seed031_manual_direct`
   - `seed032_manual_direct`
   - `seed033_manual_direct`
+
+## Second Mainline Catch-Up: Fixture + Direction + Mhitm Paths
+
+Before doing more branch-local debugging on the manual-direct trio, the branch
+needed to catch up to later exact-C fixes that had already landed on `main`:
+
+1. `eb2acc02b` restore the original `seed033_manual_direct` fixture
+2. `72a978ee7` add missing `confdir()` calls in `dig.js` / `lock.js`
+3. `5c04135bb` split `mhitm_ad_acid` into `uhitm` / `mhitu` / `mhitm`
+4. `3f6f47e14` split `mhitm_ad_fire/cold/elec` into `mhitu` vs `mhitm`
+
+Why these belong on the branch:
+
+- they are exact-C parity fixes, not loop-reorder experiments
+- they reduce branch-vs-main noise before judging merge readiness
+- they are orthogonal to the owner-loop restructure and should not be debugged
+  twice on separate lines of history
+
+What changed on `game-loop-reorder`:
+
+- `seed033_manual_direct.session.json` now matches `main` again
+  - this restores the original fixture that predates the unresolved tutorial
+    alignment / generation-order drift
+- `dig.js` and `lock.js` now call `confdir(false, player)` after direction
+  input, matching C `getdir()`
+- `uhitm.js` now uses the correct C-specific paths for:
+  - acid attacks (`uhitm` vs `mhitu` vs `mhitm`)
+  - fire/cold/elec attacks (`mhitu` vs `mhitm`)
+
+Validation on branch tip after this catch-up:
+
+- [`seed031_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed031_manual_direct.session.json )
+  - unchanged: first RNG step `525`, first event step `526`
+- [`seed032_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed032_manual_direct.session.json )
+  - unchanged: full RNG parity, first screen step `18`
+- [`seed033_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed033_manual_direct.session.json )
+  - fixture restored, but live first RNG divergence still step `1`
+  - current branch mismatch still points at tutorial special-level generation
+    ordering/state, not the restored fixture itself
+- [`theme15_seed986_wiz_artifact-wish_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json ): PASS
+- [`theme35_seed2320_wiz_artifact-combat2_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/round8-scrolls-potions/theme35_seed2320_wiz_artifact-combat2_gameplay.session.json ): PASS
+
+Conclusion:
+
+- this batch is safe branch catch-up, not a new branch-specific theory
+- `seed031` / `seed032` remain the same
+- `seed033` remains a real tutorial-generation parity problem on the branch
