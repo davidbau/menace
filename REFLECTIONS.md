@@ -202,7 +202,7 @@ structures, systems, languages. Thinking computationally, decomposing
 problems, managing complexity. At its core, the craft of assembling programs.
 Learning to build things out of logic and patience.
 
-What is the core of it now? My students can get an AI agent to write code
+What is it becoming? My students can get an AI agent to write code
 that would have taken me a week, in ten minutes. The mechanical skill of programming, our lifetime of practice, is
 dissolving as a bottleneck. If CS was about writing code, then the
 field is over.
@@ -221,9 +221,7 @@ They are the hard part that the mechanical craft obscured. The reality is
 that CS has never really been about writing code. Underneath coding is critical
 thinking about algorithms, engineering principles, analytical methods. It
 is the science of managing complexity, and code is just the medium we
-manage it in. In the era of AI code generation, the field does not
-disappear. It sheds
-its skin. The animal is the same.
+manage it in. In the era of AI code generation, the field does not die. It transforms.
 
 This is not an entirely comforting answer. "Manage complexity" is a lot
 more abstract than "sort a list." It is harder to teach, harder to
