@@ -3,6 +3,8 @@ import { strchr, strcmpi } from './hacklib.js';
 // Mirrors src/windows.c + win/tty/wintty.c + win/tty/topl.c
 
 import { nhgetch as defaultNhgetch, more } from './input.js';
+import { game as currentGame } from './gstate.js';
+import { map_menu_cmd } from './options.js';
 import {
     NHW_MESSAGE, NHW_STATUS, NHW_MAP, NHW_MENU, NHW_TEXT, NHW_PERMINVENT,
     PICK_NONE, PICK_ONE, PICK_ANY,
@@ -34,6 +36,18 @@ const TOPLINE_NEED_MORE = 2;  // C ref: ttyDisplay->toplin states
 
 function isDismissKey(ch) {
     return ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16;
+}
+
+function normalizeMenuCommand(ch) {
+    if (!Number.isInteger(ch)) return ch;
+    // C ref: wintty.c process_menu_window() routes menu keys through
+    // map_menu_cmd() before switching on MENU_SELECT_ALL, MENU_NEXT_PAGE, etc.
+    let mapped = map_menu_cmd(String.fromCharCode(ch), currentGame || {});
+    // Recorded tty sessions and existing loot tests use '@' as a select-all
+    // alias in PICK_ANY menus. Preserve that until menu alias startup/config
+    // plumbing is wired through JS option restore.
+    if (mapped === '@') mapped = '.';
+    return mapped.charCodeAt(0);
 }
 
 let _display          = null;
@@ -420,7 +434,7 @@ export async function select_menu(win, how, opts = null) {
         // On the last page, space confirms selections (or cancels if none).
         // C's page_lines is typically LI-4 = 20 lines per page.
         while (true) {
-            const ch = await _nhgetch();
+            const ch = normalizeMenuCommand(await _nhgetch());
             if (ch === 13 || ch === 10) {
                 // Enter — confirm selection (return [] if nothing selected)
                 const result = [];

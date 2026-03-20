@@ -14085,3 +14085,52 @@ Validation:
   - `seed321_archeologist_wizard_gameplay`: PASS
   - `seed031_manual_direct` returns to its prior `525/526` frontier instead of
     regressing to the bad step-467 special-level seam.
+# 2026-03-20: Floor objects must not retain wornmask bits
+
+- Symptom: `seed031_manual_direct` diverged at pet `dog_goal_start` with
+  `minvent=0` in JS versus `minvent=1` in C immediately after the pet picked up
+  a dart stack.
+- Root cause: the pet split a floor dart stack in `dog_invent()`, cloning the
+  picked item from the floor object. JS floor objects could still carry stale
+  `owornmask` bits (for example `W_QUIVER`), so the cloned inventory object was
+  treated as worn and `droppables(mon)` returned null.
+- Fix: clear `obj.owornmask` in
+  [js/mkobj.js](/share/u/davidbau/git/mazesofmenace/game/js/mkobj.js)
+  `place_object()`. This matches the C invariant that floor objects are on the
+  floor chain, not worn inventory, and closes later split/merge contamination.
+- Validation:
+  - `seed031_manual_direct` improved from first RNG/event divergence
+    `525/526` to `562/565`
+  - `seed16_map`, `seed16_maps_c`, `seed321`, `seed328`, and `t11_s744`
+    remained green
+# 2026-03-20: PICK_ANY menus must honor tty select-all aliases on replayed keys
+
+- Symptom: `seed031_manual_direct` still had a cross-step ownership drift at
+  the gem pickup menu. JS opened the `Pick up what?` menu correctly, but on the
+  confirm step it returned no picks and therefore ran no same-step monster turn.
+- Root cause: generic `PICK_ANY`
+  [js/windows.js](/share/u/davidbau/git/mazesofmenace/game/js/windows.js)
+  only treated `.` as "select all". The recorded tty session used `@` as the
+  select-all key, so JS left the menu empty and deferred gameplay work by one
+  replay step.
+- C anchor:
+  - `win/tty/wintty.c process_menu_window()` maps menu input through
+    `map_menu_cmd()` before handling `MENU_SELECT_ALL`.
+  - Recorded tty sessions in this repo rely on that menu-command alias path for
+    `PICK_ANY` loot/pickup flows.
+- Fix:
+  - normalize `PICK_ANY` menu keys through `map_menu_cmd()` in
+    [js/windows.js](/share/u/davidbau/git/mazesofmenace/game/js/windows.js)
+  - preserve the repo's current `@` select-all alias until full menu-alias
+    option restore is wired through startup/config plumbing
+  - add a unit test in
+    [test/unit/windows_nhwindow.test.js](/share/u/davidbau/git/mazesofmenace/game/test/unit/windows_nhwindow.test.js)
+    covering `@` select-all
+- Validation:
+  - `seed031_manual_direct` improved from first RNG/event divergence
+    `562/565` to `572/572`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+  - `seed032_manual_direct`: unchanged
+  - `seed033_manual_direct`: unchanged
+  - `node --test test/unit/windows_nhwindow.test.js`: PASS
