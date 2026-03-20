@@ -284,7 +284,7 @@ NetHack hard for AI agents.
 
 ## Interesting times
 
-The multiplier is real, but the hard problems do not go away.
+The world changes, but the hard problems do not vanish.
 
 My grandfather was born in 1911 in Shanghai and died in 1995 in Washington,
 DC. He witnessed the creation of the automobile and the jumbo jet. He was a
