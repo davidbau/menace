@@ -32,7 +32,7 @@ import {
     DEADMONSTER,
 } from './mondata.js';
 import { erode_obj } from './trap.js';
-import { mons, AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX, PM_FLOATING_EYE } from './monsters.js';
+import { mons, AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_ENCH, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX, PM_FLOATING_EYE } from './monsters.js';
 import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
@@ -45,7 +45,7 @@ import { mhurtle, will_hurtle } from './dothrow.js';
 import { find_mac } from './worn.js';
 import { mon_wield_item, possibly_unwield, hitval } from './weapon.js';
 import { spec_dbon } from './artifact.js';
-import { resist } from './zap.js';
+import { resist, drain_item } from './zap.js';
 import { breamm, spitmm, thrwmm } from './mthrowu.js';
 
 // NATTK, STRAT_WAITFORU imported from const.js
@@ -342,14 +342,18 @@ export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vi
         return (mdead | mhit);
     }
 
-    // AD_ENCH: drain weapon enchantment
-    // TODO: implement drain_item for mwep
-
     if (mdead || mdef.mcan) return (mdead | mhit);
 
     // Effects only if defender alive and rn2(3) passes
     if (rn2(3)) {
         switch (adtyp) {
+        case AD_ENCH:
+            // C ref: mhitm.c passivemm AD_ENCH — drain weapon enchantment
+            if (mhitb && mwep) {
+                drain_item(mwep, false);
+            }
+            tmp = 0;
+            break;
         case AD_PLYS: {
             // Floating eye / gelatinous cube
             // C ref: mhitm.c passivemm AD_PLYS — "is frozen by" message
