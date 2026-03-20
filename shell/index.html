@@ -657,13 +657,10 @@
       var inPre = false, inList = false, inTable = false;
       var bqLines = [], inBlockquote = false;
       var paraLines = [];
-
       function flushPara() {
         if (paraLines.length) { html += '<p>' + processInline(paraLines.join(' ')) + '</p>\n'; paraLines = []; }
       }
-      function flushTable() {
-        if (inTable) { html += '</tbody></table>\n'; inTable = false; }
-      }
+      function flushTable() { if (inTable) { html += '</tbody></table>\n'; inTable = false; } }
       function flushBq() {
         if (bqLines.length) { html += '<blockquote>' + processInline(bqLines.join(' ')) + '</blockquote>\n'; bqLines = []; }
         inBlockquote = false;
@@ -703,17 +700,8 @@
           var cells = line.replace(/^\||\|$/g, '').split('|');
           if (cells.every(function(c) { return c.trim().match(/^[-: ]+$/); })) continue;
           var isHeader = !inTable && lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/);
-          if (isHeader) {
-            html += '<table><thead><tr>';
-            cells.forEach(function(c) { html += '<th>' + processInline(c.trim()) + '</th>'; });
-            html += '</tr></thead><tbody>\n';
-            inTable = true;
-          } else {
-            if (!inTable) { html += '<table><tbody>\n'; inTable = true; }
-            html += '<tr>';
-            cells.forEach(function(c) { html += '<td>' + processInline(c.trim()) + '</td>'; });
-            html += '</tr>\n';
-          }
+          if (isHeader) { html += '<table><thead><tr>'; cells.forEach(function(c) { html += '<th>' + processInline(c.trim()) + '</th>'; }); html += '</tr></thead><tbody>\n'; inTable = true; }
+          else { if (!inTable) { html += '<table><tbody>\n'; inTable = true; } html += '<tr>'; cells.forEach(function(c) { html += '<td>' + processInline(c.trim()) + '</td>'; }); html += '</tr>\n'; }
           continue;
         }
         if (inTable) { flushTable(); }
@@ -726,6 +714,7 @@
       return html;
     }
 
+    // ── Minimap drag / resize / persist ──────────────────────────────────
     var MM_OPTS_KEY = 'menace-options';
     var MM_EDGE = 14, MM_MIN = 0.15, MM_MAX = 0.90, MM_SNAP = 15, MM_DEFAULT_SCALE = 0.50;
     var mmState = null, mmDidMove = false, mmOverlay = null;
@@ -819,7 +808,9 @@
       page.style.cursor=mmCursorForEdges(mmEdges(e));
     }
 
-    page.addEventListener('mousemove', function(e) { if (docsOpen) mmUpdateCursor(e); });
+    page.addEventListener('mousemove', function(e) {
+      if (docsOpen) mmUpdateCursor(e);
+    });
     page.addEventListener('mousedown', function(e) {
       if (!docsOpen) return;
       e.preventDefault();
@@ -840,91 +831,157 @@
       if (!mmState) return;
       var dx=e.clientX-mmState.mx0, dy=e.clientY-mmState.my0;
       if (Math.abs(dx)>2||Math.abs(dy)>2) mmDidMove=true;
-      var pos;
       if (mmState.mode==='drag') {
-        pos={left:mmState.left0+dx, top:mmState.top0+dy, scale:mmState.scale0};
-      } else {
-        var ed=mmState.edges;
-        var newW=mmState.w0+(ed.R?dx:ed.L?-dx:0);
-        var newH=mmState.h0+(ed.B?dy:ed.T?-dy:0);
+        var rawL=mmState.left0+dx, rawT=mmState.top0+dy;
         var vw=window.innerWidth, vh=window.innerHeight;
-        var maxScale=Math.min((vw-20)/mmState.nw,(vh-20)/mmState.nh,MM_MAX);
-        var scale=Math.max(MM_MIN,Math.min(maxScale,Math.max(newW/mmState.nw,newH/mmState.nh)));
-        var w=mmState.nw*scale, h=mmState.nh*scale;
-        var left=ed.L?mmState.left0+mmState.w0-w:mmState.left0;
-        var top=ed.T?mmState.top0+mmState.h0-h:mmState.top0;
-        pos={left:left,top:top,scale:scale};
+        var w=mmState.scale0*mmState.nw, h=mmState.scale0*mmState.nh;
+        page.style.left=(Math.abs(rawL-(vw-w)/2)<MM_SNAP?(vw-w)/2:rawL)+'px';
+        page.style.top =(Math.abs(rawT-(vh-h)/2)<MM_SNAP?(vh-h)/2:rawT)+'px';
+      } else {
+        var e_=mmState.edges, scale=mmState.scale0;
+        if (e_.R||e_.L) { var sh=e_.R?(mmState.w0+dx)/mmState.nw:(mmState.w0-dx)/mmState.nw; scale=sh; }
+        if (e_.B||e_.T) { var sv=e_.B?(mmState.h0+dy)/mmState.nh:(mmState.h0-dy)/mmState.nh; scale=(e_.R||e_.L)?(scale+sv)/2:sv; }
+        scale=Math.max(MM_MIN,Math.min(MM_MAX,scale));
+        var anch=mmState.anchor;
+        var left=anch.hSide==='r'?mmState.left0+mmState.w0-scale*mmState.nw:
+                 anch.hSide==='c'?mmState.left0+mmState.w0/2-scale*mmState.nw/2:mmState.left0;
+        var top=anch.vSide==='b'?mmState.top0+mmState.h0-scale*mmState.nh:
+                anch.vSide==='m'?mmState.top0+mmState.h0/2-scale*mmState.nh/2:mmState.top0;
+        page.style.left=left+'px'; page.style.top=top+'px';
+        page.style.transform='scale('+scale+')';
       }
-      mmApply(pos, false);
     });
-    document.addEventListener('mouseup', function(e) {
+    document.addEventListener('mouseup', function() {
       if (!mmState) return;
+      page.style.transition='';
       if (mmOverlay) { document.body.removeChild(mmOverlay); mmOverlay=null; }
-      if (mmDidMove) {
-        var rect=page.getBoundingClientRect();
-        var scale=page.scrollWidth?rect.width/page.scrollWidth:MM_DEFAULT_SCALE;
-        mmSave(rect.left,rect.top,scale);
+      if (!mmDidMove) {
+        if (mmState.mode==='resize') { mmState=null; return; }
+        mmState=null; closeDocs(); return;
       }
+      var bcrW=page.getBoundingClientRect().width;
+      var scale=page.scrollWidth?bcrW/page.scrollWidth:MM_DEFAULT_SCALE;
+      mmSave(parseFloat(page.style.left)||0, parseFloat(page.style.top)||0, scale);
       mmState=null;
+      positionDismissBtn();
     });
+    window.addEventListener('resize', function() {
+      if (docsOpen) { mmApply(mmRestore(),true); positionDismissBtn(); }
+    });
+    (typeof ResizeObserver!=='undefined') && new ResizeObserver(function() {
+      if (!docsOpen||mmState) return;
+      mmApply(mmRestore(),true); positionDismissBtn();
+    }).observe(page);
+    // ── end minimap ───────────────────────────────────────────────────────
+
+    function positionDismissBtn() {
+      if (!docsOpen) return;
+      var rect = page.getBoundingClientRect();
+      dismissBtn.style.display = 'flex';
+      dismissBtn.style.pointerEvents = 'auto';
+      dismissBtn.style.left = (rect.right - 30) + 'px';
+      dismissBtn.style.top = (rect.top + 4) + 'px';
+    }
 
     function openDocs(animate, docFile, hash) {
+      docFile = docFile || 'REFLECTIONS.md';
+      hash = hash || '#reflections';
       if (!loadedDocs[docFile]) {
+        content.innerHTML = '<p style="color:#888;">Loading...</p>';
         fetch('../' + docFile)
           .then(function(r) { return r.text(); })
-          .then(function(md) {
-            loadedDocs[docFile] = renderMarkdown(md);
-            if (currentDoc === docFile) content.innerHTML = loadedDocs[docFile];
-          })
+          .then(function(md) { content.innerHTML = renderMarkdown(md); loadedDocs[docFile] = true; currentDoc = docFile; })
           .catch(function() { content.innerHTML = '<p>Could not load document. <a href="../' + docFile + '">View directly</a>.</p>'; });
-        content.innerHTML = '<p style="padding:2em;color:#999">Loading...</p>';
-      } else {
-        content.innerHTML = loadedDocs[docFile];
+      } else if (currentDoc !== docFile) {
+        fetch('../' + docFile)
+          .then(function(r) { return r.text(); })
+          .then(function(md) { content.innerHTML = renderMarkdown(md); currentDoc = docFile; });
       }
       currentDoc = docFile;
-      docsOpen = true;
+      document.body.classList.remove('docs-standalone');
       overlay.classList.add('open');
-      document.body.classList.add('docs-mode');
-      dismissBtn.style.display = 'flex';
-      if (animate) {
-        var pos = mmRestore();
-        mmApply(pos, true);
-      }
+      overlay.scrollTop = 0;
+      docsOpen = true;
       history.replaceState(null, '', hash);
+
+      if (animate) {
+        var fromRect = page.getBoundingClientRect();
+        document.body.classList.add('docs-mode');
+        var target = mmRestore();
+        mmApply(target, true);
+        var nw = page.scrollWidth;
+        var dx = fromRect.left - target.left;
+        var dy = fromRect.top - target.top;
+        var si = nw > 0 ? fromRect.width / nw : 1;
+        page.style.transition = 'none';
+        page.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + si + ')';
+        page.offsetHeight;
+        page.style.transition = '';
+        page.style.transform = 'scale(' + target.scale + ')';
+      } else {
+        document.body.classList.add('docs-mode');
+        mmApply(mmRestore(), true);
+      }
+      requestAnimationFrame(positionDismissBtn);
     }
 
     function closeDocs() {
-      docsOpen = false;
+      // FLIP: animate minimap zooming back to full size
+      var first = page.getBoundingClientRect();
       overlay.classList.remove('open');
       document.body.classList.remove('docs-mode');
+      document.body.classList.remove('docs-standalone');
       document.body.classList.remove('minimap-hover');
-      dismissBtn.style.display = 'none';
-      dismissBtn.style.opacity = '0';
-      dismissBtn.style.pointerEvents = 'none';
       mmClearStyles();
+      dismissBtn.style.display = 'none';
+      docsOpen = false;
       history.replaceState(null, '', window.location.pathname);
+
+      var last = page.getBoundingClientRect();
+      var dx = first.left - last.left, dy = first.top - last.top;
+      var sx = first.width / last.width, sy = first.height / last.height;
+      page.style.transformOrigin = '0 0';
+      page.style.transform = 'translate('+dx+'px,'+dy+'px) scale('+sx+','+sy+')';
+      page.offsetHeight;
+      page.style.transition = 'transform 0.4s ease';
+      page.style.transform = '';
+      function cleanup() {
+        page.removeEventListener('transitionend', cleanup);
+        page.style.transition = page.style.transformOrigin = page.style.transform = '';
+        var term = document.getElementById('terminal');
+        if (term) term.focus();
+      }
+      page.addEventListener('transitionend', cleanup);
+      setTimeout(cleanup, 500);
     }
 
+    // Dismiss: hide the minimap but keep reading. Navigates to /REFLECTIONS.
     function dismissMinimap() {
-      closeDocs();
+      document.body.classList.add('docs-standalone');
+      document.body.classList.remove('minimap-hover');
+      history.replaceState(null, '', '/REFLECTIONS');
     }
-
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay || e.target === content) return;
-      var link = e.target.closest('a');
-      if (!link) closeDocs();
-    });
 
     page.addEventListener('mouseenter', function() {
-      if (docsOpen) document.body.classList.add('minimap-hover');
+      if (!docsOpen) return;
+      positionDismissBtn();
+      document.body.classList.add('minimap-hover');
     });
-    page.addEventListener('mouseleave', function() {
+    page.addEventListener('mouseleave', function(e) {
+      if (e.relatedTarget === dismissBtn) return;
+      document.body.classList.remove('minimap-hover');
+    });
+    dismissBtn.addEventListener('mouseenter', function() {
+      document.body.classList.add('minimap-hover');
+    });
+    dismissBtn.addEventListener('mouseleave', function() {
       document.body.classList.remove('minimap-hover');
     });
 
     if (reflLink) {
       reflLink.addEventListener('click', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         if (docsOpen && currentDoc === 'REFLECTIONS.md') closeDocs();
         else openDocs(true, 'REFLECTIONS.md', '#reflections');
       });
