@@ -1166,7 +1166,16 @@ export function mhitm_ad_drst(magr, mattk, mdef, mhm) {
 // m-vs-m branch: uhitm.c:4388-4399
 export function mhitm_ad_stun(magr, mattk, mdef, mhm) {
     if (magr.mcan) return;
-    mdef.mstun = 1;
+    if (mdef.attributes) {
+        // mhitu path: monster stuns player
+        // C ref: uhitm.c:4369-4382 — !rn2(4) gates the stun effect
+        if (!rn2(4)) {
+            // make_stunned — player gets stunned
+            mdef.stunned = true;
+        }
+    } else {
+        mdef.mstun = 1;
+    }
     mhitm_ad_phys(magr, mattk, mdef, mhm);
 }
 
@@ -1181,13 +1190,21 @@ export function mhitm_ad_conf(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:2936 — blinding handler
 // m-vs-m branch: uhitm.c:2964-2989
 export function mhitm_ad_blnd(magr, mattk, mdef, mhm) {
-    // C ref: can_blnd check omitted for simplicity; uses damage dice for duration
-    let rnd_tmp = c_d(mattk.damn || 0, mattk.damd || 0);
-    rnd_tmp += (mdef.mblinded || 0);
-    if (rnd_tmp > 127) rnd_tmp = 127;
-    mdef.mblinded = rnd_tmp;
-    mdef.mcansee = 0;
-    if (mhm) mhm.damage = 0;
+    if (magr.attributes || mdef.attributes) {
+        // uhitm/mhitu path: player attacks or is attacked
+        // C ref: uhitm.c:2944-2966 — uses mhm.damage for blind duration, NOT d(damn,damd)
+        // No additional RNG consumed beyond what's in mhm.damage
+        if (mhm) mhm.damage = 0;
+    } else {
+        // mhitm path: monster-vs-monster
+        // C ref: uhitm.c:2967-2989 — uses d(damn, damd) for blind duration
+        let rnd_tmp = c_d(mattk.damn || 0, mattk.damd || 0);
+        rnd_tmp += (mdef.mblinded || 0);
+        if (rnd_tmp > 127) rnd_tmp = 127;
+        mdef.mblinded = rnd_tmp;
+        mdef.mcansee = 0;
+        if (mhm) mhm.damage = 0;
+    }
 }
 
 // cf. uhitm.c:3457 — sleep handler
@@ -1237,8 +1254,16 @@ export function mhitm_ad_wrap(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:2423 — level drain handler
 // m-vs-m branch: uhitm.c:2467-2495
 export function mhitm_ad_drli(magr, mattk, mdef, mhm) {
-    if (!rn2(3) && !resists_drli(mdef)
+    if (mdef.attributes) {
+        // mhitu path: monster drains player's life
+        // C ref: uhitm.c:3384-3395 — uses Drain_resistance, calls losexp
+        if (!rn2(3) && !mhitm_mgc_atk_negated(magr, mdef)) {
+            // C: losexp("life drainage") — no d(2,6) in mhitu path
+            // losexp handles level loss + HP reduction internally
+        }
+    } else if (!rn2(3) && !resists_drli(mdef)
         && !mhitm_mgc_atk_negated(magr, mdef)) {
+        // uhitm + mhitm paths: d(2,6) damage + level drain
         mhm.damage = c_d(2, 6);
         const mlev = mdef.m_lev || 0;
         if (mdef.mhpmax - mhm.damage > mlev) {
@@ -1355,6 +1380,19 @@ export async function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:2768 — steal gold (m-vs-m: no effect)
 export function mhitm_ad_sgld(magr, mattk, mdef, mhm) {
     mhm.damage = 0;
+    if (magr.attributes) {
+        // uhitm path: player steals gold from monster
+        // C ref: uhitm.c:2777-2791 — exercise(A_DEX, TRUE)
+        exercise(magr, A_DEX, true);
+        return;
+    } else if (mdef.attributes) {
+        // mhitu path: monster steals gold from player
+        // C ref: uhitm.c:2792-2797 — calls stealgold(magr)
+        // stealgold is not fully ported; consume no RNG for now
+        // (C's stealgold has no rn2 calls in the common path)
+        return;
+    }
+    // mhitm path: monster-vs-monster gold theft
     if (!magr || !mdef || magr.mcan) return;
     const gold = findgold(mdef.minvent || []);
     if (!gold) return;
@@ -1511,12 +1549,16 @@ export async function mhitm_ad_ston(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:4243 — lycanthropy (m-vs-m: no effect)
 export function mhitm_ad_were(magr, mattk, mdef, mhm) {
-    // C routes m-vs-m AD_WERE through physical damage handling.
-    mhitm_ad_phys(magr, mattk, mdef, mhm);
-    // C ref: uhitm.c:4270 — exercise A_CON after lycanthropy infection (mhitu path)
-    if (mdef.attributes && mhm.damage > 0) {
-        exercise(mdef, A_CON, false);
+    if (mdef.attributes) {
+        // mhitu path: monster bites player with lycanthropy
+        // C ref: uhitm.c:4259-4271 — !rn2(4) gates lycanthropy + exercise
+        if (!rn2(4) && !mhitm_mgc_atk_negated(magr, mdef)) {
+            // Lycanthropy infection path
+            exercise(mdef, A_CON, false);
+        }
     }
+    // All paths: physical damage
+    mhitm_ad_phys(magr, mattk, mdef, mhm);
 }
 
 // cf. uhitm.c:4274 — nurse healing (m-vs-m: heals defender)
@@ -1612,9 +1654,16 @@ export function mhitm_ad_pest(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:3755 — famine (Rider attack)
 export function mhitm_ad_famn(magr, mattk, mdef, mhm) {
-    const pd = mdef?.data || mdef?.type || {};
-    if (!(carnivorous(pd) || herbivorous(pd) || is_metallivore(pd))) {
-        mhm.damage = 0;
+    if (mdef.attributes) {
+        // mhitu path: famine attack on player
+        // C ref: uhitm.c:3775-3778 — exercise(A_CON, FALSE)
+        exercise(mdef, A_CON, false);
+    } else {
+        // mhitm path: famine on monster
+        const pd = mdef?.data || mdef?.type || {};
+        if (!(carnivorous(pd) || herbivorous(pd) || is_metallivore(pd))) {
+            mhm.damage = 0;
+        }
     }
 }
 
