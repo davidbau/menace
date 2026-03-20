@@ -1,5 +1,79 @@
 # Game Loop Reorder Plan
 
+## Review Notes (from original plan author)
+
+I reviewed the branch implementation (`a818b2930`) against the original
+design intent. The work is solid and the gate-based methodology is rigorous.
+Key observations:
+
+### What's working well
+
+1. **One-step helpers are correct.** `runNegativeMultiStep` and
+   `runOccupationStep` faithfully match C's per-iteration model — one step,
+   then return. This is exactly what the plan called for.
+
+2. **The `while (true)` loop in `_gameLoopStep` is the right structure.**
+   It keeps multiple no-input iterations within one replay step, preserving
+   the invariant that the other engineer identified: "a single replay key
+   step may own multiple C-faithful no-input iterations." This avoids the
+   naive one-step-per-return regression.
+
+3. **The `context.move` gate on `multi < 0` is a genuine C discovery.**
+   C only enters the negative-multi continuation when the previous command
+   set `context.move`. The branch found and encoded this rule, fixing real
+   session regressions.
+
+4. **No pending/deferred state.** The branch correctly avoids continuation
+   tokens. The `while (true)` loop is immediate — it checks game state
+   flags and acts, exactly as C's `moveloop_core` loop does.
+
+### Concerns and suggestions
+
+1. **Occupation ordering: `advanceTimedTurn` before `runOccupationStep`.**
+   In `_gameLoopStep`, the occupation branch runs `advanceTimedTurn` then
+   `runOccupationStep`. But in C's `moveloop_core`, Phase D (occupation)
+   runs BEFORE Phase B (monsters) on the NEXT iteration. The current
+   ordering means monsters run, then occupation runs — but C does
+   occupation first, then returns, and monsters run at the top of the NEXT
+   iteration. This might be equivalent for RNG but the callstack order
+   differs from C. Worth verifying with a session that has occupation
+   (eating, digging).
+
+2. **`--More--` dismiss boundary.** The `hasPendingCommandBoundaryDismiss`
+   function reads display state to decide if a --More-- needs dismissing
+   before continuation work. This is pragmatic but fragile — it couples the
+   game loop to display state. C doesn't have this check; C's `more()`
+   fires synchronously during the operation that produces the message,
+   blocking until dismissed. Consider whether the JS message/display
+   system should handle this more naturally instead of polling.
+
+3. **`finalizeTimedCommand` and `_drainOccupation` still exist.** The
+   branch extracted helpers but kept the old drain loops. The `while (true)`
+   in `_gameLoopStep` partially duplicates their logic. Eventually these
+   should converge — either `_gameLoopStep` fully owns continuation
+   dispatch (and `finalizeTimedCommand` becomes just `advanceTimedTurn`),
+   or the helpers are the sole owners. Having both creates maintenance risk.
+
+4. **Travel path isn't restructured yet.** Travel still calls
+   `moveloop_core` directly (line ~2537) rather than going through the
+   continuation loop. This is fine for now but should eventually match
+   the pattern used for occupation and negative-multi.
+
+5. **Missing main branch fixes.** The branch doesn't have the alignment
+   propagation fix (`df75e5085`), bhit area sweep, confdir sweep, or
+   LEVEL_SPECIFIC_NOCORPSE fixes from main. Merging main would bring
+   436→439 and include other parity improvements. The merge has conflicts
+   (tried and aborted) — should be done carefully.
+
+### Overall assessment
+
+The branch is on the right track. The key insight — keeping continuations
+within one `_gameLoopStep` call via a `while (true)` loop — is correct and
+avoids the regression that naive per-return dispatch caused. The work is
+evidence-driven and gate-based as requested. It should be mergeable to main
+once the occupation ordering is verified and the main branch fixes are
+integrated.
+
 ## Status
 
 This is a constrained investigation plan, not an approved migration.
