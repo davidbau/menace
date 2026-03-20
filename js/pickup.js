@@ -30,7 +30,8 @@ import { instapetrify, m_at } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym, canspotmon, docrt } from './display.js';
 import { currency, compactInvletPromptChars, freeinv, addinv,
-         inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried } from './invent.js';
+         inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried,
+         loot_classify } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
 import { touch_artifact } from './artifact.js';
 import { makemon, makemon_appear, set_malign } from './makemon.js';
@@ -1233,6 +1234,14 @@ async function handlePickup(player, map, display, game = null) {
                 const bi = inv_order.indexOf(String.fromCharCode(bc));
                 return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
             }
+            // C ref: invent.c sortloot_cmp() uses loot_classify() within class,
+            // so armor/tool/gem subclasses stay in C order before name tiebreaks.
+            const sa = { orderclass: 0, subclass: 0, disco: 0, inuse: 0 };
+            const sb = { orderclass: 0, subclass: 0, disco: 0, inuse: 0 };
+            loot_classify(sa, a);
+            loot_classify(sb, b);
+            if (sa.subclass !== sb.subclass) return sa.subclass - sb.subclass;
+            if (sa.disco !== sb.disco) return sa.disco - sb.disco;
             // C ref: invent.c sortloot_cmp() uses loot_xname(), which reduces
             // to cxname_singular(obj), so quantity/article prefixes do not
             // perturb pickup menu letter assignment.

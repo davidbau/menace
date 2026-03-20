@@ -14463,3 +14463,54 @@ When a correct parity fix regresses a session:
     - `seed032_manual_direct`: unchanged
     - `seed033_manual_direct`: unchanged
   - `node scripts/test-unit-core.mjs`: PASS
+
+# 2026-03-20: Multi-pickup same-class ordering must respect `loot_classify()` before name
+
+- Evidence on branch `armoroff-general-fix`:
+  - recorded `seed031_manual_direct` fixture around the dwarf pile expects the
+    first wear help list to be:
+    - `w - a pair of hard shoes`
+    - `x - a hooded cloak`
+  - live JS on both `main` and `armoroff-general-fix` instead produced:
+    - `w = hooded cloak`
+    - `x = hard shoes`
+  - focused pickup tracing showed why:
+    - during the multi-object `Pick up what?` loop, JS processed the selected
+      armor in this order:
+      - `hooded cloak`
+      - `hard shoes`
+    - but the recorded C menu/result order requires:
+      - `hard shoes`
+      - `hooded cloak`
+- Root cause:
+  - [js/pickup.js](/share/u/davidbau/git/mazesofmenace/game/js/pickup.js)
+    was only grouping by `inv_order`, then sorting same-class objects by
+    `cxname_singular()`
+  - that misses C `invent.c sortloot_cmp()` behavior, which runs
+    `loot_classify()` within class first, then uses the name only as a later
+    tiebreaker
+  - for armor, `loot_classify()` subclass order puts boots before cloaks, so
+    the JS comparator was reversing the C pickup processing order for this case
+- Fix:
+  - keep the existing pickup-menu path
+  - within same object class, use `loot_classify()` subclass/discovery ordering
+    first, then the existing `cxname_singular()` name tiebreak, then `o_id`
+  - do not replace the whole pickup path with generic `sortloot()`; that was
+    too broad for this call site and regressed the seed much earlier
+- Validation on branch `armoroff-general-fix`:
+  - `seed031_manual_direct` improved:
+    - first RNG divergence `637 -> 733`
+    - first event divergence `638 -> 736`
+  - targeted guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - unchanged controls:
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - `node scripts/test-unit-core.mjs`: PASS
+- Lesson:
+  - for pickup-menu parity, “same class, then name” is not enough
+  - if a menu later drives inventory letters, the processing order must match C
+    `loot_classify()` semantics, not just the visible names
