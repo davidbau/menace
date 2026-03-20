@@ -1,7 +1,7 @@
 // shell.js -- Main shell loop: prompt, parse, dispatch.
 // Simulates a 1980s Unix login shell using the existing Display class.
 
-import { VirtualFS, USERNAME, HOMEDIR, loginBanner, initDefaultVfsFiles, checkPassword } from './filesystem.js';
+import { VirtualFS, USERNAME, HOMEDIR, loginBanner, loginHeader, lastLoginLine, initDefaultVfsFiles, checkPassword } from './filesystem.js';
 import { getBuiltinCommands } from './commands.js';
 import { ViEditor } from './vi.js';
 import {
@@ -57,6 +57,18 @@ export class Shell {
             this._addLine('^C', PROMPT_COLOR);
             this._addLine('Interrupt', OUTPUT_COLOR);
             this._addLine('', OUTPUT_COLOR);
+        } else if (options.loginLines) {
+            // Came from runLoginLoop — continue scrolling below the typed credentials
+            for (const row of options.loginLines) this.scrollBuffer.push(row);
+            this._addLine(lastLoginLine(), OUTPUT_COLOR);
+            this._addLine('', OUTPUT_COLOR);
+            const motd = this.fs.cat('/etc/motd');
+            if (motd) {
+                for (const line of motd.split('\n')) {
+                    this._addLine(line, OUTPUT_COLOR);
+                }
+                this._addLine('', OUTPUT_COLOR);
+            }
         } else {
             this.display.clearScreen();
             // Show login banner (generated with current date/time)
@@ -614,54 +626,77 @@ export class Shell {
     }
 }
 
-// Main entry point: run the shell, returning when done.
-// display: Display instance
-// getch: async function returning a character code
-// Show a login prompt and loop until rodney/yendor is entered.
-// Then run a clean shell session; on exit, loop back to login prompt.
+// Show a login prompt, loop until correct credentials, then run a shell session.
+// The login lines scroll naturally — no fixed-row positioning.
 export async function runLoginLoop(display, getch, lifecycle) {
-    while (true) {
-        display.clearScreen();
-        display.putstr(0, 0, 'Welcome to Menace', CLR_WHITE);
-        display.flush();
+    const ROWS = display.rows || 24;
+    const COLS = display.cols || 80;
 
-        // Read a raw line on the given row, optionally with echo suppressed
-        async function readRaw(row, prompt, echo) {
-            display.putstr(0, row, prompt, CLR_WHITE);
-            display.setCursor(prompt.length, row);
+    while (true) {
+        // Scroll buffer for the login screen
+        const loginBuf = [];
+
+        function addLoginLine(text) {
+            loginBuf.push({ text, color: OUTPUT_COLOR });
+            if (loginBuf.length > ROWS - 1) loginBuf.shift();
+        }
+
+        // Render loginBuf + current input line
+        function render(prompt, inputText, echo) {
+            const inputRow = Math.min(loginBuf.length, ROWS - 1);
+            const maxRows = ROWS - 1;
+            for (let i = 0; i < maxRows; i++) {
+                display.clearRow(i);
+                if (i < loginBuf.length) {
+                    const e = loginBuf[i];
+                    display.putstr(0, i, e.text.slice(0, COLS), e.color);
+                }
+            }
+            display.clearRow(inputRow);
+            display.putstr(0, inputRow, prompt, CLR_WHITE);
+            if (echo) {
+                display.putstr(prompt.length, inputRow, inputText, CLR_WHITE);
+            }
+            if (typeof display.setCursor === 'function') {
+                display.setCursor(prompt.length + (echo ? inputText.length : 0), inputRow);
+            }
             display.flush();
+        }
+
+        async function readLine(prompt, echo) {
             let line = '';
+            render(prompt, line, echo);
             while (true) {
                 const ch = await getch();
                 if (ch === 13 || ch === 10) break;
                 if (ch === 8 || ch === 127) {
-                    if (line.length > 0) {
-                        line = line.slice(0, -1);
-                        if (echo) {
-                            display.putstr(prompt.length, row, line + ' ', CLR_WHITE);
-                            display.setCursor(prompt.length + line.length, row);
-                            display.flush();
-                        }
-                    }
+                    if (line.length > 0) line = line.slice(0, -1);
                 } else if (ch >= 32 && ch < 127) {
                     line += String.fromCharCode(ch);
-                    if (echo) {
-                        display.putstr(prompt.length, row, line, CLR_WHITE);
-                        display.setCursor(prompt.length + line.length, row);
-                        display.flush();
-                    }
                 }
+                render(prompt, line, echo);
             }
             return line;
         }
 
-        const username = await readRaw(1, 'login: ', true);
-        const password = await readRaw(2, 'password: ', false);
+        // Show UNIX header then prompts
+        display.clearScreen();
+        display.flush();
+        addLoginLine(loginHeader());
+        addLoginLine('');
+        render('login: ', '', true);
+
+        const username = await readLine('login: ', true);
+        addLoginLine('login: ' + username);
+
+        const password = await readLine('password: ', false);
+        addLoginLine('password: ');
+        addLoginLine('');
 
         if (username === USERNAME && await checkPassword(password)) {
-            // Successful login — run a clean shell; loop back on exit
+            // Successful login — continue scrolling below the typed credentials
             const shell = new Shell(display, getch);
-            const result = await shell.run({});
+            const result = await shell.run({ loginLines: loginBuf });
             if (result && result.action === 'launch') {
                 const game = result.game;
                 display.clearScreen();
@@ -678,9 +713,9 @@ export async function runLoginLoop(display, getch, lifecycle) {
             }
             // Shell exited normally — loop back to login prompt
         } else {
-            // Wrong credentials
-            display.putstr(0, 3, 'Login incorrect', CLR_WHITE);
-            display.flush();
+            // Wrong credentials — show message then restart
+            addLoginLine('Login incorrect');
+            render('', '', false);
             await new Promise(r => setTimeout(r, 2000));
         }
     }

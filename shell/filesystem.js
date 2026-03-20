@@ -106,7 +106,11 @@ const MOTD = `                      Welcome to the dungeon!
   Have fun, but remember — the Dungeon Master is always watching.`;
 
 // Generate the login banner programmatically
-export function loginBanner() {
+export function loginHeader() {
+    return 'UNIX PDP-11/70 (pdp11)';
+}
+
+export function lastLoginLine() {
     const now = new Date();
     const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -116,7 +120,11 @@ export function loginBanner() {
     const h = String(now.getHours()).padStart(2, '0');
     const min = String(now.getMinutes()).padStart(2, '0');
     const s = String(now.getSeconds()).padStart(2, '0');
-    return `UNIX PDP-11/70 (pdp11)\n\nlogin: ${USERNAME}\nLast login: ${d} ${m} ${day} ${h}:${min}:${s} on tty07`;
+    return `Last login: ${d} ${m} ${day} ${h}:${min}:${s} on tty07`;
+}
+
+export function loginBanner() {
+    return `${loginHeader()}\n\nlogin: ${USERNAME}\n${lastLoginLine()}`;
 }
 
 const PASSWD = `root:x:0:0:Charlie Root:/root:/bin/csh
