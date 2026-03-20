@@ -3,19 +3,18 @@
 // restrap/hider premove, mm_aggression, zombie_maker
 //
 // INCOMPLETE / MISSING vs C mon.c:
-// - No xkilled/monkilled/mondied (monster death processing)
-// - No grow_up/mon_adjust_speed
-// - No mpickstuff/mpickgold (full item pickup logic — stub in monmove.js)
-// - No minliquid (monsters falling in pools/lava)
-// - mfndpos: no ALLOW_DIG for tunneling monsters with picks
-// - mfndpos: ALLOW_SANCT flag set but in_your_sanctuary gate not checked
+// - grow_up/mon_adjust_speed: grow_up in makemon.js, mon_adjust_speed partial
+// - minliquid: monsters falling in pools/lava — partial implementation
 // - mfndpos: no poison gas region avoidance (NhRegion not ported)
 // - mfndpos: no worm segment crossing (long worm not ported)
-// - mon_allowflags: ALLOW_DIG not set (needs monster wielded pick tracking)
 // - mon_allowflags: Conflict ALLOW_U not implemented
-// - mon_allowflags: is_vampshifter NOGARLIC not ported
-// - passivemm: only AD_ACID/AD_ENCH/generic modeled; many passive types missing
 // - handleHiderPremove: no mimic furniture/object appearance selection
+//
+// IMPLEMENTED (formerly missing):
+// - xkilled/monkilled/mondied: full death chain implemented
+// - mfndpos: ALLOW_DIG for tunneling monsters — in mon_allowflags
+// - mon_allowflags: ALLOW_DIG, NOGARLIC for vampshifter — implemented
+// - passivemm: AD_ACID, AD_ENCH, AD_PLYS, AD_COLD, AD_STUN, AD_FIRE, AD_ELEC
 
 import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, IS_TREE, ACCESSIBLE,
          POOL, ROOM, WATER, LAVAWALL, IRONBARS,

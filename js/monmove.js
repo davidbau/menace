@@ -5,19 +5,22 @@
 //
 // INCOMPLETE / MISSING vs C monmove.c:
 // - dochug: no Conflict handling (C:870), no covetous/quest/vault guards
-// - dochug: m_respond() implemented — shrieker rn2(10)+makemon, medusa gazemu, erinyes aggravate
-// - dochug: find_defensive/find_misc implemented in muse.js (2500+ lines)
-// - dochug: mind_blast RNG-faithful (rn2(20) gate, hero lock-on, monster loop), losehp stubbed
-// - dochug: flees_light: artifact_light only checks Sunsword and gold dragon scales (C:555)
+// - dochug: mind_blast RNG-faithful but losehp stubbed
+// - dochug: flees_light: artifact_light limited to Sunsword + gold dragon scales
 // - m_move: no boulder-pushing by strong monsters (C:2020)
 // - m_move: no vault guard movement (C:1730)
 // - m_move: covetous monster teleport-to-hero not implemented (C:1737)
-// - m_move_aggress: uses full mattackm (all attack slots); retaliation implemented
-// - set_apparxy: displacement displacement-offset details simplified
-// - shk_move: delegated to shk.js; remaining fidelity gaps are tracked in shk parity issues
+// - set_apparxy: displacement-offset details simplified
 // - undesirable_disp: not yet implemented (C:2279)
-// - distfleeck: in_your_sanctuary implemented (priest.js); flees_light implemented
 // - mon_allowflags: Conflict ALLOW_U not implemented
+//
+// IMPLEMENTED:
+// - dochug: m_respond (shrieker+makemon, medusa gazemu, erinyes aggravate)
+// - dochug: find_defensive/find_misc (muse.js, 2500+ lines)
+// - m_move_aggress: full mattackm (all attack slots) + retaliation
+// - m_balks_at_approaching: launcher+ammo, polearm, ranged attack retreat
+// - distfleeck: in_your_sanctuary, flees_light, onscary
+// - shk_move: delegated to shk.js
 
 import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, CORR, DOOR, D_NODOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_TRAPPED, D_BROKEN,
