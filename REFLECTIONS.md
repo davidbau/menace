@@ -257,9 +257,11 @@ not exist without one. Before the 1850s, the area behind Boston was a
 swampy tidal flat. The invention of the steam shovel and the locomotive made
 it possible, for the first time, to move earth at an industrial scale. And
 Bostonians chose to use this new capability to reshape the land: to fill in
-the bay and create a new neighborhood. The project took thirty years. Huge
-land-filling projects are not as visible around Boston today, although we
-still do them from time to time.
+the bay and create a new neighborhood. The project took thirty years, and
+filling up the neighborhood with buildings took another fifty. Our awareness
+of the historical bottlenecks and swamps that used to hem in the city are
+falling away, but the old challenges have been replaced by a new set of
+aspirations.
 
 The steam shovel was an enormous force multiplier. It did not make civil
 engineering irrelevant. It changed what civil engineers could decide to do.
