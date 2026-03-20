@@ -14593,3 +14593,47 @@ effect was missing.
   - special-level scripts may set provisional flags like `mazelevel`, but
     procedural generators such as `mkmap()` still own the final terrain-mode
     flags used later by digging, room checks, and pet movement
+
+# 2026-03-20: turn-end random spawn depth must use `level_difficulty()`
+
+- Evidence in `seed031_manual_direct` after the Mines flag fix:
+  - first RNG/event divergence had moved to step `743`
+  - JS diverged in turn-end random monster generation at:
+    - `rn2(10)=6 @ makemon(...)`
+  - C diverged at the corresponding point with:
+    - `rn2(9)=0 @ rndmonst_adj(...)`
+  - focused `RNDMON_OWNER` tracing showed JS was calling `rndmonst_adj()` with:
+    - `depth=1 ulevel=4 diff=0-2`
+  - that came from JS passing branch-local `player.dungeonLevel` into
+    `makemon_appear()` during `moveloop_turnend()`
+- Root cause:
+  - C `allmain.c` turn-end spawn uses `makemon(NULL, ...)`
+  - C `makemon.c rndmonst_adj()` derives monster difficulty from
+    `level_difficulty()`, not branch-local level number
+  - on Mines levels, `level_difficulty()` is branch-aware and is not the same
+    as `u.uz.dlevel`
+  - JS was using branch-local depth for turn-end spawns, which built the wrong
+    random-monster reservoir on Mines and shifted RNG at the first turn-end
+    spawn after the pet seam
+- Fix:
+  - in [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js),
+    changed turn-end `makemon_appear(null, ...)` to pass:
+    - `level_difficulty(map.uz, game)`
+    instead of `(game.u || game.player).dungeonLevel`
+- Validation:
+  - `seed031_manual_direct` improved:
+    - first RNG divergence `743 -> 933`
+    - first event divergence `743 -> 934`
+  - targeted guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - nearby controls still fail for their pre-existing reasons:
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - `node scripts/test-unit-core.mjs`: PASS
+- Lesson:
+  - branch-local dungeon level is not a safe substitute for C
+    `level_difficulty()` in runtime generation paths; branch-aware difficulty
+    must be preserved anywhere random monster strength is chosen

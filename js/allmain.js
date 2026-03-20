@@ -46,7 +46,7 @@ import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vi
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
-import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth } from './dungeon.js';
+import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto, maybe_lvltport_feedback } from './do.js';
 import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          loadFlags, saveFlags, deserializeRng,
@@ -359,7 +359,14 @@ export async function moveloop_turnend(game) {
     const spawnRate = player?.uevent?.udemigod ? 25
         : (playerDepth > 27 ? 50 : 70);
     if (!rn2(spawnRate)) {
-        await makemon_appear(null, 0, 0, 0, (game.u || game.player).dungeonLevel, (game.lev || game.map));
+        await makemon_appear(
+            null,
+            0,
+            0,
+            0,
+            level_difficulty((game.lev || game.map).uz, game),
+            (game.lev || game.map)
+        );
     }
 
     // C ref: allmain.c:238 u_calc_moveamt(wtcap)
