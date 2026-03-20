@@ -1108,7 +1108,7 @@ async function mhitu_ad_halu(monster, attack, player, mhm, ctx) {
 
 // Equipment erosion handlers — hitmsg + erode armor + zero damage
 // C ref: uhitm.c erode_armor(mdef, hurt)
-async function erode_armor_on_player(player, erosionType, display = null) {
+export async function erode_armor_on_player(player, erosionType, display = null) {
     if (!player) return;
     const isPrimary = erosionType === ERODE_RUST;
     const erosionVerb = (etype) => {

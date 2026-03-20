@@ -67,7 +67,7 @@ import { obj_resists } from './objdata.js';
 import { experience, more_experienced, newexplevel, newuexp } from './exper.js';
 import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
-import { applyMonflee } from './mhitu.js';
+import { applyMonflee, erode_armor_on_player } from './mhitu.js';
 import { killed, mondead, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
 import { newsym, canspotmon, map_invisible } from './display.js';
 import { placeFloorObject } from './invent.js';
@@ -2501,13 +2501,19 @@ export async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_wa
             if (playerHasProp(player, ACID_RES)) {
                 tmp = 0;
             }
-            rn2(30); // erode_armor stub
+            if (!rn2(30)) {
+                // C ref: uhitm.c:5893 — acid splash erodes player armor
+                await erode_armor_on_player(player, ERODE_CORRODE);
+            }
         } else {
             tmp = 0;
         }
         if (mhit && weapon && aatyp === AT_KICK) {
             // C ref: uhitm.c:5902-5905 — boot erosion for AT_KICK only
-            rn2(6); // erode_obj(boots) stub
+            if (!rn2(6)) {
+                const boots = player?.boots;
+                if (boots) erode_obj(boots, null, ERODE_CORRODE, EF_GREASE | EF_VERBOSE);
+            }
         }
         // C ref: uhitm.c:5910 — exercise is unconditional
         if (player) await exercise(player, A_STR, false);
