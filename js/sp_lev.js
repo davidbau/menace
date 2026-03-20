@@ -7073,6 +7073,19 @@ export async function finalize_level() {
     // C ref: mklev.c:1533-1539 — level_finalize_topology()
     // bound_digging marks boundary stone as non-diggable before mineralize
     if (levelState.map) {
+        const ctx = levelState.finalizeContext || {};
+        if (!Number.isInteger(levelState.map._genDnum) && Number.isInteger(ctx.dnum)) {
+            levelState.map._dnum = ctx.dnum;
+            levelState.map._genDnum = ctx.dnum;
+            levelState.map.flags.inhell = (ctx.dnum === GEHENNOM);
+        }
+        if (!Number.isInteger(levelState.map._genDlevel) && Number.isInteger(ctx.dlevel)) {
+            levelState.map._dlevel = ctx.dlevel;
+            levelState.map._genDlevel = ctx.dlevel;
+        }
+        if (typeof ctx.specialName === 'string' && ctx.specialName.startsWith('oracle')) {
+            levelState.map.flags.is_oracle_level = true;
+        }
         bound_digging(levelState.map, {
             isMazeLevelOverride: (levelState.finalizeContext
                 && typeof levelState.finalizeContext.boundDiggingIsMazeLevel === 'boolean')

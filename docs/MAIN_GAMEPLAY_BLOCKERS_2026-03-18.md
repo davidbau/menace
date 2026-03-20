@@ -1576,10 +1576,27 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
   - [`test/comparison/maps/seed16_maps_c.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/maps/seed16_maps_c.session.json)
     - grids: `4/5 -> 5/5`
     - RNG: `10714/13212 -> 12836/12908`
-- Current remaining map frontier:
-  - both `seed16` map sessions still fail later at Oracle finalization:
-    - JS: `rnd(2)=1 @ Module.finalize_level(...)`
-    - C: `rnd(3)=3 @ mineralize(mklev.c:1528)`
+- Exact later root cause:
+  - Oracle special levels were reaching `sp_lev.js finalize_level()` without
+    live special-level identity on the working map
+  - at `mineralize()` time JS had:
+    - `_genDnum/_genDlevel` repaired too late or missing
+    - `flags.is_oracle_level = false`
+  - so JS treated Oracle as an ordinary special level and skipped the Oracle
+    exception path inside `mineralize()`
+- Faithful fix:
+  - in [`js/sp_lev.js`](/share/u/davidbau/git/mazesofmenace/game/js/sp_lev.js)
+    `finalize_level()` now restores missing `_genDnum/_genDlevel` from the
+    exact `finalizeContext`
+  - and marks `flags.is_oracle_level` from `finalizeContext.specialName`
+    before `bound_digging()` / `mineralize()`
+- Validation:
+  - [`test/comparison/maps/seed16_map.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/maps/seed16_map.session.json)
+    - RNG: `12836/12908 -> 12908/12908`
+    - PASS
+  - [`test/comparison/maps/seed16_maps_c.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/maps/seed16_maps_c.session.json)
+    - RNG: `12836/12908 -> 12908/12908`
+    - PASS
 - Do not revive the removed heuristic:
   - the Oracle improvement came from deleting the special-name alignment guess,
     not from refining it

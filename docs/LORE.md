@@ -14008,6 +14008,18 @@ Validation:
     - `seed16_maps_c.session.json`
       - grids improved `4/5 -> 5/5`
       - RNG improved `10714/13212 -> 12836/12908`
-  - Remaining frontier:
-    - a later Oracle `mineralize()` gem-count seam remains:
-      JS `rnd(2)` vs C `rnd(3)`
+  - Later exact fix:
+    - Oracle special levels were entering `sp_lev.js finalize_level()` with a
+      working map that lacked `_genDnum/_genDlevel` and `flags.is_oracle_level`
+    - that made JS `mineralize()` treat Oracle as an ordinary special level
+      instead of the C Oracle exception path
+    - faithful fix: restore missing `_genDnum/_genDlevel` from
+      `finalizeContext` and set `flags.is_oracle_level` from
+      `finalizeContext.specialName` before `bound_digging()` / `mineralize()`
+  - Validation:
+    - `seed16_map.session.json`
+      - RNG improved `12836/12908 -> 12908/12908`
+      - PASS
+    - `seed16_maps_c.session.json`
+      - RNG improved `12836/12908 -> 12908/12908`
+      - PASS
