@@ -91,8 +91,9 @@ class EventMux {
 //    patterns.
 // -------------------------------------------------------------------------
 class RemoteEngine {
-    constructor(mux, character) {
+    constructor(mux, character, name) {
         this._mux = mux;
+        this._name = name || null;
         this._wpm = character.wpm || 60;
         this._typoRate = character.typoRate || 0.04;
         this._thinkMs = character.thinkMs || [800, 2000];
@@ -163,7 +164,13 @@ class RemoteEngine {
     }
 
     _pickResponse(text) {
-        const lower = text.toLowerCase();
+        // Normalize: replace the character's own name with "you" so patterns
+        // that match "you" also fire when the user addresses them by name.
+        let lower = text.toLowerCase();
+        if (this._name) {
+            const escaped = this._name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            lower = lower.replace(new RegExp(`\\b${escaped}\\b`, 'g'), 'you');
+        }
 
         // Feature 4: if we're waiting for a beat reply, use beat's reply list
         if (this._activeBeat) {
@@ -365,7 +372,7 @@ export class TalkSession {
         this._drawLayout();
 
         const mux = new EventMux(this._getch);
-        const engine = new RemoteEngine(mux, this._character);
+        const engine = new RemoteEngine(mux, this._character, this._username);
         engine.onUserMessage(''); // trigger greeting
 
         let running = true;
