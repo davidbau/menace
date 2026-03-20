@@ -956,6 +956,58 @@ async function advanceTimedTurn(game, coreOpts) {
     await display_sync();
 }
 
+// C ref: allmain.c moveloop_core() `gm.multi < 0` branch.
+// Run exactly one negative-multi continuation tick; callers decide whether to
+// loop or return to a higher-level owner.
+async function runNegativeMultiStep(game, coreOpts) {
+    if (!(game?.multi < 0) || game?.playerDied) return false;
+    await advanceTimedTurn(game, coreOpts);
+    return true;
+}
+
+// C ref: allmain.c occupation branch. Run exactly one occupation callback and
+// its immediate post-callback checks; callers decide whether to loop.
+async function runOccupationStep(game) {
+    if (!game?.occupation) return { ran: false, prompt: false };
+
+    const occ = game.occupation;
+    const cont = await occ.fn(game);
+    const finishedOcc = !cont ? occ : null;
+
+    if (cont === 'prompt') {
+        // Occupation has paused on an in-band prompt and will resume or
+        // abort when that prompt consumes subsequent input.
+    } else if (!cont) {
+        // C ref: natural occupation completion clears silently.
+        game.occupation = null;
+        game.pendingPrompt = null;
+    }
+
+    // C ref: allmain.c:610-614 — monster_nearby() check after one occupation
+    // callback and before moveloop returns.
+    if (game.occupation && monsterNearby(
+            (game.lev || game.map), (game.u || game.player), game.fov)) {
+        await stop_occupation(game);
+    }
+
+    if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
+        finishedOcc.onFinishAfterTurn(game);
+    }
+    return { ran: true, prompt: cont === 'prompt' };
+}
+
+function hasPendingCommandBoundaryDismiss(game) {
+    const display = game?.display;
+    if (!display) return false;
+    const hasQueuedCannedBoundary = !!(cmdq_peek(CQ_CANNED) && display?.topMessage);
+    if (hasQueuedCannedBoundary) return true;
+    if (!display?.messageNeedsMore) return false;
+    if (display.moreMarkerActive || display.messageNeedsMoreBoundary) return true;
+    if (typeof display.getScreenLines !== 'function') return false;
+    const lines = display.getScreenLines() || [];
+    return (lines[0] || '').includes('--More--') || (lines[1] || '').includes('--More--');
+}
+
 async function finalizeTimedCommand(game, result, coreOpts) {
     if (!(result && result.tookTime)) return;
     await advanceTimedTurn(game, coreOpts);
@@ -964,7 +1016,7 @@ async function finalizeTimedCommand(game, result, coreOpts) {
     }
     let safety = 0;
     while (game.multi < 0 && !(game?.playerDied)) {
-        await advanceTimedTurn(game, coreOpts);
+        await runNegativeMultiStep(game, coreOpts);
         if (++safety > 5000) break;
     }
     await _drainOccupation(game, coreOpts);
@@ -1037,37 +1089,13 @@ export async function execute_repeat_command(game, opts = {}) {
 // interrupted by an adjacent hostile monster.
 async function _drainOccupation(game, coreOpts) {
     while (game.occupation) {
-        const occ = game.occupation;
-        const cont = await occ.fn(game);
-        const finishedOcc = !cont ? occ : null;
-
-        if (cont === 'prompt') {
-            // Occupation has paused on an in-band prompt and will resume or
-            // abort when that prompt consumes subsequent input.
-        } else if (!cont) {
-            // C ref: natural occupation completion clears silently.
-            game.occupation = null;
-            game.pendingPrompt = null;
-        }
-
-        // C ref: allmain.c:510 — monster_nearby() check BEFORE movemon.
-        // After timed_occupation executes the occupation fn, C checks if a
-        // hostile monster is now adjacent. If so, stop_occupation() is
-        // called BEFORE monster turns, producing messages like
-        // "You stop searching." before "The fox bites!"
-        if (game.occupation && monsterNearby(
-                (game.lev || game.map), (game.u || game.player), game.fov)) {
-            await stop_occupation(game);
-        }
+        const step = await runOccupationStep(game);
+        if (!step.ran) break;
 
         // Occupation step took time — process monster moves + turn-end
         await moveloop_core(game, coreOpts);
         await display_sync();
-
-        if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
-            finishedOcc.onFinishAfterTurn(game);
-        }
-        if (cont === 'prompt') break;
+        if (step.prompt) break;
     }
 }
 
@@ -2503,35 +2531,69 @@ export class NetHackGame {
     }
 
     async _gameLoopStep() {
-        // Travel continuation
-        if (this.travelPath && this.travelStep < this.travelPath.length) {
-            const result = await dotravel_target(this);
-            if (result.tookTime) {
-                await moveloop_core(this);
-            }
-            this.renderAndAutosave({ autosave: false, forceRender: true });
-            return;
-        }
-
-        const firstCh = await nhgetch({ commandBoundary: true });
-        // Command-boundary --More-- dismissal is not a gameplay command.
-        // If a canned command is queued, execute it now before waiting for the
-        // next real gameplay key; C does this after the boundary dismiss key.
-        // Otherwise just refresh the command frame.
-        if (firstCh === 0) {
-            if (cmdq_peek(CQ_CANNED)) {
-                const commandResult = await this.runOneCommandCycle(0);
-                if (!commandResult) return;
-                this.renderAndAutosave({ commandResult, autosave: true });
+        while (true) {
+            // Travel continuation
+            if (this.travelPath && this.travelStep < this.travelPath.length) {
+                const result = await dotravel_target(this);
+                if (result.tookTime) {
+                    await moveloop_core(this);
+                }
+                this.renderAndAutosave({ autosave: false, forceRender: true });
                 return;
             }
-            if (this.player?.Hallucination) return;
-            this.renderAndAutosave({ autosave: false, forceRender: true });
-            return;
+
+            const hasTimedContinuation = (this.context?.move && this.multi < 0 && !(this?.playerDied))
+                || (this.multi >= 0 && this.occupation);
+
+            // C-faithful boundary ownership: if the previous iteration left a
+            // command-boundary --More-- pending, consume only that dismiss key
+            // before running any no-input continuation work.
+            if (hasTimedContinuation && hasPendingCommandBoundaryDismiss(this)) {
+                const boundaryCh = await nhgetch({ commandBoundary: true });
+                if (boundaryCh === 0) continue;
+                const boundaryResult = await this.runOneCommandCycle(boundaryCh);
+                if (!boundaryResult) return;
+                this.renderAndAutosave({ commandResult: boundaryResult, autosave: true });
+                continue;
+            }
+
+            if (this.context?.move && this.multi < 0 && !(this?.playerDied)) {
+                await runNegativeMultiStep(this, {});
+                this.renderAndAutosave({ autosave: true });
+                continue;
+            }
+
+            if (this.multi >= 0 && this.occupation) {
+                await advanceTimedTurn(this, {});
+                await runOccupationStep(this);
+                this.renderAndAutosave({ autosave: true });
+                continue;
+            }
+
+            const firstCh = await nhgetch({ commandBoundary: true });
+            // Command-boundary --More-- dismissal is not a gameplay command.
+            // If a canned command is queued, execute it now before waiting for the
+            // next real gameplay key; C does this after the boundary dismiss key.
+            // Otherwise just refresh the command frame.
+            if (firstCh === 0) {
+                if (cmdq_peek(CQ_CANNED)) {
+                    const commandResult = await this.runOneCommandCycle(0);
+                    if (!commandResult) return;
+                    this.renderAndAutosave({ commandResult, autosave: true });
+                    continue;
+                }
+                if (this.player?.Hallucination) return;
+                this.renderAndAutosave({ autosave: false, forceRender: true });
+                return;
+            }
+            const commandResult = await this.runOneCommandCycle(firstCh);
+            if (!commandResult) return;
+            this.renderAndAutosave({ commandResult, autosave: true });
+            if (!(this.context?.move && this.multi < 0 && !(this?.playerDied))
+                && !(this.multi >= 0 && this.occupation)) {
+                return;
+            }
         }
-        const commandResult = await this.runOneCommandCycle(firstCh);
-        if (!commandResult) return;
-        this.renderAndAutosave({ commandResult, autosave: true });
     }
 
     async runOneCommandCycle(firstCh) {
