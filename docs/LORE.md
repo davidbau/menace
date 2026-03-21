@@ -106,6 +106,36 @@ For the full narratives of how these lessons were discovered, see the
   - keep prompt ownership for input consumption,
   - keep post-command world advancement centralized.
 
+## Exact visible-hostile run stop is required after the owner fix
+
+- On top of the validated travel owner fix in `7feb605cd`, JS still lacked the
+  exact C `domove_core()` gate:
+  - when `context.run` is active and the destination monster is visible (or
+    sensed) and hostile, stop before bump/attack resolution
+- Implementing that gate in [`js/hack.js`](/tmp/mazes_main_compare/js/hack.js)
+  and restoring the adjacent pre-bump `nomul(0)` logic is C-faithful and worth
+  keeping.
+- Validation on `seed031_manual_direct.session.json`:
+  - matched RNG improved to `34371/51561`
+  - matched events improved to `19071/28950`
+  - the old hero-attack mismatch is gone
+  - first remaining RNG mismatch becomes:
+    - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+    - C: `rn2(8)=7 @ m_move(monmove.c:1979)`
+  - first remaining event mismatch becomes:
+    - JS: `^distfleeck[27@27,13 in=1 near=1 ...]`
+    - C: `^distfleeck[27@27,13 in=1 near=0 ...]`
+- The four current gameplay guardrails stayed green:
+  - `t11_s755_w_covmax9_gp.session.json`
+  - `t11_s756_w_covmax10_gp.session.json`
+  - `theme15_seed986_wiz_artifact-wish_gameplay.session.json`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay.session.json`
+- Practical rule:
+  - if a C movement/contact gate is exact, keep it once validated even if the
+    session is not fully green yet
+  - the remaining seam is now monster-side target refresh timing, not hero
+    attack ownership
+
 ## The Cardinal Rules
 
 ### 1. The RNG is the source of truth

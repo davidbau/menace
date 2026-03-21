@@ -1871,6 +1871,27 @@ This points at one more lower-level boundary bug:
 - the repeated-travel timed continuation is still entering monster work one
   slice too early relative to C, even after the owner fix and stop gate
 
+### What is now validated and should stay
+
+The exact C visible-hostile stop gate in `hack.c:2763-2773` is now validated on
+top of the owner fix and should remain part of the port:
+
+- while running/traveling, if the destination monster is hostile and
+  visible/sensed, stop before bump/attack resolution
+- then clear running/travel via the adjacent hostile-contact `nomul(0)` before
+  bump/attack handling
+
+This change is no longer provisional because it:
+
+- removes the old hero-attack mismatch
+- improves `seed031` to the best narrowed seam seen so far:
+  - RNG matched `34371/51561`
+  - events matched `19071/28950`
+- keeps the current gameplay guardrails green
+
+So the next stage should build on that stop gate, not revisit whether it is
+correct.
+
 ### Why this probe was reverted
 
 By the repo standard it still did not move the legacy first-divergence step

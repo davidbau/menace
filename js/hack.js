@@ -46,7 +46,7 @@ import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location, see_nearby_objects } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, is_safemon, mon_visible, sensemon, feel_location as display_feel_location, see_nearby_objects } from './display.js';
 import { couldsee, recalc_block_point } from './vision.js';
 import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
@@ -1001,6 +1001,29 @@ export async function domove_core(dir, player, map, display, game) {
         `mon=${mon ? `${mon.mndx}@${mon.mx},${mon.my}` : 'none'}`,
     );
     if (mon) {
+        // C ref: hack.c:2763-2773 — while running/traveling, stop on visible
+        // hostile contact before bump/attack resolution.
+        if (!is_safemon(mon)) {
+            const protectionFromShapeChangers = !!(player?.Protection_from_shape_changers
+                || player?.protection_from_shape_changers);
+            const visibleWhileRunning = (
+                !(player?.Blind || player?.blind)
+                && mon_visible(mon, player, { map, player, fov: game?.fov || null })
+                && ((M_AP_TYPE(mon) !== M_AP_FURNITURE && M_AP_TYPE(mon) !== M_AP_OBJECT)
+                    || protectionFromShapeChangers)
+            ) || sensemon(mon, player, { map, player, fov: game?.fov || null });
+            if (ctx.run && !has_forcefight_prefix(game, ctx) && visibleWhileRunning) {
+                nomul(0, game);
+                ctx.move = 0;
+                domoveNotime('stop-visible-hostile-while-running');
+                return { moved: false, tookTime: false };
+            }
+        }
+        // C ref: hack.c:2789-2790 — hostile contact (or forcefight) clears
+        // running/travel before bump/attack resolution.
+        if (!is_safemon(mon) || has_forcefight_prefix(game, ctx)) {
+            nomul(0, game);
+        }
         const bump = await domove_bump_mon(mon, null, nopick, game, display);
         if (bump.handled) {
             return { moved: false, tookTime: !!bump.tookTime };
