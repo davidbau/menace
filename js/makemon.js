@@ -101,7 +101,7 @@ import { PIT, SPIKED_PIT, LOW_PM,
     nothing_happens, nothing_seems_to_happen,
     STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
 import {
-    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_align, level_difficulty
+    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, Is_rogue_level, level_align, level_difficulty
 } from './dungeon.js';
 import { newemin } from './minion.js';
 import { qt_montype } from './questpgr.js';
@@ -485,6 +485,9 @@ export function rndmonst_adj(minadj, maxadj, depth) {
         if (questMonster >= 0) return questMonster;
     }
 
+    // C ref: makemon.c:1668 — rogue level prefers uppercase monster symbols
+    const upper = Is_rogue_level(genLevel);
+
     let totalweight = 0;
     let selected_mndx = -1; // NON_PM
 
@@ -516,7 +519,11 @@ export function rndmonst_adj(minadj, maxadj, depth) {
             if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=strong', `diff=${ptr.difficulty}`);
             continue;
         }
-        // upper/elemlevel: not applicable at standard depths
+        // C ref: makemon.c:1680-1681 — rogue level: uppercase monsters only
+        if (upper) {
+            const sym = def_monsyms[ptr.mlet]?.sym || '';
+            if (sym < 'A' || sym > 'Z') continue;
+        }
         if (uncommon(mndx)) {
             if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=uncommon');
             continue;
