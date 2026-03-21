@@ -14862,3 +14862,25 @@ effect was missing.
     single C-shaped travel-step contract
   - otherwise we are still comparing three different JS timings against one C
     timing model
+
+# 2026-03-21: Reordering the top-level travelPath branch was safe but not sufficient
+
+- Probe patch:
+  - in `_gameLoopStep()`, move the top-level `travelPath` branch below:
+    - command-boundary `--More--` dismissal
+    - negative-`multi` continuation
+    - occupation continuation
+- Validation:
+  - `seed031_manual_direct` unchanged:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - the top-level `travelPath` branch is still a real structural mismatch,
+    because C does not have that preempting owner
+  - but moving that branch later in `_gameLoopStep()` is not sufficient by
+    itself to move the first `seed031` seam

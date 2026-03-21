@@ -341,6 +341,16 @@ In other words, the current JS top-level `travelPath` branch is not merely
 "another owner". It is a preempting owner: it runs before the generic
 continuation ordering that C keeps inside `moveloop_core()`.
 
+However, a narrow probe that merely moved the top-level `travelPath` branch
+below `--More--` dismissal, negative-`multi`, and occupation continuation in
+`_gameLoopStep()` was not sufficient by itself:
+- `seed031` remained at first RNG/event divergence `933/934`
+- the four targeted gameplay guardrails stayed green
+
+That means the preempting top-level branch is still a real mismatch, but not
+the whole remaining bug. The repeated-travel framing problem is deeper than
+that one reorder alone.
+
 ## Design Goal
 
 Port JS so that positive `multi` continuation is owned by the JS equivalent of
