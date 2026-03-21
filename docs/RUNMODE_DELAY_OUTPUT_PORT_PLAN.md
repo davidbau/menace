@@ -577,3 +577,112 @@ Practical implication:
   into smaller units so we can place the first repeated `domove()` at the exact
   C boundary, rather than after a helper (`advanceTimedTurn()`) that already
   bundles too much of the moveloop frame
+
+## Stage B Failure: Detailed C Ordering Analysis
+
+*Added by second engineer, 2026-03-21.*
+
+The Stage B failure analysis and `advanceTimedTurn()` bundling insight above
+are correct. Here is the precise C call chain that explains WHY the dog sees
+the old hero position, and what the JS implementation must match.
+
+### C ordering within one `moveloop_core()` iteration
+
+For a positive-multi travel continuation, C executes in strict order:
+
+```
+PHASE 1 — time-passed (lines 253–545, gated by context.move):
+  u.umovement -= NORMAL_SPEED                              // line 255
+  do {
+    monscanmove = movemon();                                // line 306
+    // movemon() iterates all monsters:
+    //   for each mon: dochugw(mon) → dochug(mon)
+    //     dochug: set_apparxy(mon) at monmove.c:791
+    //       → sets mon.mux/muy from CURRENT u.ux/u.uy
+    //       → hero has NOT moved yet this iteration
+    //     dochug: m_move(mon)
+    //       m_move: set_apparxy(mon) again at monmove.c:1776
+    //       m_move: dog_move(mon) at monmove.c:1788
+    //         dog_move: dog_goal() at dogmove.c:1082
+    //           dog_goal: reads u.ux/u.uy for goal calc
+    //           → still the PRE-domove position
+  } while (monscanmove);
+  // ... turn-end processing ...
+
+PHASE 2 — once-per-player-input (lines 547–644):
+  m_everyturn_effect()                                      // line 585
+  context.move = 1                                          // line 589
+  // occupation check (lines 591–617)
+  if (gm.multi > 0):                                        // line 626
+    lookaround()                                            // line 628
+    runmode_delay_output()                                  // line 629
+    if context.mv:
+      domove()                                              // line 638
+      // → u.ux/u.uy NOW updated to new position
+      // → but all monsters already moved in Phase 1
+      //   using the OLD u.ux/u.uy
+```
+
+### The critical invariant
+
+In C, for any single `moveloop_core()` iteration:
+
+1. **All monsters move first** (Phase 1, `movemon()`)
+2. **Using the hero's CURRENT position** (pre-domove)
+3. **Then the hero moves** (Phase 2, `domove()`)
+4. **The hero's new position is only visible to monsters on the NEXT iteration**
+
+`set_apparxy()` always reads the hero position from BEFORE `domove()`. The
+dog evaluates its goal using where the hero IS, not where the hero is ABOUT
+TO move.
+
+### Why the Stage B patch broke this
+
+Because `advanceTimedTurn()` bundles both Phase 1 AND the pre-input sync
+from Phase 2, calling `domove()` after `advanceTimedTurn()` meant the hero
+moved BEFORE the next Phase 1 could run `movemon()` with the old position:
+
+```
+Failed JS (Stage B patch):
+  Iteration N:
+    advanceTimedTurn() → Phase 1 movemon + Phase 2 pre-input sync
+    domove() → u.ux/u.uy updated to (23,13)   ← too early!
+  Iteration N+1:
+    advanceTimedTurn() → Phase 1: movemon → set_apparxy reads u=(23,13)
+                         dog sees ud=5   ← one iteration early
+
+Correct C ordering:
+  Iteration N:
+    Phase 1: movemon() → set_apparxy reads u=(22,14), dog sees ud=8
+    Phase 2: domove() → u.ux/u.uy updated to (23,13)
+  Iteration N+1:
+    Phase 1: movemon() → set_apparxy reads u=(23,13), dog sees ud=5
+    Phase 2: domove() → u.ux/u.uy updated to (24,13)
+```
+
+### What the fix must ensure
+
+As the Stage B Refinement section identifies, the solution is to factor
+`advanceTimedTurn()` so the repeat-travel `domove()` can be placed at the
+exact C boundary — AFTER `movemon()` and pre-input sync, but BEFORE the
+next `movemon()`:
+
+```
+Correct JS sequence for one repeat-travel slice:
+  1. Phase 1: movemon()         → monsters see old hero position
+  2. Phase 2 pre-input sync     → find_ac, vision, m_everyturn_effect
+  3. lookaround()
+  4. runmode_delay_output()
+  5. domove()                   → hero moves to new position
+  6. → return to step 1 for next slice
+```
+
+### Concrete test for correctness
+
+At step 933, after the fix:
+- The dog at (21,17) should see `ud=8` (hero at pre-travel position 22,14)
+  on its first move of this iteration
+- NOT `ud=5` (hero at post-first-hop position 23,13)
+
+The `^dog_invent_decision` event's `ud` field is the direct observable.
+If `ud=8` matches C, the ordering is correct.
