@@ -659,8 +659,10 @@ const RUNTIME_SPECIAL_LEVEL_CANON = new Map([
         { index: 2, canonDlevel: 3 }, // tower3
     ]],
     [TUTORIAL, [
-        { index: 0, canonDlevel: 1, align: A_LAWFUL }, // tut-1
-        { index: 1, canonDlevel: 2, align: A_LAWFUL }, // tut-2
+        // C ref: dungeon.lua tutorial has flags={"mazelike","unconnected"}.
+        // UNCONNECTED=0x10 overlaps D_ALIGN_MASK=0x70: (0x14 & 0x70)>>4 = 1 = AM_CHAOTIC.
+        { index: 0, canonDlevel: 1, align: A_CHAOTIC }, // tut-1
+        { index: 1, canonDlevel: 2, align: A_CHAOTIC }, // tut-2
     ]],
     [QUEST, [
         { index: 0, canonDlevel: 1 }, // x-strt
@@ -5033,6 +5035,8 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                     ? specialMeta.align : undefined;
                 _gstate._dungeonAlign = forcedAlign ?? levelAlign
                     ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
+                // Prevent align_shift cache from overriding this value
+                _gstate._alignShiftMoves = Number.isInteger(_gstate.moves) ? _gstate.moves : 0;
             }
 
             if (DEBUG) console.log(`Generating special level: ${special.name} at (${useDnum}, ${useDlevel})`);

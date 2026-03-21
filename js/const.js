@@ -432,7 +432,10 @@ export const DUNGEON_ALIGN_BY_DNUM = {
     [KNOX]: A_NONE,
     [GEHENNOM]: A_NONE,
     [VLADS_TOWER]: A_CHAOTIC,
-    [TUTORIAL]: A_NONE,
+    // C ref: dungeon.lua tutorial has flags={"mazelike","unconnected"}.
+    // UNCONNECTED=0x10 overlaps D_ALIGN_MASK=0x70: (0x14 & 0x70) >> 4 = 1 = AM_CHAOTIC.
+    // This is a C quirk — the UNCONNECTED flag bleeds into the alignment mask.
+    [TUTORIAL]: A_CHAOTIC,
 };
 
 // AUTO-IMPORT-BEGIN: CONST_ALL_HEADERS
