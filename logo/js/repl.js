@@ -123,10 +123,13 @@ export class LogoRepl {
       }
 
       if (code === 3) {
-        // Ctrl-C — quit Logo, return to shell
+        // Ctrl-C — quit Logo, return to shell as logged-in rodney
         this._write('^C\n');
         this._running = false;
-        if (typeof window !== 'undefined') window.location.href = '/shell/';
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: null })); } catch(e) {}
+          window.location.href = '/shell/';
+        }
         return null;
       }
 
