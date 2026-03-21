@@ -313,6 +313,11 @@ travel step frames in JS for what C treats as one moveloop structure:
 - `_gameLoopStep()` sees `travelPath` and calls `dotravel_target()` again
 - if that takes time, it currently calls only `moveloop_core()`
 - it does not call `syncTimedTurnPreInputState()`
+- and this branch currently runs before the generic timed-continuation path
+  in `_gameLoopStep()`, so travel continuation preempts:
+  - command-boundary `--More--` dismissal
+  - negative-`multi` continuation
+  - occupation continuation
 
 C does not have these three different frames. In C:
 - the initial `_` travel step is just the tail of a normal `rhack(0)` inside
@@ -331,6 +336,10 @@ continuation different visibility timing relative to:
 
 That three-way asymmetry is likely more important than the two local
 invariants by themselves.
+
+In other words, the current JS top-level `travelPath` branch is not merely
+"another owner". It is a preempting owner: it runs before the generic
+continuation ordering that C keeps inside `moveloop_core()`.
 
 ## Design Goal
 
@@ -380,6 +389,9 @@ Important constraint from the failed rewrite:
 - then address the later travel seam (`933/934`)
 - and do not expect local repeated-slice invariants to help until the current
   three-way JS travel framing asymmetry has been eliminated
+- specifically, `_gameLoopStep()` should not let a dedicated `travelPath`
+  branch preempt the generic timed-continuation ordering that C keeps inside
+  `moveloop_core()`
 
 ### 3. Re-enter the once-per-player-input helper from outer runtime drivers
 

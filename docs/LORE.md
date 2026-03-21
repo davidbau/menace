@@ -14851,6 +14851,9 @@ effect was missing.
      `lookaround()` -> repeated `domove()` -> `advanceTimedTurn()`
   3. top-level travel continuation:
      `_gameLoopStep()` -> `dotravel_target()` -> `moveloop_core()` only
+- that top-level travel continuation currently runs before the generic
+  timed-continuation path in `_gameLoopStep()`, so it preempts work that C
+  keeps in `moveloop_core()` ordering
 - C does not have these three different travel-step frames. It has one
   `moveloop_core()` structure whose fresh-command and positive-repeat branches
   live inside the same once-per-player-input phase.
