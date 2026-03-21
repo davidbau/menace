@@ -15295,3 +15295,30 @@ Lesson:
     early before its first post-stop `m_move()`
 - Reverted the probe because the legacy first-divergence step label did not
   move later, but this is the cleanest remaining seam yet
+
+## uncommon() Inhell conditional and G_HELL area sweep (March 21, 2026)
+
+**Root cause**: JS's `uncommon()` always checked `G_HELL` flag regardless of `Inhell`
+state. C's `uncommon()` (makemon.c:1588-1599) has an `Inhell` conditional:
+- When `Inhell`: returns `maligntyp > A_NEUTRAL` (excludes good-aligned monsters)
+- When `!Inhell`: returns `!!(geno & G_HELL)` (excludes hell-only monsters)
+
+**Impact**: During Gehennom level generation, JS incorrectly excluded hell-native
+monsters (like steam vortex, disenchanter) from random monster selection. These
+monsters have the `G_HELL` flag but are neutral/lawful-aligned, so C's `uncommon()`
+includes them in hell (maligntyp ≤ A_NEUTRAL) while JS's version excluded them
+(G_HELL flag set).
+
+**Area sweep found 3 related issues**:
+1. `uncommon()` missing Inhell conditional (makemon.js:422-432)
+2. Missing `G_NOHELL` check in `rndmonst_adj` loop body — C's makemon.c:1686-1687
+   excludes G_NOHELL monsters when in hell. JS had no separate check after `uncommon()`.
+3. `rndmonnum_adj` Plan B fallback — C's mkobj.c:407 uses `Inhell ? G_NOHELL : G_HELL`
+   for exclude flags. JS always used `G_HELL`.
+
+**Verified correct**: `mkclass` variants at lines 716 and 764 already properly
+conditional on `gehennom`/`inhell` for G_HELL/G_NOHELL gating. No change needed.
+
+**Pattern**: When a function has an `Inhell`/`In_hell` conditional in C, check
+all callers and related functions for the same pattern. The G_HELL/G_NOHELL
+distinction is always conditional on being in Gehennom.
