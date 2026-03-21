@@ -472,6 +472,50 @@ What that means:
 - so the next fix must target the **first resumed-command travel slice**
   itself, not just owner routing after that slice
 
+## Further ordering correction from the first-slice analysis
+
+The next focused pass compared:
+- C `allmain.c` positive-repeat branch at lines 620..644
+- C `hack.c:domove()` tail and `runmode_delay_output()`
+- JS replay-owner trace for the authoritative failing step `933`
+
+The important missed detail is:
+- the earliest bad JS work is not merely that step `933` contains too many
+  `domove_target` hops
+- it is that JS step `933` already includes C's *later positive-repeat*
+  monster-turn bundle before C has even reached its first
+  `>runmode_delay_output @ moveloop_core(allmain.c:629)` boundary for the
+  comparable state
+
+Evidence:
+- authoritative JS trace at step `933` begins:
+  - `domove_target from=22,14 to=23,13`
+  - immediately followed by dog turns with `set_apparxy ... u=(23,13)`
+- authoritative C raw window at the first mismatch does **not** yet have that
+  dog bundle there; instead it has:
+  - `rn2(70)=45 @ moveloop_core(allmain.c:341)`
+  - `rn2(20)=19 @ gethungry(eat.c:3186)`
+  - `rn2(79)=55 @ moveloop_core(allmain.c:466)`
+  - `>runmode_delay_output @ moveloop_core(allmain.c:629)`
+  - then monster 27's `distfleeck(...)`
+
+So the refined claim is:
+- JS step `933` is not just over-draining *after* the first resumed travel hop
+- it is already advancing into C's next positive-repeat iteration too early
+- that is why the first JS dog work in step `933` already sees the hero at
+  `(23,13)`, while the comparable C work has not yet exposed that position to
+  the same monster-turn bundle
+
+Implication for the fix:
+- the next implementation should not be framed as:
+  - "keep the first hop, then stop later hops"
+- it must instead make the first resumed `_` step stop at the same C boundary
+  that exists before the positive-repeat branch's `runmode_delay_output()`
+  yields into the next repeated `domove()`
+- in practice, this means the first resumed `_` command slice and the later
+  positive-repeat slice need a unified C-shaped contract; otherwise JS will
+  keep pulling next-iteration monster work into step `933`
+
 ## Design Goal
 
 Port JS so that positive `multi` continuation is owned by the JS equivalent of

@@ -14968,3 +14968,32 @@ Lesson:
   - the next fix has to target the **first resumed-command travel slice**
     inside step `933`, because that is where the earliest bad work still
     begins
+
+# 2026-03-21: The first resumed `_` slice already contains C's later positive-repeat monster work
+
+- A deeper pass compared:
+  - C `allmain.c` positive-repeat branch (`lookaround()` ->
+    `runmode_delay_output()` -> repeated `domove()`)
+  - C `hack.c:domove()` tail
+  - JS replay-owner trace for the authoritative failing step `933`
+- New concrete correction:
+  - JS step `933` is not only wrong because it drains *multiple* travel hops
+  - it is already wrong on the **first resumed slice**, because that slice
+    already contains monster-turn work that C does not expose until the later
+    positive-repeat branch
+- Evidence:
+  - JS step `933` starts:
+    - `domove_target from=22,14 to=23,13`
+    - then immediately kitten turns with `set_apparxy ... u=(23,13)`
+  - the comparable C raw window before the first mismatch instead shows:
+    - `rn2(70)=45 @ moveloop_core(allmain.c:341)`
+    - `rn2(20)=19 @ gethungry(eat.c:3186)`
+    - `rn2(79)=55 @ moveloop_core(allmain.c:466)`
+    - `>runmode_delay_output @ moveloop_core(allmain.c:629)`
+    - then monster 27's `distfleeck(...)`
+- Lesson:
+  - the next fix should not be framed as merely "keep the first hop and stop
+    later hops"
+  - the first resumed `_` slice itself must stop at the same C boundary that
+    exists before the next positive-repeat iteration's monster work becomes
+    visible
