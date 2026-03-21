@@ -122,7 +122,7 @@ describe('Monster creation (C-faithful)', () => {
         assert.ok(gridBug >= 0, 'grid bug should exist in mons[]');
         const mon = makemon(gridBug, 10, 10, MM_ASLEEP, 1, map);
         assert.equal(mon.msleeping, 1);
-        assert.equal(mon.msleeping, true);
+        assert.ok(mon.msleeping, 'monster should be sleeping');
     });
 
     it('leprechauns start asleep by default', () => {
@@ -134,7 +134,7 @@ describe('Monster creation (C-faithful)', () => {
         };
         const mon = makemon(PM_LEPRECHAUN, 11, 10, NO_MM_FLAGS, 1, map);
         assert.equal(mon.msleeping, 1);
-        assert.equal(mon.msleeping, true);
+        assert.ok(mon.msleeping, 'monster should be sleeping');
     });
 
     it('ordinary mimics get numeric appearance state during makemon', () => {

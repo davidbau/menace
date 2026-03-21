@@ -131,16 +131,14 @@ describe('bones surface helpers', () => {
 describe('canMakeBones', () => {
     it('always returns false on level 1', () => {
         initRng(42);
-        const _p = { dungeonLevel: 1 };
-        const game = { u: _p };
+        const game = { u: { dungeonLevel: 1 } };
         assert.equal(canMakeBones(game), false);
     });
 
     it('consumes rn2 on deeper levels', () => {
         initRng(42);
         initLevelGeneration();
-        const _p = { dungeonLevel: 5 };
-        const game = { u: _p };
+        const game = { u: { dungeonLevel: 5 } };
         // Just verify it doesn't throw and returns a boolean
         const result = canMakeBones(game);
         assert.equal(typeof result, 'boolean');
@@ -149,8 +147,7 @@ describe('canMakeBones', () => {
     it('depth 2: rn2(1) always returns 0, so ghost always appears', () => {
         // depth >> 2 = 0, so rn2(1 + 0) = rn2(1) = always 0
         initRng(99);
-        const _p = { dungeonLevel: 2 };
-        const game = { u: _p };
+        const game = { u: { dungeonLevel: 2 } };
         assert.equal(canMakeBones(game), true);
     });
 });

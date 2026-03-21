@@ -46,16 +46,14 @@ test('insight: cause_known supports array and object representations', () => {
 });
 
 test('insight: attributes_enlightenment surface runs on minimal game object', async () => {
-    const _p = { name: 'Hero', role: 'Knight', ulevel: 1, uhp: 10, uhpmax: 10, ac: 10 };
-        const game = { u: _p };
+    const game = { u: { name: 'Hero', role: 'Knight', ulevel: 1, uhp: 10, uhpmax: 10, ac: 10 } };
     const rc = await attributes_enlightenment(0, 0, game);
     // real_attributes_enlightenment returns void (undefined); original returned 0
     assert.ok(rc === 0 || rc === undefined, `expected 0 or undefined, got ${rc}`);
 });
 
 test('insight: show_achievements returns text lines without display dependency', async () => {
-    const _p = { uachieved: [1, 2, 6] };
-        const game = { u: _p };
+    const game = { u: { uachieved: [1, 2, 6] } };
     const lines = await show_achievements(0, game);
     assert.ok(Array.isArray(lines));
     assert.ok(lines.length >= 2);

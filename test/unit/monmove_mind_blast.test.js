@@ -152,5 +152,5 @@ test('mind_blast wakes sleeping monster victims before applying damage', async (
 
     await mind_blast(mon, map, player, display, fov, null);
 
-    assert.equal(victim.msleeping, false);
+    assert.equal(victim.msleeping, 0);
 });
