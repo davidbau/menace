@@ -124,6 +124,16 @@ function replayPendingTrace(...args) {
     console.log('[REPLAY_PENDING_TRACE]', ...args);
 }
 
+function explicitContinuationOwner(game) {
+    if (!game) return null;
+    if (game.pendingTravelTimedTurn) return 'pendingTravelTimedTurn';
+    if (game.multi > 0 && game.context?.mv && !game?.playerDied) return 'positiveMoveContinuation';
+    if (game.context?.move && game.multi < 0 && !game?.playerDied) return 'negativeMulti';
+    if (game.multi >= 0 && game.occupation) return 'occupation';
+    if (game.travelPath && game.travelStep < game.travelPath.length) return 'travelPath';
+    return null;
+}
+
 function replayBoundaryState(game, inputRuntime) {
     const boundary = game ? inputSnap(game) : null;
     if (boundary) {
@@ -233,6 +243,26 @@ export async function replaySession(seed, opts, keys) {
             synclockDiagTotal += 1;
         })
         : null;
+    const unsubscribeParityDiag = (typeof game.subscribeDiagnostics === 'function')
+        ? game.subscribeDiagnostics((ev) => {
+            const type = String(ev?.type || '');
+            if (!replayPendingTraceEnabled()) return;
+            if (type !== 'parity.owner.positive-move-with-queued-key') return;
+            const details = ev?.details || {};
+            replayPendingTrace(
+                `step=${(Number(game?.map?._replayStepIndex) || 0) + 1}`,
+                `diag=${type}`,
+                `qlen=${Number(details?.queueLength || 0)}`,
+                `multi=${Number(details?.multi || 0)}`,
+                `run=${Number(details?.run || 0)}`,
+                `travel=${Number(details?.travel || 0)}`,
+                `mv=${details?.mv ? 1 : 0}`,
+                `move=${Number(details?.move || 0)}`,
+                `key=${Number(details?.key || 0)}`,
+                replayBoundaryState(game, game.input)
+            );
+        })
+        : null;
 
     // Pre-push chargen keys if provided.
     if (Array.isArray(opts.chargenKeys)) {
@@ -327,6 +357,16 @@ export async function replaySession(seed, opts, keys) {
                 );
             }
         } else {
+            const owner = explicitContinuationOwner(game);
+            if (owner) {
+                replayPendingTrace(
+                    `step=${i + 1}`,
+                    `key=${JSON.stringify(String.fromCharCode(ch))}`,
+                    'mode=admit-key',
+                    `explicitOwner=${owner}`,
+                    replayBoundaryState(game, game.input)
+                );
+            }
             pushInput(ch);
             const commandPromise = game._gameLoopStep();
             const settled = await drainUntilInput(commandPromise, game.input);
@@ -411,6 +451,7 @@ export async function replaySession(seed, opts, keys) {
 
     const checkpoints = consumeHarnessMapdumpPayloads();
     if (typeof unsubscribeDiagnostics === 'function') unsubscribeDiagnostics();
+    if (typeof unsubscribeParityDiag === 'function') unsubscribeParityDiag();
 
     return {
         version: 3,

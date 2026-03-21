@@ -2277,6 +2277,146 @@ The likely missing behavior is:
 - rather than continuing to interpret the turn as `domove_target()` under the
   carried travel state
 
+## 2026-03-21 revised assessment: the seam should be reasoned as a command-boundary invariant
+
+The strongest current model is no longer "repeat slices are generally wrong"
+or "replay should drain more". Those were useful hypotheses, but the live
+trace narrows the question further.
+
+The remaining seam should be framed as a forbidden coexistence of two states on
+the same gameplay-step stream:
+
+1. a fresh gameplay key has already been admitted into replay input, and
+2. the prior command's explicit no-input positive-repeat owner is still being
+   honored first.
+
+That is the invariant to reason from. If it holds, the gas-spore seam should
+disappear without touching `distfleeck()` or `set_apparxy()`.
+
+### Why this is the right framing
+
+- The fixture key stream is authoritative and shared by C and JS.
+- `seed031` no longer points to a broad travel-attack bug; the remaining seam
+  is cross-step attribution on that fixed key stream.
+- Fresh gameplay keys `h/b/y/.` are already visible on gameplay steps
+  `934..937`, but JS still advances `domove_target` under carried travel state.
+- A generic replay-side "drain more" rule was already tested and rejected.
+- A fresh-command movement patch was already tested and rejected.
+
+So the next question is not "which broad owner is wrong?" but:
+
+- does replay admit the next gameplay key too early, or
+- does the runtime retain positive-repeat ownership too long once a fresh key
+  is already pending?
+
+Those are the only two sides worth patching next.
+
+### Practical diagnostic rule
+
+At the command boundary, these states must not coexist:
+
+- `input` already contains a fresh gameplay key for step `N+1`, and
+- `_gameLoopStep()` is still about to take the prior step's
+  `positiveMoveContinuation` path for step `N`.
+
+This should first be encoded as a debug-only diagnostic, not as a semantic
+patch. The goal is to localize the *first* violation and identify which side of
+the boundary is too permissive:
+
+1. replay key admission, or
+2. runtime owner retention.
+
+### Revised next step
+
+Before changing gameplay again:
+
+1. add a debug-only invariant diagnostic at the replay key-admission point and
+   at `_gameLoopStep()`'s positive-repeat branch,
+2. reproduce `seed031`,
+3. confirm the first place where a fresh gameplay key coexists with a still-run
+   positive-repeat owner,
+4. only then patch the narrower side of the boundary.
+
+This is a better next step than another reorder probe because it can falsify
+both remaining models cleanly:
+
+- "fresh key admitted too early"
+- "owner retained too long"
+
+The next gameplay fix should be chosen only after that diagnostic settles which
+one is actually happening first.
+
+## 2026-03-21 diagnostic result: the first invariant violation is at key admission
+
+The debug-only invariant trace now settles the direction of the seam.
+
+With:
+
+- `WEBHACK_REPLAY_PENDING_TRACE=1`
+- gameplay-step window `934..937`
+- current validated baseline on `armoroff-general-fix`
+
+the first violation is not merely "_gameLoopStep later takes the wrong lane".
+It happens earlier, at fresh key admission:
+
+```text
+step=934 key="h" mode=admit-key explicitOwner=positiveMoveContinuation ...
+step=934 diag=parity.owner.positive-move-with-queued-key qlen=1 multi=80 run=8 travel=1 mv=1 move=1 key=95 ...
+step=935 key="b" mode=admit-key explicitOwner=positiveMoveContinuation ...
+step=935 diag=parity.owner.positive-move-with-queued-key qlen=2 multi=80 run=8 travel=1 mv=1 move=1 key=95 ...
+step=936 key="y" mode=admit-key explicitOwner=positiveMoveContinuation ...
+step=936 diag=parity.owner.positive-move-with-queued-key qlen=3 multi=80 run=8 travel=1 mv=1 move=1 key=95 ...
+step=937 key="." mode=admit-key explicitOwner=positiveMoveContinuation ...
+step=937 diag=parity.owner.positive-move-with-queued-key qlen=4 multi=80 run=8 travel=1 mv=1 move=1 key=95 ...
+```
+
+Key facts:
+
+- the explicit carried owner is still armed:
+  - `multi=80`
+  - `run=8`
+  - `travel=1`
+  - `mv=1`
+- fresh gameplay keys are nevertheless being admitted:
+  - `h`
+  - `b`
+  - `y`
+  - `.`
+- queue length grows monotonically from `1` to `4`
+
+So the strongest current conclusion is:
+
+- the first boundary violation is **key admission while an explicit prior owner
+  is still active**
+- the later `_gameLoopStep()` positive-repeat behavior is downstream of that
+  earlier admission problem
+
+## Plan revision after the diagnostic
+
+This rules out another broad repeat-slice reorder as the next best move.
+
+The next semantic fix should target the command-boundary handoff itself:
+
+1. either replay must not admit the next gameplay key while an explicit
+   carried owner is still active,
+2. or runtime must clear/supersede that carried owner before replay reaches the
+   next gameplay-key admission point.
+
+The next probe should decide between those two with the same standard:
+
+- no generic "drain more" replay logic
+- no speculative monster-AI edits
+- no replay compensation
+
+The best next concrete comparison is:
+
+- when C finishes gameplay step `933` on the shared fixture stream,
+- has the prior auto-travel owner already been exhausted before the next fresh
+  gameplay key is considered?
+
+That is now the primary question. The previous "top-of-slice movemon reorder"
+theory is secondary until this boundary is resolved.
+
 ## 2026-03-21 rejected probe: fresh-movement setup alone is not enough
 
 A narrow `cmd.js` probe attempted to make fresh movement keys perform a

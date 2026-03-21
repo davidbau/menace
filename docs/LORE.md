@@ -29,6 +29,36 @@ For the full narratives of how these lessons were discovered, see the
 - This exposes bugs that normalized output can hide, especially intra-step
   ordering drift around `--More--`, `yn`, direction prompts, travel, and
 
+## 2026-03-21 - first fix the command-boundary ownership invariant, not monster math
+
+- Context: `seed031_manual_direct.session.json` after the validated travel-owner
+  fixes and visible-hostile stop gate.
+- The surviving gas-spore seam is best reasoned as a command-boundary ownership
+  bug on the fixed gameplay-step stream, not as a `distfleeck()` or
+  `set_apparxy()` formula bug.
+- A debug-only invariant trace showed the first violation occurs at **fresh key
+  admission**:
+  - replay admits fresh gameplay keys `h/b/y/.`
+  - while the prior carried owner is still explicitly armed:
+    - `multi=80`
+    - `run=8`
+    - `travel=1`
+    - `mv=1`
+  - queue length grows `1 -> 4` across gameplay steps `934..937`
+- Representative trace:
+  - `step=934 key="h" mode=admit-key explicitOwner=positiveMoveContinuation`
+  - `step=934 diag=... qlen=1 multi=80 run=8 travel=1 mv=1`
+  - repeated similarly for steps `935..937`
+- This means the next semantic question is narrower than earlier theories:
+  - either replay is admitting the next gameplay key too early, or
+  - runtime is retaining the carried travel owner too long
+- Do not jump from this seam directly to:
+  - monster-AI formula edits
+  - generic replay "drain more" logic
+  - broad repeat-slice reorders
+- First localize which side of the command-boundary handoff is too permissive,
+  then patch that side only.
+
 ## 2026-03-19 - object age and thrown-kill ownership
 
 - `mkobj.newobj()` must seed `obj.age` from the current move count, not a

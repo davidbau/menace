@@ -118,6 +118,11 @@ function questPortalInfoForPlayer(player) {
         || { leader: 'your quest leader', homebase: 'your home base' };
 }
 
+function queuedInputLength(game) {
+    if (typeof game?.input?.getInputState !== 'function') return 0;
+    return Number(game.input.getInputState()?.queueLength || 0);
+}
+
 export function inputSnap(game) {
     const display = game?.display || null;
     const input = game?.input || null;
@@ -2642,6 +2647,18 @@ export class NetHackGame {
             }
 
             if (hasPositiveMoveContinuation) {
+                const queueLength = queuedInputLength(this);
+                if (queueLength > 0) {
+                    this.emitDiagnosticEvent('parity.owner.positive-move-with-queued-key', {
+                        queueLength,
+                        multi: this.multi | 0,
+                        run: (this.context?.run | 0),
+                        travel: (this.context?.travel | 0),
+                        mv: !!this.context?.mv,
+                        move: (this.context?.move | 0),
+                        key: this.cmdKey | 0,
+                    });
+                }
                 const bumpHeroSeqN = () => {
                     const prior = Number.isFinite(this?.heroSeqN) ? (this.heroSeqN | 0) : 0;
                     this.heroSeqN = Math.min(7, prior + 1);
