@@ -19,6 +19,7 @@ import {
     W_ARMOR, W_ACCESSORY, W_WEAPONS,
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
     W_AMUL, W_WEP, W_SWAPWEP, W_QUIVER, RLOC_MSG,
+    LOST_THROWN, LOST_DROPPED, LOST_STOLEN, LOST_NONE,
 } from './const.js';
 import { S_NYMPH } from './monsters.js';
 
@@ -503,6 +504,13 @@ export function relobj(mon, map, show, _is_pet) {
 // Callers are responsible for floor removal before calling this.
 export function mpickobj(mon, obj) {
     pushRngLogEntry(`^pickup[${mon.mndx}@${mon.mx},${mon.my},${obj.otyp}]`);
+    if (!mon?.mtame) {
+        if (obj?.how_lost === LOST_THROWN) {
+            obj.how_lost = LOST_STOLEN;
+        } else if (obj?.how_lost === LOST_DROPPED) {
+            obj.how_lost = LOST_NONE;
+        }
+    }
     return addToMonsterInventory(mon, obj);
 }
 

@@ -3266,19 +3266,7 @@ export function placeFloorObject(map, obj) {
 // ========================================================================
 export function canMergeMonsterInventoryObj(dst, src) {
     if (!dst || !src) return false;
-    if (dst.otyp !== src.otyp) return false;
-    if (!!dst.cursed !== !!src.cursed) return false;
-    if (!!dst.blessed !== !!src.blessed) return false;
-    if (Number(dst.spe || 0) !== Number(src.spe || 0)) return false;
-    if (Number(dst.oeroded || 0) !== Number(src.oeroded || 0)) return false;
-    if (Number(dst.oeroded2 || 0) !== Number(src.oeroded2 || 0)) return false;
-    if (!!dst.oerodeproof !== !!src.oerodeproof) return false;
-    if (!!dst.greased !== !!src.greased) return false;
-    if (!!dst.opoisoned !== !!src.opoisoned) return false;
-    if ((dst.corpsenm ?? -1) !== (src.corpsenm ?? -1)) return false;
-    if ((dst.fromsink ?? null) !== (src.fromsink ?? null)) return false;
-    if ((dst.no_charge ?? null) !== (src.no_charge ?? null)) return false;
-    return true;
+    return mergable(dst, src);
 }
 
 export function addToMonsterInventory(mon, obj) {

@@ -87,7 +87,7 @@ import { potionhit, potionbreathe } from './potion.js';
 import { SHOPBASE, OBJ_MINVENT, MM_NOMSG,
          P_DAGGER, P_KNIFE, P_SHORT_SWORD, P_SABER, P_SPEAR,
          P_BOW, P_SLING, P_CROSSBOW, P_DART, P_SHURIKEN, P_BOOMERANG,
-         HOLE, TRAPDOOR } from './const.js';
+         HOLE, TRAPDOOR, LOST_THROWN } from './const.js';
 import { is_pit, is_hole } from './const.js';
 import { Doname2 } from './objnam.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
@@ -1085,7 +1085,7 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
             if (!player.dx && !player.dy) player.dz = 1;
         }
     }
-    if (game) { game.thrownobj = obj; obj.how_lost = 'thrown'; }
+    if (game) { game.thrownobj = obj; obj.how_lost = LOST_THROWN; }
 
     if (player.dz) {
         if (player.dz < 0) await toss_up(obj, rn2(5), player, map);

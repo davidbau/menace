@@ -15727,3 +15727,55 @@ distinction is always conditional on being in Gehennom.
     - prompt ownership parity
     - occupation ownership parity in `game.occupation`, not only local/player
       bookkeeping.
+
+## 2026-03-21 - seed031 monster pickup `how_lost` and minventory merge parity
+
+- Session: `test/comparison/sessions/seed031_manual_direct.session.json`
+- Starting point on current `main` after the stale-`m_shot` and apply/pick-axe
+  fixes:
+  - first RNG divergence at gameplay step `1060`
+  - matched RNG `37324/51561`
+  - matched events `21263/28950`
+- Raw step drilldown around the pet-goal corridor (`1059..1060`) showed that JS
+  still had one fewer object on the floor pile at `61,12` than C. That caused
+  one fewer `obj_resists()` roll before the kitten move-choice loop and pushed
+  the first RNG divergence into `dog_move()`.
+- The first useful narrowing came from instrumenting the monster death-drop and
+  pickup path around monster `71`:
+  - JS was collapsing two crossbow-bolt pickups into one minventory stack at
+    gameplay step `1036`
+  - C preserves the distinction long enough for both objects to survive into
+    the later floor pile that the kitten scans
+- Root causes in JS:
+  1. [`throwit()`](js/dothrow.js) marked thrown objects with the string
+     `'thrown'` instead of numeric [`LOST_THROWN`](js/const.js).
+     - downstream code such as [`mergable()`](js/mkobj.js) and autopickup logic
+       expects integer `how_lost` states, so the thrown-state distinction was
+       silently lost.
+  2. [`mpickobj()`](js/steal.js) did not apply the C `how_lost` transitions for
+     non-pet monsters:
+     - `LOST_THROWN -> LOST_STOLEN`
+     - `LOST_DROPPED -> LOST_NONE`
+  3. [`addToMonsterInventory()`](js/invent.js) was using a reduced
+     `canMergeMonsterInventoryObj()` predicate instead of the same
+     [`mergable()`](js/mkobj.js) logic that C `add_to_minv()` uses via
+     `merged(&otmp, &obj)`.
+- Keepable C-faithful JS fixes:
+  - write `obj.how_lost = LOST_THROWN` in [`throwit()`](js/dothrow.js)
+  - update [`mpickobj()`](js/steal.js) to perform the C `how_lost` remapping
+    before adding the object to monster inventory
+  - make [`canMergeMonsterInventoryObj()`](js/invent.js) delegate to
+    [`mergable()`](js/mkobj.js) so monster inventory merging uses the same
+    merge semantics as floor/inventory merging
+- Result:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved to `37850/51561`
+    - matched events improved to `21756/28950`
+    - first RNG divergence moved from gameplay step `1060` to `1082`
+  - `t11_s755_w_covmax9_gp.session.json`
+    - still green
+- New active seam:
+  - after this fix batch, the next `seed031` first RNG divergence on current
+    `main` is gameplay step `1082`
+  - raw evidence there shows a later `dog_move()` candidate-choice mismatch,
+    not the old monster-pickup pile-collapse seam
