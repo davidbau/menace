@@ -328,9 +328,9 @@ export async function artitouch(obj, game) {
 
 // cf. quest.c:140 — ok_to_quest(): quest dungeon entry eligibility
 // Returns true if player is allowed to enter quest dungeon.
-// Autotranslated from quest.c:139
-export async function ok_to_quest() {
-  return (((Qstat(got_quest) || Qstat(got_thanks)) && is_pure(false) > 0) || Qstat(killed_leader));
+export async function ok_to_quest(game) {
+  const qs = Qstat(game || {});
+  return (((qs.got_quest || qs.got_thanks) && is_pure(false) > 0) || qs.killed_leader);
 }
 
 // cf. quest.c:225 — finish_quest(obj): handle quest artifact return to leader
@@ -492,16 +492,16 @@ export async function chat_with_nemesis(game) {
 }
 
 // cf. quest.c:388 — nemesis_speaks(): nemesis NPC response to chat
-// Autotranslated from quest.c:388
-export async function nemesis_speaks(player) {
-  if (!Qstat(in_battle)) {
-    if (player.uhave.questart) await qt_pager("nemesis_wantsit");
-    else if (Qstat(made_goal) === 1 || !Qstat(met_nemesis)) await qt_pager("nemesis_first");
-    else if (Qstat(made_goal) < 4) await qt_pager("nemesis_next");
-    else if (Qstat(made_goal) < 7) await qt_pager("nemesis_other");
+export async function nemesis_speaks(player, game) {
+  const qs = Qstat(game || {});
+  if (!qs.in_battle) {
+    if (player.uhave?.questart) await qt_pager("nemesis_wantsit");
+    else if (qs.made_goal === 1 || !qs.met_nemesis) await qt_pager("nemesis_first");
+    else if (qs.made_goal < 4) await qt_pager("nemesis_next");
+    else if (qs.made_goal < 7) await qt_pager("nemesis_other");
     else if (!rn2(5)) await qt_pager("discourage");
-    if (Qstat(made_goal) < 7) Qstat(made_goal)++;
-    // TODO: game.quest_status.met_nemesis = true;
+    if (qs.made_goal < 7) qs.made_goal = (qs.made_goal || 0) + 1;
+    qs.met_nemesis = true;
   }
   else if (!rn2(5)) await qt_pager("discourage");
 }
@@ -574,12 +574,13 @@ export async function quest_chat(mtmp, game) {
 }
 
 // cf. quest.c:481 — quest_talk(mtmp): dispatch proactive NPC talk
-// Autotranslated from quest.c:480
-export async function quest_talk(mtmp) {
-  if (mtmp.m_id === Qstat(leader_m_id)) { await leader_speaks(mtmp); return; }
-  switch (mtmp.data.msound) {
+export async function quest_talk(mtmp, game) {
+  const qs = Qstat(game || {});
+  const mdat = mtmp.data || mtmp.type;
+  if (mtmp.m_id === qs.leader_m_id) { await leader_speaks(mtmp, game); return; }
+  switch (mdat?.msound) {
     case MS_NEMESIS:
-      await nemesis_speaks();
+      await nemesis_speaks(game?.player || game?.u, game);
     break;
     case MS_DJINNI:
       await prisoner_speaks(mtmp);
