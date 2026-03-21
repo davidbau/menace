@@ -2239,6 +2239,7 @@ export async function dotravel_target(game) {
     return {
         moved: !!(moveResult && moveResult.moved),
         tookTime: true,
+        travelStarted: true,
     };
 }
 

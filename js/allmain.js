@@ -754,12 +754,19 @@ export async function run_command(game, ch, opts = {}) {
 
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
     if (result && result.tookTime && !skipTurnEnd) {
-        await finalizeTimedCommand(game, result, coreOpts);
-        await repeatLoop(game, {
-            coreOpts,
-            bumpHeroSeqN,
-            showRepeatInterruptMore,
-        });
+        if (result.travelStarted && (game.context || {}).mv) {
+            game.pendingTravelTimedTurn = true;
+        } else {
+            await finalizeTimedCommand(game, result, coreOpts);
+        }
+        if (!(game.context || {}).mv) {
+            await repeatLoop(game, {
+                coreOpts,
+                bumpHeroSeqN,
+                showRepeatInterruptMore,
+                mode: 'movement_only',
+            });
+        }
     }
 
     postRender(game, result);
@@ -774,6 +781,7 @@ async function repeatLoop(game, {
     coreOpts,
     bumpHeroSeqN,
     showRepeatInterruptMore,
+    mode = 'all',
 }) {
     // C ref: allmain.c:519-535 — when context.mv is set (movement/travel),
     // C calls domove() directly instead of rhack(). This is critical for
@@ -796,45 +804,15 @@ async function repeatLoop(game, {
 
         const ctx = game.context || {};
         if (ctx.mv) {
-            emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
-            // C ref: allmain.c:527-530 — movement/travel multi repeat.
-            // lookaround() can abort running by clearing multi.
-            const _p = game.u || game.player;
-            const _map = game.map;
-            const _fov = FOV;
-            const _display = game.display;
-            await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
-            if (game.multi <= 0) {
-                ctx.move = 0;
-                break;
-            }
-            // C ref: hack.c domove() can call end_running() internally
-            // (e.g. when findtravelpath exhausts the path), which clears
-            // ctx.run. Save run mode before domove to detect travel-end.
-            const savedRun = ctx.run;
-            if (game.multi < COLNO && !--game.multi) {
-                end_running(true, game);
-            }
-            game.advanceRunTurn = async () => {
-                await advanceTimedTurn(game, coreOpts);
-            };
-            const moveResult = await domove([0, 0], _p, _map, _display, game);
-            game.advanceRunTurn = null;
-            if (!moveResult || !moveResult.tookTime) {
-                // C ref: allmain.c moveloop — when travel ends via path
-                // exhaustion, run one more monster turn before exiting.
-                if (savedRun === 8) {
-                    await advanceTimedTurn(game, coreOpts);
-                }
-                break;
-            }
-            if (!moveResult.moved) {
-                break;
-            }
-            bumpHeroSeqN();
-            await advanceTimedTurn(game, coreOpts);
-            await _drainOccupation(game, coreOpts);
+            const moveRepeated = await runMovementRepeatSlice(game, {
+                coreOpts,
+                bumpHeroSeqN,
+            });
+            if (!moveRepeated) break;
         } else {
+            if (mode === 'movement_only') {
+                break;
+            }
             emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
             game.multi--;
             game.advanceRunTurn = async () => {
@@ -854,6 +832,45 @@ async function repeatLoop(game, {
             await _drainOccupation(game, coreOpts);
         }
     }
+}
+
+async function runMovementRepeatSlice(game, {
+    coreOpts,
+    bumpHeroSeqN,
+}) {
+    const ctx = game.context || {};
+    emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
+    const _p = game.u || game.player;
+    const _map = game.map;
+    const _fov = FOV;
+    const _display = game.display;
+    await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
+    if (game.multi <= 0) {
+        ctx.move = 0;
+        return false;
+    }
+    const savedRun = ctx.run;
+    if (game.multi < COLNO && !--game.multi) {
+        end_running(true, game);
+    }
+    game.advanceRunTurn = async () => {
+        await advanceTimedTurn(game, coreOpts);
+    };
+    const moveResult = await domove([0, 0], _p, _map, _display, game);
+    game.advanceRunTurn = null;
+    if (!moveResult || !moveResult.tookTime) {
+        if (savedRun === 8) {
+            await advanceTimedTurn(game, coreOpts);
+        }
+        return false;
+    }
+    if (!moveResult.moved) {
+        return false;
+    }
+    bumpHeroSeqN();
+    await advanceTimedTurn(game, coreOpts);
+    await _drainOccupation(game, coreOpts);
+    return true;
 }
 
 async function rhackCore(game, chCode, {
@@ -1517,6 +1534,7 @@ export class NetHackGame {
         this.occupation = null;
         this._pendingPrompt = null;
         this.pendingDeferredTimedTurn = false;
+        this.pendingTravelTimedTurn = false;
         this.seed = 0;
         this.multi = 0;
         this.inDoAgain = false;
@@ -2539,8 +2557,11 @@ export class NetHackGame {
 
     async _gameLoopStep() {
         while (true) {
-            // Travel continuation
-            if (this.travelPath && this.travelStep < this.travelPath.length) {
+            const hasPendingTravelTimedTurn = !!this.pendingTravelTimedTurn;
+            const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
+
+            if (!hasPositiveMoveContinuation
+                && this.travelPath && this.travelStep < this.travelPath.length) {
                 const result = await dotravel_target(this);
                 if (result.tookTime) {
                     await moveloop_core(this);
@@ -2549,7 +2570,9 @@ export class NetHackGame {
                 return;
             }
 
-            const hasTimedContinuation = (this.context?.move && this.multi < 0 && !(this?.playerDied))
+            const hasTimedContinuation = hasPendingTravelTimedTurn
+                || hasPositiveMoveContinuation
+                || (this.context?.move && this.multi < 0 && !(this?.playerDied))
                 || (this.multi >= 0 && this.occupation);
 
             // C-faithful boundary ownership: if the previous iteration left a
@@ -2577,6 +2600,26 @@ export class NetHackGame {
                 continue;
             }
 
+            if (hasPendingTravelTimedTurn) {
+                this.pendingTravelTimedTurn = false;
+                await advanceTimedTurn(this, {});
+                this.renderAndAutosave({ autosave: true });
+                return;
+            }
+
+            if (hasPositiveMoveContinuation) {
+                const bumpHeroSeqN = () => {
+                    const prior = Number.isFinite(this?.heroSeqN) ? (this.heroSeqN | 0) : 0;
+                    this.heroSeqN = Math.min(7, prior + 1);
+                };
+                await runMovementRepeatSlice(this, {
+                    coreOpts: {},
+                    bumpHeroSeqN,
+                });
+                this.renderAndAutosave({ autosave: true });
+                return;
+            }
+
             const firstCh = await nhgetch({ commandBoundary: true });
             // Command-boundary --More-- dismissal is not a gameplay command.
             // If a canned command is queued, execute it now before waiting for the
@@ -2596,7 +2639,9 @@ export class NetHackGame {
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
             this.renderAndAutosave({ commandResult, autosave: true });
-            if (!(this.context?.move && this.multi < 0 && !(this?.playerDied))
+            if (!this.pendingTravelTimedTurn
+                && !(this.multi > 0 && this.context?.mv && !this?.playerDied)
+                && !(this.context?.move && this.multi < 0 && !(this?.playerDied))
                 && !(this.multi >= 0 && this.occupation)) {
                 return;
             }
