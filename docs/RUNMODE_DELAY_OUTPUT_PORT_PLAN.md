@@ -2994,3 +2994,135 @@ For this problem, the invariant framing was a strategic improvement even though
 the first command-boundary invariant did not itself produce the final fix. It
 removed bad solution spaces, clarified what was real, and led to the current
 more incisive slice-level target-refresh invariant.
+
+## 2026-03-21 correction: gameplay step 933 is the shared `.` accept key, and C already packs multiple repeat slices into that same step
+
+The latest drilldown corrected an important mistake in the step mapping.
+
+### What was wrong
+
+I had mixed raw `session.steps[]` indices with `getSessionGameplaySteps(session)`.
+That led to an incorrect local story where step `933` looked like a plain
+movement key (`"l"`), and some of the earlier reasoning was built on top of
+that confusion.
+
+The gameplay-step mapping is now explicit:
+
+- gameplay step `932` = `"l"`
+- gameplay step `933` = `"."`
+- gameplay step `934` = `"h"`
+- gameplay step `935` = `"b"`
+- gameplay step `936` = `"y"`
+- gameplay step `937` = `"."`
+
+So the live seam is on the shared `.` accept key from the pending `_` travel
+command, not on a plain movement key.
+
+### What the C trace now proves
+
+The C session's own gameplay-step-`933` RNG stream already contains multiple
+`moveloop_core()` repeat-slice boundaries and gas-spore turns:
+
+- kitten turns at `(21,17)` and `(22,16)`
+- `runmode_delay_output @ moveloop_core(allmain.c:629)`
+- gas spore `27` turn at `(29,14)`
+- more kitten turns
+- another `runmode_delay_output @ moveloop_core(allmain.c:629)`
+- gas spore `27` turn at `(28,13)`
+
+So C step `933` is **not** a quiet pre-travel state. It is already a packed
+same-key no-input continuation step after the `.` accept key completes
+`getpos()`.
+
+### What JS currently does on that same step
+
+Current JS step `933` is much shorter:
+
+- `domove_target from=22,14 to=23,13`
+- kitten turn `(21,17) -> (22,16)`
+- kitten turn `(22,16) -> (22,15)`
+- then JS returns and puts gas spore `27`'s `(29,14)` turn on gameplay step
+  `934`
+
+Representative JS trace:
+
+```text
+[RUN_TRACE] step=933 domove_target from=22,14 to=23,13 mon=none
+[MONMOVE_TRACE] turn-start step=933 ... kitten pos=(21,17)
+...
+[MONMOVE_TRACE] turn-start step=933 ... kitten pos=(22,16)
+...
+[RUN_TRACE] step=934 domove_target from=23,13 to=24,13 mon=none
+[MONMOVE_TRACE] turn-start step=934 ... gas spore pos=(29,14)
+```
+
+This is the strongest current shared-key difference:
+
+- C keeps executing carried travel continuation inside gameplay step `933`
+- JS returns that `.` step too early and spills later same-key continuation into
+  gameplay step `934`
+
+### Response to the latest `main` review note
+
+The second engineer's newest note on `main` is directionally useful:
+
+- the C trace really does confirm same-step packing after the `.` accept key
+- so the remaining seam is not primarily about `distfleeck()` math
+
+But I disagree with the overly broad conclusion:
+
+- "`isWaitingInput()` is the fix"
+
+That is too strong given the probes already run.
+
+Why:
+
+- broad replay-side drain probes were directionally right
+- but they later timed out `seed031` and were not keepable
+- a generic replay rule would be replay compensation unless it matches a
+  concrete C owner contract
+
+So the reconciled reading is:
+
+- the C trace supports **same-key continuation packing**
+- but the keepable fix still needs to be **narrow and owner-specific**, not a
+  broad replay-core rule
+
+### Revised next target
+
+The next good probe should be narrower than a generic `isWaitingInput()` change:
+
+- target only the pending `_` / `getpos_async()` accept path (`.`)
+- after that accept key completes and `dotravel_target()` arms travel,
+  continue the same-key no-input travel owner until the C-equivalent packing
+  boundary is reached
+- do **not** generalize this immediately to all replay key admission or all
+  positive-move owners
+
+This keeps the conclusion tied to the actual C evidence we now have:
+
+- the shared `.` key at gameplay step `933` owns more continuation in C than it
+  does in JS
+
+### Practical next question
+
+Now that the step mapping is corrected, the next discriminating question is:
+
+- **within gameplay step `933`, exactly which additional C-owned slices occur
+  before JS currently returns?**
+
+The most useful immediate comparison is:
+
+1. C gameplay step `933` ordering:
+   - kitten slices
+   - first `runmode_delay_output`
+   - gas spore `(29,14)`
+   - later slices
+2. JS gameplay step `933` ordering:
+   - first hero hop
+   - kitten slices
+   - return
+
+The next probe should try to extend only that `_`-accept same-key continuation
+path and then re-check whether gas spore `27`'s `(29,14)` turn moves from JS
+step `934` back into JS step `933`.

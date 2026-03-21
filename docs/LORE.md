@@ -14,6 +14,43 @@ For the full narratives of how these lessons were discovered, see the
 
 ---
 
+## 2026-03-21 - gameplay step 933 is the shared `.` accept key, and C already packs later travel slices into that same step
+
+- I corrected an important mapping mistake:
+  - raw `session.steps[]` indices had been mixed with
+    `getSessionGameplaySteps(session)`
+  - gameplay step `933` in `seed031_manual_direct` is `'.'`, not `'l'`
+- Verified gameplay-step mapping:
+  - `932='l'`
+  - `933='.'`
+  - `934='h'`
+  - `935='b'`
+  - `936='y'`
+  - `937='.'`
+- C gameplay step `933` already contains multiple packed repeat slices after the
+  `.` accept key:
+  - kitten at `(21,17)` and `(22,16)`
+  - `runmode_delay_output @ moveloop_core(allmain.c:629)`
+  - gas spore `27` at `(29,14)`
+  - more kitten turns
+  - another `runmode_delay_output`
+  - gas spore `27` at `(28,13)`
+- Current JS gameplay step `933` is shorter:
+  - `domove_target from=22,14 to=23,13`
+  - kitten `(21,17)->(22,16)->(22,15)`
+  - then returns; gas spore `27` at `(29,14)` does not appear until JS step
+    `934`
+- This corrects the earlier misleading reading from dbgmapdump:
+  - the important difference is not "C is still pre-travel at step 933"
+  - it is "C keeps executing same-key no-input travel continuation inside step
+    933, while JS returns that `.` key too early"
+- Strategic consequence:
+  - broad replay-side `isWaitingInput()` changes are still too risky
+  - but the next good probe should be narrow and owner-specific:
+    extend only the pending `_` / `getpos_async()` accept-key continuation and
+    see whether gas spore `27`'s `(29,14)` turn moves from JS step `934` back
+    into JS step `933`
+
 ## Comparison-window triage stack
 
 - `scripts/comparison-window.mjs` now supports:
