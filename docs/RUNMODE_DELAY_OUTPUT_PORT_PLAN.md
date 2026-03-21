@@ -289,6 +289,49 @@ So the next implementation must treat these as separate-but-related semantics:
 and prove that both preserve the current early-session behavior before touching
 the later travel seam.
 
+## Current Travel Framing Mismatch To Eliminate
+
+The deepest remaining JS/C mismatch is now the existence of three different
+travel step frames in JS for what C treats as one moveloop structure:
+
+1. Initial `_` travel command in JS
+- `rhack()` -> `dotravel_target()` arms travel and performs the first `domove()`
+- `run_command()` then calls `finalizeTimedCommand()`
+- `finalizeTimedCommand()` calls `advanceTimedTurn()`
+- `advanceTimedTurn()` is still a fused helper:
+  `moveloop_core()` plus `syncTimedTurnPreInputState()`
+
+2. Repeated travel slice in JS
+- `runMovementRepeatSlice()` currently does:
+  1. `lookaround()`
+  2. repeated `domove()`
+  3. `advanceTimedTurn()`
+- so the slice still consumes `moveloop_core()` and the next iteration's
+  pre-input sync before returning
+
+3. Top-level travel continuation in JS
+- `_gameLoopStep()` sees `travelPath` and calls `dotravel_target()` again
+- if that takes time, it currently calls only `moveloop_core()`
+- it does not call `syncTimedTurnPreInputState()`
+
+C does not have these three different frames. In C:
+- the initial `_` travel step is just the tail of a normal `rhack(0)` inside
+  `moveloop_core()`
+- later repeated travel steps are owned by the next `moveloop_core()` entries
+- the once-per-player-input sync is not selectively skipped or fused depending
+  on which JS helper is driving travel
+
+This means JS currently gives initial travel, repeated travel, and top-level
+continuation different visibility timing relative to:
+- monster movement
+- `find_ac()` / vision / `display_sync()` work
+- `m_everyturn_effect()`
+- `lookaround()`
+- the next repeated `domove()`
+
+That three-way asymmetry is likely more important than the two local
+invariants by themselves.
+
 ## Design Goal
 
 Port JS so that positive `multi` continuation is owned by the JS equivalent of
@@ -335,6 +378,8 @@ Important constraint from the failed rewrite:
   (`context.mv == true`) ownership in one undifferentiated move
 - first preserve the early counted-repeat corridor (`seed031` `160..166`)
 - then address the later travel seam (`933/934`)
+- and do not expect local repeated-slice invariants to help until the current
+  three-way JS travel framing asymmetry has been eliminated
 
 ### 3. Re-enter the once-per-player-input helper from outer runtime drivers
 

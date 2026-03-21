@@ -14840,3 +14840,22 @@ effect was missing.
     - initial vs repeated travel-step handling
     - or the fact that `runMovementRepeatSlice(...)` still spans pieces of two
       C iterations
+
+# 2026-03-21: The next target is JS's three-way travel framing asymmetry
+
+- After re-reading C `moveloop_core()` and the current JS runtime, the deeper
+  remaining mismatch is that JS still has three distinct travel-step frames:
+  1. initial `_` travel command:
+     `dotravel_target()` then `finalizeTimedCommand()` -> `advanceTimedTurn()`
+  2. repeated travel slice:
+     `lookaround()` -> repeated `domove()` -> `advanceTimedTurn()`
+  3. top-level travel continuation:
+     `_gameLoopStep()` -> `dotravel_target()` -> `moveloop_core()` only
+- C does not have these three different travel-step frames. It has one
+  `moveloop_core()` structure whose fresh-command and positive-repeat branches
+  live inside the same once-per-player-input phase.
+- Lesson:
+  - before another owner move or another local repeated-slice probe, JS needs a
+    single C-shaped travel-step contract
+  - otherwise we are still comparing three different JS timings against one C
+    timing model
