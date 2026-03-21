@@ -291,61 +291,72 @@ the later travel seam.
 
 ## Current Travel Framing Mismatch To Eliminate
 
-The deepest remaining JS/C mismatch is now the existence of three different
-travel step frames in JS for what C treats as one moveloop structure:
+The deepest remaining JS/C mismatch is now a two-owner split inside one `_`
+travel command stream.
 
-1. Initial `_` travel command in JS
-- `getpos('.')` completion is consumed by `promptStep()`, not by ordinary
-  command execution
-- the prompt handler calls `dotravel_target()`, which arms travel and performs
-  the first `domove()`
-- `run_command()` then does only `finalizeTimedCommand(promptResult)` and
-  returns early
-- so this initial travel step bypasses normal post-command positive-repeat
-  handling entirely
-- `finalizeTimedCommand()` calls `advanceTimedTurn()`
-- `advanceTimedTurn()` is still a fused helper:
-  `moveloop_core()` plus `syncTimedTurnPreInputState()`
+What the focused replay trace shows around `seed031` steps `931..934`:
+- steps `931..932` resume the still-running `_` command and block in
+  `getpos_async()`
+- step `933` key `"."` resumes that same pending command, returns from
+  `getpos_async()`, then runs:
+  - `dotravel_target()` first hop
+  - `run_command() -> finalizeTimedCommand()`
+  - `run_command() -> repeatLoop()`
+  - four more repeated `domove_target` hops
+  - hostile contact / attack at `26,13 -> 27,13`
+- only after that does the pending command settle:
+  - `[REPLAY_PENDING_TRACE] step=933 resume=done ... top=\"You hit the gas spore.\"`
+- then step `934` starts a fresh `_gameLoopStep()` and immediately takes the
+  separate top-level `travelPath` continuation branch, causing another
+  `domove_target from=26,13 to=27,13`
 
-2. Repeated travel slice in JS
-- `runMovementRepeatSlice()` currently does:
-  1. `lookaround()`
-  2. repeated `domove()`
-  3. `advanceTimedTurn()`
-- so the slice still consumes `moveloop_core()` and the next iteration's
-  pre-input sync before returning
+So the live split is:
 
-3. Top-level travel continuation in JS
-- `_gameLoopStep()` sees `travelPath` and calls `dotravel_target()` again
-- if that takes time, it currently calls only `moveloop_core()`
-- it does not call `syncTimedTurnPreInputState()`
-- and this branch currently runs before the generic timed-continuation path
-  in `_gameLoopStep()`, so travel continuation preempts:
-  - command-boundary `--More--` dismissal
-  - negative-`multi` continuation
-  - occupation continuation
+1. Resumed-command travel drain in JS
+- `_` travel is not a `promptStep()` command at all
+- `hack.js:dotravel()` awaits `getpos_async()` directly
+- replay resumes that still-running command promise through
+  `replay_core.js:drainUntilInput(...)`
+- once `getpos_async()` completes on step `933`, `run_command()` continues
+  inside the same resumed command and `repeatLoop()` drains multiple positive
+  `multi` travel hops before the runtime blocks again
 
-C does not have these three different frames. In C:
-- the initial `_` travel step is just the tail of a normal `rhack(0)` inside
-  `moveloop_core()`, not a special prompt-owned early-return frame
-- later repeated travel steps are owned by the next `moveloop_core()` entries
-- the once-per-player-input sync is not selectively skipped or fused depending
-  on which JS helper is driving travel
+2. Top-level travel continuation in JS
+- after the resumed command settles, `_gameLoopStep()` still has its own
+  direct `travelPath -> dotravel_target() -> moveloop_core()` path
+- that path drives later travel on step `934+`
+- it still preempts the generic timed-continuation ordering in
+  `_gameLoopStep()`
 
-This means JS currently gives initial travel, repeated travel, and top-level
-continuation different visibility timing relative to:
+This is more precise than the earlier "prompt-owned initial travel frame"
+theory. The initial `_` step is special, but not because `promptStep()`
+owns it. It is special because one resumed pending command currently drains:
+- the first `dotravel_target()` hop
+- plus multiple `repeatLoop()` hops
+
+C does not split ownership that way. In C:
+- `_` travel remains normal command execution inside `rhack(0)`
+- `dotravel_target()` performs the first `domove()`
+- later travel slices are owned by later `moveloop_core()` entries, one slice
+  per outer `moveloop()` re-entry
+
+This means JS currently gives:
+- the first resumed `_` travel continuation
+- local `repeatLoop()` travel slices
+- later `_gameLoopStep()` `travelPath` continuation
+
+different visibility timing relative to:
 - monster movement
 - `find_ac()` / vision / `display_sync()` work
 - `m_everyturn_effect()`
 - `lookaround()`
 - the next repeated `domove()`
 
-That three-way asymmetry is likely more important than the two local
-invariants by themselves.
-
-In other words, the current JS top-level `travelPath` branch is not merely
-"another owner". It is a preempting owner: it runs before the generic
-continuation ordering that C keeps inside `moveloop_core()`.
+The key concrete evidence is step `933` itself:
+- `RUN_TRACE` shows five `domove_target` hops in that one replay step
+- `MONMOVE_TRACE` shows gas spore 27 refreshed to `(24,13)` and then `(26,13)`
+  in the same step
+- by step `934`, `distfleeck()` therefore sees `near=1`
 
 However, a narrow probe that merely moved the top-level `travelPath` branch
 below `--More--` dismissal, negative-`multi`, and occupation continuation in
@@ -366,6 +377,7 @@ We now have four negative probes, each isolating one variable:
 | Stage B2b | Owner move only (repeatLoop → _gameLoopStep) | No improvement | Owner move alone |
 | Stage C3 | umoved reset + runmode_delay_output in slice | No improvement | Per-slice invariants alone |
 | travelPath reorder | Move travelPath below --More--/multi/occ | No improvement | Preemption ordering alone |
+| combined owner probe | Skip local travel `repeatLoop()` on initial `_` step and route later `travelPath` continuation through `runMovementRepeatSlice()` | Reduced `933..936` spillover but did not move first seam | The two owners are real, but the first resumed-command slice is still wrong |
 | Stage B (early) | Broad multi ownership rewrite | Regressed to step 163 | Undifferentiated rewrite |
 
 Each probe was safe (no regressions on guardrails) but none moved the seam.
@@ -386,21 +398,6 @@ reorder as one atomic change, since each has been proven individually safe
 but individually insufficient. The risk is manageable because each component
 was tested in isolation without regressions.
 
-The newest correction is that the initial `_` travel step is also more special
-than we had been treating it:
-- because `getpos('.')` completes through `promptStep()`, the first travel step
-  currently takes time in a prompt-owned frame and returns before ordinary
-  `run_command()` positive-repeat handling
-- so the initial step is not merely "fresh command then travel"; it is a
-  prompt-owned early-return path with its own timing boundary
-
-That makes the current JS asymmetry effectively:
-- prompt-owned initial travel frame
-- repeated travel slice frame
-- top-level travel continuation frame
-
-not just three generic travel steps.
-
 One broader probe partially improved the right region:
 - replacing the top-level direct `travelPath -> dotravel_target() -> moveloop_core()`
   continuation with the extracted `runMovementRepeatSlice(...)` reduced the
@@ -415,7 +412,7 @@ But it still did not move the first divergence later:
 - overall matched totals actually got slightly worse
 
 A follow-up combined probe also changed prompt-owned travel finalization:
-- for prompt-owned travel completion, use `moveloop_core()` directly instead of
+- for the post-`getpos_async()` initial travel completion path, use `moveloop_core()` directly instead of
   full `finalizeTimedCommand()`
 
 That added no measurable effect beyond the top-level replacement alone.
@@ -423,11 +420,57 @@ That added no measurable effect beyond the top-level replacement alone.
 So the refined conclusion is:
 - replacing the top-level direct travel continuation is part of the right
   direction
-- but the remaining earliest mismatch is still earlier than prompt-finalization
-  handling
-- the next target should be the still-earlier behavior inside the initial
-  prompt-owned travel step itself, not another tweak to post-prompt turn
-  finalization
+- but the remaining earliest mismatch is still earlier than post-`getpos_async()`
+  finalization handling
+- the next target should be the still-earlier behavior inside the resumed `_`
+  command's `repeatLoop()` drain on step `933`, not another tweak to
+  post-`getpos_async()` turn finalization
+
+## Latest correction from direct replay-owner tracing
+
+Focused replay-owner tracing with:
+- `WEBHACK_RUN_TRACE=1`
+- `WEBHACK_MONMOVE_TRACE=1`
+- `WEBHACK_REPLAY_PENDING_TRACE=1`
+
+showed the exact owner split:
+
+- steps `931..932`: the `_` command is still pending and blocked in
+  `getpos_async()`
+- step `933` key `"."`: resumes that same pending command
+  - first `dotravel_target()` hop
+  - then local `run_command() -> repeatLoop()` drain
+  - total of five `domove_target` hops in one replay step
+  - gas spore 27 refreshes to `(24,13)` and then `(26,13)` in the same step
+- step `934`: starts a fresh `_gameLoopStep()` and immediately enters the
+  separate top-level `travelPath` continuation path
+
+This corrected an earlier mistaken theory:
+- the initial `_` travel step is **not** owned by `promptStep()`
+- `dotravel()` awaits `getpos_async()` directly
+- replay resumes the still-running command promise through
+  `replay_core.js:drainUntilInput(...)`
+
+The latest combined owner probe matched that model:
+- change A: skip local movement repeat drain after the initial `_` travel hop
+- change B: route later top-level `travelPath` continuation through
+  `runMovementRepeatSlice(...)`
+
+Validation result:
+- `seed031` first divergence did **not** move later:
+  - RNG `933`
+  - event `934`
+- but step-summary spillover improved sharply:
+  - baseline `933..936`: `rng +431 / evt +169`
+  - combined probe: `rng +106 / evt +95`
+- targeted gameplay guardrails still passed
+
+What that means:
+- both owners are real contributors
+- but even after neutralizing both at a high level, the first bad work still
+  starts inside step `933`
+- so the next fix must target the **first resumed-command travel slice**
+  itself, not just owner routing after that slice
 
 ## Design Goal
 
