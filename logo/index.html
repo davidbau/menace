@@ -82,18 +82,22 @@
       max-width: calc(var(--game-font-size) * 80 * 0.60205078125 + 34px);
     }
 
+    .help-link {
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--color-text-muted);
+    }
+
+    .help-link:hover { color: var(--color-accent); }
+    .help-link:hover .help-key { text-decoration: underline; }
+
     .help-key {
       font-family: var(--font-mono);
       font-size: calc(var(--game-font-size) * 0.7);
       color: var(--color-text);
-      cursor: pointer;
-      text-decoration: none;
     }
 
-    .help-key:hover {
-      color: var(--color-accent);
-      text-decoration: underline;
-    }
+    .help-link:hover .help-key { color: var(--color-accent); }
 
     .sep {
       padding: 0 0.4em;
@@ -311,16 +315,16 @@
     </div>
     <div id="nav-spacer">
       <div id="help-bar">
-        <a class="help-key" data-cmd="FD">FD</a> forward <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="BK">BK</a> back <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="RT">RT</a> right <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="LT">LT</a> left <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="PU">PU</a> pen up <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="PD">PD</a> pen down <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="CS">CS</a> clear <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="REPEAT">REPEAT</a> <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="HELP">HELP</a> <span class="sep">&middot;</span>
-        <a class="help-key" data-cmd="BYE">BYE</a> quit
+        <a class="help-link" data-cmd="FD"><span class="help-key">FD</span> forward</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="BK"><span class="help-key">BK</span> back</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="RT"><span class="help-key">RT</span> right</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="LT"><span class="help-key">LT</span> left</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="PU"><span class="help-key">PU</span> pen up</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="PD"><span class="help-key">PD</span> pen down</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="CS"><span class="help-key">CS</span> clear</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="REPEAT"><span class="help-key">REPEAT</span></a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="HELP"><span class="help-key">HELP</span></a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="BYE"><span class="help-key">BYE</span> quit</a>
       </div>
     </div>
   </div>
@@ -405,7 +409,7 @@
     } catch(e) {}
 
     /* Help bar: click a command to inject HELP "CMD into the REPL */
-    document.querySelectorAll('#help-bar .help-key[data-cmd]').forEach(function(el) {
+    document.querySelectorAll('#help-bar .help-link[data-cmd]').forEach(function(el) {
       el.addEventListener('click', function(e) {
         e.preventDefault();
         var cmd = el.getAttribute('data-cmd');
