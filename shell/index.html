@@ -131,15 +131,21 @@
       font-weight: 500;
       letter-spacing: 0.02em;
       text-align: center;
+      opacity: 0;
+      animation: loading-appear 0.5s ease 6s forwards;
+    }
+
+    @keyframes loading-appear {
+      to { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      #loading { animation: loading-appear 0.5s ease 6s forwards, pulse 2s ease-in-out 6s infinite; }
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      #loading { animation: pulse 2s ease-in-out infinite; }
     }
 
     #controls {
