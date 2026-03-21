@@ -2138,3 +2138,110 @@ What this means:
 - the next fix must be reasoned from the exact point where a queued key first
   becomes visible to replay ownership, not from a generic "drain more after the
   step" rule
+
+## 2026-03-21 strategy refinement: define the seam as violated ownership invariants
+
+The most productive next step is to stop describing the remaining problem as a
+general "travel attribution bug" and instead define it as a small set of
+explicit ownership invariants that JS must satisfy.
+
+This is useful because:
+- the remaining seam is now narrow
+- several plausible one-off fixes have already been rejected
+- the current evidence is strongest when phrased as a forbidden coexistence of
+  runtime states, not as a guessed branch rewrite
+
+### Core invariant family
+
+The shared fixture key stream is authoritative. Therefore the remaining bug can
+be expressed as a question of when the runtime is allowed to expose the next
+fixture key relative to the previous command's no-input continuation owners.
+
+The key invariant candidates are:
+
+1. **Queued-key / positive-repeat exclusion**
+   - once a fresh gameplay key is already queued for the current fixture step,
+     JS must not still execute the previous command's explicit no-input
+     positive-repeat travel slice first
+   - current `seed031` evidence violates exactly this:
+     - `qlen=1..4`
+     - while `_gameLoopStep()` still chooses `branch=positiveMoveContinuation`
+
+2. **Queued-key / prior-owner exclusion**
+   - more generally, once a fresh gameplay key is visible to the runtime,
+     prior-command explicit no-input owners should already be exhausted
+   - relevant owners are the ones already modeled in `_gameLoopStep()`:
+     - `pendingTravelTimedTurn`
+     - `multi > 0 && context.mv`
+     - `context.move && multi < 0`
+     - `occupation`
+     - `travelPath` fallback
+
+3. **Step-finalization discipline**
+   - replay should only finalize a captured gameplay step after the explicit
+     no-input owners that belong to that consumed fixture key have been fully
+     accounted for
+   - if a later key is already visible before that point, the boundary is wrong
+
+### Why this is better than another speculative fix
+
+The rejected probes already showed:
+- a fresh-movement `cmd.js` patch was too shallow
+- a generic replay-side "drain more" rule was too blunt
+- a top-of-loop queue-preemption patch was not sufficient
+
+Those failures were all missing the same thing:
+- they changed control flow without first stating exactly which state
+  combinations are forbidden
+
+The invariant formulation gives a better procedure:
+1. encode the forbidden coexistence as a debug-only assertion or diagnostic
+2. reproduce `seed031`
+3. identify the first point where JS violates the invariant
+4. fix the owner boundary that is demonstrably responsible
+
+### Physical assertions / diagnostics to add
+
+These should be debug-only and high-signal at first, not shipping behavior
+changes:
+
+1. **Pre-positive-repeat guard**
+   - before `_gameLoopStep()` takes `hasPositiveMoveContinuation`
+   - assert or log if `input.getInputState().queueLength > 0`
+   - this directly encodes the currently observed seam
+
+2. **Key-admission guard**
+   - when replay is about to expose the next fixture key to the runtime
+   - assert or log if any explicit no-input owner from the prior command is
+     still armed
+
+3. **Step-finalization guard**
+   - when replay decides a gameplay step is complete
+   - assert or log whether explicit no-input owners still exist for that same
+     consumed key
+
+These assertions are not the fix. They are there to force the next iteration to
+be argued in terms of a concrete ownership contract rather than intuition.
+
+### Current hypothesis, stated as an invariant violation
+
+The best current reading of `seed031` is:
+- JS is allowing a fresh fixture key to become visible while the previous
+  command still owns `positiveMoveContinuation`
+- then replay captures the resulting travel hop under the later queued key
+
+That is the invariant violation to attack next.
+
+### Practical next step
+
+Add the debug-only invariant checks above, using the existing owner predicates
+already present in `_gameLoopStep()` rather than inventing new owner concepts.
+
+The desired outcome of that pass is not an immediate parity fix. It is to
+produce one precise answer to this question:
+
+- **At what exact point does the next fixture key first become visible while a
+  prior explicit no-input owner is still active?**
+
+Once that answer is recorded, the next behavior patch can target the actual
+boundary owner instead of another approximate proxy.
