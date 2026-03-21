@@ -557,6 +557,40 @@ It is between:
 This is why the first resumed JS step already contains dog work that belongs
 to C's later positive-repeat branch.
 
+### Narrower owner-isolation result
+
+A follow-up probe isolated only the local collapsed boundary:
+- change:
+  - after the resumed `_` command's initial `dotravel_target()` hop,
+    `run_command()` skips the local movement `repeatLoop()`
+  - top-level `_gameLoopStep()` `travelPath` continuation is left unchanged
+
+Validation:
+- `seed031` still first diverges at:
+  - RNG `933`
+  - event `934`
+- but the spillover again drops sharply:
+  - baseline `933..936`: `rng +431 / evt +169`
+  - local-boundary-only probe: `rng +106 / evt +95`
+- the same four targeted gameplay guardrails still pass
+
+This is an important narrowing result:
+- the local `finalizeTimedCommand() -> repeatLoop()` collapse is the dominant
+  contributor to the `933..936` spillover reduction
+- the top-level `travelPath` owner is still a real mismatch, but it is not
+  needed to obtain that specific spillover improvement
+
+What remains after removing the local drain:
+- the first seam still begins at step `933`
+- so the first resumed `_` slice itself is still not C-faithful even before
+  the later top-level owner comes back into play
+
+That means the next analysis target should be:
+- the initial resumed `_` slice with local repeat drain suppressed
+- specifically, what inside
+  `dotravel_target() -> domove() -> finalizeTimedCommand()/advanceTimedTurn()`
+  still reaches the gas-spore contact corridor too early
+
 ## Design Goal
 
 Port JS so that positive `multi` continuation is owned by the JS equivalent of

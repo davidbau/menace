@@ -15027,3 +15027,29 @@ Lesson:
     - and local `repeatLoop()` starting the next travel step
   - that boundary is where JS is currently pulling C's next positive-repeat
     iteration into step `933`
+
+# 2026-03-21: The local collapsed boundary is the dominant spillover contributor
+
+- Narrow probe:
+  - suppress only the local movement `repeatLoop()` after the resumed `_`
+    command's initial `dotravel_target()` hop
+  - leave the top-level `_gameLoopStep()` `travelPath` continuation unchanged
+- Validation:
+  - `seed031_manual_direct` still first diverged at:
+    - RNG `933`
+    - event `934`
+  - but spillover again dropped sharply:
+    - baseline `933..936`: `rng +431 / evt +169`
+    - local-boundary-only probe: `rng +106 / evt +95`
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - the local `finalizeTimedCommand() -> repeatLoop()` collapse is the
+    dominant contributor to the late `933..936` spillover
+  - the top-level `travelPath` owner is still a mismatch, but it is secondary
+    for that specific spillover effect
+  - because the first seam still remains at `933`, the next remaining bug is
+    inside the first resumed `_` slice itself
