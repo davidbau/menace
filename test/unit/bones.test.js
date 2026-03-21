@@ -387,20 +387,20 @@ describe('savebones (full pipeline)', () => {
     it('saves bones on death at depth > 1', async () => {
         const game = await makeTestGame(3);
         const sword = { name: 'sword', oclass: WEAPON_CLASS };
-        game.player.addToInventory(sword);
-        game.player.weapon = sword;
+        game.u.addToInventory(sword);
+        game.u.weapon = sword;
 
         savebones(game);
 
         // Player inventory should be emptied
-        assert.equal(game.player.inventory.length, 0);
-        assert.equal(game.player.weapon, null);
+        assert.equal(game.u.inventory.length, 0);
+        assert.equal(game.u.weapon, null);
     });
 
     it('never saves bones on level 1 (canMakeBones returns false)', async () => {
         const game = await makeTestGame(1);
         // Override depth to 1
-        game.player.dungeonLevel = 1;
+        game.u.dungeonLevel = 1;
         savebones(game);
         // No bones should be stored for depth 1
         assert.equal(loadBones(1), null);
@@ -437,7 +437,7 @@ describe('savebones (full pipeline)', () => {
     it('does not crash with empty inventory', async () => {
         const game = await makeTestGame(3);
         // Ensure empty inventory
-        game.player.inventory = [];
+        game.u.inventory = [];
         savebones(game);
         // No crash = success
     });

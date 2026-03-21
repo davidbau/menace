@@ -173,7 +173,7 @@ describe('Per-turn game loop RNG (gameloop)', () => {
         assert.ok(log[tailStart + 2].includes('rn2(20)'),
             `Tail[2] should be rn2(20), got: ${log[tailStart + 2]}`);
         // Tail[3] is rn2(40 + DEX*3) — for Valkyrie DEX ~14, this is rn2(82)
-        const dex = game.player.attributes[A_DEX];
+        const dex = game.u.attributes[A_DEX];
         const expectedEngrave = `rn2(${40 + dex * 3})`;
         assert.ok(log[tailStart + 3].includes(expectedEngrave),
             `Tail[3] should be ${expectedEngrave}, got: ${log[tailStart + 3]}`);

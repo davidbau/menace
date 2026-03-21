@@ -47,8 +47,8 @@ test('diagonal move into intact doorway is blocked without message by default', 
 
     assert.equal(result.moved, false);
     assert.equal(result.tookTime, false);
-    assert.equal(game.player.x, 10);
-    assert.equal(game.player.y, 10);
+    assert.equal(game.u.x, 10);
+    assert.equal(game.u.y, 10);
     assert.equal(game.display.topMessage, null);
 });
 
@@ -79,8 +79,8 @@ test('diagonal move out of intact doorway is blocked without message by default'
 
     assert.equal(result.moved, false);
     assert.equal(result.tookTime, false);
-    assert.equal(game.player.x, 10);
-    assert.equal(game.player.y, 10);
+    assert.equal(game.u.x, 10);
+    assert.equal(game.u.y, 10);
     assert.equal(game.display.topMessage, null);
 });
 

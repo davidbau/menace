@@ -65,22 +65,22 @@ describe('drop message formatting', () => {
         const game = makeGame();
         const shield = mksobj(SMALL_SHIELD, true, false);
         shield.invlet = 'b';
-        game.player.inventory.push(shield);
-        game.player.shield = shield;
+        game.u.inventory.push(shield);
+        game.u.shield = shield;
 
         pushInput('b'.charCodeAt(0));
         const result = await rhack('d'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
         assert.equal(game.display.topMessage, 'You cannot drop something you are wearing.');
-        assert.equal(game.player.inventory.includes(shield), true);
-        assert.equal(game.player.shield, shield);
+        assert.equal(game.u.inventory.includes(shield), true);
+        assert.equal(game.u.shield, shield);
     });
 
     it('supports selecting an item letter from the ? overlay menu', async () => {
         const game = makeGame();
         const shield = mksobj(SMALL_SHIELD, true, false);
         shield.invlet = 'b';
-        game.player.inventory.push(shield);
+        game.u.inventory.push(shield);
 
         game.display.cols = 80;
         game.display.renderOverlayMenu = () => 0;
@@ -91,7 +91,7 @@ describe('drop message formatting', () => {
 
         const result = await rhack('d'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.includes(shield), false);
+        assert.equal(game.u.inventory.includes(shield), false);
         assert.match(game.display.topMessage, /^You drop /);
     });
 });

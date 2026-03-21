@@ -1593,7 +1593,7 @@ export class NetHackGame {
         this.dungeonAlignOverride = undefined;
 
         // Browser/headless path: player/map set up later in async init()
-        this.player = new Player();
+        this.u = new Player();
         this.map = null;
         this.display = deps.display || null;
         if (this.display && !this.display._game) {
@@ -1608,14 +1608,6 @@ export class NetHackGame {
         });
         // game.u is the canonical hero reference (C: u).
         // game.map is the canonical level reference (C: level/levl).
-        this.u = this.player;
-        // Legacy getters — kept for safety but all code should use game.u / game.map.
-        Object.defineProperty(this, 'lev', {
-            configurable: true,
-            enumerable: false,
-            get: () => this.map,
-            set: (v) => { this.map = v; },
-        });
         // Legacy movement-prefix mirrors mapped onto canonical context fields.
         Object.defineProperty(this, 'runMode', {
             configurable: true,
@@ -1752,11 +1744,11 @@ export class NetHackGame {
     // Re-render game view (map + status). Called after a modal window closes.
     _rerenderGame() {
         if (!this.fov || !this.map || !this.display) return;
-        this.fov.compute(this.map, this.player.x, this.player.y);
+        this.fov.compute(this.map, this.u.x, this.u.y);
         this.display.renderMessageWindow();
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        this.display.renderStatus(this.u);
+        this.display.cursorOnPlayer(this.u);
     }
 
     // Initialize a new game — browser chargen path
@@ -1781,7 +1773,7 @@ export class NetHackGame {
             // C harness parity: tmp_at_start/step/end are canonical events.
             trace: true,
             canSee: (x, y) => {
-                return !!cansee_core(this.map || null, this.player || this.u || null, this.fov || null, x, y);
+                return !!cansee_core(this.map || null, this.u || this.u || null, this.fov || null, x, y);
             },
             onDelayBoundary: (payload) => {
                 // Keep replay boundary semantics aligned with existing session logs.
@@ -1899,11 +1891,11 @@ export class NetHackGame {
                 ? role.validRaces.slice()
                 : [RACE_HUMAN];
 
-            let selectedRace = this.player.race;
+            let selectedRace = this.u.race;
             if (Number.isInteger(char.gender)) {
-                this.player.gender = char.gender;
+                this.u.gender = char.gender;
             } else if (typeof char.gender === 'string' && char.gender.toLowerCase() === 'female') {
-                this.player.gender = FEMALE;
+                this.u.gender = FEMALE;
             }
             const raceMap = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
             if (Number.isInteger(char.race)) {
@@ -1916,19 +1908,19 @@ export class NetHackGame {
                 selectedRace = roleRaces[0];
             }
 
-            this.player.initRole(roleIndex);
-            this.player.name = char.name || 'Agent';
-            this.player.race = selectedRace;
+            this.u.initRole(roleIndex);
+            this.u.name = char.name || 'Agent';
+            this.u.race = selectedRace;
 
             // C ref: role.c rigid_role_checks() -- enforce forced gender.
             if (role?.forceGender === 'female') {
-                this.player.gender = FEMALE;
+                this.u.gender = FEMALE;
             } else if (role?.forceGender === 'male') {
-                this.player.gender = MALE;
+                this.u.gender = MALE;
             }
 
             const alignMap = { lawful: A_LAWFUL, neutral: A_NEUTRAL, chaotic: A_CHAOTIC };
-            let selectedAlign = this.player.alignment;
+            let selectedAlign = this.u.alignment;
             if (Number.isInteger(char.alignment)) {
                 selectedAlign = char.alignment;
             } else if (typeof char.align === 'string') {
@@ -1944,7 +1936,7 @@ export class NetHackGame {
             if (!validAligns.includes(selectedAlign)) {
                 selectedAlign = validAligns[0] ?? role?.validAligns?.[0] ?? A_NEUTRAL;
             }
-            this.player.alignment = selectedAlign;
+            this.u.alignment = selectedAlign;
             // C ref: role.c:1222 pick_align(PICK_RIGID) via rigid_role_checks()
             // For manual-direct-live sessions, the C recording includes a rn2(1) call that
             // fires when the gender menu is shown (if alignment is forced to a single choice).
@@ -1954,20 +1946,20 @@ export class NetHackGame {
             }
         } else if (this.wizard) {
             // Wizard mode: auto-select Valkyrie (index 11)
-            this.player.initRole(11); // PM_VALKYRIE
-            this.player.name = 'Wizard';
-            this.player.race = RACE_HUMAN;
-            this.player.gender = FEMALE;
-            this.player.alignment = A_NEUTRAL;
+            this.u.initRole(11); // PM_VALKYRIE
+            this.u.name = 'Wizard';
+            this.u.race = RACE_HUMAN;
+            this.u.gender = FEMALE;
+            this.u.alignment = A_NEUTRAL;
         } else {
             await _playerSelection(this);
         }
 
         // C ref: flags.female is the source of truth for current hero sex, and
         // polymorph code mutates the mirrored player.female state directly.
-        const female = (this.player.gender === FEMALE);
+        const female = (this.u.gender === FEMALE);
         this.flags.female = female;
-        this.player.female = female;
+        this.u.female = female;
 
         // C ref: allmain.c moveloop_preamble() — real-world side effects.
         this.flags.moonphase = phase_of_the_moon();
@@ -1975,7 +1967,7 @@ export class NetHackGame {
             if (!urlOpts.character) {
                 await this.display.putstr_message('You are lucky!  Full moon tonight.');
             }
-            change_luck(1, this.player);
+            change_luck(1, this.u);
         } else if (this.flags.moonphase === 0) { // NEW_MOON
             if (!urlOpts.character) {
                 await this.display.putstr_message('Be careful!  New moon tonight.');
@@ -1986,7 +1978,7 @@ export class NetHackGame {
             if (!urlOpts.character) {
                 await this.display.putstr_message('Watch out!  Bad things can happen on Friday the 13th.');
             }
-            change_luck(-1, this.player);
+            change_luck(-1, this.u);
         }
 
         // First-level init
@@ -1994,7 +1986,7 @@ export class NetHackGame {
         this.dungeonAlignOverride = Number.isInteger(urlOpts.dungeonAlignOverride)
             ? urlOpts.dungeonAlignOverride : undefined;
         const startDlevel = Number.isInteger(urlOpts.startDlevel) ? urlOpts.startDlevel : 1;
-        const { map, initResult } = await initFirstLevel(this.player, this.player.roleIndex, this.wizard, {
+        const { map, initResult } = await initFirstLevel(this.u, this.u.roleIndex, this.wizard, {
             startDlevel,
             startDnum: this.dnum,
             dungeonAlignOverride: this.dungeonAlignOverride,
@@ -2011,13 +2003,13 @@ export class NetHackGame {
             this.map.uz = { dnum: startDnum, dlevel: startDepth };
             if (!Number.isInteger(this.map._genDnum)) this.map._genDnum = startDnum;
             if (!Number.isInteger(this.map._genDlevel)) this.map._genDlevel = startDepth;
-            this.player.uz = { dnum: startDnum, dlevel: startDepth };
+            this.u.uz = { dnum: startDnum, dlevel: startDepth };
             this.dnum = startDnum;
         }
         this.levels[startDlevel] = map;
-        this.player.wizard = this.wizard;
+        this.u.wizard = this.wizard;
         this.seerTurn = initResult.seerTurn;
-        await set_wear(this.player, null);
+        await set_wear(this.u, null);
 
         // For manual-direct-live session replays, the preamble (rnd(9000)+rnd(30)) is
         // already consumed by simulatePostLevelInit above. If the player chose the tutorial,
@@ -2028,25 +2020,25 @@ export class NetHackGame {
         }
 
         // Apply flags
-        this.player.showExp = this.flags.showexp;
-        this.player.showScore = this.flags.showscore;
-        this.player.showTime = this.flags.time;
+        this.u.showExp = this.flags.showexp;
+        this.u.showScore = this.flags.showscore;
+        this.u.showTime = this.flags.time;
 
         // Initial display
-        this.fov.compute(this.map, this.player.x, this.player.y);
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        this.fov.compute(this.map, this.u.x, this.u.y);
+        this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        this.display.renderStatus(this.u);
+        this.display.cursorOnPlayer(this.u);
 
         // C ref: moveloop_preamble() shows lore text with --More-- then
         // proceeds to welcome text. Keep this as an explicit startup prompt
         // boundary so step 0 captures lore and step 1 dismisses it to reveal
         // the welcome greeting.
         if (urlOpts.showLoreAndWelcome && urlOpts.character && !this.flags.tutorial) {
-            const roleIdx = this.player.roleIndex;
-            const raceIdx = this.player.race;
-            const female = this.player.gender === FEMALE;
-            const align = this.player.alignment;
+            const roleIdx = this.u.roleIndex;
+            const raceIdx = this.u.race;
+            const female = this.u.gender === FEMALE;
+            const align = this.u.alignment;
 
             let deityName = godForRoleAlign(roleIdx, align);
             let goddess = isGoddess(roleIdx, align);
@@ -2086,10 +2078,10 @@ export class NetHackGame {
         } else if (urlOpts.showWelcomeMore && urlOpts.character && !this.flags.tutorial) {
             // Welcome --More-- only (lore was auto-dismissed by record_more_spaces).
             // Build welcome message for display but only create a --More-- prompt.
-            const roleIdx = this.player.roleIndex;
-            const raceIdx = this.player.race;
-            const female = this.player.gender === FEMALE;
-            const align = this.player.alignment;
+            const roleIdx = this.u.roleIndex;
+            const raceIdx = this.u.race;
+            const female = this.u.gender === FEMALE;
+            const align = this.u.alignment;
             const greeting = greetingForRole(roleIdx);
             const rName = roleNameForGender(roleIdx, female);
             const raceAdj = races[raceIdx].adj;
@@ -2114,10 +2106,10 @@ export class NetHackGame {
             // pendingPrompt that first shows the welcome --More--, then renders
             // the tutorial menu as a PICK_ONE overlay.  The replay loop feeds
             // keys one at a time so each step produces a screen capture.
-            const roleIdx = this.player.roleIndex;
-            const raceIdx = this.player.race;
-            const female = this.player.gender === FEMALE;
-            const align = this.player.alignment;
+            const roleIdx = this.u.roleIndex;
+            const raceIdx = this.u.race;
+            const female = this.u.gender === FEMALE;
+            const align = this.u.alignment;
             const greeting = greetingForRole(roleIdx);
             const rName = roleNameForGender(roleIdx, female);
             const raceAdj = races[raceIdx].adj;
@@ -2177,7 +2169,7 @@ export class NetHackGame {
         // old-level coordinates, so we clear x/y here to prevent spurious
         // enexto_core calls when a zoo cell coincidentally matches.
         // Override makemon player ctx: clear x/y so byyou is never true during fill_zoo
-        const heroHasAmulet = !!(this.player?.uhave?.amulet);
+        const heroHasAmulet = !!(this.u?.uhave?.amulet);
         const targetDnum = Number.isInteger(opts?.targetDnum)
             ? opts.targetDnum
             : this.dnum;
@@ -2190,7 +2182,7 @@ export class NetHackGame {
 
         flush_screen(-1);   // C ref: do.c:1720 — suppress flushes during level transition
         await withMakemonPlayerOverrideAsync(
-            { ...this.player, x: null, y: null },
+            { ...this.u, x: null, y: null },
             async () => await changeLevelCore(this, depth, transitionDir, { ...opts, makeLevel })
         );
 
@@ -2212,7 +2204,7 @@ export class NetHackGame {
         // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
         // and before later arrival messages. This can consume dfr_post_msg
         // early so deferred_goto() won't print it again.
-        await maybe_lvltport_feedback(this.player);
+        await maybe_lvltport_feedback(this.u);
         await this.maybeShowQuestPortalCall(previousDnum, { suppressOutputForLvltport: false });
         await this.maybeShowQuestLocateHint(depth);
         if (typeof this.hooks.onLevelChange === 'function') {
@@ -2222,7 +2214,7 @@ export class NetHackGame {
 
     getQuestPortalMsgId(previousDnum = null) {
         const map = (this.map);
-        const player = this.player;
+        const player = this.u;
         if (!map || !player) return null;
         if (previousDnum === 3) return null; // QUEST
         const lev = {
@@ -2242,7 +2234,7 @@ export class NetHackGame {
     }
 
     async maybeShowQuestPortalCall(previousDnum = null, opts = {}) {
-        const player = this.player;
+        const player = this.u;
         const msgid = this.getQuestPortalMsgId(previousDnum);
         if (!msgid || !player) return;
         if (opts?.suppressOutputForLvltport) {
@@ -2278,28 +2270,28 @@ export class NetHackGame {
     }
 
     placePlayerOnLevel(transitionDir = null) {
-        const pos = getArrivalPosition(this.map, this.player.dungeonLevel, transitionDir);
-        this.player.x = pos.x;
-        this.player.y = pos.y;
+        const pos = getArrivalPosition(this.map, this.u.dungeonLevel, transitionDir);
+        this.u.x = pos.x;
+        this.u.y = pos.y;
     }
 
     // C ref: allmain.c interrupt_multi() — check if multi-command should be interrupted
     shouldInterruptMulti() {
         if ((this.context?.run || 0) > 0) return false;
         if (this.occupation) return this.shouldInterruptOccupation();
-        if (monsterNearby(this.map, this.player, this.fov)) return true;
-        if (this.lastHP !== undefined && this.player.uhp !== this.lastHP) {
-            this.lastHP = this.player.uhp;
+        if (monsterNearby(this.map, this.u, this.fov)) return true;
+        if (this.lastHP !== undefined && this.u.uhp !== this.lastHP) {
+            this.lastHP = this.u.uhp;
             return true;
         }
-        this.lastHP = this.player.uhp;
+        this.lastHP = this.u.uhp;
         return false;
     }
 
     // C ref: do.c cmd_safety_prevention()
     shouldInterruptOccupation() {
         if ((this.context?.run || 0) > 0) return false;
-        return monsterNearby(this.map, this.player, this.fov);
+        return monsterNearby(this.map, this.u, this.fov);
     }
 
     // Run the deferred timed turn postponed from a stop_occupation frame.
@@ -2324,10 +2316,10 @@ export class NetHackGame {
         // C ref: docrt() calls vision_recalc() which passes do_light_sources
         // to mark TEMP_LIT tiles for mobile light sources (lanterns, candles, etc.).
         // Without this, corridors adjacent to the player's light radius stay dark.
-        this.fov.compute(this.map, this.player.x, this.player.y, do_light_sources, this.player);
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        this.fov.compute(this.map, this.u.x, this.u.y, do_light_sources, this.u);
+        this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        this.display.renderStatus(this.u);
+        this.display.cursorOnPlayer(this.u);
     }
 
     // Render input-blocked UI state (for example active text popups) without
@@ -2386,13 +2378,13 @@ export class NetHackGame {
     checkpoint(phase = 'checkpoint') {
         return {
             phase,
-            level: this.player?.dungeonLevel || 0,
+            level: this.u?.dungeonLevel || 0,
             turn: this.turnCount,
             player: {
-                x: this.player?.x ?? 0,
-                y: this.player?.y ?? 0,
-                hp: this.player?.hp ?? 0,
-                hpmax: this.player?.hpmax ?? 0,
+                x: this.u?.x ?? 0,
+                y: this.u?.y ?? 0,
+                hp: this.u?.hp ?? 0,
+                hpmax: this.u?.hpmax ?? 0,
             },
             rng: this.getRngLog(),
             typGrid: this.getTypGrid(),
@@ -2433,15 +2425,15 @@ export class NetHackGame {
             this.hooks.onTurnAdvanced({ game: this, keyCode: code, result });
         }
 
-        this.fov.compute(this.map, this.player.x, this.player.y);
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        this.fov.compute(this.map, this.u.x, this.u.y);
+        this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        this.display.renderStatus(this.u);
+        this.display.cursorOnPlayer(this.u);
         if (typeof this.hooks.onScreenRendered === 'function') {
             this.hooks.onScreenRendered({ game: this, keyCode: code });
         }
 
-        if (this.player.uhp <= 0) {
+        if (this.u.uhp <= 0) {
             this.gameOver = true;
             this.gameOverReason = 'died';
         }
@@ -2514,13 +2506,13 @@ export class NetHackGame {
             rng: stepRng,
             typGrid: this.getTypGrid(),
             screen: this.getScreen(),
-            level: this.player?.dungeonLevel || 0,
+            level: this.u?.dungeonLevel || 0,
             turn: this.turnCount,
         };
     }
 
     async teleportToLevel(depth) {
-        if (!this.player?.wizard) {
+        if (!this.u?.wizard) {
             return { ok: false, reason: 'wizard-disabled' };
         }
         if (!Number.isInteger(depth) || depth <= 0) {
@@ -2670,7 +2662,7 @@ export class NetHackGame {
                         this.renderAndAutosave({ commandResult, autosave: true });
                         continue;
                     }
-                    if (this.player?.Hallucination) return;
+                    if (this.u?.Hallucination) return;
                     this.renderAndAutosave({ autosave: false, forceRender: true });
                     continue;
                 }

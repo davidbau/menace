@@ -85,7 +85,7 @@ describe('throw prompt behavior', () => {
 
     it('does not suggest currently wielded weapon as default throw choice', async () => {
         const game = makeGame();
-        game.player.weapon = game.player.inventory[0];
+        game.u.weapon = game.u.inventory[0];
         pushInput(27);
         const result = await rhack('t'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
@@ -94,13 +94,13 @@ describe('throw prompt behavior', () => {
 
     it('falls back to coin letter when only wielded weapon plus coins remain', async () => {
         const game = makeGame();
-        game.player.inventory = [
+        game.u.inventory = [
             { invlet: 'a', oclass: WEAPON_CLASS, name: 'scalpel' },
             { invlet: '$', oclass: COIN_CLASS, name: 'gold piece', quan: 50 },
             { invlet: 'e', oclass: POTION_CLASS, name: 'potion of extra healing', quan: 4 },
         ];
-        game.player.weapon = game.player.inventory[0];
-        game.player.quiver = game.player.inventory[2];
+        game.u.weapon = game.u.inventory[0];
+        game.u.quiver = game.u.inventory[2];
         pushInput(27);
         const result = await rhack('t'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
@@ -141,8 +141,8 @@ describe('throw prompt behavior', () => {
     it('asks direction before rejecting worn item throw', async () => {
         const game = makeGame();
         const worn = { invlet: 'e', oclass: ARMOR_CLASS, name: 'leather armor' };
-        game.player.inventory.push(worn);
-        game.player.armor = worn;
+        game.u.inventory.push(worn);
+        game.u.armor = worn;
         pushInput('e'.charCodeAt(0));
         pushInput('l'.charCodeAt(0));
 
@@ -197,7 +197,7 @@ describe('throw prompt behavior', () => {
 
     it('stacks repeated throws onto existing floor object', async () => {
         const game = makeGame();
-        game.player.inventory = [
+        game.u.inventory = [
             { invlet: 'f', oclass: GEM_CLASS, otyp: FLINT, name: 'flint stone', quan: 2 },
         ];
 

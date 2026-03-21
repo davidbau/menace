@@ -48,15 +48,15 @@ describe('throw behavior parity', () => {
             otyp: 0,
             name: 'dart',
         };
-        game.player.inventory = [darts];
+        game.u.inventory = [darts];
 
         pushInput('b'.charCodeAt(0));
         pushInput('l'.charCodeAt(0));
 
         const result = await rhack('t'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.length, 1);
-        assert.equal(game.player.inventory[0].quan, 2);
+        assert.equal(game.u.inventory.length, 1);
+        assert.equal(game.u.inventory[0].quan, 2);
         assert.equal(game.map.objects.length, 1);
         assert.equal(game.map.objects[0].quan, 1);
         assert.equal(game.display.topMessage, null);
@@ -71,8 +71,8 @@ describe('throw behavior parity', () => {
             otyp: 0,
             name: 'ring mail',
         };
-        game.player.inventory = [armor];
-        game.player.armor = armor;
+        game.u.inventory = [armor];
+        game.u.armor = armor;
 
         pushInput('a'.charCodeAt(0));
         pushInput('l'.charCodeAt(0));

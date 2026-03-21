@@ -39,7 +39,7 @@ function makeGame() {
 
 test('fire command keeps prompt open until canceled', async () => {
     const game = makeGame();
-    game.player.weapon = { otyp: LONG_SWORD, oclass: WEAPON_CLASS, invlet: 'a', name: 'long sword' };
+    game.u.weapon = { otyp: LONG_SWORD, oclass: WEAPON_CLASS, invlet: 'a', name: 'long sword' };
     clearInputQueue();
     pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput(27);
@@ -53,7 +53,7 @@ test('fire command keeps prompt open until canceled', async () => {
 
 test('fire command with wielded polearm and no quiver prints C-style no-target message', async () => {
     const game = makeGame();
-    game.player.weapon = { otyp: LANCE, oclass: WEAPON_CLASS, invlet: 'a', name: 'lance' };
+    game.u.weapon = { otyp: LANCE, oclass: WEAPON_CLASS, invlet: 'a', name: 'lance' };
     clearInputQueue();
 
     const result = await rhack('f'.charCodeAt(0), game);
@@ -65,8 +65,8 @@ test('fire prompt includes C-style candidate letters for non-wielded weapon plus
     const game = makeGame();
     const lance = { otyp: LANCE, oclass: WEAPON_CLASS, invlet: 'b', name: 'lance' };
     const carrots = { otyp: 0, oclass: FOOD_CLASS, invlet: 'h', name: 'carrot', quan: 11 };
-    game.player.inventory = [lance, carrots];
-    game.player.weapon = carrots;
+    game.u.inventory = [lance, carrots];
+    game.u.weapon = carrots;
     clearInputQueue();
     pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput(27);
@@ -81,7 +81,7 @@ test('fire prompt includes C-style candidate letters for non-wielded weapon plus
 test('fire prompt shows count after second digit prefix', async () => {
     const game = makeGame();
     const lance = { otyp: LANCE, oclass: WEAPON_CLASS, invlet: 'b', name: 'lance' };
-    game.player.inventory = [lance];
+    game.u.inventory = [lance];
     clearInputQueue();
     pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput('1'.charCodeAt(0));
@@ -96,7 +96,7 @@ test('fire prompt shows count after second digit prefix', async () => {
 
 test('fire prompt falls back to coin letter when no launcher candidates exist', async () => {
     const game = makeGame();
-    game.player.inventory = [
+    game.u.inventory = [
         { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
     ];
     clearInputQueue();
@@ -112,7 +112,7 @@ test('fire prompt falls back to coin letter when no launcher candidates exist', 
 
 test('fire prompt shows C-style invalid-object more() loop', async () => {
     const game = makeGame();
-    game.player.inventory = [
+    game.u.inventory = [
         { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
     ];
     clearInputQueue();
@@ -135,8 +135,8 @@ test('fire prompt shows C-style invalid-object more() loop', async () => {
 test('fire with readied quiver skips item prompt and asks for direction', async () => {
     const game = makeGame();
     const readied = { oclass: WEAPON_CLASS, otyp: LONG_SWORD, invlet: 'a', name: 'dart', quan: 2 };
-    game.player.inventory = [readied];
-    game.player.quiver = readied;
+    game.u.inventory = [readied];
+    game.u.quiver = readied;
     clearInputQueue();
     pushInput('j'.charCodeAt(0));
 
@@ -152,10 +152,10 @@ test('fireassist swaps to launcher before direction prompt and can consume a tur
     const arrows = { oclass: WEAPON_CLASS, otyp: ARROW, invlet: 'a', name: 'arrow', quan: 5 };
     const bow = { oclass: WEAPON_CLASS, otyp: BOW, invlet: 'b', name: 'bow', quan: 1 };
     const sword = { oclass: WEAPON_CLASS, otyp: LONG_SWORD, invlet: 'c', name: 'long sword', quan: 1 };
-    game.player.inventory = [arrows, bow, sword];
-    game.player.quiver = arrows;
-    game.player.weapon = sword;
-    game.player.swapWeapon = bow;
+    game.u.inventory = [arrows, bow, sword];
+    game.u.quiver = arrows;
+    game.u.weapon = sword;
+    game.u.swapWeapon = bow;
     let runTurns = 0;
     game.advanceRunTurn = async () => { runTurns++; };
     clearInputQueue();
@@ -164,8 +164,8 @@ test('fireassist swaps to launcher before direction prompt and can consume a tur
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
     assert.equal(runTurns, 1);
-    assert.equal(game.player.weapon, bow);
-    assert.equal(game.player.swapWeapon, sword);
+    assert.equal(game.u.weapon, bow);
+    assert.equal(game.u.swapWeapon, sword);
     assert.ok(game.display.messages.includes('In what direction? '));
 });
 
@@ -174,17 +174,17 @@ test('fireassist swap preserves timed turn without run hook when direction is ca
     const arrows = { oclass: WEAPON_CLASS, otyp: ARROW, invlet: 'a', name: 'arrow', quan: 5 };
     const bow = { oclass: WEAPON_CLASS, otyp: BOW, invlet: 'b', name: 'bow', quan: 1 };
     const sword = { oclass: WEAPON_CLASS, otyp: LONG_SWORD, invlet: 'c', name: 'long sword', quan: 1 };
-    game.player.inventory = [arrows, bow, sword];
-    game.player.quiver = arrows;
-    game.player.weapon = sword;
-    game.player.swapWeapon = bow;
+    game.u.inventory = [arrows, bow, sword];
+    game.u.quiver = arrows;
+    game.u.weapon = sword;
+    game.u.swapWeapon = bow;
     clearInputQueue();
     pushInput('e'.charCodeAt(0)); // invalid direction -> cancel
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, true);
-    assert.equal(game.player.weapon, bow);
-    assert.equal(game.player.swapWeapon, sword);
+    assert.equal(game.u.weapon, bow);
+    assert.equal(game.u.swapWeapon, sword);
 });
 
 test('fireassist treats flint/rock as sling ammo for launcher swap', async () => {
@@ -192,10 +192,10 @@ test('fireassist treats flint/rock as sling ammo for launcher swap', async () =>
     const flints = { oclass: GEM_CLASS, otyp: FLINT, invlet: 'f', name: 'flint stone', quan: 5 };
     const sling = { oclass: WEAPON_CLASS, otyp: SLING, invlet: 's', name: 'sling', quan: 1 };
     const rocks = { oclass: GEM_CLASS, otyp: ROCK, invlet: 'r', name: 'rock', quan: 10 };
-    game.player.inventory = [flints, sling, rocks];
-    game.player.quiver = flints;
-    game.player.weapon = rocks;
-    game.player.swapWeapon = sling;
+    game.u.inventory = [flints, sling, rocks];
+    game.u.quiver = flints;
+    game.u.weapon = rocks;
+    game.u.swapWeapon = sling;
     let runTurns = 0;
     game.advanceRunTurn = async () => { runTurns++; };
     clearInputQueue();
@@ -204,15 +204,15 @@ test('fireassist treats flint/rock as sling ammo for launcher swap', async () =>
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
     assert.equal(runTurns, 1);
-    assert.equal(game.player.weapon, sling);
-    assert.equal(game.player.swapWeapon, rocks);
+    assert.equal(game.u.weapon, sling);
+    assert.equal(game.u.swapWeapon, rocks);
     assert.ok(game.display.messages.includes('In what direction? '));
 });
 
 test('fire accepts manual inventory letters then asks direction', async () => {
     const game = makeGame();
     const readied = { oclass: FOOD_CLASS, otyp: 0, invlet: 'e', name: 'carrot', quan: 1 };
-    game.player.inventory = [
+    game.u.inventory = [
         { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
         readied,
     ];
@@ -227,12 +227,12 @@ test('fire accepts manual inventory letters then asks direction', async () => {
     // C's setuqwep prints the readied item before direction prompt
     assert.equal(game.display.messages[2], 'You ready: e - a strange object.');
     assert.equal(game.display.messages[3], 'In what direction? ');
-    assert.equal(game.player.quiver, readied);
+    assert.equal(game.u.quiver, readied);
 });
 
 test("fire invalid inventory letter shows C-style don't-have-object more() loop", async () => {
     const game = makeGame();
-    game.player.inventory = [
+    game.u.inventory = [
         { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
         { oclass: FOOD_CLASS, otyp: 0, invlet: 'b', name: 'food ration', quan: 1 },
     ];

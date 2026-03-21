@@ -122,7 +122,7 @@ describe('run timing on blocked steps', () => {
         assert.equal(result.tookTime, false);
         assert.equal(result.moved, true);
         assert.equal(runTurns, 1);
-        assert.equal(game.player.x, 10);
-        assert.equal(game.player.y, 11);
+        assert.equal(game.u.x, 10);
+        assert.equal(game.u.y, 11);
     });
 });

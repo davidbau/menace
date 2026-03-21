@@ -43,7 +43,7 @@ describe('swap weapon command', () => {
 
     it('moves wielded weapon into alternate slot when swapping with no secondary', async () => {
         const game = makeGame();
-        game.player.weapon = {
+        game.u.weapon = {
             invlet: 'a',
             oclass: WEAPON_CLASS,
             otyp: DAGGER,
@@ -58,8 +58,8 @@ describe('swap weapon command', () => {
         };
         const result = await rhack('x'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.weapon, null);
-        assert.equal(game.player.swapWeapon?.invlet, 'a');
+        assert.equal(game.u.weapon, null);
+        assert.equal(game.u.swapWeapon?.invlet, 'a');
         assert.equal(game.display.topMessage, 'a - a +0 dagger (alternate weapon; not wielded).');
     });
 
@@ -91,14 +91,14 @@ describe('swap weapon command', () => {
             spe: 0,
             name: 'battle-axe',
         };
-        game.player.inventory = [dagger, axe];
-        game.player.weapon = dagger;
-        game.player.swapWeapon = axe;
+        game.u.inventory = [dagger, axe];
+        game.u.weapon = dagger;
+        game.u.swapWeapon = axe;
 
         const result = await rhack('x'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.weapon, axe);
-        assert.equal(game.player.swapWeapon, dagger);
+        assert.equal(game.u.weapon, axe);
+        assert.equal(game.u.swapWeapon, dagger);
         assert.match(game.display.topMessage, /^a - /);
     });
 });
