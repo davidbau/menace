@@ -29,6 +29,160 @@ For the full narratives of how these lessons were discovered, see the
 - This exposes bugs that normalized output can hide, especially intra-step
   ordering drift around `--More--`, `yn`, direction prompts, travel, and
 
+## 2026-03-21 - first fix the command-boundary ownership invariant, not monster math
+
+- Context: `seed031_manual_direct.session.json` after the validated travel-owner
+  fixes and visible-hostile stop gate.
+- The surviving gas-spore seam is best reasoned as a command-boundary ownership
+  bug on the fixed gameplay-step stream, not as a `distfleeck()` or
+  `set_apparxy()` formula bug.
+- A debug-only invariant trace showed the first violation occurs at **fresh key
+  admission**:
+  - replay admits fresh gameplay keys `h/b/y/.`
+  - while the prior carried owner is still explicitly armed:
+    - `multi=80`
+    - `run=8`
+    - `travel=1`
+    - `mv=1`
+  - queue length grows `1 -> 4` across gameplay steps `934..937`
+- Representative trace:
+  - `step=934 key="h" mode=admit-key explicitOwner=positiveMoveContinuation`
+  - `step=934 diag=... qlen=1 multi=80 run=8 travel=1 mv=1`
+  - repeated similarly for steps `935..937`
+- This means the next semantic question is narrower than earlier theories:
+  - either replay is admitting the next gameplay key too early, or
+  - runtime is retaining the carried travel owner too long
+- Do not jump from this seam directly to:
+  - monster-AI formula edits
+  - generic replay "drain more" logic
+  - broad repeat-slice reorders
+- First localize which side of the command-boundary handoff is too permissive,
+  then patch that side only.
+
+## 2026-03-21 - pre-key owner drain is the right seam family, but the naive loop is too broad
+
+- A narrow replay-core probe tried this rule:
+  - before admitting the next fixture gameplay key,
+  - if an explicit continuation owner is still armed,
+  - keep calling `_gameLoopStep()` until that owner clears.
+- This was useful because it changed the seam in the predicted direction:
+  - the fresh-key admission violation disappeared in the traced `934..937`
+    window for `seed031`
+  - `t11_s755_w_covmax9_gp` still passed
+- But it was not keepable:
+  - `seed031_manual_direct` later timed out at the final credit-space step
+  - so a naive generic pre-key drain loop is too broad
+- Durable lesson:
+  - the remaining bug family is almost certainly about fresh key admission
+    relative to an explicit carried owner
+  - but any replay-side fix must be narrower than "drain until no explicit
+    owner remains"
+  - otherwise it risks crossing unrelated later boundaries and breaking normal
+    termination behavior
+
+## 2026-03-21 - even the narrower same-step replay drain is not keepable
+
+- A stricter replay probe limited the extra draining to the **same consumed
+  fixture step**:
+  - only after a key's command promise finished
+  - only when `positiveMoveContinuation` was still armed
+- This still moved the seam in the predicted direction:
+  - the bad fresh-key admission pattern on steps `934..937` disappeared
+  - the extra work folded into step `933`
+  - `t11_s755_w_covmax9_gp` still passed
+- But it failed in the same end-state way as the broader replay drain:
+  - `seed031_manual_direct` timed out at the final credit-space step
+- Durable lesson:
+  - replay-side step extension is probably not the keepable fix, even when it
+    is shaped narrowly and seems locally correct
+  - the remaining fix should likely move back into core/runtime ownership:
+    why does the runtime still return from the resumed `.` path with
+    `positiveMoveContinuation` left armed?
+
+## 2026-03-21 - the resumed `.` seam is caused by `_gameLoopStep()` returning after one deferred timed turn
+
+- Important correction:
+  - the `seed031` seam does **not** pass through `promptStep()`
+  - `getpos_async()` is awaited directly inside the original `_` command
+- So gameplay step `933` is the original pending `_` command finishing:
+  - `_`
+  - `getpos_async()` waits
+  - `.` resumes the same pending command
+  - `dotravel_target()` runs
+  - `run_command()` sets `pendingTravelTimedTurn = true`
+- Then `_gameLoopStep()` does:
+  - take the `hasPendingTravelTimedTurn` branch
+  - `advanceTimedTurn()`
+  - `return`
+- At that return point, the explicit carried travel owner is still armed:
+  - `multi > 0`
+  - `context.mv == true`
+  - `context.run == 8`
+  - `context.travel == 1`
+- Durable lesson:
+  - the runtime itself is currently declaring the resumed `_` command "done"
+    after only the deferred timed turn
+  - that is a more specific core-runtime hypothesis than the earlier replay
+    framing
+  - the next promising fix is to revisit whether `_gameLoopStep()` should
+    continue into the positive-repeat travel slice in that same consumed key
+    instead of returning immediately
+
+## 2026-03-21 - continuing once after `pendingTravelTimedTurn` is not enough
+
+- Narrow core probe:
+  - after `_gameLoopStep()` handled `pendingTravelTimedTurn`,
+  - if `multi > 0 && context.mv` was still armed,
+  - continue the loop instead of returning immediately
+- Outcome:
+  - `t11_s755_w_covmax9_gp` still passed
+  - but `seed031_manual_direct` was unchanged at the first seam
+- Useful refinement from the trace:
+  - this only removed the bad fresh-key admission at gameplay step `937`
+  - the same violation still happened at `934..936`
+- Durable lesson:
+  - the carry point is earlier than the `pendingTravelTimedTurn` return alone
+  - so the next core fix has to look earlier in the resumed `_` command path,
+    not just at the single deferred-timed-turn branch
+
+## 2026-03-21 - removing the fresh-key admission pattern still does not move the first seam
+
+- Stronger core probe:
+  - after a command that started travel,
+  - keep the resumed `_gameLoopStep()` call owning later
+    `positiveMoveContinuation` slices in the same call
+- Outcome:
+  - the bad fresh-key admission pattern in the traced `933..939` window
+    disappeared entirely
+  - `t11_s755_w_covmax9_gp` still passed
+  - but `seed031_manual_direct` did **not** improve at all
+- Durable lesson:
+  - the fresh-key admission / carried-owner coexistence is real
+  - but removing it is not sufficient to move the earliest causal mismatch
+  - so that coexistence is not the first bug to fix
+  - the next useful analysis has to move earlier again, inside the resumed
+    travel slice before that later admission pattern becomes visible
+
+## 2026-03-21 - the bad `near=1` is caused by two extra hero hops before gas spore 27's next turn
+
+- Targeted `WEBHACK_MONMOVE_TRACE` over gameplay steps `934..937` isolated the
+  gas spore sequence directly.
+- JS sequence:
+  - step `934`: gas spore `27` at `(29,14)` refreshes target to `(24,13)` and
+    moves to `(28,13)`
+  - step `936`: gas spore `27` at `(28,13)` refreshes target to `(26,13)` and
+    moves to `(27,13)`
+  - step `937`: gas spore `27` starts at `(27,13)` with target still `(26,13)`
+    and therefore gets `near=1`
+- Durable lesson:
+  - the most concrete causal bug is now:
+    JS advances the hero from `(24,13)` to `(26,13)` before gas spore 27's next
+    turn at `(27,13)`
+  - once that happens, the later `near=1` is not surprising
+  - so the next comparison should be about **how many hero moves C allows**
+    between those two gas-spore turns, not about fresh-key admission in the
+    abstract
+
 ## 2026-03-19 - object age and thrown-kill ownership
 
 - `mkobj.newobj()` must seed `obj.age` from the current move count, not a
@@ -15382,3 +15536,40 @@ distinction is always conditional on being in Gehennom.
   - do **not** patch `distfleeck()` or `set_apparxy()` on this evidence
   - the next fix target remains command/timed-turn ownership: why does JS emit
     this monster bundle earlier in the input-step stream than C?
+  - when `_gameLoopStep()` is allowed to return after one positive-repeat slice,
+    the critical question is not just who owns the slice, but when queued fresh
+    keys become visible relative to that owner
+  - for manual-direct parity seams, always reason on gameplay-step numbering and
+    verify whether later keys are already queued before blaming fresh-command
+    parsing or monster AI formulas
+
+# 2026-03-21: the command-boundary invariant was useful, but the active fix target has shifted to a slice-level target-refresh invariant
+
+- Assessment:
+  - the command-boundary invariant work was productive:
+    - it exposed a real queued-key / carried-owner coexistence bug
+    - it ruled out replay-side drains and simple owner-extension fixes
+  - but it is not the earliest causal bug for the surviving gas-spore seam
+- Stronger causal chain:
+  - gas spore `27` first refreshes to target `(24,13)` and moves to `(28,13)`
+  - before gas spore `27`'s next relevant turn, JS advances the apparent target
+    to `(26,13)`
+  - then at `(27,13)`, `near=1` is the natural downstream result
+- Negative probe:
+  - moving `advanceTimedTurn()` to the top of every repeated movement slice was
+    wrong
+  - `t11_s755_w_covmax9_gp` stayed green, but `seed031_manual_direct`
+    regressed to the older dog seam:
+    - first RNG mismatch:
+      - JS `rn2(4)=2 @ dochug(monmove.js:847)`
+      - C `rn2(100)=38 @ obj_resists(zap.c:1467)`
+    - first event mismatch:
+      - JS `^dog_invent_decision[32@22,15 ud=5 ...]`
+      - C `^dog_invent_decision[32@22,15 ud=8 ...]`
+- Lesson:
+  - do not treat the remaining problem as "move all repeated timed turns earlier"
+  - keep the command-boundary invariant as a diagnostic model
+  - shift the active fix target to a slice/state invariant:
+    - between gas spore `27`'s turn at `(29,14)` targeting `(24,13)` and its
+      next `distfleeck()` at `(27,13)`, JS must not advance the apparent target
+      to `(26,13)`
