@@ -59,6 +59,27 @@ For the full narratives of how these lessons were discovered, see the
 - First localize which side of the command-boundary handoff is too permissive,
   then patch that side only.
 
+## 2026-03-21 - pre-key owner drain is the right seam family, but the naive loop is too broad
+
+- A narrow replay-core probe tried this rule:
+  - before admitting the next fixture gameplay key,
+  - if an explicit continuation owner is still armed,
+  - keep calling `_gameLoopStep()` until that owner clears.
+- This was useful because it changed the seam in the predicted direction:
+  - the fresh-key admission violation disappeared in the traced `934..937`
+    window for `seed031`
+  - `t11_s755_w_covmax9_gp` still passed
+- But it was not keepable:
+  - `seed031_manual_direct` later timed out at the final credit-space step
+  - so a naive generic pre-key drain loop is too broad
+- Durable lesson:
+  - the remaining bug family is almost certainly about fresh key admission
+    relative to an explicit carried owner
+  - but any replay-side fix must be narrower than "drain until no explicit
+    owner remains"
+  - otherwise it risks crossing unrelated later boundaries and breaking normal
+    termination behavior
+
 ## 2026-03-19 - object age and thrown-kill ownership
 
 - `mkobj.newobj()` must seed `obj.age` from the current move count, not a

@@ -2417,6 +2417,49 @@ The best next concrete comparison is:
 That is now the primary question. The previous "top-of-slice movemon reorder"
 theory is secondary until this boundary is resolved.
 
+## 2026-03-21 rejected probe: naive pre-key explicit-owner drain is directionally right but too broad
+
+A narrow replay probe tried the most direct interpretation of the invariant:
+
+- before admitting the next fixture gameplay key,
+- if an explicit continuation owner is still armed,
+- keep calling `_gameLoopStep()` until that owner is exhausted.
+
+Observed effect:
+
+- the mid-seam admission violation disappeared in the traced window
+- gameplay step `934` logged:
+  - `mode=pre-admission-drain explicitOwner=positiveMoveContinuation`
+- subsequent fresh keys `h/b/y/.` no longer showed the earlier
+  `mode=admit-key explicitOwner=positiveMoveContinuation` pattern
+- [t11_s755_w_covmax9_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json)
+  stayed green
+
+But the probe was not keepable:
+
+- `seed031_manual_direct` later timed out at the final credit-space step
+- timeout diagnostics:
+  - last step `1351`
+  - key `" "`
+  - `pendingPrompt=false`
+  - `multi=0`
+
+Interpretation:
+
+- the seam family is almost certainly correct:
+  - pre-key admission relative to explicit carried owners is the right boundary
+- but a naive "drain until no explicit owner remains" loop is too broad
+  and breaks some later command-boundary/termination case
+
+So the next fix, if it stays in replay, must be narrower:
+
+- no generic pre-key draining loop
+- no draining across unrelated later phases such as end-of-session/credits
+- only the specific command-boundary handoff that corresponds to the live
+  travel owner seam
+
+That probe was reverted.
+
 ## 2026-03-21 rejected probe: fresh-movement setup alone is not enough
 
 A narrow `cmd.js` probe attempted to make fresh movement keys perform a
