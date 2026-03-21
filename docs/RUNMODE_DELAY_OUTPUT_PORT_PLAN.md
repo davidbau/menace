@@ -2304,6 +2304,96 @@ So the next best move is to return to core/runtime ownership:
 
 That is now more promising than another replay-side drain variant.
 
+## 2026-03-21 core-runtime correction: the resumed `.` path is not a prompt-step bug
+
+One important correction after re-reading the runtime:
+
+- the `seed031` seam does **not** go through `promptStep()`
+- `getpos_async()` is awaited directly inside the original `_` command
+- so gameplay step `933` is the original pending `_gameLoopStep()` command
+  finishing, not a later prompt-owner handoff
+
+The concrete runtime path is:
+
+1. gameplay step `932` starts `_`
+2. `run_command()` -> `rhack()` -> `dotravel()` -> `getpos_async()`
+3. `getpos_async()` waits for input, so replay marks the command pending
+4. gameplay step `933` feeds `.`
+5. the same pending command resumes, `dotravel_target()` runs, and
+   `run_command()` sets:
+   - `pendingTravelTimedTurn = true`
+6. `_gameLoopStep()` then immediately takes the `hasPendingTravelTimedTurn`
+   branch:
+   - clears `pendingTravelTimedTurn`
+   - runs `advanceTimedTurn()`
+   - **returns**
+
+At that return point, the explicit carried owner is still armed:
+
+- `multi > 0`
+- `context.mv == true`
+- `context.run == 8`
+- `context.travel == 1`
+
+So the runtime itself is intentionally returning after exactly one deferred
+timed turn, even though the positive-repeat travel owner remains active.
+
+That is a stronger and more specific diagnosis than the earlier replay theories.
+
+### Consequence for the next fix
+
+If the replay-side drain probes were directionally right, the likely keepable
+fix is not "replay should keep looping". It is:
+
+- `_gameLoopStep()` should not report the resumed `_` command as fully done
+  after only the deferred timed turn if the same command still owns an explicit
+  positive-repeat travel continuation.
+
+This makes the next core question very precise:
+
+- after the `hasPendingTravelTimedTurn` branch runs, should `_gameLoopStep()`
+  continue into the positive-repeat travel slice in the same consumed key,
+  rather than returning?
+
+That is now the strongest runtime-side hypothesis.
+
+## 2026-03-21 rejected probe: continuing after `pendingTravelTimedTurn` alone is not enough
+
+A narrow core-runtime probe changed exactly one branch:
+
+- after `_gameLoopStep()` handled `pendingTravelTimedTurn`,
+- if `multi > 0 && context.mv` was still armed,
+- continue the same loop instead of returning immediately.
+
+Result:
+
+- [t11_s755_w_covmax9_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json)
+  still passed
+- but `seed031_manual_direct` was unchanged at the first seam:
+  - matched RNG still `34371/51561`
+  - matched events still `19071/28950`
+  - first RNG divergence still `933`
+  - first event divergence still `934`
+
+The trace refinement was useful:
+
+- the bad fresh-key admission pattern disappeared only at gameplay step `937`
+- but it was still present at steps `934..936`
+
+So the carry point is earlier than the `pendingTravelTimedTurn` return alone.
+
+Interpretation:
+
+- the runtime hypothesis was directionally sensible but too shallow
+- simply continuing once after the deferred timed turn does not reach the real
+  owner boundary that causes the first seam
+- the next core question is earlier:
+  - why do fresh gameplay keys `h/b/y` still arrive while the owner is armed
+    *before* the `pendingTravelTimedTurn` branch has become the only remaining
+    continuation?
+
+That probe was reverted.
+
 ## Current best next step
 
 Inspect the fresh-command path itself:

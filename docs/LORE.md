@@ -99,6 +99,52 @@ For the full narratives of how these lessons were discovered, see the
     why does the runtime still return from the resumed `.` path with
     `positiveMoveContinuation` left armed?
 
+## 2026-03-21 - the resumed `.` seam is caused by `_gameLoopStep()` returning after one deferred timed turn
+
+- Important correction:
+  - the `seed031` seam does **not** pass through `promptStep()`
+  - `getpos_async()` is awaited directly inside the original `_` command
+- So gameplay step `933` is the original pending `_` command finishing:
+  - `_`
+  - `getpos_async()` waits
+  - `.` resumes the same pending command
+  - `dotravel_target()` runs
+  - `run_command()` sets `pendingTravelTimedTurn = true`
+- Then `_gameLoopStep()` does:
+  - take the `hasPendingTravelTimedTurn` branch
+  - `advanceTimedTurn()`
+  - `return`
+- At that return point, the explicit carried travel owner is still armed:
+  - `multi > 0`
+  - `context.mv == true`
+  - `context.run == 8`
+  - `context.travel == 1`
+- Durable lesson:
+  - the runtime itself is currently declaring the resumed `_` command "done"
+    after only the deferred timed turn
+  - that is a more specific core-runtime hypothesis than the earlier replay
+    framing
+  - the next promising fix is to revisit whether `_gameLoopStep()` should
+    continue into the positive-repeat travel slice in that same consumed key
+    instead of returning immediately
+
+## 2026-03-21 - continuing once after `pendingTravelTimedTurn` is not enough
+
+- Narrow core probe:
+  - after `_gameLoopStep()` handled `pendingTravelTimedTurn`,
+  - if `multi > 0 && context.mv` was still armed,
+  - continue the loop instead of returning immediately
+- Outcome:
+  - `t11_s755_w_covmax9_gp` still passed
+  - but `seed031_manual_direct` was unchanged at the first seam
+- Useful refinement from the trace:
+  - this only removed the bad fresh-key admission at gameplay step `937`
+  - the same violation still happened at `934..936`
+- Durable lesson:
+  - the carry point is earlier than the `pendingTravelTimedTurn` return alone
+  - so the next core fix has to look earlier in the resumed `_` command path,
+    not just at the single deferred-timed-turn branch
+
 ## 2026-03-19 - object age and thrown-kill ownership
 
 - `mkobj.newobj()` must seed `obj.age` from the current move count, not a
