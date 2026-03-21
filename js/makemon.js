@@ -2558,8 +2558,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         speed: ptr.mmove,
         movement: 0,  // C ref: *mtmp = cg.zeromonst (zero-init)
         attacks: ptr.mattk,
-        peaceful: monPeaceful,
-        mpeaceful: false,
+        mpeaceful: monPeaceful,
         female: monFemale,
         tame: false,
         mflee: false,
@@ -2581,7 +2580,6 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         mcanmove: 1,  // C ref: makemon.c:1293 — mtmp->mcansee = mtmp->mcanmove = 1
         mcansee: 1,
     };
-    mon.mpeaceful = mon.peaceful;
 
     // C ref: makemon.c:1283-1291 — initial trap knowledge by branch/special role.
     const levelRef = _currentMonsterGenerationLevel(map) || map || null;
