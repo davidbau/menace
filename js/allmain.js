@@ -2611,6 +2611,7 @@ export class NetHackGame {
     }
 
     async _gameLoopStep() {
+        let carriedCommandMayConsumeQueuedInput = false;
         while (true) {
             const hasPendingTravelTimedTurn = !!this.pendingTravelTimedTurn;
             const hasThrowContinuation = hasPendingThrowContinuation(this);
@@ -2662,10 +2663,21 @@ export class NetHackGame {
 
             if (hasThrowContinuation) {
                 const continuationResult = await runPendingThrowContinuation(this);
+                this.emitDiagnosticEvent?.('parity.throw.loop-step', {
+                    tookTime: !!continuationResult?.tookTime,
+                    multi: this.multi | 0,
+                    move: this.context?.move | 0,
+                    mv: !!this.context?.mv,
+                    pendingThrow: !!this.pendingThrowContinuation,
+                });
                 this.renderAndAutosave({
                     commandResult: continuationResult,
                     autosave: !!continuationResult?.tookTime,
                 });
+                if (continuationResult?.tookTime && !(this?.playerDied)) {
+                    carriedCommandMayConsumeQueuedInput = true;
+                    continue;
+                }
                 return;
             }
 
@@ -2720,6 +2732,12 @@ export class NetHackGame {
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
             this.renderAndAutosave({ commandResult, autosave: true });
+            if (carriedCommandMayConsumeQueuedInput
+                && queuedInputLength(this) > 0
+                && !(typeof this.input?.isWaitingInput === 'function' && this.input.isWaitingInput())
+                && !hasPendingCommandBoundaryDismiss(this)) {
+                continue;
+            }
             if (!this.pendingTravelTimedTurn
                 && !(this.multi > 0 && this.context?.mv && !this?.playerDied)
                 && !(this.context?.move && this.multi < 0 && !(this?.playerDied))

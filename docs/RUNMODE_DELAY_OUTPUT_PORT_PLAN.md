@@ -3610,7 +3610,7 @@ This is a structural cleanup, not yet a parity gain by itself.
 
 Validated result:
 - `seed031_manual_direct.session.json`
-  - preserved the validated baseline:
+  - preserved the validated baseline at first:
     - first RNG divergence still `940`
     - matched RNG still `34575/51561`
     - matched events still `19208/28950`
@@ -3626,3 +3626,98 @@ Why keep it:
 - it gives the next throw fix a simpler base:
   - adjust the `flight -> resolve` handoff
   - without also untangling generic deferred behavior
+
+### Step 940 fixed; step 942 then step 943 became the next throw seams
+
+On top of the throw-local owner base, a narrower structural fix moved the
+remaining throw seam forward in two stages:
+
+1. `flight -> resolve` handoff fixed step `940`
+- the carried throw key now resolves on the same gameplay step where C does
+- `seed031` no longer diverges first at:
+  - JS `rn2(19)=10 @ thitmonst(...) <= throwit(...)`
+  - C `rn2(19)=0 @ exercise(attrib.c:510)`
+
+2. lethal gas-spore throw then exposed an explosion-boundary seam at `942`
+- C step `942` includes:
+  - projectile `tmp_at_end`
+  - lethal hit
+  - gas spore death
+  - explosion damage roll
+  - explosion draw only
+- C step `943` begins with:
+  - explosion `tmp_at_end`
+  - then `exercise`
+  - `should_mulch_missile`
+  - item placement / follow-on monster work
+
+3. explicit deferred explosion display plus corpse-chance ordering fixed step `942`
+- the first explosion split was not enough by itself
+- full grouped replay showed C still had two hidden differences on `942`:
+  - `corpse_chance(mon)` consumed a first `d(4,6)` before `mon_explodes()`
+  - `adtyp_to_expltype(AD_PHYS)` uses `EXPL_NOXIOUS`, not the JS fallback
+- after routing gas-spore death through `corpse_chance(mon)` before
+  `mon_explodes()`, and mapping `AD_PHYS -> EXPL_NOXIOUS`, `942` now matches
+  the C grouped replay fully
+
+4. deferred throw-tail bookkeeping now matches much further into `943`
+- JS step `943` now matches C through:
+  - `^tmp_at_end`
+  - `exercise`
+  - `should_mulch_missile`
+  - landing `breaktest/obj_resists`
+  - `^place[24,26,13]`
+  - early dog-goal selection of the dropped dart
+
+Current live seam:
+- the remaining throw seam is still structural, but later
+- allowing the carried throw owner to stay in `_gameLoopStep()` after its timed
+  slice was directionally correct and kept `t11_s755` green
+- however, JS still ends step `943` too early overall:
+  - step-boundary trace shows missing C tail on `943`
+  - and spillover into JS `944..946`
+  - including an extra JS timed-turn tail under:
+    - `advanceTimedTurn(...) <= finalizeTimedCommand(...)`
+
+Design conclusion:
+- the throw-owner refactor was the right foundation
+- the explosion split was also necessary, but only after restoring the C
+  corpse-chance and explosion-display details
+- the next remaining issue is still owner/boundary shaped:
+  - JS is carrying the lethal thrown-hit flow much farther than before
+  - but it still yields the post-explosion turn sequence earlier than C
+
+### Step 943 fixed by letting the carried throw path consume one more queued key
+
+A narrower core-JS follow-up closed the remaining `943` spill:
+
+- only after a carried throw continuation took time
+- only if queued input already existed
+- only if the runtime was not actually waiting for input
+- only if there was no pending `--More--` boundary
+
+Effect:
+- step `943` now matches between JS and C
+- the previous `943 -> 944..946` spill is gone
+
+Validated result on local replay:
+- `seed031_manual_direct.session.json`
+  - first RNG divergence moved to step `997`
+  - first event divergence moved to step `997`
+  - matched RNG: `35673/51561`
+  - matched events: `20258/28950`
+
+Guardrails:
+- `t11_s755_w_covmax9_gp`: PASS
+- `t11_s756_w_covmax10_gp`: PASS
+- `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+- `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+
+New seam family:
+- around gameplay steps `995..1000`
+- prompt/boundary shaped again, this time on an `apply` prompt corridor:
+  - step `995` key `y` while prompt-active
+  - step `996` space dismisses `You now wield a pick-axe.`
+  - step `997` key `u`
+- C still carries substantial turn-end work under that prompt/boundary region
+  while JS has none on `997`

@@ -467,8 +467,8 @@ async function hitum(player, mon, uattk, display, map, game = null) {
 // cf. uhitm.c:818 — hmon(mon, obj, thrown, dieroll):
 //   Wrapper for hmon_hitmon: applies object damage to monster.
 //   Returns true if monster survives.
-export async function hmon(player, mon, obj, thrown, dieroll, display, map) {
-    return await hmon_hitmon(player, mon, obj, thrown, dieroll, display, map);
+export async function hmon(player, mon, obj, thrown, dieroll, display, map, opts = {}) {
+    return await hmon_hitmon(player, mon, obj, thrown, dieroll, display, map, opts);
 }
 
 // cf. uhitm.c:837 — hmon_hitmon_barehands(hmd, mon):
@@ -732,7 +732,7 @@ async function hmon_hitmon_msg_lightobj(hmd, mon, obj, display) {
 // cf. uhitm.c:1732 — hmon_hitmon(mon, obj, thrown, dieroll):
 //   Core hit-monster dispatcher.
 //   Returns true if monster survives, false if dead.
-async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
+async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map, opts = {}) {
     const hmd = {
         player,
         dmg: 0,
@@ -850,7 +850,10 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
             const expGain = player ? experience(mon, _gstate?.mvitals?.[mndx]?.died || 0) : null;
             hmonTracePlayerState(map, mon, 'xp-before', player, expGain);
             hmonTrace(map, mon, 'death-owner', 'kind=xkilled-nomsg');
-            await xkilled(mon, XKILL_NOMSG, map, player);
+            const killResult = await xkilled(mon, XKILL_NOMSG, map, player);
+            if (opts.captureDeferredExplosion && killResult?.deferredExplosion) {
+                hmd.deferredExplosion = killResult.deferredExplosion;
+            }
             hmonTracePlayerState(map, mon, 'xp-after', player, expGain);
             hmd.already_killed = true;
         }
@@ -861,7 +864,10 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
         const expGain = player ? experience(mon, _gstate?.mvitals?.[mndx]?.died || 0) : null;
         hmonTracePlayerState(map, mon, 'xp-before', player, expGain);
         hmonTrace(map, mon, 'death-owner', 'kind=killed');
-        await killed(mon, map, player);
+        const killResult = await killed(mon, map, player);
+        if (opts.captureDeferredExplosion && killResult?.deferredExplosion) {
+            hmd.deferredExplosion = killResult.deferredExplosion;
+        }
         hmonTracePlayerState(map, mon, 'xp-after', player, expGain);
         hmd.already_killed = true;
     }
@@ -882,6 +888,9 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
         `destroyed=${hmd.destroyed ? 1 : 0}`,
         `already_killed=${hmd.already_killed ? 1 : 0}`,
         `retval=${hmd.destroyed ? 0 : 1}`);
+    if (opts.captureDeferredExplosion && hmd.deferredExplosion) {
+        return { survived: false, deferredExplosion: hmd.deferredExplosion };
+    }
     return hmd.destroyed ? false : true;
 }
 

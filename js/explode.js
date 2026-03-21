@@ -20,6 +20,18 @@ import {
   tmp_at, nh_delay_output,
 } from './animation.js';
 import { DISP_BEAM, DISP_CHANGE, DISP_END } from './const.js';
+import {
+  GLYPH_EXPLODE_OFF,
+  S_expl_tl, S_expl_tc, S_expl_tr,
+  S_expl_ml, S_expl_mc, S_expl_mr,
+  S_expl_bl, S_expl_bc, S_expl_br,
+} from './symbols.js';
+
+const EXPLOSION_CELLS = [
+  [S_expl_tl, S_expl_ml, S_expl_bl],
+  [S_expl_tc, S_expl_mc, S_expl_bc],
+  [S_expl_tr, S_expl_mr, S_expl_br],
+];
 
 // cf. explode.c:984 — adtyp_to_expltype(adtyp)
 export function adtyp_to_expltype(adtyp) {
@@ -29,6 +41,7 @@ export function adtyp_to_expltype(adtyp) {
     case AD_ELEC: return EXPL_MAGICAL;
     case AD_MAGM: return EXPL_MAGICAL;
     case AD_DRST: return EXPL_NOXIOUS;
+    case AD_PHYS: return EXPL_NOXIOUS;
     case AD_ACID: return EXPL_MUDDY;
     default: return EXPL_DARK;
   }
@@ -58,6 +71,81 @@ export function engulfer_explosion_msg(adtyp, olet) {
   }
 }
 
+function explosionGlyph(expltype, cellSym) {
+  return GLYPH_EXPLODE_OFF + (expltype * 9) + (cellSym - S_expl_tl);
+}
+
+export async function drawExplosionDisplay(x, y, expltype) {
+  let started = false;
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      const tx = x + i - 1;
+      const ty = y + j - 1;
+      if (!isok(tx, ty)) continue;
+      const glyph = explosionGlyph(expltype, EXPLOSION_CELLS[i][j]);
+      tmp_at(started ? DISP_CHANGE : DISP_BEAM, glyph);
+      tmp_at(tx, ty);
+      started = true;
+    }
+  }
+  await nh_delay_output();
+  await nh_delay_output();
+}
+
+export function finishExplosionDisplay(continuation) {
+  if (!continuation) return;
+  tmp_at(DISP_END, 0);
+  applyExplosionEffects(
+    continuation.x,
+    continuation.y,
+    continuation.dam,
+    continuation.adtyp,
+    continuation.olet,
+    continuation.map,
+    continuation.player
+  );
+}
+
+function applyExplosionEffects(x, y, dam, adtyp, olet, map, player) {
+  if (!map) return;
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      const tx = x + dx;
+      const ty = y + dy;
+      if (!isok(tx, ty)) continue;
+
+      const mon = map.monsterAt ? map.monsterAt(tx, ty) : null;
+      if (mon && !mon.dead) {
+        let mdam = dam;
+        const mdat = mon.data || (mon.mndx != null ? mons[mon.mndx] : null);
+        if (mdat) {
+          if (adtyp === AD_FIRE && (mdat.mresists & MR_FIRE)) mdam = 0;
+          else if (adtyp === AD_COLD && (mdat.mresists & MR_COLD)) mdam = 0;
+          else if (adtyp === AD_ELEC && (mdat.mresists & MR_ELEC)) mdam = 0;
+        }
+        if (mdam > 0 && resist(mon, olet >= 0 ? olet : WAND_CLASS)) {
+          mdam = Math.floor((mdam + 1) / 2);
+        }
+        if (mdam > 0) {
+          mon.mhp -= mdam;
+          if (mon.mhp <= 0) {
+            mon.mhp = 0;
+            mon.dead = true;
+          }
+        }
+      }
+
+      if (player && tx === player.x && ty === player.y) {
+        if (player.uhp) {
+          player.uhp -= dam;
+          if (player.uhp < 0) player.uhp = 0;
+        }
+        exercise(player, A_STR, false);
+      }
+    }
+  }
+}
+
 // cf. explode.c:198 — explode(x, y, type, dam, olet, expltype)
 // Main explosion function
 // type: negative means breath weapon, positive means spell/wand
@@ -74,69 +162,8 @@ export async function explode(x, y, type, dam, olet, expltype, map, player) {
     adtyp = ((-type) % 10);
   }
 
-  const frameGlyph = (phase) => {
-    const chars = ['*', 'o', '*'];
-    const colors = [9, 11, 1];
-    const idx = Math.max(0, Math.min(2, phase));
-    const ch = chars[idx];
-    const color = colors[idx];
-    if (expltype === EXPL_FROSTY) return { ch, color: 6 };
-    if (expltype === EXPL_MAGICAL) return { ch, color: 12 };
-    if (expltype === EXPL_FIERY) return { ch, color: 1 };
-    return { ch, color };
-  };
-
-  // C ref: explode.c uses tmp_at(DISP_BEAM) + tmp_at(DISP_CHANGE) frame animation.
-  try {
-    for (let phase = 0; phase < 3; phase++) {
-      tmp_at(phase === 0 ? DISP_BEAM : DISP_CHANGE, frameGlyph(phase));
-      // Apply damage in 3x3 area around (x, y) while drawing this frame.
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          const tx = x + dx;
-          const ty = y + dy;
-          if (!isok(tx, ty)) continue;
-          tmp_at(tx, ty);
-
-          if (!map || phase !== 2) continue;
-          // Deal damage once (final frame), preserving prior JS behavior.
-          const mon = map.monsterAt ? map.monsterAt(tx, ty) : null;
-          if (mon && !mon.dead) {
-            let mdam = dam;
-            const mdat = mon.data || (mon.mndx != null ? mons[mon.mndx] : null);
-            if (mdat) {
-              if (adtyp === AD_FIRE && (mdat.mresists & MR_FIRE)) mdam = 0;
-              else if (adtyp === AD_COLD && (mdat.mresists & MR_COLD)) mdam = 0;
-              else if (adtyp === AD_ELEC && (mdat.mresists & MR_ELEC)) mdam = 0;
-            }
-            if (mdam > 0 && resist(mon, olet >= 0 ? olet : WAND_CLASS)) {
-              mdam = Math.floor((mdam + 1) / 2);
-            }
-            if (mdam > 0) {
-              mon.mhp -= mdam;
-              if (mon.mhp <= 0) {
-                mon.mhp = 0;
-                mon.dead = true;
-              }
-            }
-          }
-
-          if (player && tx === player.x && ty === player.y && phase === 2) {
-            const damu = dam;
-            if (player.uhp) {
-              player.uhp -= damu;
-              if (player.uhp < 0) player.uhp = 0;
-            }
-            // C ref: explode.c:678 — exercise STR after taking explosion damage
-            exercise(player, A_STR, false);
-          }
-        }
-      }
-      await nh_delay_output();
-    }
-  } finally {
-    tmp_at(DISP_END, 0);
-  }
+  await drawExplosionDisplay(x, y, expltype);
+  finishExplosionDisplay({ x, y, dam, adtyp, olet, map, player });
 }
 
 // cf. explode.c:720 — scatter(sx, sy, blastforce, scflags, obj)
@@ -193,8 +220,9 @@ export async function explode_oil(obj, x, y) {
 
 // cf. explode.c:1016 — mon_explodes(mon, mattk)
 // Monster self-destruct explosion (e.g., gas spore, yellow light)
-export async function mon_explodes(mon, mattk, map, player) {
+export async function mon_explodes(mon, mattk, map, player, opts = {}) {
   if (!mon || !mattk) return;
+  const { deferAfterDisplay = false } = opts;
 
   let dmg;
   if (mattk.damn) {
@@ -218,11 +246,25 @@ export async function mon_explodes(mon, mattk, map, player) {
     type = -((adtyp - 1) + 20); // breath weapon formula
   }
 
-  await explode(mon.mx, mon.my, type, dmg, MON_EXPLODE, expltype, map, player);
+  if (deferAfterDisplay) {
+    await drawExplosionDisplay(mon.mx, mon.my, expltype);
+    mon.mhp = 0;
+    mon.dead = true;
+    return {
+      x: mon.mx,
+      y: mon.my,
+      dam: dmg,
+      adtyp,
+      olet: MON_EXPLODE,
+      map,
+      player,
+    };
+  }
 
-  // Monster always dies from self-destruct
+  await explode(mon.mx, mon.my, type, dmg, MON_EXPLODE, expltype, map, player);
   mon.mhp = 0;
   mon.dead = true;
+  return null;
 }
 
 // cf. zap.c ugolemeffects() — golem absorbs elemental damage

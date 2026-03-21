@@ -79,6 +79,7 @@ import {
 } from './animation.js';
 import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
 import { moveloop_core } from './allmain.js';
+import { finishExplosionDisplay } from './explode.js';
 import { u_wipe_engr } from './engrave.js';
 import { confdir } from './hack.js';
 import { game as _gstate } from './gstate.js';
@@ -1086,14 +1087,33 @@ export async function throwit_mon_hit(obj, mon, player, map, game) {
 async function resolveThrownObjectPostFlight({
     obj, wep_mask, twoweap, oldslot, player, map, game,
     hitMon, bx, by, dx, dy, tethered_weapon, impaired,
-}) {
+}, state = null, opts = {}) {
+    const { resumeAfterExplosion = false } = opts;
     if (game) game.bhitpos = { x: bx, y: by };
 
-    if (hitMon) {
+    if (resumeAfterExplosion) {
+        if (game?.pendingExplosionContinuation) {
+            const continuation = game.pendingExplosionContinuation;
+            game.pendingExplosionContinuation = null;
+            finishExplosionDisplay(continuation);
+        }
+        await exercise(player, A_DEX, true);
+        if (game && !game.thrownobj) { throwit_return(false, game); return; }
+        if (should_mulch_missile(obj, false)) {
+            if (game) game.thrownobj = null;
+            throwit_return(false, game);
+            return;
+        }
+    } else if (hitMon) {
         if (hitMon.isshk && obj.where === OBJ_MINVENT && obj.ocarry === hitMon) {
             throwit_return(true, game); return;
         }
-        const obj_gone = await thitmonst(hitMon, obj, player, map, game);
+        const hitResult = await thitmonst(hitMon, obj, player, map, game);
+        if (hitResult?.deferredAfterExplosion && state) {
+            state.phase = 'postExplosion';
+            return { deferred: true };
+        }
+        const obj_gone = !!hitResult;
         if (obj_gone) {
             if (game) game.thrownobj = null;
         }
@@ -1275,7 +1295,7 @@ async function stepThrowFlight(state, maxAnimationSteps) {
 
 async function resolveThrowContinuation(state) {
     closeThrowAnimation(state);
-    await resolveThrownObjectPostFlight({
+    return await resolveThrownObjectPostFlight({
         obj: state.obj,
         wep_mask: state.wep_mask,
         twoweap: state.twoweap,
@@ -1290,7 +1310,7 @@ async function resolveThrowContinuation(state) {
         dy: state.dy,
         tethered_weapon: state.tethered_weapon,
         impaired: state.impaired,
-    });
+    }, state);
 }
 
 export function hasPendingThrowContinuation(game) {
@@ -1301,16 +1321,41 @@ export async function runPendingThrowContinuation(game) {
     const state = game?.pendingThrowContinuation;
     if (!state) return null;
 
-    if (state.phase === 'flight') {
+    while (state.phase === 'flight') {
         await stepThrowFlight(state, 1);
         if (state.phase === 'flight') {
             return { moved: false, tookTime: false, suppressUntimedTailRender: true };
         }
-        return { moved: false, tookTime: false, suppressUntimedTailRender: true };
     }
 
+    if (state.phase === 'postExplosion') {
+        game.pendingThrowContinuation = null;
+        await resolveThrownObjectPostFlight({
+            obj: state.obj,
+            wep_mask: state.wep_mask,
+            twoweap: state.twoweap,
+            oldslot: state.oldslot,
+            player: state.player,
+            map: state.map,
+            game: state.game,
+            hitMon: state.hitMon,
+            bx: state.bx,
+            by: state.by,
+            dx: state.dx,
+            dy: state.dy,
+            tethered_weapon: state.tethered_weapon,
+            impaired: state.impaired,
+        }, state, { resumeAfterExplosion: true });
+        await moveloop_core(game);
+        return { moved: false, tookTime: true };
+    }
+
+    const resolveResult = await resolveThrowContinuation(state);
+    if (resolveResult?.deferred) {
+        game.pendingThrowContinuation = state;
+        return { moved: false, tookTime: false, suppressUntimedTailRender: true };
+    }
     game.pendingThrowContinuation = null;
-    await resolveThrowContinuation(state);
     await moveloop_core(game);
     return { moved: false, tookTime: true };
 }
@@ -1628,7 +1673,14 @@ export async function thitmonst(mon, obj, player, map, game) {
             // hmon handles dispatch to weapon_ranged (rnd(2) for ammo) or
             // weapon_melee (dmgval for weapons), plus death processing via
             // mondied/mondead (NOT xkilled), exercise, and weapon destruction.
-            const monAlive = await hmon(player, mon, obj, HMON_THROWN, dieroll, game?.display || null, map);
+            const hitResult = await hmon(player, mon, obj, HMON_THROWN, dieroll, game?.display || null, map, {
+                captureDeferredExplosion: true,
+            });
+            if (hitResult?.deferredExplosion) {
+                if (game) game.pendingExplosionContinuation = hitResult.deferredExplosion;
+                return { deferredAfterExplosion: true };
+            }
+            const monAlive = typeof hitResult === 'object' ? !!hitResult.survived : hitResult;
             await exercise(player, A_DEX, true);
             if (!game?.thrownobj) return 1; // obj destroyed by hmon
             if (should_mulch_missile(obj, false)) return 1;

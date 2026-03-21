@@ -62,6 +62,7 @@ import { rloc, tele_restrict, enexto } from './teleport.js';
 import { in_your_sanctuary, inhistemple, p_coaligned } from './priest.js';
 import { create_gas_cloud } from './region.js';
 import { makemon, makemon_appear } from './makemon.js';
+import { mon_explodes } from './explode.js';
 
 import { rn2, rnd, rnl, d, c_d, pushRngLogEntry, withRngTag } from './rng.js';
 import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC,
@@ -1093,8 +1094,31 @@ export async function xkilled(mon, xkill_flags, map, player) {
             }
         }
 
+        // C ref: xkilled() always evaluates corpse_chance() first; for
+        // AT_BOOM monsters that consumes the explosion damage roll and then
+        // returns false.
+        const createCorpse = corpse_chance(mon);
+
+        // C ref: corpse_chance(mon, ..., FALSE) — AT_BOOM monsters explode
+        // on death rather than leaving a corpse.
+        const boomAttack = Array.isArray(mdat.mattk)
+            ? mdat.mattk.find((atk) => atk?.aatyp === AT_BOOM)
+            : null;
+        if (map && boomAttack) {
+            if (game?.pendingThrowContinuation) {
+                const deferredExplosion = await mon_explodes(mon, boomAttack, map, player, {
+                    deferAfterDisplay: true,
+                });
+                if (deferredExplosion) {
+                    return { deferredExplosion };
+                }
+            } else {
+                await mon_explodes(mon, boomAttack, map, player);
+            }
+        }
+
         // Corpse
-        if (map && !nocorpse && corpse_chance(mon)) {
+        if (map && !nocorpse && !boomAttack && createCorpse) {
             const loc = map.at(x, y);
             if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
                 make_corpse(mon, 0, map);
@@ -1173,7 +1197,7 @@ export async function xkilled(mon, xkill_flags, map, player) {
 // C ref: mon.c killed() — wrapper for xkilled with XKILL_GIVEMSG
 // Autotranslated from mon.c:3468
 export async function killed(mtmp, map, player) {
-  await xkilled(mtmp, XKILL_GIVEMSG, map, player);
+  return await xkilled(mtmp, XKILL_GIVEMSG, map, player);
 }
 
 // C ref: mon.c:545-714 make_corpse() — per-monster corpse/drop creation

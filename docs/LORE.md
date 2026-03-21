@@ -15141,6 +15141,96 @@ When a correct parity fix regresses a session:
 - Lesson:
   - keep the structural cleanup even without immediate first-divergence
     movement when it preserves the validated baseline and simplifies the next
-    faithful fix
+  faithful fix
   - the next remaining throw task is now narrowly about the
     `flight -> resolve` handoff, not about generic deferred scheduling
+
+## 2026-03-21: throw-local ownership fixed step 940, then exposed explosion and later turn-tail boundaries
+
+- After the throw-local continuation cleanup, the next structural fix was to
+  let the carried throw owner finish `flight -> resolve` on the same gameplay
+  step when C does.
+- That moved the first seam off step `940`.
+
+- The next exposed seam was a lethal thrown gas-spore hit:
+  - C step `942` includes the lethal hit plus the visible explosion draw
+  - C step `943` begins with the explosion `tmp_at_end`, then the deferred
+    throw tail (`exercise`, `should_mulch_missile`, placement state, monster
+    work)
+- JS was still too monolithic there at first, so step `942` collapsed too much
+  work.
+
+- A narrower structural fix then split explosion handling at the same visible
+  boundary as C:
+  - explosion draw on `942`
+  - explosion clear / deferred throw tail on `943`
+
+- Grouped replay then showed step `942` still had two hidden C-faithfulness
+  gaps:
+  - C `xkilled()` still calls `corpse_chance(mon)` for gas spores, consuming a
+    first `d(4,6)` before `mon_explodes()`
+  - C maps `AD_PHYS` explosions to `EXPL_NOXIOUS`
+- Fixing those made step `942` fully match the C grouped replay.
+
+- After that, `943` also improved materially:
+  - JS now matches C through:
+    - `^tmp_at_end`
+    - `exercise`
+    - `should_mulch_missile`
+    - landing `breaktest/obj_resists`
+    - `^place[24,26,13]`
+    - early dog-goal selection of the dropped dart
+
+- The remaining mismatch is still structural:
+  - letting the carried throw owner stay in `_gameLoopStep()` after its timed
+    slice is directionally correct and keeps `t11_s755` green
+  - but JS still yields step `943` too early overall, with later C tail work
+    spilling into JS `944..946`
+  - the surviving trace evidence now points at the post-throw timed-turn /
+    command-finalization boundary, not at explosion glyphs or gas-spore death
+    logic anymore
+
+- Practical lesson:
+  - the structural direction is working
+  - once the throw owner and explosion owner are made C-shaped, the remaining
+  seam becomes a much narrower owner/yield issue in the post-explosion turn
+  tail
+
+## 2026-03-21: one more queued key after carried throw fixed step 943 and moved seed031 to 997
+
+- The remaining post-explosion spill after step `943` was still an owner/yield
+  problem, not monster logic.
+- Key insight:
+  - after a carried throw continuation took time, JS still had queued input and
+    was not actually waiting for input
+  - but `_gameLoopStep()` stopped after consuming only one fresh queued key
+- Narrow fix:
+  - only in that carried-throw case
+  - if queued input already exists
+  - if input is not waiting
+  - and there is no pending `--More--` boundary
+  - keep `_gameLoopStep()` looping instead of returning
+
+- Result:
+  - step `943` now matches between JS and C
+  - the old `943 -> 944..946` spill disappeared
+  - `seed031_manual_direct.session.json` moved to:
+    - first RNG divergence `997`
+    - first event divergence `997`
+    - matched RNG `35673/51561`
+    - matched events `20258/28950`
+
+- Guardrails validated:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+
+- New live seam:
+  - gameplay steps `995..1000`
+  - prompt/boundary shaped again, now around an `apply` prompt corridor:
+    - `995`: `y` while `apply` prompt is active
+    - `996`: space dismisses `You now wield a pick-axe.`
+    - `997`: `u`
+  - C still carries substantial turn-end work across that prompt/boundary
+    region while JS has none on `997`
