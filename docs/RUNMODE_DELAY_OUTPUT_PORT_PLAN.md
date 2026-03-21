@@ -1022,3 +1022,44 @@ await runmode_delay_output(game);
 
 Then run `seed031` and check whether `^dog_invent_decision ... ud=8`
 matches C at step 933.
+
+## Stage C3 Probe: `umoved` Reset + Repeat-Branch Delay Were Not Sufficient
+
+*Observed locally on 2026-03-21; code reverted immediately.*
+
+We tested the smallest local Stage C3 change suggested by the corrected plan:
+
+- in `runMovementRepeatSlice(...)`
+  - reset `player.umoved = false` before `lookaround()`
+  - call `runmode_delay_output(game, display)` after `lookaround()` and before
+    repeated `domove()`
+
+Results:
+- `seed031_manual_direct` remained unchanged:
+  - first RNG divergence `933`
+  - first event divergence `934`
+- the early counted-repeat preservation corridor `160..166` remained unchanged
+- the four targeted gameplay guardrails still passed
+
+Interpretation:
+- these two invariants are likely real C differences
+- but adding them inside the current JS `runMovementRepeatSlice(...)` model is
+  not sufficient to move the first actionable seam
+- this strengthens the conclusion that the remaining mismatch is not just
+  missing local pre-`domove()` details; it is also tied to the larger framing
+  of the slice itself
+
+Updated implication:
+- the next investigation should compare the first dog-goal / gas-spore window
+  under three models:
+  1. current baseline
+  2. local-invariant patch (`umoved` reset + repeat delay)
+  3. C trace
+- the most likely remaining explanations are now:
+  - initial vs repeated travel-step framing mismatch
+  - or the fact that `runMovementRepeatSlice(...)` is still a fused
+    cross-iteration helper rather than a true C-repeat slice
+
+So the next code step should not commit the local-invariant patch by itself.
+The next code step should target the next smallest framing mismatch that still
+separates the first dog-goal/gas-spore seam from C.

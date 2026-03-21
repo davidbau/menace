@@ -14815,3 +14815,28 @@ effect was missing.
     - consistent framing between initial and repeated travel steps
   - only after the slice internals are C-shaped does it make sense to revisit
     moving the outer runtime owner
+
+# 2026-03-21: Local Stage C3 invariants alone were not sufficient
+
+- Probe patch:
+  - inside [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js)
+    `runMovementRepeatSlice(...)`:
+    - set `player.umoved = false` before `lookaround()`
+    - call repeat-branch `runmode_delay_output()` before repeated `domove()`
+- Validation:
+  - `seed031_manual_direct` unchanged:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - counted-repeat corridor `160..166` unchanged
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - these per-slice invariants are probably real, but in the current JS fused
+    repeat-slice model they are not sufficient to move the first seam
+  - the remaining issue is more likely in the larger framing:
+    - initial vs repeated travel-step handling
+    - or the fact that `runMovementRepeatSlice(...)` still spans pieces of two
+      C iterations
