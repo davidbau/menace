@@ -591,6 +591,73 @@ That means the next analysis target should be:
   `dotravel_target() -> domove() -> finalizeTimedCommand()/advanceTimedTurn()`
   still reaches the gas-spore contact corridor too early
 
+### Second engineer review of boundary collapse analysis
+
+The call chain trace is exactly right. The key insight is at step 4:
+`advanceTimedTurn()` calls `moveloop_core()` then `syncTimedTurnPreInputState()`.
+In C, after `rhack(0)` returns (having done `dotravel_target()` + `domove()`),
+control returns to `moveloop_core()` which has ALREADY done its Phase 1
+(`movemon()`) for this iteration BEFORE calling `rhack()`. So C's sequence is:
+
+```
+moveloop_core() iteration N:
+  Phase 1: movemon()       ← monsters move (see hero at pre-travel position)
+  Phase 2: rhack(0)
+    → dotravel_target()
+    → domove()             ← hero moves to first travel square
+  ← returns to moveloop_core() which returns to moveloop()
+
+moveloop_core() iteration N+1:
+  Phase 1: movemon()       ← monsters move (see hero at post-first-hop position)
+  Phase 2: multi > 0 branch
+    → umoved = FALSE
+    → lookaround()
+    → runmode_delay_output()
+    → domove()             ← hero moves to second travel square
+```
+
+But JS does:
+
+```
+_gameLoopStep():
+  run_command()
+    → dotravel_target() → domove()     ← hero moves
+    → finalizeTimedCommand()
+      → advanceTimedTurn()
+        → moveloop_core()              ← Phase 1: monsters see POST-first-hop position
+        → syncTimedTurnPreInputState()
+    → repeatLoop()
+      → runMovementRepeatSlice()
+        → domove()                     ← second hop, STILL in same _gameLoopStep
+        → advanceTimedTurn()
+          → moveloop_core()            ← Phase 1: monsters see POST-second-hop
+```
+
+The problem isn't just that `repeatLoop` packs multiple hops. It's that
+`finalizeTimedCommand()` → `advanceTimedTurn()` → `moveloop_core()` runs
+Phase 1 (monsters) AFTER `domove()` within the same call frame. In C,
+Phase 1 ran BEFORE `rhack()` in the same `moveloop_core()` iteration.
+
+This means even the FIRST travel hop's monster processing is wrong:
+monsters see the post-hop position instead of the pre-hop position, because
+`moveloop_core()` is called AFTER `domove()` via `finalizeTimedCommand()`.
+
+This is the same ordering issue I identified in the Stage B analysis, but
+now pinpointed to the initial hop, not the repeat loop. The `advanceTimedTurn()`
+call after `domove()` puts Phase 1 (monsters) AFTER the hero move, inverting
+C's Phase 1 → Phase 2 ordering within one iteration.
+
+This inversion is fundamental to how JS currently structures timed commands:
+every timed command does `command() → finalizeTimedCommand() → advanceTimedTurn()`
+which means monsters always see the post-command state, not the pre-command state.
+For most commands this doesn't matter (monsters move AFTER the command either way),
+but for travel's repeated hops it compounds because each hop's monster pass sees
+a position one hop ahead of where C's monsters see it.
+
+The spillover reduction when suppressing local `repeatLoop` makes sense:
+it reduces the number of times this inversion compounds. But the first
+inversion (from `finalizeTimedCommand`) still happens even without the loop.
+
 ## Design Goal
 
 Port JS so that positive `multi` continuation is owned by the JS equivalent of
