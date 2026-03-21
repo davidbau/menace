@@ -3460,3 +3460,60 @@ It is now:
 - **after fixing the accepted `_` command stop condition, what remaining
   gameplay ownership/state difference causes JS to reach thrown-object combat
   RNG at gameplay step `940` where C is still in non-throw post-move state?**
+
+## 2026-03-21 update after pulling newer `main`
+
+After pulling newer `main`, the active `seed031` seam on current `main` was
+not the older branch-local step-`940` throw-flight seam.
+
+The authoritative first divergence on updated `main` reappeared earlier at
+gameplay step `488`, inside hero-thrown gas-spore death handling.
+
+### What changed
+
+- Current `main` first diverged during thrown-dart resolution against a gas
+  spore.
+- The root cause was not replay ownership and not throw-flight boundary.
+- It was a missing core-JS death-path behavior:
+  - [`xkilled()`](js/mon.js) did not execute the exploding-monster cleanup path
+    for hero-killed `AT_BOOM` monsters even though:
+    - [`corpse_chance()`](js/mon.js) already modeled the first C explosion-roll
+      side effect
+    - [`mon_explodes()`](js/explode.js) already existed
+
+### C-faithful rule
+
+From [`mon.c`](nethack-c/patched/src/mon.c):
+
+- `xkilled()` does treasure-drop RNG first
+- then `corpse_chance(...)`
+- for `AT_BOOM` monsters, `corpse_chance(...)` itself calls
+  `mon_explodes(...)` and returns false
+
+So the JS fix on current `main` is:
+
+1. keep the existing treasure-drop ordering in `xkilled()`
+2. after that, detect `AT_BOOM`
+3. call `corpse_chance(mon)` first to preserve the first explosion-roll side
+   effect
+4. then `await mon_explodes(mon, atk, map, player)`
+5. skip normal corpse generation for that death
+
+Also required for display parity:
+
+- [`adtyp_to_expltype()`](js/explode.js) must map `AD_PHYS` to
+  `EXPL_NOXIOUS` for gas-spore explosions
+
+### Result on updated `main`
+
+- `seed031_manual_direct.session.json`
+  - first RNG divergence moved from gameplay step `488` to `997`
+  - matched RNG improved to `35673/51561`
+  - matched events improved to `20258/28950`
+- `t11_s755_w_covmax9_gp.session.json`
+  - still green
+
+### New active question
+
+On current `main`, the next active `seed031` seam is now at gameplay step
+`997`, not `488` and not the older branch-local `940` seam.

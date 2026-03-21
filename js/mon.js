@@ -62,6 +62,7 @@ import { rloc, tele_restrict, enexto } from './teleport.js';
 import { in_your_sanctuary, inhistemple, p_coaligned } from './priest.js';
 import { create_gas_cloud } from './region.js';
 import { makemon, makemon_appear } from './makemon.js';
+import { mon_explodes } from './explode.js';
 
 import { rn2, rnd, rnl, d, c_d, pushRngLogEntry, withRngTag } from './rng.js';
 import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC,
@@ -1093,8 +1094,20 @@ export async function xkilled(mon, xkill_flags, map, player) {
             }
         }
 
+        let explodedOnDeath = false;
+        if (map && !nocorpse && Array.isArray(mdat.mattk)) {
+            for (const atk of mdat.mattk) {
+                if (atk?.aatyp === AT_BOOM) {
+                    corpse_chance(mon);
+                    await mon_explodes(mon, atk, map, player);
+                    explodedOnDeath = true;
+                    break;
+                }
+            }
+        }
+
         // Corpse
-        if (map && !nocorpse && corpse_chance(mon)) {
+        if (!explodedOnDeath && map && !nocorpse && corpse_chance(mon)) {
             const loc = map.at(x, y);
             if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
                 make_corpse(mon, 0, map);

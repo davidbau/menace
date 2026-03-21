@@ -15621,3 +15621,52 @@ distinction is always conditional on being in Gehennom.
   - the structural accepted-command loop is the right family
   - but the stop condition must be modeled by explicit C-faithful stop causes,
     not by a coarse `savedRun === 8` rule
+
+## 2026-03-21: `seed031` on updated `main` re-exposed an earlier gas-spore death seam; fixing `xkilled()`'s exploding-monster path moved first divergence from 488 to 997
+
+- After pulling newer `main` (including the `seed033` levelgen fix), the
+  authoritative `seed031` first divergence on `main` was no longer the older
+  step-`940` throw-flight seam.
+- Current `main` first diverged at gameplay step `488` during thrown-dart
+  resolution against a gas spore:
+  - JS:
+    - `rnd(20)=8 @ throwit(...)`
+    - `^die[165@63,7]`
+    - `rn2(6)=2 @ killed(...)`
+    - `rn2(3)=0 @ xkilled(...)`
+  - C:
+    - same hit roll and death
+    - then the gas-spore death path continues through the exploding-monster
+      cleanup before later throw bookkeeping and pet/object work
+- Root cause on JS `main`:
+  - [`corpse_chance()`](js/mon.js) already knew that `AT_BOOM` monsters must
+    consume the first explosion-damage roll
+  - [`mon_explodes()`](js/explode.js) already existed
+  - but [`xkilled()`](js/mon.js) never actually invoked the exploding-monster
+    branch for hero-killed gas spores
+- C shape from [`mon.c`](nethack-c/patched/src/mon.c):
+  - `xkilled()` does treasure-drop RNG first
+  - then `corpse_chance(...)`
+  - and for `AT_BOOM` monsters, `corpse_chance(...)` itself calls
+    `mon_explodes(...)` and returns false
+- Keepable narrow JS fix on current `main`:
+  - in [`xkilled()`](js/mon.js), after the treasure-drop section and before
+    normal corpse generation:
+    - detect `AT_BOOM`
+    - call `corpse_chance(mon)` to preserve the first C damage-roll side effect
+    - then `await mon_explodes(mon, atk, map, player)`
+    - skip normal corpse generation for that death
+  - in [`adtyp_to_expltype()`](js/explode.js), map `AD_PHYS` to
+    `EXPL_NOXIOUS` to match C's gas-spore explosion display type
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - first RNG divergence moved from gameplay step `488` to `997`
+    - matched RNG improved to `35673/51561`
+    - matched events improved to `20258/28950`
+  - `t11_s755_w_covmax9_gp.session.json`
+    - still green
+- Lesson:
+  - after upstream pulls, do not assume the active seam is still the one from
+    the previous branch-local campaign
+  - re-establish the authoritative first divergence on current `main` before
+    resuming structural work
