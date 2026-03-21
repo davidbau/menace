@@ -4797,7 +4797,8 @@ Partial geometries (Bose 1963):
     - given a point P not on line L, exactly alpha lines through P
       meet L (the "Bose parameter")
 
-  pg(s,t,alpha) gives rise to srg((s+1)(st+1)/alpha, s(t+1), s-1+t(alpha-1), alpha(alpha+1))
+  pg(s,t,alpha) gives rise to srg((s+1)(st+1)/alpha,
+    s(t+1), s-1+t(alpha-1), alpha(alpha+1))
   when the parameters are feasible.
 
   Special cases:

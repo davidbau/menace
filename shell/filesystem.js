@@ -168,7 +168,7 @@ function formatRecord() {
         const death = e.death || 'died';
         const dd = String(e.deathdate || '');
         const date = dd.length === 8 ? `${dd.slice(0,4)}/${dd.slice(4,6)}/${dd.slice(6,8)}` : '';
-        return `${pts} ${name.padEnd(28)} ${death.padEnd(32)} ${date}`;
+        return `${pts} ${name.slice(0, 23).padEnd(23)} ${death.slice(0, 34).padEnd(34)} ${date}`;
     }).join('\n');
 }
 

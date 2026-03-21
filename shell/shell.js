@@ -380,18 +380,31 @@ export class Shell {
         }
     }
 
-    // Print a line to the shell output
+    // Print a line to the shell output.
+    // Handles embedded \n (splits into multiple lines) and \t (expands to spaces).
     println(text) {
-        // Handle long lines by wrapping
-        if (!text) {
-            this._addLine('', OUTPUT_COLOR);
-            return;
+        const lines = (text != null ? String(text) : '').split('\n');
+        for (let line of lines) {
+            // Expand tabs to 8-column tab stops
+            if (line.includes('\t')) {
+                let expanded = '';
+                for (const ch of line) {
+                    if (ch === '\t') expanded += ' '.repeat(8 - (expanded.length % 8));
+                    else expanded += ch;
+                }
+                line = expanded;
+            }
+            // Wrap long lines
+            if (!line) {
+                this._addLine('', OUTPUT_COLOR);
+            } else {
+                while (line.length > COLS) {
+                    this._addLine(line.slice(0, COLS), OUTPUT_COLOR);
+                    line = line.slice(COLS);
+                }
+                this._addLine(line, OUTPUT_COLOR);
+            }
         }
-        while (text.length > COLS) {
-            this._addLine(text.slice(0, COLS), OUTPUT_COLOR);
-            text = text.slice(COLS);
-        }
-        this._addLine(text, OUTPUT_COLOR);
     }
 
     // Print text without newline (for prompts like --More--)
