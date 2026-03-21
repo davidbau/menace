@@ -146,12 +146,21 @@ void runmode_delay_output(void) {
 }
 ```
 
-Called at three sites:
+Called at three `moveloop_core()` sites:
 - line 487: negative multi (time-passed phase)
 - line 615: occupation (once-per-player-input phase)
 - line 629: positive multi (once-per-player-input phase)
 
-Note: `domove_core()` (hack.c:2710) does NOT call `runmode_delay_output()` — that is the caller's responsibility. The delay call is always at the `moveloop_core()` level.
+Important distinction:
+- C also calls `runmode_delay_output()` from the move path near the end of
+  `domove()` after `spoteffects(TRUE)`
+- JS already has a matching move-local call in `hack.js:domove()`
+- the missing parity is therefore not "JS forgot the delay call"
+- the missing parity is the repeat-slice ownership at the
+  `moveloop_core()` positive-`multi` boundary
+
+So the port target is the `allmain.c` repeat branch semantics, not the mere
+existence of an awaitable delay in `hack.js`.
 
 ## Current JS Structure
 
@@ -175,6 +184,20 @@ This means one command execution can drain many positive-`multi` repeat slices b
 
 That is the core structural mismatch.
 
+There is also a second JS ownership path active today:
+- `_gameLoopStep()` has a top-level travel continuation branch
+- if `travelPath` remains, it calls `dotravel_target()` again before waiting for
+  a fresh command
+
+So JS currently splits travel ownership across two layers:
+- command-owned `run_command().repeatLoop()`
+- top-level `_gameLoopStep()` travel continuation
+
+C does not split ownership that way:
+- `dotravel_target()` performs the initial travel setup and first `domove()`
+- later repeat slices are owned by `moveloop_core()`'s once-per-player-input
+  phase, one slice per outer `moveloop()` re-entry
+
 ### Structural comparison
 
 | Aspect | C | JS |
@@ -182,9 +205,10 @@ That is the core structural mismatch.
 | Negative multi | 1 iteration per `moveloop_core()` call; outer `for(;;)` loops | `while(multi < 0)` loop inside `finalizeTimedCommand()` |
 | Positive multi | 1 step per `moveloop_core()` call; outer `for(;;)` loops | `while(multi > 0)` loop inside `repeatLoop()` |
 | `lookaround()` | Called inside `moveloop_core()` at line 628 | Called inside `repeatLoop()` |
-| `runmode_delay_output()` | Called inside `moveloop_core()` at line 629 (after lookaround) | Not called in `repeatLoop()` |
+| `runmode_delay_output()` | Called inside `moveloop_core()` at line 629 (after lookaround) and also from `domove()` | Called from `domove()`, but not at the repeat-slice boundary in `repeatLoop()` |
 | Occupation check | Before positive multi in `moveloop_core()` | Handled in `_drainOccupation()` |
 | `m_everyturn_effect()` | Called once per `moveloop_core()` iteration, before multi check | Not called per repeat slice |
+| Travel owner | Initial `dotravel_target()` move, then `moveloop_core()` owns continuation | Split between `repeatLoop()` and `_gameLoopStep()` |
 
 ## Evidence Supporting This Diagnosis
 
@@ -220,6 +244,9 @@ That failure showed:
   - actual-time-passed phase
   - once-per-player-input phase
   - outer `moveloop()` re-entry
+- and it must remove the current split ownership between:
+  - `run_command().repeatLoop()`
+  - `_gameLoopStep()` travel continuation
 
 ## Design Goal
 
@@ -270,6 +297,19 @@ That means:
 
 **Key integration concern**: `_gameLoopStep()` currently yields to the input system between calls. When `multi > 0`, it must NOT wait for input — it should immediately re-enter for the next slice. The replay engine's `drainUntilInput()` needs to see these as non-input-waiting continuations, not as separate input-consuming steps. This is the highest-risk part of the integration.
 
+### 3a. Unify travel ownership in one layer
+
+The rewrite should not leave travel continuation split between:
+- `run_command().repeatLoop()`
+- `_gameLoopStep()`'s `travelPath` branch
+
+The C-faithful owner for positive repeat travel is:
+- the JS equivalent of `moveloop_core()`'s once-per-player-input phase
+
+So `_gameLoopStep()` should re-enter that helper rather than directly owning
+travel advancement, and `run_command()` should stop draining repeated travel
+slices locally.
+
 ### 4. Preserve current `runmode_delay_output()` body semantics
 
 The JS body in `hack.js` is already close enough in spirit:
@@ -296,7 +336,12 @@ These ordering and state invariants from C must be carried into the JS rewrite:
 
 5. **`end_running(TRUE)` countdown** (line 637): `if (gm.multi < COLNO && !--gm.multi) end_running(TRUE)`. This is the travel countdown for finite-distance runs. The JS port needs this exact condition.
 
-6. **`domove_core()` does not call `runmode_delay_output()`**: The delay is always at the `moveloop_core()` level, not inside movement. JS must not add a delay inside `domove()`.
+6. **Distinguish move-local delay from repeat-slice delay**: C already has a
+   move-local `runmode_delay_output()` call in the `domove()` path, and JS does
+   too. The missing parity is the additional repeat-slice boundary call at the
+   `moveloop_core()` positive-`multi` site. The rewrite must preserve that
+   distinction rather than deleting the local move call or treating the local
+   call as sufficient.
 
 ## Non-Goals
 
