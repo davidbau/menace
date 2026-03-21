@@ -3309,3 +3309,69 @@ Success means:
   next C-owned same-key continuation slice(s)
 - without introducing generic replay draining or later timeout behavior
 - and without reviving the older dog seam
+
+## 2026-03-21 boundary evidence: JS ends gameplay step 933 with no input-boundary owner, but explicit travel continuation is already armed
+
+The replay-pending trace around gameplay steps `933..934` gives the clearest
+stop-condition evidence so far.
+
+Observed JS trace:
+
+```text
+step=933 key="." mode=resume owner=input waiting=1 ack=0 pending=0 ...
+step=933 resume=done owner=none waiting=0 ack=0 pending=0 ...
+step=934 key="h" mode=admit-key explicitOwner=positiveMoveContinuation owner=none waiting=0 ack=0 pending=0 ...
+step=934 diag=parity.owner.positive-move-with-queued-key qlen=1 multi=80 run=8 travel=1 mv=1 move=1 key=95 ...
+```
+
+### What this proves
+
+At the moment JS finishes gameplay step `933`:
+
+- the resume promise for the accepted `.` key is already complete
+- there is **no** active input-boundary owner:
+  - `owner=none`
+- the runtime is **not** waiting for input:
+  - `waiting=0`
+- there is no pending `--More--` / ack boundary:
+  - `ack=0`
+  - `pending=0`
+
+But before gameplay step `934` starts, the explicit travel continuation owner is
+already armed:
+
+- `multi=80`
+- `run=8`
+- `travel=1`
+- `mv=1`
+
+So the stop-condition mismatch is now more specific:
+
+- JS is ending gameplay step `933` because the accepted `_` command's promise is
+  done
+- **not** because input is actually waiting
+- **not** because a boundary owner is still visibly active
+- even though explicit carried travel continuation has already been armed for
+  the very next step
+
+### Why this matters
+
+This explains why the problem feels like an early termination of the accepted
+`_` command:
+
+- from the input-boundary perspective, JS believes the step is over
+- from the gameplay-state perspective, the carried `_` continuation is still
+  live
+
+That is the mismatch to fix.
+
+### Refined next question
+
+The next question is now:
+
+- **what boundary-owner state should still be considered active at the moment
+  JS currently logs `resume=done owner=none waiting=0`, so that the accepted
+  `_` command does not terminate too early?**
+
+This is narrower than generic replay draining and narrower than
+`pendingTravelTimedTurn` alone.

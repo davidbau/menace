@@ -51,6 +51,45 @@ For the full narratives of how these lessons were discovered, see the
     see whether gas spore `27`'s `(29,14)` turn moves from JS step `934` back
     into JS step `933`
 
+## 2026-03-21 - `pendingTravelTimedTurn` alone is not the right same-key continuation owner
+
+- Refined invariant:
+  - for the shared gameplay step `933` key `.` accepting pending `_` travel,
+    JS must not return that step while C-equivalent same-key continuation from
+    that accepted `_` command is still pending
+- I tested two direct probes and both were wrong:
+  1. always continue after `pendingTravelTimedTurn`
+     - `seed031` timed out later at step `1036`
+  2. allow exactly one extra same-key `repeat_mv` slice after
+     `pendingTravelTimedTurn`
+     - `seed031` timed out earlier at step `806`
+     - `t11_s755_w_covmax9_gp` also timed out
+- So `pendingTravelTimedTurn` by itself is too broad a predicate for the valid
+  packed continuation seen on gameplay step `933`
+- Strategic consequence:
+  - the next useful question is not "should we continue after
+    `pendingTravelTimedTurn`?"
+  - it is "what additional boundary state distinguishes the valid packed `.`
+    accept continuation from the later invalid extra continuation?"
+
+## 2026-03-21 - JS ends step 933 with no input-boundary owner even though explicit travel continuation is already armed
+
+- Replay-pending trace around gameplay steps `933..934`:
+  - `step=933 key="." mode=resume owner=input waiting=1 ack=0 pending=0`
+  - `step=933 resume=done owner=none waiting=0 ack=0 pending=0`
+  - `step=934 key="h" mode=admit-key explicitOwner=positiveMoveContinuation owner=none waiting=0 ack=0 pending=0`
+  - `step=934 ... qlen=1 multi=80 run=8 travel=1 mv=1`
+- This is the cleanest stop-condition evidence so far.
+- At the moment JS ends gameplay step `933`:
+  - the accepted `_` command promise is done
+  - there is no active input-boundary owner
+  - input is not waiting
+  - there is no pending `--More--` boundary
+- But explicit carried travel continuation is already armed for the next step.
+- So the bug is now best stated as:
+  - JS terminates the accepted `_` command because its promise resolves,
+    even though the explicit carried travel continuation owner is already live.
+
 ## Comparison-window triage stack
 
 - `scripts/comparison-window.mjs` now supports:
