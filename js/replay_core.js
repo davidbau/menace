@@ -256,7 +256,7 @@ export async function replaySession(seed, opts, keys) {
     if (opts.displayFlags && typeof opts.displayFlags === 'object') {
         Object.assign(game.display.flags, opts.displayFlags);
         Object.assign(game.flags, opts.displayFlags);
-        const player = game.u || game.player;
+        const player = game.u || game.u;
         if (player) {
             player.showExp = !!opts.displayFlags.showexp;
             player.showTime = !!opts.displayFlags.time;
@@ -264,7 +264,7 @@ export async function replaySession(seed, opts, keys) {
         }
         // C ref: game.init() renders with default flags; if DECgraphics changed,
         // clear remembered terrain chars and re-render so step 0 captures correct symbols.
-        const map = game.lev || game.map;
+        const map = game.map || game.map;
         if (map && opts.displayFlags.DECgraphics != null) {
             for (let x = 1; x < 80; x++) {
                 for (let y = 0; y < 21; y++) {
@@ -272,7 +272,7 @@ export async function replaySession(seed, opts, keys) {
                     if (loc) delete loc.mem_terrain_ch;
                 }
             }
-            const player = game.u || game.player;
+            const player = game.u || game.u;
             if (player && typeof game.display?.renderMap === 'function') {
                 game.display.renderMap(map, player, game.fov, game.flags);
             }
@@ -292,14 +292,14 @@ export async function replaySession(seed, opts, keys) {
     let pendingCommand = null;
 
     for (let i = 0; i < keys.length; i++) {
-        const preMap = game.lev || game.map || null;
+        const preMap = game.map || game.map || null;
         if (preMap) preMap._replayStepIndex = i;
         const prevCount = getRngLog().length;
         const ch = keys.charCodeAt(i);
         // Expose current replay step to runtime diagnostics (run/monmove traces).
         // This is debug-only metadata and does not affect game logic.
         if (game?.map) game.map._replayStepIndex = i;
-        if (game?.lev) game.lev._replayStepIndex = i;
+        if (game?.lev) game.map._replayStepIndex = i;
 
         if (pendingCommand) {
             replayPendingTrace(
@@ -353,7 +353,7 @@ export async function replaySession(seed, opts, keys) {
 
         // Rendering ownership lives in run_command/game runtime paths.
         // Replay captures the already-rendered screen after each consumed key.
-        const postMap = game.lev || game.map || null;
+        const postMap = game.map || game.map || null;
         if (postMap) postMap._replayStepIndex = i;
 
         // C ref: the C harness captures the tmux screen AFTER the key is
@@ -364,7 +364,7 @@ export async function replaySession(seed, opts, keys) {
         // to match, since JS only calls renderStatus at explicit boundaries.
         await Promise.resolve();
         if (!pendingCommand && opts.captureScreens && !game.gameOver) {
-            const player = game.u || game.player;
+            const player = game.u || game.u;
             if (player && typeof display.renderStatus === 'function') {
                 display._suppressReplayCaptureRepaint = true;
                 try {

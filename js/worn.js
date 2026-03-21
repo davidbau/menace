@@ -933,7 +933,7 @@ export function clear_bypasses() {
     const game = globalThis.gs || gstateGame;
     if (!game) return;
     clear_bypass(game.map?.objects || game.fobj || null);
-    clear_bypass(game.player?.inventory || game.invent || null);
+    clear_bypass(game.u?.inventory || game.invent || null);
     clear_bypass(game.migrating_objs || null);
     clear_bypass(game.map?.buriedobjlist || null);
     clear_bypass(game.billobjs || null);
@@ -944,8 +944,8 @@ export function clear_bypasses() {
     }
     for (const mon of game.migrating_mons || []) clear_bypass(mon?.minvent || null);
     for (const mon of game.mydogs || []) clear_bypass(mon?.minvent || null);
-    if (game.player?.uball) game.player.uball.bypass = 0;
-    if (game.player?.uchain) game.player.uchain.bypass = 0;
+    if (game.u?.uball) game.u.uball.bypass = 0;
+    if (game.u?.uchain) game.u.uchain.bypass = 0;
     if (game.svc?.context) game.svc.context.bypasses = false;
 }
 

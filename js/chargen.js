@@ -86,7 +86,7 @@ export async function promptPlayerName(game) {
     // C ref: options.c — name can be set via OPTIONS=name:playername
     if (game.flags.name && game.flags.name.trim() !== '') {
         // Use saved name (skip prompt)
-        (game.u || game.player).name = game.flags.name.trim().substring(0, MAX_NAME_LENGTH);
+        (game.u || game.u).name = game.flags.name.trim().substring(0, MAX_NAME_LENGTH);
         game._namePromptEcho = '';
         return;
     }
@@ -105,7 +105,7 @@ export async function promptPlayerName(game) {
         const trimmedName = name.trim().substring(0, MAX_NAME_LENGTH);
 
         // C NetHack accepts any non-empty name
-        (game.u || game.player).name = trimmedName;
+        (game.u || game.u).name = trimmedName;
         game._namePromptEcho = `Who are you? ${trimmedName}`;
 
         // Save name to options for future games (like C NetHack config)
@@ -122,7 +122,7 @@ export async function showGameOver(game) {
     // Delete save file — game is over
     deleteSave();
 
-    const p = (game.u || game.player);
+    const p = (game.u || game.u);
     const deathCause = p.deathCause || game.gameOverReason || 'died';
 
     // Calculate final score (simplified C formula from end.c)
@@ -247,9 +247,9 @@ export async function maybeDoTutorial(game) {
         // Clear the chargen menu from screen then re-render the map that was
         // already computed before maybeDoTutorial was called.
         game.display?.clearScreen?.();
-        if (game.fov && (game.lev || game.map) && (game.u || game.player)) {
-            const map = game.lev || game.map;
-            const player = game.u || game.player;
+        if (game.fov && (game.map || game.map) && (game.u || game.u)) {
+            const map = game.map || game.map;
+            const player = game.u || game.u;
             game.fov.compute(map, player.x, player.y);
             game.display.renderMap(map, player, game.fov, game.flags);
             if (typeof game.display.renderStatus === 'function') {
@@ -269,7 +269,7 @@ export async function enterTutorial(game, opts = {}) {
         });
     }
 
-    const player = game.u || game.player;
+    const player = game.u || game.u;
     const applyTutorialStrip = () => {
         if (!game._tutorialStoredState) {
             game._tutorialStoredState = {
@@ -321,22 +321,22 @@ export async function enterTutorial(game, opts = {}) {
         applyTutorialStrip();
     }
 
-    game.lev = await runWithSplevPlayerSnapshot((game.u || game.player), async () =>
+    game.map = await runWithSplevPlayerSnapshot((game.u || game.u), async () =>
         await mklev(1, TUTORIAL, 1)
     );
-    game.levels[1] = (game.lev || game.map);
-    (game.u || game.player).dungeonLevel = 1;
-    (game.u || game.player).inTutorial = true;
-    (game.u || game.player).showExp = !!game.flags.showexp;
-    if ((game.lev || game.map)?.flags?.lit_corridor) game.flags.lit_corridor = true;
+    game.levels[1] = (game.map || game.map);
+    (game.u || game.u).dungeonLevel = 1;
+    (game.u || game.u).inTutorial = true;
+    (game.u || game.u).showExp = !!game.flags.showexp;
+    if ((game.map || game.map)?.flags?.lit_corridor) game.flags.lit_corridor = true;
     game.placePlayerOnLevel('teleport');
-    const entryEngr = (game.lev || game.map)?.engravingAt?.((game.u || game.player).x, (game.u || game.player).y);
+    const entryEngr = (game.map || game.map)?.engravingAt?.((game.u || game.u).x, (game.u || game.u).y);
     if (entryEngr) entryEngr.erevealed = true;
 
     if (!deferRender) {
-        game.fov.compute((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y);
-        game.display.renderMap((game.lev || game.map), (game.u || game.player), game.fov, game.flags);
-        await game.maybeShowQuestLocateHint((game.u || game.player).dungeonLevel);
+        game.fov.compute((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y);
+        game.display.renderMap((game.map || game.map), (game.u || game.u), game.fov, game.flags);
+        await game.maybeShowQuestLocateHint((game.u || game.u).dungeonLevel);
     }
 
 }
@@ -399,7 +399,7 @@ export async function restoreFromSave(game, saveData, urlOpts) {
     // Restore game state: player + inventory + equip + context
     const restored = restGameState(gs);
     game.u = restored.player;
-    (game.u || game.player).wizard = game.wizard;
+    (game.u || game.u).wizard = game.wizard;
     game.wizard = restored.wizard;
     game.turnCount = restored.turnCount;
     game.moves = game.turnCount + 1;
@@ -420,8 +420,8 @@ export async function restoreFromSave(game, saveData, urlOpts) {
     }
 
     // Set current level
-    (game.u || game.player).dungeonLevel = currentDepth;
-    game.lev = game.levels[currentDepth];
+    (game.u || game.u).dungeonLevel = currentDepth;
+    game.map = game.levels[currentDepth];
 
     // Restore messages
     if (restored.messages.length > 0) {
@@ -434,14 +434,14 @@ export async function restoreFromSave(game, saveData, urlOpts) {
     // Load flags (C ref: flags struct)
     game.flags = restored.flags || loadFlags();
     game._emitRuntimeBindings();
-    (game.u || game.player).showExp = game.flags.showexp;
-    (game.u || game.player).showScore = game.flags.showscore;
-    (game.u || game.player).showTime = game.flags.time;
+    (game.u || game.u).showExp = game.flags.showexp;
+    (game.u || game.u).showScore = game.flags.showscore;
+    (game.u || game.u).showTime = game.flags.time;
 
     // Render
-    game.fov.compute((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y);
-    game.display.renderMap((game.lev || game.map), (game.u || game.player), game.fov, game.flags);
-    game.display.renderStatus((game.u || game.player));
+    game.fov.compute((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y);
+    game.display.renderMap((game.map || game.map), (game.u || game.u), game.fov, game.flags);
+    game.display.renderStatus((game.u || game.u));
     await game.display.putstr_message('Game restored.');
 
     // Notify that gameplay is starting (restored game)
@@ -726,7 +726,7 @@ export async function showConfirmation(game, roleIdx, raceIdx, gender, align) {
     const raceName = races[raceIdx].adj;
     const genderStr = female ? 'female' : 'male';
     const alignStr = alignName(align);
-    const confirmText = `${(game.u || game.player).name} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
+    const confirmText = `${(game.u || game.u).name} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
 
     const lines = [];
     lines.push('Is this ok? [ynq]');
@@ -818,7 +818,7 @@ export async function showLoreAndWelcome(game, roleIdx, raceIdx, gender, align) 
         genderStr = female ? 'female ' : 'male ';
     }
 
-    const welcomeMsg = `${greeting} ${(game.u || game.player).name}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
+    const welcomeMsg = `${greeting} ${(game.u || game.u).name}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
     await game.display.putstr_message(welcomeMsg);
 
     // Show --More-- after welcome
@@ -1022,10 +1022,10 @@ async function autoPickAll(game, showConfirm) {
     const va = validAlignsForRoleRace(roleIdx, raceIdx);
     let align = va[rn2(va.length)];
 
-    (game.u || game.player).roleIndex = roleIdx;
-    (game.u || game.player).race = raceIdx;
-    (game.u || game.player).gender = gender;
-    (game.u || game.player).alignment = align;
+    (game.u || game.u).roleIndex = roleIdx;
+    (game.u || game.u).race = raceIdx;
+    (game.u || game.u).gender = gender;
+    (game.u || game.u).alignment = align;
 
     if (showConfirm) {
         // Show confirmation screen
@@ -1038,8 +1038,8 @@ async function autoPickAll(game, showConfirm) {
     }
 
     // Apply the selection
-    (game.u || game.player).initRole(roleIdx);
-    (game.u || game.player).alignment = align;
+    (game.u || game.u).initRole(roleIdx);
+    (game.u || game.u).alignment = align;
 
     // Show lore and welcome
     await showLoreAndWelcome(game, roleIdx, raceIdx, gender, align);
@@ -1204,12 +1204,12 @@ async function manualSelection(game) {
         if (currentMenu === 'confirm') {
             const confirmed = await showConfirmation(game, roleIdx, raceIdx, gender, align);
             if (confirmed) {
-                (game.u || game.player).roleIndex = roleIdx;
-                (game.u || game.player).race = raceIdx;
-                (game.u || game.player).gender = gender;
-                (game.u || game.player).alignment = align;
-                (game.u || game.player).initRole(roleIdx);
-                (game.u || game.player).alignment = align;
+                (game.u || game.u).roleIndex = roleIdx;
+                (game.u || game.u).race = raceIdx;
+                (game.u || game.u).gender = gender;
+                (game.u || game.u).alignment = align;
+                (game.u || game.u).initRole(roleIdx);
+                (game.u || game.u).alignment = align;
                 await showLoreAndWelcome(game, roleIdx, raceIdx, gender, align);
                 return;
             } else {

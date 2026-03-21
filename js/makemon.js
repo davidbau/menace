@@ -196,7 +196,7 @@ function normalizePlayerContext(ctx = {}) {
     };
 }
 
-// --- Makemon context: reads live from gstate.game.player ---
+// --- Makemon context: reads live from gstate.game.u ---
 // Override is set for special cases (x/y clearing during level change,
 // alignmentRecord override for pet creation, role-only context during early init).
 let _makemonPlayerOverride = null;

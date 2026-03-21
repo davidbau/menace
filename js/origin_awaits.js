@@ -32,8 +32,8 @@ export async function nhload(loadFn) {
 export async function display_sync() {
     const game = activeGame;
     if (!game) return;
-    const map = game.map || game.lev || null;
-    const player = game.u || game.player || null;
+    const map = game.map || game.map || null;
+    const player = game.u || game.u || null;
     if (game.fov && map && player && typeof game.fov.compute === 'function') {
         game.fov.compute(map, player.x, player.y);
     }

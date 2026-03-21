@@ -871,8 +871,8 @@ export async function handleInventory(player, display, game) {
             if (typeof display.setCell === 'function'
                 && Number.isInteger(display.cols)
                 && Number.isInteger(display.rows)) {
-                if (game && typeof display.renderMap === 'function' && game.map && game.player && game.fov) {
-                    display.renderMap(game.map, game.player, game.fov, game.flags || {});
+                if (game && typeof display.renderMap === 'function' && game.map && game.u && game.fov) {
+                    display.renderMap(game.map, game.u, game.fov, game.flags || {});
                     if (fullScreenInventory && typeof display.clearRow === 'function') {
                         if (Number.isInteger(STATUS_ROW_1)) display.clearRow(STATUS_ROW_1);
                         if (Number.isInteger(STATUS_ROW_2)) display.clearRow(STATUS_ROW_2);
@@ -928,7 +928,7 @@ export async function handleInventory(player, display, game) {
                 if ((actionKey === 'f' || actionKey === 't') && game?.map) {
                     return await promptDirectionAndThrowItem(
                         player,
-                        (game.lev || game.map),
+                        (game.map || game.map),
                         display,
                         selected,
                         { fromFire: stackCanShoot, game }

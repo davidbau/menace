@@ -73,7 +73,7 @@ function Not_firsttime(player) {
 // ======================================================================
 
 async function qt_pager(msgid, game, obj = null) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     const isWizardRole = player?.roleMnum === PM_WIZARD
         || String(player?.roleName || '').toLowerCase() === 'wizard'
         || String(player?.role || '').toLowerCase() === 'wizard';
@@ -113,7 +113,7 @@ async function com_pager(msgid, game) {
 // cf. quest.c:26 [static] — on_start(): quest start-level arrival message
 export async function on_start(game) {
     const qs = Qstat(game);
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     if (!qs.first_start) {
         await qt_pager("firsttime", game);
         qs.first_start = true;
@@ -129,7 +129,7 @@ export async function on_start(game) {
 // cf. quest.c:40 [static] — on_locate(): quest locate-level arrival message
 export async function on_locate(game) {
     const qs = Qstat(game);
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     // the locate messages only make sense when arriving from above
     const from_above = (player.prevDungeonLevel || 0) < player.dungeonLevel;
 
@@ -149,7 +149,7 @@ export async function on_locate(game) {
 // cf. quest.c:62 [static] — on_goal(): quest goal-level arrival message
 async function on_goal(game) {
     const qs = Qstat(game);
-    const map = (game.lev || game.map);
+    const map = (game.map || game.map);
 
     if (qs.killed_nemesis) {
         return;
@@ -202,7 +202,7 @@ export function not_capable(player) {
 // cf. quest.c:153 [static] — is_pure(talk): alignment purity check
 // Returns: 1=pure, 0=impure (record too low), -1=converted
 function is_pure(talk, game) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     const original_alignment = player.ualignbase_original != null
         ? player.ualignbase_original : player.alignment;
     const current_base = player.ualignbase_current != null
@@ -222,8 +222,8 @@ function is_pure(talk, game) {
 
 // cf. quest.c:186 [static] — expulsion(seal): force-return from quest branch
 export function expulsion(seal, game) {
-    const player = (game.u || game.player);
-    const map = (game.lev || game.map);
+    const player = (game.u || game.u);
+    const map = (game.map || game.map);
     const qs = Qstat(game);
 
     // In C, this finds the quest branch and schedules a goto to the parent dungeon.
@@ -271,7 +271,7 @@ export function expulsion(seal, game) {
 // cf. quest.c:89 — onquest(): dispatch arrival messages for quest levels
 // Called on level change; does nothing if qcompleted or Not_firsttime.
 export async function onquest(game) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     const qs = Qstat(game);
 
     if ((player.uevent && player.uevent.qcompleted) || Not_firsttime(player))
@@ -280,7 +280,7 @@ export async function onquest(game) {
     // In C, these check dungeon topology:
     //   Is_special, Is_qstart, Is_qlocate, Is_nemesis
     // In JS, we check map.quest_level_type if set by level generation.
-    const map = (game.lev || game.map);
+    const map = (game.map || game.map);
     if (!map || !map.quest_level_type)
         return;
 
@@ -315,7 +315,7 @@ export function leaddead() {
 // cf. quest.c:125 — artitouch(obj): player first touches quest artifact
 export async function artitouch(obj, game) {
     const qs = Qstat(game);
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     if (!qs.touched_artifact) {
         // In C: observe_object(obj) so blind player gets it named
         // observe_object not yet ported globally; stub
@@ -337,7 +337,7 @@ export async function ok_to_quest(game) {
 // obj=null: player has Amulet; obj=quest artifact: completion;
 // obj=other item: leader identifies it.
 export async function finish_quest(obj, game) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     const qs = Qstat(game);
 
     if (obj && !is_quest_artifact(obj)) {
@@ -383,8 +383,8 @@ export async function finish_quest(obj, game) {
 
 // cf. quest.c:282 [static] — chat_with_leader(mtmp): leader conversation logic
 async function chat_with_leader(mtmp, game) {
-    const player = (game.u || game.player);
-    const map = (game.lev || game.map);
+    const player = (game.u || game.u);
+    const map = (game.map || game.map);
     const qs = Qstat(game);
 
     if (!mtmp.mpeaceful || qs.pissed_off)
@@ -464,7 +464,7 @@ async function chat_with_leader(mtmp, game) {
 // cf. quest.c:357 — leader_speaks(mtmp): leader NPC response to chat
 export async function leader_speaks(mtmp, game) {
     const qs = Qstat(game);
-    const map = (game.lev || game.map);
+    const map = (game.map || game.map);
 
     // Maybe you attacked leader?
     if (!mtmp.mpeaceful) {
@@ -518,7 +518,7 @@ export async function nemesis_stinks(mx, my, game) {
 // cf. quest.c:427 [static] — chat_with_guardian(): guardian NPC dialog
 export async function chat_with_guardian(game) {
     const qs = Qstat(game);
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     if (player.uhave && player.uhave.questart && qs.killed_nemesis)
         await qt_pager("guardtalk_after", game);
     else
@@ -527,8 +527,8 @@ export async function chat_with_guardian(game) {
 
 // cf. quest.c:437 [static] — prisoner_speaks(mtmp): prisoner awakening
 export async function prisoner_speaks(mtmp, game) {
-    const player = (game.u || game.player);
-    const map = (game.lev || game.map);
+    const player = (game.u || game.u);
+    const map = (game.map || game.map);
 
     if ((mtmp.data || mtmp.type) === mons[PM_PRISONER]
         && ((mtmp.mstrategy || 0) & STRAT_WAITMASK)) {
@@ -557,7 +557,7 @@ export async function quest_chat(mtmp, game) {
         await chat_with_leader(mtmp, game);
         // Leader might have become pissed during the chat
         if (qs.pissed_off)
-            setmangry(mtmp, false, (game.lev || game.map), (game.u || game.player));
+            setmangry(mtmp, false, (game.map || game.map), (game.u || game.u));
         return;
     }
     switch ((mtmp.data || mtmp.type) ? (mtmp.data || mtmp.type).msound : 0) {

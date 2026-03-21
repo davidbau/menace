@@ -1845,7 +1845,7 @@ export function findPath(map, startX, startY, endX, endY) {
 // JS keeps the same role but uses existing BFS pathing in findPath().
 // Returns true when a path (or travel viability for TRAVP_VALID) exists.
 export async function findtravelpath(mode, game) {
-    if (!game || !(game.u || game.player) || !(game.lev || game.map)) return false;
+    if (!game || !(game.u || game.u) || !(game.map || game.map)) return false;
     const ctx = ensure_context(game);
     const { player, map } = game;
     const tx = game.travelX;
@@ -2994,17 +2994,17 @@ export function nomul(nval, game) {
     if (!game) return;
     if (typeof game.multi !== 'number') game.multi = 0;
     if (game.multi < nval) return; // bug fix from C
-    if (game.multi >= 0 && game.player) {
+    if (game.multi >= 0 && game.u) {
         const stepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
-            ? (game.lev || game.map)._replayStepIndex
+            ? (game.map || game.map)._replayStepIndex
             : null;
         const display = game.display || null;
         if (display?.messageNeedsMore) {
             display._deferredBotlAfterPendingFlush = true;
             display._deferredBotlStepIndex = stepIndex;
         } else {
-            game.player._botl = true;
-            game.player._botlStepIndex = stepIndex;
+            game.u._botl = true;
+            game.u._botlStepIndex = stepIndex;
         }
     }
     game.multi = nval;
@@ -3632,7 +3632,7 @@ export async function losehp(n, knam, k_format, player, display, game) {
     if (player) {
         player._botl = true;
         player._botlStepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
-            ? (game.lev || game.map)._replayStepIndex
+            ? (game.map || game.map)._replayStepIndex
             : null;
     }
 

@@ -82,7 +82,7 @@ export async function throne_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.data || mtmp.type;
     if ((mtmp.msleeping || is_lord(ptr) || is_prince(ptr))
         && !is_animal(ptr)
-        && mon_in_room(mtmp, COURT, (game.lev || game.map))) {
+        && mon_in_room(mtmp, COURT, (game.map || game.map))) {
         const throne_msg = [
             'the tones of courtly conversation.',
             'a sceptre pounded in judgment.',
@@ -107,7 +107,7 @@ export async function throne_mon_sound(mtmp, hallu, game) {
 export async function beehive_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.data || mtmp.type;
     if ((ptr.mlet === S_ANT && is_flyer(ptr))
-        && mon_in_room(mtmp, BEEHIVE, (game.lev || game.map))) {
+        && mon_in_room(mtmp, BEEHIVE, (game.map || game.map))) {
         switch (rn2(2) + hallu) {
         case 0:
             await game.display.putstr_message('You hear a low buzzing.');
@@ -116,7 +116,7 @@ export async function beehive_mon_sound(mtmp, hallu, game) {
             await game.display.putstr_message('You hear an angry drone.');
             break;
         case 2: {
-            const helmet = (game.u || game.player)?.helmet ? '' : '(nonexistent) ';
+            const helmet = (game.u || game.u)?.helmet ? '' : '(nonexistent) ';
             await game.display.putstr_message(`You hear bees in your ${helmet}bonnet!`);
             break;
         }
@@ -129,7 +129,7 @@ export async function beehive_mon_sound(mtmp, hallu, game) {
 // cf. sounds.c:88 — morgue_mon_sound(mtmp): morgue ambient sound
 export async function morgue_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.data || mtmp.type;
-    if (is_undead(ptr) && mon_in_room(mtmp, MORGUE, (game.lev || game.map))) {
+    if (is_undead(ptr) && mon_in_room(mtmp, MORGUE, (game.map || game.map))) {
         switch (rn2(2) + hallu) {
         case 0:
             await game.display.putstr_message('You suddenly realize it is unnaturally quiet.');
@@ -150,7 +150,7 @@ export async function morgue_mon_sound(mtmp, hallu, game) {
 export async function zoo_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.data || mtmp.type;
     if ((mtmp.msleeping || is_animal(ptr))
-        && mon_in_room(mtmp, ZOO, (game.lev || game.map))) {
+        && mon_in_room(mtmp, ZOO, (game.map || game.map))) {
         const zoo_msg = [
             'a sound reminiscent of an elephant stepping on a peanut.',
             'a sound reminiscent of a seal barking.',
@@ -170,7 +170,7 @@ export async function zoo_mon_sound(mtmp, hallu, game) {
 export async function temple_priest_sound(mtmp, hallu, game) {
     if (mtmp.ispriest && !mtmp.msleeping) {
         // Simplified check: priest must be in a TEMPLE room
-        if (!mon_in_room(mtmp, TEMPLE, (game.lev || game.map))) return false;
+        if (!mon_in_room(mtmp, TEMPLE, (game.map || game.map))) return false;
 
         // C sounds.c:159-166: retry loop with *=speechless, #=in_sight guards
         const temple_msg = [
@@ -204,7 +204,7 @@ export async function temple_priest_sound(mtmp, hallu, game) {
 export async function oracle_sound(mtmp, hallu, game) {
     if ((mtmp.data || mtmp.type) !== mons[PM_ORACLE]) return false;
 
-    if (hallu || !canseemon(mtmp, (game.u || game.player), game.fov)) {
+    if (hallu || !canseemon(mtmp, (game.u || game.u), game.fov)) {
         const ora_msg = [
             'a strange wind.',
             'convulsive ravings.',
@@ -230,14 +230,14 @@ export async function oracle_sound(mtmp, hallu, game) {
 //   leprehall(200) → temple(200) → oracle(200).
 export async function dosounds(game) {
     // C ref: if (Deaf || !flags.acoustics || u.uswallow || Underwater) return;
-    if ((game.u || game.player)?.deaf) return;
+    if ((game.u || game.u)?.deaf) return;
     if (game.flags && game.flags.acoustics === false) return;
-    if ((game.u || game.player)?.uswallow) return;
-    if ((game.u || game.player)?.underwater) return;
+    if ((game.u || game.u)?.uswallow) return;
+    if ((game.u || game.u)?.underwater) return;
 
-    const hallu = (game.u || game.player)?.hallucinating ? 1 : 0;
-    const f = (game.lev || game.map).flags || {};
-    const map = (game.lev || game.map);
+    const hallu = (game.u || game.u)?.hallucinating ? 1 : 0;
+    const f = (game.map || game.map).flags || {};
+    const map = (game.map || game.map);
 
     // --- Fountains (rn2(400)) — does NOT return early ---
     if (f.nfountains && !rn2(400)) {
@@ -284,7 +284,7 @@ export async function dosounds(game) {
     if (f.has_vault && !rn2(200)) {
         // C sounds.c:244: if (gd_sound()) — skip sounds if vault occupied or guard exists
         // vault_occupied returns null for "not in vault", room char for "in vault"
-        const player = game.u || game.player;
+        const player = game.u || game.u;
         const vaultOcc = vault_occupied(player?.urooms || '', map);
         const gdSound = !(vaultOcc || findgd(map, player));
         if (gdSound)
@@ -355,7 +355,7 @@ export async function dosounds(game) {
             (m) => m && !m.dead && m.isshk
         );
         const playerInShop = (() => {
-            const loc = map.at?.((game.u || game.player).x, (game.u || game.player).y);
+            const loc = map.at?.((game.u || game.u).x, (game.u || game.u).y);
             if (!loc || !Number.isFinite(loc.roomno)) return false;
             const ridx = loc.roomno - ROOMOFFSET;
             const room = map.rooms?.[ridx];
@@ -453,7 +453,7 @@ export async function growl(mtmp, game) {
         return;
 
     let verb;
-    if ((game.u || game.player)?.hallucinating) {
+    if ((game.u || game.u)?.hallucinating) {
         verb = h_sounds[rn2(h_sounds.length)];
     } else {
         verb = growl_sound(mtmp);
@@ -463,7 +463,7 @@ export async function growl(mtmp, game) {
         // C: vtense — add "s" for 3rd person singular
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
         await game.display.putstr_message(`${name} ${verbed}!`);
-        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 18, (game.lev || game.map));
+        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 18, (game.map || game.map));
     }
 }
 
@@ -477,7 +477,7 @@ export async function yelp(mtmp, game) {
         return;
 
     let verb = null;
-    if ((game.u || game.player)?.hallucinating) {
+    if ((game.u || game.u)?.hallucinating) {
         verb = h_sounds[rn2(h_sounds.length)];
     } else {
         switch ((mtmp.data || mtmp.type).msound) {
@@ -506,7 +506,7 @@ export async function yelp(mtmp, game) {
         const name = x_monnam(mtmp);
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
         await game.display.putstr_message(`${name} ${verbed}!`);
-        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 12, (game.lev || game.map));
+        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 12, (game.map || game.map));
     }
 }
 
@@ -520,7 +520,7 @@ export async function whimper(mtmp, game) {
         return;
 
     let verb = null;
-    if ((game.u || game.player)?.hallucinating) {
+    if ((game.u || game.u)?.hallucinating) {
         verb = h_sounds[rn2(h_sounds.length)];
     } else {
         switch ((mtmp.data || mtmp.type).msound) {
@@ -540,7 +540,7 @@ export async function whimper(mtmp, game) {
         const name = x_monnam(mtmp);
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
         await game.display.putstr_message(`${name} ${verbed}.`);
-        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 6, (game.lev || game.map));
+        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 6, (game.map || game.map));
     }
 }
 
@@ -677,7 +677,7 @@ export async function domonnoise(mtmp, game) {
     let verbl_msg = null;
 
     // C: if (Deaf) return
-    if ((game.u || game.player)?.deaf) return 0;
+    if ((game.u || game.u)?.deaf) return 0;
     // C: if (is_silent(ptr) && !mtmp.isshk) return
     if (is_silent(ptr) && !mtmp.isshk) return 0;
     // C uses numeric mtame (>0) for pet state; keep a compatibility fallback
@@ -698,13 +698,13 @@ export async function domonnoise(mtmp, game) {
     else if (mtmp.isshk)
         msound = MS_SELL;
     // orc + same race or hallucination → humanoid
-    else if (msound === MS_ORC && (game.u || game.player)?.hallucinating)
+    else if (msound === MS_ORC && (game.u || game.u)?.hallucinating)
         msound = MS_HUMANOID;
     // untamed moo → bellow
     else if (msound === MS_MOO && !isTame)
         msound = MS_BELLOW;
     // hallucination + gecko → sell (GEICO joke)
-    else if ((game.u || game.player)?.hallucinating && mon_is_gecko(mtmp))
+    else if ((game.u || game.u)?.hallucinating && mon_is_gecko(mtmp))
         msound = MS_SELL;
 
     // --- Main dispatch (cf. sounds.c:722-1220) ---
@@ -728,7 +728,7 @@ export async function domonnoise(mtmp, game) {
 
     case MS_SELL:
         // C: shk_chat or GEICO joke
-        if (!(game.u || game.player)?.hallucinating || is_silent(ptr)
+        if (!(game.u || game.u)?.hallucinating || is_silent(ptr)
             || (mtmp.isshk && !rn2(2))) {
             // C: shk_chat(mtmp) — not yet ported
             if (mtmp.isshk) {
@@ -778,7 +778,7 @@ export async function domonnoise(mtmp, game) {
                 `${x_monnam(mtmp)} throws back its head`
                 + ` and lets out a blood curdling ${howl}!`
             );
-            wake_nearto(mtmp.x, mtmp.y, 11 * 11, (game.lev || game.map));
+            wake_nearto(mtmp.x, mtmp.y, 11 * 11, (game.map || game.map));
         } else {
             pline_msg = 'whispers inaudibly.  All you can make out is "moon".';
         }
@@ -894,7 +894,7 @@ export async function domonnoise(mtmp, game) {
 
     case MS_TRUMPET:
         pline_msg = 'trumpets!';
-        wake_nearto(mtmp.x, mtmp.y, 11 * 11, (game.lev || game.map));
+        wake_nearto(mtmp.x, mtmp.y, 11 * 11, (game.map || game.map));
         break;
 
     case MS_SHRIEK:
@@ -954,7 +954,7 @@ export async function domonnoise(mtmp, game) {
                 break;
             default:
                 pline_msg = 'shouts "Fee Fie Foe Foo!" and guffaws.';
-                wake_nearto(mtmp.x, mtmp.y, 7 * 7, (game.lev || game.map));
+                wake_nearto(mtmp.x, mtmp.y, 7 * 7, (game.map || game.map));
                 break;
             }
             break;
@@ -991,7 +991,7 @@ export async function domonnoise(mtmp, game) {
             pline_msg = 'discusses hunting.';
         else if (is_gnome(ptr)) {
             let gnomeplan = 0;
-            if ((game.u || game.player)?.hallucinating
+            if ((game.u || game.u)?.hallucinating
                 && (gnomeplan = rn2(4)) % 2) {
                 // Gnome underpants joke from South Park
                 verbl_msg = (gnomeplan === 1)

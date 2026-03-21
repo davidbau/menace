@@ -1,6 +1,6 @@
 // gstate.js — global game state reference and execution/origin guard state.
 // C uses global `u`, `level`, `flags`, `svm` — a single well-known state reference.
-// JS modules read gstate.game.player, gstate.game.map, gstate.game.display, etc.
+// JS modules read gstate.game.u, gstate.game.map, gstate.game.display, etc.
 
 import { getEnv, writeStderr } from './runtime_env.js';
 

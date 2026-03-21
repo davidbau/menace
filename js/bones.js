@@ -40,7 +40,7 @@ import {
 // Check if bones can be saved at this depth.
 // C ref: bones.c:61 — depth check + rn2(1+(depth>>2)) ghost probability
 export function can_make_bones(game) {
-    const depth = (game.u || game.player).dungeonLevel;
+    const depth = (game.u || game.u).dungeonLevel;
     // C ref: bones.c:70 — can't make bones on level 1
     if (depth <= 1) return false;
     // C ref: bones.c:88 — ghost probability: rn2(1 + (depth >> 2))

@@ -600,7 +600,7 @@ export async function Hear_again(player) {
 
 // cf. eat.c:3330-3339 unfaint() — recover from fainting
 export async function unfaint(game, player) {
-    if (!player && game) player = game.player;
+    if (!player && game) player = game.u;
     await Hear_again(player);
     if (player.uhs > FAINTING) player.uhs = FAINTING;
     if (game) await stop_occupation(game);
@@ -2185,7 +2185,7 @@ export { handleEat, // Hunger system
 // cf. eat.c:544 — done_eating: finish eating occupation
 export async function done_eating(message, game, player) {
     if (!game) game = _gstate;
-    if (!player && game) player = game.player;
+    if (!player && game) player = game.u;
     const v = game?.svc?.context?.victual;
     const piece = v?.piece;
     if (piece) piece.in_use = true;
@@ -2225,7 +2225,7 @@ export async function done_eating(message, game, player) {
 // cf. eat.c:2017 — start_eating: begin eating occupation
 export async function start_eating(otmp, already_partly_eaten, game, player) {
     if (!game) game = _gstate;
-    if (!player && game) player = game.player;
+    if (!player && game) player = game.u;
     const v = game?.svc?.context?.victual;
     if (!v) return;
     v.fullwarn = 0;

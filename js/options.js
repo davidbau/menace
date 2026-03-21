@@ -1957,7 +1957,7 @@ function getOptionValue(opt, flags, game) {
     let flagValue = flags[opt.flag];
     // Identity options: show actual player values (flags may be empty after chargen)
     if (opt.readonly && game) {
-        const p = game.player || game.u;
+        const p = game.u || game.u;
         if (p) {
             if (opt.flag === 'role' && !flagValue) flagValue = p.role || '';
             else if (opt.flag === 'race' && !flagValue) flagValue = p.raceName || p.race || '';
@@ -2409,7 +2409,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
             }
             lines.push('(end)');
             display.clearScreen();
-            display.renderMap((game.lev || game.map), player, game.fov, flags);
+            display.renderMap((game.map || game.map), player, game.fov, flags);
             for (let i = 0; i < lines.length && i < display.rows; i++) {
                 const text = lines[i].substring(0, Math.max(0, display.cols - 41));
                 const attr = (i === 0) ? 1 : 0;
@@ -2476,7 +2476,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
             lines.push("Toggle off 'autopickup' to not pick up anything.");
             lines.push('(end)');
             display.clearScreen();
-            display.renderMap((game.lev || game.map), player, game.fov, flags);
+            display.renderMap((game.map || game.map), player, game.fov, flags);
             // Session captures for this menu are column-shifted by one map cell.
             // Apply that shift in headless parity mode before drawing the right panel.
             if (Array.isArray(display.grid) && Array.isArray(display.colors) && Array.isArray(display.attrs)) {
@@ -2617,7 +2617,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
     // Restore game display after exiting menu
     // Clear screen first to remove all menu text
     display.clearScreen();
-    display.renderMap((game.lev || game.map), player, game.fov, flags);
+    display.renderMap((game.map || game.map), player, game.fov, flags);
     display.renderStatus(player);
 
     return { moved: false, tookTime: false };

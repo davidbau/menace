@@ -572,7 +572,7 @@ export async function pay(tmp, shkp, game) {
   if (balance > 0) money2mon(shkp, balance);
   else if (balance < 0) money2u(shkp, -balance);
   if (game?.disp) game.disp.botl = true;
-  if (game?.player) game.player._botl = true;
+  if (game?.player) game.u._botl = true;
   if (robbed) {
     robbed -= tmp;
     if (robbed < 0) robbed = 0;

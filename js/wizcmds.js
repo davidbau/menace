@@ -271,7 +271,7 @@ export async function handleWizLoadDes(game) {
     // C ref: wiz_load_splua -> fixup_special() uses Is_branchlev(&u.uz),
     // i.e. the hero's current level context (not the loaded special file's
     // nominal dungeon coordinates).
-    const liveMap = game.map || game.lev || null;
+    const liveMap = game.map || game.map || null;
     const dnum = Number.isInteger(liveMap?._genDnum)
         ? liveMap._genDnum
         : (Number.isInteger(player?.uz?.dnum) ? player.uz.dnum : 0);
@@ -945,7 +945,7 @@ export function wiz_fuzzer(game) {
 
 export async function wiz_intrinsic(game) {
   if (!game?.player) return { moved: false, tookTime: false };
-  const up = game.player.uprops || (game.player.uprops = {});
+  const up = game.u.uprops || (game.u.uprops = {});
   const key = 'WIZ_INTRINSIC_TOGGLE';
   const e = up[key] || (up[key] = { intrinsic: 0, extrinsic: 0, blocked: 0 });
   e.intrinsic = e.intrinsic ? 0 : 1;
@@ -998,7 +998,7 @@ export function misc_stats(game) {
 export async function sanity_check(game) {
   if (!game?.player || !game?.map) return 0;
   try {
-    await you_sanity_check(game.player);
+    await you_sanity_check(game.u);
   } catch (_err) {
     // Fallback for JS runtime where some deep C globals are not modeled.
   }
