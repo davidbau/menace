@@ -1504,6 +1504,63 @@ The C3 probe confirmed that option 2 is correct: fixing slice internals
 alone doesn't help because the outer `while` loop still fuses everything.
 The invariants need to be combined with the owner move.
 
+## New structural correction: JS still lacks a positive-`multi` no-input lane
+
+One more lower-level analysis pass corrected the owner model again.
+
+The current JS runtime has explicit no-input continuation lanes in
+`_gameLoopStep()` for:
+
+- negative `multi`
+- occupation
+
+But it still does **not** have the equivalent no-input lane for positive
+`multi` travel/running.
+
+That means positive-travel continuation is currently forced into two wrong
+owners:
+
+1. **Too early**: local `run_command() -> repeatLoop()` drain inside the same
+   resumed command frame
+2. **Too late / wrong layer**: the later top-level `_gameLoopStep()`
+   `travelPath` branch
+
+There is no JS owner that corresponds to what C actually does:
+
+- `rhack(0)` / `dotravel_target()` performs one travel hop
+- control returns to the outer moveloop machinery
+- the runtime immediately re-enters a **no-input positive-multi**
+  continuation slice under outer-loop ownership
+- without falling back into command-local `while (multi > 0)` draining
+- and without waiting for a fresh command cycle
+
+This explains two earlier results at once:
+
+1. **Why suppressing only the local `repeatLoop()` helped so much**
+   - it removed the dominant too-early owner
+   - `933..936` spillover dropped from `rng +431 / evt +169`
+     to `rng +106 / evt +95`
+
+2. **Why the deferred-timed-turn rewrite still was not enough**
+   - it postponed the first timed continuation to a later command-cycle entry
+   - but C does not wait for a later command cycle here
+   - C keeps running no-input continuation under outer moveloop ownership
+
+So the remaining target is not just "break the `while` loop".
+It is:
+
+- add a JS positive-`multi` no-input continuation path in `_gameLoopStep()`
+- make that path own exactly one C-shaped continuation slice
+- and retire both the command-local overdrain and the dedicated top-level
+  `travelPath` shortcut once the new lane exists
+
+This is a stronger and more complete model than the earlier
+"local owner vs top-level owner" framing:
+
+- the local owner is the dominant wrong owner
+- the top-level `travelPath` branch is a secondary wrong owner
+- the missing owner is the real C-faithful outer no-input continuation lane
+
 ### Concrete prediction
 
 The fix will work when BOTH are done simultaneously:

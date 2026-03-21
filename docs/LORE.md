@@ -15079,3 +15079,27 @@ Lesson:
     current helper boundaries is still not sufficient
   - one more lower-level mismatch remains inside the first resumed `_` slice,
     even after the deferred-timed-turn rewrite
+
+# 2026-03-21: Positive travel still lacks a C-faithful no-input owner in `_gameLoopStep()`
+
+- Lower-level analysis after the deferred-timed-turn failure clarified the
+  missing runtime structure:
+  - `_gameLoopStep()` already has explicit no-input continuation lanes for:
+    - negative `multi`
+    - occupation
+  - but it still has no equivalent no-input lane for positive `multi`
+    travel/running
+- That means positive-travel continuation is currently forced into two wrong
+  owners:
+  1. too early: local `run_command() -> repeatLoop()` overdrain
+  2. too late: separate top-level `_gameLoopStep()` `travelPath` branch
+- This explains why:
+  - suppressing only the local `repeatLoop()` produced the dominant spillover
+    reduction (`933..936`: `rng +431 / evt +169` -> `rng +106 / evt +95`)
+  - but deferring the first timed continuation to a later command-cycle entry
+    still did not move the first seam
+- Refined conclusion:
+  - C-faithful positive travel needs a dedicated outer no-input continuation
+    lane in `_gameLoopStep()`
+  - neither command-local `while (multi > 0)` draining nor a later dedicated
+    `travelPath` shortcut is the right owner
