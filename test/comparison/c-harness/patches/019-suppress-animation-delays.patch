@@ -1,7 +1,7 @@
 diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 --- a/win/tty/termcap.c
 +++ b/win/tty/termcap.c
-@@ -786,14 +786,17 @@ static const short tmspc10[] = { /* from termcap */
+@@ -786,14 +786,21 @@ static const short tmspc10[] = { /* from termcap */
  #endif
  #endif
 
@@ -17,7 +17,13 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 -    if (iflags.debug_fuzzer)
 +    if (no_delay < 0)
 +        no_delay = (getenv("NETHACK_NO_DELAY") != NULL);
-+    if (no_delay || iflags.debug_fuzzer)
++    if (no_delay || iflags.debug_fuzzer) {
++        /* Still flush output so tmux capture-pane sees the current
++           display state even when delay is suppressed (e.g., during
++           RUN_LEAP mode where display updates aren't flushed otherwise). */
++        (void) fflush(stdout);
          return;
++    }
  #ifdef TIMED_DELAY
      if (flags.nap) {
+         (void) fflush(stdout);
