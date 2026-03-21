@@ -4,59 +4,310 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Logo 1982 -- Mazes of Menace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
   <link rel="preload" href="../assets/fonts/DejaVuSansMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../assets/fonts/dejavu-sans-mono.css">
   <style>
     :root {
+      --color-bg: #f9f7f1;
+      --color-text: #333;
+      --color-text-muted: #666;
+      --color-accent: #6b2c2c;
+      --color-accent-dark: #4a2020;
+      --color-terminal-bg: #000;
+      --color-terminal-border: #2a2a2a;
+      --color-shadow: rgba(0, 0, 0, 0.15);
+      --font-mono: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace;
+      --font-serif: 'EB Garamond', Georgia, serif;
       --game-font-size: 16px;
       --game-line-height: 1.1875;
+      --transition-fast: 0.2s;
     }
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #000;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-serif);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    #nav-spacer {
+      flex-shrink: 0;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    #logo-wrapper {
-      position: relative;
-      display: inline-block;
+
+    #nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5em;
+      padding: 0.5em 0;
+      font-size: calc(var(--game-font-size) * 1.0);
+      justify-content: center;
+      width: 100%;
+      order: -2;
     }
+
+    #nav a {
+      color: var(--color-accent-dark);
+      text-decoration: none;
+      font-weight: 500;
+      opacity: 0;
+      transition: color var(--transition-fast), opacity var(--transition-fast);
+    }
+
+    #nav:hover a { opacity: 1; }
+    #nav a:hover { color: var(--color-accent); text-decoration: underline; }
+
+    #main {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      order: 0;
+    }
+
+    #logo-container {
+      background: var(--color-terminal-bg);
+      border: 3px solid var(--color-terminal-border);
+      padding: 6px;
+      box-shadow: 0 4px 12px var(--color-shadow), 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 16px;
+      min-width: calc(var(--game-font-size) * 80 * 0.60205078125 + 34px);
+      min-height: calc(var(--game-font-size) * 24 * var(--game-line-height) + 34px);
+      max-width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #logo-container:focus-within {
+      border-color: var(--color-accent);
+      box-shadow: 0 4px 12px var(--color-shadow), 0 0 0 2px rgba(107,44,44,0.2);
+    }
+
+    #logo-container * { user-select: none; -webkit-user-select: none; }
+
     #logo-canvas {
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 6px;
+      left: 6px;
       z-index: 0;
-      /* Apple II pixelated rendering */
       image-rendering: pixelated;
       image-rendering: -moz-crisp-edges;
       image-rendering: crisp-edges;
     }
-    #logo-container {
-      position: relative;
-      z-index: 1;
+
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+      filter: drop-shadow(0 2px 8px var(--color-shadow));
     }
+
+    #controls button {
+      background: var(--color-bg);
+      border: 2px solid var(--color-accent);
+      color: var(--color-accent);
+      padding: 0.4em 0.8em;
+      font-size: calc(var(--game-font-size) * 1.0);
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all var(--transition-fast);
+      font-family: var(--font-serif);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .mono-char { font-family: var(--font-mono); }
+    #controls button:hover { background: var(--color-accent); color: #fff; }
+    #controls button:active { transform: scale(0.95); }
+
+    #panel-toggle.menu-open { background: var(--color-accent); color: var(--color-bg); }
+
+    #hamburger-menu {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      flex-direction: column;
+      background: var(--color-bg);
+      border: 2px solid var(--color-accent);
+      border-radius: 4px;
+      min-width: 200px;
+      box-shadow: 0 4px 16px var(--color-shadow);
+      z-index: 100;
+    }
+
+    #hamburger-menu.open { display: flex; }
+
+    #hamburger-menu .hm-item {
+      background: none;
+      border: none;
+      border-radius: 0;
+      color: var(--color-accent);
+      padding: 0.25em 1em;
+      text-align: left;
+      cursor: pointer;
+      font-family: var(--font-serif);
+      font-size: calc(var(--game-font-size) * 1.0);
+      white-space: nowrap;
+      width: 100%;
+      transition: background var(--transition-fast), color var(--transition-fast);
+      filter: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .hm-check { display: inline-block; width: 1.2em; }
+    #hamburger-menu .hm-item:hover:not(:disabled) { background: var(--color-accent); color: #fff; }
+    #hamburger-menu .hm-item:disabled { opacity: 0.35; cursor: default; }
+    .hm-divider { border-top: 1px solid var(--color-accent); margin: 0.3em 0; }
+
+    body.dark-mode {
+      --color-bg: #111;
+      --color-text: #aaa;
+      --color-text-muted: #888;
+      --color-accent: #555;
+      --color-accent-dark: #888;
+      --color-shadow: rgba(0, 0, 0, 0.4);
+    }
+    body.dark-mode #controls button { background: #222; }
+    body.dark-mode #controls button:hover { background: #333; border-color: #666; }
+    body.dark-mode #hamburger-menu { background: #222; }
+    body.dark-mode #hamburger-menu .hm-item { background: #222; color: #888; }
+    body.dark-mode #hamburger-menu .hm-item:hover:not(:disabled) { background: #444; color: #ccc; }
+    body.dark-mode .hm-divider { border-top-color: #444; }
   </style>
-  <script>
-    // Read font size from localStorage (shared with shell/hack/rogue/nethack)
-    try {
-      var sz = parseInt(localStorage.getItem('menace-font-size')) || 16;
-    } catch(e) { var sz = 16; }
-    document.documentElement.style.setProperty('--game-font-size', sz + 'px');
-  </script>
 </head>
 <body>
-  <div id="logo-wrapper">
-    <canvas id="logo-canvas" width="320" height="200"></canvas>
-    <div id="logo-container"></div>
+  <div id="page">
+    <nav id="nav" role="navigation">
+      <a href="/shell/">Back to Shell</a>
+    </nav>
+    <main id="main">
+      <div id="logo-container">
+        <canvas id="logo-canvas" width="320" height="200"></canvas>
+      </div>
+    </main>
+    <div id="controls">
+      <button id="font-smaller" title="Decrease font size" tabindex="-1"><span class="mono-char">A</span>&#x2212;</button>
+      <button id="font-larger" title="Increase font size" tabindex="-1"><span class="mono-char">A</span>+</button>
+      <button id="panel-toggle" title="Game menu" tabindex="-1">&#x2630;</button>
+      <div id="hamburger-menu">
+        <button class="hm-item" id="hm-shell"><span class="hm-check"></span>Back to Shell</button>
+        <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-nethack"><span class="hm-check"></span>Play NetHack</button>
+        <button class="hm-item" id="hm-hack"><span class="hm-check"></span>Play Hack (1982)</button>
+        <button class="hm-item" id="hm-rogue"><span class="hm-check"></span>Play Rogue (1980)</button>
+        <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-darkmode"><span class="hm-check"></span>Dark mode</button>
+      </div>
+    </div>
+    <div id="nav-spacer"></div>
   </div>
+
+  <script>
+  /* Line-height pre-computation (same as shell/rogue/hack) */
+  (function() {
+    var FONT_FAMILY = '"DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace';
+    function measureLineHeight(fontSize) {
+      try {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        ctx.font = fontSize + 'px ' + FONT_FAMILY;
+        var m = ctx.measureText('\u2502');
+        if (m.fontBoundingBoxAscent != null && m.fontBoundingBoxDescent != null) {
+          var h = Math.floor(m.fontBoundingBoxAscent + m.fontBoundingBoxDescent);
+          return Math.max(h / fontSize, 1.0);
+        }
+      } catch(e) {}
+      return 1.1875;
+    }
+    function currentFontSize() {
+      try { return parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) { return 16; }
+    }
+    function applyLineHeight() {
+      var lh = measureLineHeight(currentFontSize());
+      document.documentElement.style.setProperty('--game-line-height', lh);
+    }
+    applyLineHeight();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(applyLineHeight);
+    }
+    window._applyLineHeight = applyLineHeight;
+  })();
+
+  /* Font size from localStorage */
+  (function() {
+    var sz = 16;
+    try { sz = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+    document.documentElement.style.setProperty('--game-font-size', sz + 'px');
+    var container = document.getElementById('logo-container');
+    if (container) container.style.fontSize = sz + 'px';
+  })();
+
+  /* Font size buttons */
+  document.addEventListener('DOMContentLoaded', function() {
+    function setFontSize(sz) {
+      sz = Math.max(10, Math.min(28, sz));
+      document.documentElement.style.setProperty('--game-font-size', sz + 'px');
+      var container = document.getElementById('logo-container');
+      if (container) container.style.fontSize = sz + 'px';
+      try { localStorage.setItem('menace-font-size', String(sz)); } catch(e) {}
+      if (window._applyLineHeight) window._applyLineHeight();
+    }
+    function currentSize() {
+      try { return parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) { return 16; }
+    }
+    document.getElementById('font-smaller').addEventListener('click', function() { setFontSize(currentSize() - 1); });
+    document.getElementById('font-larger').addEventListener('click', function() { setFontSize(currentSize() + 1); });
+
+    /* Hamburger menu */
+    var toggle = document.getElementById('panel-toggle');
+    var menu = document.getElementById('hamburger-menu');
+    toggle.addEventListener('click', function() {
+      menu.classList.toggle('open');
+      toggle.classList.toggle('menu-open');
+    });
+    document.getElementById('hm-shell').addEventListener('click', function() { window.location.href = '/shell/'; });
+    document.getElementById('hm-nethack').addEventListener('click', function() { window.location.href = '/'; });
+    document.getElementById('hm-hack').addEventListener('click', function() { window.location.href = '/hack/'; });
+    document.getElementById('hm-rogue').addEventListener('click', function() { window.location.href = '/rogue/'; });
+    document.getElementById('hm-darkmode').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      try {
+        localStorage.setItem('menace-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
+      } catch(e) {}
+    });
+
+    /* Restore dark mode */
+    try {
+      if (localStorage.getItem('menace-dark-mode') === '1') document.body.classList.add('dark-mode');
+    } catch(e) {}
+  });
+  </script>
+
   <script type="module" src="js/entry.js"></script>
 </body>
 </html>
