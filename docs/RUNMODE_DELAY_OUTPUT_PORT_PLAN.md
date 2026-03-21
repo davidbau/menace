@@ -3517,3 +3517,65 @@ Also required for display parity:
 
 On current `main`, the next active `seed031` seam is now at gameplay step
 `997`, not `488` and not the older branch-local `940` seam.
+
+## 2026-03-21 update: apply/pick-axe structural fix on current `main`
+
+A keepable structural fix landed for the raw `#apply` / pick-axe corridor in
+`seed031`.
+
+### Fixed structural bugs
+
+1. `#apply` prompt ownership:
+- [`handleApply()`](js/apply.js) was rendering the inventory-selection prompt
+  and the pick-axe direction prompt with `putstr_message()`, leaving
+  `messageNeedsMore=true` and forcing an extra `--More--` boundary on the next
+  selection key.
+- C does not treat those prompts as ordinary topline messages. They are
+  prompt-owned input boundaries.
+
+2. Pick-axe direction acceptance:
+- after accepting a pick-axe direction, JS returned `{ tookTime: true }`
+  without actually calling [`use_pick_axe()`](js/dig.js).
+- C `use_pick_axe()` immediately transitions into the dig/use path after the
+  direction is accepted.
+
+3. Dig occupation ownership:
+- [`use_pick_axe2()`](js/dig.js) armed `player.occupation = dig`, but the live
+  runtime drains `game.occupation`.
+- So even after direction acceptance, the real digging occupation was not owned
+  by `_gameLoopStep()`.
+
+### Keepable fix shape
+
+- render apply-selection and pick-axe direction prompts as prompt-owned topline
+  text (`putstr`, cursor placement, `messageNeedsMore=false`)
+- on accepted pick-axe direction:
+  - set `dx/dy/dz`
+  - call `use_pick_axe()`
+  - return `tookTime` from that call
+- in `use_pick_axe2()`:
+  - arm `game.occupation` with the dig callback object actually drained by the
+    runtime
+  - keep the existing player-side dig marker only as compatibility state
+
+### Result
+
+- the raw `993..999` apply corridor now matches C structurally:
+  - `995` timed wield turn
+  - `996` direction prompt only
+  - `997` 220 filtered entries match
+  - `998` 25 filtered entries match
+  - `999` 17 filtered entries match
+- overall `seed031` improved from:
+  - RNG `35673/51561`
+  - events `20258/28950`
+  - first RNG divergence at gameplay step `997`
+- to:
+  - RNG `36949/51561`
+  - events `21226/28950`
+  - first RNG divergence at gameplay step `1057`
+
+### New active seam
+
+After this fix batch, the next `seed031` first RNG divergence on current `main`
+is gameplay step `1057`, not the raw apply corridor.

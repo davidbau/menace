@@ -1036,9 +1036,9 @@ export function use_pick_axe2(obj, map, player) {
 
     const isPick = (obj.otyp === PICK_AXE || obj.otyp === DWARVISH_MATTOCK);
     const verbing = isPick ? 'digging' : 'chopping';
-    const dx = player.dx || 0;
-    const dy = player.dy || 0;
-    const dz = player.dz || 0;
+    let dx = player.dx || 0;
+    let dy = player.dy || 0;
+    let dz = player.dz || 0;
 
     if (player.uswallow) {
         // do_attack(u.ustuck) — attack from inside
@@ -1121,7 +1121,15 @@ export function use_pick_axe2(obj, map, player) {
                 // "You continue digging/chopping."
                 ctx.digging.chew = false;
             }
-            // set_occupation(dig, verbing, 0) — set dig as occupation
+            // C ref: set_occupation(dig, verbing, 0)
+            if (_gstate) {
+                _gstate.occupation = {
+                    occtxt: verbing,
+                    async fn(g) {
+                        return await dig(g.map, g.u || g.player);
+                    },
+                };
+            }
             player.occupation = dig;
             player.occupation_verb = verbing;
         }
@@ -1157,6 +1165,14 @@ export function use_pick_axe2(obj, map, player) {
             // "You start digging downward."
         } else {
             // "You continue digging downward."
+        }
+        if (_gstate) {
+            _gstate.occupation = {
+                occtxt: verbing,
+                async fn(g) {
+                    return await dig(g.map, g.u || g.player);
+                },
+            };
         }
         player.occupation = dig;
         player.occupation_verb = verbing;

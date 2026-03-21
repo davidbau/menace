@@ -15670,3 +15670,60 @@ distinction is always conditional on being in Gehennom.
     the previous branch-local campaign
   - re-establish the authoritative first divergence on current `main` before
     resuming structural work
+
+## 2026-03-21 - seed031 apply/pick-axe prompt and occupation ownership
+
+- Session: `test/comparison/sessions/seed031_manual_direct.session.json`
+- Starting point on current `main` after the exploding-monster fix:
+  - first RNG divergence at gameplay step `997`
+  - matched RNG `35673/51561`
+  - matched events `20258/28950`
+- Raw step drilldown around the resumed `#apply` corridor (`993..999`) exposed a
+  separate structural bug family earlier in the same session:
+  - JS step `995` was burning the selection key on an extra prompt-owned
+    `^more[...]` boundary
+  - JS step `996` then performed the wield-time monster/timed-turn block that C
+    already performed on `995`
+  - after direction acceptance, JS also failed to arm the actual digging
+    occupation in the runtime owner that `_gameLoopStep()` drains
+- Root causes:
+  1. [`handleApply()`](js/apply.js) rendered the selection prompt and the dig
+     direction prompt via `putstr_message()`, which left
+     `messageNeedsMore=true` and inserted a fake command-boundary `--More--`
+     before the next selection key.
+  2. [`handleApply()`](js/apply.js) accepted the pick-axe direction but did not
+     call [`use_pick_axe()`](js/dig.js); it only returned `{ tookTime: true }`.
+  3. [`use_pick_axe2()`](js/dig.js) set `player.occupation = dig`, but the
+     active runtime drains `game.occupation`, so the dig occupation never became
+     live in the owner that `_gameLoopStep()` uses.
+- Keepable C-shaped JS fixes:
+  - render the `#apply` inventory-selection prompt and pick-axe direction prompt
+    as prompt-owned topline text using `display.putstr(...)`, `topMessage`, and
+    cursor placement, with `messageNeedsMore=false`, matching other prompt code
+    such as `ynFunction()` instead of treating them as ordinary `pline()`-style
+    messages.
+  - after accepting a pick-axe direction, set `player.dx/dy/dz`, call
+    [`use_pick_axe()`](js/dig.js), and return `tookTime` from that result.
+  - in [`use_pick_axe2()`](js/dig.js), arm `game.occupation` with a dig
+    callback object (`occtxt`, `fn`) while preserving the legacy
+    `player.occupation = dig` marker for existing helper code.
+- Result:
+  - the raw apply corridor now matches structurally:
+    - step `995`: timed wield turn matches C
+    - step `996`: dig-direction prompt only
+    - step `997`: `220` filtered entries match C
+    - step `998`: `25` filtered entries match C
+    - step `999`: `17` filtered entries match C
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved to `36949/51561`
+    - matched events improved to `21226/28950`
+    - first RNG divergence moved from gameplay step `997` to `1057`
+  - `t11_s755_w_covmax9_gp.session.json`
+    - still green
+- Lesson:
+  - prompt text that is really part of a live input owner must not be emitted as
+    a normal `putstr_message()` boundary message.
+  - for tool-use commands like pick-axe digging, matching C requires both:
+    - prompt ownership parity
+    - occupation ownership parity in `game.occupation`, not only local/player
+      bookkeeping.
