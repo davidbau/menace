@@ -24,7 +24,7 @@ async function setupSeed42Game() {
     player.x = map.upstair.x;
     player.y = map.upstair.y;
     player.dungeonLevel = 1;
-    return { player, map };
+    return { u: player, map };
 }
 
 async function setupRoleGame(seed, roleName) {
@@ -40,7 +40,7 @@ async function setupRoleGame(seed, roleName) {
     player.x = map.upstair.x;
     player.y = map.upstair.y;
     player.dungeonLevel = 1;
-    return { player, map };
+    return { u: player, map };
 }
 
 describe('Post-level initialization (u_init)', () => {

@@ -14,7 +14,7 @@ function makeGame() {
     player.x = 10;
     player.y = 10;
     return {
-        player,
+        u: player,
         map,
         display: {
             clearRow() {},

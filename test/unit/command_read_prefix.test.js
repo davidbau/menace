@@ -31,7 +31,7 @@ function makeGame() {
             this.messages.push(msg);
         },
     };
-    return { player, map, display, fov: null, flags: { verbose: false }, menuRequested: false };
+    return { u: player, map, display, fov: null, flags: { verbose: false }, menuRequested: false };
 }
 
 test('m-prefix does not block read command prompt', async () => {

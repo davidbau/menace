@@ -19,7 +19,7 @@ function makeGame() {
             this.topMessage = msg;
         },
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    return { u: player, map, display, fov: null, flags: { verbose: false } };
 }
 
 describe('wear command prompt parity', () => {

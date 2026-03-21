@@ -23,7 +23,7 @@ async function setupRole(seed, roleName) {
     player.x = map.upstair.x;
     player.y = map.upstair.y;
     player.dungeonLevel = 1;
-    return { player, map };
+    return { u: player, map };
 }
 
 test('samurai starts with orcish dagger name known', async () => {

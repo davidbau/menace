@@ -13,7 +13,7 @@ import {
 
 test('timeout burn_away_slime clears slimed timer', async () => {
     const player = new Player();
-    setGame({ player, map: null, display: null });
+    setGame({ u: player, player, map: null, display: null });
     const entry = player.ensureUProp(SLIMED);
     entry.intrinsic = 7;
     assert.equal(player.getPropTimeout(SLIMED), 7);
@@ -25,7 +25,7 @@ test('timeout burn_away_slime clears slimed timer', async () => {
 
 test('timeout slimed_to_death marks player dead', async () => {
     const player = new Player();
-    setGame({ player, map: null, display: null });
+    setGame({ u: player, player, map: null, display: null });
 
     await slimed_to_death(null, player);
 

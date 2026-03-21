@@ -36,6 +36,7 @@ function createGame({ multi = 0, hostileAdjacent = false } = {}) {
         },
     };
     return {
+        u: player,
         player,
         map,
         display,

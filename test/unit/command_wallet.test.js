@@ -21,7 +21,6 @@ function makeGame() {
     };
 
     const game = {
-        player,
         u: player,
         map,
         display,

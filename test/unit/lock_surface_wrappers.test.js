@@ -41,7 +41,7 @@ test('doopen_indir returns a command result for closed door attempt', async () =
         objectsAt: () => [],
     };
     const player = { x: 10, y: 10, attributes: [18, 18, 18, 18, 18, 18] };
-    const res = await doopen_indir(player, map, display, { player, map, display }, 1, 0);
+    const res = await doopen_indir(player, map, display, { u: player, map, display }, 1, 0);
     assert.equal(res.moved, false);
     assert.equal(typeof res.tookTime, 'boolean');
     assert.equal(res.tookTime, true);
@@ -51,7 +51,7 @@ test('doopen_indir returns a command result for closed door attempt', async () =
 test('forcelock wrapper exits when no target box is set', async () => {
     const game = {
         xlock: { usedtime: 0, chance: 0, picktyp: 0, magic_key: false, door: null, box: null },
-        player: { weapon: null },
+        u: { weapon: null },
         map: { objectsAt: () => [] },
         display: makeDisplay([]),
     };
@@ -62,7 +62,7 @@ test('forcelock wrapper exits when no target box is set', async () => {
 test('picklock wrapper returns busy/finished state without throwing', async () => {
     const game = {
         xlock: { usedtime: 0, chance: 0, picktyp: 0, magic_key: false, door: null, box: null },
-        player: {},
+        u: {},
         map: { at: () => null, objectsAt: () => [] },
         display: makeDisplay([]),
     };

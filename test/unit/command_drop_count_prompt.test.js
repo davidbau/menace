@@ -34,7 +34,7 @@ function makeGame() {
         },
         clearRow() {},
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    return { u: player, map, display, fov: null, flags: { verbose: false } };
 }
 
 test('drop prompt supports count entry via Ctrl+V digits', async () => {

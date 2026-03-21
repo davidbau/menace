@@ -18,8 +18,7 @@ test('#wizloaddes prompt matches C wording', async () => {
     };
 
     const game = {
-        u: player,
-        player: { dungeonLevel: 1 },
+        u: { dungeonLevel: 1 },
         display,
         changeLevel: async () => {},
     };

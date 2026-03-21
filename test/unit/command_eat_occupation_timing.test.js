@@ -30,7 +30,7 @@ function makeGame({ quan = 1 } = {}) {
     };
 
     return {
-        player,
+        u: player,
         map,
         display,
         fov: null,

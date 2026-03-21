@@ -475,7 +475,7 @@ describe('nhwindow infrastructure (windows.js)', () => {
                 blessed: false, cursed: false, spe: 0 }];
 
             pushInput(' '.charCodeAt(0)); // dismiss inventory
-            await handleInventory(player, display, { player, display, flags: {} });
+            await handleInventory(player, display, { u: player, display, flags: {} });
             assert.equal(rerenderCalled, true, 'rerender must fire after handleInventory');
         });
 

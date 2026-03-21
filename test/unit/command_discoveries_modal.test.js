@@ -51,7 +51,7 @@ function makeGame() {
     const display = makeDisplay();
     return {
         game: {
-            player,
+            u: player,
             map,
             display,
             fov: null,

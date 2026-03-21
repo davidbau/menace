@@ -27,7 +27,7 @@ async function setupTestGame() {
     simulatePostLevelInit(player, map, 1);
 
     return {
-        player,
+        u: player,
         map,
         display: { putstr_message: () => {} }, // mock
         turnCount: 0,

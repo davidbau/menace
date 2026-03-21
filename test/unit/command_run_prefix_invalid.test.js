@@ -20,7 +20,7 @@ function makeGame() {
     };
 
     return {
-        player,
+        u: player,
         map,
         display,
         fov: null,

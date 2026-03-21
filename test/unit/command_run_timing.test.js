@@ -28,7 +28,6 @@ function makeGame() {
     };
 
     const game = {
-        player,
         u: player,
         map,
         display,
@@ -69,7 +68,6 @@ function makeCornerRunGame() {
     };
 
     const game = {
-        player,
         u: player,
         map,
         display,

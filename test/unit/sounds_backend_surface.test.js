@@ -19,8 +19,7 @@ import {
 describe('sounds backend compatibility surface', () => {
   it('dochat aliases dotalk behavior for basic swallowed case', async () => {
     const game = {
-      u: player,
-        player: { uswallow: 1, strangled: 0 },
+      u: { uswallow: 1, strangled: 0 },
       map: {},
       display: { putstr_message: async () => {} },
     };

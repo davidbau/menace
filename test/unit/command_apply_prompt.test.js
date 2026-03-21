@@ -26,7 +26,6 @@ function makeBaseGame() {
     };
 
     const game = {
-        player,
         u: player,
         map,
         display,

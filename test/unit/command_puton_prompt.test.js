@@ -26,7 +26,7 @@ function makeGame() {
             this.topMessage = msg;
         },
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    return { u: player, map, display, fov: null, flags: { verbose: false } };
 }
 
 test('put on reports no available accessories when no rings are available', async () => {

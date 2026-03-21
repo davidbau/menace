@@ -36,7 +36,7 @@ function makeCtx(overrides = {}) {
         fov: null,
         flags: { msg_window: false },
     };
-    return { ctx, cells, loc, player };
+    return { ctx, cells, loc, u: player };
 }
 
 test('warning_of scales from monster level when warning is active', () => {

@@ -20,7 +20,7 @@ function makeGame() {
             this.topMessage = msg;
         },
     };
-    return { player, map, display, fov: null, flags: { verbose: false }, forceFight: true };
+    return { u: player, map, display, fov: null, flags: { verbose: false }, forceFight: true };
 }
 
 test('force-fight into upstairs reports harmless staircase attack', async () => {

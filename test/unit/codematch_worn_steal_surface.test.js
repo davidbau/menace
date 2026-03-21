@@ -64,7 +64,7 @@ test('worn clear_bypasses resets map and inventory bypass bits', () => {
     globalThis.gs = {
         svc: { context: { bypasses: true } },
         map: { objects: [floor], monsters: [] },
-        player: { inventory: [inv] },
+        u: { inventory: [inv] },
     };
     clear_bypasses();
     assert.equal(floor.bypass, 0);

@@ -43,7 +43,7 @@ function makeGame() {
         },
         clearRow() {},
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    return { u: player, map, display, fov: null, flags: { verbose: false } };
 }
 
 test('wield prompt stays open on invalid letters until canceled', async () => {

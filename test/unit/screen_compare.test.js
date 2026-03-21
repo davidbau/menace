@@ -240,7 +240,7 @@ async function setupGame() {
     simulatePostLevelInit(player, map, 1);
     const fov = new FOV();
     fov.compute(map, player.x, player.y);
-    return { player, map, fov, display: { putstr_message: () => {} }, turnCount: 0, seerTurn: 0 };
+    return { u: player, map, fov, display: { putstr_message: () => {} }, turnCount: 0, seerTurn: 0 };
 }
 
 function doTurn(game) {

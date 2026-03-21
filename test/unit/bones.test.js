@@ -55,7 +55,7 @@ async function makeTestGame(depth) {
     player.y = Math.floor((room.ly + room.hy) / 2);
     player.name = 'TestHero';
     player.level = 5;
-    return { player, map, gameOverReason: 'killed' };
+    return { u: player, map, gameOverReason: 'killed' };
 }
 
 // ========================================================================
@@ -132,7 +132,7 @@ describe('canMakeBones', () => {
     it('always returns false on level 1', () => {
         initRng(42);
         const _p = { dungeonLevel: 1 };
-        const game = { u: _p, player: _p };
+        const game = { u: _p };
         assert.equal(canMakeBones(game), false);
     });
 
@@ -140,7 +140,7 @@ describe('canMakeBones', () => {
         initRng(42);
         initLevelGeneration();
         const _p = { dungeonLevel: 5 };
-        const game = { u: _p, player: _p };
+        const game = { u: _p };
         // Just verify it doesn't throw and returns a boolean
         const result = canMakeBones(game);
         assert.equal(typeof result, 'boolean');
@@ -150,7 +150,7 @@ describe('canMakeBones', () => {
         // depth >> 2 = 0, so rn2(1 + 0) = rn2(1) = always 0
         initRng(99);
         const _p = { dungeonLevel: 2 };
-        const game = { u: _p, player: _p };
+        const game = { u: _p };
         assert.equal(canMakeBones(game), true);
     });
 });
@@ -341,8 +341,7 @@ describe('dropUponDeath', () => {
         player.addToInventory(food);
         player.weapon = sword;
 
-        const game = { player,
-        u: player, map };
+        const game = { u: player, map };
         dropUponDeath(game);
 
         assert.equal(player.inventory.length, 0);
@@ -364,8 +363,7 @@ describe('dropUponDeath', () => {
         player.armor = armor;
         player.shield = { name: 'shield' };
 
-        const game = { player,
-        u: player, map };
+        const game = { u: player, map };
         dropUponDeath(game);
 
         assert.equal(player.weapon, null);
@@ -426,8 +424,7 @@ describe('savebones (full pipeline)', () => {
         player.name = 'TestGhost';
         player.level = 3;
 
-        const game = { player,
-        u: player, map, gameOverReason: 'killed' };
+        const game = { u: player, map, gameOverReason: 'killed' };
         savebones(game);
 
         const bonesData = loadBones(2);
