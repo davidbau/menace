@@ -274,6 +274,30 @@ function recordRngComparison(result, actual, expected, context = {}) {
         : null;
     setFirstDivergence(result, 'rng', divergence);
     recordRng(result, cmp.matched, cmp.total, divergence);
+
+    // --dump-rng: print entries around first divergence for debugging
+    if (divergence && process.argv.includes('--dump-rng')) {
+        const idx = divergence.index || 0;
+        const window = 10;
+        console.error(`\n=== RNG dump around divergence (index ${idx}, step ${context.step ?? '?'}) ===`);
+        // Use the raw entries with source info; compareRng exposes indexMaps
+        const jsRaw = Array.isArray(actual) ? actual : [];
+        const cRaw = Array.isArray(expected) ? expected : [];
+        // Build simple comparable lists for display
+        const isComp = (e) => typeof e === 'string' && e[0] !== '^' && e[0] !== '>' && e[0] !== '<' && e[0] !== '~'
+            && !e.startsWith('rnl(') && !e.startsWith('rne(') && !e.startsWith('rnz(') && !e.startsWith('d(');
+        const strip = (e) => { const m = String(e).replace(/^\d+\s+/, '').indexOf(' @ '); return m >= 0 ? String(e).replace(/^\d+\s+/, '').substring(0, m) : String(e).replace(/^\d+\s+/, ''); };
+        const jsFiltered = jsRaw.filter(isComp);
+        const cFiltered = cRaw.filter(isComp);
+        for (let i = Math.max(0, idx - window); i <= idx + window; i++) {
+            const jsE = jsFiltered[i] || '(end)';
+            const cE = cFiltered[i] || '(end)';
+            const match = strip(jsE) === strip(cE) ? '  ' : '>>';
+            const jsStr = String(jsE).replace(/^\d+\s+/, '').substring(0, 70).padEnd(72);
+            const cStr = String(cE).substring(0, 70);
+            console.error(`${match} [${i}] JS: ${jsStr} C: ${cStr}`);
+        }
+    }
 }
 
 function getExpectedScreenLines(stepLike) {
@@ -570,6 +594,26 @@ async function runGameplayResult(session) {
         if (cmp.rng.total > 0) {
             recordRng(result, cmp.rng.matched, cmp.rng.total, cmp.rng.firstDivergence);
             setFirstDivergence(result, 'rng', cmp.rng.firstDivergence);
+            // --dump-rng: show entries around first divergence
+            if (cmp.rng.firstDivergence && (process.argv.includes('--dump-rng') || process.env.DUMP_RNG === '1')) {
+                const idx = cmp.rng.firstDivergence.index || 0;
+                const windowArg = process.argv.find(a => a.startsWith('--dump-rng='));
+                const window = windowArg ? parseInt(windowArg.split('=')[1], 10) : 10;
+                const isComp = (e) => typeof e === 'string' && e[0] !== '^' && e[0] !== '>' && e[0] !== '<' && e[0] !== '~'
+                    && !e.startsWith('rnl(') && !e.startsWith('rne(') && !e.startsWith('rnz(') && !e.startsWith('d(');
+                const strip = (e) => { const s = String(e).replace(/^\d+\s+/, ''); const m = s.indexOf(' @ '); return m >= 0 ? s.substring(0, m) : s; };
+                const jsF = (cmp.rng.allJsRng || []).filter(isComp);
+                const cF = (cmp.rng.allSessionRng || []).filter(isComp);
+                console.error(`\n=== RNG dump around divergence (flat index ${idx}) ===`);
+                for (let i = Math.max(0, idx - window); i <= idx + window; i++) {
+                    const jsE = jsF[i] || '(end)';
+                    const cE = cF[i] || '(end)';
+                    const match = strip(jsE) === strip(cE) ? '  ' : '>>';
+                    const jsStr = String(jsE).replace(/^\d+\s+/, '').substring(0, 68).padEnd(70);
+                    const cStr = String(cE).substring(0, 68);
+                    console.error(`${match} [${i}] JS: ${jsStr} C: ${cStr}`);
+                }
+            }
         }
         if (cmp.screen.total > 0) {
             recordScreens(result, cmp.screen.matched, cmp.screen.total);
@@ -1289,6 +1333,9 @@ export async function runSessionCli() {
             console.log('  --datetime-source=MODE  session|recorded-at-prefer|recorded-at-only');
             console.log('  --golden          Compare against golden branch');
             process.exit(0);
+        } else if (arg.startsWith('--dump-rng')) {
+            // Handled inline by recordRngComparison — just accept flag
+            // Usage: --dump-rng or --dump-rng=WINDOW (default window=10)
         } else if (arg.startsWith('--')) {
             throw new Error(`Unknown argument: ${arg}`);
         } else if (!args.sessionPath) {
