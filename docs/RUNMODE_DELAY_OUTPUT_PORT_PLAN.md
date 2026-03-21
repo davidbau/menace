@@ -248,9 +248,52 @@ That failure showed:
   - `run_command().repeatLoop()`
   - `_gameLoopStep()` travel continuation
 
+### 5. The failed rewrite broke general counted-command ownership, not just travel
+
+Focused survey of the early regression window (`seed031` steps `160..166`) shows
+the bad rewrite was disturbing ordinary counted command flow much earlier than
+the `_` travel seam:
+
+- step `160`: key `"m"` (no timing work)
+- step `161`: key `"."` drains a full monster-turn bundle in both C and JS
+- step `162`: key `"m"` (no timing work)
+- step `163`: key `"."` drains another full monster-turn bundle in both C and JS
+- step `164`: key `"8"` extends a count prefix
+- step `165`: key `"m"` starts another count-prefixed command
+- step `166`: key `"."` is a counted fresh command on both sides
+
+Baseline step `166` JS trace already shows:
+- `^runstep[path=fresh_cmd keyarg=0 cmd=46 cc=0 moves=143 multi=7 run=0 mv=0 ...]`
+
+That means:
+- positive `multi` is not only the `_` travel case
+- ordinary count-prefixed command repetition is already using the same state
+  machinery
+- a rewrite that changes positive-`multi` ownership globally will perturb much
+  earlier repeated-command semantics unless it preserves the counted-command
+  contract exactly
+
+The step-summary pattern from the failed rewrite:
+- step `161`: JS short by `rng -20 / evt -11`
+- step `163`: JS over by `rng +28 / evt +17`
+- step `166`: C pays back with `rng -44 / evt -28`
+
+is classic cross-step redistribution. The rewrite did not merely "fail to fix
+travel later"; it re-attributed whole continuation slices across earlier
+counted-command boundaries.
+
+So the next implementation must treat these as separate-but-related semantics:
+- counted command repetition (`multi > 0`, `context.mv == false`)
+- movement/travel repetition (`multi > 0`, `context.mv == true`)
+
+and prove that both preserve the current early-session behavior before touching
+the later travel seam.
+
 ## Design Goal
 
-Port JS so that positive `multi` repeat travel is owned by the JS equivalent of C's **once-per-player-input** phase, with **one repeat slice per outer re-entry**, not by a `while (multi > 0)` loop inside command execution.
+Port JS so that positive `multi` continuation is owned by the JS equivalent of
+C's **once-per-player-input** phase, with **one repeat slice per outer
+re-entry**, not by a `while (multi > 0)` loop inside command execution.
 
 The purpose is not to "add delay".
 The purpose is to match the exact C slice boundary where `runmode_delay_output()` occurs.
@@ -286,6 +329,12 @@ It should stop owning:
 - `while (multi > 0)` repeat draining
 
 Note: the `while (multi < 0)` loop in `finalizeTimedCommand()` is the same structural mismatch as positive multi. C runs one negative-multi iteration per `moveloop_core()` call. This is lower risk (negative multi is simpler) but should be fixed for correctness if the refactor touches this area.
+
+Important constraint from the failed rewrite:
+- do not change counted-command (`context.mv == false`) ownership and travel
+  (`context.mv == true`) ownership in one undifferentiated move
+- first preserve the early counted-repeat corridor (`seed031` `160..166`)
+- then address the later travel seam (`933/934`)
 
 ### 3. Re-enter the once-per-player-input helper from outer runtime drivers
 
@@ -343,6 +392,12 @@ These ordering and state invariants from C must be carried into the JS rewrite:
    distinction rather than deleting the local move call or treating the local
    call as sufficient.
 
+7. **Preserve counted-command boundaries before touching travel**: baseline
+   `seed031` steps `160..166` show ordinary count-prefixed `"m."` command
+   repetition already exercising `multi > 0` semantics. Any ownership rewrite
+   must hold that corridor stable before it can be trusted on the later travel
+   seam.
+
 ## Non-Goals
 
 This plan does **not** propose:
@@ -383,3 +438,26 @@ Yes. The JS equivalent of C's outer `for(;;)` is `_gameLoopStep()`. The fix shou
 
 **Q4: Additional invariants?**
 See "C Invariants to Preserve" section above. The most critical are: `context.move = 0` on lookaround cancel, `m_everyturn_effect()` ordering, and occupation-before-multi priority.
+
+## Revised Implementation Strategy
+
+Given the failed broad rewrite, the implementation should proceed in two
+explicit stages:
+
+1. **Stage A: counted-command preservation**
+- isolate positive-`multi` continuation for `context.mv == false`
+- verify that the early `seed031` corridor around steps `160..166` remains
+  unchanged
+- do not attempt to solve the travel seam yet
+
+2. **Stage B: travel-specific ownership**
+- once counted-command semantics are proven stable, port the travel
+  continuation (`context.mv == true`) to the once-per-player-input owner
+- remove the split ownership between:
+  - `run_command().repeatLoop()`
+  - `_gameLoopStep()` travel continuation
+- then validate the target seam at `933/934`
+
+This staging is necessary because the failed rewrite proved that "positive
+multi" is not one uniform case in the current JS runtime, even if it is one
+uniform ownership site in C.
