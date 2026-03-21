@@ -85,7 +85,9 @@ describe('pager compatibility surface', () => {
     assert.equal(whatdoes_cond('?'), true);
     assert.equal(whatdoes_cond('h'), true);
     assert.equal(whatdoes_cond('\u0000'), false);
-    assert.equal(look_at_monster({ name: 'newt', data: { mname: 'newt' } }), 'newt');
+    // x_monnam returns 'it' for unspottable monsters (correct C behavior).
+    // The minimal test object has no position/visibility, so canspotmon fails.
+    assert.equal(look_at_monster({ name: 'newt', data: { mname: 'newt' } }), 'it');
     assert.equal(look_at_monster(null), 'monster');
   });
 });

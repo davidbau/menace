@@ -10,7 +10,7 @@ import {
 } from './monsters.js';
 import {
   buzz, ZT_BREATH, ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP,
-  ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID,
+  ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID, flashburn,
 } from './zap.js';
 import { lined_up } from './mthrowu.js';
 import {
@@ -161,7 +161,7 @@ export function cast_wizard_spell(mtmp, dmg, spellid, player, map) {
 }
 
 // cf. mcastu.c:631 — cast_cleric_spell(mtmp, dmg, spellid)
-export function cast_cleric_spell(mtmp, dmg, spellid, player, map) {
+export async function cast_cleric_spell(mtmp, dmg, spellid, player, map) {
   switch (spellid) {
     case CLC_GEYSER:
       // Geyser: d(8, 6) physical damage
@@ -181,8 +181,8 @@ export function cast_cleric_spell(mtmp, dmg, spellid, player, map) {
       // Lightning: d(8, 6) electrical damage
       if (player) {
         const edam = c_d(8, 6);
-        // Would apply electrical damage + blind via flashburn(rnd(100))
-        rnd(100); // blind duration RNG consumed
+        // C ref: mcastu.c cleric lightning — flashburn(rnd(100))
+        await flashburn(rnd(100), true, player);
       }
       break;
     case CLC_INSECTS:
@@ -283,7 +283,7 @@ export async function castmu(mtmp, mattk, vis, thrown, player, map) {
       ? spellnum
       : choose_clerical_spell(spellnum);
     if (spell_would_be_useless(mtmp, aatyp, spell)) return 0;
-    cast_cleric_spell(mtmp, dmg, spell, player, map);
+    await cast_cleric_spell(mtmp, dmg, spell, player, map);
   }
 
   return 1;

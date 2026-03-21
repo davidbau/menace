@@ -1298,7 +1298,7 @@ export async function bhitm(mon, otmp, map, player) {
   if (wake && mon.mhp > 0) {
     if (mon.msleeping) {
         mon.msleeping = 0;
-        mon.sleeping = false;
+        mon.msleeping = 0;
     }
     if (mon.mcanmove === false || mon.mcanmove === 0) { mon.mcanmove = 1; mon.mfrozen = 0; }
   }
@@ -2511,8 +2511,8 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     // C ref: zap.c:2738-2739 — unconditional destroy_item for self-zap
     destroy_item(WAND_CLASS, AD_ELEC, player);
     destroy_item(RING_CLASS, AD_ELEC, player);
-    // C: flashburn(rnd(100), TRUE)
-    rnd(100); // flashburn duration — RNG consumed unconditionally
+    // C ref: zap.c wand of lightning backfire — flashburn(rnd(100), TRUE)
+    await flashburn(rnd(100), true, player);
     break;
   }
   case WAN_FIRE: {

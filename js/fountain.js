@@ -125,7 +125,6 @@ export async function dowaternymph(player, map, display) {
         else
             await You_hear("a seductive voice.");
         mtmp.msleeping = 0;
-        mtmp.sleeping = false;
         const trap = map.trapAt ? map.trapAt(mtmp.mx, mtmp.my) : null;
         if (trap) {
             // mintrap(mtmp) -- trap interaction
@@ -649,8 +648,7 @@ export async function drinksink(player, map, display, fov) {
         if (player.hasProp(FIRE_RES)) {
             await pline("It seems quite tasty.");
         } else {
-            // losehp(rnd(6), "sipping boiling water", KILLED_BY)
-            rnd(6); // RNG consumed for damage
+            await losehp(rnd(6), "sipping boiling water", 0, player, display, _gstate);
         }
         break;
     case 3: {

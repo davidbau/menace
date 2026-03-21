@@ -1104,6 +1104,7 @@ function applyFinalizeContext(ctx = null) {
         boundDiggingIsMazeLevel: (typeof ctx.boundDiggingIsMazeLevel === 'boolean')
             ? ctx.boundDiggingIsMazeLevel
             : undefined,
+        isSpecialLevel: !!ctx.isSpecialLevel,
     };
 }
 
@@ -4966,8 +4967,8 @@ export function sel_set_wall_property(x, y, propKind) {
     if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
     const loc = levelState.map?.locations?.[x]?.[y];
     if (!loc) return;
-    // C ref: sel_set_wall_property() only applies to walls, trees, and iron bars.
-    if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
+    // C ref: sel_set_wall_property() uses IS_STWALL (includes STONE) plus iron bars.
+    if (!(IS_STWALL(loc.typ) || loc.typ === IRONBARS)) return;
     if (propKind === 'nondiggable') {
         setWallInfoBits(loc, W_NONDIGGABLE);
         loc.nondiggable = true; // compatibility mirror
@@ -4992,15 +4993,10 @@ export function set_wallprop_in_selection(selection, propKind) {
     }
 
     if (Array.isArray(selection.coords)) {
+        // selection.area() already converts coordinates to absolute via
+        // _toAbsoluteCoord/getLocationCoord. Do NOT re-convert here.
         for (const c of selection.coords) {
-            let x = c.x;
-            let y = c.y;
-            if (levelState.mapCoordMode) {
-                const abs = toAbsoluteCoords(x, y);
-                x = abs.x;
-                y = abs.y;
-            }
-            sel_set_wall_property(x, y, propKind);
+            sel_set_wall_property(c.x, c.y, propKind);
         }
         return;
     }
@@ -6511,12 +6507,10 @@ async function createScriptMonster(deferred) {
             if (opts.name !== undefined) mtmp.customName = String(opts.name);
             if (opts.female !== undefined) mtmp.female = !!opts.female;
             if (opts.peaceful !== undefined) {
-                mtmp.peaceful = !!opts.peaceful;
                 mtmp.mpeaceful = !!opts.peaceful;
             }
             if (opts.asleep !== undefined) {
-                mtmp.msleeping = !!opts.asleep;
-                mtmp.sleeping = !!opts.asleep;
+                mtmp.msleeping = opts.asleep ? 1 : 0;
             }
             if (opts.waiting !== undefined) {
                 const waiting = !!opts.waiting;
@@ -7047,7 +7041,13 @@ export async function finalize_level() {
     if (levelState.map && !levelState.flags.corrmaze) {
         wallification(levelState.map);
     }
-    captureCheckpoint('after_wallification');
+    // C ref: lspo_finalize_level() emits "after_wallification";
+    // load_special() emits "after_wallification_special".
+    // Distinguish by checking if this is a special level finalization.
+    const wallPhase = levelState.finalizeContext?.isSpecialLevel
+        ? 'after_wallification_special'
+        : 'after_wallification';
+    captureCheckpoint(wallPhase);
 
     // C ref: lspo_finalize_level(NULL) skips flip_level_rnd() on wiz-load
     // second-stage finalize. Other finalize paths still flip normally.
@@ -7219,6 +7219,7 @@ export async function load_special(name) {
             dlevel: where.dlevel,
             specialName: typeof special.name === 'string' ? special.name : name,
             isBranchLevel: false,
+            isSpecialLevel: true,
         }, async () => await special.generator())
     );
     if (!map) return false;

@@ -526,8 +526,8 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const mhp = Number.isFinite(mon?.mhp) ? Math.trunc(mon.mhp) : 0;
         const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
         const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
-        const peaceful = mon?.peaceful ? 1 : 0;
-        const sleeping = mon?.sleeping ? 1 : 0;
+        const peaceful = mon?.mpeaceful ? 1 : 0;
+        const sleeping = mon?.msleeping ? 1 : 0;
         const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
         const canmove = mon?.mcanmove === false ? 0 : 1;
         const trapped = mon?.mtrapped ? 1 : 0;
@@ -1787,6 +1787,7 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
             dunlevs: dunlevs_in_dungeon(actualDnum),
             specialName,
             isBranchLevel: isBranchLevel(actualDnum, actualDlevel),
+            isSpecialLevel: true,
         }, async () => {
             // C ref: nhlua.c load_lua()/nhl_init() for every special-level load.
             // Each load initializes a fresh Lua state and executes nhlib.lua,
@@ -3931,11 +3932,9 @@ function fill_zoo_room(map, sroom, depth) {
             else if (type === ANTHOLE) monType = antholemon(depth);
             else monType = null; // ZOO: random
 
-            // C: MM_ASLEEP | MM_NOGRP — keep both fields in sync until legacy
-            // `sleeping` alias is fully removed.
+            // C: MM_ASLEEP | MM_NOGRP
             const mon = makemon(monType, sx, sy, MM_NOGRP, depth, map);
             if (mon) {
-                mon.sleeping = true;
                 mon.msleeping = 1;
                 if (type === COURT && mon.mpeaceful) {
                     mon.mpeaceful = false;
@@ -5052,6 +5051,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                     dunlevs: dunlevs_in_dungeon(useDnum),
                     specialName,
                     isBranchLevel: isBranchLevel(useDnum, useDlevel),
+                    isSpecialLevel: true,
                 }, async () => {
                     // C ref: nhlua.c load_lua()/nhl_init() for load_special():
                     // each special-level generation loads nhlib.lua and consumes

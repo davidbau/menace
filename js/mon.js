@@ -3,19 +3,18 @@
 // restrap/hider premove, mm_aggression, zombie_maker
 //
 // INCOMPLETE / MISSING vs C mon.c:
-// - No xkilled/monkilled/mondied (monster death processing)
-// - No grow_up/mon_adjust_speed
-// - No mpickstuff/mpickgold (full item pickup logic — stub in monmove.js)
-// - No minliquid (monsters falling in pools/lava)
-// - mfndpos: no ALLOW_DIG for tunneling monsters with picks
-// - mfndpos: ALLOW_SANCT flag set but in_your_sanctuary gate not checked
+// - grow_up/mon_adjust_speed: grow_up in makemon.js, mon_adjust_speed partial
+// - minliquid: monsters falling in pools/lava — partial implementation
 // - mfndpos: no poison gas region avoidance (NhRegion not ported)
 // - mfndpos: no worm segment crossing (long worm not ported)
-// - mon_allowflags: ALLOW_DIG not set (needs monster wielded pick tracking)
 // - mon_allowflags: Conflict ALLOW_U not implemented
-// - mon_allowflags: is_vampshifter NOGARLIC not ported
-// - passivemm: only AD_ACID/AD_ENCH/generic modeled; many passive types missing
 // - handleHiderPremove: no mimic furniture/object appearance selection
+//
+// IMPLEMENTED (formerly missing):
+// - xkilled/monkilled/mondied: full death chain implemented
+// - mfndpos: ALLOW_DIG for tunneling monsters — in mon_allowflags
+// - mon_allowflags: ALLOW_DIG, NOGARLIC for vampshifter — implemented
+// - passivemm: AD_ACID, AD_ENCH, AD_PLYS, AD_COLD, AD_STUN, AD_FIRE, AD_ELEC
 
 import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, IS_TREE, ACCESSIBLE,
          POOL, ROOM, WATER, LAVAWALL, IRONBARS,
@@ -247,7 +246,7 @@ export function onscary(map, x, y, mon = null) {
                 // C ref: monmove.c:299-302 — Elbereth exclusions
                 if (mon) {
                     if (mon.isshk || mon.isgd || !mon.mcansee
-                        || mon.mpeaceful || mon.peaceful
+                        || mon.mpeaceful
                         || (mon.data || mon.type || {}).mndx === PM_MINOTAUR)
                         return false;
                 }
@@ -389,7 +388,7 @@ function mm_2way_aggression(magr, mdef, map) {
 }
 
 function mm_aggression(magr, mdef, map) {
-    if (magr?.tame && mdef?.tame) return { allowM: false, allowTM: false };
+    if (magr?.mtame && mdef?.mtame) return { allowM: false, allowTM: false };
     const attackerIdx = magr?.mndx;
     const defenderIdx = mdef?.mndx;
     const isPurpleWorm = attackerIdx === PM_PURPLE_WORM || attackerIdx === PM_BABY_PURPLE_WORM;
@@ -494,7 +493,7 @@ export function mfndpos(mon, map, player, flag) {
     const nodiag = (mon.mndx === PM_GRID_BUG);
 
     // C ref: mon.c:2142-2145 — confused: grant all, remove notonl
-    if (mon.confused) {
+    if (mon.mconf) {
         flag |= ALLOW_ALL;
         flag &= ~NOTONL;
     }
@@ -687,7 +686,7 @@ export function mfndpos(mon, map, player, flag) {
                     const mmAllowTM = !!(flag & ALLOW_TM) || aggr.allowTM;
                     if (mmAllowM) {
                         posInfo |= ALLOW_M;
-                        if (monAtPos.tame) {
+                        if (monAtPos.mtame) {
                             if (!mmAllowTM) continue;
                             posInfo |= ALLOW_TM;
                         }
@@ -837,7 +836,7 @@ export function handleHiderPremove(mon, map, player, fov) {
 
     if (!blocked) {
         if (ptr.mlet === S_MIMIC) {
-            if (!(mon.sleeping || (mon.mfrozen > 0))) {
+            if (!(mon.msleeping || (mon.mfrozen > 0))) {
                 mon.m_ap_type = mon.m_ap_type || M_AP_OBJECT;
                 return true;
             }
@@ -1119,7 +1118,7 @@ export async function xkilled(mon, xkill_flags, map, player) {
             // You("murderer!"); // cosmetic
         }
         // Peaceful/tame luck penalty — rn2(2) is RNG-consuming
-        if ((mon.peaceful && !rn2(2)) || mon.mtame)
+        if ((mon.mpeaceful && !rn2(2)) || mon.mtame)
             change_luck(-1, player);
         // Unicorn guilt — same alignment
         if (is_unicorn(mdat) && sgn(player.alignment ?? 0) === sgn(mdat.maligntyp || 0)) {
@@ -1393,7 +1392,6 @@ export function wake_msg(mon, via_attack) {
 // C ref: mon.c wakeup() — wake monster, possibly anger
 export function wakeup(mon, via_attack, map, player) {
     mon.msleeping = 0;
-    mon.sleeping = false;
     // Reveal hidden mimic
     if (mon.m_ap_type && mon.m_ap_type !== M_AP_MONSTER) {
         seemimic(mon, map);
@@ -1418,7 +1416,6 @@ export function wake_nearto_core(x, y, distance, petcall, map) {
         if (distance === 0 || dist2(mon.mx, mon.my, x, y) < distance) {
             // C ref: mon.c:4378-4381
             mon.msleeping = 0;
-            mon.sleeping = false;
             const mdat = mon.data || mon.type || {};
             if (!((mdat.geno || 0) & G_UNIQ)) {
                 mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_WAITMASK;
@@ -1451,7 +1448,7 @@ export function setmangry(mon, via_attack, map, player) {
     // C ref: mon.c:4261-4279 — Elbereth hypocrisy (MUST come before mpeaceful check)
     if (via_attack && map && player
         && sengr_at(map, "Elbereth", player.x, player.y, true)
-        && (onscary(map, player.x, player.y, mon) || mon.peaceful)) {
+        && (onscary(map, player.x, player.y, mon) || mon.mpeaceful)) {
         // C: You_feel("like a hypocrite.");
         const record = player.alignmentRecord ?? 0;
         adjalign(player, (record > 5) ? -5 : -rnd(5));
@@ -1462,9 +1459,9 @@ export function setmangry(mon, via_attack, map, player) {
     // C ref: mon.c:4282 — clear wait strategy
     mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_WAITMASK;
 
-    if (!mon.peaceful) return;
-    if (mon.tame) return;
-    mon.peaceful = false;
+    if (!mon.mpeaceful) return;
+    if (mon.mtame) return;
+    mon.mpeaceful = false;
     // C ref: mon.c:4291-4297 — alignment penalty
     if (mon.ispriest) {
         if (player && p_coaligned(mon, player))
@@ -1687,7 +1684,7 @@ export function meatbox(mon, otmp, map) {
 // Missing: poly/grow/stone/mimic/pyrolisk (unported subsystems).
 export function m_consume_obj(mon, otmp, map) {
     if (!mon || !otmp) return;
-    const ispet = !!mon.tame;
+    const ispet = !!mon.mtame;
 
     // Non-pet: heal up to object weight in HP
     if (!ispet && (mon.mhp || 0) < (mon.mhpmax || 0)) {
@@ -1714,7 +1711,7 @@ export function m_consume_obj(mon, otmp, map) {
 // Returns: 0 = nothing, 1 = ate something, 2 = died
 export function meatmetal(mon, map) {
     if (!mon || !map) return 0;
-    if (mon.tame) return 0;
+    if (mon.mtame) return 0;
 
     const objects = map.objectsAt ? map.objectsAt(mon.mx, mon.my) : [];
     for (const otmp of [...objects]) {
@@ -1735,7 +1732,7 @@ export function meatmetal(mon, map) {
         // Rust monster vs erodeproof: spit it out
         if (mon.mndx === PM_RUST_MONSTER && otmp.oerodeproof) {
             otmp.oerodeproof = false;
-            mon.stunned = true;
+            mon.mstun = true;
             return 0; // didn't actually eat it
         }
 
@@ -1758,7 +1755,7 @@ export function meatmetal(mon, map) {
 // Returns: 0 = nothing, 1 = ate/engulfed, 2 = died
 export function meatobj(mon, map) {
     if (!mon || !map) return 0;
-    if (mon.tame) return 0;
+    if (mon.mtame) return 0;
 
     const objects = map.objectsAt ? map.objectsAt(mon.mx, mon.my) : [];
     let count = 0, ecount = 0;
@@ -1805,7 +1802,7 @@ export function meatobj(mon, map) {
 // Returns: 0 = nothing, 1 = ate, 2 = died
 export function meatcorpse(mon, map) {
     if (!mon || !map) return 0;
-    if (mon.tame) return 0;
+    if (mon.mtame) return 0;
 
     const objects = map.objectsAt ? map.objectsAt(mon.mx, mon.my) : [];
     for (const otmp of [...objects]) {
@@ -2085,7 +2082,7 @@ export function mon_givit(mon, ptr) {
             mon.perminvis = true;
             mon.minvis = true;
         }
-        mon.stunned = true;
+        mon.mstun = true;
         return;
     }
 
@@ -2187,8 +2184,8 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 `pos=(${oldx},${oldy})`,
                 `mv=${mon.movement + NORMAL_SPEED}->${mon.movement}`,
                 `flee=${mon.mflee ? 1 : 0}`,
-                `peace=${mon.peaceful ? 1 : 0}`,
-                `conf=${mon.confused ? 1 : 0}`);
+                `peace=${mon.mpeaceful ? 1 : 0}`,
+                `conf=${mon.mconf ? 1 : 0}`);
             // C ref: mon.c:1250-1251 — minliquid() before gear/hider logic.
             if (await minliquid(mon, map, player)) continue;
             // C ref: mon.c:1254-1267 — monster may spend turn equipping gear (I_SPECIAL check)
@@ -2228,7 +2225,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                     : couldsee(map, player, mon.mx, mon.my);
                 const couldSeeOld = fov?.canSee ? fov.canSee(oldx, oldy)
                     : couldsee(map, player, oldx, oldy);
-                if ((player?.hallucinating || (!mon.peaceful && !noAttacks))
+                if ((player?.hallucinating || (!mon.mpeaceful && !noAttacks))
                     && newDist <= threatRangeSq
                     && (!alreadySawMon || !couldSeeOld || oldDist > threatRangeSq)
                     && canSpotMonsterForMap(mon, map, player, fov)
@@ -2796,7 +2793,7 @@ export function monnear(mon, x, y) {
 // C ref: monst.h helpless(mon) — sleeping or unable to move.
 export function helpless(mon) {
     if (!mon) return true;
-    if (mon.msleeping || mon.sleeping) return true;
+    if (mon.msleeping) return true;
     if (mon.mcanmove === false || mon.mcanmove === 0) return true;
     if (Number(mon.mfrozen || 0) > 0) return true;
     return false;

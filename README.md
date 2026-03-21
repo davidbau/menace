@@ -11,9 +11,9 @@ of early 2026, the DevTeam still hasn't shipped it. This port puts
 the unreleased version in your browser.
 
 The version of the game you find here is a complete reimplementation
-written entirely by AI coding agents. <a href="https://github.com/davidbau/menace/tree/main/js" target="_blank"><span data-stat="js_lines_display">202,000+</span> lines of JavaScript</a>,
-<span data-stat="js_modules">145</span> modules mirroring the C source structure, <a href="https://github.com/davidbau/menace/blob/main/js/rng.js" target="_blank">bit-identical PRNG</a>,
-<a href="https://mazesofmenace.net/oracle/" target="_blank"><span data-stat="session_count">398</span> golden C-comparison test sessions</a>. <a href="https://github.com/davidbau/menace/commits/main/" target="_blank"><span data-stat="commit_count">5,100+</span> commits</a>.
+written entirely by AI coding agents. <a href="https://github.com/davidbau/menace/tree/main/js" target="_blank"><span data-stat="js_lines_display">210,000+</span> lines of JavaScript</a>,
+<span data-stat="js_modules">148</span> modules mirroring the C source structure, <a href="https://github.com/davidbau/menace/blob/main/js/rng.js" target="_blank">bit-identical PRNG</a>,
+<a href="https://mazesofmenace.net/oracle/" target="_blank"><span data-stat="session_count">506</span> golden C-comparison test sessions</a>. <a href="https://github.com/davidbau/menace/commits/main/" target="_blank"><span data-stat="commit_count">5,600+</span> commits</a>.
 
 Open the page, pick a role, descend.
 

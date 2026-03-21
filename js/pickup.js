@@ -46,6 +46,7 @@ import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE,
 import { Is_box, Has_contents, Is_mbag, thesimpleoname, otense, Doname2,
          cxname_singular } from './objnam.js';
 import { which_armor, extract_from_minvent } from './worn.js';
+import { count_unpaid } from './invent.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
 import { obfree, costly_spot, dopay, addtobill } from './shk.js';
@@ -1079,16 +1080,7 @@ function collect_obj_classes(objs, filter) {
     return { classes: [...ilets], itemcount };
 }
 
-// cf. pickup.c:1168 — count_unpaid(list)
-function count_unpaid(list) {
-    if (!list) return 0;
-    const items = Array.isArray(list) ? list : [];
-    let count = 0;
-    for (const obj of items) {
-        if (obj.unpaid) count++;
-    }
-    return count;
-}
+// count_unpaid imported from invent.js (was local non-recursive copy)
 
 // cf. pickup.c count_buc — count objects by BUC status
 function count_buc(list) {

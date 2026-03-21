@@ -31,7 +31,7 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
          ACH_NOVL, ACH_SOKO, ACH_BGRM, ACH_RNK1, ACH_RNK2, ACH_RNK3, ACH_RNK4,
          ACH_RNK5, ACH_RNK6, ACH_RNK7, ACH_RNK8, ACH_TUNE, N_ACH } from './const.js';
 import { mons, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC, PM_LONG_WORM, PM_HIGH_CLERIC, G_UNIQ, M2_PNAME, NUMMONS, G_GENOD, G_EXTINCT, G_GONE } from './monsters.js';
-import { x_monnam } from './mondata.js';
+import { x_monnam } from './do_name.js';
 import { find_mac } from './worn.js';
 import { pline, getGameLog } from './pline.js';
 import { showPager } from './pager.js';

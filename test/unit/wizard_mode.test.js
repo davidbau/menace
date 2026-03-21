@@ -55,6 +55,10 @@ describe('wizard mode init and commands', () => {
         const game = await createHeadlessGame(5, 11, { wizard: true });
 
         for (let depth = 2; depth <= 5; depth++) {
+            // Dismiss any pending --More-- from previous command's message
+            if (game.display?.toplin === 1) {
+                game.input.pushInput(' '.charCodeAt(0));
+            }
             queueLine(game.input, String(depth));
             const result = await game.executeCommand(22); // Ctrl+V
             assert.equal(result.tookTime, false);

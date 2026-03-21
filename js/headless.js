@@ -616,6 +616,7 @@ export class HeadlessDisplay {
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
+        this.toplin = 0; // C ref: 0=EMPTY, 1=NEED_MORE, 2=NON_EMPTY
         this.messageConcatFit = false; // true when toplin==2 (concat-fit, no --More-- needed)
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
@@ -928,6 +929,7 @@ export class HeadlessDisplay {
                 this._topMessageEncumbrance = _msgPlayer?.encumbrance ?? null;
             }
             this.messageNeedsMore = true;
+            this.toplin = 1; // C ref: update_topl sets toplin = TOPLINE_NEED_MORE
             // C ref: topl_puts() sets toplin=1 for a fresh single message.
             // renderAndAutosave uses this to know --More-- must be rendered.
             this.messageConcatFit = false;

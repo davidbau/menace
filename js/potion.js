@@ -41,7 +41,7 @@ import { discoverObject, isObjectNameKnown, objdescr_is } from './o_init.js';
 import { trycall } from './do.js';
 import { heal_legs } from './do.js';
 import { monster_detect, object_detect } from './detect.js';
-import { spoteffects, losehp, Maybe_Half_Phys } from './hack.js';
+import { spoteffects, losehp, Maybe_Half_Phys, nomul } from './hack.js';
 import { stairway_at } from './stairs.js';
 import { has_ceiling, ceiling } from './dungeon.js';
 import { hard_helmet } from './do_wear.js';
@@ -1112,8 +1112,9 @@ export async function peffect_booze(player, otmp, display) {
     await newuhs(player, false);
     await exercise(player, A_WIS, false);
     if (otmp.cursed) {
-        // C: multi = -rnd(15) — pass out
-        rnd(15); // RNG consumed for pass-out duration
+        // C ref: potion.c peffect_booze() — cursed booze makes player pass out
+        nomul(-rnd(15), gstateGame);
+        if (gstateGame) gstateGame.multi_reason = 'unconscious from rotten booze';
     }
 }
 

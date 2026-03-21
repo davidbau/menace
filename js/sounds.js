@@ -149,7 +149,7 @@ export async function morgue_mon_sound(mtmp, hallu, game) {
 // cf. sounds.c:114 — zoo_mon_sound(mtmp): zoo ambient sound
 export async function zoo_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.data || mtmp.type;
-    if ((mtmp.sleeping || is_animal(ptr))
+    if ((mtmp.msleeping || is_animal(ptr))
         && mon_in_room(mtmp, ZOO, (game.lev || game.map))) {
         const zoo_msg = [
             'a sound reminiscent of an elephant stepping on a peanut.',
@@ -168,7 +168,7 @@ export async function zoo_mon_sound(mtmp, hallu, game) {
 // Full implementation requires inhistemple, temple_occupied, EPRI which
 // are not yet ported. We consume RNG to match C, then emit a generic message.
 export async function temple_priest_sound(mtmp, hallu, game) {
-    if (mtmp.ispriest && !mtmp.sleeping) {
+    if (mtmp.ispriest && !mtmp.msleeping) {
         // Simplified check: priest must be in a TEMPLE room
         if (!mon_in_room(mtmp, TEMPLE, (game.lev || game.map))) return false;
 
@@ -332,7 +332,7 @@ export async function dosounds(game) {
             if (mtmp.dead) continue;
             if (is_mercenary(mtmp.data || mtmp.type)
                 && mon_in_room(mtmp, BARRACKS, map)
-                && (mtmp.sleeping || ++count > 5)) {
+                && (mtmp.msleeping || ++count > 5)) {
                 await game.display.putstr_message(`You hear ${barracks_msg[rn2(3) + hallu]}`);
                 return;
             }
@@ -448,7 +448,7 @@ export function growl_sound(mtmp) {
 
 // cf. sounds.c:401 — growl(mtmp): seriously abused pet growls at hero
 export async function growl(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed || mtmp.stunned)
+    if ((mtmp.msleeping || mtmp.paralyzed || mtmp.mstun)
         || (mtmp.data || mtmp.type).msound === MS_SILENT)
         return;
 
@@ -473,7 +473,7 @@ export async function growl(mtmp, game) {
 
 // cf. sounds.c:426 — yelp(mtmp): mistreated pet yelps
 export async function yelp(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
+    if ((mtmp.msleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
         return;
 
     let verb = null;
@@ -516,7 +516,7 @@ export async function yelp(mtmp, game) {
 
 // cf. sounds.c:478 — whimper(mtmp): distressed pet whimpers
 export async function whimper(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
+    if ((mtmp.msleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
         return;
 
     let verb = null;
@@ -550,7 +550,7 @@ export async function whimper(mtmp, game) {
 
 // cf. sounds.c:518 — beg(mtmp): hungry pet begs for food
 export async function beg(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed)
+    if ((mtmp.msleeping || mtmp.paralyzed)
         || !(carnivorous(mtmp.data || mtmp.type) || herbivorous(mtmp.data || mtmp.type)))
         return;
 
@@ -756,7 +756,7 @@ export async function domonnoise(mtmp, game) {
                         ? 'I beg you, help me satisfy this growing craving!'
                         : 'I find myself growing a little weary.';
             }
-        } else if (mtmp.peaceful) {
+        } else if (mtmp.mpeaceful) {
             verbl_msg = 'I only drink... potions.';
         } else {
             // Hostile vampire — consumes rn2(2)
@@ -787,9 +787,9 @@ export async function domonnoise(mtmp, game) {
     case MS_BARK:
         if (game.flags?.moonphase === 2 && night()) {
             pline_msg = 'howls.';
-        } else if (mtmp.peaceful) {
+        } else if (mtmp.mpeaceful) {
             if (isTame
-                && (mtmp.confused || mtmp.mflee || mtmp.trapped
+                && (mtmp.mconf || mtmp.mflee || mtmp.trapped
                     || (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
                     || tameLevel < 5))
                 pline_msg = 'whines.';
@@ -807,7 +807,7 @@ export async function domonnoise(mtmp, game) {
 
     case MS_MEW:
         if (isTame) {
-            if (mtmp.confused || mtmp.mflee || mtmp.trapped
+            if (mtmp.mconf || mtmp.mflee || mtmp.trapped
                 || tameLevel < 5)
                 pline_msg = 'yowls.';
             else if (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
@@ -821,11 +821,11 @@ export async function domonnoise(mtmp, game) {
         }
         // FALLTHRU
     case MS_GROWL: // eslint-disable-line no-fallthrough
-        pline_msg = mtmp.peaceful ? 'snarls.' : 'growls!';
+        pline_msg = mtmp.mpeaceful ? 'snarls.' : 'growls!';
         break;
 
     case MS_ROAR:
-        pline_msg = mtmp.peaceful ? 'snarls.' : 'roars!';
+        pline_msg = mtmp.mpeaceful ? 'snarls.' : 'roars!';
         break;
 
     case MS_SQEEK:
@@ -833,21 +833,21 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_SQAWK:
-        if (ptr === mons[PM_RAVEN] && !mtmp.peaceful)
+        if (ptr === mons[PM_RAVEN] && !mtmp.mpeaceful)
             verbl_msg = 'Nevermore!';
         else
             pline_msg = 'squawks.';
         break;
 
     case MS_HISS:
-        if (!mtmp.peaceful)
+        if (!mtmp.mpeaceful)
             pline_msg = 'hisses!';
         else
             return 0; // no sound
         break;
 
     case MS_BUZZ:
-        pline_msg = mtmp.peaceful ? 'drones.' : 'buzzes angrily.';
+        pline_msg = mtmp.mpeaceful ? 'drones.' : 'buzzes angrily.';
         break;
 
     case MS_GRUNT:
@@ -928,7 +928,7 @@ export async function domonnoise(mtmp, game) {
     case MS_DJINNI:
         if (isTame)
             verbl_msg = "Sorry, I'm all out of wishes.";
-        else if (mtmp.peaceful) {
+        else if (mtmp.mpeaceful) {
             if (ptr === mons[PM_WATER_DEMON])
                 pline_msg = 'gurgles.';
             else
@@ -942,7 +942,7 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_BOAST:
-        if (!mtmp.peaceful) {
+        if (!mtmp.mpeaceful) {
             switch (rn2(4)) {
             case 0:
                 await game.display.putstr_message(
@@ -961,7 +961,7 @@ export async function domonnoise(mtmp, game) {
         }
         // FALLTHRU to MS_HUMANOID
     case MS_HUMANOID: // eslint-disable-line no-fallthrough
-        if (!mtmp.peaceful) {
+        if (!mtmp.mpeaceful) {
             pline_msg = 'threatens you.';
             break;
         }
@@ -970,7 +970,7 @@ export async function domonnoise(mtmp, game) {
             pline_msg = 'wants nothing to do with you.';
         else if (mtmp.hp < Math.floor((mtmp.hpmax || 1) / 4))
             pline_msg = 'moans.';
-        else if (mtmp.confused || mtmp.stunned)
+        else if (mtmp.mconf || mtmp.mstun)
             verbl_msg = !rn2(3) ? 'Huh?' : rn2(2) ? 'What?' : 'Eh?';
         else if (mtmp.blinded)
             verbl_msg = "I can't see!";
@@ -1043,7 +1043,7 @@ export async function domonnoise(mtmp, game) {
         break;
     }
     case MS_ARREST:
-        if (mtmp.peaceful) {
+        if (mtmp.mpeaceful) {
             const title = game.flags?.female ? "Ma'am" : 'Sir';
             await game.display.putstr_message(`"Just the facts, ${title}."`);
         } else {
@@ -1057,14 +1057,14 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_BRIBE:
-        if (mtmp.peaceful && !isTame) {
+        if (mtmp.mpeaceful && !isTame) {
             // C: demon_talk(mtmp) — not ported
             await game.display.putstr_message(`${x_monnam(mtmp)} makes a deal.`);
             break;
         }
         // FALLTHRU
     case MS_CUSS: // eslint-disable-line no-fallthrough
-        if (!mtmp.peaceful) {
+        if (!mtmp.mpeaceful) {
             // C: cuss(mtmp) — not ported
             await game.display.putstr_message(`${x_monnam(mtmp)} curses at you!`);
         } else {
@@ -1096,7 +1096,7 @@ export async function domonnoise(mtmp, game) {
             "The food's not fit for Orcs!",
             "My feet hurt, I've been on them all day!",
         ];
-        verbl_msg = mtmp.peaceful ? soldier_pax[rn2(3)]
+        verbl_msg = mtmp.mpeaceful ? soldier_pax[rn2(3)]
             : soldier_foe[rn2(3)];
         break;
     }

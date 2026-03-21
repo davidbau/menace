@@ -82,7 +82,7 @@ import { flooreffects } from './do.js';
 import { hurtle } from './dothrow.js';
 import { thitmonst, hero_breaks, breaks, breaktest } from './dothrow.js';
 import { scatter } from './explode.js';
-import { sobj_at, delobj } from './invent.js';
+import { sobj_at, delobj, currency } from './invent.js';
 import { snuff_candle } from './apply.js';
 import { bhit } from './zap.js';
 import { dealloc_obj, obj_extract_self, mkgold, mksobj_at, rnd_treefruit_at } from './mkobj.js';
@@ -218,10 +218,7 @@ async function singular(obj, fn, ...args) {
     return result;
 }
 
-// currency — "zorkmid" or "zorkmids"
-function currency(amount) {
-    return amount === 1 ? "zorkmid" : "zorkmids";
-}
+// currency imported from invent.js
 
 // mhis imported from mondata.js
 
@@ -663,7 +660,6 @@ export async function ghitm(mtmp, gold, player, map) {
         const value = (gold.quan || 1) * (objectData[gold.otyp] ? objectData[gold.otyp].oc_cost || 1 : 1);
 
         mtmp.msleeping = 0;
-        mtmp.sleeping = false;
         finish_meating(mtmp);
         if (!mtmp.isgd && !rn2(4))
             setmangry(mtmp, true, map, player);

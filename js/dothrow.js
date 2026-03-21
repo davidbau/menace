@@ -48,7 +48,8 @@ import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
        } from './objects.js';
 import { compactInvletPromptChars, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
 import { doname, next_ident, xname, is_crackable, weight } from './mkobj.js';
-import { x_monnam, is_unicorn, nohands, notake, breathless, haseyes } from './mondata.js';
+import { is_unicorn, nohands, notake, breathless, haseyes } from './mondata.js';
+import { x_monnam } from './do_name.js';
 import { obj_resists } from './objdata.js';
 import { uwepgone, uswapwepgone, uqwepgone, handleSwapWeapon, setuqwep } from './wield.js';
 import { placeFloorObject, delobj } from './invent.js';

@@ -19,7 +19,7 @@ import { movemon, settrack, mon_regen } from './monmove.js';
 import { savebones } from './bones.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
-import { nh_timeout, do_storms } from './timeout.js';
+import { nh_timeout, do_storms, fall_asleep } from './timeout.js';
 import { pline, Norep } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, makemon_appear, withMakemonPlayerOverrideAsync } from './makemon.js';
 import { M2_WERE, PM_WIZARD, mons, NUMMONS, G_NOCORPSE } from './monsters.js';
@@ -53,9 +53,9 @@ import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
-import { nhgetch, nhgetch_display_raw, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
+import { nhgetch, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
-         setCmdqRepeatRecordMode, more } from './input.js';
+         setCmdqRepeatRecordMode, more, hasActiveMoreBoundary } from './input.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
 import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
@@ -671,18 +671,34 @@ export async function run_command(game, ch, opts = {}) {
         || (chCode === 48 && game.countAccum != null);
     const _isExtCmdPrefix = (chCode === '#'.charCodeAt(0));
     const _suppressFreshRunstep = _isCountDigit || _isExtCmdPrefix;
+    // C ref: tty_clearmsg() — clear topline at start of command processing.
+    // toplin == 1 (NEED_MORE): fire more() so player reads the message first.
+    // toplin == 2 (NON_EMPTY): just clear (already acknowledged by keypress).
+    // toplin == 0 (EMPTY): nothing to do.
     if (!_isCountDigit && game.display && game.display.topMessage) {
-        // C ref: save topMessage length before clearing — needed by the extended
-        // command handler to detect if a new message would have overflowed the
-        // concat check (triggering --More-- in C's tty).
+        if (game.display.toplin === 1 && game.display._nhgetch) {
+            // Message not yet acknowledged — fire more() before clearing.
+            // This handles Phase B messages that arrive after the previous
+            // command and before nhgetch transitions toplin 1→2.
+            game.display.renderMoreMarker?.();
+            await more(game.display, {
+                site: 'run_command.tty_clearmsg',
+                clearAfter: true,
+                readKey: game.display._nhgetch,
+                refreshStatus: false,
+            });
+        }
         if (_isExtCmdPrefix) {
             game._extcmdPrecedingMsgLen = (game.display.topMessage || '').length;
         } else {
             game._extcmdPrecedingMsgLen = 0;
         }
-        game.display.clearRow(0);
-        game.display.topMessage = null;
+        if (game.display.topMessage) {
+            game.display.clearRow(0);
+            game.display.topMessage = null;
+        }
         game.display.messageNeedsMore = false;
+        game.display.toplin = 0;
     } else if (_isExtCmdPrefix) {
         game._extcmdPrecedingMsgLen = 0;
     }
@@ -834,12 +850,17 @@ async function repeatLoop(game, {
     }
 }
 
+// Current JS positive-multi movement/travel slice.
+// Stage B2a extracts this intact from repeatLoop() so later work can move its
+// owner without simultaneously changing the slice internals.
 async function runMovementRepeatSlice(game, {
     coreOpts,
     bumpHeroSeqN,
 }) {
     const ctx = game.context || {};
     emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
+    // C ref: allmain.c:527-530 — movement/travel multi repeat.
+    // lookaround() can abort running by clearing multi.
     const _p = game.u || game.player;
     const _map = game.map;
     const _fov = FOV;
@@ -849,6 +870,9 @@ async function runMovementRepeatSlice(game, {
         ctx.move = 0;
         return false;
     }
+    // C ref: hack.c domove() can call end_running() internally
+    // (e.g. when findtravelpath exhausts the path), which clears
+    // ctx.run. Save run mode before domove to detect travel-end.
     const savedRun = ctx.run;
     if (game.multi < COLNO && !--game.multi) {
         end_running(true, game);
@@ -859,6 +883,8 @@ async function runMovementRepeatSlice(game, {
     const moveResult = await domove([0, 0], _p, _map, _display, game);
     game.advanceRunTurn = null;
     if (!moveResult || !moveResult.tookTime) {
+        // C ref: allmain.c moveloop — when travel ends via path exhaustion,
+        // run one more monster turn before exiting.
         if (savedRun === 8) {
             await advanceTimedTurn(game, coreOpts);
         }
@@ -949,13 +975,11 @@ async function promptStep(game, chCode, {
     };
 }
 
-// C ref: allmain.c moveloop_core() lines 296-545 (monster turn) + 547-588 (pre-input).
-// Extracted from finalizeTimedCommand for Gate 1 of the game loop reorder.
-// This is the unit of work that C runs once per moveloop_core iteration when
-// context.move is true: monster movement, turn-end processing, and pre-input
-// vision/display sync.
-async function advanceTimedTurn(game, coreOpts) {
-    await moveloop_core(game, coreOpts);
+// Current JS structural split for the C moveloop frame:
+// - moveloop_core() performs monster-time / turn-end work
+// - this helper performs the pre-input sync currently bundled after it
+// Stage B will refine ownership further; this extraction is behavior-preserving.
+async function syncTimedTurnPreInputState(game) {
     const player = game.u || game.player;
     find_ac(player);
     const ctx = game.context || {};
@@ -978,6 +1002,14 @@ async function advanceTimedTurn(game, coreOpts) {
         }
     }
     await display_sync();
+}
+
+// C ref: allmain.c moveloop_core() lines 296-545 (monster turn) + 547-588 (pre-input).
+// Current JS Gate-1 unit: run the timed-turn core, then the pre-input sync
+// that JS still keeps outside moveloop_core().
+async function advanceTimedTurn(game, coreOpts) {
+    await moveloop_core(game, coreOpts);
+    await syncTimedTurnPreInputState(game);
 }
 
 // C ref: allmain.c moveloop_core() `gm.multi < 0` branch.
@@ -1199,8 +1231,7 @@ async function overexert_hp(game) {
     } else {
         await pline('You pass out from exertion!');
         await exercise(player, A_CON, false);
-        // fall_asleep(-10, false) — sleep timeout not fully ported
-        // TODO: wire fall_asleep when available
+        fall_asleep(-10, false);
     }
 }
 
@@ -1524,7 +1555,7 @@ export class NetHackGame {
         this.gameOverReason = '';
         this.turnCount = 0;
         this._currentTurn = 0; // C ref: timeout.c timer reference turn
-        this.moves = 1; // C ref: svm.moves starts at 1
+        this.moves = 0; // C ref: svm.moves starts at 0; set to 1 in u_init_role()
         this._inMklev = false; // C ref: gi.in_mklev
         this._levelDepth = 1; // depth being generated (C: implicit from mklev args)
         this._dungeonAlign = 0; // A_NONE — dungeon branch alignment for makemon
@@ -1810,9 +1841,9 @@ export class NetHackGame {
         // Wire up nhwindow infrastructure
         init_nhwindows(this.display, nhgetch, () => this._rerenderGame());
         // Display-managed --More-- waits should use raw runtime key reads to
-        // avoid nested boundary helpers re-entering nhgetch.
+        // nhgetch is now simple (no boundary logic), safe for more() to use.
         if (this.display && typeof this.display.setNhgetch === 'function') {
-            this.display.setNhgetch(nhgetch_display_raw);
+            this.display.setNhgetch(() => nhgetch());
         }
         // Handle ?reset=1 — prompt to delete all saved data
         if (urlOpts.reset) {
@@ -2560,6 +2591,8 @@ export class NetHackGame {
             const hasPendingTravelTimedTurn = !!this.pendingTravelTimedTurn;
             const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
 
+            // Travel continuation fallback. Keep this behind the positive-move
+            // lane so armed move-continuation uses the same no-input owner.
             if (!hasPositiveMoveContinuation
                 && this.travelPath && this.travelStep < this.travelPath.length) {
                 const result = await dotravel_target(this);
@@ -2579,11 +2612,12 @@ export class NetHackGame {
             // command-boundary --More-- pending, consume only that dismiss key
             // before running any no-input continuation work.
             if (hasTimedContinuation && hasPendingCommandBoundaryDismiss(this)) {
-                const boundaryCh = await nhgetch({ commandBoundary: true });
-                if (boundaryCh === 0) continue;
-                const boundaryResult = await this.runOneCommandCycle(boundaryCh);
-                if (!boundaryResult) return;
-                this.renderAndAutosave({ commandResult: boundaryResult, autosave: true });
+                // C ref: tty_clearmsg() fires more() before continuation work.
+                await more(this.display, {
+                    forceVisual: true,
+                    clearAfter: true,
+                    readKey: () => nhgetch(),
+                });
                 continue;
             }
 

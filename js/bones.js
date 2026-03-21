@@ -201,7 +201,7 @@ export function remove_mon_from_bones(map) {
     map.monsters = map.monsters.filter(mon => {
         if (mon.dead) return false;
         // C ref: bones.c:167 — remove tame monsters
-        if (mon.tame) return false;
+        if (mon.mtame) return false;
         // C ref: bones.c:169 — remove shopkeepers (isshk)
         if (mon.isshk) return false;
         // C ref: bones.c:171 — remove temple priests (ispriest)
@@ -303,7 +303,7 @@ export function savebones(game) {
         ghost.mhp = player.ulevel * 10;
         ghost.mhpmax = player.ulevel * 10;
         ghost.m_lev = player.ulevel;
-        ghost.peaceful = false;
+        ghost.mpeaceful = false;
     }
 
     // C ref: bones.c:503 — cemetery metadata

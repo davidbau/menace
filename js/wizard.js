@@ -382,8 +382,8 @@ export async function amulet(map, player, display) {
     // Find Wizard and wake him if necessary
     for (const mtmp of map.monsters || []) {
         if (mtmp.dead) continue;
-        if (mtmp.iswiz && mtmp.sleeping && !rn2(40)) {
-            mtmp.sleeping = false;
+        if (mtmp.iswiz && mtmp.msleeping && !rn2(40)) {
+            mtmp.msleeping = 0;
             mtmp.msleeping = 0;
             if (!m_next2u(mtmp, player))
                 await You("get the creepy feeling that somebody noticed your taking the Amulet.");
@@ -578,7 +578,7 @@ export function aggravate(map, player) {
         if (in_w_tower !== In_W_tower(mtmp.mx, mtmp.my))
             continue;
         mtmp.mstrategy = (mtmp.mstrategy || 0) & ~(STRAT_WAITFORU | STRAT_APPEARMSG);
-        mtmp.sleeping = false;
+        mtmp.msleeping = 0;
         mtmp.msleeping = 0;
         if (mtmp.mcanmove === false && !rn2(5)) {
             mtmp.mfrozen = 0;
@@ -597,11 +597,10 @@ export function clonewiz(map, player, display) {
     const mtmp2 = makemon(mons[PM_WIZARD_OF_YENDOR], player.x, player.y,
                           MM_NOWAIT, depth, map);
     if (mtmp2) {
-        mtmp2.sleeping = false;
         mtmp2.msleeping = 0;
-        mtmp2.tame = false;
+        mtmp2.msleeping = 0;
         mtmp2.mtame = 0;
-        mtmp2.peaceful = false;
+        mtmp2.mtame = 0;
         mtmp2.mpeaceful = false;
 
         // Give clone a fake amulet sometimes
@@ -721,11 +720,10 @@ export async function nasty(summoner, map, player, display, fov) {
             let mtmp = await makemon_appear(mons[makeindex], bypos.x, bypos.y,
                                mmflags, depth, map);
             if (mtmp) {
-                mtmp.sleeping = false;
+                mtmp.msleeping = 0;
                 mtmp.msleeping = 0;
                 mtmp.mpeaceful = false;
-                mtmp.peaceful = false;
-                mtmp.tame = false;
+                mtmp.mtame = 0;
                 mtmp.mtame = 0;
                 // set_malign(mtmp) — alignment penalty not set (deferred)
             } else {
@@ -804,8 +802,8 @@ export async function resurrect(map, player, display) {
             if (m.dead) continue;
             if (m.iswiz && !mon_has_amulet(m)) {
                 mtmp = m;
-                if (mtmp.sleeping) {
-                    mtmp.sleeping = false;
+                if (mtmp.msleeping) {
+                    mtmp.msleeping = 0;
                     mtmp.msleeping = 0;
                 }
                 if (mtmp.mfrozen === 1) { mtmp.mfrozen = 0; mtmp.mcanmove = true; }
@@ -816,10 +814,9 @@ export async function resurrect(map, player, display) {
 
     if (mtmp) {
         mtmp.mstrategy = (mtmp.mstrategy || 0) & ~STRAT_WAITMASK;
-        mtmp.tame = false;
+        mtmp.mtame = 0;
         mtmp.mtame = 0;
         mtmp.mpeaceful = false;
-        mtmp.peaceful = false;
         // set_malign(mtmp) — deferred
 
         // C: if (!Deaf)

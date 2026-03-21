@@ -1889,7 +1889,7 @@ export async function dogaze(player, map) {
             await pline("%s seems not to notice your gaze.", Monnam(mtmp));
         } else if (mtmp.invisible && !player.seeInvisible) {
             await You_cant("see where to gaze at %s.", Monnam(mtmp));
-        } else if (player.safeDog && mtmp.tame && !player.confused) {
+        } else if (player.safeDog && mtmp.mtame && !player.confused) {
             await You("avoid gazing at %s.", mon_nam(mtmp));
         } else {
             // Peaceful monster confirmation check
@@ -1900,19 +1900,18 @@ export async function dogaze(player, map) {
             setmangry(mtmp, true, map, player);
 
             // Skip helpless, stunned, blind, eyeless targets
-            if (mtmp.helpless || mtmp.stunned
+            if (mtmp.helpless || mtmp.mstun
                 || !mtmp.canSee || !haseyes(mdata)) {
                 looked--;
                 continue;
             }
 
             if (adtyp === AD_CONF) {
-                if (!mtmp.confused)
+                if (!mtmp.mconf)
                     await Your("gaze confuses %s!", mon_nam(mtmp));
                 else
                     await pline("%s is getting more and more confused.", Monnam(mtmp));
-                mtmp.confused = true;
-                if (mtmp.mconf !== undefined) mtmp.mconf = 1;
+                mtmp.mconf = 1;
             } else if (adtyp === AD_FIRE) {
                 // RNG: d(2,6) for fire damage, rn2(20) for item destroy chance
                 let dmg = c_d(2, 6);

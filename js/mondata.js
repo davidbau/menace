@@ -268,7 +268,7 @@ export function is_displacer(ptr) { return !!(ptr.mflags3 & M3_DISPLACES); }
 
 // C ref: #define is_pet(mon)   ((mon)->mtame > 0)
 // Note: in our JS, tame is a boolean; in C it's a value (tameness level)
-export function is_pet(mon) { return !!mon.tame; }
+export function is_pet(mon) { return !!mon.mtame; }
 
 // C ref: attacktype(ptr, atyp) — delegates to attacktype_fordmg
 export function attacktype(ptr, atyp) {
@@ -347,7 +347,7 @@ export function hasGivenName(mon) {
 export function monNam(mon, { capitalize = false, article = null } = {}) {
     const dname = monDisplayName(mon);
     const effectiveArticle = article !== null ? article
-        : (mon?.tame ? 'your' : 'the');
+        : (mon?.mtame ? 'your' : 'the');
     let result;
     if (effectiveArticle === 'your') {
         result = hasGivenName(mon) ? dname : `your ${dname}`;
@@ -852,7 +852,7 @@ export function levl_follower(mon, player) {
     if (mon.iswiz && objChainItems(mon.minvent || null).some(o => o?.otyp === AMULET_OF_YENDOR)) return false;
     // C: if (mtmp->mtame || mtmp->iswiz || is_fshk(mtmp)) return TRUE
     // is_fshk: isshk && eshk->following
-    if (mon.tame || mon.iswiz || (mon.isshk && mon.following)) return true;
+    if (mon.mtame || mon.iswiz || (mon.isshk && mon.following)) return true;
     // C: return (mtmp->data->mflags2 & M2_STALK) && (!mtmp->mflee || u.uhave.amulet)
     const playerHasAmulet = player && Array.isArray(player.inventory)
         && player.inventory.some(o => o?.otyp === AMULET_OF_YENDOR);

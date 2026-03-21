@@ -2,6 +2,7 @@
 // Provides an async input queue plus module-level wrappers used by game code.
 
 import { CLR_GRAY } from './render.js';
+import { pushRngLogEntry } from './rng.js';
 import { recordKey, isReplayMode, getNextReplayKey } from './keylog.js';
 import {
     CMDQ_KEY, CMDQ_EXTCMD, CMDQ_DIR, CMDQ_USER_INPUT, CMDQ_INT,
@@ -468,7 +469,7 @@ function popQueuedInputKey(inDoAgain = false) {
     return null;
 }
 
-function hasActiveMoreBoundary(display) {
+export function hasActiveMoreBoundary(display) {
     if (!display) return false;
     if (display.moreMarkerActive) return true;
     // C ref: tty_clearmsg() calls more() when a no-time command left toplin==1.
@@ -489,9 +490,11 @@ function nhgetch_raw() {
     const snap = beginOriginAwait(activeGame, 'input');
     return Promise.resolve(activeInputRuntime.nhgetch())
         .then((ch) => {
-            // C ref: tty topline key acknowledgement semantics.
-            // After any keypress, topline should no longer be in NEED_MORE state.
+            // C ref: tty_nhgetch transitions toplin 1→2 (NEED_MORE → NON_EMPTY).
+            // The message is now "acknowledged" — tty_clearmsg will just clear it
+            // without firing more(). Does NOT transition to 0 (EMPTY).
             if (display) {
+                if (display.toplin === 1) display.toplin = 2;
                 display.messageNeedsMore = false;
                 display.moreMarkerActive = false;
                 display.messageNeedsMoreBoundary = false;
@@ -503,108 +506,52 @@ function nhgetch_raw() {
         });
 }
 
-// Display-managed --More-- dismissal should read raw runtime keys directly,
-// bypassing higher-level boundary helpers to avoid nested nhgetch waits.
-export function nhgetch_display_raw() {
-    return nhgetch_raw();
-}
+// nhgetch_display_raw removed — nhgetch is now simple enough for all callers.
 
 // Get a character of input (async)
 // This is the JS equivalent of C's nhgetch().
 // C ref: winprocs.h win_nhgetch
-export async function nhgetch(opts = {}) {
-    const commandBoundary = !!opts?.commandBoundary;
-    const readUnifiedKey = async () => {
-        const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
-        if (Number.isFinite(queuedKey)) {
-            ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
-            recordKey(queuedKey);
-            return queuedKey;
-        }
-
-        if (isReplayMode() && allowDirectReplayNhgetch()) {
-            const key = getNextReplayKey();
-            if (key !== null) {
-                ynTrace('raw=replay', key, String.fromCharCode(key));
-                recordKey(key);
-                return key;
-            }
-        }
-
-        if (_throwOnEmptyInput) {
-            const state = typeof activeInputRuntime.getInputState === 'function'
-                ? activeInputRuntime.getInputState() : null;
-            if (!state || state.queueLength === 0) {
-                throw new Error('Input queue empty - test may be missing keystrokes');
-            }
-        }
-
-        if (typeof activeInputRuntime?.setWaitContext === 'function') {
-            activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
-        }
-
-        const ch = await nhgetch_raw();
-        ynTrace('raw=runtime', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
-        recordKey(ch);
-        if (cmdqRepeatRecordMode && Number.isFinite(ch)) {
-            cmdq_add_key(CQ_REPEAT, ch);
-        }
-        return ch;
-    };
-
-    const display = getRuntimeDisplay();
-    const pendingPromptOwnsInput = !!(
-        activeGame?.pendingPrompt && typeof activeGame.pendingPrompt.onKey === 'function'
-    );
-    const hasQueuedCannedBoundary = !!(
-        commandBoundary
-        && cmdq_peek(CQ_CANNED)
-        && display?.topMessage
-    );
-
-    // C-faithful command boundary: when a topline --More-- is pending,
-    // consume only a dismiss key and return "no command" (0), allowing
-    // queued canned commands to execute next.
-    if ((!pendingPromptOwnsInput && commandBoundary
-            && display?.messageNeedsMore && hasActiveMoreBoundary(display))
-        || hasQueuedCannedBoundary) {
-        const readBoundaryKey = async () => {
-            if (isReplayMode() && allowDirectReplayNhgetch()) {
-                const key = getNextReplayKey();
-                if (key !== null) {
-                    ynTrace('raw=replay(boundary)', key, String.fromCharCode(key));
-                    recordKey(key);
-                    return key;
-                }
-            }
-            if (_throwOnEmptyInput) {
-                const state = typeof activeInputRuntime.getInputState === 'function'
-                    ? activeInputRuntime.getInputState() : null;
-                if (!state || state.queueLength === 0) {
-                    throw new Error('Input queue empty - test may be missing keystrokes');
-                }
-            }
-            if (typeof activeInputRuntime?.setWaitContext === 'function') {
-                activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
-            }
-            const ch = await nhgetch_raw();
-            ynTrace('raw=runtime(boundary)', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
-            recordKey(ch);
-            return ch;
-        };
-        // Use the canonical --More-- path so acknowledgement advances
-        // topline/message state exactly once per boundary key.
-        // C ref: tty_clearmsg() renders --More-- visually when it fires more().
-        // forceVisual=true whenever the boundary was triggered (canned or untimed).
-        await more(display, {
-            forceVisual: hasQueuedCannedBoundary || !!display?.messageNeedsMoreBoundary,
-            clearAfter: true,
-            readKey: readBoundaryKey,
-        });
-        return 0;
+// C ref: nhgetch() — read one key from input.
+// Matches C's simple model: check command queue, then read from runtime.
+// Command boundary --More-- handling belongs in callers (_gameLoopStep),
+// not here — matching C where tty_clearmsg handles --More-- in parse(),
+// not inside nhgetch.
+export async function nhgetch() {
+    const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
+    if (Number.isFinite(queuedKey)) {
+        ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
+        recordKey(queuedKey);
+        return queuedKey;
     }
 
-    return readUnifiedKey();
+    if (isReplayMode() && allowDirectReplayNhgetch()) {
+        const key = getNextReplayKey();
+        if (key !== null) {
+            ynTrace('raw=replay', key, String.fromCharCode(key));
+            recordKey(key);
+            return key;
+        }
+    }
+
+    if (_throwOnEmptyInput) {
+        const state = typeof activeInputRuntime.getInputState === 'function'
+            ? activeInputRuntime.getInputState() : null;
+        if (!state || state.queueLength === 0) {
+            throw new Error('Input queue empty - test may be missing keystrokes');
+        }
+    }
+
+    if (typeof activeInputRuntime?.setWaitContext === 'function') {
+        activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
+    }
+
+    const ch = await nhgetch_raw();
+    ynTrace('raw=runtime', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
+    recordKey(ch);
+    if (cmdqRepeatRecordMode && Number.isFinite(ch)) {
+        cmdq_add_key(CQ_REPEAT, ch);
+    }
+    return ch;
 }
 
 export async function more(display, {
@@ -616,10 +563,12 @@ export async function more(display, {
     refreshStatus = true,
 } = {}) {
     if (!display) return;
+    const topMsg = display?.topMessage || '';
+    pushRngLogEntry(`^more[${site || 'unknown'}${topMsg ? ',' + topMsg.substring(0, 40) : ''}]`);
     const ctxGame = game ?? activeGame ?? null;
     const readMoreKey = (typeof readKey === 'function')
         ? readKey
-        : () => nhgetch_display_raw();
+        : () => nhgetch();
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.
@@ -677,6 +626,7 @@ export async function more(display, {
         if ('messageNeedsMore' in display) display.messageNeedsMore = false;
         if ('moreMarkerActive' in display) display.moreMarkerActive = false;
         if ('topMessage' in display) display.topMessage = null;
+        if ('toplin' in display) display.toplin = 0; // TOPLINE_EMPTY
     }
     // Non-dismiss key: leave messageNeedsMore/moreMarkerActive as-is so the
     // boundary fires again on the next key.

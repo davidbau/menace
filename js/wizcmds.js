@@ -135,7 +135,7 @@ export async function wizGenesis(game) {
     if (!mon) {
         await display.putstr_message('There is no room near you to create a monster.');
     } else {
-        mon.sleeping = false;
+        mon.msleeping = 0;
     }
     return { moved: false, tookTime: false };
 }

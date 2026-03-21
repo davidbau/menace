@@ -22,7 +22,7 @@ import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, sele
        } from './windows.js';
 import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, MENU_ITEMFLAGS_SELECTED, gs } from './const.js';
 import { getpos_async } from './getpos.js';
-import { x_monnam } from './mondata.js';
+import { x_monnam } from './do_name.js';
 import { races, roleNameForGender } from './role.js';
 import { engr_at, can_reach_floor } from './engrave.js';
 import { trapped_chest_at, trapped_door_at } from './detect.js';
@@ -155,7 +155,7 @@ export function do_screen_description(ctx, cc) {
 
     const mon = map.monsterAt ? map.monsterAt(x, y) : null;
     if (mon) {
-        const firstmatch = x_monnam(mon, { article: 'none' });
+        const firstmatch = x_monnam(mon);
         const classDesc = monster_class_desc(mon);
         const outStr = classDesc ? `(${classDesc})` : '';
         return {
@@ -1449,7 +1449,7 @@ export function object_from_map(_glyph, x, y, _otmp = null, map = null) {
 // C ref: pager.c:422
 export function look_at_monster(mon) {
   if (!mon) return 'monster';
-  return x_monnam(mon, { article: 'none' });
+  return x_monnam(mon);
 }
 
 // C ref: pager.c:657

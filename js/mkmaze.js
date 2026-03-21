@@ -82,18 +82,6 @@ export function iswall(map, x, y) {
         || loc.typ === CROSSWALL ? 1 : 0;
 }
 
-// C ref: mkmaze.c iswall_or_stone
-// Autotranslated from mkmaze.c:58
-export function iswall_or_stone(x, y, map) {
-  if (!isok(x, y)) return 1;
-  return (map.locations[x][y].typ === STONE || iswall(x, y));
-}
-
-// C ref: mkmaze.c is_solid
-export function is_solid(map, x, y) {
-    return !isok(x, y) || IS_WALL(at(map, x, y)?.typ);
-}
-
 // C ref: mkmaze.c set_levltyp
 export function set_levltyp(map, x, y, typ) {
     const loc = at(map, x, y);
@@ -130,24 +118,6 @@ export function extend_spine(locale, wall_there, dx, dy) {
   }
   else { spine = 0; }
   return spine;
-}
-
-// C ref: mkmaze.c wall_cleanup
-export function wall_cleanup(map, x1 = 1, y1 = 0, x2 = COLNO - 1, y2 = ROWNO - 1) {
-    for (let x = x1; x <= x2; x++) {
-        for (let y = y1; y <= y2; y++) {
-            const loc = at(map, x, y);
-            if (!loc || !IS_WALL(loc.typ)) continue;
-
-            if (iswall_or_stone(map, x - 1, y)
-                && iswall_or_stone(map, x + 1, y)
-                && iswall_or_stone(map, x, y - 1)
-                && iswall_or_stone(map, x, y + 1)) {
-                loc.typ = STONE;
-                loc.horizontal = false;
-            }
-        }
-    }
 }
 
 // C ref: mkmaze.c okay

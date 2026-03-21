@@ -51,7 +51,7 @@ import { RACE_ORC, RACE_ELF, RACE_DWARF,
          W_RINGL, W_RINGR, W_ARTI, W_WEP, FROMFORM,
          CHOKING, A_LAWFUL,
          STARVING, KILLED_BY, KILLED_BY_AN,
-         BY_COOKIE, LL_CONDUCT, ECMD_TIME } from './const.js';
+         BY_COOKIE, LL_CONDUCT, ECMD_TIME, SICK_VOMITABLE, BLINDED } from './const.js';
 import { game as _gstate } from './gstate.js';
 import { sa_victual } from './decl.js';
 import { applyMonflee } from './mhitu.js';
@@ -61,8 +61,9 @@ import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlay
 import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
-import { nomul, end_running, near_capacity, rounddiv } from './hack.js';
-import { incr_itimeout, make_stoned } from './potion.js';
+import { nomul, end_running, near_capacity, rounddiv, losehp } from './hack.js';
+import { losestr } from './attrib.js';
+import { incr_itimeout, make_stoned, make_sick, make_blinded, make_stunned } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
@@ -1005,11 +1006,12 @@ async function cpostfx(player, pm, display) {
         // FALLTHROUGH to stun
     case PM_YELLOW_LIGHT:
     case PM_GIANT_BAT:
-        // C: make_stunned((HStun & TIMEOUT) + 30L, FALSE)
-        // TODO: apply stun when status system ported
+        // C ref: make_stunned((HStun & TIMEOUT) + 30L, FALSE)
+        await make_stunned(player, 30, false);
         // FALLTHROUGH
     case PM_BAT:
-        // C: make_stunned((HStun & TIMEOUT) + 30L, FALSE)
+        // C ref: make_stunned((HStun & TIMEOUT) + 30L, FALSE)
+        await make_stunned(player, 30, false);
         break;
     case PM_GIANT_MIMIC:
         tmp += 10;
@@ -1151,7 +1153,8 @@ async function rottenfood(player, obj) {
         // C: make_blinded(Blinded + d(2,10), FALSE) — only if !Blind
         await pline('Everything suddenly goes dark.');
         const blindDuration = c_d(2, 10);
-        // TODO: apply blindness when blind system is ported
+        const oldBlind = player.getPropTimeout?.(BLINDED) || 0;
+        await make_blinded(player, oldBlind + blindDuration, false);
     } else if (!rn2(3)) {
         const duration = rnd(10);
         // C: pline_The("world spins and %s %s.", what, where)
@@ -1215,7 +1218,7 @@ async function eatcorpse(player, otmp) {
         await pline(`Ulch - that ${meatType} was tainted!`);
         // C: rn1(10, 10) for sick_time
         const sickTime = rn1(10, 10);
-        // TODO: apply make_sick when sickness system is ported
+        await make_sick(player, sickTime, xname(otmp), true, SICK_VOMITABLE);
         await pline('(It must have died too long ago to be safe to eat.)');
         // C: useup(otmp) — corpse destroyed
         return { retcode: 2, reqtime: 3 };
@@ -1223,14 +1226,16 @@ async function eatcorpse(player, otmp) {
         tp++;
         await You('have a very bad case of stomach acid.');
         const dmg = rnd(15);
-        // TODO: losehp(dmg, "acidic corpse", KILLED_BY_AN)
+        await losehp(dmg, "acidic corpse", 0, player, _gstate?.display, _gstate);
     } else if (poisonous(mons[mnum]) && rn2(5)) {
         tp++;
         await pline('Ecch - that must have been poisonous!');
         if (!player.hasProp?.(POISON_RES)) {
             const strDmg = rnd(4);
             const hpDmg = rnd(15);
-            // TODO: poison_strdmg(strDmg, hpDmg, "poisonous corpse", KILLED_BY_AN)
+            // C ref: poison_strdmg — losestr + losehp for poisonous corpse
+            await losestr(player, strDmg, "poisonous corpse", 0);
+            await losehp(hpDmg, "poisonous corpse", 0, player, _gstate?.display, _gstate);
         } else {
             await You('seem unaffected by the poison.');
         }
@@ -1239,7 +1244,7 @@ async function eatcorpse(player, otmp) {
         const prefix = player.Sick ? 'very ' : '';
         await You_feel(`${prefix}sick.`);
         const dmg = rnd(8);
-        // TODO: losehp(dmg, "cadaver", KILLED_BY_AN)
+        await losehp(dmg, "cadaver", 0, player, _gstate?.display, _gstate);
     }
 
     // C: delay is weight dependent
@@ -1733,8 +1738,8 @@ async function vomit(player) {
     if (!canVomit) {
         await Your("jaw gapes convulsively.");
     } else {
-        // C: cure SICK_VOMITABLE
-        // TODO: make_sick(0L, 0, TRUE, SICK_VOMITABLE) when sickness system ported
+        // C ref: cure food poisoning when vomiting
+        await make_sick(player, 0, null, true, SICK_VOMITABLE);
         if (player.uhs >= FAINTING) {
             // C: Your("%s heaves convulsively!", body_part(STOMACH))
             await Your("stomach heaves convulsively!");

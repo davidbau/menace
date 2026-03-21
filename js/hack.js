@@ -36,7 +36,8 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { more, nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
-import { x_monnam, y_monnam, YMonnam, Monnam, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks, strongmonst } from './mondata.js';
+import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks, strongmonst } from './mondata.js';
+import { x_monnam, y_monnam, YMonnam, Monnam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
@@ -617,10 +618,10 @@ function notice_mons_cmp(a, b) {
 export async function domove_bump_mon(mon, _glyph, _nopick, game, display) {
     const ctx = ensure_context(game);
     if (!mon || mon.dead) return { handled: false, tookTime: false };
-    const visibleEnough = (!mon.mundetected) || !!mon.tame || !!mon.peaceful;
+    const visibleEnough = (!mon.mundetected) || !!mon.mtame || !!mon.mpeaceful;
     // C: m-prefix bump into known/visible monster consumes a turn and stops.
     if (_nopick && !ctx.travel && visibleEnough) {
-        if (mon.peaceful && !game?.flags?.hallucination) {
+        if (mon.mpeaceful && !game?.flags?.hallucination) {
             await display?.putstr_message(`Pardon me, ${m_monnam(mon)}.`);
         } else {
             await display?.putstr_message(`You move right into ${y_monnam(mon)}.`);
@@ -656,11 +657,11 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
         await You('stop.  %s can\'t move diagonally.', YMonnam(mon));
         return false;
     }
-    if (mon.peaceful && mon.mtrapped) {
+    if (mon.mpeaceful && mon.mtrapped) {
         await You('stop.  %s can\'t move out of that trap.', YMonnam(mon));
         return false;
     }
-    if (mon.peaceful && heroOldTrap) {
+    if (mon.mpeaceful && heroOldTrap) {
         await You('stop.  %s doesn\'t want to swap places.', YMonnam(mon));
         return false;
     }
@@ -713,7 +714,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
     // Use map+FOV-aware spotting semantics so safe-mon gating matches C.
     const safeMonVisible = canSpotMonsterForMap(mon, map, player, game?.fov || null);
     // C ref: is_safemon() protects peaceful monsters and (optionally) tame pets.
-    const safeMon = !!mon.peaceful || (!!mon.tame && safeDogEnabled);
+    const safeMon = !!mon.mpeaceful || (!!mon.mtame && safeDogEnabled);
     const shouldDisplace = safeMon
         && safeMonVisible
         && !disoriented
@@ -723,8 +724,8 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         'domove_attackmon_at',
         `mon=${mon?.mndx ?? '?'}@${mon?.mx},${mon?.my}`,
         `target=${nx},${ny}`,
-        `tame=${mon?.tame ? 1 : 0}`,
-        `peaceful=${mon?.peaceful ? 1 : 0}`,
+        `tame=${mon?.mtame ? 1 : 0}`,
+        `peaceful=${mon?.mpeaceful ? 1 : 0}`,
         `visible=${safeMonVisible ? 1 : 0}`,
         `safe=${safeMon ? 1 : 0}`,
         `displace=${shouldDisplace ? 1 : 0}`,
@@ -756,7 +757,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         }
         const blocked = (inTendedShop || foo);
         if (blocked) {
-            if (mon.tame) {
+            if (mon.mtame) {
                 await monflee(mon, rnd(6), false, false, player, display, null);
             }
             const label = YMonnam(mon);
@@ -783,7 +784,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         return { handled: false, pendingSwap: true, mon };
     }
 
-    if (mon.peaceful && !mon.tame && game.flags?.confirm) {
+    if (mon.mpeaceful && !mon.mtame && game.flags?.confirm) {
         const answer = await ynFunction(
             `Really attack ${x_monnam(mon)}?`,
             'yn',
@@ -968,8 +969,8 @@ export async function domove_core(dir, player, map, display, game) {
             } else if (escapeRoll === 3 && !canMove) {
                 // Wake/release frozen monster, then check tame
                 stuckMon.mfrozen = 1;
-                stuckMon.sleeping = false;
-                if (stuckMon.tame && !game?.flags?.conflict) {
+                stuckMon.msleeping = 0;
+                if (stuckMon.mtame && !game?.flags?.conflict) {
                     await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
@@ -978,7 +979,7 @@ export async function domove_core(dir, player, map, display, game) {
                 }
             } else {
                 // Failed to escape
-                if (stuckMon.tame && !game?.flags?.conflict) {
+                if (stuckMon.mtame && !game?.flags?.conflict) {
                     await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
@@ -1695,7 +1696,7 @@ export async function lookaround(map, player, fov, dir, runStyle = 'run', displa
                 && mon.m_ap_type !== M_AP_OBJECT
                 && canSeeMonsterForMap(mon, map, player, fov));
             if (monVisible) {
-                const isSafeMon = !!(mon.tame || mon.peaceful || mon.mpeaceful);
+                const isSafeMon = !!(mon.mtame || mon.mpeaceful);
                 if ((runMode !== 1 && !isSafeMon) || (infront && !travel)) {
                     return { stopReason: infront ? 'monster-in-front' : 'hostile-nearby' };
                 }
@@ -4026,7 +4027,7 @@ export { dist2, distmin };
 function monsterIsTame(mon) {
     if (!mon) return false;
     if (mon.mtame !== undefined) return !!mon.mtame;
-    return !!mon.tame;
+    return !!mon.mtame;
 }
 
 function sanitizeMonsterType(mon) {
@@ -4063,7 +4064,7 @@ export function monsterNearby(map, player, fov) {
             if (mon.m_ap_type === M_AP_FURNITURE || mon.m_ap_type === M_AP_OBJECT) continue;
 
             const mptr = sanitizeMonsterType(mon);
-            const isPeaceful = !!(mon.mpeaceful || mon.peaceful);
+            const isPeaceful = !!mon.mpeaceful;
             const hostileThreat = playerHallucinating || (!monsterIsTame(mon) && !isPeaceful && !noattacks(mptr));
             const hidden = is_hider(mptr || {}) && mon.mundetected;
             const isHelpless = helpless(mon);

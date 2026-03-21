@@ -238,6 +238,81 @@ So the mismatch is upstream in when and how `mux/muy` are refreshed.
 
 A prior attempt moved positive-`multi` ownership out of `run_command()` too aggressively and regressed `seed031` from step `933` back to step `163`.
 
+### 5. Replay boundary is currently weaker than "wait until input is needed"
+
+The remaining post-`933` seam clarified an important runtime fact:
+
+- session steps are still input-keyed
+- but the JS replay executor currently allows a step to finish when
+  `_gameLoopStep()` resolves, even if the game has not actually reached an
+  input wait yet
+
+This is visible in `js/replay_core.js:drainUntilInput()`:
+- it races command completion against `waitForInputWait(...)`
+- if the command promise resolves first, it returns `done: true`
+- that means replay can record a step on promise completion rather than on a
+  true input boundary
+
+That distinction did not matter much while `_gameLoopStep()` usually returned
+only at real input waits. It matters now because the validated owner fix
+deliberately made `_gameLoopStep()` return after one positive-repeat slice.
+
+The consequence is subtle but important:
+- changing an internal loop boundary does **not** by itself redefine a
+  session step
+- however, if replay admits the next queued key after `_gameLoopStep()`
+  completes while `input.isWaitingInput()` is still false, then JS is
+  effectively allowing the next input earlier than the runtime is actually
+  ready for it
+
+So the next replay/runtime question is precise:
+- after the resumed `_` travel command, when JS finishes one no-input slice
+  and `_gameLoopStep()` returns, has the game truly reached an input wait?
+- if not, replay must continue driving no-input continuation before consuming
+  the next session key
+
+This does **not** mean "step numbers are not input-delimited".
+It means the current JS executor is not yet enforcing that input-delimited
+boundary strongly enough.
+
+### 6. The surviving gas-spore `near=1` vs `near=0` mismatch is still cross-step
+
+The strongest correction from the latest analysis is:
+
+- the normalized event window around the remaining seam does **not** compare
+  the same recorded input key on both sides
+- current alignment shows:
+  - JS `step=937`, `step=938` keys are still `"l"`, `"l"`
+  - the aligned C events are at `step=947`, `step=948`, whose keys are
+    `"."`, `"h"`
+
+This matters because it invalidates the earlier narrow claim:
+- it is **not** yet proven that JS monster 27 and C monster 27 are seeing the
+  same input-step boundary when `near=1` vs `near=0` is compared
+- therefore the surviving `distfleeck()` mismatch is still best treated as
+  cross-step attribution / ownership drift first, not as a confirmed
+  monster-AI formula or `set_apparxy()` state bug
+
+What remains true:
+- JS step `937` shows gas spore at `(28,13)` refreshing to target `(26,13)` and
+  moving to `(27,13)`
+- JS step `938` then starts with:
+  - `^movemon_turn[27@27,13 mv=12->0]`
+  - `^distfleeck[27@27,13 in=1 near=1 ...]`
+
+But because the aligned C `near=0` event lands on later recorded keys
+(`"."`, `"h"`), the next fix target should be framed as:
+- what command/timed-turn ownership still lets JS advance this monster bundle
+  earlier in the session-step stream than C does?
+
+That is a stronger and safer statement than:
+- "monster 27 target persistence is wrong"
+
+The immediate implication for implementation is:
+- do not patch `distfleeck()` or `set_apparxy()` from this evidence
+- continue treating the remaining problem as boundary/ownership drift until a
+  same-key comparison proves otherwise
+
 That failure showed:
 - the repeat ownership must move in a way that preserves the full C frame around it
 - especially the split between:
@@ -1710,8 +1785,6 @@ patch is:
 That mismatch should be treated as step-label reporting lag, not as evidence
 that the owner fix failed.
 
-<<<<<<< HEAD
-=======
 ## Follow-up probe: exact C stop-before-attack gate is real, but not sufficient
 
 After `7feb605cd`, the next probe reintroduced the exact C hostile-visible
@@ -1894,6 +1967,44 @@ This change is no longer provisional because it:
 So the next stage should build on that stop gate, not revisit whether it is
 correct.
 
+### New lower-level finding after the stop-gate fix
+
+Fresh `WEBHACK_MONMOVE_TRACE` on top of `6c72c5e14` shows the remaining
+`near=1` mismatch is not caused by `distfleeck()` or `set_apparxy()` doing the
+wrong work on the bad turn itself.
+
+What actually happens in JS:
+
+- on monster `27`'s prior turn, `set_apparxy()` already refreshes `mux/muy` to
+  the hero's exact square (for example `old=(62,15) -> new=(64,15)`)
+- then the second `set_apparxy()` call inside the same `dochug()/m_move()`
+  corridor immediately hits the fast path:
+  - `mode=direct`
+  - `u_at_old=1`
+- on the next monster `27` turn, the first `set_apparxy()` starts from that
+  already-direct target, so the first `distfleeck()` inevitably sees
+  `near=1`
+
+This means:
+
+- the remaining bug is upstream of the bad `distfleeck()` call
+- the real difference is that JS gives monster `27` one direct target refresh
+  too early, on the immediately preceding turn
+- therefore the next fix target is not:
+  - `distfleeck()`
+  - `monnear()`
+  - or the `set_apparxy()` formulas themselves
+- the next fix target is:
+  - why monster `27` gets that preceding turn / target refresh earlier than C
+
+Concrete implication:
+
+- the next parity question is:
+  - "what earlier timed-turn / movemon boundary lets JS refresh monster `27` to
+    the hero's exact square one cycle before C?"
+- not:
+  - "how should `near` be calculated?"
+
 ### Why this probe was reverted
 
 By the repo standard it still did not move the legacy first-divergence step
@@ -1906,7 +2017,6 @@ However, this was still a strong diagnostic result because it showed:
 3. the remaining difference is now narrowed to monster `27`'s pre-`m_move()`
    handoff, not hero attack logic
 
->>>>>>> 6c72c5e14... parity: stop running before visible hostile contact
 ### Concrete prediction
 
 The fix will work when BOTH are done simultaneously:
@@ -1948,6 +2058,118 @@ automatically fix both the step count and the dog-goal ordering, because
 each hop would get its own `movemon()` pass where monsters see the pre-hop
 hero position.
 
+## Strategic Review (Second Engineer, 2026-03-21)
+
+### Assessment of the investigation
+
+The 8 probes have been excellent work. Each one was disciplined: isolated
+one variable, measured the result, reverted, documented. The cumulative
+knowledge is now substantial:
+
+| What works | Evidence |
+|---|---|
+| Owner fix: one slice per `_gameLoopStep` return | Step 933 now one hop, guardrails green |
+| C stop-before-attack gate | Hero-attack mismatch eliminated |
+| Deferred repeated timed turns | Best RNG yet: 34371/51561 |
+
+| What's left | Evidence |
+|---|---|
+| Monster 27 gets `set_apparxy` refresh one turn early | `near=1` vs `near=0` |
+| Preceding turn gives monster 27 `mux/muy = hero exact square` | Trace: `mode=direct, u_at_old=1` |
+
+### The pattern I see
+
+Each probe fixes one boundary, then reveals the next boundary is also
+wrong. This isn't random — it's causal. The fused `advanceTimedTurn()`
+propagates a one-iteration timing offset forward through the monster
+turn chain. Fixing one monster's timing relative to the hero exposes that
+the NEXT monster's timing is also off by one iteration.
+
+The probes have been surgically correct but structurally incomplete.
+They're treating symptoms of the same root cause.
+
+### Concrete recommendation
+
+You're very close. The validated owner fix + stop gate + deferred timed
+turns got you to 34371/51561 (67% RNG match). The remaining 33% gap is
+the one-turn-early `set_apparxy` refresh.
+
+That refresh happens because `advanceTimedTurn()` runs `moveloop_core()`
+(which calls `movemon()` → `set_apparxy()`) AFTER `domove()` has already
+updated the hero position. Monster 27 sees the post-hop hero position
+when it should see the pre-hop position.
+
+**The fix**: in the deferred-timed-turn model (your best probe so far),
+the repeated slice currently does:
+
+```
+domove() → hero moves
+pendingTravelTimedTurn → advanceTimedTurn()
+  → moveloop_core() → movemon() → set_apparxy sees NEW hero pos  ← bug
+```
+
+C does:
+
+```
+moveloop_core() → movemon() → set_apparxy sees OLD hero pos
+domove() → hero moves
+```
+
+The ordering difference: C runs `movemon` BEFORE `domove`. JS runs it
+AFTER. For the INITIAL travel hop this doesn't matter (the hop is part
+of the current `moveloop_core` iteration which already ran `movemon`).
+But for REPEATED hops, the deferred timed turn runs `movemon` with the
+hero already at the new position.
+
+**To fix**: the deferred timed turn for a repeated hop should run
+`movemon` BEFORE the next `domove`, not after the current one. In
+practice this means the repeated-hop slice should be:
+
+```
+// Phase 1 of THIS iteration (from previous deferred turn)
+moveloop_core()         ← monsters see hero at CURRENT position
+syncTimedTurnPreInput() ← pre-input sync
+// Phase 2 of THIS iteration
+umoved = false
+lookaround()
+runmode_delay_output()
+domove()                ← hero moves to NEXT position
+// DON'T run moveloop_core here — defer to next slice
+return (one slice done)
+```
+
+The key insight: `moveloop_core` (which contains `movemon`) should run
+at the TOP of each repeat slice, not at the BOTTOM. The deferred timed
+turn runs it at the bottom (after domove), which is the wrong ordering
+for repeated hops.
+
+This is a one-line reorder, not a structural refactor. Move the
+`moveloop_core` + `syncTimedTurnPreInputState` calls from AFTER `domove`
+to BEFORE `lookaround` in the repeated-hop slice. The deferred-turn flag
+just becomes "run phase 1+2 at the start of the next `_gameLoopStep`
+entry rather than at the end of the current one."
+
+### Why I'm confident
+
+The trace data from your latest probe proves the exact mechanism:
+monster 27's `set_apparxy` runs with the hero at `(26,13)` when it
+should be at `(24,13)`. That's a two-hop offset. The hero moved from
+`(24,13)` → `(25,13)` → `(26,13)` and then the deferred `movemon` ran.
+If `movemon` had run BEFORE those two hops (at the top of the slice
+instead of after), it would see `(24,13)` — matching C.
+
+### Suggested experiment
+
+On top of your best probe (deferred timed turns + stop gate):
+
+1. In the repeated-hop slice, move the `advanceTimedTurn` call from
+   after `domove` to before `lookaround`
+2. For the first repeated hop after the initial `_` command, the
+   deferred timed turn should fire before `lookaround`, not after `domove`
+3. Test: does `^dog_invent_decision ... ud=8` now match C?
+
+If yes, commit. If no, trace where `movemon` actually runs relative to
+`domove` in the reordered slice and compare with C's trace.
 ## 2026-03-21 correction: reason on gameplay-step numbering, not raw `steps[]`
 
 For `manual-direct-live` sessions, the runtime diagnostics and replay key

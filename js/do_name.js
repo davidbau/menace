@@ -138,7 +138,7 @@ export function x_monnam(mtmp, article = ARTICLE_NONE, adjective = null,
     // JS: no youmonst equivalent yet; skip
 
     // Article YOUR on non-tame becomes THE
-    if (article === ARTICLE_YOUR && !mtmp.tame) {
+    if (article === ARTICLE_YOUR && !mtmp.mtame) {
         article = ARTICLE_THE;
     }
 
@@ -320,7 +320,7 @@ export function m_monnam(mtmp) {
 
 // cf. do_name.c:1116 — y_monnam(mtmp): "your" for pets, "the" otherwise
 export function y_monnam(mtmp) {
-    const prefix = mtmp?.tame ? ARTICLE_YOUR : ARTICLE_THE;
+    const prefix = mtmp?.mtame ? ARTICLE_YOUR : ARTICLE_THE;
     const suppression_flag = (has_mgivenname(mtmp) /* || mtmp === u.usteed */)
         ? SUPPRESS_SADDLE : 0;
     return x_monnam(mtmp, prefix, null, suppression_flag, false);
@@ -382,7 +382,7 @@ export function minimal_monnam(mon, _ckloc = false) {
     if (!mon) return '[Null monster]';
     const mdat = mon.type;
     if (!mdat) return '[Null mon->data]';
-    const prefix = mon.tame ? 'tame ' : mon.mpeaceful ? 'peaceful ' : '';
+    const prefix = mon.mtame ? 'tame ' : mon.mpeaceful ? 'peaceful ' : '';
     return `${prefix}${mon_pmname(mon)} <${mon.mx ?? '?'},${mon.my ?? '?'}>`;
 }
 

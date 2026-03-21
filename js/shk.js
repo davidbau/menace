@@ -925,7 +925,6 @@ export function inhishop(shkp, map) {
 // C ref: shk.c rile_shk() -- make shopkeeper angry, add surcharge
 export function rile_shk(shkp) {
     shkp.mpeaceful = false;
-    shkp.peaceful = false;
     if (!shkp.surcharge) {
         shkp.surcharge = true;
         const bill = shkp.bill || [];
@@ -959,7 +958,7 @@ export async function rouse_shk(shkp, verbosely) {
   if (monHelpless(shkp)) {
     if (verbosely && canspotmon(shkp)) await pline("%s %s.", Shknam(shkp), shkp.msleeping ? "wakes up" : "can move again");
     shkp.msleeping = 0;
-    shkp.sleeping = false;
+    shkp.msleeping = 0;
     shkp.mfrozen = 0;
     shkp.mcanmove = 1;
   }
@@ -1659,7 +1658,7 @@ export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
     const plname = String(player?.name || 'customer').toLowerCase();
     const shkName = shopkeeperName(shkp);
 
-    if (shkp.peaceful === false || shkp.mpeaceful === false) {
+    if (shkp.mpeaceful === false) {
         await display.putstr_message(`"So, ${plname}, you dare return to ${sSuffix(shkName)} ${shopTypeName}?!"`);
         return;
     }
@@ -2568,7 +2567,7 @@ export function shk_move(shkp, map, player) {
         void shk_fixes_damage(shkp, map, _gstate);
     }
 
-    if (udist < 3 && (shkp.mpeaceful === false || shkp.peaceful === false)) {
+    if (udist < 3 && shkp.mpeaceful === false) {
         return 0;
     }
 
@@ -2581,9 +2580,8 @@ export function shk_move(shkp, map, player) {
         // cf. shk.c:4859 — rn2(9) rile_shk when following
         if (!rn2(9)) {
             shkp.mpeaceful = false;
-            shkp.peaceful = false;
         }
-    } else if (shkp.mpeaceful === false || shkp.peaceful === false) {
+    } else if (shkp.mpeaceful === false) {
         gtx = player.x;
         gty = player.y;
     }
@@ -2839,7 +2837,7 @@ export function noisy_shop(sroom, map) {
             const dy = Number(m.my || 0) - sy;
             if (dx * dx + dy * dy <= (11 * 11)) {
                 m.msleeping = 0;
-                m.sleeping = false;
+                m.msleeping = 0;
                 m.mfrozen = 0;
                 m.mcanmove = 1;
             }
