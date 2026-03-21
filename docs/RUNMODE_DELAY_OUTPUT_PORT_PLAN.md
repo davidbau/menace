@@ -3126,3 +3126,337 @@ The most useful immediate comparison is:
 The next probe should try to extend only that `_`-accept same-key continuation
 path and then re-check whether gas spore `27`'s `(29,14)` turn moves from JS
 step `934` back into JS step `933`.
+
+
+## 2026-03-21 refinement: the active invariant is now about same-key continuation ownership for the accepted `_` command
+
+The latest probes narrowed the invariant again.
+
+Earlier command-boundary invariants were still useful:
+
+- they exposed real queued-key / carried-owner coexistence
+- they ruled out broad replay-side draining
+- they helped localize the seam family
+
+But after correcting the gameplay-step mapping, the stronger live invariant is
+now inside the shared `.` accept step itself.
+
+### Refined invariant
+
+For the shared gameplay step `933` key `.` which accepts pending `_` travel:
+
+- JS must not return that gameplay step
+- while C-equivalent same-key no-input continuation from that accepted `_`
+  command is still pending
+
+This is narrower than:
+
+- "no queued fresh key while positive-repeat is active"
+
+and narrower than:
+
+- "continue whenever `pendingTravelTimedTurn` is set"
+
+It is specifically about ownership of continuation under the accepted `_`
+command.
+
+### Why this refinement was necessary
+
+Two direct probes failed:
+
+1. **Always continue after `pendingTravelTimedTurn`**
+   - too broad
+   - `seed031` timed out later at step `1036`
+
+2. **Allow exactly one extra same-key `repeat_mv` slice after
+   `pendingTravelTimedTurn`**
+   - also too broad
+   - `seed031` timed out earlier at step `806`
+   - `t11_s755_w_covmax9_gp` also timed out
+
+So `pendingTravelTimedTurn` by itself is not the right owner predicate.
+
+### What this means strategically
+
+The next probe should not ask:
+
+- "should JS continue after `pendingTravelTimedTurn`?"
+
+It should ask:
+
+- "what additional boundary state distinguishes the valid packed `.`-accept
+  continuation on gameplay step `933` from the later invalid extra
+  continuation that causes timeouts?"
+
+Likely candidate dimensions:
+
+- command-boundary `--More--` ownership
+- prompt/input owner state around the accepted `_` command
+- a more specific marker that the same accepted `_` command still owns the next
+  no-input slice
+
+### Current operational rule
+
+Keep the validated baseline.
+
+Do not keep any patch that merely says:
+
+- `pendingTravelTimedTurn => continue`
+
+or
+
+- `pendingTravelTimedTurn => allow one extra repeat slice`
+
+Those have now been falsified.
+
+## 2026-03-21 simplified root question and plan
+
+The simplest correct framing of the remaining bug is now:
+
+- **why does JS terminate the carried movement loop for `_` earlier than C?**
+
+That is better than the older, looser framings:
+
+- "is replay admitting keys too early?"
+- "is `distfleeck()` wrong?"
+- "is `set_apparxy()` too early?"
+
+Those were useful diagnostic questions, but the current evidence makes them
+secondary. The primary difference is that, on the same shared `.` accept key,
+C keeps executing more carried `_`-command continuation than JS does.
+
+### Precisely what must be explained
+
+For the accepted `_` command on gameplay step `933`:
+
+- C continues far enough to include later carried slices, including gas spore
+  `27` at `(29,14)` and then `(28,13)`
+- JS stops after the first hero hop plus kitten work and returns the step
+
+So the task is to explain the difference in **termination condition** for the
+accepted `_` command's no-input continuation.
+
+### The right plan to answer that question
+
+1. **Treat this as a stop-condition problem, not a scheduler problem**
+   - Do not start from replay-core or generic `isWaitingInput()` changes.
+   - Do not start from monster-AI logic.
+   - Start from the accepted `_` command and ask where C stops re-entering its
+     carried positive-repeat path for that same command.
+
+2. **Model the C stop condition explicitly**
+   - Follow the accepted `_` path in C:
+     - `dotravel()` -> `getpos()` accept `.` -> `dotravel_target()`
+     - first `domove()`
+     - subsequent `moveloop_core()` re-entries under the same command
+   - Record what actually causes C to stop packing more continuation into the
+     same gameplay step.
+   - The important output is not just "what runs", but:
+     - what *state* is still armed before another same-key slice runs, and
+     - what *state* changes when C finally yields to the next gameplay key.
+
+3. **Model the JS stop condition at the same level**
+   - Follow the accepted `_` path in JS:
+     - `dotravel()` -> `getpos_async()` accept `.` -> `dotravel_target()`
+     - `pendingTravelTimedTurn`
+     - `_gameLoopStep()` return path
+   - Identify the exact state under which JS decides that gameplay step `933`
+     is complete.
+   - The goal is to name the specific predicate that ends the carried `_`
+     command too early.
+
+4. **Compare stop-condition state, not just event sequences**
+   - Event sequences were necessary to localize the seam.
+   - The next discriminating comparison is:
+     - C before its last same-key slice on step `933`
+     - JS at the point where it returns step `933`
+   - Compare:
+     - `multi`
+     - `context.mv`
+     - `context.travel`
+     - `context.run`
+     - `pendingTravelTimedTurn`
+     - prompt / `--More--` ownership
+     - input waiting / key visibility
+   - The question is:
+     - which state says "continue" in C but already says "stop" in JS?
+
+5. **Patch only the stop condition that differs**
+   - Do not keep patches of the form:
+     - "always continue after X"
+     - "add one extra slice after X"
+   - Those were already falsified.
+   - The keepable fix should say:
+     - when this exact `_`-accept stop condition is still false, stay inside
+       the same command
+     - when it becomes true, yield exactly where C yields
+
+### Immediate practical next steps
+
+1. Capture the C side of gameplay step `933` as a stop-condition trace:
+   - not just monster events, but the last point before C yields to step `934`
+2. Capture the JS side of gameplay step `933` at the point it returns:
+   - with the same state fields
+3. Write down the first explicit state mismatch in that stop-condition table
+4. Only then code the next runtime patch
+
+### What counts as success for the next patch
+
+Not "it improves some later totals."
+
+Success means:
+
+- JS step `933` now retains the accepted `_` command long enough to include the
+  next C-owned same-key continuation slice(s)
+- without introducing generic replay draining or later timeout behavior
+- and without reviving the older dog seam
+
+## 2026-03-21 boundary evidence: JS ends gameplay step 933 with no input-boundary owner, but explicit travel continuation is already armed
+
+The replay-pending trace around gameplay steps `933..934` gives the clearest
+stop-condition evidence so far.
+
+Observed JS trace:
+
+```text
+step=933 key="." mode=resume owner=input waiting=1 ack=0 pending=0 ...
+step=933 resume=done owner=none waiting=0 ack=0 pending=0 ...
+step=934 key="h" mode=admit-key explicitOwner=positiveMoveContinuation owner=none waiting=0 ack=0 pending=0 ...
+step=934 diag=parity.owner.positive-move-with-queued-key qlen=1 multi=80 run=8 travel=1 mv=1 move=1 key=95 ...
+```
+
+### What this proves
+
+At the moment JS finishes gameplay step `933`:
+
+- the resume promise for the accepted `.` key is already complete
+- there is **no** active input-boundary owner:
+  - `owner=none`
+- the runtime is **not** waiting for input:
+  - `waiting=0`
+- there is no pending `--More--` / ack boundary:
+  - `ack=0`
+  - `pending=0`
+
+But before gameplay step `934` starts, the explicit travel continuation owner is
+already armed:
+
+- `multi=80`
+- `run=8`
+- `travel=1`
+- `mv=1`
+
+So the stop-condition mismatch is now more specific:
+
+- JS is ending gameplay step `933` because the accepted `_` command's promise is
+  done
+- **not** because input is actually waiting
+- **not** because a boundary owner is still visibly active
+- even though explicit carried travel continuation has already been armed for
+  the very next step
+
+### Why this matters
+
+This explains why the problem feels like an early termination of the accepted
+`_` command:
+
+- from the input-boundary perspective, JS believes the step is over
+- from the gameplay-state perspective, the carried `_` continuation is still
+  live
+
+That is the mismatch to fix.
+
+### Refined next question
+
+The next question is now:
+
+- **what boundary-owner state should still be considered active at the moment
+  JS currently logs `resume=done owner=none waiting=0`, so that the accepted
+  `_` command does not terminate too early?**
+
+This is narrower than generic replay draining and narrower than
+`pendingTravelTimedTurn` alone.
+
+## 2026-03-21 structural accepted-`_` loop: keep the command-owned loop, but only grant the extra no-time timed turn for path exhaustion
+
+The strongest result so far came from replacing the accepted `_` travel path's
+coarse `pendingTravelTimedTurn` boolean with a command-owned continuation loop:
+
+- after `dotravel_target()` starts travel, keep ownership in the accepted `_`
+  command itself
+- run the initial timed turn immediately
+- keep executing positive-repeat travel slices under that same accepted command
+  until the C-equivalent stop point
+
+That structural change by itself was directionally right but initially too
+broad: it overpacked gameplay step `933` and pulled
+`^movemon_turn[27@27,13 ...]` into step `933`.
+
+### Exact overshoot cause
+
+The overshoot came from one specific rule in `runMovementRepeatSlice()`:
+
+- any no-time travel stop with `savedRun === 8` triggered one more full
+  `advanceTimedTurn()`
+
+That was correct for the travel-path-exhaustion family but too broad for the
+visible-hostile stop family.
+
+On the structural probe:
+
+- JS step `933` correctly packed:
+  - gas spore `27` at `(29,14)`
+  - gas spore `27` at `(28,13)`
+- but then the visible-hostile stop at `26,13 -> 27,13` also triggered the
+  extra timed turn
+- that extra timed turn incorrectly pulled:
+  - `^movemon_turn[27@27,13 ...]`
+  into gameplay step `933`
+
+### Corrected generalized rule
+
+The fix was to make `domove()` report explicit no-time stop causes and only
+grant the extra timed turn for the path-exhaustion cause:
+
+- `travel_path_exhausted`
+- `visible_hostile_while_running`
+
+Then:
+
+- keep the extra timed turn only for `travel_path_exhausted`
+- do **not** grant it for `visible_hostile_while_running`
+
+### Result
+
+This is the first structural fix that is both meaningful and keepable:
+
+- `seed031_manual_direct.session.json`
+  - first RNG divergence moved from gameplay step `933` to `940`
+  - matched RNG improved to `34575/51561`
+  - matched events improved to `19208/28950`
+- gameplay guardrails still passed:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+
+### New active question
+
+The carried `_` command termination seam at gameplay step `933` is no longer
+the first divergence.
+
+The next active seam is now:
+
+- first RNG divergence at gameplay step `940`
+- JS:
+  - `rn2(19)=10 @ thitmonst(...) <= throwit(...)`
+- C:
+  - `rn2(19)=0 @ exercise(attrib.c:510)`
+
+So the next task is no longer "why does JS end `_` too early?"
+
+It is now:
+
+- **after fixing the accepted `_` command stop condition, what remaining
+  gameplay ownership/state difference causes JS to reach thrown-object combat
+  RNG at gameplay step `940` where C is still in non-throw post-move state?**
