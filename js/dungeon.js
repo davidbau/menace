@@ -526,7 +526,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const mhp = Number.isFinite(mon?.mhp) ? Math.trunc(mon.mhp) : 0;
         const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
         const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
-        const peaceful = mon?.peaceful ? 1 : 0;
+        const peaceful = (mon?.mpeaceful ?? mon?.peaceful) ? 1 : 0;
         const sleeping = mon?.sleeping ? 1 : 0;
         const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
         const canmove = mon?.mcanmove === false ? 0 : 1;
@@ -3940,6 +3940,7 @@ function fill_zoo_room(map, sroom, depth) {
                 mon.msleeping = 1;
                 if (type === COURT && mon.mpeaceful) {
                     mon.mpeaceful = false;
+                    mon.peaceful = false;
                     set_malign(mon);
                 }
             }
