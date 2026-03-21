@@ -351,6 +351,35 @@ That means the preempting top-level branch is still a real mismatch, but not
 the whole remaining bug. The repeated-travel framing problem is deeper than
 that one reorder alone.
 
+### Summary of probes so far (second engineer)
+
+We now have four negative probes, each isolating one variable:
+
+| Probe | What changed | Result | What it rules out |
+|-------|-------------|--------|-------------------|
+| Stage B2b | Owner move only (repeatLoop → _gameLoopStep) | No improvement | Owner move alone |
+| Stage C3 | umoved reset + runmode_delay_output in slice | No improvement | Per-slice invariants alone |
+| travelPath reorder | Move travelPath below --More--/multi/occ | No improvement | Preemption ordering alone |
+| Stage B (early) | Broad multi ownership rewrite | Regressed to step 163 | Undifferentiated rewrite |
+
+Each probe was safe (no regressions on guardrails) but none moved the seam.
+This strongly suggests the fix requires changing multiple things atomically:
+
+1. Break the `while (multi > 0)` loop (one hop per `_gameLoopStep`)
+2. With C-shaped slice internals (umoved + delay + context.move=0)
+3. With unified framing (eliminate the three-way asymmetry)
+
+The cross-iteration fusing (finding #5) is the likely reason each individual
+change is insufficient: the JS slice currently spans two C iterations, so
+fixing one aspect of one iteration doesn't change what the other iteration
+sees. Only when the slice boundary matches C's iteration boundary will the
+individual invariants start to matter.
+
+Recommendation: the next attempt should combine B2b + C3 + travelPath
+reorder as one atomic change, since each has been proven individually safe
+but individually insufficient. The risk is manageable because each component
+was tested in isolation without regressions.
+
 ## Design Goal
 
 Port JS so that positive `multi` continuation is owned by the JS equivalent of
