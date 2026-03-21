@@ -15234,3 +15234,52 @@ When a correct parity fix regresses a session:
     - `997`: `u`
   - C still carries substantial turn-end work across that prompt/boundary
     region while JS has none on `997`
+
+## 2026-03-21: apply/pick-axe prompt ownership fixed; seed031 moved to 1057
+
+- The `997` seam was real core-JS prompt ownership drift, not replay noise.
+- Root causes:
+  - `apply`/pick-axe prompts were emitted with `putstr_message()`, which left
+    them on the message/`--More--` path instead of acting like topline prompts
+  - `_gameLoopStep()` only executed queued canned input after reading the next
+    fresh gameplay key
+  - the chosen dig direction was written to `player.dx/dy/dz` too late, so
+    `use_pick_axe2()` still saw the stale eastward direction
+
+- Keepable fixes:
+  - `js/allmain.js`
+    - execute queued canned commands before reading the next fresh gameplay key
+  - `js/apply.js`
+    - render apply/pick-axe direction prompts as topline prompts
+    - set `player.dx/dy/dz` before `use_pick_axe2()`
+    - wire successful pick-axe setup into `game.occupation`
+  - `js/dig.js`
+    - mirror dig occupation onto `_gstate.occupation` for the core timed-turn loop
+
+- Result:
+  - the whole pick-axe corridor now matches through the old seam
+  - `seed031_manual_direct.session.json` moved to:
+    - first RNG divergence `1057`
+    - first event divergence `1058`
+    - matched RNG `36949/51561`
+    - matched events `21226/28950`
+
+- Guardrail validated:
+  - `t11_s755_w_covmax9_gp`: PASS
+
+- New live seam:
+  - gameplay steps `1055..1066`
+  - monster missile / `more()` boundary shaped
+  - strongest local evidence:
+    - JS monster-throw trace reaches
+      - `thitu:hit:before_putstr` at step `1055`
+    - but does not resume to
+      - `thitu:hit:after_putstr`
+      until step `1066`
+  - comparison tools show C still owns substantial projectile/pet-turn work
+    across `1056..1065` while JS has none on those steps
+
+- Strategic lesson:
+  - the apply/pick-axe fix is validated and should be kept
+  - the next seam is again owner/boundary shaped, but now on the monster
+    missile path rather than the player `apply` path

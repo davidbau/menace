@@ -2713,18 +2713,21 @@ export class NetHackGame {
                 return;
             }
 
+            // C cmdq ownership: once a canned command is queued, execute it
+            // before reading the next fresh gameplay key. Its internal nhgetch()
+            // calls will then consume any queued canned keys (for example an
+            // inventory letter or direction) in C order.
+            if (cmdq_peek(CQ_CANNED)) {
+                const commandResult = await this.runOneCommandCycle(0);
+                if (!commandResult) return;
+                this.renderAndAutosave({ commandResult, autosave: true });
+                continue;
+            }
+
             const firstCh = await nhgetch({ commandBoundary: true });
             // Command-boundary --More-- dismissal is not a gameplay command.
-            // If a canned command is queued, execute it now before waiting for the
-            // next real gameplay key; C does this after the boundary dismiss key.
-            // Otherwise just refresh the command frame.
+            // Just refresh the command frame.
             if (firstCh === 0) {
-                if (cmdq_peek(CQ_CANNED)) {
-                    const commandResult = await this.runOneCommandCycle(0);
-                    if (!commandResult) return;
-                    this.renderAndAutosave({ commandResult, autosave: true });
-                    continue;
-                }
                 if (this.player?.Hallucination) return;
                 this.renderAndAutosave({ autosave: false, forceRender: true });
                 return;

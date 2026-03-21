@@ -3721,3 +3721,51 @@ New seam family:
   - step `997` key `u`
 - C still carries substantial turn-end work under that prompt/boundary region
   while JS has none on `997`
+
+### Apply/pick-axe corridor fixed; new seam at 1057 is monster-missile owned
+
+Validated local fix batch:
+- execute queued canned commands before reading the next fresh gameplay key
+- render `apply`/pick-axe prompts as topline prompts rather than message-window
+  prompts
+- set `player.dx/dy/dz` before `use_pick_axe2()`
+- mirror successful pick-axe setup onto `game.occupation` / `_gstate.occupation`
+
+Validated effect:
+- `seed031_manual_direct.session.json`
+  - first RNG divergence moved from `997` to `1057`
+  - first event divergence moved from `997` to `1058`
+  - matched RNG `36949/51561`
+  - matched events `21226/28950`
+- `t11_s755_w_covmax9_gp`: PASS
+
+Current leading seam model:
+- the pick-axe/apply corridor is no longer first-cause
+- the new live seam is on monster missile ownership around gameplay steps
+  `1055..1066`
+
+Strongest current evidence:
+1. `movement-propagation` shows:
+   - C still owns projectile and pet-turn work across `1056..1065`
+   - JS has no comparable work on those steps
+   - JS resumes only at step `1066` (space)
+
+2. `WEBHACK_THROW_TRACE` on the live seam shows:
+   - step `1055`: `thitu:hit:before_putstr`
+   - step `1066`: `thitu:hit:after_putstr`
+
+3. The first actionable extra-JS RNG already appears at `1055`:
+   - JS performs `dmgval/thitu` hit-roll work earlier than C’s grouped
+     ownership window suggests
+
+Working hypothesis:
+- the next fix belongs in the monster missile path (`mthrowu.js`), not replay
+- specifically around the in-band message/`more()` boundary between:
+  - `"The hobgoblin shoots the 3rd crossbow bolt!"`
+  - and
+  - `"You are hit by a crossbow bolt."`
+
+Next step:
+- localize the exact C-vs-JS owner boundary inside `monshoot()/m_throw_timed()`
+- then make that monster missile path C-shaped without adding replay
+  compensation

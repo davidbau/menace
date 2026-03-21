@@ -114,7 +114,7 @@ import { S_flashbeam, S_goodpos } from './symbols.js';
 import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
-import { dig_typ } from './dig.js';
+import { dig, dig_typ, use_pick_axe2 } from './dig.js';
 import { pick_lock } from './lock.js';
 import { objdescr_is } from './o_init.js';
 import { flash_hits_mon } from './uhitm.js';
@@ -1053,9 +1053,24 @@ export async function handleApply(player, map, display, game) {
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
-    const showApplyPrompt = async () => {
+    const showToplinePrompt = async (text) => {
         replacePromptMessage();
-        await display.putstr_message(prompt);
+        if (typeof display.putstr === 'function') {
+            await display.putstr(0, 0, text);
+            if (typeof display.setCursor === 'function') {
+                const cols = Number.isInteger(display.cols) ? display.cols : 80;
+                display.setCursor(Math.min(text.length, cols - 1), 0);
+            }
+            if (Object.hasOwn(display, 'topMessage')) display.topMessage = text.trimEnd();
+            if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+            if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+            if (Object.hasOwn(display, 'toplin')) display.toplin = 2;
+            return;
+        }
+        await display.putstr_message(text);
+    };
+    const showApplyPrompt = async () => {
+        await showToplinePrompt(prompt);
     };
     const buildPickaxeDirPrompt = (obj) => {
         if (!(obj && (obj.otyp === PICK_AXE || obj.otyp === DWARVISH_MATTOCK))) {
@@ -1135,8 +1150,7 @@ export async function handleApply(player, map, display, game) {
             const dirPrompt = (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK)
                 ? buildPickaxeDirPrompt(selected)
                 : 'In what direction? ';
-            replacePromptMessage();
-            await display.putstr_message(dirPrompt);
+            await showToplinePrompt(dirPrompt);
             let dir = null;
             let dirChRaw = null;
             while (!dir) {
@@ -1171,18 +1185,27 @@ export async function handleApply(player, map, display, game) {
                 return { moved: false, tookTime: false };
             }
             replacePromptMessage();
+            player.dx = dir[0];
+            player.dy = dir[1];
+            player.dz = 0;
+            confdir(false, player);
             if (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK) {
                 const dch = String.fromCharCode(dirChRaw || 0);
                 if (dch === '<') {
                     await You_cant('reach the ceiling.');
                     return { moved: false, tookTime: true };
                 }
-                return { moved: false, tookTime: true };
+                const digResult = use_pick_axe2(selected, map, player);
+                if (player.occupation === dig) {
+                    game.occupation = {
+                        occtxt: player.occupation_verb || 'digging',
+                        fn() {
+                            return dig(map, player);
+                        },
+                    };
+                }
+                return { moved: false, tookTime: digResult !== 0 };
             }
-            player.dx = dir[0];
-            player.dy = dir[1];
-            player.dz = 0;
-            confdir(false, player);
             if (selected.otyp === MIRROR) {
                 await use_mirror(selected, player);
                 return { moved: false, tookTime: true };
