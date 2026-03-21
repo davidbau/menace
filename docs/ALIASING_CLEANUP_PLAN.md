@@ -13,10 +13,17 @@ multiple names, creating:
 3. **Defensive fallback patterns**: Code like `(game.u || game.player)` that
    exists only because nobody standardized on one name
 
+## Guiding Principle
+
+**Standardize on C-canonical names for gameplay logic.** This makes the
+codebase greppable and makes C-to-JS comparison straightforward. When C
+uses `u.ux`, JS should use `u.ux` (not `player.x`). When C uses
+`mtmp->mpeaceful`, JS should use `mon.mpeaceful` (not `mon.peaceful`).
+
 ## Completed Cleanups (2026-03-21)
 
-| Old name | New name | Files changed | Status |
-|----------|----------|--------------|--------|
+| Old name | New name (C canonical) | Files changed | Status |
+|----------|----------------------|--------------|--------|
 | `mon.peaceful` | `mon.mpeaceful` | 17 | Done |
 | `mon.sleeping` | `mon.msleeping` | 15+ | Done |
 | `mon.tame` | `mon.mtame` | 12+ | Done |
@@ -25,101 +32,138 @@ multiple names, creating:
 
 ## Remaining Issues
 
-### Priority 1: Monster naming functions (CRITICAL)
+### Priority 1: Monster naming functions (CRITICAL — active bug source)
 
 **Problem**: `mon_nam`, `Monnam`, `y_monnam`, `x_monnam`, `YMonnam` are
 defined in BOTH `mondata.js` and `do_name.js` with different implementations.
 
-- `do_name.js`: Full C-style implementation with ARTICLE_NONE constants,
-  proper adjective/suppress handling. Used by 40+ files.
-- `mondata.js`: Lightweight wrappers over generic `monNam()` function.
-  Used by `weapon.js` (possibly by accident).
+| Function | do_name.js (C-faithful) | mondata.js (stub) |
+|----------|------------------------|-------------------|
+| `x_monnam` | Full impl: article, adjective, suppress, called | Lightweight wrapper over `monNam()` |
+| `mon_nam` | Wraps `x_monnam(ARTICLE_THE)` | Wraps `monNam({article:'the'})` |
+| `Monnam` | Capitalizes `mon_nam` | Wraps `monNam({capitalize:true})` |
+| `y_monnam` | Smart "your"/"the" based on mtame | Just calls `monNam()` |
+| `YMonnam` | Capitalizes `y_monnam` | Wraps `monNam({capitalize:true})` |
 
-**Risk**: `weapon.js` imports `Monnam` from `mondata.js` instead of
-`do_name.js`, potentially producing different monster name formatting.
+**Files importing from wrong source (mondata.js instead of do_name.js)**:
+- `mon.js`: imports `y_monnam, Monnam`
+- `shk.js`: imports `y_monnam`
+- `weapon.js`: imports `Monnam`
 
-**Fix**: Remove duplicate definitions from `mondata.js`. All callers should
-import from `do_name.js`. Fix `weapon.js` import.
+**Canonical**: `do_name.js` (C-faithful implementation, used by 45 files)
 
-### Priority 2: Map reference (`game.map` vs `game.lev`)
+**Fix**: Remove stubs from `mondata.js`. Fix 3 files to import from
+`do_name.js`. Verify no behavioral change (the stubs may produce different
+output for edge cases like hallucination, invisibility, adjectives).
 
-**Problem**: Game map is accessed as both `game.map` and `game.lev` with
-defensive fallback `(game.lev || game.map)` in 10+ locations.
+**Scope**: 3 import fixes + remove 5 stub functions from mondata.js
 
-- `game.map` is set in `allmain.js` init
-- `game.lev` may be an alias or a separate reference
-- 5+ files use both with fallback patterns
+### Priority 2: Hero reference (`game.u` vs `game.player`)
 
-**Fix**: Standardize on `game.map` (the canonical GameMap instance). Add
-`get lev()` getter that returns `this.map` for backward compat, then
-migrate callers.
+**Problem**: Hero object accessed as both `game.u` and `game.player` with
+defensive fallback `(game.u || game.player)` used 73+ times.
 
-### Priority 3: Player reference (`game.u` vs `game.player`)
+**Architecture** (from allmain.js):
+- `game.player` = stored property (Player class instance, line 1596)
+- `game.u` = getter/setter alias (lines 1609-1614)
 
-**Problem**: Hero object accessed as both `game.u` (C convention) and
-`game.player` (JS convention). Defensive pattern `(game.u || game.player)`
-used 100+ times.
+**C canonical**: `u` (struct you). C accesses the hero as `u.ux`, `u.ualign`,
+etc. — always through the global `u`.
 
-- `game.player` is the Player class instance
-- `game.u` may be an alias set in the constructor
+**Decision**: Standardize on **`game.u`** (matches C convention).
+- Shorter, greppable, matches C source references
+- `game.player` becomes a deprecated alias via getter
+- The 73 defensive `(game.u || game.player)` patterns simplify to `game.u`
 
-**Assessment**: Both work via defensive fallback. Low risk but high noise.
-Standardize on `game.u` (matches C convention, shorter) or `game.player`
-(clearer in JS). Consider adding a getter.
+**Scope**: 73 defensive fallbacks + scattered direct `game.player` references.
+Large but mechanical change.
 
-### Priority 4: Player coordinates (`.x`/`.y` vs `.ux`/`.uy`)
+### Priority 3: Map reference (`game.map` vs `game.lev`)
 
-**Problem**: Player position accessed as both `player.x`/`player.y`
-(JS class properties) and `player.ux`/`player.uy` (C field names).
-247 occurrences of `.ux`/`.uy` across 32 files.
+**Problem**: Game map accessed as both `game.map` and `game.lev` with
+defensive fallback `(game.lev || game.map)` used 53+ times.
 
-- Player class defines `this.x` and `this.y`
-- Code references `.ux`/`.uy` which may or may not be aliased
+**Architecture** (from allmain.js):
+- `game.map` = stored property (GameMap instance, line 1597)
+- `game.lev` = getter/setter alias (lines 1615-1620)
 
-**Fix**: Add `.ux`/`.uy` getters to Player class if not present, OR migrate
-all code to `.x`/`.y`.
+**C canonical**: C uses `levl[x][y]` for individual cells and the `level`
+global for level-wide state. Neither maps perfectly to `map` or `lev`.
+
+**Decision**: Standardize on **`game.map`** (already the stored property,
+more descriptive).
+- `game.lev` remains as deprecated getter
+- The 53 defensive `(game.lev || game.map)` patterns simplify to `game.map`
+
+**Scope**: 53 defensive fallbacks + 4 direct `game.lev` references.
+
+### Priority 4: Player coordinates (`.x`/`.y` — no change needed)
+
+**Current state**: Player class defines `this.x` and `this.y` (player.js
+lines 42-43). There are NO `.ux`/`.uy` properties or getters on Player.
+
+**C canonical**: `u.ux`, `u.uy`
+
+**Decision**: **No change**. The Player class uses `.x`/`.y` and all 977
+references use this consistently. Adding `.ux`/`.uy` would be a large
+rename with no practical benefit since `.x`/`.y` is already uniform. The
+C convention `u.ux` is matched by the access pattern `game.u.x` which
+reads naturally as "the u (hero) x coordinate."
+
+If we later standardize on `game.u`, then `game.u.x` is close enough to
+C's `u.ux` for easy cross-reference.
 
 ### Priority 5: Monster `blind` vs `mblinded`
 
-**Problem**: Similar to the other monster field aliases. `blind` is used for
-both player and monster contexts, making it hard to grep.
+**Problem**: Two separate monster fields with different semantics:
+- `mon.blind` — boolean, "is currently blind" (used in ~39 places)
+- `mon.mblinded` — integer counter, turns of blindness remaining (~30 places)
 
-- C uses `mtmp->mblinded` (integer, turns remaining) for monsters
-- C uses `Blind` macro / `u.uBlinded` for player
-- JS uses `mon.blind` (boolean) for monsters in ~39 places
-- JS uses `mon.mblinded` in ~30 places
+**C canonical**: `mtmp->mblinded` (unsigned counter). C checks blindness
+via `(!mtmp->mcansee)` which is separate from `mblinded`. C also has
+`Blinded` (capital B) for the player.
 
-**Complication**: C's `mblinded` is a COUNTER (turns remaining), not a
-boolean. `blind` might be the boolean "is blind right now" while `mblinded`
-is the turn counter. These are semantically different, not true aliases.
+**Decision**: These are **NOT aliases** — they're semantically different
+(boolean vs counter). Both should stay. However, verify that:
+- `mon.blind` is always equivalent to `!!mon.mblinded || !mon.mcansee`
+- No code writes `mon.blind` without updating `mon.mblinded`
 
-**Fix**: Investigate whether `blind` and `mblinded` serve different purposes.
-If `blind` is always `!!mblinded`, remove `blind` and use `!!mblinded`.
+**Scope**: Audit only, no migration needed unless desync found.
 
-### Priority 6: Display flags namespace
+### Priority 6: Display flags — NOT aliases (closed)
 
-**Problem**: Three access patterns for flags:
-- `game.flags` (game-level options)
-- `game.display.flags` (display options)
-- `map.flags` (level-specific flags like `is_maze_lev`)
+**Finding**: Three genuinely separate data objects:
+- `game.flags` — game-wide options (152 occurrences, C: `flags`)
+- `map.flags` — level-specific flags (C: `level.flags`)
+- `game.display.flags` — display rendering state (1 occurrence)
 
-**Assessment**: These may be genuinely different namespaces. Need
-investigation to determine if any are true aliases vs separate data.
+**Decision**: **No change**. These are separate data, not aliases.
 
-### Priority 7: Context naming (`ctx` vs `context`)
+### Priority 7: Context naming — NOT aliases (closed)
 
-**Problem**: Both `ctx` and `context` used as variable names for the game
-context object. 692 occurrences across 57 files.
+**Finding**: `game.context` is a getter that proxies to `game.svc.context`.
+`ctx` is used as a local variable name, never as a field alias. No `game.ctx`
+exists.
 
-**Assessment**: These are local variable names, not field aliases. Low risk.
-Standardize naming convention in new code but don't churn existing code.
+**Decision**: **No change**. Local variable naming convention only.
+
+## Implementation Order
+
+| Order | Issue | Scope | Risk | Approach |
+|-------|-------|-------|------|----------|
+| 1 | Monster naming functions | 3 imports + 5 stub removals | Low | Fix imports, remove stubs, test |
+| 2 | `game.u` standardization | 73+ fallbacks | Medium | Replace fallbacks, keep getter |
+| 3 | `game.map` standardization | 53+ fallbacks | Medium | Replace fallbacks, keep getter |
+| 4 | `blind`/`mblinded` audit | Audit only | Low | Verify no desync |
+
+Items 6 and 7 are closed (not aliases). Item 4 (coordinates) needs no change.
 
 ## Approach
 
 For each cleanup:
 1. Verify the alias relationship (are they truly the same data?)
 2. Choose the canonical name (prefer C convention for game logic)
-3. Add deprecation getter/setter if needed for gradual migration
-4. Migrate callers file by file
+3. Keep the deprecated alias as a getter (for gradual migration)
+4. Replace defensive `(a || b)` patterns with the canonical name
 5. Run full test suite between each batch
-6. Remove the deprecated alias after all callers are migrated
+6. After all callers are migrated, consider removing the deprecated getter
