@@ -504,6 +504,17 @@ Interpretation:
 
 This means the next Stage B attempt must preserve an additional invariant:
 
+A second structural insight came out of the code comparison:
+- JS `advanceTimedTurn()` is not just C's "actual time passed" phase
+- it already bundles `moveloop_core()` plus the once-per-player-input pre-input sync (`find_ac()`, hallucination/telepathy monster refresh, and `display_sync()`)
+- therefore a naive Stage B rewrite that calls a new movement-repeat helper after `advanceTimedTurn()` is still not C-equivalent; it has already crossed more of the C moveloop frame than the name suggests
+
+This sharpens the likely failure mode of the first Stage B patch:
+- the patch did not merely move travel ownership
+- it let the first repeated `domove()` happen after a JS helper that already folds in C's pre-input phase
+- so the hero's first repeated-travel square (`u=(23,13)`) became visible to `set_apparxy()`/`dog_invent_decision` too early
+
+
 **Stage B invariant**:
 - the first repeated travel slice must not become visible to dog-goal
   evaluation earlier than it does in C's post-`runmode_delay_output`
@@ -521,3 +532,48 @@ The next implementation should therefore:
 1. preserve Stage A counted-repeat behavior
 2. preserve the dog-goal ordering in step `933`
 3. only then attempt to move the later gas-spore contact seam
+
+## Stage B Refinement
+
+The next Stage B attempt should treat the repeat-move slice as two separate
+questions, not one:
+
+1. **Which runtime owner reaches the `gm.multi > 0 && context.mv` branch?**
+2. **At what exact point does the first repeated `domove()` become visible to
+   monster logic?**
+
+The failed travel-only patch answered the first question but not the second.
+It moved ownership, but it still allowed the first repeated travel square to
+become visible to dog evaluation too early.
+
+The current best C-faithful hypothesis is narrower than the original plan:
+
+- the replay/runtime boundary equivalent to `runmode_delay_output()` must yield
+  **before** the first repeated `domove()` exposes `u=(23,13)` to the next pet
+  goal calculation
+- so the first Stage B patch was still one slice too eager, even though it had
+  moved ownership away from `run_command().repeatLoop()`
+
+This does **not** mean adding synthetic replay scheduling or prompt hacks.
+It means the JS moveloop port still needs a more exact subdivision of the C
+frame around:
+
+- end of actual-time-passed processing
+- once-per-player-input pre-input sync
+- `lookaround()`
+- `runmode_delay_output()`
+- and only then the first repeated `domove()`
+
+Additional invariant for the next implementation:
+
+- do not call a helper that performs the first repeated `domove()` until the
+  JS runtime has matched the C state *immediately after* the
+  `runmode_delay_output()` boundary that precedes that `domove()`
+
+Practical implication:
+
+- the next code attempt should not be "Stage B patch v2"
+- it should first factor the JS equivalent of the C once-per-player-input frame
+  into smaller units so we can place the first repeated `domove()` at the exact
+  C boundary, rather than after a helper (`advanceTimedTurn()`) that already
+  bundles too much of the moveloop frame
