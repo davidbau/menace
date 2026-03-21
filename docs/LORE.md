@@ -14761,3 +14761,34 @@ effect was missing.
     2. the runtime owner of that slice
   - extracting the slice first reduces risk when Stage B2b later moves
     ownership toward the `_gameLoopStep()` / moveloop-style owner
+
+# 2026-03-21: Stage B2b showed the owner move alone does not fix `seed031`
+
+- Evidence from a reverted Stage B2b patch:
+  - patch shape:
+    - left `runMovementRepeatSlice(...)` unchanged
+    - stopped `run_command().repeatLoop()` from draining `context.mv == true`
+      repeats locally
+    - moved only the movement-repeat owner to `_gameLoopStep()`
+  - results:
+    - `seed031_manual_direct` did not improve:
+      - first RNG divergence stayed `933`
+      - first event divergence stayed `934`
+    - early counted-repeat corridor `160..166` stayed unchanged
+    - targeted gameplay guardrails still passed
+    - but later normalized matching regressed slightly:
+      - events `19066 -> 19065`
+      - screens `1279 -> 1264`
+- Root conclusion:
+  - the first travel/contact seam is not fixed by changing the outer runtime
+    owner alone
+  - the remaining problem is still inside the repeated movement slice itself:
+    - ordering of `lookaround()`
+    - `runmode_delay_output()`
+    - and when the post-turn/pre-input sync happens relative to the repeated
+      `domove()`
+- Lesson:
+  - Stage B2b should not be retried unchanged
+  - next work should target the **slice internals** before another owner move
+  - the owner question still matters, but only after the repeated-travel slice
+    is internally closer to C

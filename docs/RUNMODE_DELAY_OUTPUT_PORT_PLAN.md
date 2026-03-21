@@ -686,3 +686,50 @@ At step 933, after the fix:
 
 The `^dog_invent_decision` event's `ud` field is the direct observable.
 If `ud=8` matches C, the ordering is correct.
+
+## Stage B2b Failure: Owner Move Alone Is Not Sufficient
+
+*Observed locally on 2026-03-21; code reverted immediately.*
+
+After Stage B1 and Stage B2a, we tested a narrow Stage B2b patch that:
+
+- kept the extracted `runMovementRepeatSlice(...)` body unchanged
+- stopped `run_command().repeatLoop()` from draining `context.mv == true`
+  repeats locally
+- moved only the positive-multi movement owner to `_gameLoopStep()`
+
+Result:
+- the early counted-repeat corridor `160..166` stayed unchanged
+- the four targeted gameplay guardrails stayed green
+- but `seed031` did **not** improve:
+  - first RNG divergence stayed at `933`
+  - first event divergence stayed at `934`
+- and later normalized matching got slightly worse:
+  - events `19066 -> 19065`
+  - screens `1279 -> 1264`
+
+The normalized event window under the failed B2b patch still showed the same
+core hostile-contact seam, only repacked across later JS steps:
+
+- JS step `937`: `^distfleeck[27@27,13 in=1 near=1 ...]`
+- C step `948`: `^distfleeck[27@27,13 in=1 near=0 ...]`
+
+Interpretation:
+- moving the runtime owner alone does not fix the first travel/contact seam
+- the first actionable mismatch is still governed by the internals of the
+  repeated movement slice itself, not merely by whether `_gameLoopStep()` or
+  `run_command()` owns that slice
+- the owner move did alter later step packing, but without improving the
+  first C-vs-JS disagreement
+
+Updated implication for Stage B:
+
+1. Stage B1 and B2a were still useful prerequisites.
+2. Stage B2b should **not** be retried unchanged.
+3. The next meaningful attempt must change the **slice internals** around:
+   - `lookaround()`
+   - `runmode_delay_output()`
+   - when `advanceTimedTurn()` / pre-input sync happens relative to the
+     repeated `domove()`
+4. Only after that internal ordering becomes more C-faithful does it make
+   sense to revisit the outer owner move.
