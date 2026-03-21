@@ -1268,7 +1268,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     }
 
     // C ref: monmove.c:715 — update quest status flags
-    quest_stat_check(mon, player);
+    quest_stat_check(mon, player, game);
 
     // C ref: monmove.c:717-724 — immobile/waiting monsters cannot act.
     // Preserve Hallucination newsym side effect when represented.
