@@ -1092,7 +1092,7 @@ function postRender(game, result) {
     // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
     // because docrt() internally calls cursorOnPlayer and would clobber it.
     if (result?.isCountDigitWithDisplay) return;
-    const mapReady = !!(game?.lev || game?.map);
+    const mapReady = !!(game?.map || game?.map);
     if (typeof game.docrt === 'function' && mapReady) {
         game.docrt();
     }
@@ -1428,9 +1428,9 @@ function buildTutorialMenuPrompt(welcomeMsg) {
         if (display && typeof display.clearScreen === 'function') {
             display.clearScreen();
         }
-        if (g.fov && (g.lev || g.map) && (g.u || g.player)) {
-            const map = g.lev || g.map;
-            const player = g.u || g.player;
+        if (g.fov && (g.map || g.map) && (g.u || g.u)) {
+            const map = g.map || g.map;
+            const player = g.u || g.u;
             g.fov.compute(map, player.x, player.y);
             if (typeof display?.renderMap === 'function') {
                 display.renderMap(map, player, g.fov, g.flags);
@@ -1608,6 +1608,13 @@ export class NetHackGame {
         });
         // game.u is the canonical hero reference (C: u).
         // game.map is the canonical level reference (C: level/levl).
+        // Backward-compat getter: many callsites destructure { player } from game.
+        Object.defineProperty(this, 'player', {
+            configurable: true,
+            enumerable: false,
+            get: () => this.u,
+            set: (v) => { this.u = v; },
+        });
         // Legacy movement-prefix mirrors mapped onto canonical context fields.
         Object.defineProperty(this, 'runMode', {
             configurable: true,
