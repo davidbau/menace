@@ -14633,3 +14633,50 @@ When a correct parity fix regresses a session:
   - branch-local dungeon level is not a safe substitute for C
     `level_difficulty()` in runtime generation paths; branch-aware difficulty
     must be preserved anywhere random monster strength is chosen
+
+# 2026-03-21: queued fresh keys are present, but `_gameLoopStep()` still takes the positive-repeat travel lane first
+
+- Evidence on branch `armoroff-general-fix` after the validated travel owner
+  fix (`b3b616674`) and visible-hostile stop gate (`a98f4379f`):
+  - gameplay-step numbering for `seed031_manual_direct` must use
+    `getSessionGameplaySteps(session)`, not raw `session.steps[]`
+  - around the remaining seam:
+    - gameplay `933`: `"."`
+    - `934`: `"h"`
+    - `935`: `"b"`
+    - `936`: `"y"`
+    - `937`: `"."`
+  - `REPLAY_PENDING_TRACE` shows those later steps are fresh gameplay keys:
+    - `step=934 key="h" mode=start-gameloop start=done`
+    - `step=935 key="b" mode=start-gameloop start=done`
+    - `step=936 key="y" mode=start-gameloop start=done`
+  - temporary `_gameLoopStep()` branch-owner tracing showed, on those same
+    steps, JS still chooses:
+    - `branch=positiveMoveContinuation`
+    - with queue lengths growing from `1` to `4`
+  - simultaneous `RUN_TRACE` shows the corresponding travel hops:
+    - `23,13 -> 24,13`
+    - `24,13 -> 25,13`
+    - `25,13 -> 26,13`
+    - then visible-hostile stop at `26,13 -> 27,13`
+- Root finding:
+  - the surviving seam is no longer well-described as "fresh movement command
+    path is wrong"
+  - a fresh-movement `cmd.js` probe that tried to do C-style `set_move_cmd()`
+    setup before `domove()` was a complete no-op on `seed031`
+  - that means the bad `934..936` travel hops are not coming solely from the
+    top-level `rhack()` movement branch
+  - instead, queued fresh keys already exist while `_gameLoopStep()` still
+    takes the explicit no-input positive-repeat lane first
+- Negative probe:
+  - a narrow `replay_core.js` probe that tried to drain only explicit no-input
+    owners after a step also produced no change on `seed031`
+  - so the diagnosis is real, but that particular post-step drain shape was not
+    the correct implementation
+- Lesson:
+  - when `_gameLoopStep()` is allowed to return after one positive-repeat slice,
+    the critical question is not just who owns the slice, but when queued fresh
+    keys become visible relative to that owner
+  - for manual-direct parity seams, always reason on gameplay-step numbering and
+    verify whether later keys are already queued before blaming fresh-command
+    parsing or monster AI formulas
