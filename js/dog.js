@@ -442,7 +442,9 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
         if (wasOnOldMap) {
             oldMap.removeMonster(pet);
         }
-        const mtame = pet.mtame || (pet.mtame ? 10 : 0);
+        // C ref: pet arrives with mtame from save. If mtame is 0/missing
+        // but pet was tame, default to 10 (domestic) — shouldn't normally happen.
+        const mtame = pet.mtame || 0;
         const bound = mtame > 0 ? 10 : (pet.mpeaceful ? 5 : 2);
 
         pet.mux = heroX;
