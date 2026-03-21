@@ -15358,3 +15358,27 @@ distinction is always conditional on being in Gehennom.
     merely because `_gameLoopStep()` returned, if no-input continuation is
     still pending and the game is not actually waiting for input
 
+# 2026-03-21: The remaining gas-spore `near` seam is still cross-step, not yet a proven monster-state bug
+
+- A crucial correction from the latest comparison:
+  - the normalized event mismatch
+    - JS: `^distfleeck[27@27,13 in=1 near=1 ...]`
+    - C:  `^distfleeck[27@27,13 in=1 near=0 ...]`
+    is **not** comparing the same recorded input key on both sides
+- Actual session keys show:
+  - JS aligned steps there are still:
+    - `937 = "l"`
+    - `938 = "l"`
+  - the normalized C side is already at:
+    - `947 = "."`
+    - `948 = "h"`
+- So the latest monster-27 analysis must be restated:
+  - JS does show gas spore `27` at step `937` refreshing toward `(26,13)` and
+    moving from `28,13 -> 27,13`
+  - but the later C `near=0` comparison is still on a later recorded key
+  - therefore this is still best treated as step-attribution / ownership drift,
+    not as a proven `distfleeck()` / `set_apparxy()` logic bug
+- Consequence:
+  - do **not** patch `distfleeck()` or `set_apparxy()` on this evidence
+  - the next fix target remains command/timed-turn ownership: why does JS emit
+    this monster bundle earlier in the input-step stream than C?

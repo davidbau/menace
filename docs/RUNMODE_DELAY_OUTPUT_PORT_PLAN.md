@@ -275,6 +275,44 @@ This does **not** mean "step numbers are not input-delimited".
 It means the current JS executor is not yet enforcing that input-delimited
 boundary strongly enough.
 
+### 6. The surviving gas-spore `near=1` vs `near=0` mismatch is still cross-step
+
+The strongest correction from the latest analysis is:
+
+- the normalized event window around the remaining seam does **not** compare
+  the same recorded input key on both sides
+- current alignment shows:
+  - JS `step=937`, `step=938` keys are still `"l"`, `"l"`
+  - the aligned C events are at `step=947`, `step=948`, whose keys are
+    `"."`, `"h"`
+
+This matters because it invalidates the earlier narrow claim:
+- it is **not** yet proven that JS monster 27 and C monster 27 are seeing the
+  same input-step boundary when `near=1` vs `near=0` is compared
+- therefore the surviving `distfleeck()` mismatch is still best treated as
+  cross-step attribution / ownership drift first, not as a confirmed
+  monster-AI formula or `set_apparxy()` state bug
+
+What remains true:
+- JS step `937` shows gas spore at `(28,13)` refreshing to target `(26,13)` and
+  moving to `(27,13)`
+- JS step `938` then starts with:
+  - `^movemon_turn[27@27,13 mv=12->0]`
+  - `^distfleeck[27@27,13 in=1 near=1 ...]`
+
+But because the aligned C `near=0` event lands on later recorded keys
+(`"."`, `"h"`), the next fix target should be framed as:
+- what command/timed-turn ownership still lets JS advance this monster bundle
+  earlier in the session-step stream than C does?
+
+That is a stronger and safer statement than:
+- "monster 27 target persistence is wrong"
+
+The immediate implication for implementation is:
+- do not patch `distfleeck()` or `set_apparxy()` from this evidence
+- continue treating the remaining problem as boundary/ownership drift until a
+  same-key comparison proves otherwise
+
 That failure showed:
 - the repeat ownership must move in a way that preserves the full C frame around it
 - especially the split between:
