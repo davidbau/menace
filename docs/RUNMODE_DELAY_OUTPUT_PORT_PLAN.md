@@ -2263,6 +2263,47 @@ that still honors the carried travel state.
 
 That probe was reverted.
 
+## 2026-03-21 rejected probe: same-step positive-move drain still breaks termination
+
+A narrower follow-up probe tried to avoid the broader replay mistake:
+
+- do **not** drain before every next admitted key
+- only, when a consumed key's command promise finishes,
+- and only if `positiveMoveContinuation` is still armed,
+- keep draining `_gameLoopStep()` inside that **same** fixture step
+
+Observed effect:
+
+- it removed the same mid-seam admission pattern:
+  - no `mode=admit-key explicitOwner=positiveMoveContinuation` on steps
+    `934..937`
+- the trace showed the extra work folded into gameplay step `933` instead:
+  - repeated `mode=same-step-drain explicitOwner=positiveMoveContinuation`
+- [t11_s755_w_covmax9_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json)
+  still passed
+
+But it failed in the same way as the broader replay drain:
+
+- `seed031_manual_direct` later timed out at the final credit-space step
+
+Interpretation:
+
+- this strengthens the evidence that the seam family is correct:
+  - the wrong work is being carried across the command boundary around step 933
+- but it weakens the case for replay-side step extension as the keepable fix
+- both replay-side drain variants:
+  - move the seam in the predicted direction, and
+  - preserve the nearby gameplay guardrail,
+  - but both break late-session termination semantics
+
+So the next best move is to return to core/runtime ownership:
+
+- why does the runtime still leave `positiveMoveContinuation` armed after the
+  `.` resume path completes step `933`?
+- should `_gameLoopStep()` itself be returning "done" in that state?
+
+That is now more promising than another replay-side drain variant.
+
 ## Current best next step
 
 Inspect the fresh-command path itself:

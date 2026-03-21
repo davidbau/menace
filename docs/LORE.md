@@ -80,6 +80,25 @@ For the full narratives of how these lessons were discovered, see the
   - otherwise it risks crossing unrelated later boundaries and breaking normal
     termination behavior
 
+## 2026-03-21 - even the narrower same-step replay drain is not keepable
+
+- A stricter replay probe limited the extra draining to the **same consumed
+  fixture step**:
+  - only after a key's command promise finished
+  - only when `positiveMoveContinuation` was still armed
+- This still moved the seam in the predicted direction:
+  - the bad fresh-key admission pattern on steps `934..937` disappeared
+  - the extra work folded into step `933`
+  - `t11_s755_w_covmax9_gp` still passed
+- But it failed in the same end-state way as the broader replay drain:
+  - `seed031_manual_direct` timed out at the final credit-space step
+- Durable lesson:
+  - replay-side step extension is probably not the keepable fix, even when it
+    is shaped narrowly and seems locally correct
+  - the remaining fix should likely move back into core/runtime ownership:
+    why does the runtime still return from the resumed `.` path with
+    `positiveMoveContinuation` left armed?
+
 ## 2026-03-19 - object age and thrown-kill ownership
 
 - `mkobj.newobj()` must seed `obj.age` from the current move count, not a
