@@ -128,6 +128,62 @@ waitForInputWait/isWaitingInput DOES detect more() blocks. The 74-vs-57
 step mismatch may have a different root cause than nhgetch_display_raw
 bypassing detection. Needs further investigation.
 
+## Root Cause of Gate 2 Screen Regressions (March 20)
+
+**Traced to**: Phase B monster messages (e.g., "watch captain drinks...") are
+placed on row 0 during `advanceTimedTurn`, but `run_command` clears row 0
+at its start. Both happen in the SAME `_gameLoopStep` call. The screen capture
+happens AFTER `run_command` processes the command — message already gone.
+
+**C model** — three `toplin` states:
+- `TOPLINE_EMPTY` (0): no message
+- `TOPLINE_NEED_MORE` (1): message displayed, needs --More-- acknowledgement
+- `TOPLINE_NON_EMPTY` (2): message acknowledged (player pressed key while visible)
+
+C flow per `moveloop_core` iteration:
+1. Phase B: `movemon()` — monster messages set `toplin = 1` via `update_topl()`
+2. If previous message still on topline (`toplin = 1`) and new message overflows →
+   `update_topl` calls `more()` before displaying new message
+3. Phase C: `display_nhwindow(WIN_MESSAGE, FALSE)` = `tty_clearmsg()`:
+   if `toplin == 1` → `more()` (player reads message), then clear.
+   if `toplin == 2` → just clear (already acknowledged).
+4. Phase F: `ch = nhgetch()` — transitions `toplin` 1→2 (acknowledge).
+   Screen captured here.
+
+**Why JS fails**: JS lacks the 3-state `toplin` model. `messageNeedsMore` is
+a boolean that gets cleared by `nhgetch_raw` after EVERY key read. So by the
+time `run_command`'s clearing runs, `messageNeedsMore` is always false. The
+`putstr_message` overflow path (which calls `more()`) only fires when there's
+ALREADY a message on the topline — but the previous step's `run_command`
+already cleared it.
+
+**What needs to happen**:
+1. `putstr_message` should set `messageNeedsMore = true` for ALL fresh messages
+   (matching C's `toplin = 1` in `update_topl`)
+2. `nhgetch_raw` should transition `messageNeedsMore` from true to false
+   (matching C's `toplin` 1→2) — this is what it already does
+3. `run_command`'s topline clearing should NOT clear the message that was
+   just placed by Phase B — because Phase B and `run_command` are in the
+   SAME `_gameLoopStep` call, and the `nhgetch` between them (which would
+   transition 1→2) hasn't fired yet
+
+The fundamental tension: Phase B places a message (`toplin = 1`), but `nhgetch`
+(which transitions 1→2) runs before `run_command` checks it. So `run_command`
+sees `toplin = 2` (not 1) and just clears without `more()`.
+
+**The fix**: either restructure so `nhgetch` runs AFTER Phase B but BEFORE
+`run_command`'s clearing (i.e., Phase B → `nhgetch` block → screen captured
+with message → key pushed → `run_command` starts), OR implement proper 3-state
+`toplin` tracking where Phase B messages survive the `nhgetch` transition.
+
+## nhgetch simplification completed (March 20)
+
+nhgetch simplified on main (439/442, zero regressions):
+- Removed command boundary --More-- from nhgetch
+- Moved to _gameLoopStep callers
+- Removed nhgetch_display_raw
+- display.setNhgetch uses nhgetch directly
+
 ## Revised approach
 
 Do nhgetch simplification TOGETHER with Gate 2, on the gate2-phase-b branch.
