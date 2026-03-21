@@ -98,7 +98,7 @@ import { break_wand } from './zap.js';
 import { wield_tool } from './wield.js';
 import { body_part } from './polyself.js';
 import { freehand, can_reach_floor } from './engrave.js';
-import { Blindf_off } from './do_wear.js';
+import { Blindf_off, clearWornItemEffects } from './do_wear.js';
 import { dropx } from './do.js';
 import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
@@ -114,7 +114,7 @@ import { S_flashbeam, S_goodpos } from './symbols.js';
 import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
-import { dig_typ } from './dig.js';
+import { dig_typ, use_pick_axe } from './dig.js';
 import { pick_lock } from './lock.js';
 import { objdescr_is } from './o_init.js';
 import { flash_hits_mon } from './uhitm.js';
@@ -533,7 +533,7 @@ export async function use_lamp(obj) {
 // cf. apply.c:1699 -- STUB: light_cocktail
 export async function light_cocktail(obj) {
     if (obj.lamplit) { await You("snuff the lit potion."); end_burn(obj, true); return; }
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     await You("light %spotion.%s", shk_your(obj), player?.Blind ? "" : "  It gives off a dim light.");
     begin_burn(obj, false);
 }
@@ -899,7 +899,7 @@ async function use_cream_pie(obj, player) {
     if (obj.quan > 1) obj.quan--;
     await You("immerse your face in %s.", xname(obj));
     rnd(25); // blindinc RNG consumption
-    if (obj.quan <= 0) setnotworn(player, obj);
+    if (obj.quan <= 0) clearWornItemEffects(player, obj);
 }
 
 // cf. apply.c:3603 -- jelly_ok
@@ -1053,9 +1053,27 @@ export async function handleApply(player, map, display, game) {
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
-    const showApplyPrompt = async () => {
+    const showToplinePrompt = async (text) => {
         replacePromptMessage();
-        await display.putstr_message(prompt);
+        if (Object.hasOwn(display, '_topMessageRow1') && display._topMessageRow1 !== undefined) {
+            display.clearRow(1);
+            display._topMessageRow1 = undefined;
+        }
+        if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+        if (typeof display.putstr === 'function') {
+            await display.putstr(0, 0, text, 7);
+            display.topMessage = text.trimEnd();
+            if ('toplin' in display) display.toplin = 2;
+            const cols = Number.isInteger(display.cols) ? display.cols : 80;
+            if (typeof display.setCursor === 'function') {
+                display.setCursor(Math.min(text.length, cols - 1), 0);
+            }
+            return;
+        }
+        await display.putstr_message(text);
+    };
+    const showApplyPrompt = async () => {
+        await showToplinePrompt(prompt);
     };
     const buildPickaxeDirPrompt = (obj) => {
         if (!(obj && (obj.otyp === PICK_AXE || obj.otyp === DWARVISH_MATTOCK))) {
@@ -1099,7 +1117,7 @@ export async function handleApply(player, map, display, game) {
             return { moved: false, tookTime: true };
         }
         if (isApplyChopWeapon(selected)) {
-            await display.putstr_message('In what direction do you want to chop? [>] ');
+            await showToplinePrompt('In what direction do you want to chop? [>] ');
             await nhgetch();
             replacePromptMessage();
             return { moved: false, tookTime: false };
@@ -1136,7 +1154,7 @@ export async function handleApply(player, map, display, game) {
                 ? buildPickaxeDirPrompt(selected)
                 : 'In what direction? ';
             replacePromptMessage();
-            await display.putstr_message(dirPrompt);
+            await showToplinePrompt(dirPrompt);
             let dir = null;
             let dirChRaw = null;
             while (!dir) {
@@ -1177,7 +1195,18 @@ export async function handleApply(player, map, display, game) {
                     await You_cant('reach the ceiling.');
                     return { moved: false, tookTime: true };
                 }
-                return { moved: false, tookTime: true };
+                if (dch === '>') {
+                    player.dx = 0;
+                    player.dy = 0;
+                    player.dz = 1;
+                } else {
+                    player.dx = dir[0];
+                    player.dy = dir[1];
+                    player.dz = 0;
+                    confdir(false, player);
+                }
+                const res = use_pick_axe(selected, map, player);
+                return { moved: false, tookTime: res !== 0 };
             }
             player.dx = dir[0];
             player.dy = dir[1];

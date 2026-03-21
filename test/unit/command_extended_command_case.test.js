@@ -40,7 +40,7 @@ function makeGame() {
     };
 
     const game = {
-        player,
+        u: player,
         map,
         display,
         fov: null,
@@ -89,10 +89,10 @@ test('#untrap on current square with no trap uses C no-trap wording', async () =
     assert.equal(game.display.messages.at(-1), 'You know of no traps there.');
 });
 
-test('#name object-type path rejects non-callable inventory item with C wording', { skip: '#name menu now uses fullscreen rendering requiring additional navigation keys' }, async () => {
+test('#name object-type path rejects non-callable inventory item with C wording', async () => {
     clearInputQueue();
     const game = makeGame();
-    game.player.inventory = [
+    game.u.inventory = [
         { invlet: 'a', oclass: WEAPON_CLASS, otyp: 27, name: 'spear', dknown: true, bknown: true, known: true },
         { invlet: 'b', oclass: WEAPON_CLASS, otyp: 34, name: 'dagger', dknown: true, bknown: true, known: true },
         { invlet: 'c', oclass: ARMOR_CLASS, otyp: 150, name: 'small shield', dknown: true, bknown: true, known: true },
@@ -103,16 +103,16 @@ test('#name object-type path rejects non-callable inventory item with C wording'
 
     for (const ch of 'name') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
-    pushInput('o'.charCodeAt(0));
-    pushInput('h'.charCodeAt(0));
-    pushInput('h'.charCodeAt(0));
-    pushInput('a'.charCodeAt(0));
+    pushInput('o'.charCodeAt(0));  // select "name object type"
+    pushInput('h'.charCodeAt(0));  // invalid invlet → "You don't have that object."
+    pushInput(' '.charCodeAt(0));  // dismiss --More-- after error
+    pushInput('a'.charCodeAt(0));  // select spear (known, not callable) → "silly thing to call"
 
     const result = await rhack('#'.charCodeAt(0), game);
 
     assert.equal(result.tookTime, false);
-    assert.ok(game.display.messages.includes('                                What do you want to name?'));
-    assert.ok(game.display.messages.includes('What do you want to call? [eg or ?*] '));
+    assert.ok(game.display.messages.some(m => m.includes('What do you want to call?')));
+    assert.ok(game.display.messages.some(m => m.includes("You don't have that object.")));
     assert.equal(game.display.topMessage, 'That is a silly thing to call.');
 });
 
@@ -130,7 +130,7 @@ test('#repeat returns repeat request sentinel', async () => {
 test('#wipe prints face-clean message and returns tookTime true', async () => {
     clearInputQueue();
     const game = makeGame();
-    game.player.ucreamed = 0;
+    game.u.ucreamed = 0;
     for (const ch of 'wipe') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
 
@@ -140,7 +140,7 @@ test('#wipe prints face-clean message and returns tookTime true', async () => {
         `expected face message, got: ${JSON.stringify(game.display.messages)}`);
 });
 
-test('#pray shows prayer message', { skip: 'dopray requires full game state (can_pray calls multiple subsystems)' }, async () => {
+test('#pray shows prayer message', async () => {
     clearInputQueue();
     const game = makeGame();
     for (const ch of 'pray') pushInput(ch.charCodeAt(0));
@@ -190,7 +190,7 @@ test('#enhance shows skill list for initialized role (Wizard has 22 skills)', as
     clearInputQueue();
     const game = makeGame(); // makeGame calls player.initRole(11) = Valkyrie
     // re-init as Wizard (role index 12) for spell skills
-    game.player.initRole(12);
+    game.u.initRole(12);
     for (const ch of 'enhance') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
     pushInput(27); // ESC from skill selection (no slots to advance at level 1)
@@ -247,7 +247,7 @@ test('#offer on altar does not say not-on-altar', async () => {
     clearInputQueue();
     const game = makeGame();
     // Place an altar at player position
-    const loc = game.map.at(game.player.x, game.player.y);
+    const loc = game.map.at(game.u.x, game.u.y);
     loc.typ = ALTAR;
     for (const ch of 'offer') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
@@ -273,7 +273,7 @@ test('#monster when not polymorphed prints C wording', async () => {
 test('#adjust with empty inventory shows message', async () => {
     clearInputQueue();
     const game = makeGame();
-    game.player.inventory = [];
+    game.u.inventory = [];
     for (const ch of 'adjust') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
 
@@ -285,7 +285,7 @@ test('#adjust with empty inventory shows message', async () => {
 test('#adjust swaps inventory letters', async () => {
     clearInputQueue();
     const game = makeGame();
-    game.player.inventory = [
+    game.u.inventory = [
         { invlet: 'a', oclass: WEAPON_CLASS, otyp: 27, quan: 1, name: 'spear' },
         { invlet: 'b', oclass: WEAPON_CLASS, otyp: 34, quan: 1, name: 'dagger' },
     ];
@@ -295,8 +295,8 @@ test('#adjust swaps inventory letters', async () => {
     pushInput('c'.charCodeAt(0)); // assign to 'c'
 
     await rhack('#'.charCodeAt(0), game);
-    assert.equal(game.player.inventory[0].invlet, 'c');
-    assert.equal(game.player.inventory[1].invlet, 'b');
+    assert.equal(game.u.inventory[0].invlet, 'c');
+    assert.equal(game.u.inventory[1].invlet, 'b');
 });
 
 }); // describe

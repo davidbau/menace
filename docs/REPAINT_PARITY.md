@@ -141,6 +141,238 @@ Once the vocabulary and boundary ownership are stable:
 2. decide whether selected sessions should gate on it
 3. only then consider wider rerecord of the suite
 
+## Tools
+
+The repaint campaign is only useful if people can answer boundary questions
+quickly.  For `--More--` and prompt-ownership bugs, use these tools in this
+order.
+
+### 1. Headline localization
+
+Start by identifying whether the first meaningful divergence is:
+
+1. gameplay (`rng` / `event`)
+2. visible output only (`screen` / `cursor`)
+3. a cross-step boundary drift where totals are conserved but work moved to a
+   later or earlier gameplay step
+
+Useful commands:
+
+```bash
+node test/comparison/session_test_runner.js --verbose <session>
+node scripts/pes-report.mjs
+```
+
+### 2. Step-boundary ownership summary
+
+Use the step-boundary summary first when the question is:
+
+- “which gameplay step owns this pending `--More--`?”
+- “did JS finish this step earlier than C?”
+- “is the next key being admitted before a pending message boundary is done?”
+
+Command:
+
+```bash
+node scripts/step-boundary-context.mjs <session> --step <N> --window 2
+```
+
+This is usually the fastest way to see:
+
+1. the step key
+2. whether the step is tagged `[more-dismiss: ...]`
+3. whether `messageNeedsMore` / `topMessage` are still active
+4. whether C and JS are redistributing work across adjacent steps
+
+### 3. Ordered event/RNG comparison
+
+When the step summary says “same family of work, wrong step ownership,” drill
+into the ordered streams:
+
+```bash
+node scripts/comparison-window.mjs <session> --channel rng --view filtered-raw --raw-step
+node scripts/comparison-window.mjs <session> --channel event --view normalized
+```
+
+Use this when you need to answer:
+
+1. what is the first ordered entry that moved?
+2. did `^more_key` / `^more_return` happen before or after monster/pet tail?
+3. is the issue repaint-only, or did gameplay ownership drift too?
+
+### 4. Repaint-only ordered diff
+
+When RNG/events already match and only visible timing is wrong:
+
+```bash
+node test/comparison/repaint_step_diff.js <session> --steps=<N>
+```
+
+Use this to compare:
+
+1. `^repaint[...]` event ordering
+2. prompt entry versus `more()` versus `flush_screen()` ownership
+3. status-line redraw timing
+
+### 5. JS-side boundary tracing
+
+For JS-side “is `more()` taking my keys?” debugging, use the targeted debug
+traces:
+
+1. `WEBHACK_REPAINT_DEBUG=1`
+   - emits `^repaintdbg[...]` owner/context information
+2. `WEBHACK_MORE_TRACE=1`
+   - emits stderr diagnostics for `more()` enter/key/return
+3. `WEBHACK_MORE_TRACE_STEP=<N>`
+   - restricts the `more()` trace to one gameplay step
+
+Typical usage:
+
+```bash
+WEBHACK_MORE_TRACE=1 WEBHACK_MORE_TRACE_STEP=1055 \
+node test/comparison/session_test_runner.js --verbose <session>
+```
+
+This is the best direct JS tool for questions like:
+
+1. did `more()` actually start waiting here?
+2. which step finally produced the dismiss key?
+3. did `more()` return in the same gameplay step or much later?
+
+### 6. C-side owner trace
+
+For C truth, use repaint debug logs:
+
+1. `NETHACK_REPAINT_DEBUG=1`
+2. rerecord through the C harness
+3. read the emitted `<output>.repaintdbg.log`
+
+For keylog-backed sessions, the harness path is now:
+
+```bash
+python3 test/comparison/c-harness/keylog_to_session.py ...
+```
+
+and it forwards repaint-debug settings into the C binary and copies the log to:
+
+```text
+<output>.repaintdbg.log
+```
+
+Important owner lines for `--More--` debugging:
+
+1. `owner=tty.topl.more.await`
+2. `owner=tty.topl.more.key`
+3. `owner=tty.topl.more.return`
+4. `owner=tty.topl.update_topl.pre_more`
+5. `owner=tty.topl.update_topl.concat_fit`
+
+Those are the authoritative C answers to:
+
+1. when did tty start waiting?
+2. which key dismissed the wait?
+3. when did tty return from `more()`?
+4. was the boundary caused by concat overflow or a fresh topline?
+
+## `--More--` Ownership Workflow
+
+Use this workflow when the question is “is `more()` taking my keys?” or “which
+step owns the pending message?”
+
+### A. Establish whether the bug is really a `more()` bug
+
+Do not assume a visible `--More--` marker means the bug is in `more()`.
+Often the real bug is earlier:
+
+1. JS entered a prompt/message path too early
+2. JS returned to the command boundary too early
+3. monster or pet tail work got redistributed across steps
+
+Start with:
+
+```bash
+node scripts/step-boundary-context.mjs <session> --step <N> --window 3
+```
+
+If C and JS are already doing different gameplay work before any `^more_key`,
+fix gameplay ownership first.
+
+### B. Compare JS `more()` timing directly
+
+Run the JS trace on the suspicious corridor:
+
+```bash
+WEBHACK_MORE_TRACE=1 WEBHACK_MORE_TRACE_STEP=<N> \
+node test/comparison/session_test_runner.js --verbose <session>
+```
+
+Read these in order:
+
+1. `[MORE step=N] enter ...`
+2. `[MORE step=M] key ...`
+3. `[MORE step=M] return ...`
+
+Interpretation:
+
+1. `enter` with no later `key/return`
+   - JS entered the boundary but never dismissed it during the inspected
+     corridor
+2. `enter` at step `N`, `key/return` at step `N+1`
+   - normal one-step delayed dismissal pattern
+3. `enter` at step `N`, `key/return` much later
+   - strong sign that JS let unrelated outer-loop work or fresh commands
+     advance while the old message stayed pending
+
+### C. Compare the C owner path
+
+Rerecord the same corridor with:
+
+```bash
+NETHACK_REPAINT_DEBUG=1 python3 test/comparison/c-harness/rerecord.py <session>
+```
+
+or directly through `keylog_to_session.py` for keylog sessions.
+
+Then inspect:
+
+```bash
+rg 'tty\\.topl\\.more\\.(await|key|return)|tty\\.topl\\.update_topl' <output>.repaintdbg.log
+```
+
+This tells you whether C:
+
+1. blocked in `more()` immediately
+2. returned from `more()` before later monster/pet/timed-turn work
+3. never called `more()` there at all, meaning JS is blocking too early
+
+### D. Decide where to fix it
+
+Use these rules:
+
+1. If JS enters `more()` and C does not:
+   - fix the message/prompt owner that called `more()`
+   - do not patch replay
+2. If both enter `more()`, but JS returns much later:
+   - fix outer-loop ownership around that boundary
+   - do not change key comparators
+3. If both return at the same point, but screen state still differs:
+   - fix repaint ownership (`flush_screen`, `bot`, cursor, prompt entry)
+
+## Current Relevant Signals
+
+For modern `--More--` debugging, the most relevant signals are:
+
+1. `topMessage`
+2. `messageNeedsMore`
+3. `messageNeedsMoreBoundary`
+4. `moreMarkerActive`
+5. `display.toplin`
+6. C `tty.topl.more.await/key/return`
+7. JS `WEBHACK_MORE_TRACE` enter/key/return
+
+If a report about a `more()` bug does not mention at least some of those, it
+is usually still too vague.
+
 ## Matching Standard
 
 The objective is not “similar enough repaint behavior.”
@@ -186,3 +418,18 @@ Use them when:
 1. RNG/events already match
 2. first divergence is visible output only
 3. the real question is “when did C make this state visible?”
+
+## Practical Notes
+
+1. For keylog-backed sessions, `rerecord.py` may route through
+   `keylog_to_session.py` rather than `run_session.py`.  Repaint-debug support
+   must exist on that path too.
+2. Do not debug `more()` ownership by changing `js/replay_core.js`.
+   If `more()` is taking the wrong keys, the fix belongs in:
+   - prompt ownership
+   - message ownership
+   - or outer-loop boundary ownership
+3. Keep JS debug traces diagnostic-only.  Do not commit `WEBHACK_MORE_TRACE`
+   output into session artifacts.
+4. Prefer short focused rerecords or truncated keylogs when validating the C
+   debug log pipeline before attempting a full long session.

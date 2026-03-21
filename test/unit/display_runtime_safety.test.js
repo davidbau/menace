@@ -31,7 +31,7 @@ function setupCtx(locOverrides = {}) {
         clearRow: () => {},
     };
     const player = { x: 10, y: 10 };
-    const ctx = { display, map, player, fov: { canSee: () => true }, flags: { msg_window: false } };
+    const ctx = { display, map, u: player, fov: { canSee: () => true }, flags: { msg_window: false } };
     return { ctx, map, loc, cells, player };
 }
 

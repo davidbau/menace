@@ -231,7 +231,7 @@ export async function msummon(mon, map, player, display) {
                 newemin(mtmp);
                 mtmp.emin.min_align = atyp;
                 // renegade if same alignment but not peaceful, or peaceful but different alignment
-                mtmp.emin.renegade = (atyp !== (player.alignment || 0)) !== !mtmp.peaceful;
+                mtmp.emin.renegade = (atyp !== (player.alignment || 0)) !== !mtmp.mpeaceful;
             }
 
             // C: appearance message for last in batch
@@ -311,7 +311,7 @@ export async function summon_minion(alignment, talk, map, player, display) {
                 await pline("%s appears before you.", Amonnam(mon));
             }
         }
-        mon.peaceful = false;
+        mon.mpeaceful = false;
         // don't call set_malign(); player was naughty
     }
 }
@@ -332,8 +332,8 @@ export async function demon_talk(mtmp, map, player, display) {
         } else {
             await You_feel("tension building.");
         }
-        mtmp.peaceful = false;
-        mtmp.tame = false;
+        mtmp.mpeaceful = false;
+        mtmp.mtame = 0;
         if (map && display) newsym(mtmp.mx, mtmp.my);
         return 0;
     }
@@ -358,7 +358,7 @@ export async function demon_talk(mtmp, map, player, display) {
         / (100 * (1 + (Math.sign(player?.alignment || 0) === Math.sign(ptr.maligntyp || 0) ? 1 : 0))));
 
     if (!demand) {
-        mtmp.peaceful = false;
+        mtmp.mpeaceful = false;
         return 0;
     }
 
@@ -376,7 +376,7 @@ export async function demon_talk(mtmp, map, player, display) {
     // TODO: bribe() requires getlin() which needs UI integration
     // For now, stub: demon always gets angry
     await pline("%s gets angry...", Amonnam(mtmp));
-    mtmp.peaceful = false;
+    mtmp.mpeaceful = false;
     return 0;
 }
 
@@ -414,7 +414,7 @@ export async function lose_guardian_angel(mon, map, player, display) {
         if (enexto(mm, mm.x, mm.y, mons[PM_ANGEL], map, player)) {
             const angel = await makemon_appear(mons[PM_ANGEL], mm.x, mm.y, NO_MM_FLAGS, depth, map);
             if (angel) {
-                angel.peaceful = false;
+                angel.mpeaceful = false;
             }
         }
     }

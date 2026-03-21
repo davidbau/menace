@@ -22,7 +22,7 @@ import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, sele
        } from './windows.js';
 import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, MENU_ITEMFLAGS_SELECTED, gs } from './const.js';
 import { getpos_async } from './getpos.js';
-import { x_monnam } from './mondata.js';
+import { x_monnam } from './do_name.js';
 import { races, roleNameForGender } from './role.js';
 import { engr_at, can_reach_floor } from './engrave.js';
 import { trapped_chest_at, trapped_door_at } from './detect.js';
@@ -155,7 +155,7 @@ export function do_screen_description(ctx, cc) {
 
     const mon = map.monsterAt ? map.monsterAt(x, y) : null;
     if (mon) {
-        const firstmatch = x_monnam(mon, { article: 'none' });
+        const firstmatch = x_monnam(mon);
         const classDesc = monster_class_desc(mon);
         const outStr = classDesc ? `(${classDesc})` : '';
         return {
@@ -247,7 +247,7 @@ async function do_look_symbol(display, symChar) {
 
 // C ref: pager.c do_look(mode, click_cc) -- partial structural port.
 export async function do_look(game, mode = 0, click_cc = null) {
-    const { map, player, display, flags } = game || {};
+    const { map, u: player, display, flags } = game || {};
     if (!map || !player || !display) return { moved: false, tookTime: false };
 
     const quick = (mode === 1);
@@ -391,7 +391,7 @@ function build_dolook_message(ctx) {
 // C ref: invent.c dolook() → look_here() → read_engr_at()
 // Shows engraving type message, pauses for --More--, then shows engraving text.
 export async function dolook(game) {
-    const { map, player, display } = game || {};
+    const { map, u: player, display } = game || {};
     if (!display) return { moved: false, tookTime: false };
     const blind = !!player?.blind;
     let tookTime = false;
@@ -765,7 +765,7 @@ export async function handlePrevMessages(display) {
 // View map prompt
 // C ref: cmd.c dooverview()
 export async function handleViewMapPrompt(game) {
-    const { display, map, player, fov, flags } = game;
+    const { display, map, u: player, fov, flags } = game;
     const men = create_nhwindow(NHW_MENU);
     start_menu(men, MENU_BEHAVE_STANDARD);
     add_menu(men, null, { a_int: 1 }, 0, 0, ATR_NONE, 0,
@@ -1449,7 +1449,7 @@ export function object_from_map(_glyph, x, y, _otmp = null, map = null) {
 // C ref: pager.c:422
 export function look_at_monster(mon) {
   if (!mon) return 'monster';
-  return x_monnam(mon, { article: 'none' });
+  return x_monnam(mon);
 }
 
 // C ref: pager.c:657

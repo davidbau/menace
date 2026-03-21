@@ -24,7 +24,7 @@ function makeGame(verbose = true) {
     };
 
     const game = {
-        player,
+        u: player,
         map,
         display,
         fov: null,

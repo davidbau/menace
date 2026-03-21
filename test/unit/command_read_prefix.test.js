@@ -31,7 +31,7 @@ function makeGame() {
             this.messages.push(msg);
         },
     };
-    return { player, map, display, fov: null, flags: { verbose: false }, menuRequested: false };
+    return { u: player, map, display, fov: null, flags: { verbose: false }, menuRequested: false };
 }
 
 test('m-prefix does not block read command prompt', async () => {
@@ -63,7 +63,7 @@ test('double m-prefix cancels silently', async () => {
 
 test('read command rejects non-readable inventory items with C wording', async () => {
     const game = makeGame();
-    game.player.inventory = [{ invlet: 'a', oclass: POTION_CLASS, name: 'potion of healing' }];
+    game.u.inventory = [{ invlet: 'a', oclass: POTION_CLASS, name: 'potion of healing' }];
     clearInputQueue();
     pushInput('a'.charCodeAt(0));
 
@@ -74,7 +74,7 @@ test('read command rejects non-readable inventory items with C wording', async (
 
 test('read prompt includes readable inventory letters in C format', async () => {
     const game = makeGame();
-    game.player.inventory = [
+    game.u.inventory = [
         { invlet: 'g', oclass: SPBOOK_CLASS, name: 'healing' },
         { invlet: 'h', oclass: SPBOOK_CLASS, name: 'extra healing' },
         { invlet: 'i', oclass: SPBOOK_CLASS, name: 'stone to flesh' },
@@ -91,11 +91,11 @@ test('read prompt includes readable inventory letters in C format', async () => 
 test('reading a spellbook prompts for memory refresh', async () => {
     const game = makeGame();
     const SPE_STONE_TO_FLESH = 403;
-    game.player.inventory = [
+    game.u.inventory = [
         { invlet: 'i', oclass: SPBOOK_CLASS, otyp: SPE_STONE_TO_FLESH, name: 'stone to flesh' },
     ];
     // Player already knows the spell well (sp_know > SPELL_KEEN/10 = 2000)
-    game.player.spells = [
+    game.u.spells = [
         { otyp: SPE_STONE_TO_FLESH, sp_know: 20000 },
     ];
     clearInputQueue();

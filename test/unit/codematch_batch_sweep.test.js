@@ -250,7 +250,7 @@ test('read.seffect_taming cursed scroll angers peaceful nearby monster', async (
         mx: 11, my: 10,
         dead: false, mhp: 10,
         mndx: PM_WEREWOLF,
-        peaceful: true, tame: false,
+        mpeaceful: true, mtame: false,
         mpeaceful: 1, mtame: 0,
         data: { mlet: 'd', mr: 0, mflags1: 0, mflags2: 0, mflags3: 0 },
     };
@@ -276,7 +276,7 @@ test('read.seffect_taming uses u.ustuck path when player is swallowed', async ()
         mx: 10, my: 10,
         dead: false, mhp: 12,
         mndx: PM_WEREWOLF,
-        peaceful: true, tame: false,
+        mpeaceful: true, mtame: false,
         mpeaceful: 1, mtame: 0,
         data: { mlet: 'h', mr: 0, mflags1: 0, mflags2: 0, mflags3: 0 },
     };

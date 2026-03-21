@@ -17,6 +17,9 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
     ];
 
     const rngCmp = policy.compareRng(allJsRng, allSessionRng);
+    // Expose flat arrays for --dump-rng diagnostic
+    rngCmp.allJsRng = allJsRng;
+    rngCmp.allSessionRng = allSessionRng;
 
     const count = Math.min(session.steps.length, (replay.steps || []).length);
     let screensMatched = 0;
@@ -201,6 +204,8 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
             matched: rngCmp.matched,
             total: rngCmp.total,
             firstDivergence: rngCmp.firstDivergence || null,
+            allJsRng: rngCmp.allJsRng,
+            allSessionRng: rngCmp.allSessionRng,
         },
         screen: {
             matched: screensMatched,

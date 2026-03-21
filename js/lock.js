@@ -173,7 +173,7 @@ async function chest_shatter_msg(otmp) {
 
 // cf. lock.c:162 — breakchestlock(box, destroyit): break chest lock
 export async function breakchestlock(game, box, destroyit) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     if (!destroyit) {
         // Bill for the box but not for its contents
         // C: costly_alteration(box, COST_BRKLCK) — not yet ported, skip billing
@@ -305,7 +305,7 @@ export function autokey(player, opening) {
 // cf. lock.c:68 [static] — picklock(void): lock-picking occupation callback
 // This creates and returns the occupation callback function.
 async function makePicklockOccupation(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     const xlock = getXlock(game);
 
     return async function picklock_fn() {
@@ -420,7 +420,7 @@ export async function picklock(game) {
 // cf. lock.c:216 [static] — forcelock(void): forced lock occupation callback
 // This creates and returns the occupation callback function.
 async function makeForcelockOccupation(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     const xlock = getXlock(game);
 
     return async function forcelock_fn() {
@@ -485,7 +485,7 @@ export async function forcelock(game) {
 // cf. lock.c:358 — pick_lock(pick, rx, ry, container): initiate lock-picking
 // Returns: -1 (learned something, time passes), 0 (nothing happened), 1 (did something)
 export async function pick_lock(game, pick, rx, ry, container) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     const xlock = getXlock(game);
     const PICKLOCK_LEARNED_SOMETHING = -1;
     const PICKLOCK_DID_NOTHING = 0;
@@ -708,7 +708,7 @@ export async function pick_lock(game, pick, rx, ry, container) {
 // Returns true if something happened.
 export async function boxlock(game, obj, otmp) {
     const xlock = getXlock(game);
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     let res = false;
 
     switch (otmp.otyp) {
@@ -755,7 +755,7 @@ export async function boxlock(game, obj, otmp) {
 // cf. lock.c:1103 — doorlock(otmp, x, y): wand/spell effect on door
 // Returns true if something happened.
 export async function doorlock(game, otmp, x, y) {
-    const { map, player } = game;
+    const { map, u: player } = game;
     const door = map.at(x, y);
     if (!door) return false;
 
@@ -883,7 +883,7 @@ export async function doorlock(game, otmp, x, y) {
 
 // cf. lock.c doforce() / forcelock() — #force command: bash open a locked chest
 export async function handleForce(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     const xlock = getXlock(game);
 
     // C ref: lock.c doforce() checks u_have_forceable_weapon()

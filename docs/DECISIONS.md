@@ -503,5 +503,41 @@ keeps compatibility while migration completes.
 
 ---
 
+## Decision 15: Game Loop Ordering — Structural Match Over Deferral Flags
+
+> *"The monsters always move first. That is the law of the dungeon."*
+
+**Context:** C's `moveloop_core()` processes one game tick per call in a strict
+phase sequence: bookkeeping (A), monsters (B), display (C), then player input
+(D/E/F), then cleanup (G). Phase B (monster movement, spawning, turn-end
+processing) runs BEFORE Phase F (player command). The JS port initially ran
+Phase B AFTER the player command, inside `finalizeTimedCommand`. This caused
+the 5 remaining parity failures (seed031/032/033/328/theme27), all of which
+diverge because monsters and the player act in the wrong order.
+
+**Decision:** Match C's structure directly. Move `advanceTimedTurn` (Phase B)
+to the top of the `_gameLoopStep` `while(true)` loop, gated by `context.move`,
+so monsters move BEFORE the next player command. No deferral flags, no synthetic
+queuing, no continuation tokens.
+
+**Rejected alternative: `pendingDeferredTimedTurn`**
+
+An earlier experiment built a deferral mechanism: `finalizeTimedCommand` would
+set `game.pendingDeferredTimedTurn = true` instead of calling `moveloop_core`,
+and `runPendingDeferredTimedTurn()` would execute it at the start of the next
+`runOneCommandCycle`. This was abandoned because:
+
+1. C has no deferral — it's `for(;;) { moveloop_core(); }` with Phase B at top
+2. Deferral adds a synthetic continuation flag, violating the execution model
+3. The flag was built but never activated (dead code)
+4. Structural reorder is simpler, more maintainable, and C-faithful
+
+The `pendingDeferredTimedTurn` field, `runPendingDeferredTimedTurn()` method,
+and `pendingTravelTimedTurn` field have been deleted.
+
+**See also:** `docs/GAME_LOOP_REORDER_PLAN.md`, `docs/DESIGN.md` §The C game loop.
+
+---
+
 > *"You have reached the bottom of the decision log. There are more decisions
 > to come. The strident call of the DevTeam echoes in the distance."*

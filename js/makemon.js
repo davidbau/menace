@@ -101,7 +101,7 @@ import { PIT, SPIKED_PIT, LOW_PM,
     nothing_happens, nothing_seems_to_happen,
     STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
 import {
-    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_align, level_difficulty
+    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, Is_rogue_level, level_align, level_difficulty
 } from './dungeon.js';
 import { newemin } from './minion.js';
 import { qt_montype } from './questpgr.js';
@@ -196,14 +196,14 @@ function normalizePlayerContext(ctx = {}) {
     };
 }
 
-// --- Makemon context: reads live from gstate.game.player ---
+// --- Makemon context: reads live from gstate.game.u ---
 // Override is set for special cases (x/y clearing during level change,
 // alignmentRecord override for pet creation, role-only context during early init).
 let _makemonPlayerOverride = null;
 
 function _getMakemonPlayerCtx() {
     if (_makemonPlayerOverride) return _makemonPlayerOverride;
-    const player = _gstate?.player || _gstate?.u;
+    const player = _gstate?.u;
     if (!player) {
         return normalizePlayerContext({
             roleIndex: Number.isInteger(_gstate?._makemonRoleIndex)
@@ -268,7 +268,7 @@ function getRndmonTraceCtx() {
 }
 
 function _currentMonsterGenerationLevel(mapArg = null) {
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     const candidates = [mapArg, _gstate?.map];
     // Generation-time branch/depth context is authoritative for monster selection
     // and must match mklev/makemon callsite behavior.
@@ -293,7 +293,7 @@ function _currentMonsterGenerationLevel(mapArg = null) {
 // C ref: makemon.c:34 is_home_elemental()
 export function is_home_elemental(ptr, lev = null) {
     if (!ptr || ptr.mlet !== S_ELEMENTAL) return false;
-    const currentLev = lev || _gstate?.map?.uz || _gstate?.player?.uz || null;
+    const currentLev = lev || _gstate?.map?.uz || _gstate?.u?.uz || null;
     if (!currentLev) return false;
     const pm = monsndx(ptr);
     switch (pm) {
@@ -419,13 +419,16 @@ function monmin_difficulty(levdif) {
     return Math.floor(levdif / 6);
 }
 
-// C ref: makemon.c uncommon()
+// C ref: makemon.c:1588-1599 uncommon()
 export function uncommon(mndx) {
     const ptr = mons[mndx];
     if (ptr.geno & (G_NOGEN | G_UNIQ)) return true;
     const mvflags = Number(_gstate?.mvitals?.[mndx]?.mvflags || 0);
     if (mvflags & G_GONE) return true;
-    // Not Inhell at standard depths → check G_HELL
+    // C ref: In_hell → exclude good-aligned; else → exclude G_HELL-flagged
+    if (_gstate?.Inhell) {
+        return (ptr.maligntyp || 0) > A_NEUTRAL;
+    }
     return !!(ptr.geno & G_HELL);
 }
 
@@ -439,8 +442,8 @@ function align_shift(ptr) {
         const liveMoves = Number.isInteger(_gstate.moves) ? _gstate.moves : 0;
         if (_gstate._alignShiftMoves !== liveMoves) {
             const levelRef = _gstate._useLiveUzForMklevAlign
-                ? (_gstate._mklevAlignLevelRef || _gstate.u?.uz || _gstate.player?.uz || null)
-                : (_gstate.u?.uz || _gstate.player?.uz || null);
+                ? (_gstate._mklevAlignLevelRef || _gstate.u?.uz || _gstate.u?.uz || null)
+                : (_gstate.u?.uz || _gstate.u?.uz || null);
             _gstate._dungeonAlign = level_align(levelRef);
             _gstate._alignShiftMoves = liveMoves;
         }
@@ -482,6 +485,9 @@ export function rndmonst_adj(minadj, maxadj, depth) {
         if (questMonster >= 0) return questMonster;
     }
 
+    // C ref: makemon.c:1668 — rogue level prefers uppercase monster symbols
+    const upper = Is_rogue_level(genLevel);
+
     let totalweight = 0;
     let selected_mndx = -1; // NON_PM
 
@@ -513,12 +519,20 @@ export function rndmonst_adj(minadj, maxadj, depth) {
             if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=strong', `diff=${ptr.difficulty}`);
             continue;
         }
-        // upper/elemlevel: not applicable at standard depths
+        // C ref: makemon.c:1680-1681 — rogue level: uppercase monsters only
+        if (upper) {
+            const sym = def_monsyms[ptr.mlet]?.sym || '';
+            if (sym < 'A' || sym > 'Z') continue;
+        }
         if (uncommon(mndx)) {
             if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=uncommon');
             continue;
         }
-        // Not Inhell, so skip G_NOHELL check
+        // C ref: makemon.c:1686-1687 — exclude G_NOHELL monsters in hell
+        if (_gstate?.Inhell && (ptr.geno & G_NOHELL)) {
+            if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=nohell');
+            continue;
+        }
 
         const freq = (ptr.geno & G_FREQ);
         const ashift = align_shift(ptr);
@@ -578,7 +592,8 @@ export function rndmonnum_adj(minadj, maxadj, depth) {
     if (chosen >= 0) return chosen;
 
     // Plan B: any common monster, matching C's rn1-based fallback.
-    const excludeflags = G_UNIQ | G_NOGEN | G_HELL;
+    // C ref: mkobj.c:407 — Inhell ? G_NOHELL : G_HELL
+    const excludeflags = G_UNIQ | G_NOGEN | (_gstate?.Inhell ? G_NOHELL : G_HELL);
     let idx;
     do {
         idx = rn1(SPECIAL_PM - LOW_PM, LOW_PM);
@@ -864,7 +879,7 @@ export function newmonhp(mndx, depth = 1) {
 
     if (makemonTraceEnabled()) {
         const playerCtx = _getMakemonPlayerCtx();
-        const liveUz = _gstate?.player?.uz || _gstate?.map?.uz || null;
+        const liveUz = _gstate?.u?.uz || _gstate?.map?.uz || null;
         const mapGen = _gstate?.map
             ? `${Number(_gstate.map._genDnum) || 0}:${Number(_gstate.map._genDlevel) || 0}`
             : 'none';
@@ -2543,16 +2558,14 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         speed: ptr.mmove,
         movement: 0,  // C ref: *mtmp = cg.zeromonst (zero-init)
         attacks: ptr.mattk,
-        peaceful: monPeaceful,
-        mpeaceful: false,
+        mpeaceful: monPeaceful,
         female: monFemale,
-        tame: false,
+        mtame: 0,
         mflee: false,
         mfleetim: 0,
-        confused: false,
-        stunned: false,
+        mconf: 0,
+        mstun: 0,
         blind: false,
-        sleeping: false,
         msleeping: 0,
         mundetected: startsUndetected ? 1 : 0,
         dead: false,
@@ -2566,7 +2579,6 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         mcanmove: 1,  // C ref: makemon.c:1293 — mtmp->mcansee = mtmp->mcanmove = 1
         mcansee: 1,
     };
-    mon.mpeaceful = mon.peaceful;
 
     // C ref: makemon.c:1283-1291 — initial trap knowledge by branch/special role.
     const levelRef = _currentMonsterGenerationLevel(map) || map || null;
@@ -2588,11 +2600,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     // C ref: makemon.c — MM_ASLEEP sets initial sleep state.
     if (mmflags & MM_ASLEEP) {
         mon.msleeping = 1;
-        mon.sleeping = true;
     }
     if (startsSleeping) {
         mon.msleeping = 1;
-        mon.sleeping = true;
     }
 
     // C ref: makemon.c:1396 — MM_EDOG: allocate edog structure
@@ -2646,7 +2656,6 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
                 gy = cc.y;
                 const mate = makemon(mndx, gx, gy, mmflags | MM_NOGRP, depth, map);
                 if (mate) {
-                    mate.peaceful = false;
                     mate.mpeaceful = false;
                     mate.mavenge = 0;
                 }
@@ -2899,7 +2908,7 @@ export async function grow_up(mtmp, victim, game) {
 
 // Autotranslated from makemon.c:2315
 export function set_malign(mtmp, player = null) {
-  const playerCtx = player || _gstate?.player || _getMakemonPlayerCtx();
+  const playerCtx = player || _gstate?.u || _getMakemonPlayerCtx();
   let mdata = mtmp.data || mtmp.type || null;
   if (Number.isInteger(mdata)) mdata = mons[mdata] || null;
   if (!mdata) mdata = {};

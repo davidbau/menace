@@ -14,6 +14,7 @@ import { Some_Monnam } from './do_name.js';
 import { obj_resists, is_quest_artifact } from './objdata.js';
 import { can_teleport } from './mondata.js';
 import { rloc, tele_restrict } from './teleport.js';
+import { clearWornItemEffects } from './do_wear.js';
 import {
     W_ARMOR, W_ACCESSORY, W_WEAPONS,
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
@@ -207,21 +208,7 @@ export async function stealarm(player, map, display = null) {
 // amulet effects, ball/chain, etc.
 export function remove_worn_item(player, obj) {
     if (!obj) return;
-
-    // Clear equipment slots
-    if (obj === player.armor) player.armor = null;
-    else if (obj === player.cloak) player.cloak = null;
-    else if (obj === player.helmet) player.helmet = null;
-    else if (obj === player.gloves) player.gloves = null;
-    else if (obj === player.boots) player.boots = null;
-    else if (obj === player.shield) player.shield = null;
-    else if (obj === player.shirt) player.shirt = null;
-    else if (obj === player.amulet) player.amulet = null;
-    else if (obj === player.weapon) player.weapon = null;
-    else if (obj === player.swapWeapon) player.swapWeapon = null;
-    else if (obj === player.quiver) player.quiver = null;
-
-    obj.owornmask = 0;
+    clearWornItemEffects(player, obj);
 }
 
 function inferred_wornmask(player, obj) {

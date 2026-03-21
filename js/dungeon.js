@@ -419,7 +419,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         || map?.player
         || map?.u
         || _gstate?.u
-        || _gstate?.player
+        || _gstate?.u
         || null;
     const heroX = hero ? (hero.x | 0) : 0;
     const heroY = hero ? (hero.y | 0) : 0;
@@ -526,8 +526,8 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const mhp = Number.isFinite(mon?.mhp) ? Math.trunc(mon.mhp) : 0;
         const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
         const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
-        const peaceful = mon?.peaceful ? 1 : 0;
-        const sleeping = mon?.sleeping ? 1 : 0;
+        const peaceful = mon?.mpeaceful ? 1 : 0;
+        const sleeping = mon?.msleeping ? 1 : 0;
         const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
         const canmove = mon?.mcanmove === false ? 0 : 1;
         const trapped = mon?.mtrapped ? 1 : 0;
@@ -659,8 +659,10 @@ const RUNTIME_SPECIAL_LEVEL_CANON = new Map([
         { index: 2, canonDlevel: 3 }, // tower3
     ]],
     [TUTORIAL, [
-        { index: 0, canonDlevel: 1, align: A_LAWFUL }, // tut-1
-        { index: 1, canonDlevel: 2, align: A_LAWFUL }, // tut-2
+        // C ref: dungeon.lua tutorial has flags={"mazelike","unconnected"}.
+        // UNCONNECTED=0x10 overlaps D_ALIGN_MASK=0x70: (0x14 & 0x70)>>4 = 1 = AM_CHAOTIC.
+        { index: 0, canonDlevel: 1, align: A_CHAOTIC }, // tut-1
+        { index: 1, canonDlevel: 2, align: A_CHAOTIC }, // tut-2
     ]],
     [QUEST, [
         { index: 0, canonDlevel: 1 }, // x-strt
@@ -1787,6 +1789,7 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
             dunlevs: dunlevs_in_dungeon(actualDnum),
             specialName,
             isBranchLevel: isBranchLevel(actualDnum, actualDlevel),
+            isSpecialLevel: true,
         }, async () => {
             // C ref: nhlua.c load_lua()/nhl_init() for every special-level load.
             // Each load initializes a fresh Lua state and executes nhlib.lua,
@@ -2643,8 +2646,8 @@ function find_random_launch_coord(map, trap) {
 // C ref: trap.c mk_trap_statue()
 function mk_trap_statue(map, x, y, depth = 1) {
     const sgn = (v) => (v > 0 ? 1 : (v < 0 ? -1 : 0));
-    const roleIndex = Number.isInteger(_gstate?.player?.roleIndex)
-        ? _gstate.player.roleIndex
+    const roleIndex = Number.isInteger(_gstate?.u?.roleIndex)
+        ? _gstate.u.roleIndex
         : (Number.isInteger(_gstate?._makemonRoleIndex) ? _gstate._makemonRoleIndex : 11);
     const ualign = roles[roleIndex]?.align || 0;
     let trycount = 10;
@@ -2798,7 +2801,7 @@ function dng_bottom(map) {
         : (Number.isInteger(useLev?.dnum) ? useLev.dnum : DUNGEONS_OF_DOOM);
     let bottom = dunlevs_in_dungeon(dnum);
     // C ref: trap.c dng_bottom() — before invocation, Sanctum is not reachable.
-    const invoked = !!(map?._invoked || map?.game?.player?.uevent?.invoked || _gstate?.player?.uevent?.invoked);
+    const invoked = !!(map?._invoked || map?.game?.player?.uevent?.invoked || _gstate?.u?.uevent?.invoked);
     if (dnum === GEHENNOM && !invoked) {
         bottom = Math.max(1, bottom - 1);
     }
@@ -3931,11 +3934,9 @@ function fill_zoo_room(map, sroom, depth) {
             else if (type === ANTHOLE) monType = antholemon(depth);
             else monType = null; // ZOO: random
 
-            // C: MM_ASLEEP | MM_NOGRP — keep both fields in sync until legacy
-            // `sleeping` alias is fully removed.
+            // C: MM_ASLEEP | MM_NOGRP
             const mon = makemon(monType, sx, sy, MM_NOGRP, depth, map);
             if (mon) {
-                mon.sleeping = true;
                 mon.msleeping = 1;
                 if (type === COURT && mon.mpeaceful) {
                     mon.mpeaceful = false;
@@ -5034,6 +5035,8 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                     ? specialMeta.align : undefined;
                 _gstate._dungeonAlign = forcedAlign ?? levelAlign
                     ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
+                // Prevent align_shift cache from overriding this value
+                _gstate._alignShiftMoves = Number.isInteger(_gstate.moves) ? _gstate.moves : 0;
             }
 
             if (DEBUG) console.log(`Generating special level: ${special.name} at (${useDnum}, ${useDlevel})`);
@@ -5052,6 +5055,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                     dunlevs: dunlevs_in_dungeon(useDnum),
                     specialName,
                     isBranchLevel: isBranchLevel(useDnum, useDlevel),
+                    isSpecialLevel: true,
                 }, async () => {
                     // C ref: nhlua.c load_lua()/nhl_init() for load_special():
                     // each special-level generation loads nhlib.lua and consumes
@@ -5835,7 +5839,7 @@ export function unplaced_floater(_lev = null) {
 
 // C ref: dungeon.c:1599
 export function u_on_rndspot(map, player = null) {
-  const u = player || map?.player || _gstate?.player;
+  const u = player || map?.player || _gstate?.u;
   if (!map || !u) return false;
   if (Number.isInteger(map?.upstair?.x) && Number.isInteger(map?.upstair?.y)) {
     u.x = map.upstair.x;

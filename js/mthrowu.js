@@ -674,9 +674,15 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
     if (display && canSeeMonsterForMap(mon, map, player, game?.fov)) {
         const targetName = mtarg ? ` at the ${x_monnam(mtarg)}` : '';
         const shooting = ammo_and_launcher(otmp, mwep);
+        // C ref: mthrowu.c monshoot() builds the opening message from the
+        // base stack object via xname()/singular(..., xname), not from any
+        // in-flight multishot ordinal wrapper.
+        const msgObj = { ...otmp };
+        delete msgObj._m_shot;
+        delete msgObj.m_shot;
         const onm = shots > 1
-            ? `${shots} ${xname(otmp)}`
-            : thrownObjectMessageName({ ...otmp, quan: 1 }, player, {
+            ? `${shots} ${xname(msgObj)}`
+            : thrownObjectMessageName({ ...msgObj, quan: 1 }, player, {
                 forceSingle: true,
                 forceArticleForPlural: true,
             });

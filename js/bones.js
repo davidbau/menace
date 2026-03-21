@@ -40,7 +40,7 @@ import {
 // Check if bones can be saved at this depth.
 // C ref: bones.c:61 — depth check + rn2(1+(depth>>2)) ghost probability
 export function can_make_bones(game) {
-    const depth = (game.u || game.player).dungeonLevel;
+    const depth = (game.u || game.u).dungeonLevel;
     // C ref: bones.c:70 — can't make bones on level 1
     if (depth <= 1) return false;
     // C ref: bones.c:88 — ghost probability: rn2(1 + (depth >> 2))
@@ -80,7 +80,7 @@ export function resetobjs(list, restore) {
 // Move player inventory to floor at death position.
 // C ref: bones.c:319 — iterate invent, curse with rn2(5), give with rn2(8)
 export function drop_upon_death(game) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     const x = player.x;
     const y = player.y;
     const toRemove = [];
@@ -201,7 +201,7 @@ export function remove_mon_from_bones(map) {
     map.monsters = map.monsters.filter(mon => {
         if (mon.dead) return false;
         // C ref: bones.c:167 — remove tame monsters
-        if (mon.tame) return false;
+        if (mon.mtame) return false;
         // C ref: bones.c:169 — remove shopkeepers (isshk)
         if (mon.isshk) return false;
         // C ref: bones.c:171 — remove temple priests (ispriest)
@@ -275,7 +275,7 @@ export function newebones(mtmp) {
 // Full bones save pipeline on player death.
 // C ref: bones.c:399
 export function savebones(game) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     if (!map) return;
     const depth = player.dungeonLevel;
 
@@ -303,7 +303,7 @@ export function savebones(game) {
         ghost.mhp = player.ulevel * 10;
         ghost.mhpmax = player.ulevel * 10;
         ghost.m_lev = player.ulevel;
-        ghost.peaceful = false;
+        ghost.mpeaceful = false;
     }
 
     // C ref: bones.c:503 — cemetery metadata

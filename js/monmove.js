@@ -4,21 +4,24 @@
 // Focus: exact RNG consumption alignment with C NetHack
 //
 // INCOMPLETE / MISSING vs C monmove.c:
-// - dochug: no Conflict handling (C:870), no covetous/quest/vault guards
-// - dochug: m_respond() partially implemented — shrieker rn2(10) consumed but makemon stubbed,
-//           medusa gazemu stubbed, erinyes aggravate implemented
-// - dochug: find_defensive/find_misc implemented in muse.js (2500+ lines)
-// - dochug: mind_blast RNG-faithful (rn2(20) gate, hero lock-on, monster loop), losehp stubbed
-// - dochug: flees_light: artifact_light only checks Sunsword and gold dragon scales (C:555)
-// - m_move: no boulder-pushing by strong monsters (C:2020)
+// - dochug: no Conflict handling (C:870), no covetous/vault guards, no demonic blackmail
+// - dochug: mind_blast RNG-faithful but losehp stubbed
+// - dochug: flees_light: artifact_light limited to Sunsword + gold dragon scales
+// - m_move: no boulder-pushing to adjacent square by strong monsters (C:2020)
+//   (m_break_boulder for magic-breaking IS implemented)
 // - m_move: no vault guard movement (C:1730)
 // - m_move: covetous monster teleport-to-hero not implemented (C:1737)
-// - m_move_aggress: uses full mattackm (all attack slots); retaliation implemented
-// - set_apparxy: displacement displacement-offset details simplified
-// - shk_move: delegated to shk.js; remaining fidelity gaps are tracked in shk parity issues
+// - set_apparxy: displacement-offset details simplified
 // - undesirable_disp: not yet implemented (C:2279)
-// - distfleeck: in_your_sanctuary implemented (priest.js); flees_light implemented
 // - mon_allowflags: Conflict ALLOW_U not implemented
+//
+// IMPLEMENTED:
+// - dochug: m_respond (shrieker+makemon, medusa gazemu, erinyes aggravate)
+// - dochug: find_defensive/find_misc (muse.js, 2500+ lines)
+// - m_move_aggress: full mattackm (all attack slots) + retaliation
+// - m_balks_at_approaching: launcher+ammo, polearm, ranged attack retreat
+// - distfleeck: in_your_sanctuary, flees_light, onscary
+// - shk_move: delegated to shk.js
 
 import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, CORR, DOOR, D_NODOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_TRAPPED, D_BROKEN,
@@ -29,7 +32,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM, OBJ_FLOOR, PIT, SPIKED_PIT } from './const.js';
 import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
-import { NORMAL_SPEED } from './const.js';
+import { NORMAL_SPEED, P_POLEARMS, P_LANCE } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku, mdamageu, ranged_attk_available, gazemu } from './mhitu.js';
 import { m_has_launcher_and_ammo } from './mthrowu.js';
@@ -40,7 +43,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          PICK_AXE, DWARVISH_MATTOCK, AXE, BATTLE_AXE,
          CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
-         VENOM_CLASS, CORPSE, objectData } from './objects.js';
+         VENOM_CLASS, CORPSE, LUMP_OF_ROYAL_JELLY, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
 import { an, vtense, makeplural } from './objnam.js';
 import { delobj, g_at, sobj_at, carrying, objChainItems } from './invent.js';
@@ -51,7 +54,7 @@ import { holetime } from './dig.js';
 import { cansee, couldsee, m_cansee } from './vision.js';
 import { pline, pline_mon, pline_The, You_hear, set_msg_xy, verbalize } from './pline.js';
 import { can_teleport, noeyes, perceives, nohands,
-         hides_under, is_mercenary, YMonnam, Monnam,
+         hides_under, is_mercenary, is_watch, YMonnam, Monnam,
          mon_knows_traps, is_rider, is_mind_flayer,
          is_mindless, telepathic,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
@@ -62,7 +65,7 @@ import { can_teleport, noeyes, perceives, nohands,
          can_track, likes_gold,
          is_vampshifter, DEADMONSTER, noattacks, M_AP_TYPE, m_canseeu,
          locomotion, mhis } from './mondata.js';
-import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_GAZE, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M1_CONCEAL, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
+import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_KILLER_BEE, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_GAZE, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M1_CONCEAL, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
 import { create_gas_cloud, visible_region_at, m_in_out_region } from './region.js';
 import { dog_move, could_reach_item } from './dogmove.js';
 import { initrack, settrack, gettrack } from './track.js';
@@ -78,7 +81,7 @@ import { gd_move } from './vault.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
-import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse } from './mon.js';
+import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse, m_consume_obj } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym, canspotmon, canseemon } from './display.js';
@@ -124,6 +127,8 @@ import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HAS
 import { hasWeaponAttack, maybeMonsterWieldBeforeAttack, linedUpToPlayer } from './mthrowu.js';
 import { m_carrying } from './mthrowu.js';
 import { find_defensive, use_defensive, find_misc, use_misc, find_offensive, searches_for_item } from './muse.js';
+import { quest_stat_check } from './quest.js';
+import { is_organic } from './objdata.js';
 
 // ========================================================================
 // movemon — wrapper that binds dochug into mon.js movemon
@@ -138,26 +143,23 @@ const ydir = [-1, -1, 0, 1, 1, 1, 0, -1];
 
 function mon_is_peaceful(mon) {
     if (!mon) return false;
-    if (mon.mpeaceful !== undefined) return !!mon.mpeaceful;
-    return !!mon.peaceful;
+    return !!mon.mpeaceful;
 }
 
 function mon_is_tame(mon) {
     if (!mon) return false;
-    if (mon.mtame !== undefined) return !!mon.mtame;
-    return !!mon.tame;
+    return !!mon.mtame;
 }
 
 function mon_is_confused(mon) {
     if (!mon) return false;
-    if (mon.mconf !== undefined) return !!mon.mconf;
-    return !!mon.confused;
+    return !!mon.mconf;
 }
 
 function mon_is_stunned(mon) {
     if (!mon) return false;
     if (mon.mstun !== undefined) return !!mon.mstun;
-    return !!mon.stunned;
+    return !!mon.mstun;
 }
 
 
@@ -703,7 +705,7 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
             if (hides_under(mon.data || mon.type || {}) && cansee_for_hider_avoidance(map, player, fov, xx, yy)) continue;
             const occ = monsterByCoord[idx] || null;
             if (occ && occ !== mon) {
-                const occHelpless = !!occ.sleeping
+                const occHelpless = !!occ.msleeping
                     || (Number(occ.mfrozen || 0) > 0)
                     || !occ.mcanmove;
                 const occHidden = !!occ.mundetected;
@@ -805,7 +807,7 @@ function aggravate(map) {
         // C: clears STRAT_WAITFORU | STRAT_APPEARMSG from mstrategy.
         mtmp.mstrategy = Number(mtmp.mstrategy || 0) & ~STRAT_WAITFORU;
         if (mtmp.waiting) mtmp.waiting = false;
-        mtmp.sleeping = false;
+        mtmp.msleeping = 0;
         if (!mtmp.mcanmove && !rn2(5)) {
             mtmp.mfrozen = 0;
             mtmp.mcanmove = true;
@@ -1127,7 +1129,7 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
     // C ref: monmove.c:630-645 — blast hits other monsters
     for (const m2 of map.monsters || []) {
         if (m2.dead) continue;
-        if (!!(m2?.mpeaceful ?? m2?.peaceful) === !!(mon?.mpeaceful ?? mon?.peaceful)) continue;
+        if (!!m2?.mpeaceful === !!mon?.mpeaceful) continue;
         if (is_mindless(m2.data || m2.type || {})) continue;
         if (m2 === mon) continue;
 
@@ -1147,7 +1149,7 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
             // C does wakeup(m2,FALSE) here; current JS wakeup side effects still
             // over-propagate screen messages in some replay seeds, so keep
             // minimal wake semantics here until wakeup parity is tightened.
-            m2.sleeping = false;
+            m2.msleeping = 0;
             const m2dmg = rnd(15);
             m2.mhp = (m2.mhp ?? 0) - m2dmg;
             monmoveTrace('mind_blast',
@@ -1181,7 +1183,7 @@ function isUndirectedSpell(adtyp, spellid) {
 }
 
 function spellWouldBeUseless(mon, adtyp, spellid, player = null) {
-    const mpeaceful = !!(mon?.mpeaceful ?? mon?.peaceful);
+    const mpeaceful = !!mon?.mpeaceful;
     if (adtyp === AD_SPEL) {
         if (mpeaceful
             && (spellid === MGC_AGGRAVATION || spellid === MGC_SUMMON_MONS || spellid === MGC_CLONE_WIZ)) {
@@ -1235,7 +1237,7 @@ async function maybeCastUndirectedPreMove(mon, mdat, player, map) {
         if (a.adtyp === AD_SPEL) {
             cast_wizard_spell(mon, 0, spellid, player, map);
         } else {
-            cast_cleric_spell(mon, 0, spellid, player, map);
+            await cast_cleric_spell(mon, 0, spellid, player, map);
         }
         return true;
     }
@@ -1262,6 +1264,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
             mon.mstrategy = Number(mon.mstrategy || 0) & ~STRAT_WAITFORU;
         }
     }
+
+    // C ref: monmove.c:715 — update quest status flags
+    quest_stat_check(mon, player, game);
 
     // C ref: monmove.c:717-724 — immobile/waiting monsters cannot act.
     // Preserve Hallucination newsym side effect when represented.
@@ -1330,11 +1335,10 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // C ref: monmove.c:738-743 — confused/stunned clearing
     if (mon_is_confused(mon) && !rn2(50)) {
         mon.mconf = 0;
-        mon.confused = false;
     }
     if (mon_is_stunned(mon) && !rn2(10)) {
         mon.mstun = 0;
-        mon.stunned = false;
+        mon.mstun = false;
     }
 
     // C ref: monmove.c:746 — flee teleport
@@ -1387,13 +1391,28 @@ async function dochug(mon, map, player, display, fov, game = null) {
 
     // INCOMPLETE: C:803 — demonic blackmail (rare demon interaction)
 
-    // C ref: monmove.c:832-836 — mind flayer psychic blast
+    // C ref: monmove.c:828-835 — watch_on_duty / mind_blast (else-if)
     const mdat = mon.data || mon.type || {};
-    if (is_mind_flayer(mdat) && !rn2(20)) {
+    if (is_watch(mdat)) {
+        watch_on_duty(mon);
+    } else if (is_mind_flayer(mdat) && !rn2(20)) {
         await mind_blast(mon, map, player, display, fov, game);
         set_apparxy(mon, map, player);
         // C ref: monmove.c:835 — recalculate distfleeck after mind_blast
         ({ inrange, nearby, scared } = await distfleeck(mon, map, player, display, fov));
+    }
+
+    // C ref: monmove.c:866-878 — bee/gelcube special actions before phase3
+    if (mon.mndx === PM_KILLER_BEE) {
+        const jelly = sobj_at(LUMP_OF_ROYAL_JELLY, mon.mx, mon.my, map);
+        if (jelly) {
+            const res = await bee_eat_jelly(mon, jelly, game, map);
+            if (res >= 0) return;
+        }
+    }
+    if (mon.mndx === PM_GELATINOUS_CUBE) {
+        const res = gelcube_digests(mon);
+        if (res >= 0) return;
     }
 
     const { x: targetX, y: targetY } = monApparentTarget(mon);
@@ -2505,7 +2524,7 @@ export function should_displace(mon, positions, goalx, goaly) {
 export function mb_trapped(mon, map, player) {
     if (!mon || !map) return false;
     mon.mstun = 1;
-    mon.stunned = true;
+    mon.mstun = true;
     mon.mhp = (mon.mhp || 0) - rnd(15);
     if ((mon.mhp || 0) <= 0) {
         mondead(mon, map, player);
@@ -2546,7 +2565,7 @@ export function watch_on_duty(mon) {
 }
 
 // C ref: monmove.c:1184 m_balks_at_approaching() — monster avoids hero
-// Simplified: ranged weapon/polearm/launcher checks not fully ported.
+// Checks: launcher+ammo retreat, polearm retreat, ranged attack retreat.
 export function m_balks_at_approaching(oldappr, mon, player) {
     if (!mon || !player) return oldappr;
     const mdat = mon.data || mon.type || {};
@@ -2563,7 +2582,14 @@ export function m_balks_at_approaching(oldappr, mon, player) {
     if (m_has_launcher_and_ammo(mon)) return -1;
 
     // C ref: monmove.c:1203-1205 — polearm in range → retreat
-    // INCOMPLETE: is_pole() check not yet implemented (requires P_POLEARMS/P_LANCE skill check)
+    const mwep = mon.weapon || null;
+    if (mwep && mwep.oclass === WEAPON_CLASS) {
+        const skill = objectData[mwep.otyp]?.oc_skill || 0;
+        if (skill >= P_POLEARMS && skill <= P_LANCE
+            && dist2(mon.mx, mon.my, ux, uy) <= 5) {
+            return -1;
+        }
+    }
 
     // C ref: monmove.c:1218-1221 — ranged attack with low HP or unused spec
     const hasRanged = ranged_attk_available(mon);
@@ -2645,6 +2671,11 @@ export function find_pmmonst(pm, game, map) {
   }
   return mtmp;
 }
+
+// C ref: is_mines_prize/is_soko_prize check obj->o_id against prize IDs.
+// JS doesn't track prize OIDs yet; always return false.
+function is_mines_prize(obj) { return false; }
+function is_soko_prize(obj) { return false; }
 
 // Autotranslated from monmove.c:424
 export function gelcube_digests(mtmp) {

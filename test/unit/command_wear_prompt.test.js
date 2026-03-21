@@ -19,7 +19,7 @@ function makeGame() {
             this.topMessage = msg;
         },
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    return { u: player, map, display, fov: null, flags: { verbose: false } };
 }
 
 describe('wear command prompt parity', () => {
@@ -44,9 +44,9 @@ describe('wear command prompt parity', () => {
             spe: 0,
             ac: 3,
         };
-        game.player.inventory = [armor];
-        game.player.armor = armor;
-        game.player.ac = 7;
+        game.u.inventory = [armor];
+        game.u.armor = armor;
+        game.u.ac = 7;
 
         const result = await rhack('W'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
@@ -69,7 +69,7 @@ describe('wear command prompt parity', () => {
             spe: 0,
             ac: 3,
         };
-        game.player.inventory = [armor];
+        game.u.inventory = [armor];
         pushInput('c'.charCodeAt(0));
 
         const result = await rhack('W'.charCodeAt(0), game);
@@ -81,6 +81,6 @@ describe('wear command prompt parity', () => {
             await game.occupation.onFinishAfterTurn?.();
             game.occupation = null;
         }
-        assert.equal(game.player.armor, armor);
+        assert.equal(game.u.armor, armor);
     });
 });

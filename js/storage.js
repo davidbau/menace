@@ -429,7 +429,7 @@ export function saveEquip(player) {
 
 // C ref: savegamestate() — save game context + you + inventory + equip + rng + flags
 export function saveGameState(game) {
-    const { player, display } = game;
+    const { u: player, display } = game;
     const { getRngState, getRngCallCount } = game._rngAccessors;
     return {
         turnCount: game.turnCount,
@@ -473,7 +473,7 @@ export function restGameState(gameState) {
 
 // C ref: dosave0() — build complete save data (current level first, then game state, then other levels)
 export function buildSaveData(game) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     const currentDepth = player.dungeonLevel;
 
     // Current level (saved first, like C)
@@ -503,7 +503,7 @@ export function buildSaveData(game) {
 // Build a lightweight metadata object describing the current player state.
 // Used to generate meaningful filenames for save/autosave listings.
 export function buildSaveMeta(game) {
-    const { player } = game;
+    const { u: player } = game;
     const role = roles[player.roleIndex];
     const race = races[player.race];
     const raceName = race ? race.name : 'unknown';

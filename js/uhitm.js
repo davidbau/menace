@@ -67,7 +67,8 @@ import { obj_resists } from './objdata.js';
 import { experience, more_experienced, newexplevel, newuexp } from './exper.js';
 import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
-import { applyMonflee } from './mhitu.js';
+import { applyMonflee, erode_armor_on_player } from './mhitu.js';
+import { fall_asleep } from './timeout.js';
 import { killed, mondead, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
 import { newsym, canspotmon, map_invisible } from './display.js';
 import { placeFloorObject } from './invent.js';
@@ -79,7 +80,7 @@ import { destroy_items_rng_only, resist } from './zap.js';
 import { findgold } from './steal.js';
 import { make_stunned, make_stoned } from './potion.js';
 import {
-    erode_obj, erode_obj_player, mselftouch,
+    erode_obj, erode_obj_player, mselftouch, acid_damage,
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER, MIM_REVEAL, STONED } from './const.js';
@@ -223,7 +224,6 @@ export async function attack_checks(mtmp, wep, opts = {}) {
     if (!mtmp) return true;
     if (mtmp.msleeping) {
         mtmp.msleeping = 0;
-        mtmp.sleeping = false;
     }
 
     // C ref: uhitm.c:229-251 — invisible monster check (before pet/peaceful)
@@ -240,11 +240,11 @@ export async function attack_checks(mtmp, wep, opts = {}) {
 
     // C-style safety gates: don't auto-attack tame/peaceful unless forced.
     if (!forcefight) {
-        if (mtmp.tame && !pets_too) {
+        if (mtmp.mtame && !pets_too) {
             if (display) await display.putstr_message('You stop. Your pet is in the way!');
             return true;
         }
-        if (mtmp.peaceful && !pets_too) {
+        if (mtmp.mpeaceful && !pets_too) {
             if (display) await display.putstr_message(`Really attack ${x_monnam(mtmp)}?`);
             return true;
         }
@@ -296,9 +296,9 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
         + player.ulevel;
 
     // cf. uhitm.c:386-393 — monster state adjustments
-    if (mtmp.stunned || mtmp.mstun) tmp += 2;
+    if (mtmp.mstun || mtmp.mstun) tmp += 2;
     if (mtmp.mflee) tmp += 2;
-    if (mtmp.sleeping || mtmp.msleeping) tmp += 2;
+    if (mtmp.msleeping) tmp += 2;
     if (mtmp.mcanmove === false) tmp += 4;
 
     // cf. uhitm.c:396-404 — role/race adjustments
@@ -668,8 +668,7 @@ export function hmon_hitmon_stagger(hmd, mon, obj) {
 // cf. uhitm.c:1566 — hmon_hitmon_pet(hmd, mon, obj):
 //   Adjust behavior when hitting a pet.
 export async function hmon_hitmon_pet(hmd, mon, obj, display = null) {
-    // Some loader/runtime paths only preserve boolean tame; C uses mtame>0.
-    const tameLike = !!(Number(mon.mtame || 0) > 0 || mon.tame);
+    const tameLike = !!(Number(mon.mtame || 0) > 0);
     if (tameLike && hmd.dmg > 0) {
         if (!Number(mon.mtame)) mon.mtame = 10;
         // C ref: uhitm.c hmon_hitmon_pet() calls abuse_dog(), which handles
@@ -1127,9 +1126,9 @@ export function mhitm_ad_acid(magr, mattk, mdef, mhm) {
         if (resists_acid(mdef)) {
             mhm.damage = 0;
         }
-        // C ref: !rn2(30) erode_armor, !rn2(6) acid_damage
-        rn2(30);
-        rn2(6);
+        // C ref: uhitm.c mhitm_ad_acid — erode defender's armor and weapon
+        if (!rn2(30)) erode_armor(mdef, ERODE_CORRODE);
+        if (!rn2(6)) acid_damage(mdef.weapon || null);
     }
 }
 
@@ -1171,7 +1170,7 @@ export function mhitm_ad_stun(magr, mattk, mdef, mhm) {
         // C ref: uhitm.c:4369-4382 — !rn2(4) gates the stun effect
         if (!rn2(4)) {
             // make_stunned — player gets stunned
-            mdef.stunned = true;
+            mdef.mstun = true;
         }
     } else {
         mdef.mstun = 1;
@@ -1217,7 +1216,7 @@ export function mhitm_ad_slee(magr, mattk, mdef, mhm) {
         // mhitu path: monster puts player to sleep
         // C ref: uhitm.c:3472-3484 — !rn2(5) gate + rnd(10) duration
         if (!rn2(5) && !mhitm_mgc_atk_negated(magr, mdef)) {
-            rnd(10); // fall_asleep duration
+            fall_asleep(-rnd(10), true);
         }
     } else {
         // mhitm path: monster-vs-monster sleep
@@ -2148,7 +2147,6 @@ export function stumble_onto_mimic(mtmp) {
 
     // Wake the mimic
     mtmp.msleeping = 0;
-    mtmp.sleeping = false;
     if (mtmp.m_ap_type) {
         mtmp.m_ap_type = 0;
     }
@@ -2203,7 +2201,6 @@ export function flash_hits_mon(mtmp, otmp, map = null, player = null) {
     // Wake mimics — simplified, no M_AP_TYPE tracking
     if (mtmp.msleeping && haseyes(ptr)) {
         mtmp.msleeping = 0;
-        mtmp.sleeping = false;
         res = 1;
     } else if (ptr.mlet !== S_LIGHT) {
         if (!resists_blnd(mtmp)) {
@@ -2501,13 +2498,19 @@ export async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_wa
             if (playerHasProp(player, ACID_RES)) {
                 tmp = 0;
             }
-            rn2(30); // erode_armor stub
+            if (!rn2(30)) {
+                // C ref: uhitm.c:5893 — acid splash erodes player armor
+                await erode_armor_on_player(player, ERODE_CORRODE);
+            }
         } else {
             tmp = 0;
         }
         if (mhit && weapon && aatyp === AT_KICK) {
             // C ref: uhitm.c:5902-5905 — boot erosion for AT_KICK only
-            rn2(6); // erode_obj(boots) stub
+            if (!rn2(6)) {
+                const boots = player?.boots;
+                if (boots) erode_obj(boots, null, ERODE_CORRODE, EF_GREASE | EF_VERBOSE);
+            }
         }
         // C ref: uhitm.c:5910 — exercise is unconditional
         if (player) await exercise(player, A_STR, false);
@@ -2719,7 +2722,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
     monster.mhp -= damage;
 
     const destroyed = (monster.mhp <= 0);
-    const tameLike = !!(Number(monster.mtame || 0) > 0 || monster.tame);
+    const tameLike = !!(Number(monster.mtame || 0) > 0);
     if (tameLike && damage > 0) {
         if (!Number(monster.mtame)) monster.mtame = 10;
         // C ref: uhitm.c hmon_hitmon_pet() runs before hit message and

@@ -39,7 +39,7 @@ function makeGame() {
         },
         clearRow() {},
     };
-    const game = { player, map, display, fov: null, flags: { verbose: false } };
+    const game = { u: player, map, display, fov: null, flags: { verbose: false } };
     setGame(game);
     return game;
 }

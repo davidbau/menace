@@ -131,7 +131,7 @@ let _currentTurnFallback = 0;
 let _timerQueue = [];
 // _timeoutContext falls back to gstate.game fields when not explicitly set.
 let _timeoutContext = {
-    get player() { return _gstate?.player ?? null; },
+    get player() { return _gstate?.u ?? null; },
     get map() { return _gstate?.map ?? null; },
     get display() { return _gstate?.display ?? null; },
 };

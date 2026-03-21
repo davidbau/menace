@@ -1,0 +1,31 @@
+diff --git a/win/tty/topl.c b/win/tty/topl.c
+index 2dbc788ef..55c0edb65 100644
+--- a/win/tty/topl.c
++++ b/win/tty/topl.c
+@@ -227,7 +227,15 @@ more(void)
+     if (flags.standout)
+         standoutend();
+ 
++    repaint_debug_log("owner=tty.topl.more.await hp=%d topl=%d row=%d col=%d prompt=%s",
++                      (int) u.uhp, (int) ttyDisplay->toplin,
++                      cw ? cw->cury : -1, cw ? cw->curx : -1, "\033 ");
+     xwaitforspace("\033 ");
++    repaint_debug_log("owner=tty.topl.more.key hp=%d topl=%d row=%d col=%d morc=%d dismiss=%d",
++                      (int) u.uhp, (int) ttyDisplay->toplin,
++                      cw ? cw->cury : -1, cw ? cw->curx : -1,
++                      (int) (unsigned char) morc,
++                      (morc == '\033' || morc == ' ') ? 1 : 0);
+ 
+     if (morc == '\033') {
+         if (!(cw->flags & WIN_NOSTOP))
+@@ -243,6 +251,10 @@ more(void)
+         home();
+         cl_end();
+     }
++    repaint_debug_log("owner=tty.topl.more.return hp=%d topl=%d row=%d col=%d morc=%d",
++                      (int) u.uhp, (int) ttyDisplay->toplin,
++                      cw ? cw->cury : -1, cw ? cw->curx : -1,
++                      (int) (unsigned char) morc);
+     ttyDisplay->toplin = TOPLINE_EMPTY;
+     ttyDisplay->inmore = 0;
+ }

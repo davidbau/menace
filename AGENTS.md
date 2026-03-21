@@ -172,6 +172,7 @@ Examples of forbidden fakes:
 6. Commit only validated improvements.
 
 ## Long-Run Regeneration Discipline
+See `skills/long-running-task/SKILL.md` for the full methodology.
 When running rebuilds/regenerations that can take several minutes:
 1. Do a short preflight first (single seed/single fixture) to confirm setup and output shape.
 2. Start the full run only after preflight output looks correct.
@@ -318,6 +319,8 @@ Set `RNG_LOG_TAGS=0` to disable caller tags when you need lower-overhead runs.
    - `skills/movement-propagation/SKILL.md`
    - `skills/topline-async-boundary/SKILL.md`
    - `skills/area-parity-sweep/SKILL.md`
+   - `skills/long-running-task/SKILL.md`
+   - `skills/trace-before-theorize/SKILL.md`
 3. `AGENTS.md` remains the source of truth for non-negotiable policy.
 4. If skill loading is unavailable in a client, follow the workflow and guardrails from the referenced `SKILL.md` manually.
 5. Skill guardrails are mandatory when applicable, including:

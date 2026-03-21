@@ -28,7 +28,8 @@ import {
 import { rnd, rn2 } from './rng.js';
 import { block_point, unblock_point } from './vision.js';
 import { passes_walls, noncorporeal, is_flyer, is_floater,
-         is_swimmer, likes_lava, x_monnam, y_monnam } from './mondata.js';
+         is_swimmer, likes_lava } from './mondata.js';
+import { x_monnam, y_monnam } from './do_name.js';
 import { mondead } from './mon.js';
 import { newsym, canseemon } from './display.js';
 

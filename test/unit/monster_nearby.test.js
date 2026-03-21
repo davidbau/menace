@@ -24,14 +24,14 @@ function hostileMonster(type = mons[PM_GIANT_ANT], overrides = {}) {
         mx: 11,
         my: 10,
         dead: false,
-        tame: false,
-        peaceful: false,
+        mtame: false,
+        mpeaceful: false,
         type,
         m_ap_type: 'monster',
         mundetected: false,
         mcanmove: true,
         mfrozen: 0,
-        sleeping: false,
+        msleeping: false,
         stunned: false,
         ...overrides,
     };
@@ -81,7 +81,7 @@ test('monsterNearby ignores helpless monsters', () => {
     const player = { x: 10, y: 10, hallucinating: false };
     const map = mkMap({
         monsters: {
-            '11,10': hostileMonster(undefined, { sleeping: true }),
+            '11,10': hostileMonster(undefined, { msleeping: true }),
             '10,11': hostileMonster(undefined, { mcanmove: false }),
             '9,9': hostileMonster(undefined, { mfrozen: 1 }),
             // Note: stunned (mstun) is NOT helpless in C — stunned monsters
@@ -105,7 +105,7 @@ test('monsterNearby ignores monsters in line of fear', () => {
 test('monsterNearby allows peaceful monster during hallucination', () => {
     const player = { x: 10, y: 10, hallucinating: true };
     const map = mkMap({
-        monsters: { '11,10': hostileMonster(undefined, { peaceful: true }) },
+        monsters: { '11,10': hostileMonster(undefined, { mpeaceful: true }) },
     });
 
     assert.equal(monsterNearby(map, player, { canSee: () => true }), true);

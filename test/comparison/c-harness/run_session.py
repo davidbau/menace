@@ -1247,6 +1247,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
                 'symset': 'DECgraphics',
                 'autopickup': False,
                 'pickup_types': '',
+                'datetime': harness_fixed_datetime(),
             },
             'steps': [startup_step],
         }
@@ -1664,6 +1665,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             'wizard': True,
             'symset': 'DECgraphics',
             'autopickup': False,
+            'datetime': harness_fixed_datetime(),
         }
         if selected['role']:
             options['role'] = selected['role']
@@ -1796,6 +1798,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
                 'wizard': True,
                 'symset': 'DECgraphics',
                 'autopickup': False,
+                'datetime': harness_fixed_datetime(),
             },
             'steps': [startup_step],
         }
@@ -2196,6 +2199,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
                 'symset': 'DECgraphics',
                 'autopickup': False,
                 'pickup_types': '',
+                'datetime': harness_fixed_datetime(),
             },
             'steps': [startup_step],
         }

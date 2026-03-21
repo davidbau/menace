@@ -21,12 +21,12 @@ describe('HeadlessGame replay contract', () => {
             },
         });
 
-        assert.equal(game.player.name, 'ReplayTester');
-        assert.equal(game.player.wizard, true);
+        assert.equal(game.u.name, 'ReplayTester');
+        assert.equal(game.u.wizard, true);
         assert.equal(game.wizard, true);
-        assert.equal(game.player.gender, 1);
-        assert.equal(game.player.alignment, -1);
-        assert.equal(game.player.race, RACE_ELF);
+        assert.equal(game.u.gender, 1);
+        assert.equal(game.u.alignment, -1);
+        assert.equal(game.u.race, RACE_ELF);
     });
 
     it('sendKey() returns structured per-step observation and invokes hooks', async () => {

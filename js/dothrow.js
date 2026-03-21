@@ -48,7 +48,8 @@ import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
        } from './objects.js';
 import { compactInvletPromptChars, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
 import { doname, next_ident, xname, is_crackable, weight } from './mkobj.js';
-import { x_monnam, is_unicorn, nohands, notake, breathless, haseyes } from './mondata.js';
+import { is_unicorn, nohands, notake, breathless, haseyes } from './mondata.js';
+import { x_monnam } from './do_name.js';
 import { obj_resists } from './objdata.js';
 import { uwepgone, uswapwepgone, uqwepgone, handleSwapWeapon, setuqwep } from './wield.js';
 import { placeFloorObject, delobj } from './invent.js';
@@ -790,7 +791,7 @@ export async function hurtle_jump(arg, x, y) {
 
 // cf. dothrow.c:772 -- hurtle_step(arg, x, y)
 export async function hurtle_step(arg, x, y) {
-    const { player, map } = arg;
+    const { u: player, map } = arg;
     if (!isok(x, y)) { await pline("You feel the spirits holding you back."); return false; }
     if (arg.range <= 0) return false;
     const loc = typeof map.at === 'function' ? map.at(x, y) : null;
@@ -1571,14 +1572,14 @@ export async function breakmsg(obj, in_view) {
     case POT_WATER: // eslint-disable-line no-fallthrough
         if (!in_view) await pline('You hear something shatter!');
         // C ref: dothrow.c:2637 pline("%s shatter%s%s!", Doname2(obj), quan==1?"s":"", to_pieces)
-        else await pline(`${Doname2(obj, _gstate?.player)} shatter${obj.quan === 1 ? 's' : ''}${to_pieces}!`);
+        else await pline(`${Doname2(obj, _gstate?.u)} shatter${obj.quan === 1 ? 's' : ''}${to_pieces}!`);
         break;
     case EGG: case MELON: await pline("Splat!"); break;
     case CREAM_PIE: if (in_view) await pline("What a mess!"); break;
     case ACID_VENOM: case BLINDING_VENOM: await pline("Splash!"); break;
     default:
         if (!in_view) await pline('You hear something shatter!');
-        else await pline(`${Doname2(obj, _gstate?.player)} shatter${obj.quan === 1 ? 's' : ''}${to_pieces}!`);
+        else await pline(`${Doname2(obj, _gstate?.u)} shatter${obj.quan === 1 ? 's' : ''}${to_pieces}!`);
         break;
     }
 }

@@ -39,17 +39,27 @@ The top-level loop in `allmain.c`:
 void moveloop(boolean resuming) {
     moveloop_preamble(resuming);      // setup, restore, display init
     for (;;) {
-        moveloop_core();              // one player turn
+        moveloop_core();              // one game tick
     }
 }
 ```
 
-Inside `moveloop_core()`:
-1. **Monster movement** — `mon_move()` advances every monster on the level
-2. **Display update** — `vision_recalc()`, `botl_update()`, message flush
-3. **Player command** — `rhack()` reads a keystroke, dispatches to `docmd()`,
-   which calls `dodo()` — the 200-line command dispatch table
-4. **Turn accounting** — `moves++`, hunger, timeout, exercise checks
+Each call to `moveloop_core()` handles one complete game tick in seven phases:
+
+| Phase | C code (allmain.c) | What happens |
+|-------|-------------------|--------------|
+| **A** | `dobjsfree(); clear_bypasses();` | Bookkeeping: free deferred objects, clear bypass flags |
+| **B** | `if (context.move) { movemon(); mcalcmove(); makemon(); moves++; regen; timeout; exercise; ... }` | Monster turn: move all monsters, allocate movement, maybe spawn, advance turn counter, regenerate HP/PW, process timeouts. Gated by `context.move` (set after timed commands). |
+| **C** | `find_ac(); vision_recalc(); bot(); curs_on_u(); context.move = 1;` | Pre-input: update AC, vision, status line, cursor. Set `context.move = 1` optimistically. |
+| **D** | `if (multi >= 0 && occupation) { (*occupation)(); return; }` | Active occupation (eating, digging, etc.): run one step and return. Next `moveloop_core()` call starts at Phase A again. |
+| **E** | `if (multi > 0) { multi--; rhack(saved_cmd); return; }` | Multi-repeat: re-execute saved command, return. |
+| **F** | `rhack(0);` | Fresh command: `nhgetch()` reads a key, `rhack()` dispatches it. Untimed commands clear `context.move` to skip Phase B next iteration. |
+| **G** | `deferred_goto(); vision_recalc(); display_update();` | Post-command: process deferred level changes, update vision and display. |
+
+**Key ordering rule**: Phase B (monsters) runs BEFORE Phase F (player command).
+Monsters move first, then the player acts. The `return` at Phase D/E means
+the NEXT `moveloop_core()` call starts at Phase A/B, so monsters always get
+their turn before the next player action.
 
 The loop is **synchronous and blocking** in C. `nhgetch()` stops the process until
 a key arrives. This is the single most consequential structural fact for the JS port.
@@ -254,7 +264,34 @@ binding resolves at call time, not import time.
 > *"You await input. The Promise resolves."*
 
 The C game loop blocks on `nhgetch()`. JavaScript in the browser cannot block the
-main thread. The solution is **async/await with a Promise-based input queue**:
+main thread. The solution is **async/await with a Promise-based input queue**.
+
+**Single-threaded execution:** Like C, JS gameplay is strictly single-threaded.
+There is one active owner of input at a time, no gameplay reentrancy, and no
+synthetic queuing or continuations that reorder command vs monster work. The
+async boundary exists solely for browser responsiveness — the logical execution
+order matches C exactly.
+
+**JS game loop structure** (`allmain.js: _gameLoopStep`): The JS equivalent of
+C's `for(;;) { moveloop_core(); }` is a `while(true)` loop in `_gameLoopStep`.
+Each iteration dispatches one game tick — either a continuation (occupation,
+multi-repeat, travel) or a fresh player command via `runOneCommandCycle`. The
+loop handles the same phases A–G as C's `moveloop_core()`:
+
+- Phases D/E (occupation, multi-repeat) → `continue` to restart the loop
+- Phase F (fresh command) → `nhgetch()` + `run_command()` via `runOneCommandCycle`
+- Phase B (monster turn) → `advanceTimedTurn()` / `moveloop_core()` after timed commands
+
+**Current ordering gap:** Phase B currently runs AFTER the player command (inside
+`finalizeTimedCommand`), not before it. C runs Phase B at the TOP of each
+`moveloop_core()` iteration. Moving `advanceTimedTurn` to the top of the
+`while(true)` loop (gated by `context.move`) is the remaining structural change
+needed for full game loop parity. See `docs/GAME_LOOP_REORDER_PLAN.md`.
+
+**No deferral flags:** Earlier experiments considered a `pendingDeferredTimedTurn`
+flag to defer Phase B to the next cycle. This approach was abandoned — C has no
+deferral mechanism, and synthetic flags violate the single-threaded execution model.
+The correct approach is structural: move Phase B to the top of the loop.
 
 ```javascript
 // C version (allmain.c):

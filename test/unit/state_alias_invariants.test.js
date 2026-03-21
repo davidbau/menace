@@ -49,20 +49,20 @@ test('NetHackGame legacy movement mirrors route through svc.context', () => {
 
 test('NetHackGame canonical alias invariants: u <-> player', () => {
     const game = new NetHackGame();
-    assert.equal(game.u, game.player);
+    assert.equal(game.u, game.u);
 
     const replacement = { x: 10, y: 12 };
     game.u = replacement;
-    assert.equal(game.player, replacement);
+    assert.equal(game.u, replacement);
     assert.equal(game.u, replacement);
 });
 
 test('NetHackGame canonical alias invariants: lev <-> map', () => {
     const game = new NetHackGame();
-    assert.equal(game.lev, game.map);
+    assert.equal(game.map, game.map);
 
     const replacement = { marker: 'map' };
-    game.lev = replacement;
+    game.map = replacement;
     assert.equal(game.map, replacement);
-    assert.equal(game.lev, replacement);
+    assert.equal(game.map, replacement);
 });

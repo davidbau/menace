@@ -48,9 +48,9 @@ describe('Monster movement', () => {
             mlevel: 1,
             speed: 12, movement: 12,
             attacks: type.attacks || [],
-            dead: false, sleeping: false,
-            confused: false, peaceful: false,
-            tame: false, flee: false,
+            dead: false, msleeping: false,
+            confused: false, mpeaceful: false,
+            mtame: false, flee: false,
             isshk: false, ispriest: false,
             mcanmove: true, mcansee: true,
             mux: player.x, muy: player.y,
@@ -72,9 +72,9 @@ describe('Monster movement', () => {
             mlevel: 2,
             speed: 12, movement: 12,
             attacks: type.attacks || [],
-            dead: false, sleeping: false,
-            confused: false, peaceful: true,
-            tame: true, flee: false,
+            dead: false, msleeping: false,
+            confused: false, mpeaceful: true,
+            mtame: true, flee: false,
             mcanmove: true, mcansee: true,
             blind: false,
             mfrozen: 0, mfleetim: 0, mtrapped: 0,
@@ -107,9 +107,9 @@ describe('Monster movement', () => {
             ac: 8, level: 1,
             speed: 12, movement: 12,
             attacks: [[0, 0, 1, 4]],
-            dead: false, sleeping: false,
-            confused: false, peaceful: false,
-            tame: false, flee: false,
+            dead: false, msleeping: false,
+            confused: false, mpeaceful: false,
+            mtame: false, flee: false,
         };
         map.monsters.push(mon);
 
@@ -136,8 +136,8 @@ describe('Monster movement', () => {
             speed: 12, movement: 12,
             attacks: [],
             dead: false, msleeping: true,
-            confused: false, peaceful: false,
-            tame: false, mflee: false,
+            confused: false, mpeaceful: false,
+            mtame: false, mflee: false,
         };
         map.monsters.push(mon);
 
@@ -166,9 +166,9 @@ describe('Monster movement', () => {
             ac: 8, level: 1,
             speed: 12, movement: 12,
             attacks: [],
-            dead: false, sleeping: false,
-            confused: false, peaceful: false,
-            tame: false, flee: false,
+            dead: false, msleeping: false,
+            confused: false, mpeaceful: false,
+            mtame: false, flee: false,
             mcanmove: false,
         };
         map.monsters.push(mon);
@@ -216,8 +216,8 @@ describe('Monster movement', () => {
         player.initRole(0);
 
         const pet = makeGoblin(19, 10, player);
-        pet.peaceful = true;
-        pet.tame = true;
+        pet.mpeaceful = true;
+        pet.mtame = true;
         pet.edog = {
             apport: 10,
             hungrytime: 1000,
@@ -272,9 +272,9 @@ describe('Monster movement', () => {
             ac: 8, level: 1,
             speed: 12, movement: 12,
             attacks: [],
-            dead: false, sleeping: true,
-            confused: false, peaceful: false,
-            tame: false, flee: false,
+            dead: false, msleeping: true,
+            confused: false, mpeaceful: false,
+            mtame: false, flee: false,
             mlstmv: 7,
         };
         map.monsters.push(mon);
@@ -296,9 +296,9 @@ describe('Monster movement', () => {
             ac: 8, level: 1,
             speed: 12, movement: 0,
             attacks: [],
-            dead: true, sleeping: false,
-            confused: false, peaceful: false,
-            tame: false, flee: false,
+            dead: true, msleeping: false,
+            confused: false, mpeaceful: false,
+            mtame: false, flee: false,
         });
 
         assert.equal(map.monsters.length, 1);
@@ -325,9 +325,9 @@ describe('Monster movement', () => {
             ac: 8, level: 1,
             speed: 12, movement: 12,
             attacks: [[0, 0, 1, 4]],
-            dead: false, sleeping: false,
-            confused: false, peaceful: false,
-            tame: false, flee: false,
+            dead: false, msleeping: false,
+            confused: false, mpeaceful: false,
+            mtame: false, flee: false,
         };
         map.monsters.push(mon);
 
@@ -364,7 +364,7 @@ describe('Monster movement', () => {
                 messages.push(msg);
             },
         };
-        setGame({ display, map, player, fov: { canSee: () => true }, flags: { msg_window: false } });
+        setGame({ display, map, u: player, fov: { canSee: () => true }, flags: { msg_window: false } });
 
         await movemon(map, player, display);
 

@@ -150,7 +150,7 @@ describe('Death cause: quit', () => {
         player.deathCause = '';
 
         const game = {
-            player, display,
+            u: player, display,
             map: { monsters: [], monsterAt() { return null; }, at() { return { typ: 0 }; }, objectsAt() { return []; }, flags: {} },
             fov: { canSee() { return false; } },
             gameOver: false,
@@ -177,7 +177,7 @@ describe('Death cause: quit', () => {
         player.deathCause = '';
 
         const game = {
-            player, display,
+            u: player, display,
             map: { monsters: [], monsterAt() { return null; }, at() { return { typ: 0 }; }, objectsAt() { return []; }, flags: {} },
             fov: { canSee() { return false; } },
             gameOver: false,
@@ -211,7 +211,7 @@ describe('Death cause: escape', () => {
         player.deathCause = '';
 
         const game = {
-            player, display,
+            u: player, display,
             map: {
                 monsters: [],
                 monsterAt() { return null; },

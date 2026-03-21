@@ -20,10 +20,10 @@ import {
 } from '../../js/wizcmds.js';
 
 function makeGame() {
-  return {
+  const g = {
     wizard: true,
     wizFuzzer: false,
-    player: {
+    u: {
       x: 2, y: 2,
       hp: 10, hpmax: 10,
       mh: 1, mhmax: 1,
@@ -40,6 +40,8 @@ function makeGame() {
     display: { putstr_message: async () => {} },
     migratingMonsters: [{ id: 1 }, { id: 2 }],
   };
+  Object.defineProperty(g, 'player', { get() { return g.u; }, enumerable: false, configurable: true });
+  return g;
 }
 
 describe('wizcmds C-surface wrappers', () => {
@@ -56,7 +58,7 @@ describe('wizcmds C-surface wrappers', () => {
   it('identify/kill/fuzzer wrappers are executable', async () => {
     const g = makeGame();
     await wiz_identify(g);
-    assert.strictEqual(g.player.inventory[0].known, true);
+    assert.strictEqual(g.u.inventory[0].known, true);
     await wiz_kill(g);
     assert.strictEqual(g.map.monsters.length, 0);
     assert.strictEqual(wiz_fuzzer(g), 1);

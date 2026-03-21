@@ -284,7 +284,7 @@ function getExtrinsic(player, prop) {
 }
 
 // C: Fixed_abil
-function Fixed_abil(player) {
+export function Fixed_abil(player) {
     return !!(getIntrinsic(player, FIXED_ABIL) || getExtrinsic(player, FIXED_ABIL));
 }
 

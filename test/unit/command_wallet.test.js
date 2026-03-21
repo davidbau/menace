@@ -21,7 +21,7 @@ function makeGame() {
     };
 
     const game = {
-        player,
+        u: player,
         map,
         display,
         fov: null,
@@ -34,7 +34,7 @@ function makeGame() {
 describe('wallet command', () => {
     it('reports plural zorkmids without consuming time', async () => {
         const game = makeGame();
-        game.player.gold = 422;
+        game.u.gold = 422;
 
         const result = await rhack('$'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
@@ -44,7 +44,7 @@ describe('wallet command', () => {
 
     it('reports singular zorkmid', async () => {
         const game = makeGame();
-        game.player.gold = 1;
+        game.u.gold = 1;
 
         await rhack('$'.charCodeAt(0), game);
         assert.equal(game.display.topMessage, 'Your wallet contains 1 zorkmid.');

@@ -55,7 +55,7 @@ async function makeTestGame(depth) {
     player.y = Math.floor((room.ly + room.hy) / 2);
     player.name = 'TestHero';
     player.level = 5;
-    return { player, map, gameOverReason: 'killed' };
+    return { u: player, map, gameOverReason: 'killed' };
 }
 
 // ========================================================================
@@ -131,14 +131,14 @@ describe('bones surface helpers', () => {
 describe('canMakeBones', () => {
     it('always returns false on level 1', () => {
         initRng(42);
-        const game = { player: { dungeonLevel: 1 } };
+        const game = { u: { dungeonLevel: 1 } };
         assert.equal(canMakeBones(game), false);
     });
 
     it('consumes rn2 on deeper levels', () => {
         initRng(42);
         initLevelGeneration();
-        const game = { player: { dungeonLevel: 5 } };
+        const game = { u: { dungeonLevel: 5 } };
         // Just verify it doesn't throw and returns a boolean
         const result = canMakeBones(game);
         assert.equal(typeof result, 'boolean');
@@ -147,7 +147,7 @@ describe('canMakeBones', () => {
     it('depth 2: rn2(1) always returns 0, so ghost always appears', () => {
         // depth >> 2 = 0, so rn2(1 + 0) = rn2(1) = always 0
         initRng(99);
-        const game = { player: { dungeonLevel: 2 } };
+        const game = { u: { dungeonLevel: 2 } };
         assert.equal(canMakeBones(game), true);
     });
 });
@@ -215,8 +215,8 @@ describe('removeMonFromBones', () => {
     it('removes tame monsters', () => {
         const map = new GameMap();
         map.monsters = [
-            { name: 'dog', tame: true, dead: false },
-            { name: 'jackal', tame: false, dead: false },
+            { name: 'dog', mtame: true, dead: false },
+            { name: 'jackal', mtame: false, dead: false },
         ];
         removeMonFromBones(map);
         assert.equal(map.monsters.length, 1);
@@ -338,7 +338,7 @@ describe('dropUponDeath', () => {
         player.addToInventory(food);
         player.weapon = sword;
 
-        const game = { player, map };
+        const game = { u: player, map };
         dropUponDeath(game);
 
         assert.equal(player.inventory.length, 0);
@@ -360,7 +360,7 @@ describe('dropUponDeath', () => {
         player.armor = armor;
         player.shield = { name: 'shield' };
 
-        const game = { player, map };
+        const game = { u: player, map };
         dropUponDeath(game);
 
         assert.equal(player.weapon, null);
@@ -387,20 +387,20 @@ describe('savebones (full pipeline)', () => {
     it('saves bones on death at depth > 1', async () => {
         const game = await makeTestGame(3);
         const sword = { name: 'sword', oclass: WEAPON_CLASS };
-        game.player.addToInventory(sword);
-        game.player.weapon = sword;
+        game.u.addToInventory(sword);
+        game.u.weapon = sword;
 
         savebones(game);
 
         // Player inventory should be emptied
-        assert.equal(game.player.inventory.length, 0);
-        assert.equal(game.player.weapon, null);
+        assert.equal(game.u.inventory.length, 0);
+        assert.equal(game.u.weapon, null);
     });
 
     it('never saves bones on level 1 (canMakeBones returns false)', async () => {
         const game = await makeTestGame(1);
         // Override depth to 1
-        game.player.dungeonLevel = 1;
+        game.u.dungeonLevel = 1;
         savebones(game);
         // No bones should be stored for depth 1
         assert.equal(loadBones(1), null);
@@ -421,7 +421,7 @@ describe('savebones (full pipeline)', () => {
         player.name = 'TestGhost';
         player.level = 3;
 
-        const game = { player, map, gameOverReason: 'killed' };
+        const game = { u: player, map, gameOverReason: 'killed' };
         savebones(game);
 
         const bonesData = loadBones(2);
@@ -437,7 +437,7 @@ describe('savebones (full pipeline)', () => {
     it('does not crash with empty inventory', async () => {
         const game = await makeTestGame(3);
         // Ensure empty inventory
-        game.player.inventory = [];
+        game.u.inventory = [];
         savebones(game);
         // No crash = success
     });

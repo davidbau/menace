@@ -29,7 +29,7 @@ function makeGame() {
     };
 
     return {
-        player,
+        u: player,
         map,
         display,
         fov: null,
@@ -45,7 +45,7 @@ describe('known spells command', () => {
 
     it('reports when no spells are known', async () => {
         const game = makeGame();
-        game.player.inventory = [{ invlet: 'a', oclass: WEAPON_CLASS, otyp: 1, name: 'long sword' }];
+        game.u.inventory = [{ invlet: 'a', oclass: WEAPON_CLASS, otyp: 1, name: 'long sword' }];
         const result = await rhack('+'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
         assert.equal(game.display.topMessage, "You don't know any spells right now.");
@@ -53,9 +53,9 @@ describe('known spells command', () => {
 
     it('opens known-spells overlay when spellbooks are present', async () => {
         const game = makeGame();
-        game.player.wizard = true;
-        game.player.turns = 6;
-        game.player.inventory = [{
+        game.u.wizard = true;
+        game.u.turns = 6;
+        game.u.inventory = [{
             invlet: 'g',
             oclass: SPBOOK_CLASS,
             otyp: SPE_HEALING,
@@ -67,7 +67,7 @@ describe('known spells command', () => {
             name: 'stone to flesh',
         }];
         // handleKnownSpells reads player.spells (populated by initialSpell at game start)
-        game.player.spells = [
+        game.u.spells = [
             { otyp: SPE_HEALING, sp_lev: 1, sp_know: 19994 },
             { otyp: SPE_STONE_TO_FLESH, sp_lev: 3, sp_know: 19994 },
         ];

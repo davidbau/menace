@@ -100,7 +100,7 @@ describe('Monster creation (C-faithful)', () => {
             { roleIndex: 1, alignment: -1, alignmentRecord: 10, race: 0, inventory: [] },
             () => makemon(gremlin, 10, 10, NO_MM_FLAGS, 1, map)
         );
-        assert.equal(chaoticGremlin.peaceful, true);
+        assert.equal(chaoticGremlin.mpeaceful, true);
 
         initRng(1234);
         map.monsters = [];
@@ -108,7 +108,7 @@ describe('Monster creation (C-faithful)', () => {
             { roleIndex: 4, alignment: 1, alignmentRecord: 10, race: 0, inventory: [] },
             () => makemon(gremlin, 10, 10, NO_MM_FLAGS, 1, map)
         );
-        assert.equal(lawfulGremlin.peaceful, false);
+        assert.equal(lawfulGremlin.mpeaceful, false);
     });
 
     it('MM_ASLEEP marks new monsters sleeping', () => {
@@ -122,7 +122,7 @@ describe('Monster creation (C-faithful)', () => {
         assert.ok(gridBug >= 0, 'grid bug should exist in mons[]');
         const mon = makemon(gridBug, 10, 10, MM_ASLEEP, 1, map);
         assert.equal(mon.msleeping, 1);
-        assert.equal(mon.sleeping, true);
+        assert.ok(mon.msleeping, 'monster should be sleeping');
     });
 
     it('leprechauns start asleep by default', () => {
@@ -134,7 +134,7 @@ describe('Monster creation (C-faithful)', () => {
         };
         const mon = makemon(PM_LEPRECHAUN, 11, 10, NO_MM_FLAGS, 1, map);
         assert.equal(mon.msleeping, 1);
-        assert.equal(mon.sleeping, true);
+        assert.ok(mon.msleeping, 'monster should be sleeping');
     });
 
     it('ordinary mimics get numeric appearance state during makemon', () => {

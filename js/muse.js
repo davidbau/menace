@@ -1348,13 +1348,13 @@ export function hero_behind_chokepoint(mtmp, map, player) {
 // mon_has_friends — C ref: muse.c:1368
 // ========================================================================
 export function mon_has_friends(mtmp, map) {
-    if (mtmp.tame || mtmp.mpeaceful) return false;
+    if (mtmp.mtame || mtmp.mpeaceful) return false;
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
             const x = mtmp.mx + dx, y = mtmp.my + dy;
             if (!isok(x, y)) continue;
             const mon2 = m_at(x, y, map);
-            if (mon2 && mon2 !== mtmp && !mon2.tame && !mon2.mpeaceful)
+            if (mon2 && mon2 !== mtmp && !mon2.mtame && !mon2.mpeaceful)
                 return true;
         }
     }
@@ -1531,7 +1531,6 @@ async function mbhitm(mtmp, otmp, map, player) {
 
     if (!hits_you && otmp.otyp !== WAN_UNDEAD_TURNING) {
         mtmp.msleeping = 0;
-        mtmp.sleeping = false;
         if (mtmp.m_ap_type) seemimic(mtmp, map);
     }
 
@@ -2212,7 +2211,7 @@ export function rnd_misc_item(mtmp) {
       if (mtmp.isgd) return 0;
     return rn2(6) ? POT_SPEED : WAN_SPEED_MONSTER;
     case 1:
-      if (mtmp.mpeaceful && !_gstate?.player?.See_invisible) return 0;
+      if (mtmp.mpeaceful && !_gstate?.u?.See_invisible) return 0;
     return rn2(6) ? POT_INVISIBILITY : WAN_MAKE_INVISIBLE;
     case 2:
       return POT_GAIN_LEVEL;

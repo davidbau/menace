@@ -1649,11 +1649,11 @@ export function getArrivalPosition(map, dungeonLevel, transitionDir = null) {
 
 // Handle hero landing on a monster at arrival.
 export function resolveArrivalCollision(game) {
-    const mtmp = (game.lev || game.map)?.monsterAt?.((game.u || game.player).x, (game.u || game.player).y);
-    if (!mtmp || mtmp === (game.u || game.player)?.usteed) return;
+    const mtmp = (game.map || game.map)?.monsterAt?.((game.u || game.u).x, (game.u || game.u).y);
+    if (!mtmp || mtmp === (game.u || game.u)?.usteed) return;
 
     const moveMonsterNearby = () => {
-        const pos = enexto((game.u || game.player).x, (game.u || game.player).y, (game.lev || game.map));
+        const pos = enexto((game.u || game.u).x, (game.u || game.u).y, (game.map || game.map));
         if (pos) {
             const _omx = mtmp.mx, _omy = mtmp.my;
             mtmp.mx = pos.x; mtmp.my = pos.y;
@@ -1663,10 +1663,10 @@ export function resolveArrivalCollision(game) {
     };
 
     if (!rn2(2)) {
-        const cc = enexto((game.u || game.player).x, (game.u || game.player).y, (game.lev || game.map));
-        if (cc && Math.abs(cc.x - (game.u || game.player).x) <= 1 && Math.abs(cc.y - (game.u || game.player).y) <= 1) {
-            (game.u || game.player).x = cc.x;
-            (game.u || game.player).y = cc.y;
+        const cc = enexto((game.u || game.u).x, (game.u || game.u).y, (game.map || game.map));
+        if (cc && Math.abs(cc.x - (game.u || game.u).x) <= 1 && Math.abs(cc.y - (game.u || game.u).y) <= 1) {
+            (game.u || game.u).x = cc.x;
+            (game.u || game.u).y = cc.y;
         } else {
             moveMonsterNearby();
         }
@@ -1674,11 +1674,11 @@ export function resolveArrivalCollision(game) {
         moveMonsterNearby();
     }
 
-    const still = (game.lev || game.map)?.monsterAt?.((game.u || game.player).x, (game.u || game.player).y);
+    const still = (game.map || game.map)?.monsterAt?.((game.u || game.u).x, (game.u || game.u).y);
     if (!still) return;
-    const fallback = enexto((game.u || game.player).x, (game.u || game.player).y, (game.lev || game.map));
+    const fallback = enexto((game.u || game.u).x, (game.u || game.u).y, (game.map || game.map));
     if (fallback) { still.mx = fallback.x; still.my = fallback.y; }
-    else { (game.lev || game.map).removeMonster(still); }
+    else { (game.map || game.map).removeMonster(still); }
 }
 
 // --- goto_level core (C ref: do.c goto_level) ---
@@ -1692,14 +1692,14 @@ export function resolveArrivalCollision(game) {
 export async function changeLevel(game, depth, transitionDir = null, opts = {}) {
     const currentDnum = Number.isInteger(game.dnum)
         ? game.dnum
-        : (Number.isInteger((game.lev || game.map)?._genDnum) ? (game.lev || game.map)._genDnum : 0);
+        : (Number.isInteger((game.map || game.map)?._genDnum) ? (game.map || game.map)._genDnum : 0);
     const levelKey = (dnum, dlev) => `${dnum}:${dlev}`;
     if (!game.levelsByBranch) game.levelsByBranch = {};
 
-    const previousDepth = (game.u || game.player)?.dungeonLevel;
-    const fromX = (game.u || game.player)?.x;
-    const fromY = (game.u || game.player)?.y;
-    const currentMap = (game.lev || game.map);
+    const previousDepth = (game.u || game.u)?.dungeonLevel;
+    const fromX = (game.u || game.u)?.x;
+    const fromY = (game.u || game.u)?.y;
+    const currentMap = (game.map || game.map);
     const stampLevelIdentity = (map, dnum, dlevel) => {
         if (!map || !Number.isInteger(dnum) || !Number.isInteger(dlevel)) return;
         map.uz = { dnum, dlevel };
@@ -1715,17 +1715,17 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         const mons = Array.isArray(currentMap.monsters) ? currentMap.monsters : [];
         for (const mtmp of mons) {
             if (!mtmp || mtmp.dead) continue;
-            const canFollow = ((monnear(mtmp, (game.u || game.player).x, (game.u || game.player).y)
-                && levl_follower(mtmp, (game.u || game.player)))
-                || (((game.u || game.player).uhave?.amulet) && mtmp.iswiz));
+            const canFollow = ((monnear(mtmp, (game.u || game.u).x, (game.u || game.u).y)
+                && levl_follower(mtmp, (game.u || game.u)))
+                || (((game.u || game.u).uhave?.amulet) && mtmp.iswiz));
             if (!canFollow) continue;
-            if ((helpless(mtmp) && mtmp !== (game.u || game.player).usteed)
+            if ((helpless(mtmp) && mtmp !== (game.u || game.u).usteed)
                 || (mtmp.mstrategy & STRAT_WAITFORU)) {
                 continue;
             }
-            if (mtmp === (game.u || game.player).usteed) continue;
+            if (mtmp === (game.u || game.u).usteed) continue;
             if (!(mtmp.meating || mtmp.mtrapped)) continue;
-            if (canseemon(mtmp, (game.u || game.player), null, currentMap)) {
+            if (canseemon(mtmp, (game.u || game.u), null, currentMap)) {
                 const activity = mtmp.meating ? 'eating' : 'trapped';
                 await pline(`${Monnam(mtmp)} is still ${activity}.`);
             }
@@ -1734,10 +1734,10 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
 
     // Cache current level
     if (currentMap) {
-        game.levels[(game.u || game.player).dungeonLevel] = currentMap;
-        game.levelsByBranch[levelKey(currentDnum, (game.u || game.player).dungeonLevel)] = currentMap;
+        game.levels[(game.u || game.u).dungeonLevel] = currentMap;
+        game.levelsByBranch[levelKey(currentDnum, (game.u || game.u).dungeonLevel)] = currentMap;
     }
-    const previousMap = game.levels[(game.u || game.player).dungeonLevel];
+    const previousMap = game.levels[(game.u || game.u).dungeonLevel];
     const targetDnum = Number.isInteger(opts?.targetDnum)
         ? opts.targetDnum
         : (Number.isInteger(game.dnum) ? game.dnum : currentDnum);
@@ -1745,19 +1745,19 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
 
     // Use pre-generated map if provided, otherwise check cache or generate new.
     if (opts.map) {
-        game.lev = opts.map;
+        game.map = opts.map;
         game.levels[depth] = opts.map;
         game.levelsByBranch[branchCacheKey] = opts.map;
     } else if (game.levelsByBranch[branchCacheKey]) {
-        game.lev = game.levelsByBranch[branchCacheKey];
+        game.map = game.levelsByBranch[branchCacheKey];
     } else if (targetDnum === currentDnum && game.levels[depth]) {
-        game.lev = game.levels[depth];
+        game.map = game.levels[depth];
     } else {
         // C ref: do.c:1674-1699 goto_level() assigns u.uz = newlevel before mklev().
         // Level-sensitive generation (for example makemon.c align_shift()) should
         // consult the destination level through live u.uz semantics, not via an
         // injected target-level override on the map being built.
-        const player = (game.u || game.player);
+        const player = (game.u || game.u);
         const prevDnum = game.dnum;
         const prevUseLiveUzForMklevAlign = game._useLiveUzForMklevAlign;
         const prevMklevAlignLevelRef = game._mklevAlignLevelRef;
@@ -1771,7 +1771,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
             game._alignShiftMoves = Number.NaN;
         }
         try {
-            game.lev = opts.makeLevel ? await opts.makeLevel(depth) : await mklev(depth);
+            game.map = opts.makeLevel ? await opts.makeLevel(depth) : await mklev(depth);
         } catch (err) {
             game.dnum = prevDnum;
             game._useLiveUzForMklevAlign = prevUseLiveUzForMklevAlign;
@@ -1780,27 +1780,27 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         }
         game._useLiveUzForMklevAlign = prevUseLiveUzForMklevAlign;
         game._mklevAlignLevelRef = prevMklevAlignLevelRef;
-        game.levels[depth] = (game.lev || game.map);
-        game.levelsByBranch[branchCacheKey] = (game.lev || game.map);
+        game.levels[depth] = (game.map || game.map);
+        game.levelsByBranch[branchCacheKey] = (game.map || game.map);
     }
 
-    if (Number.isInteger((game.lev || game.map)?._genDnum)) {
-        game.dnum = (game.lev || game.map)._genDnum;
+    if (Number.isInteger((game.map || game.map)?._genDnum)) {
+        game.dnum = (game.map || game.map)._genDnum;
     }
     const activeDnum = Number.isInteger(game.dnum)
         ? game.dnum
         : (Number.isInteger(targetDnum) ? targetDnum : currentDnum);
-    stampLevelIdentity((game.lev || game.map), activeDnum, depth);
-    setCurrentLevelStairs(game.lev || game.map);
+    stampLevelIdentity((game.map || game.map), activeDnum, depth);
+    setCurrentLevelStairs(game.map || game.map);
 
-    (game.u || game.player).dungeonLevel = depth;
-    (game.u || game.player).uz = { dnum: activeDnum, dlevel: depth };
-    (game.u || game.player).inTutorial = !!(game.lev || game.map)?.flags?.is_tutorial;
+    (game.u || game.u).dungeonLevel = depth;
+    (game.u || game.u).uz = { dnum: activeDnum, dlevel: depth };
+    (game.u || game.u).inTutorial = !!(game.map || game.map)?.flags?.is_tutorial;
 
     // C ref: dungeon.c u_on_rndspot() / stairs.c u_on_upstairs()
-    const pos = getArrivalPosition((game.lev || game.map), depth, transitionDir);
-    (game.u || game.player).x = pos.x;
-    (game.u || game.player).y = pos.y;
+    const pos = getArrivalPosition((game.map || game.map), depth, transitionDir);
+    (game.u || game.u).x = pos.x;
+    (game.u || game.u).y = pos.y;
 
     // C ref: cmd.c goto_level() clears hero track history on level change.
     if (Number.isInteger(previousDepth) && depth !== previousDepth) {
@@ -1809,41 +1809,41 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
 
     // C ref: do.c goto_level() -> losedogs() -> mon_arrive()
     // Migrate followers from old level; resolve hero-monster collision.
-    if (previousMap && previousMap !== (game.lev || game.map)) {
-        mon_arrive(previousMap, (game.lev || game.map), (game.u || game.player), {
+    if (previousMap && previousMap !== (game.map || game.map)) {
+        mon_arrive(previousMap, (game.map || game.map), (game.u || game.u), {
             sourceHeroX: fromX,
             sourceHeroY: fromY,
-            heroX: (game.u || game.player).x,
-            heroY: (game.u || game.player).y,
+            heroX: (game.u || game.u).x,
+            heroY: (game.u || game.u).y,
         });
         resolveArrivalCollision(game);
     }
 
     // C ref: do.c goto_level() — initial bubble/cloud move before vision refresh.
-    if ((game.lev || game.map)?.flags?.is_waterlevel || (game.lev || game.map)?.flags?.is_airlevel) {
-        if ((game.lev || game.map)?._water && (game.u || game.player)) {
-            (game.lev || game.map)._water.heroPos = {
-                x: (game.u || game.player).x,
-                y: (game.u || game.player).y,
-                dx: (game.u || game.player).dx || 0,
-                dy: (game.u || game.player).dy || 0,
+    if ((game.map || game.map)?.flags?.is_waterlevel || (game.map || game.map)?.flags?.is_airlevel) {
+        if ((game.map || game.map)?._water && (game.u || game.u)) {
+            (game.map || game.map)._water.heroPos = {
+                x: (game.u || game.u).x,
+                y: (game.u || game.u).y,
+                dx: (game.u || game.u).dx || 0,
+                dy: (game.u || game.u).dy || 0,
             };
-            (game.lev || game.map)._water.onHeroMoved = (x, y) => {
-                (game.u || game.player).x = x;
-                (game.u || game.player).y = y;
+            (game.map || game.map)._water.onHeroMoved = (x, y) => {
+                (game.u || game.u).x = x;
+                (game.u || game.u).y = y;
                 mark_vision_dirty(); // player position changed
             };
-            (game.lev || game.map)._water.onVisionRecalc = () => {
+            (game.map || game.map)._water.onVisionRecalc = () => {
                 vision_recalc();
             };
         }
-        await movebubbles((game.lev || game.map));
+        await movebubbles((game.map || game.map));
     }
 
     // C ref: do.c goto_level() — tourists gain level_difficulty()-based XP
     // on first entry to a new level, via the normal experience helpers.
     if (Number.isInteger(previousDepth) && depth !== previousDepth) {
-        const player = (game.u || game.player);
+        const player = (game.u || game.u);
         if (player?.roleMnum === PM_TOURIST) {
             more_experienced(level_difficulty(null, game), 0, game, player);
             await newexplevel(player, game?.display);

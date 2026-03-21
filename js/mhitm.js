@@ -31,7 +31,8 @@ import {
     nonliving, sticks, attacktype, dmgtype, is_whirly,
     DEADMONSTER, is_elf, is_orc,
 } from './mondata.js';
-import { erode_obj } from './trap.js';
+import { erode_obj, acid_damage } from './trap.js';
+import { erode_armor } from './uhitm.js';
 import { mons, AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_ENCH, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX, PM_FLOATING_EYE } from './monsters.js';
 import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
@@ -329,8 +330,8 @@ export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vi
             const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
             await display.putstr_message(`${agrName} is splashed by ${defName}'s acid!`);
         }
-        rn2(30); // erode_armor chance
-        rn2(6);  // acid_damage chance
+        if (!rn2(30)) erode_armor(magr, ERODE_CORRODE);
+        if (!rn2(6)) acid_damage(magr.weapon || null);
         // Apply acid damage and return
         if (tmp > 0) {
             magr.mhp -= tmp;
@@ -704,7 +705,6 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
         tmp += 4;
         if (mdef.msleeping) {
             mdef.msleeping = 0;
-            mdef.sleeping = false;
         }
     }
 
@@ -769,8 +769,14 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
             if (distmin(magr.mx, magr.my, mdef.mx, mdef.my) > 1) {
                 continue;
             }
-            // C ref: cockatrice avoidance when has weapon
-            // TODO: implement cockatrice touch avoidance
+            // C ref: mhitm.c:445 — bare-handed attacker touching cockatrice
+            if (!mwep && mattk.aatyp !== AT_WEAP
+                && touch_petrifies(pd) && !resists_ston(magr)) {
+                // Attacker turns to stone from bare-handed contact
+                magr.mhp = 0;
+                mondead(magr, map);
+                return M_ATTK_AGR_DIED;
+            }
 
             dieroll = rnd(20 + i);
             strike = (tmp > dieroll) ? 1 : 0;
@@ -923,7 +929,6 @@ export function mdisplacem(magr, mdef, quietly, map) {
     if (mdef.mundetected) mdef.mundetected = false;
     if (mdef.msleeping) {
         mdef.msleeping = 0;
-        mdef.sleeping = false;
     }
 
     // Petrification check: aggressor touching cockatrice

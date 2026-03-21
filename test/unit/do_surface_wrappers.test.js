@@ -60,6 +60,6 @@ describe('do.c compatibility wrappers', () => {
         const map = {
             monsterAt() { return null; },
         };
-        assert.doesNotThrow(() => u_collide_m({ player, map }));
+        assert.doesNotThrow(() => u_collide_m({ u: player, map }));
     });
 });

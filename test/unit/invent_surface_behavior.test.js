@@ -78,7 +78,7 @@ function makePlayer() {
 test('display_used_invlets reports current letters', async () => {
     const display = makeDisplay();
     const player = makePlayer();
-    setGame({ player, display, flags: {} });
+    setGame({ u: player, player, display, flags: {} });
 
     const msg = display_used_invlets();
 
@@ -90,7 +90,7 @@ test('display_used_invlets reports current letters', async () => {
 test('doperminv toggles perm_invent and reports state', async () => {
     const display = makeDisplay();
     const player = makePlayer();
-    const game = { player, display, flags: { perm_invent: false } };
+    const game = { u: player, display, flags: { perm_invent: false } };
     setGame(game);
 
     await doperminv();
@@ -106,7 +106,7 @@ test('doperminv toggles perm_invent and reports state', async () => {
 test('dotypeinv renders inventory lines when carrying items', async () => {
     const display = makeDisplay();
     const player = makePlayer();
-    setGame({ player, display, flags: {} });
+    setGame({ u: player, player, display, flags: {} });
 
     await dotypeinv();
 
@@ -118,7 +118,7 @@ test('dotypeinv renders inventory lines when carrying items', async () => {
 test('dounpaid reports unpaid items including container contents', async () => {
     const display = makeDisplay();
     const player = makePlayer();
-    setGame({ player, display, flags: {} });
+    setGame({ u: player, player, display, flags: {} });
 
     await dounpaid();
 

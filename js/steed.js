@@ -21,7 +21,8 @@ import { which_armor } from './worn.js';
 import { SADDLE, BOULDER } from './objects.js';
 import { MAXULEV } from './const.js';
 import { ynFunction } from './input.js';
-import { getdir, test_move } from './hack.js';
+import { getdir, test_move, losehp, Maybe_Half_Phys } from './hack.js';
+import { game as _gstate } from './gstate.js';
 import { t_at } from './trap.js';
 import { sobj_at } from './invent.js';
 import { enexto } from './dungeon.js';
@@ -114,7 +115,7 @@ export async function maybewakesteed(steed) {
     const wasimmobile = !!(steed.msleeping || (steed.mfrozen && !steed.mcanmove));
 
     steed.msleeping = 0;
-    steed.sleeping = false;
+    steed.msleeping = 0;
     let frozen = steed.mfrozen || 0;
     if (frozen) {
         frozen = Math.floor((frozen + 1) / 2); // half
@@ -262,7 +263,7 @@ export async function mount_steed(mtmp, force, player, map, display) {
         await You("slip while trying to get on %s.", mon_nam(mtmp));
         // RNG parity: rn1(5, 10) for damage
         const dmg = rn1(5, 10);
-        // TODO: losehp(Maybe_Half_Phys(dmg), buf, NO_KILLER_PREFIX)
+        await losehp(Maybe_Half_Phys(dmg, player), "slipping while mounting", 0, player, _gstate?.display, _gstate);
         return false;
     }
 
@@ -316,7 +317,7 @@ export async function kick_steed(player, map, display) {
         if ((steed.mcanmove || steed.mfrozen) && !rn2(2)) {
             if (steed.mcanmove) {
                 steed.msleeping = 0;
-                steed.sleeping = false;
+                steed.msleeping = 0;
             } else if (steed.mfrozen > 2) {
                 steed.mfrozen -= 2;
             } else {
@@ -458,7 +459,7 @@ export async function dismount_steed(player, map, display, reason) {
         await You("are thrown off of %s!", mon_nam(mtmp));
         {
             const dmg = rn1(10, 10);
-            // TODO: losehp(Maybe_Half_Phys(dmg), "riding accident", KILLED_BY_AN)
+            await losehp(Maybe_Half_Phys(dmg, player), "riding accident", 0, player, _gstate?.display, _gstate);
             // TODO: set_wounded_legs(BOTH_SIDES, HWounded_legs + rn1(5, 5))
             rn1(5, 5); // RNG parity for wounded legs
         }
@@ -469,7 +470,7 @@ export async function dismount_steed(player, map, display, reason) {
         if (!have_spot) have_spot = await landing_spot(player, map, reason, true, display);
         if (!player.levitating && !player.flying) {
             const dmg = rn1(10, 10);
-            // TODO: losehp(Maybe_Half_Phys(dmg), "riding accident", KILLED_BY_AN)
+            await losehp(Maybe_Half_Phys(dmg, player), "riding accident", 0, player, _gstate?.display, _gstate);
             rn1(5, 5); // RNG parity for wounded legs
         }
         break;

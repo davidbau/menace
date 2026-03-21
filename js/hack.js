@@ -36,7 +36,8 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { more, nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
-import { x_monnam, y_monnam, YMonnam, Monnam, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks, strongmonst } from './mondata.js';
+import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks, strongmonst } from './mondata.js';
+import { x_monnam, y_monnam, YMonnam, Monnam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
@@ -45,7 +46,7 @@ import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location, see_nearby_objects } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, is_safemon, mon_visible, sensemon, feel_location as display_feel_location, see_nearby_objects } from './display.js';
 import { couldsee, recalc_block_point } from './vision.js';
 import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
@@ -617,10 +618,10 @@ function notice_mons_cmp(a, b) {
 export async function domove_bump_mon(mon, _glyph, _nopick, game, display) {
     const ctx = ensure_context(game);
     if (!mon || mon.dead) return { handled: false, tookTime: false };
-    const visibleEnough = (!mon.mundetected) || !!mon.tame || !!mon.peaceful;
+    const visibleEnough = (!mon.mundetected) || !!mon.mtame || !!mon.mpeaceful;
     // C: m-prefix bump into known/visible monster consumes a turn and stops.
     if (_nopick && !ctx.travel && visibleEnough) {
-        if (mon.peaceful && !game?.flags?.hallucination) {
+        if (mon.mpeaceful && !game?.flags?.hallucination) {
             await display?.putstr_message(`Pardon me, ${m_monnam(mon)}.`);
         } else {
             await display?.putstr_message(`You move right into ${y_monnam(mon)}.`);
@@ -656,11 +657,11 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
         await You('stop.  %s can\'t move diagonally.', YMonnam(mon));
         return false;
     }
-    if (mon.peaceful && mon.mtrapped) {
+    if (mon.mpeaceful && mon.mtrapped) {
         await You('stop.  %s can\'t move out of that trap.', YMonnam(mon));
         return false;
     }
-    if (mon.peaceful && heroOldTrap) {
+    if (mon.mpeaceful && heroOldTrap) {
         await You('stop.  %s doesn\'t want to swap places.', YMonnam(mon));
         return false;
     }
@@ -713,7 +714,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
     // Use map+FOV-aware spotting semantics so safe-mon gating matches C.
     const safeMonVisible = canSpotMonsterForMap(mon, map, player, game?.fov || null);
     // C ref: is_safemon() protects peaceful monsters and (optionally) tame pets.
-    const safeMon = !!mon.peaceful || (!!mon.tame && safeDogEnabled);
+    const safeMon = !!mon.mpeaceful || (!!mon.mtame && safeDogEnabled);
     const shouldDisplace = safeMon
         && safeMonVisible
         && !disoriented
@@ -723,8 +724,8 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         'domove_attackmon_at',
         `mon=${mon?.mndx ?? '?'}@${mon?.mx},${mon?.my}`,
         `target=${nx},${ny}`,
-        `tame=${mon?.tame ? 1 : 0}`,
-        `peaceful=${mon?.peaceful ? 1 : 0}`,
+        `tame=${mon?.mtame ? 1 : 0}`,
+        `peaceful=${mon?.mpeaceful ? 1 : 0}`,
         `visible=${safeMonVisible ? 1 : 0}`,
         `safe=${safeMon ? 1 : 0}`,
         `displace=${shouldDisplace ? 1 : 0}`,
@@ -756,7 +757,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         }
         const blocked = (inTendedShop || foo);
         if (blocked) {
-            if (mon.tame) {
+            if (mon.mtame) {
                 await monflee(mon, rnd(6), false, false, player, display, null);
             }
             const label = YMonnam(mon);
@@ -783,7 +784,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         return { handled: false, pendingSwap: true, mon };
     }
 
-    if (mon.peaceful && !mon.tame && game.flags?.confirm) {
+    if (mon.mpeaceful && !mon.mtame && game.flags?.confirm) {
         const answer = await ynFunction(
             `Really attack ${x_monnam(mon)}?`,
             'yn',
@@ -887,7 +888,7 @@ export async function domove_core(dir, player, map, display, game) {
             // C ref: hack.c domove() when findtravelpath fails to set dx/dy.
             end_running(true, game);
             domoveNotime('travel.no-path');
-            return { moved: false, tookTime: false };
+            return { moved: false, tookTime: false, stopReason: 'travel_path_exhausted' };
         }
     }
     let nx = player.x + moveDir[0];
@@ -968,8 +969,8 @@ export async function domove_core(dir, player, map, display, game) {
             } else if (escapeRoll === 3 && !canMove) {
                 // Wake/release frozen monster, then check tame
                 stuckMon.mfrozen = 1;
-                stuckMon.sleeping = false;
-                if (stuckMon.tame && !game?.flags?.conflict) {
+                stuckMon.msleeping = 0;
+                if (stuckMon.mtame && !game?.flags?.conflict) {
                     await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
@@ -978,7 +979,7 @@ export async function domove_core(dir, player, map, display, game) {
                 }
             } else {
                 // Failed to escape
-                if (stuckMon.tame && !game?.flags?.conflict) {
+                if (stuckMon.mtame && !game?.flags?.conflict) {
                     await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
@@ -1000,6 +1001,29 @@ export async function domove_core(dir, player, map, display, game) {
         `mon=${mon ? `${mon.mndx}@${mon.mx},${mon.my}` : 'none'}`,
     );
     if (mon) {
+        // C ref: hack.c:2763-2773 — while running/traveling, stop on visible
+        // hostile contact before bump/attack resolution.
+        if (!is_safemon(mon)) {
+            const protectionFromShapeChangers = !!(player?.Protection_from_shape_changers
+                || player?.protection_from_shape_changers);
+            const visibleWhileRunning = (
+                !(player?.Blind || player?.blind)
+                && mon_visible(mon, player, { map, player, fov: game?.fov || null })
+                && ((M_AP_TYPE(mon) !== M_AP_FURNITURE && M_AP_TYPE(mon) !== M_AP_OBJECT)
+                    || protectionFromShapeChangers)
+            ) || sensemon(mon, player, { map, player, fov: game?.fov || null });
+            if (ctx.run && !has_forcefight_prefix(game, ctx) && visibleWhileRunning) {
+                nomul(0, game);
+                ctx.move = 0;
+                domoveNotime('stop-visible-hostile-while-running');
+                return { moved: false, tookTime: false, stopReason: 'visible_hostile_while_running' };
+            }
+        }
+        // C ref: hack.c:2789-2790 — hostile contact (or forcefight) clears
+        // running/travel before bump/attack resolution.
+        if (!is_safemon(mon) || has_forcefight_prefix(game, ctx)) {
+            nomul(0, game);
+        }
         const bump = await domove_bump_mon(mon, null, nopick, game, display);
         if (bump.handled) {
             return { moved: false, tookTime: !!bump.tookTime };
@@ -1358,7 +1382,11 @@ export async function domove_core(dir, player, map, display, game) {
             await losehp(Math.max(0, pitDmg), trap.ttyp === SPIKED_PIT
                 ? "a pit of spikes" : "a pit", KILLED_BY_AN, player, display, game);
             if (trap.ttyp === SPIKED_PIT) {
-                rn2(6); // C ref: 1-in-6 poison-spike branch gate.
+                if (!rn2(6)) {
+                    // C ref: trap.c trapeffect_spiked_pit — 1-in-6 poison from spikes
+                    await poisoned(player, "spikes", A_STR,
+                        "fall onto a set of sharp iron spikes", 8, false);
+                }
                 // C ref: trap.c trapeffect_pit() emits both lines when falling
                 // into a spiked pit: first "fall into a pit", then "land on spikes".
                 await display.putstr_message('You fall into a pit!');
@@ -1668,7 +1696,7 @@ export async function lookaround(map, player, fov, dir, runStyle = 'run', displa
                 && mon.m_ap_type !== M_AP_OBJECT
                 && canSeeMonsterForMap(mon, map, player, fov));
             if (monVisible) {
-                const isSafeMon = !!(mon.tame || mon.peaceful || mon.mpeaceful);
+                const isSafeMon = !!(mon.mtame || mon.mpeaceful);
                 if ((runMode !== 1 && !isSafeMon) || (infront && !travel)) {
                     return { stopReason: infront ? 'monster-in-front' : 'hostile-nearby' };
                 }
@@ -1817,9 +1845,9 @@ export function findPath(map, startX, startY, endX, endY) {
 // JS keeps the same role but uses existing BFS pathing in findPath().
 // Returns true when a path (or travel viability for TRAVP_VALID) exists.
 export async function findtravelpath(mode, game) {
-    if (!game || !(game.u || game.player) || !(game.lev || game.map)) return false;
+    if (!game || !(game.u || game.u) || !(game.map || game.map)) return false;
     const ctx = ensure_context(game);
-    const { player, map } = game;
+    const { u: player, map } = game;
     const tx = game.travelX;
     const ty = game.travelY;
     if (!Number.isInteger(tx) || !Number.isInteger(ty) || !isok(tx, ty)) return false;
@@ -2142,7 +2170,7 @@ export async function findtravelpath(mode, game) {
 
 // C ref: cmd.c dotravel()
 export async function dotravel(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     const ctx = ensure_context(game);
     const getposTipSeen = !!player?._tipsShown?.getpos;
     const travelPrompt = (game?.flags?.verbose && getposTipSeen)
@@ -2202,7 +2230,7 @@ export async function dotravel(game) {
 // then calls domove() once. The moveloop_core multi loop repeats domove()
 // for up to ~80 travel steps, with monster turns between each step.
 export async function dotravel_target(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     const ctx = ensure_context(game);
 
     if (!isok(game.travelX, game.travelY)) {
@@ -2235,6 +2263,7 @@ export async function dotravel_target(game) {
     return {
         moved: !!(moveResult && moveResult.moved),
         tookTime: true,
+        travelStarted: true,
     };
 }
 
@@ -2965,17 +2994,17 @@ export function nomul(nval, game) {
     if (!game) return;
     if (typeof game.multi !== 'number') game.multi = 0;
     if (game.multi < nval) return; // bug fix from C
-    if (game.multi >= 0 && game.player) {
+    if (game.multi >= 0 && game.u) {
         const stepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
-            ? (game.lev || game.map)._replayStepIndex
+            ? (game.map || game.map)._replayStepIndex
             : null;
         const display = game.display || null;
         if (display?.messageNeedsMore) {
             display._deferredBotlAfterPendingFlush = true;
             display._deferredBotlStepIndex = stepIndex;
         } else {
-            game.player._botl = true;
-            game.player._botlStepIndex = stepIndex;
+            game.u._botl = true;
+            game.u._botlStepIndex = stepIndex;
         }
     }
     game.multi = nval;
@@ -3584,7 +3613,7 @@ export async function showdamage(dmg, player, display, game) {
 
 // C ref: hack.c Maybe_Half_Phys() macro — halve physical damage if player has Half_physical_damage
 export function Maybe_Half_Phys(n, player) {
-    const p = player || _gstate?.player;
+    const p = player || _gstate?.u;
     if (p && p.halfPhysDamage) return Math.max(1, Math.floor(n / 2));
     return n;
 }
@@ -3603,7 +3632,7 @@ export async function losehp(n, knam, k_format, player, display, game) {
     if (player) {
         player._botl = true;
         player._botlStepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
-            ? (game.lev || game.map)._replayStepIndex
+            ? (game.map || game.map)._replayStepIndex
             : null;
     }
 
@@ -3951,7 +3980,7 @@ export async function getdir(prompt, display) {
     // valid direction is chosen.  Other code relies on these persisting
     // after getdir returns (e.g. spelleffects when a later getdir fails).
     if (result) {
-        const u = _gstate?.player || _gstate?.u;
+        const u = _gstate?.u;
         if (u) {
             u.dx = result.dx;
             u.dy = result.dy;
@@ -3998,7 +4027,7 @@ export { dist2, distmin };
 function monsterIsTame(mon) {
     if (!mon) return false;
     if (mon.mtame !== undefined) return !!mon.mtame;
-    return !!mon.tame;
+    return !!mon.mtame;
 }
 
 function sanitizeMonsterType(mon) {
@@ -4035,7 +4064,7 @@ export function monsterNearby(map, player, fov) {
             if (mon.m_ap_type === M_AP_FURNITURE || mon.m_ap_type === M_AP_OBJECT) continue;
 
             const mptr = sanitizeMonsterType(mon);
-            const isPeaceful = !!(mon.mpeaceful || mon.peaceful);
+            const isPeaceful = !!mon.mpeaceful;
             const hostileThreat = playerHallucinating || (!monsterIsTame(mon) && !isPeaceful && !noattacks(mptr));
             const hidden = is_hider(mptr || {}) && mon.mundetected;
             const isHelpless = helpless(mon);

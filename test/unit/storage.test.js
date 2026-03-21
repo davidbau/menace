@@ -173,9 +173,9 @@ describe('Monster save/restore (saveMon/restMon)', () => {
             mlevel: 1, mac: 10, speed: 12, movement: 0,
             type: mons[0], attacks: mons[0].attacks,
             displayChar: 'a', displayColor: 7,
-            peaceful: false, tame: false, flee: false,
+            mpeaceful: false, mtame: false, flee: false,
             confused: false, stunned: false, blind: false,
-            sleeping: false, dead: false, passive: false,
+            msleeping: false, dead: false, passive: false,
             mtrack: [{x:1,y:2},{x:3,y:4},{x:0,y:0},{x:0,y:0}],
         };
         const restored = restMon(JSON.parse(JSON.stringify(saveMon(mon))));
@@ -189,9 +189,9 @@ describe('Monster save/restore (saveMon/restMon)', () => {
             mlevel: 1, mac: 10, speed: 12, movement: 0,
             type: mons[0], attacks: mons[0].attacks,
             displayChar: 'a', displayColor: 7,
-            peaceful: false, tame: true, flee: false,
+            mpeaceful: false, mtame: true, flee: false,
             confused: false, stunned: false, blind: false,
-            sleeping: false, dead: false, passive: false,
+            msleeping: false, dead: false, passive: false,
             minvent: [item],
             mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
         };
@@ -560,7 +560,7 @@ describe('Save/load game (localStorage, v2 format)', () => {
         player.weapon = dagger;
 
         const game = {
-            player,
+            u: player,
             map,
             display: { messages: ['Hello', 'World'] },
             levels: { 1: map },
@@ -635,7 +635,7 @@ describe('Save/load game (localStorage, v2 format)', () => {
         player.confused = true;
 
         const game = {
-            player, map,
+            u: player, map,
             display: { messages: [] },
             levels: { 1: map },
             seed: 42, turnCount: 0, wizard: false, seerTurn: 0,
@@ -942,7 +942,7 @@ describe('Multi-level save (v2 format)', () => {
         player.dungeonLevel = 3;
 
         const game = {
-            player,
+            u: player,
             map: map3,
             display: { messages: [] },
             levels: { 1: map1, 3: map3 },
@@ -991,7 +991,7 @@ describe('saveGameState/restGameState round-trip', () => {
         player.weapon = dagger;
 
         const game = {
-            player,
+            u: player,
             map: null,
             display: { messages: ['test message'] },
             levels: {},
@@ -1030,7 +1030,7 @@ describe('saveGameState/restGameState round-trip', () => {
         const player = new Player();
         player.initRole(11);
         const game = {
-            player,
+            u: player,
             map: null,
             display: { messages: [] },
             levels: {},

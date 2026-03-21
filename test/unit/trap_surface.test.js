@@ -25,6 +25,12 @@ import {
 import { PIT, FIRE_TRAP, SLP_GAS_TRAP, LANDMINE } from '../../js/const.js';
 import { mons, PM_FIRE_ELEMENTAL } from '../../js/monsters.js';
 
+function mkGs(props) {
+    const g = { ...props };
+    Object.defineProperty(g, 'player', { get() { return g.u; }, enumerable: false, configurable: true });
+    return g;
+}
+
 describe('trap compatibility surface', () => {
   it('exports hole destination clamp helper', () => {
     assert.equal(typeof clamp_hole_destination, 'function');
@@ -85,16 +91,16 @@ describe('trap compatibility surface', () => {
     const count = join_adjacent_pits(map, 5, 5);
     assert.equal(count >= 2, true);
 
-    globalThis.gs = { player: { usleep: true }, game: { multi: -1, nomovemsg: 'You awake' } };
+    globalThis.gs = mkGs({ u: { usleep: true }, game: { multi: -1, nomovemsg: 'You awake' } });
     assert.equal(unconscious(), true);
-    globalThis.gs = { player: {}, game: { multi: 0 } };
+    globalThis.gs = mkGs({ u: {}, game: { multi: 0 } });
     assert.equal(unconscious(), false);
   });
 
   it('handles sokoban/item/statue compatibility shims', () => {
     const player = { uconduct: {} };
     const map = { flags: { in_sokoban: true } };
-    globalThis.gs = { player, map };
+    globalThis.gs = mkGs({ u: player, map });
     assert.equal(sokoban_guilt(), undefined);
     assert.equal((player.uconduct.sokocheat || 0) >= 0, true);
     assert.equal(maybe_finish_sokoban(player), true);

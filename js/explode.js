@@ -24,6 +24,7 @@ import { DISP_BEAM, DISP_CHANGE, DISP_END } from './const.js';
 // cf. explode.c:984 — adtyp_to_expltype(adtyp)
 export function adtyp_to_expltype(adtyp) {
   switch (adtyp) {
+    case AD_PHYS: return EXPL_NOXIOUS;
     case AD_FIRE: return EXPL_FIERY;
     case AD_COLD: return EXPL_FROSTY;
     case AD_ELEC: return EXPL_MAGICAL;

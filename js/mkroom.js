@@ -583,7 +583,6 @@ export function mk_zoo_thronemon(map, x, y, depth) {
                 : PM_GNOME_RULER;
     const mon = makemon(mons[pm], x, y, NO_MM_FLAGS, depth, map);
     if (!mon) return;
-    mon.sleeping = true;
     mon.msleeping = 1;
     mon.mpeaceful = false;
     set_malign(mon);

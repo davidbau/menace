@@ -100,7 +100,7 @@ import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
 import { defsyms } from './symbols.js';
 
 function currentAlignmentDnum(ctx = null) {
-    const liveUz = _gstate?.player?.uz || _gstate?.map?.uz || null;
+    const liveUz = _gstate?.u?.uz || _gstate?.map?.uz || null;
     if (Number.isFinite(liveUz?.dnum)) return liveUz.dnum;
     if (Number.isFinite(_gstate?.map?._genDnum)) return _gstate.map._genDnum;
     if (Number.isFinite(_gstate?.lev?._genDnum)) return _gstate.lev._genDnum;
@@ -1104,6 +1104,7 @@ function applyFinalizeContext(ctx = null) {
         boundDiggingIsMazeLevel: (typeof ctx.boundDiggingIsMazeLevel === 'boolean')
             ? ctx.boundDiggingIsMazeLevel
             : undefined,
+        isSpecialLevel: !!ctx.isSpecialLevel,
     };
 }
 
@@ -1648,6 +1649,16 @@ export function level_init(opts = {}) {
             }
         }
         finish_map(map, fgTyp, bgTyp, lit, !!levelState.init.walled);
+        // C ref: mkmap.c:480-483
+        // A walled, joined mkmap level is cavernous, not maze-like.
+        if (levelState.init.walled && levelState.init.joined) {
+            levelState.flags.is_maze_lev = false;
+            levelState.flags.is_cavernous_lev = true;
+            if (map.flags) {
+                map.flags.is_maze_lev = false;
+                map.flags.is_cavernous_lev = true;
+            }
+        }
     } else {
         // Unknown style - default to solidfill behavior
         console.warn(`Level init style "${style}" using default solidfill behavior`);
@@ -4956,8 +4967,8 @@ export function sel_set_wall_property(x, y, propKind) {
     if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
     const loc = levelState.map?.locations?.[x]?.[y];
     if (!loc) return;
-    // C ref: sel_set_wall_property() only applies to walls, trees, and iron bars.
-    if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
+    // C ref: sel_set_wall_property() uses IS_STWALL (includes STONE) plus iron bars.
+    if (!(IS_STWALL(loc.typ) || loc.typ === IRONBARS)) return;
     if (propKind === 'nondiggable') {
         setWallInfoBits(loc, W_NONDIGGABLE);
         loc.nondiggable = true; // compatibility mirror
@@ -4982,15 +4993,10 @@ export function set_wallprop_in_selection(selection, propKind) {
     }
 
     if (Array.isArray(selection.coords)) {
+        // selection.area() already converts coordinates to absolute via
+        // _toAbsoluteCoord/getLocationCoord. Do NOT re-convert here.
         for (const c of selection.coords) {
-            let x = c.x;
-            let y = c.y;
-            if (levelState.mapCoordMode) {
-                const abs = toAbsoluteCoords(x, y);
-                x = abs.x;
-                y = abs.y;
-            }
-            sel_set_wall_property(x, y, propKind);
+            sel_set_wall_property(c.x, c.y, propKind);
         }
         return;
     }
@@ -6501,12 +6507,10 @@ async function createScriptMonster(deferred) {
             if (opts.name !== undefined) mtmp.customName = String(opts.name);
             if (opts.female !== undefined) mtmp.female = !!opts.female;
             if (opts.peaceful !== undefined) {
-                mtmp.peaceful = !!opts.peaceful;
                 mtmp.mpeaceful = !!opts.peaceful;
             }
             if (opts.asleep !== undefined) {
-                mtmp.msleeping = !!opts.asleep;
-                mtmp.sleeping = !!opts.asleep;
+                mtmp.msleeping = opts.asleep ? 1 : 0;
             }
             if (opts.waiting !== undefined) {
                 const waiting = !!opts.waiting;
@@ -6580,8 +6584,8 @@ async function createScriptMonster(deferred) {
         y: coordY,
         name: opts?.name,
         waiting: opts?.waiting || false,
-        peaceful: opts?.peaceful,
-        asleep: opts?.asleep,
+        mpeaceful: opts?.peaceful,
+        msleeping: opts?.asleep,
         align: opts?.align,
         appear_as: queuedAppearAs ? `${queuedAppearAs.type}:${queuedAppearAs.value}` : undefined,
         appear_as_type: queuedAppearAs?.type,
@@ -7037,7 +7041,13 @@ export async function finalize_level() {
     if (levelState.map && !levelState.flags.corrmaze) {
         wallification(levelState.map);
     }
-    captureCheckpoint('after_wallification');
+    // C ref: lspo_finalize_level() emits "after_wallification";
+    // load_special() emits "after_wallification_special".
+    // Distinguish by checking if this is a special level finalization.
+    const wallPhase = levelState.finalizeContext?.isSpecialLevel
+        ? 'after_wallification_special'
+        : 'after_wallification';
+    captureCheckpoint(wallPhase);
 
     // C ref: lspo_finalize_level(NULL) skips flip_level_rnd() on wiz-load
     // second-stage finalize. Other finalize paths still flip normally.
@@ -7209,6 +7219,7 @@ export async function load_special(name) {
             dlevel: where.dlevel,
             specialName: typeof special.name === 'string' ? special.name : name,
             isBranchLevel: false,
+            isSpecialLevel: true,
         }, async () => await special.generator())
     );
     if (!map) return false;

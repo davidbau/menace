@@ -1,5 +1,44 @@
 # Game Loop Reorder Plan
 
+## Current Status (March 21, 2026)
+
+The game loop infrastructure is substantially complete. The `_gameLoopStep`
+`while(true)` loop in `allmain.js` handles all continuation types (negative
+multi, occupation, travel, positive-move repeat). The remaining work is to
+move `advanceTimedTurn` (Phase B) to the TOP of the loop — before the player
+command — matching C's `moveloop_core` structure where monsters move first.
+
+### What has been done
+- `_gameLoopStep` uses `while(true)` with explicit continuation dispatch
+- `runNegativeMultiStep`, `runOccupationStep`, `runMovementRepeatSlice` are
+  one-step-per-iteration helpers matching C's per-iteration model
+- `context.move` gates monster movement (Phase B), matching C
+- `finalizeTimedCommand` handles post-command turn processing
+
+### What remains
+- Move `advanceTimedTurn` from `finalizeTimedCommand` (runs AFTER player
+  command) to the top of `_gameLoopStep` (runs BEFORE player command)
+- This is the single structural change that fixes the game loop ordering
+  divergence affecting seed031/032/033/328/theme27
+
+### Removed: pendingDeferredTimedTurn
+
+`pendingDeferredTimedTurn` was previously considered as a way to defer
+Phase B to the next command cycle: `finalizeTimedCommand` would set a flag
+instead of calling `advanceTimedTurn`, and `runPendingDeferredTimedTurn`
+would execute it at the start of the next cycle. This approach was
+abandoned because:
+
+1. C has no deferral mechanism — it's a simple `for(;;) { moveloop_core(); }`
+2. The deferral pattern adds synthetic queueing, which AGENTS.md prohibits
+3. The flag was built but never activated (dead code since creation)
+4. The correct approach is structural: move Phase B to the top of the loop
+
+The `pendingDeferredTimedTurn` field, `runPendingDeferredTimedTurn()` method,
+and `pendingTravelTimedTurn` field have been deleted.
+
+---
+
 ## Review Notes (from original plan author)
 
 I reviewed the branch implementation (`a818b2930`) against the original
@@ -352,6 +391,73 @@ model.
 
 That is why the plan is evidence-first and gate-based rather than a blanket
 rewrite.
+
+## Status Update (March 20, 2026)
+
+### Current state
+
+- **439/442 gameplay sessions passing** on main. The 3 failures are:
+  - **seed031** (step 635): game loop ordering — turn-end in wrong step
+  - **seed033** (step 337): game loop ordering — same root cause
+  - **seed032** (screen-only): display rendering timing, not loop ordering
+- The `origin/game-loop-reorder` branch is **101 commits behind main** and has
+  **29 unmerged commits**. It has not been updated recently.
+- The branch's cherry-pickable fixes (continuation helpers, `while(true)` loop,
+  `context.move` gate, normalizeMenuCommand) were already cherry-picked to main
+  in session 26.
+- The armoroff timing change (`06e6d005d`) was attempted on main but **regressed
+  14 sessions** (439→425) because `nomul(delay)` multi-turn processing differs
+  from the occupation path in the current game loop. It was reverted. This
+  confirms that the game loop reorder is a **prerequisite** for other timing
+  fixes (armoroff, and likely other `nomul`-based C paths).
+- All RNG-consuming stubs in combat paths have been wired to actual functions
+  (AT_BREA/SPIT/WEAP, AD_ENCH passive, erode_armor/acid_damage in all three
+  combat directions, spiked pit poison, cockatrice petrification, elf/orc bonus).
+  None of these affect the 3 failing sessions directly.
+
+### What's blocking progress
+
+The game loop reorder is the **only path** to fixing seed031 and seed033. No
+amount of local parity fixes will advance these sessions past their current
+divergence points — the monster turn runs at the wrong step boundary.
+
+Gate 1 work (extract without reordering) is complete — cherry-picked to main
+in session 26. The `origin/game-loop-reorder` branch can be retired.
+
+### Next step: Gate 2
+
+Gate 2 is moving one owner boundary. The Gate 2 findings
+(`docs/GAME_LOOP_GATE2_FINDINGS.md`) showed that moving `advanceTimedTurn`
+alone from `run_command` bottom to `_gameLoopStep` top caused 160 regressions
+because `repeatLoop` internally calls `advanceTimedTurn`.
+
+The armoroff timing regression (14 sessions, reverted) further confirmed that
+`nomul`-based timing requires the loop reorder to work correctly.
+
+**Concrete next step:** Replace `repeatLoop`'s internal `advanceTimedTurn`
+calls with the outer `_gameLoopStep` while-loop iteration model, so that
+`advanceTimedTurn` only runs once — at the top of `_gameLoopStep` — matching
+C's Phase B placement in `moveloop_core`.
+
+### Questions for the other engineer
+
+1. **Ready to attempt Gate 2?** All prerequisite parity work is done (combat
+   wiring, trap fixes, dknown fixes). The main suite is at 439/442 with 0
+   unit failures. Is now the right time, or are there other prerequisites?
+
+2. **Which boundary first?** The plan says "do not move all three in one
+   patch." Should we start with timed-turn (the most impactful for seed031/033),
+   or is occupation or multi-repeat safer to move first as a validation step?
+
+3. **`repeatLoop` decomposition.** The key obstacle is that `repeatLoop`
+   bundles `advanceTimedTurn` + continuation logic. To move `advanceTimedTurn`
+   to the top of `_gameLoopStep`, `repeatLoop` must stop calling it internally.
+   This means `repeatLoop` becomes just "dispatch one repeat step and return,"
+   with the monster turn handled by the next `_gameLoopStep` iteration. Is
+   this the right decomposition?
+
+4. **Validation plan.** Should this work happen on a fresh feature branch,
+   or directly on main with careful per-commit regression checks?
 
 ## Notes On These Edits
 

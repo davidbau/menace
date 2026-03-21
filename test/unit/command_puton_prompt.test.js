@@ -26,7 +26,7 @@ function makeGame() {
             this.topMessage = msg;
         },
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    return { u: player, map, display, fov: null, flags: { verbose: false } };
 }
 
 test('put on reports no available accessories when no rings are available', async () => {
@@ -40,7 +40,7 @@ test('put on reports no available accessories when no rings are available', asyn
 
 test('put on allows selecting a ring and equips it on left finger', async () => {
     const game = makeGame();
-    game.player.inventory = [{
+    game.u.inventory = [{
         invlet: 'a',
         oclass: RING_CLASS,
         otyp: RIN_PROTECTION,
@@ -53,12 +53,12 @@ test('put on allows selecting a ring and equips it on left finger', async () => 
 
     const result = await rhack('P'.charCodeAt(0), game);
     assert.equal(result.tookTime, true);
-    assert.equal(game.player.leftRing?.invlet, 'a');
+    assert.equal(game.u.leftRing?.invlet, 'a');
 });
 
 test('put on allows selecting a ring and equips it on right finger', async () => {
     const game = makeGame();
-    game.player.inventory = [{
+    game.u.inventory = [{
         invlet: 'a',
         oclass: RING_CLASS,
         otyp: RIN_PROTECTION,
@@ -71,26 +71,26 @@ test('put on allows selecting a ring and equips it on right finger', async () =>
 
     const result = await rhack('P'.charCodeAt(0), game);
     assert.equal(result.tookTime, true);
-    assert.equal(game.player.rightRing?.invlet, 'a');
+    assert.equal(game.u.rightRing?.invlet, 'a');
 });
 
 test('put on skips ring-finger prompt when left slot already occupied', async () => {
     const game = makeGame();
     const existingRing = { invlet: 'b', oclass: RING_CLASS, otyp: RIN_PROTECTION, quan: 1 };
     const newRing = { invlet: 'a', oclass: RING_CLASS, otyp: RIN_PROTECTION, quan: 1 };
-    game.player.inventory = [newRing, existingRing];
-    game.player.leftRing = existingRing;
+    game.u.inventory = [newRing, existingRing];
+    game.u.leftRing = existingRing;
     clearInputQueue();
     pushInput('a'.charCodeAt(0)); // select ring — no finger prompt, goes to right
 
     const result = await rhack('P'.charCodeAt(0), game);
     assert.equal(result.tookTime, true);
-    assert.equal(game.player.rightRing?.invlet, 'a'); // auto-assigned to right
+    assert.equal(game.u.rightRing?.invlet, 'a'); // auto-assigned to right
 });
 
 test('put on ring-finger prompt cancels on Enter without consuming a turn', async () => {
     const game = makeGame();
-    game.player.inventory = [{
+    game.u.inventory = [{
         invlet: 'a',
         oclass: RING_CLASS,
         otyp: RIN_PROTECTION,
@@ -102,8 +102,8 @@ test('put on ring-finger prompt cancels on Enter without consuming a turn', asyn
 
     const result = await rhack('P'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    assert.equal(game.player.leftRing, null);
-    assert.equal(game.player.rightRing, null);
+    assert.equal(game.u.leftRing, null);
+    assert.equal(game.u.rightRing, null);
 });
 
 }); // describe

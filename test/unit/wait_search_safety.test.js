@@ -9,7 +9,7 @@ function createGame({ multi = 0, hostileAdjacent = false } = {}) {
     const messages = [];
     const clearRows = [];
     const player = { x: 10, y: 10, kickedloc: null };
-    const hostile = hostileAdjacent ? { dead: false, tame: false, peaceful: false } : null;
+    const hostile = hostileAdjacent ? { dead: false, mtame: false, mpeaceful: false } : null;
     const map = {
         monsterAt(x, y) {
             if (x === 11 && y === 10) return hostile;
@@ -36,6 +36,7 @@ function createGame({ multi = 0, hostileAdjacent = false } = {}) {
         },
     };
     return {
+        u: player,
         player,
         map,
         display,

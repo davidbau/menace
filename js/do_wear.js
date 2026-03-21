@@ -200,11 +200,80 @@ function toggle_extrinsic(player, prop, on) {
     }
 }
 
+// Clear passive hero effects for an item removed outside the normal voluntary
+// takeoff flow (consumed, destroyed, stolen).
+export function clearWornItemEffects(player, obj) {
+    if (!player || !obj) return;
+    if (obj === player.armor) {
+        Armor_off(player);
+    } else if (obj === player.shield) {
+        Shield_off(player);
+    } else if (obj === player.helmet) {
+        Helmet_off(player);
+    } else if (obj === player.gloves) {
+        Gloves_off(player);
+    } else if (obj === player.cloak) {
+        Cloak_off(player);
+    } else if (obj === player.shirt) {
+        Shirt_off(player);
+    } else if (obj === player.rightRing || obj === player.leftRing) {
+        Ring_off(player, obj);
+    } else if (obj === player.amulet) {
+        Amulet_off(player);
+    } else if (obj === player.boots) {
+        switch (obj.otyp) {
+        case SPEED_BOOTS:
+            toggle_extrinsic(player, FAST, false);
+            break;
+        case ELVEN_BOOTS:
+            toggle_stealth(player, false);
+            break;
+        case FUMBLE_BOOTS:
+            toggle_extrinsic(player, FUMBLING, false);
+            {
+                const entry = player.uprops[FUMBLING];
+                if (entry && !entry.extrinsic) {
+                    entry.intrinsic = entry.intrinsic & ~TIMEOUT;
+                }
+            }
+            break;
+        case LEVITATION_BOOTS:
+            toggle_extrinsic(player, LEVITATION, false);
+            break;
+        default:
+            break;
+        }
+    } else if (obj === player.blindfold) {
+        const blindEntry = player.ensureUProp(BLINDED);
+        if (obj.otyp === LENSES) {
+            blindEntry.blocked = (blindEntry.blocked || 0) & ~W_TOOL;
+        } else {
+            blindEntry.extrinsic = (blindEntry.extrinsic || 0) & ~W_TOOL;
+        }
+    }
+    setnotworn(player, obj);
+    find_ac(player);
+}
+
 // cf. do_wear.c:1915 armoroff() — remove armor piece, with delay handling
 export async function armoroff(otmp, player, game) {
     if (await cursed_check(otmp, null)) return 0;
     const delay = -(objectData[otmp.otyp]?.oc_delay || 0);
-    const armcat = objectData[otmp.otyp]?.oc_armcat;
+    const armcat = objectData[otmp.otyp]?.oc_subtyp;
+    const finishArmorOff = async () => {
+        switch (armcat) {
+            case ARM_SUIT: Armor_off(player); break;
+            case ARM_SHIELD: Shield_off(player); break;
+            case ARM_HELM: Helmet_off(player); break;
+            case ARM_GLOVES: Gloves_off(player); break;
+            case ARM_BOOTS: await Boots_off(player); break;
+            case ARM_CLOAK: Cloak_off(player); break;
+            case ARM_SHIRT: Shirt_off(player); break;
+            default: break;
+        }
+        if (otmp?.owornmask) setnotworn(player, otmp);
+        find_ac(player);
+    };
     if (delay) {
         // Multi-turn removal: set nomul and afternmv callback
         nomul(delay, game);
@@ -213,31 +282,31 @@ export async function armoroff(otmp, player, game) {
         switch (armcat) {
             case ARM_SUIT:
                 what = suit_simple_name(otmp);
-                game.afternmv = () => Armor_off();
+                game.afternmv = async () => await finishArmorOff();
                 break;
             case ARM_SHIELD:
                 what = shield_simple_name(otmp);
-                game.afternmv = () => Shield_off();
+                game.afternmv = async () => await finishArmorOff();
                 break;
             case ARM_HELM:
                 what = helm_simple_name(otmp);
-                game.afternmv = () => Helmet_off();
+                game.afternmv = async () => await finishArmorOff();
                 break;
             case ARM_GLOVES:
                 what = gloves_simple_name(otmp);
-                game.afternmv = () => Gloves_off();
+                game.afternmv = async () => await finishArmorOff();
                 break;
             case ARM_BOOTS:
                 what = boots_simple_name(otmp);
-                game.afternmv = async () => await Boots_off();
+                game.afternmv = async () => await finishArmorOff();
                 break;
             case ARM_CLOAK:
                 what = cloak_simple_name(otmp);
-                game.afternmv = () => Cloak_off();
+                game.afternmv = async () => await finishArmorOff();
                 break;
             case ARM_SHIRT:
                 what = shirt_simple_name(otmp);
-                game.afternmv = () => Shirt_off();
+                game.afternmv = async () => await finishArmorOff();
                 break;
             default:
                 break;
@@ -247,16 +316,7 @@ export async function armoroff(otmp, player, game) {
         }
     } else {
         // No delay: call handler immediately
-        switch (armcat) {
-            case ARM_SUIT: Armor_off(); break;
-            case ARM_SHIELD: Shield_off(); break;
-            case ARM_HELM: Helmet_off(); break;
-            case ARM_GLOVES: Gloves_off(); break;
-            case ARM_BOOTS: await Boots_off(); break;
-            case ARM_CLOAK: Cloak_off(); break;
-            case ARM_SHIRT: Shirt_off(); break;
-            default: break;
-        }
+        await finishArmorOff();
         await off_msg(otmp, player);
     }
     if (game?.svc?.context?.takeoff) {
@@ -2228,36 +2288,8 @@ async function removeArmorOrAccessory(player, display, game, item) {
     }
 
     if (item.owornmask & W_ARMOR) {
-        const sub = objectData[item.otyp]?.oc_subtyp;
-        const slot = ARMOR_SLOTS[sub];
-        const offFn = SLOT_OFF[sub];
-        const delay = Number(objectData[item.otyp]?.oc_delay || 0);
-        const takeOffNow = async () => {
-            if (offFn) await offFn(player);
-            if (item?.owornmask) setnotworn(player, item);
-            else if (slot?.prop) player[slot.prop] = null;
-            find_ac(player);
-        };
-
-        if (game && delay > 1) {
-            let remaining = Math.max(0, delay - 1);
-            game.occupation = {
-                occtxt: 'disrobing',
-                fn: () => {
-                    remaining -= 1;
-                    return remaining > 0;
-                },
-                onFinishAfterTurn: async () => {
-                    await takeOffNow();
-                    await display.putstr_message(`You finish taking off your ${armor_simple_name(item)}.`);
-                },
-            };
-            return { moved: false, tookTime: true };
-        }
-
-        await takeOffNow();
-        await off_msg(item, player);
-        return { moved: false, tookTime: true };
+        const res = await armoroff(item, player, game);
+        return { moved: false, tookTime: !!res };
     }
 
     if (item === player.rightRing || item === player.leftRing) {

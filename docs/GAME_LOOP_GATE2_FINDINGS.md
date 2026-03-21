@@ -259,3 +259,49 @@ The branch now has one more exact C ownership rule encoded:
 - `multi < 0` is not by itself sufficient to justify a no-input continuation
 - the continuation is only valid when the C-side turn owner (`context.move`)
   is still active
+
+## Gate 2 Attempt 4: Full Phase B + Phase E in `_gameLoopStep` (March 20, 2026)
+
+### Approach
+
+Complete restructure of `_gameLoopStep` to match C's `moveloop_core` phases:
+1. Added Phase B at top of while-loop: if `_pendingTimedTurn`, run `advanceTimedTurn`
+2. Removed `advanceTimedTurn` from `finalizeTimedCommand` (now just sets
+   `_pendingTimedTurn = true`)
+3. Removed `repeatLoop` from `run_command` entirely
+4. Added Phase E to `_gameLoopStep`: if `multi > 0`, dispatch one repeat step
+   (movement via `domove` or command via `rhack`), set `_pendingTimedTurn`, continue
+5. Occupation handler no longer calls `advanceTimedTurn` (Phase B handles it)
+
+### Result
+
+- **RNG**: 9 failures (was 2 baseline) — nearly correct flat RNG stream
+- **Screen/color**: 267 failures — expected step-boundary shift (monsters now
+  in next step's screen capture instead of previous step's)
+- **Events**: 55 failures
+- Overall: 162/442 passing (was 439)
+
+### Analysis
+
+The RNG being nearly correct (only 7 new RNG failures out of 440 sessions)
+confirms the structural approach is sound. The screen divergences are the
+natural consequence of correct step-boundary alignment — C's screen captures
+at nhgetch() already include the monsters from the previous turn (Phase B
+runs before nhgetch), so JS should now match C's screen content more closely
+for monster-related cells.
+
+The 7 new RNG failures need investigation — they may be from:
+- `repeatLoop` features not replicated in Phase E (interrupt checks,
+  travel-end monster turn, running mode end_running)
+- Missing `bumpHeroSeqN` calls in Phase E
+- Occupation `_pendingTimedTurn` timing
+
+### Next steps
+
+1. Investigate the 7 new RNG failures to identify missing logic in Phase E
+2. Verify that screen content at each step actually matches C BETTER (not worse)
+   by comparing a few sessions cell-by-cell
+3. If screen content is correctly shifted, the sessions need re-verification
+   (not re-recording — the C ground truth is unchanged)
+4. Consider whether the comparator should account for the now-correct
+   step-boundary shift

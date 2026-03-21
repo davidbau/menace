@@ -24,7 +24,7 @@ describe('loot messaging', () => {
 
         const messages = [];
         const game = {
-            player: {
+            u: {
                 x: 10,
                 y: 5,
                 inventory: [],
@@ -51,6 +51,6 @@ describe('loot messaging', () => {
 
         assert.equal(result.tookTime, true);
         assert.equal(chest.cobj.length, 0);
-        assert.equal(game.player.inventory.length, 2);
+        assert.equal(game.u.inventory.length, 2);
     });
 });

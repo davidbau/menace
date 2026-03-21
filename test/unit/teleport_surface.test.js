@@ -43,6 +43,6 @@ test('teleport control_mon_tele requires explicit monTelecontrol opt-in', () => 
 test('teleport tele_to_rnd_pet no-ops when no eligible pet exists', async () => {
     const map = makeMap();
     const player = { x: 10, y: 10 };
-    const game = { map, player };
+    const game = { map, u: player };
     assert.equal(await tele_to_rnd_pet(game), false);
 });

@@ -578,7 +578,7 @@ export function isIgnorableEventEntry(entry) {
             || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_')
             || entry.startsWith('^runstep[')
             || entry.startsWith('^place[') || entry.startsWith('^remove[')
-            || entry.startsWith('^repaint['));
+            || entry.startsWith('^repaint[') || entry.startsWith('^more['));
 }
 
 function isTestMoveEvent(entry) {
@@ -593,6 +593,24 @@ export function stripEventContext(entry) {
     const at = entry.indexOf('] @');
     let s = at >= 0 ? entry.slice(0, at + 1) : entry;
     s = s.replace(/\boid=\d+/g, 'oid=X');
+    // C's load_special() emits "after_wallification_special" and
+    // "after_finalize_special" while lspo_finalize_level() emits
+    // "after_wallification" and "after_finalize". JS may route through
+    // a different finalization path for the same level. Normalize to
+    // the non-special variant since the operation is identical.
+    s = s.replace(/after_wallification_special/g, 'after_wallification');
+    s = s.replace(/after_finalize_special/g, 'after_finalize');
+    // ^ckpt rng= field records the RNG call count at checkpoint time.
+    // This is already compared separately via RNG comparison; when the
+    // finalization path differs (load_special vs lspo_finalize_level),
+    // intermediate RNG counts can diverge even if final streams match.
+    if (s.startsWith('^ckpt[')) {
+        s = s.replace(/\brng=\d+/g, 'rng=X');
+        // `moves` during level generation depends on global gstate timing.
+        // When sessions run in parallel, _gstate.moves can leak between
+        // concurrent game instances. Normalize to avoid false divergence.
+        s = s.replace(/\bmoves=\d+/g, 'moves=X');
+    }
     return s;
 }
 

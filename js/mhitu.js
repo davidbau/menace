@@ -55,7 +55,7 @@ import { exercise } from './attrib_exercise.js';
 import { poisoned, acurr, adjattrib } from './attrib.js';
 import { losespells } from './spell.js';
 import { set_wounded_legs } from './do.js';
-import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed } from './potion.js';
+import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed, make_sick } from './potion.js';
 import { losexp } from './exper.js';
 import { morehungry } from './eat.js';
 import { stealgold, steal, stealamulet } from './steal.js';
@@ -71,7 +71,7 @@ import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
 import { makemon } from './makemon.js';
 import { resists_blnd, drain_item, destroy_items_rng_only } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';
-import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
+import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS, SICK_NONVOMITABLE, SICK } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
 import { nomul, losehp, saving_grace, showdamage } from './hack.js';
@@ -1108,7 +1108,7 @@ async function mhitu_ad_halu(monster, attack, player, mhm, ctx) {
 
 // Equipment erosion handlers — hitmsg + erode armor + zero damage
 // C ref: uhitm.c erode_armor(mdef, hurt)
-async function erode_armor_on_player(player, erosionType, display = null) {
+export async function erode_armor_on_player(player, erosionType, display = null) {
     if (!player) return;
     const isPrimary = erosionType === ERODE_RUST;
     const erosionVerb = (etype) => {
@@ -1856,15 +1856,15 @@ export async function diseasemu(mdat, player, display) {
         if (display) await display.putstr_message('You feel a slight illness.');
         return false;
     } else {
-        // C: make_sick(Sick ? Sick/3+1 : rn1(ACURR(A_CON), 20), ...)
-        // Simplified: just apply disease status
-        const con = acurr(player, A_CON);
-        const duration = rn1(con, 20);
+        // C ref: make_sick(Sick ? Sick/3+1 : rn1(ACURR(A_CON), 20), ...)
+        // When already sick, C shortens timer WITHOUT consuming rn1.
+        const oldSick = player.getPropTimeout?.(SICK) || 0;
+        const duration = oldSick
+            ? Math.floor(oldSick / 3) + 1
+            : rn1(acurr(player, A_CON), 20);
         if (display) await display.putstr_message('You feel very sick!');
-        // TODO: make_sick() not fully ported — mark player as diseased
-        if (player.sick !== undefined) {
-            player.sick = player.sick ? Math.floor(player.sick / 3) + 1 : duration;
-        }
+        const cause = mdat?.mname || 'a diseased attack';
+        await make_sick(player, duration, cause, true, SICK_NONVOMITABLE);
         return true;
     }
 }
@@ -2613,7 +2613,7 @@ export function cloneu(player, game, map) {
     christen_monst(mon, player.name || player.plname || 'hero');
     // C: initedog(mon, TRUE) — set tame/apport
     mon.mtame = 10;
-    mon.tame = true;
+    mon.mtame = 1;
     mon.mpeaceful = true;
     mon.m_lev = youmonst_data.mlevel || youmonst_data.m_lev || 0;
     mon.mhpmax = player.mhmax || player.uhpmax || 0;

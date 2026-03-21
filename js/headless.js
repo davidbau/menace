@@ -413,9 +413,9 @@ async function headlessFromSeed(seed, roleIndex = 11, opts = {}) {
     });
     game.display.flags.DECgraphics = opts.DECgraphics !== false;
     Object.assign(game.flags, SELFPLAY_GAME_FLAGS, opts.flags || {});
-    (game.u || game.player).showExp = !!game.flags.showexp;
-    (game.u || game.player).showScore = !!game.flags.showscore;
-    (game.u || game.player).showTime = !!game.flags.time;
+    (game.u || game.u).showExp = !!game.flags.showexp;
+    (game.u || game.u).showScore = !!game.flags.showscore;
+    (game.u || game.u).showTime = !!game.flags.time;
     return game;
 }
 
@@ -478,7 +478,7 @@ export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
             await game.teleportToLevel(depth);
         }
         grids[depth] = game.getTypGrid();
-        maps[depth] = (game.lev || game.map);
+        maps[depth] = (game.map || game.map);
         const compact = game.getRngLog().map(toCompactRng);
         const filtered = compact.filter((entry) => {
             const call = rngCallPart(entry);
@@ -559,8 +559,8 @@ export async function generateStartupWithCoreReplay(seed, session, options = {})
 
     return {
         game,
-        map: (game.lev || game.map),
-        player: (game.u || game.player),
+        map: (game.map || game.map),
+        player: (game.u || game.u),
         grid: game.getTypGrid(),
         rngCalls: startupRng.length,
         rng: startupRng,
@@ -616,6 +616,7 @@ export class HeadlessDisplay {
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
+        this.toplin = 0; // C ref: 0=EMPTY, 1=NEED_MORE, 2=NON_EMPTY
         this.messageConcatFit = false; // true when toplin==2 (concat-fit, no --More-- needed)
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
@@ -928,6 +929,7 @@ export class HeadlessDisplay {
                 this._topMessageEncumbrance = _msgPlayer?.encumbrance ?? null;
             }
             this.messageNeedsMore = true;
+            this.toplin = 1; // C ref: update_topl sets toplin = TOPLINE_NEED_MORE
             // C ref: topl_puts() sets toplin=1 for a fresh single message.
             // renderAndAutosave uses this to know --More-- must be rendered.
             this.messageConcatFit = false;

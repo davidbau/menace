@@ -29,6 +29,160 @@ For the full narratives of how these lessons were discovered, see the
 - This exposes bugs that normalized output can hide, especially intra-step
   ordering drift around `--More--`, `yn`, direction prompts, travel, and
 
+## 2026-03-21 - first fix the command-boundary ownership invariant, not monster math
+
+- Context: `seed031_manual_direct.session.json` after the validated travel-owner
+  fixes and visible-hostile stop gate.
+- The surviving gas-spore seam is best reasoned as a command-boundary ownership
+  bug on the fixed gameplay-step stream, not as a `distfleeck()` or
+  `set_apparxy()` formula bug.
+- A debug-only invariant trace showed the first violation occurs at **fresh key
+  admission**:
+  - replay admits fresh gameplay keys `h/b/y/.`
+  - while the prior carried owner is still explicitly armed:
+    - `multi=80`
+    - `run=8`
+    - `travel=1`
+    - `mv=1`
+  - queue length grows `1 -> 4` across gameplay steps `934..937`
+- Representative trace:
+  - `step=934 key="h" mode=admit-key explicitOwner=positiveMoveContinuation`
+  - `step=934 diag=... qlen=1 multi=80 run=8 travel=1 mv=1`
+  - repeated similarly for steps `935..937`
+- This means the next semantic question is narrower than earlier theories:
+  - either replay is admitting the next gameplay key too early, or
+  - runtime is retaining the carried travel owner too long
+- Do not jump from this seam directly to:
+  - monster-AI formula edits
+  - generic replay "drain more" logic
+  - broad repeat-slice reorders
+- First localize which side of the command-boundary handoff is too permissive,
+  then patch that side only.
+
+## 2026-03-21 - pre-key owner drain is the right seam family, but the naive loop is too broad
+
+- A narrow replay-core probe tried this rule:
+  - before admitting the next fixture gameplay key,
+  - if an explicit continuation owner is still armed,
+  - keep calling `_gameLoopStep()` until that owner clears.
+- This was useful because it changed the seam in the predicted direction:
+  - the fresh-key admission violation disappeared in the traced `934..937`
+    window for `seed031`
+  - `t11_s755_w_covmax9_gp` still passed
+- But it was not keepable:
+  - `seed031_manual_direct` later timed out at the final credit-space step
+  - so a naive generic pre-key drain loop is too broad
+- Durable lesson:
+  - the remaining bug family is almost certainly about fresh key admission
+    relative to an explicit carried owner
+  - but any replay-side fix must be narrower than "drain until no explicit
+    owner remains"
+  - otherwise it risks crossing unrelated later boundaries and breaking normal
+    termination behavior
+
+## 2026-03-21 - even the narrower same-step replay drain is not keepable
+
+- A stricter replay probe limited the extra draining to the **same consumed
+  fixture step**:
+  - only after a key's command promise finished
+  - only when `positiveMoveContinuation` was still armed
+- This still moved the seam in the predicted direction:
+  - the bad fresh-key admission pattern on steps `934..937` disappeared
+  - the extra work folded into step `933`
+  - `t11_s755_w_covmax9_gp` still passed
+- But it failed in the same end-state way as the broader replay drain:
+  - `seed031_manual_direct` timed out at the final credit-space step
+- Durable lesson:
+  - replay-side step extension is probably not the keepable fix, even when it
+    is shaped narrowly and seems locally correct
+  - the remaining fix should likely move back into core/runtime ownership:
+    why does the runtime still return from the resumed `.` path with
+    `positiveMoveContinuation` left armed?
+
+## 2026-03-21 - the resumed `.` seam is caused by `_gameLoopStep()` returning after one deferred timed turn
+
+- Important correction:
+  - the `seed031` seam does **not** pass through `promptStep()`
+  - `getpos_async()` is awaited directly inside the original `_` command
+- So gameplay step `933` is the original pending `_` command finishing:
+  - `_`
+  - `getpos_async()` waits
+  - `.` resumes the same pending command
+  - `dotravel_target()` runs
+  - `run_command()` sets `pendingTravelTimedTurn = true`
+- Then `_gameLoopStep()` does:
+  - take the `hasPendingTravelTimedTurn` branch
+  - `advanceTimedTurn()`
+  - `return`
+- At that return point, the explicit carried travel owner is still armed:
+  - `multi > 0`
+  - `context.mv == true`
+  - `context.run == 8`
+  - `context.travel == 1`
+- Durable lesson:
+  - the runtime itself is currently declaring the resumed `_` command "done"
+    after only the deferred timed turn
+  - that is a more specific core-runtime hypothesis than the earlier replay
+    framing
+  - the next promising fix is to revisit whether `_gameLoopStep()` should
+    continue into the positive-repeat travel slice in that same consumed key
+    instead of returning immediately
+
+## 2026-03-21 - continuing once after `pendingTravelTimedTurn` is not enough
+
+- Narrow core probe:
+  - after `_gameLoopStep()` handled `pendingTravelTimedTurn`,
+  - if `multi > 0 && context.mv` was still armed,
+  - continue the loop instead of returning immediately
+- Outcome:
+  - `t11_s755_w_covmax9_gp` still passed
+  - but `seed031_manual_direct` was unchanged at the first seam
+- Useful refinement from the trace:
+  - this only removed the bad fresh-key admission at gameplay step `937`
+  - the same violation still happened at `934..936`
+- Durable lesson:
+  - the carry point is earlier than the `pendingTravelTimedTurn` return alone
+  - so the next core fix has to look earlier in the resumed `_` command path,
+    not just at the single deferred-timed-turn branch
+
+## 2026-03-21 - removing the fresh-key admission pattern still does not move the first seam
+
+- Stronger core probe:
+  - after a command that started travel,
+  - keep the resumed `_gameLoopStep()` call owning later
+    `positiveMoveContinuation` slices in the same call
+- Outcome:
+  - the bad fresh-key admission pattern in the traced `933..939` window
+    disappeared entirely
+  - `t11_s755_w_covmax9_gp` still passed
+  - but `seed031_manual_direct` did **not** improve at all
+- Durable lesson:
+  - the fresh-key admission / carried-owner coexistence is real
+  - but removing it is not sufficient to move the earliest causal mismatch
+  - so that coexistence is not the first bug to fix
+  - the next useful analysis has to move earlier again, inside the resumed
+    travel slice before that later admission pattern becomes visible
+
+## 2026-03-21 - the bad `near=1` is caused by two extra hero hops before gas spore 27's next turn
+
+- Targeted `WEBHACK_MONMOVE_TRACE` over gameplay steps `934..937` isolated the
+  gas spore sequence directly.
+- JS sequence:
+  - step `934`: gas spore `27` at `(29,14)` refreshes target to `(24,13)` and
+    moves to `(28,13)`
+  - step `936`: gas spore `27` at `(28,13)` refreshes target to `(26,13)` and
+    moves to `(27,13)`
+  - step `937`: gas spore `27` starts at `(27,13)` with target still `(26,13)`
+    and therefore gets `near=1`
+- Durable lesson:
+  - the most concrete causal bug is now:
+    JS advances the hero from `(24,13)` to `(26,13)` before gas spore 27's next
+    turn at `(27,13)`
+  - once that happens, the later `near=1` is not surprising
+  - so the next comparison should be about **how many hero moves C allows**
+    between those two gas-spore turns, not about fresh-key admission in the
+    abstract
+
 ## 2026-03-19 - object age and thrown-kill ownership
 
 - `mkobj.newobj()` must seed `obj.age` from the current move count, not a
@@ -105,6 +259,57 @@ For the full narratives of how these lessons were discovered, see the
 - Practical rule:
   - keep prompt ownership for input consumption,
   - keep post-command world advancement centralized.
+
+## Exact visible-hostile run stop is required after the owner fix
+
+- On top of the validated travel owner fix in `7feb605cd`, JS still lacked the
+  exact C `domove_core()` gate:
+  - when `context.run` is active and the destination monster is visible (or
+    sensed) and hostile, stop before bump/attack resolution
+- Implementing that gate in [`js/hack.js`](/tmp/mazes_main_compare/js/hack.js)
+  and restoring the adjacent pre-bump `nomul(0)` logic is C-faithful and worth
+  keeping.
+- Validation on `seed031_manual_direct.session.json`:
+  - matched RNG improved to `34371/51561`
+  - matched events improved to `19071/28950`
+  - the old hero-attack mismatch is gone
+  - first remaining RNG mismatch becomes:
+    - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+    - C: `rn2(8)=7 @ m_move(monmove.c:1979)`
+  - first remaining event mismatch becomes:
+    - JS: `^distfleeck[27@27,13 in=1 near=1 ...]`
+    - C: `^distfleeck[27@27,13 in=1 near=0 ...]`
+- The four current gameplay guardrails stayed green:
+  - `t11_s755_w_covmax9_gp.session.json`
+  - `t11_s756_w_covmax10_gp.session.json`
+  - `theme15_seed986_wiz_artifact-wish_gameplay.session.json`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay.session.json`
+- Practical rule:
+  - if a C movement/contact gate is exact, keep it once validated even if the
+    session is not fully green yet
+  - the remaining seam is now monster-side target refresh timing, not hero
+    attack ownership
+
+## The remaining gas-spore seam is one target refresh too early
+
+- After the exact visible-hostile stop gate landed, fresh
+  `WEBHACK_MONMOVE_TRACE` showed the remaining `seed031` bug is not in
+  `distfleeck()` or `set_apparxy()` formulas themselves.
+- Monster `27` (gas spore) is already being refreshed to the hero's exact
+  square on the immediately preceding turn.
+- Evidence:
+  - prior turn:
+    - `set_apparxy ... old=(62,15) new=(64,15)`
+  - then, within the same `dochug()/m_move()` corridor:
+    - second `set_apparxy ... mode=direct u_at_old=1`
+  - next turn:
+    - first `distfleeck()` starts from that already-direct target and logs
+      `near=1`
+- Practical rule:
+  - if the bad turn starts with a direct inherited target, do not patch the
+    bad turn first
+  - patch the earlier extra target refresh / earlier monster-turn boundary that
+    created that inherited target
 
 ## The Cardinal Rules
 
@@ -14380,3 +14585,1145 @@ When a correct parity fix regresses a session:
   change requires the game loop reorder (multi<0 continuation matching C's moveloop_core
   iteration model) to be landed first. Occupation-based armor removal restored to keep
   439/442.
+
+## 2026-03-20: narrow boots-only `armoroff()` restores late `seed031` progress without reopening the broad regressions
+
+## 2026-03-20: general `armoroff()` fix needed two hidden follow-up fixes before the branch stabilized
+
+- Branch context:
+  - after reintroducing the broad C-faithful rule that all single-item armor
+    removal should route through `do_wear.c armoroff()` semantics, the branch
+    initially reopened many coverage-session regressions
+  - the right response was not to keep narrowing by slot; it was to find the
+    masked general bugs that the faithful path exposed
+- First hidden bug:
+  - [js/do_wear.js](/share/u/davidbau/git/mazesofmenace/game/js/do_wear.js)
+    `armoroff()` was dispatching by `objectData[otyp].oc_armcat`
+  - this repo's object rows use `oc_subtyp` for armor category, so cloak/helm/
+    shield/etc. off-effects could be skipped even though `setnotworn()` still
+    cleared the slot bit
+  - concrete evidence on `t11_s755_w_covmax9_gp`:
+    - taking off a cloak of magic resistance left `ANTIMAGIC.extrinsic=1`
+    - JS then resisted a self-zap that C allowed
+- Fix:
+  - switch `armoroff()` to `objectData[otyp].oc_subtyp`
+  - centralize delayed and immediate removal through one `finishArmorOff()` path
+    that runs the correct `*_off()` helper, then `setnotworn()`, then `find_ac()`
+- Second hidden bug:
+  - several forced-removal paths were only clearing worn slots and masks, not the
+    passive hero effects granted by the worn item
+  - affected paths included:
+    - `invent.js` item consumption/useup
+    - `steal.js` theft removal
+    - `zap.js` worn-item destruction
+    - `apply.js` cream pie self-use when the blindfold stack hits zero
+- Fix:
+  - add `clearWornItemEffects(player, obj)` in
+    [js/do_wear.js](/share/u/davidbau/git/mazesofmenace/game/js/do_wear.js)
+  - route those forced-removal paths through it so they clear the same passive
+    effects as voluntary removal before unsetting the slot/mask
+- Validation on branch `armoroff-general-fix` after both follow-up fixes:
+  - `scripts/run-and-report.sh --failures` returned only the same three
+    manual-direct failures as the earlier frontier:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - guardrail sessions stayed green:
+    - `t11_s755_w_covmax9_gp`: PASS
+    - `t11_s756_w_covmax10_gp`: PASS
+    - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+- General lesson:
+  - when a broad C-faithful fix reopens many sessions, assume compensating bugs
+    before abandoning the broad fix
+  - in this case, the faithful `armoroff()` path was correct; the regressions
+    came from JS-only metadata mismatch (`oc_armcat` vs `oc_subtyp`) and passive
+    effect cleanup holes in non-voluntary item removal
+
+- Evidence:
+  - the live `seed031_manual_direct` seam on `main` remained the same
+    delayed takeoff/wear window, but the active removal was specifically:
+    - `You finish taking off your shoes.`
+    - then `What do you want to wear?`
+    - then the first bad pet turn at `637/638`
+- Narrow fix:
+  - keep the broad occupation-based fallback for general armor removal
+  - but route `ARM_BOOTS` single-item removal through existing
+    `armoroff(item, player, game)`
+  - leave other armor slots on the old occupation path until the generic
+    multi<0 reorder is ready
+- Why this was defensible:
+  - it targets the exact active `seed031` removal case instead of reviving the
+    reverted broad behavior
+  - it reuses the existing faithful C-shaped helper rather than introducing a
+    third timing model
+- Validation:
+  - `seed031_manual_direct` improved materially:
+    - first RNG divergence `637 -> 710`
+    - first event divergence `638 -> 710`
+  - guardrails:
+    - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+  - unchanged core manual-direct controls:
+    - `seed032_manual_direct`: unchanged
+    - `seed033_manual_direct`: unchanged
+  - `node scripts/test-unit-core.mjs`: PASS
+
+## Systematic effect-wiring sweep (March 20, 2026, session 27)
+
+**Pattern discovered**: Many game effects had their RNG consumed for stream parity
+but the actual game state effect was never applied. The RNG calls (rnd(N), rn2(N))
+were placed as stubs to keep the random number stream aligned with C, but the
+functions that USE those random numbers (losehp, make_sick, make_blinded, etc.)
+were never called.
+
+**Method**: grep for `rn[d2](\d+);.*//` across all JS files. Each match is a
+bare RNG consumption with a comment explaining what it's for. Check if the
+referenced function exists in the codebase. If it does, wire it.
+
+**Results**: 23 game effects wired across 9 files:
+- **Combat damage**: erode_armor + acid_damage in all 4 acid paths (passivemm,
+  passiveum, mhitm_ad_acid, uhitm AD_ACID)
+- **Player damage**: losehp in sit.js (6 throne/trap effects), fountain.js
+  (boiling water), artifact.js (silver/bane retouch), eat.js (acidic/rotten
+  corpse), steed.js (mount slip, dismount throw/fall)
+- **Status effects**: fall_asleep (sleep attack, exertion), flashburn (cleric
+  lightning, wand backfire), make_sick (disease attack, tainted corpse, vomit
+  cure), make_blinded (throne heal/curse), nomul (cursed booze), change_luck
+  (throne effects x3), heal_legs (throne full-heal), losexp (throne level drain)
+- **Monster AI**: breamm/spitmm/thrwmm (ranged attacks in mattackm),
+  cockatrice petrification, elf/orc bonus, polearm retreat, Medusa gazemu
+
+**RNG bug found**: diseasemu ternary -- C conditionally calls rn1() only when
+player isn't already sick (Sick ? Sick/3+1 : rn1(con, 20)). JS was always
+calling rn1(), consuming an extra RNG entry when the player is already sick.
+
+**Key principle**: bare `rn2(N);` with a comment is a TODO marker for an
+unimplemented effect. The RNG is correct but the game state diverges from C.
+These are zero-RNG-change fixes -- the stream is already aligned, only the
+effect was missing.
+
+# 2026-03-20: Multi-pickup same-class ordering must respect `loot_classify()` before name
+
+- Evidence on branch `armoroff-general-fix`:
+  - recorded `seed031_manual_direct` fixture around the dwarf pile expects the
+    first wear help list to be:
+    - `w - a pair of hard shoes`
+    - `x - a hooded cloak`
+  - live JS on both `main` and `armoroff-general-fix` instead produced:
+    - `w = hooded cloak`
+    - `x = hard shoes`
+  - focused pickup tracing showed why:
+    - during the multi-object `Pick up what?` loop, JS processed the selected
+      armor in this order:
+      - `hooded cloak`
+      - `hard shoes`
+    - but the recorded C menu/result order requires:
+      - `hard shoes`
+      - `hooded cloak`
+- Root cause:
+  - [js/pickup.js](/share/u/davidbau/git/mazesofmenace/game/js/pickup.js)
+    was only grouping by `inv_order`, then sorting same-class objects by
+    `cxname_singular()`
+  - that misses C `invent.c sortloot_cmp()` behavior, which runs
+    `loot_classify()` within class first, then uses the name only as a later
+    tiebreaker
+  - for armor, `loot_classify()` subclass order puts boots before cloaks, so
+    the JS comparator was reversing the C pickup processing order for this case
+- Fix:
+  - keep the existing pickup-menu path
+  - within same object class, use `loot_classify()` subclass/discovery ordering
+    first, then the existing `cxname_singular()` name tiebreak, then `o_id`
+  - do not replace the whole pickup path with generic `sortloot()`; that was
+    too broad for this call site and regressed the seed much earlier
+- Validation on branch `armoroff-general-fix`:
+  - `seed031_manual_direct` improved:
+    - first RNG divergence `637 -> 733`
+    - first event divergence `638 -> 736`
+  - targeted guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - unchanged controls:
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - `node scripts/test-unit-core.mjs`: PASS
+- Lesson:
+  - for pickup-menu parity, “same class, then name” is not enough
+  - if a menu later drives inventory letters, the processing order must match C
+    `loot_classify()` semantics, not just the visible names
+
+# 2026-03-20: `LVLINIT_MINES` must clear stale `mazelevel` after `mkmap()`
+
+- Evidence in `seed031_manual_direct` after the pickup-order fix:
+  - first RNG divergence had moved to step `733`
+  - JS branched in `dog_goal()` on:
+    - `rn2(4)=2 @ dochug(monmove.js:847)`
+  - C instead went straight into:
+    - `rn2(1)=0 @ dog_move(dogmove.c:1300)`
+  - focused trace showed why:
+    - at step `542`, a dwarf tunneled into `(32,14)` in both C and JS
+    - JS `mdig_tunnel()` logged `maze=1 cavern=0 newtyp=25`, so it converted
+      the wall to `ROOM`
+    - later, at step `733`, JS still treated the hero square `(32,14)` as a
+      room, which forced the extra `dog_goal()` follow-player `rn2(4)` branch
+- Root cause:
+  - `minefill.lua` legitimately starts with `des.level_flags("mazelevel", ...)`
+  - in C, the later `mkmap()` call overrides that for joined walled cave maps:
+    - `mkmap.c`: if `walled && join`, set
+      `is_maze_lev = FALSE`, `is_cavernous_lev = TRUE`
+  - JS `sp_lev.js` inlined the `LVLINIT_MINES/ROGUE -> mkmap` pipeline but
+    never performed that post-`mkmap()` flag transition
+  - result: JS kept a stale `is_maze_lev=true` flag on generic Mines filler
+    levels, so monster digging created `ROOM` where C treated the level as
+    cavernous
+- Fix:
+  - after `finish_map(...)` in the `style === "mines" || style === "rogue"`
+    path, if `walled && joined`:
+    - set `levelState.flags.is_maze_lev = false`
+    - set `levelState.flags.is_cavernous_lev = true`
+    - mirror the same values into `map.flags`
+- Validation:
+  - `seed031_manual_direct` improved:
+    - first RNG divergence `733 -> 743`
+    - first event divergence `736 -> 743`
+  - targeted guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - `node scripts/test-unit-core.mjs`: PASS
+- Lesson:
+  - special-level scripts may set provisional flags like `mazelevel`, but
+    procedural generators such as `mkmap()` still own the final terrain-mode
+    flags used later by digging, room checks, and pet movement
+
+# 2026-03-20: turn-end random spawn depth must use `level_difficulty()`
+
+- Evidence in `seed031_manual_direct` after the Mines flag fix:
+  - first RNG/event divergence had moved to step `743`
+  - JS diverged in turn-end random monster generation at:
+    - `rn2(10)=6 @ makemon(...)`
+  - C diverged at the corresponding point with:
+    - `rn2(9)=0 @ rndmonst_adj(...)`
+  - focused `RNDMON_OWNER` tracing showed JS was calling `rndmonst_adj()` with:
+    - `depth=1 ulevel=4 diff=0-2`
+  - that came from JS passing branch-local `player.dungeonLevel` into
+    `makemon_appear()` during `moveloop_turnend()`
+- Root cause:
+  - C `allmain.c` turn-end spawn uses `makemon(NULL, ...)`
+  - C `makemon.c rndmonst_adj()` derives monster difficulty from
+    `level_difficulty()`, not branch-local level number
+  - on Mines levels, `level_difficulty()` is branch-aware and is not the same
+    as `u.uz.dlevel`
+  - JS was using branch-local depth for turn-end spawns, which built the wrong
+    random-monster reservoir on Mines and shifted RNG at the first turn-end
+    spawn after the pet seam
+- Fix:
+  - in [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js),
+    changed turn-end `makemon_appear(null, ...)` to pass:
+    - `level_difficulty(map.uz, game)`
+    instead of `(game.u || game.player).dungeonLevel`
+- Validation:
+  - `seed031_manual_direct` improved:
+    - first RNG divergence `743 -> 933`
+    - first event divergence `743 -> 934`
+  - targeted guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - nearby controls still fail for their pre-existing reasons:
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - `node scripts/test-unit-core.mjs`: PASS
+- Lesson:
+  - branch-local dungeon level is not a safe substitute for C
+    `level_difficulty()` in runtime generation paths; branch-aware difficulty
+    must be preserved anywhere random monster strength is chosen
+
+# 2026-03-21: Stage repeat-owner rewrites must preserve counted-command `multi`
+
+- Evidence from a failed broad `runmode_delay_output`/repeat-owner rewrite:
+  - trying to move all positive-`multi` ownership out of `run_command()` caused
+    `seed031_manual_direct` to regress catastrophically:
+    - first RNG divergence `933 -> 163`
+    - first event divergence `934 -> 166`
+  - the early regression window `160..166` is not travel-specific; it is
+    ordinary count-prefixed `"m."` command repetition
+  - baseline step `166` already shows:
+    - `fresh_cmd`
+    - `cmd='.'`
+    - `multi=7`
+    - `mv=0`
+  - so positive `multi` is not one uniform travel-only case in current JS
+- Root cause:
+  - the failed rewrite changed ownership for both:
+    - counted repeated commands (`context.mv == false`)
+    - movement/travel repetition (`context.mv == true`)
+  - that re-attributed whole continuation bundles across earlier counted-command
+    boundaries before reaching the later travel seam
+- Safe Stage A fix:
+  - in [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js),
+    stop `run_command()` from draining repeated non-movement commands
+    (`repeat_cmd`) in its local `repeatLoop()`
+  - keep movement/travel repetition (`context.mv == true`) on the existing path
+    for now
+  - this preserves early counted-command behavior while isolating travel for a
+    later Stage B port
+- Validation:
+  - `seed031_manual_direct` stayed unchanged at:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - early counted-repeat corridor stayed stable:
+    - `seed031` step-summary `160..166` unchanged
+  - targeted guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - any future `runmode_delay_output`/repeat-owner port must stage the work:
+    1. preserve counted-command `multi` semantics first
+    2. then port travel-specific continuation ownership
+  - do not rewrite positive `multi` as if it were only the `_` travel case
+
+# 2026-03-21: Stage B1 should split JS moveloop helpers before moving travel ownership
+
+- Evidence:
+  - the reviewed `RUNMODE_DELAY_OUTPUT_PORT_PLAN` and the failed Stage B trace
+    agreed that JS still lacks a clean equivalent of the C boundary between:
+    - monster-time / turn-end work
+    - once-per-player-input pre-input sync
+    - the positive-`multi` repeat branch
+  - current JS helper [`advanceTimedTurn()`](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js)
+    was bundling:
+    - `moveloop_core()`
+    - plus `find_ac()`
+    - plus vision/monster refresh
+    - plus `display_sync()`
+  - that made it too coarse for Stage B experiments, because the first repeated
+    travel `domove()` needs to be placed relative to those sub-phases exactly
+    the way C does
+- Safe Stage B1 refactor:
+  - in [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js),
+    extracted the post-`moveloop_core()` sync work into:
+    - `syncTimedTurnPreInputState(game)`
+  - kept `advanceTimedTurn(game, coreOpts)` behavior unchanged:
+    1. `moveloop_core(game, coreOpts)`
+    2. `syncTimedTurnPreInputState(game)`
+  - no ownership was moved yet; this is purely a behavior-preserving split so
+    later Stage B work can target smaller C-shaped boundaries
+- Validation:
+  - `seed031_manual_direct` unchanged:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - targeted gameplay guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - `node scripts/test-unit-core.mjs` still ends on existing unrelated
+    `epitaph selection` failures; this refactor did not touch that area
+- Lesson:
+  - before moving travel-specific repeat ownership, first split JS helpers so
+    the code can express the exact C ordering boundary around:
+    - `lookaround()`
+    - `runmode_delay_output()`
+    - the first repeated `domove()`
+  - do not use `advanceTimedTurn()` as if it were already a C-faithful unit of
+    repeat-move ownership
+
+# 2026-03-21: Stage B2a can extract the movement-repeat slice safely before moving ownership
+
+- Evidence:
+  - after Stage B1, the next safe move was to extract the current
+    `context.mv == true` positive-`multi` slice from `repeatLoop()` without
+    changing who calls it
+  - this isolates the exact JS slice that later Stage B2b will move, while
+    preserving the current runtime owner for validation
+- Safe Stage B2a refactor:
+  - in [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js),
+    extracted the existing movement/travel repeat body into:
+    - `runMovementRepeatSlice(game, { coreOpts, bumpHeroSeqN })`
+  - `repeatLoop()` still calls that helper directly when `context.mv` is set
+  - ownership and ordering are unchanged in this step
+- Validation:
+  - `seed031_manual_direct` unchanged:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - targeted gameplay guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - `node scripts/test-unit-core.mjs` still reports the same pre-existing
+    unrelated `epitaph selection` failures
+- Lesson:
+  - Stage B should continue separating:
+    1. the shape of the repeat-move slice
+    2. the runtime owner of that slice
+  - extracting the slice first reduces risk when Stage B2b later moves
+    ownership toward the `_gameLoopStep()` / moveloop-style owner
+
+# 2026-03-21: Stage B2b showed the owner move alone does not fix `seed031`
+
+- Evidence from a reverted Stage B2b patch:
+  - patch shape:
+    - left `runMovementRepeatSlice(...)` unchanged
+    - stopped `run_command().repeatLoop()` from draining `context.mv == true`
+      repeats locally
+    - moved only the movement-repeat owner to `_gameLoopStep()`
+  - results:
+    - `seed031_manual_direct` did not improve:
+      - first RNG divergence stayed `933`
+      - first event divergence stayed `934`
+    - early counted-repeat corridor `160..166` stayed unchanged
+    - targeted gameplay guardrails still passed
+    - but later normalized matching regressed slightly:
+      - events `19066 -> 19065`
+      - screens `1279 -> 1264`
+- Root conclusion:
+  - the first travel/contact seam is not fixed by changing the outer runtime
+    owner alone
+  - the remaining problem is still inside the repeated movement slice itself:
+    - ordering of `lookaround()`
+    - `runmode_delay_output()`
+    - and when the post-turn/pre-input sync happens relative to the repeated
+      `domove()`
+- Lesson:
+  - Stage B2b should not be retried unchanged
+  - next work should target the **slice internals** before another owner move
+  - the owner question still matters, but only after the repeated-travel slice
+    is internally closer to C
+
+# 2026-03-21: Deeper C read found missing repeat-slice invariants beyond ownership
+
+- We had been treating the remaining travel problem too abstractly. A closer
+  C/JS comparison exposed several concrete gaps:
+  1. C positive-repeat branch has a pre-`domove()` `runmode_delay_output()`
+     in `allmain.c`; JS still only has the move-local `domove()` delay call
+  2. C resets `u.umoved = FALSE` before every positive-repeat slice; JS only
+     resets `player.umoved` once at fresh-command start
+  3. JS `advanceTimedTurn()` is not one C phase; it is a fused helper spanning
+     `moveloop_core()` plus later pre-input sync
+  4. initial `_` travel-step handling and repeated travel-step handling are
+     currently framed differently in JS
+  5. current `runMovementRepeatSlice(...)` is a fused cross-iteration helper,
+     not one exact C repeat slice
+- Lesson:
+  - the next faithful port step is not another owner rewrite
+  - first make the C repeat-slice invariants explicit in JS:
+    - per-slice `u.umoved = FALSE`
+    - repeat-branch `runmode_delay_output()` before repeated `domove()`
+    - consistent framing between initial and repeated travel steps
+  - only after the slice internals are C-shaped does it make sense to revisit
+    moving the outer runtime owner
+
+# 2026-03-21: Local Stage C3 invariants alone were not sufficient
+
+- Probe patch:
+  - inside [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js)
+    `runMovementRepeatSlice(...)`:
+    - set `player.umoved = false` before `lookaround()`
+    - call repeat-branch `runmode_delay_output()` before repeated `domove()`
+- Validation:
+  - `seed031_manual_direct` unchanged:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - counted-repeat corridor `160..166` unchanged
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - these per-slice invariants are probably real, but in the current JS fused
+    repeat-slice model they are not sufficient to move the first seam
+  - the remaining issue is more likely in the larger framing:
+    - initial vs repeated travel-step handling
+    - or the fact that `runMovementRepeatSlice(...)` still spans pieces of two
+      C iterations
+
+# 2026-03-21: The next target is JS's split travel ownership, not a prompt-owned frame
+
+- After re-reading C `moveloop_core()` and the current JS runtime, the deeper
+  remaining mismatch is that JS still splits `_` travel across two owners:
+  1. the resumed still-running `_` command, which drains
+     `run_command() -> finalizeTimedCommand() -> repeatLoop()`
+  2. `_gameLoopStep()`'s direct top-level `travelPath` continuation branch
+- focused replay tracing showed steps `931..932` are still blocked in
+  `getpos_async()`, and step `933` key `"."` resumes that same pending command
+  rather than going through `promptStep()`
+- inside that one resumed command, step `933` currently runs five
+  `domove_target` hops before the runtime blocks again
+- after that command settles, step `934` starts a fresh `_gameLoopStep()` and
+  immediately takes the separate top-level `travelPath` branch
+- C does not have this split. `_` travel remains normal command execution
+  inside `rhack(0)`, with later positive-repeat slices owned by later
+  `moveloop_core()` entries.
+- Lesson:
+  - before another owner move or another local repeated-slice probe, JS needs a
+    single C-shaped travel-step contract
+  - the first concrete target is the resumed command's `repeatLoop()` overdrain
+    in step `933`
+  - the second target is the separate top-level `travelPath` owner on step
+    `934+`
+
+# 2026-03-21: Top-level repeat-slice substitution helped later spillover, but prompt-finalization specialization did not
+
+- Probe A:
+  - replace top-level direct travel continuation
+    - from `_gameLoopStep() -> dotravel_target() -> moveloop_core()`
+    - to the extracted `runMovementRepeatSlice(...)`
+- Probe B:
+  - keep Probe A
+  - also special-case the post-`getpos_async()` initial travel completion path
+    so `run_command()` uses `moveloop_core()` instead of full
+    `finalizeTimedCommand()`
+
+Validation:
+- both probes were safe on the targeted gameplay guardrails:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Probe A materially reduced later `seed031` spillover:
+  - baseline `934..936`: `rng +431 / evt +169`
+  - Probe A: `rng +130 / evt +95`
+- but Probe A still did not move the first seam later:
+  - first RNG divergence stayed `933`
+  - first event divergence stayed `934`
+- Probe B produced the same result as Probe A
+
+Lesson:
+- replacing the top-level direct travel continuation is part of the correct
+  direction
+- but post-`getpos_async()` finalization specialization is not the next
+  missing piece
+- the remaining earliest mismatch is still earlier, inside the resumed `_`
+  command's local `repeatLoop()` drain on step `933`
+
+# 2026-03-21: Reordering the top-level travelPath branch was safe but not sufficient
+
+- Probe patch:
+  - in `_gameLoopStep()`, move the top-level `travelPath` branch below:
+    - command-boundary `--More--` dismissal
+    - negative-`multi` continuation
+    - occupation continuation
+- Validation:
+  - `seed031_manual_direct` unchanged:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - the top-level `travelPath` branch is still a real structural mismatch,
+    because C does not have that preempting owner
+  - but moving that branch later in `_gameLoopStep()` is not sufficient by
+    itself to move the first `seed031` seam
+
+# 2026-03-21: `_` travel is resumed through the pending command, not `promptStep()`
+
+- Focused replay-owner tracing corrected an earlier wrong theory.
+- Around `seed031` steps `931..934`:
+  - steps `931..932` resume the still-running `_` command and block in
+    `getpos_async()`
+  - step `933` key `"."` resumes that same pending command
+  - there is no `promptStep()` ownership transition here
+- The exact step `933` trace showed:
+  - first `dotravel_target()` hop
+  - then local `run_command() -> repeatLoop()` drain
+  - five `domove_target` hops total in one replay step
+  - gas spore 27 refreshed to `(24,13)` and then `(26,13)` in the same step
+- Then step `934` starts a fresh `_gameLoopStep()` and immediately enters the
+  separate top-level `travelPath` continuation path.
+- Lesson:
+  - the real owner split is:
+    1. resumed-command local travel drain on step `933`
+    2. top-level `travelPath` continuation on step `934+`
+  - the old "prompt-owned initial travel frame" theory was wrong and should
+    not guide further fixes
+
+# 2026-03-21: Combined owner correction reduced spillover but still did not move the first seam
+
+- Combined probe:
+  1. skip local movement `repeatLoop()` drain after the initial `_` travel hop
+  2. route later top-level `travelPath` continuation through
+     `runMovementRepeatSlice(...)`
+- Validation:
+  - `seed031_manual_direct` still first diverged at:
+    - RNG `933`
+    - event `934`
+  - but spillover improved materially:
+    - baseline `933..936`: `rng +431 / evt +169`
+    - combined probe: `rng +106 / evt +95`
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - both runtime owners are real contributors
+  - but owner routing alone is still not enough
+  - the next fix has to target the **first resumed-command travel slice**
+    inside step `933`, because that is where the earliest bad work still
+    begins
+
+# 2026-03-21: The first resumed `_` slice already contains C's later positive-repeat monster work
+
+- A deeper pass compared:
+  - C `allmain.c` positive-repeat branch (`lookaround()` ->
+    `runmode_delay_output()` -> repeated `domove()`)
+  - C `hack.c:domove()` tail
+  - JS replay-owner trace for the authoritative failing step `933`
+- New concrete correction:
+  - JS step `933` is not only wrong because it drains *multiple* travel hops
+  - it is already wrong on the **first resumed slice**, because that slice
+    already contains monster-turn work that C does not expose until the later
+    positive-repeat branch
+- Evidence:
+  - JS step `933` starts:
+    - `domove_target from=22,14 to=23,13`
+    - then immediately kitten turns with `set_apparxy ... u=(23,13)`
+  - the comparable C raw window before the first mismatch instead shows:
+    - `rn2(70)=45 @ moveloop_core(allmain.c:341)`
+    - `rn2(20)=19 @ gethungry(eat.c:3186)`
+    - `rn2(79)=55 @ moveloop_core(allmain.c:466)`
+    - `>runmode_delay_output @ moveloop_core(allmain.c:629)`
+    - then monster 27's `distfleeck(...)`
+- Lesson:
+  - the next fix should not be framed as merely "keep the first hop and stop
+    later hops"
+  - the first resumed `_` slice itself must stop at the same C boundary that
+    exists before the next positive-repeat iteration's monster work becomes
+    visible
+
+# 2026-03-21: The concrete collapsed boundary is `finalizeTimedCommand()` -> local `repeatLoop()`
+
+- The structural mismatch is now precise.
+- Current JS sequence for the initial resumed `_` step:
+  1. `dotravel_target()` performs the first `domove()`
+  2. `run_command()` calls `finalizeTimedCommand()`
+  3. `finalizeTimedCommand()` calls `advanceTimedTurn()`
+  4. `advanceTimedTurn()` runs:
+     - `moveloop_core()`
+     - then `syncTimedTurnPreInputState()`
+  5. control returns to `run_command()`
+  6. `run_command()` immediately enters local `repeatLoop()`
+  7. `repeatLoop()` starts the next positive-repeat movement bundle in the
+     same resumed command
+- C does not collapse those boundaries together.
+  - after `rhack(0)` and the first `domove()`, control returns to
+    `moveloop_core()`
+  - only on a later outer `moveloop()` re-entry does C execute the
+    positive-repeat branch:
+    - `u.umoved = FALSE`
+    - `lookaround()`
+    - `runmode_delay_output()`
+    - repeated `domove()`
+- Lesson:
+  - the next fix target is the boundary between:
+    - `finalizeTimedCommand()` completing the initial `_` travel step
+    - and local `repeatLoop()` starting the next travel step
+  - that boundary is where JS is currently pulling C's next positive-repeat
+    iteration into step `933`
+
+# 2026-03-21: The local collapsed boundary is the dominant spillover contributor
+
+- Narrow probe:
+  - suppress only the local movement `repeatLoop()` after the resumed `_`
+    command's initial `dotravel_target()` hop
+  - leave the top-level `_gameLoopStep()` `travelPath` continuation unchanged
+- Validation:
+  - `seed031_manual_direct` still first diverged at:
+    - RNG `933`
+    - event `934`
+  - but spillover again dropped sharply:
+    - baseline `933..936`: `rng +431 / evt +169`
+    - local-boundary-only probe: `rng +106 / evt +95`
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - the local `finalizeTimedCommand() -> repeatLoop()` collapse is the
+    dominant contributor to the late `933..936` spillover
+  - the top-level `travelPath` owner is still a mismatch, but it is secondary
+    for that specific spillover effect
+  - because the first seam still remains at `933`, the next remaining bug is
+    inside the first resumed `_` slice itself
+
+# 2026-03-21: Full deferred-travel implementation still collapsed to the same partial result
+
+- Implementation attempt:
+  - skip immediate timed-turn finalization for the initial resumed `_` travel hop
+  - defer that timed turn to the next `_gameLoopStep()`
+  - process that deferred turn as:
+    - `moveloop_core()`
+    - `syncTimedTurnPreInputState()`
+  - route later top-level travel continuation through `runMovementRepeatSlice(...)`
+- Validation:
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - `seed031_manual_direct` still first diverged at:
+    - RNG `933`
+    - event `934`
+  - and matched the same partial-improvement shape as the earlier combined
+    owner probe
+- Lesson:
+  - the Phase 1/Phase 2 inversion insight is real, but implementing it at the
+    current helper boundaries is still not sufficient
+  - one more lower-level mismatch remains inside the first resumed `_` slice,
+    even after the deferred-timed-turn rewrite
+
+# 2026-03-21: Positive travel still lacks a C-faithful no-input owner in `_gameLoopStep()`
+
+- Lower-level analysis after the deferred-timed-turn failure clarified the
+  missing runtime structure:
+  - `_gameLoopStep()` already has explicit no-input continuation lanes for:
+    - negative `multi`
+    - occupation
+  - but it still has no equivalent no-input lane for positive `multi`
+    travel/running
+- That means positive-travel continuation is currently forced into two wrong
+  owners:
+  1. too early: local `run_command() -> repeatLoop()` overdrain
+  2. too late: separate top-level `_gameLoopStep()` `travelPath` branch
+- This explains why:
+  - suppressing only the local `repeatLoop()` produced the dominant spillover
+    reduction (`933..936`: `rng +431 / evt +169` -> `rng +106 / evt +95`)
+  - but deferring the first timed continuation to a later command-cycle entry
+    still did not move the first seam
+- Refined conclusion:
+  - C-faithful positive travel needs a dedicated outer no-input continuation
+    lane in `_gameLoopStep()`
+  - neither command-local `while (multi > 0)` draining nor a later dedicated
+    `travelPath` shortcut is the right owner
+
+# 2026-03-21: A positive-multi lane inside `_gameLoopStep()` is still too fused
+
+- Probe:
+  - suppress local movement `repeatLoop()` in `run_command()`
+  - add a positive-`multi` / `context.mv` no-input lane inside the existing
+    `_gameLoopStep()` `while`
+  - have that lane execute one `runMovementRepeatSlice(...)` per loop pass
+- Validation:
+  - `seed031_manual_direct` still first diverged at:
+    - RNG `933`
+    - event `934`
+  - but later spillover again improved sharply:
+    - steps `933..936`: `rng +130 / evt +95`
+  - `t11_s755_w_covmax9_gp` stayed green
+- Decisive trace result:
+  - step `933` still contained multiple repeated travel hops:
+    - `22,14 -> 23,13`
+    - `23,13 -> 24,13`
+    - `24,13 -> 25,13`
+    - `25,13 -> 26,13`
+    - `26,13 -> 27,13`
+  - plus the later gas-spore contact/attack
+- Lesson:
+  - moving positive-travel continuation into `_gameLoopStep()` is not enough
+    if `_gameLoopStep()` itself keeps looping without returning
+  - replay still treats that whole internal `_gameLoopStep()` loop as one
+    gameplay step
+  - so the true C-faithful boundary must be above the current internal
+    `_gameLoopStep()` `while`, or `_gameLoopStep()` must be refactored to
+    return after one positive-repeat slice instead of `continue`
+
+# 2026-03-21: One positive-repeat slice per `_gameLoopStep()` return moves `seed031` later
+
+- Validated code change in `/tmp/mazes_main_compare`:
+  - suppress local movement overdrain in `run_command()` when `context.mv`
+    is active
+  - add a positive-`multi` no-input continuation lane in `_gameLoopStep()`
+  - make that lane return after one slice instead of continuing the internal
+    `_gameLoopStep()` `while`
+  - defer the timed continuation for the initial resumed `_` travel hop to a
+    dedicated `pendingTravelTimedTurn` pass before later positive-repeat slices
+- Why this is the right shape:
+  - it creates three separate outer re-entries where JS previously fused them:
+    1. initial resumed `_` travel hop
+    2. timed continuation after that first hop
+    3. one later positive-repeat slice per `_gameLoopStep()` return
+- Evidence of real progress:
+  - `comparison-window --step-summary` for `seed031` now shows:
+    - step `933`: `rng 0 / evt 0`
+    - first new spillover begins at step `934`
+  - normalized RNG window moved from:
+    - baseline JS step `933`
+    - to JS step `938`
+  - normalized event window moved from:
+    - baseline JS step `934`
+    - to JS step `996`
+- Focused trace after the fix:
+  - step `933`: initial resumed hop only
+  - step `934`: gas-spore / kitten timed continuation after first hop
+  - step `935`: one travel hop
+  - step `936`: one travel hop
+  - so the multi-hop same-step packing has been eliminated
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - later normalized RNG/event divergence as above
+    - counted-repeat corridor `160..166` unchanged
+  - gameplay guardrails still green:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - nearby controls remain on their prior issue classes:
+    - `seed032_manual_direct` unchanged in RNG-full / screen-event drift class
+    - `seed033_manual_direct` unchanged at its early special-level RNG seam
+- Caveat:
+  - `session_test_runner` still reports legacy `firstDivergence.step` metadata
+    as `933` on this session
+  - the authoritative evidence for step movement on this patch is the
+    normalized `comparison-window` output plus the per-step spillover summary
+
+# 2026-03-21: Exact C stop-before-attack is now the right local probe, but it exposes a narrower remaining bug
+
+- Reintroduced the exact `hack.c:2762-2773` rule on top of the validated owner
+  fix:
+  - if `context.run` is active and the destination square contains a visible
+    hostile monster, stop running via `nomul(0)` and return before bump/attack
+- This behaved differently from the earlier pre-owner-fix experiments:
+  - at the old bad contact point, JS now stopped cleanly
+  - trace:
+    - `step 938 domove_target from=26,13 to=27,13 mon=27@27,13`
+    - `step 938 domove_notime stop-visible-hostile-while-running ...`
+    - then monster `27` got its turn
+- New first raw mismatch under that probe:
+  - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+  - C: `rn2(8)=7 @ m_move(monmove.c:1979)`
+- New first event mismatch under that probe:
+  - JS: `^distfleeck[27@27,13 in=1 near=1 scare=0 brave=1 ...]`
+  - C: `^distfleeck[27@27,13 in=1 near=0 scare=0 brave=1 ...]`
+- Interpretation:
+  - the premature hero attack is no longer the next problem once the exact C
+    stop gate is present
+  - `brave` now aligns
+  - the remaining mismatch is specifically monster `27`'s post-stop `near`
+    state
+- So the next likely target is the post-stop monster-target handoff:
+  - `set_apparxy()`
+  - then `distfleeck()`
+  - not another broad owner rewrite
+- Reverted the code probe because it still did not move the first-divergence
+  step later, but it is the strongest diagnostic narrowing since the owner fix
+
+# 2026-03-21: Deferring repeated travel timed turns helps, but monster 27 still gets its target too early
+
+- On top of `7feb605cd`, a combined probe did two things:
+  - deferred repeated `context.mv` timed turns instead of finalizing them inline
+  - reapplied the exact `hack.c:2762-2773` visible-hostile stop gate
+- This was materially better than either piece alone:
+  - `seed031` matched RNG improved to `34371/51561`
+  - matched events improved to `19071/28950`
+  - the old hero-attack mismatch disappeared
+  - normalized RNG first mismatch moved from JS step `938` to JS step `941`
+- The remaining first raw mismatch under that probe became:
+  - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+  - C: `rn2(8)=7 @ m_move(monmove.c:1979)`
+- And the remaining first event mismatch became:
+  - JS: `^distfleeck[27@27,13 in=1 near=1 scare=0 brave=1 ...]`
+  - C: `^distfleeck[27@27,13 in=1 near=0 scare=0 brave=1 ...]`
+- Focused trace around steps `940..942` showed why:
+  - JS step `940` already did:
+    - `set_apparxy ... id=279 old=(24,13) new=(26,13)`
+    - gas spore move `28,13 -> 27,13`
+  - then JS step `941` stopped before attack, but monster `27` already carried
+    `mux/muy=(26,13)` into its first post-stop `distfleeck()`
+- So the remaining bug is now even narrower:
+  - not hero attack logic
+  - not generic travel ownership
+  - monster `27` still inherits an advanced apparent hero target one slice too
+    early before its first post-stop `m_move()`
+- Reverted the probe because the legacy first-divergence step label did not
+  move later, but this is the cleanest remaining seam yet
+
+## uncommon() Inhell conditional and G_HELL area sweep (March 21, 2026)
+
+**Root cause**: JS's `uncommon()` always checked `G_HELL` flag regardless of `Inhell`
+state. C's `uncommon()` (makemon.c:1588-1599) has an `Inhell` conditional:
+- When `Inhell`: returns `maligntyp > A_NEUTRAL` (excludes good-aligned monsters)
+- When `!Inhell`: returns `!!(geno & G_HELL)` (excludes hell-only monsters)
+
+**Impact**: During Gehennom level generation, JS incorrectly excluded hell-native
+monsters (like steam vortex, disenchanter) from random monster selection. These
+monsters have the `G_HELL` flag but are neutral/lawful-aligned, so C's `uncommon()`
+includes them in hell (maligntyp ≤ A_NEUTRAL) while JS's version excluded them
+(G_HELL flag set).
+
+**Area sweep found 3 related issues**:
+1. `uncommon()` missing Inhell conditional (makemon.js:422-432)
+2. Missing `G_NOHELL` check in `rndmonst_adj` loop body — C's makemon.c:1686-1687
+   excludes G_NOHELL monsters when in hell. JS had no separate check after `uncommon()`.
+3. `rndmonnum_adj` Plan B fallback — C's mkobj.c:407 uses `Inhell ? G_NOHELL : G_HELL`
+   for exclude flags. JS always used `G_HELL`.
+
+**Verified correct**: `mkclass` variants at lines 716 and 764 already properly
+conditional on `gehennom`/`inhell` for G_HELL/G_NOHELL gating. No change needed.
+
+**Pattern**: When a function has an `Inhell`/`In_hell` conditional in C, check
+all callers and related functions for the same pattern. The G_HELL/G_NOHELL
+distinction is always conditional on being in Gehennom.
+
+# 2026-03-21: `drainUntilInput()` is currently weaker than a true input boundary
+
+- The remaining post-`933` seam exposed an executor/runtime contract issue:
+  - replay step boundaries are intended to be input-delimited
+  - but `js/replay_core.js:drainUntilInput()` currently ends a consumed key
+    when either:
+    1. the game reaches an actual input wait, or
+    2. the `_gameLoopStep()` promise resolves
+- That second condition is weaker than the intended meaning of
+  "drain until input":
+  - after the owner fix, `_gameLoopStep()` can now return after one
+    positive-repeat slice
+  - but the runtime may still have valid no-input continuation pending
+  - if replay admits the next queued key at that point, JS is accepting input
+    earlier than the game is truly ready for it
+- Important clarification:
+  - internal loop boundaries do **not** automatically redefine session steps
+  - the problem is specifically when replay treats promise completion as a
+    sufficient end-of-step condition even though `input.isWaitingInput()` is
+    still false
+- Evidence:
+  - pending trace around the improved `seed031` corridor shows:
+    - step `933` resumes and completes cleanly
+    - later steps such as `937` can still end with `owner=none waiting=0`
+  - this means the consumed key has ended from replay's perspective even
+    though the runtime has not yet blocked for fresh input
+- Current best interpretation:
+  - the remaining monster-27 target-refresh seam may now be partly caused by
+    the next queued key being introduced before the JS runtime has reached the
+    true no-input completion boundary that C would reach first
+- Next step:
+  - tighten the replay/runtime contract so a consumed key does not finish
+    merely because `_gameLoopStep()` returned, if no-input continuation is
+    still pending and the game is not actually waiting for input
+
+# 2026-03-21: The remaining gas-spore `near` seam is still cross-step, not yet a proven monster-state bug
+
+- A crucial correction from the latest comparison:
+  - the normalized event mismatch
+    - JS: `^distfleeck[27@27,13 in=1 near=1 ...]`
+    - C:  `^distfleeck[27@27,13 in=1 near=0 ...]`
+    is **not** comparing the same recorded input key on both sides
+- Actual session keys show:
+  - JS aligned steps there are still:
+    - `937 = "l"`
+    - `938 = "l"`
+  - the normalized C side is already at:
+    - `947 = "."`
+    - `948 = "h"`
+- So the latest monster-27 analysis must be restated:
+  - JS does show gas spore `27` at step `937` refreshing toward `(26,13)` and
+    moving from `28,13 -> 27,13`
+  - but the later C `near=0` comparison is still on a later recorded key
+  - therefore this is still best treated as step-attribution / ownership drift,
+    not as a proven `distfleeck()` / `set_apparxy()` logic bug
+- Consequence:
+  - do **not** patch `distfleeck()` or `set_apparxy()` on this evidence
+  - the next fix target remains command/timed-turn ownership: why does JS emit
+    this monster bundle earlier in the input-step stream than C?
+  - when `_gameLoopStep()` is allowed to return after one positive-repeat slice,
+    the critical question is not just who owns the slice, but when queued fresh
+    keys become visible relative to that owner
+  - for manual-direct parity seams, always reason on gameplay-step numbering and
+    verify whether later keys are already queued before blaming fresh-command
+    parsing or monster AI formulas
+
+# 2026-03-21: the command-boundary invariant was useful, but the active fix target has shifted to a slice-level target-refresh invariant
+
+- Assessment:
+  - the command-boundary invariant work was productive:
+    - it exposed a real queued-key / carried-owner coexistence bug
+    - it ruled out replay-side drains and simple owner-extension fixes
+  - but it is not the earliest causal bug for the surviving gas-spore seam
+- Stronger causal chain:
+  - gas spore `27` first refreshes to target `(24,13)` and moves to `(28,13)`
+  - before gas spore `27`'s next relevant turn, JS advances the apparent target
+    to `(26,13)`
+  - then at `(27,13)`, `near=1` is the natural downstream result
+- Negative probe:
+  - moving `advanceTimedTurn()` to the top of every repeated movement slice was
+    wrong
+  - `t11_s755_w_covmax9_gp` stayed green, but `seed031_manual_direct`
+    regressed to the older dog seam:
+    - first RNG mismatch:
+      - JS `rn2(4)=2 @ dochug(monmove.js:847)`
+      - C `rn2(100)=38 @ obj_resists(zap.c:1467)`
+    - first event mismatch:
+      - JS `^dog_invent_decision[32@22,15 ud=5 ...]`
+      - C `^dog_invent_decision[32@22,15 ud=8 ...]`
+- Lesson:
+  - do not treat the remaining problem as "move all repeated timed turns earlier"
+  - keep the command-boundary invariant as a diagnostic model
+  - shift the active fix target to a slice/state invariant:
+    - between gas spore `27`'s turn at `(29,14)` targeting `(24,13)` and its
+      next `distfleeck()` at `(27,13)`, JS must not advance the apparent target
+      to `(26,13)`
+
+# 2026-03-21: the first keepable structural `_` travel fix was to keep the accepted command owning continuation, but only grant the extra no-time timed turn for path exhaustion
+
+- Structural change that worked:
+  - when `dotravel_target()` starts accepted `_` travel, do not hand the path
+    back to coarse `pendingTravelTimedTurn`
+  - instead let the accepted `_` command own its carried continuation directly
+    through a local loop:
+    - initial timed turn
+    - then repeated movement slices
+- Why the first structural probe still overpacked:
+  - `runMovementRepeatSlice()` gave **every** no-time travel stop with
+    `savedRun === 8` one more full `advanceTimedTurn()`
+  - that was too broad
+  - it treated:
+    - visible-hostile stop
+    - and travel-path exhaustion
+    as if they had the same same-key continuation behavior
+- Exact observed overshoot:
+  - JS step `933` correctly packed gas spore `27` turns at:
+    - `(29,14)`
+    - `(28,13)`
+  - but then also pulled in:
+    - `^movemon_turn[27@27,13 ...]`
+  - C step `933` does **not** contain that next gas-spore turn
+  - C only reaches `27,13` as the result of the prior `m_move()` inside
+    step `933`; the actual turn at `27,13` belongs to gameplay step `934`
+- Keepable generalized fix:
+  - make `domove()` report explicit no-time stop causes
+  - currently useful causes:
+    - `travel_path_exhausted`
+    - `visible_hostile_while_running`
+  - only grant the extra timed turn for `travel_path_exhausted`
+  - do **not** grant it for `visible_hostile_while_running`
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - first RNG divergence moved from gameplay step `933` to `940`
+    - matched RNG improved to `34575/51561`
+    - matched events improved to `19208/28950`
+  - still green:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - the structural accepted-command loop is the right family
+  - but the stop condition must be modeled by explicit C-faithful stop causes,
+    not by a coarse `savedRun === 8` rule
+
+## 2026-03-21: `seed031` on updated `main` re-exposed an earlier gas-spore death seam; fixing `xkilled()`'s exploding-monster path moved first divergence from 488 to 997
+
+- After pulling newer `main` (including the `seed033` levelgen fix), the
+  authoritative `seed031` first divergence on `main` was no longer the older
+  step-`940` throw-flight seam.
+- Current `main` first diverged at gameplay step `488` during thrown-dart
+  resolution against a gas spore:
+  - JS:
+    - `rnd(20)=8 @ throwit(...)`
+    - `^die[165@63,7]`
+    - `rn2(6)=2 @ killed(...)`
+    - `rn2(3)=0 @ xkilled(...)`
+  - C:
+    - same hit roll and death
+    - then the gas-spore death path continues through the exploding-monster
+      cleanup before later throw bookkeeping and pet/object work
+- Root cause on JS `main`:
+  - [`corpse_chance()`](js/mon.js) already knew that `AT_BOOM` monsters must
+    consume the first explosion-damage roll
+  - [`mon_explodes()`](js/explode.js) already existed
+  - but [`xkilled()`](js/mon.js) never actually invoked the exploding-monster
+    branch for hero-killed gas spores
+- C shape from [`mon.c`](nethack-c/patched/src/mon.c):
+  - `xkilled()` does treasure-drop RNG first
+  - then `corpse_chance(...)`
+  - and for `AT_BOOM` monsters, `corpse_chance(...)` itself calls
+    `mon_explodes(...)` and returns false
+- Keepable narrow JS fix on current `main`:
+  - in [`xkilled()`](js/mon.js), after the treasure-drop section and before
+    normal corpse generation:
+    - detect `AT_BOOM`
+    - call `corpse_chance(mon)` to preserve the first C damage-roll side effect
+    - then `await mon_explodes(mon, atk, map, player)`
+    - skip normal corpse generation for that death
+  - in [`adtyp_to_expltype()`](js/explode.js), map `AD_PHYS` to
+    `EXPL_NOXIOUS` to match C's gas-spore explosion display type
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - first RNG divergence moved from gameplay step `488` to `997`
+    - matched RNG improved to `35673/51561`
+    - matched events improved to `20258/28950`
+  - `t11_s755_w_covmax9_gp.session.json`
+    - still green
+- Lesson:
+  - after upstream pulls, do not assume the active seam is still the one from
+    the previous branch-local campaign
+  - re-establish the authoritative first divergence on current `main` before
+    resuming structural work
+
+## 2026-03-21 - seed031 apply/pick-axe prompt and occupation ownership
+
+- Session: `test/comparison/sessions/seed031_manual_direct.session.json`
+- Starting point on current `main` after the exploding-monster fix:
+  - first RNG divergence at gameplay step `997`
+  - matched RNG `35673/51561`
+  - matched events `20258/28950`
+- Raw step drilldown around the resumed `#apply` corridor (`993..999`) exposed a
+  separate structural bug family earlier in the same session:
+  - JS step `995` was burning the selection key on an extra prompt-owned
+    `^more[...]` boundary
+  - JS step `996` then performed the wield-time monster/timed-turn block that C
+    already performed on `995`
+  - after direction acceptance, JS also failed to arm the actual digging
+    occupation in the runtime owner that `_gameLoopStep()` drains
+- Root causes:
+  1. [`handleApply()`](js/apply.js) rendered the selection prompt and the dig
+     direction prompt via `putstr_message()`, which left
+     `messageNeedsMore=true` and inserted a fake command-boundary `--More--`
+     before the next selection key.
+  2. [`handleApply()`](js/apply.js) accepted the pick-axe direction but did not
+     call [`use_pick_axe()`](js/dig.js); it only returned `{ tookTime: true }`.
+  3. [`use_pick_axe2()`](js/dig.js) set `player.occupation = dig`, but the
+     active runtime drains `game.occupation`, so the dig occupation never became
+     live in the owner that `_gameLoopStep()` uses.
+- Keepable C-shaped JS fixes:
+  - render the `#apply` inventory-selection prompt and pick-axe direction prompt
+    as prompt-owned topline text using `display.putstr(...)`, `topMessage`, and
+    cursor placement, with `messageNeedsMore=false`, matching other prompt code
+    such as `ynFunction()` instead of treating them as ordinary `pline()`-style
+    messages.
+  - after accepting a pick-axe direction, set `player.dx/dy/dz`, call
+    [`use_pick_axe()`](js/dig.js), and return `tookTime` from that result.
+  - in [`use_pick_axe2()`](js/dig.js), arm `game.occupation` with a dig
+    callback object (`occtxt`, `fn`) while preserving the legacy
+    `player.occupation = dig` marker for existing helper code.
+- Result:
+  - the raw apply corridor now matches structurally:
+    - step `995`: timed wield turn matches C
+    - step `996`: dig-direction prompt only
+    - step `997`: `220` filtered entries match C
+    - step `998`: `25` filtered entries match C
+    - step `999`: `17` filtered entries match C
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved to `36949/51561`
+    - matched events improved to `21226/28950`
+    - first RNG divergence moved from gameplay step `997` to `1057`
+  - `t11_s755_w_covmax9_gp.session.json`
+    - still green
+- Lesson:
+  - prompt text that is really part of a live input owner must not be emitted as
+    a normal `putstr_message()` boundary message.
+  - for tool-use commands like pick-axe digging, matching C requires both:
+    - prompt ownership parity
+    - occupation ownership parity in `game.occupation`, not only local/player
+      bookkeeping.

@@ -718,7 +718,7 @@ describe('same_race', () => {
 
 describe('levl_follower', () => {
     function makeMon(overrides = {}) {
-        return { type: mons[PM_DOG], tame: 0, iswiz: false, isshk: false,
+        return { type: mons[PM_DOG], mtame: 0, iswiz: false, isshk: false,
                  following: false, flee: false, minvent: [], ...overrides };
     }
 
@@ -729,7 +729,7 @@ describe('levl_follower', () => {
     });
 
     it('tame monster always follows', () => {
-        const mon = makeMon({ tame: 5 });
+        const mon = makeMon({ mtame: 5 });
         assert.equal(levl_follower(mon, { inventory: [] }), true);
     });
 

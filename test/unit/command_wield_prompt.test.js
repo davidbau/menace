@@ -43,7 +43,7 @@ function makeGame() {
         },
         clearRow() {},
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    return { u: player, map, display, fov: null, flags: { verbose: false } };
 }
 
 test('wield prompt stays open on invalid letters until canceled', async () => {
@@ -61,7 +61,7 @@ test('wield prompt stays open on invalid letters until canceled', async () => {
 
 test('wielding a non-weapon item is allowed and reports wielded item', async () => {
     const game = makeGame();
-    game.player.inventory.push({
+    game.u.inventory.push({
         invlet: 'd',
         oclass: GEM_CLASS,
         otyp: 0,

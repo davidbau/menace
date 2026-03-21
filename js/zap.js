@@ -121,7 +121,7 @@ import {
   gloves_simple_name, boots_simple_name, shield_simple_name,
   shirt_simple_name, Is_box, vtense,
 } from './objnam.js';
-import { Ring_gone } from './do_wear.js';
+import { Ring_gone, clearWornItemEffects } from './do_wear.js';
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, compactInvletPromptChars } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
@@ -249,7 +249,7 @@ export function resist(mon, oclass) {
     case SCROLL_CLASS:  alev = 9; break;
     case POTION_CLASS:  alev = 6; break;
     case RING_CLASS:    alev = 5; break;
-    default:            alev = _gstate?.player?.ulevel || 1; break; // C: u.ulevel for spells
+    default:            alev = _gstate?.u?.ulevel || 1; break; // C: u.ulevel for spells
     }
 
     // C ref: zap.c:6104-6109 — defense level
@@ -1298,7 +1298,7 @@ export async function bhitm(mon, otmp, map, player) {
   if (wake && mon.mhp > 0) {
     if (mon.msleeping) {
         mon.msleeping = 0;
-        mon.sleeping = false;
+        mon.msleeping = 0;
     }
     if (mon.mcanmove === false || mon.mcanmove === 0) { mon.mcanmove = 1; mon.mfrozen = 0; }
   }
@@ -1658,7 +1658,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           || (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED)) && range >= 0))) {
         // Bounce logic
         // C ref: STONE→10, mine walls→20, else→75
-        const currentLevel = player?.uz || _gstate?.u?.uz || _gstate?.player?.uz || null;
+        const currentLevel = player?.uz || _gstate?.u?.uz || _gstate?.u?.uz || null;
         const bchance = (loc.typ === STONE)
           ? 10
           : (currentLevel && In_mines(currentLevel) && IS_WALL(loc.typ))
@@ -2291,7 +2291,7 @@ export async function bhito(obj, otmp, map) {
     } else {
       // C ref: zap.c:2298-2306 — hero_breaks / breaks for other objects
       const oox = obj.ox, ooy = obj.oy;
-      const player = _gstate?.player;
+      const player = _gstate?.u;
       if (_gstate?.context?.mon_moving
           ? !await breaks(obj, oox, ooy, player, map)
           : !await hero_breaks(obj, oox, ooy, 0, player, map)) {
@@ -2511,8 +2511,8 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     // C ref: zap.c:2738-2739 — unconditional destroy_item for self-zap
     destroy_item(WAND_CLASS, AD_ELEC, player);
     destroy_item(RING_CLASS, AD_ELEC, player);
-    // C: flashburn(rnd(100), TRUE)
-    rnd(100); // flashburn duration — RNG consumed unconditionally
+    // C ref: zap.c wand of lightning backfire — flashburn(rnd(100), TRUE)
+    await flashburn(rnd(100), true, player);
     break;
   }
   case WAN_FIRE: {
@@ -2824,7 +2824,7 @@ async function maybe_destroy_item_player(obj, dmgtyp, player, owner = null) {
     if ((obj.owornmask || 0) & W_RING) {
       await Ring_gone(obj, _gstate, player);
     } else {
-      setnotworn(player, obj);
+      clearWornItemEffects(player, obj);
     }
   }
 

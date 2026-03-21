@@ -6034,6 +6034,7 @@ export const TALK_CORPUS = {
   // fenlason -- Jay Fenlason, 16, Hack 1.0 author
   // -----------------------------------------------------------------------
   fenlason: {
+    names: ['jay', 'fenlason', 'jay fenlason'],
     wpm: 88,
     typoRate: 0.07,
     thinkMs: [400, 1500],
@@ -6305,6 +6306,7 @@ export const TALK_CORPUS = {
   // wizard -- The Wizard of Yendor
   // -----------------------------------------------------------------------
   wizard: {
+    names: ['wizard', 'yendor', 'wizard of yendor'],
     wpm: 32,
     typoRate: 0.00,
     thinkMs: [3000, 7000],
@@ -6490,6 +6492,7 @@ export const TALK_CORPUS = {
   // crowther -- William Crowther, caver/programmer, Adventure creator
   // -----------------------------------------------------------------------
   crowther: {
+    names: ['william', 'crowther', 'bill', 'william crowther'],
     wpm: 58,
     typoRate: 0.03,
     thinkMs: [1200, 3500],
@@ -6710,6 +6713,7 @@ export const TALK_CORPUS = {
   // harvey -- Brian Harvey, Logo teacher, from first principles
   // -----------------------------------------------------------------------
   harvey: {
+    names: ['brian', 'harvey', 'brian harvey'],
     wpm: 52,
     typoRate: 0.03,
     thinkMs: [1500, 4000],
@@ -6930,6 +6934,7 @@ export const TALK_CORPUS = {
   // payne -- Jonathan Payne, JOVE author, forward-looking
   // -----------------------------------------------------------------------
   payne: {
+    names: ['jonathan', 'payne', 'jonathan payne'],
     wpm: 72,
     typoRate: 0.05,
     thinkMs: [800, 2500],
@@ -7125,6 +7130,7 @@ export const TALK_CORPUS = {
   // kelly -- Kelly Fenlason, Jay's sister, dry and precise
   // -----------------------------------------------------------------------
   kelly: {
+    names: ['kelly', 'fenlason', 'kelly fenlason'],
     wpm: 76,
     typoRate: 0.04,
     thinkMs: [500, 1800],
@@ -7317,6 +7323,7 @@ export const TALK_CORPUS = {
   // jsirota -- Josh Sirota, networking, systematic thinker
   // -----------------------------------------------------------------------
   jsirota: {
+    names: ['josh', 'sirota', 'josh sirota'],
     wpm: 78,
     typoRate: 0.05,
     thinkMs: [600, 2000],
@@ -7506,6 +7513,7 @@ export const TALK_CORPUS = {
   // thome -- Mike Thome, monster designer
   // -----------------------------------------------------------------------
   thome: {
+    names: ['mike', 'thome', 'mike thome'],
     wpm: 82,
     typoRate: 0.06,
     thinkMs: [500, 1600],
@@ -7703,6 +7711,7 @@ export const TALK_CORPUS = {
   // woodland -- Kenny Woodland, level generator
   // -----------------------------------------------------------------------
   woodland: {
+    names: ['kenny', 'woodland', 'kenny woodland'],
     wpm: 68,
     typoRate: 0.04,
     thinkMs: [900, 2800],
@@ -7880,6 +7889,7 @@ export const TALK_CORPUS = {
   // toy -- Michael Toy, Rogue co-creator
   // -----------------------------------------------------------------------
   toy: {
+    names: ['michael', 'toy', 'mike toy', 'michael toy'],
     wpm: 75,
     typoRate: 0.05,
     thinkMs: [800, 2500],
@@ -8062,6 +8072,8 @@ export const TALK_CORPUS = {
   // arnold -- Ken Arnold, curses library author. Very terse.
   // -----------------------------------------------------------------------
   arnold: {
+    names: ['ken', 'arnold', 'ken arnold'],
+    verbosity: 0.2,
     wpm: 85,
     typoRate: 0.02,
     thinkMs: [400, 1200],
@@ -8218,6 +8230,7 @@ export const TALK_CORPUS = {
   // walz -- Janet Walz, sysadmin
   // -----------------------------------------------------------------------
   walz: {
+    names: ['janet', 'walz', 'janet walz'],
     wpm: 74,
     typoRate: 0.03,
     thinkMs: [500, 1600],
@@ -8410,6 +8423,7 @@ export const TALK_CORPUS = {
   // izchak -- Izchak Miller, shopkeeper, philosophical
   // -----------------------------------------------------------------------
   izchak: {
+    names: ['izchak', 'miller', 'izchak miller'],
     wpm: 62,
     typoRate: 0.03,
     thinkMs: [1000, 3000],
@@ -8586,6 +8600,7 @@ export const TALK_CORPUS = {
   // wichman -- Glenn Wichman, Rogue room algorithm
   // -----------------------------------------------------------------------
   wichman: {
+    names: ['glenn', 'wichman', 'glenn wichman'],
     wpm: 70,
     typoRate: 0.04,
     thinkMs: [800, 2500],
@@ -8745,6 +8760,7 @@ export const TALK_CORPUS = {
   // corley -- Dave Corley, PDP-11 assembly
   // -----------------------------------------------------------------------
   corley: {
+    names: ['dave', 'corley', 'dave corley'],
     wpm: 66,
     typoRate: 0.05,
     thinkMs: [900, 2800],
@@ -8899,6 +8915,7 @@ export const TALK_CORPUS = {
   // abbott -- Mike Abbott, rogue vs hack comparisons
   // -----------------------------------------------------------------------
   abbott: {
+    names: ['mike', 'abbott', 'mike abbott'],
     wpm: 70,
     typoRate: 0.05,
     thinkMs: [800, 2400],
@@ -9067,6 +9084,7 @@ export const TALK_CORPUS = {
   // msirota -- Mark Sirota, security
   // -----------------------------------------------------------------------
   msirota: {
+    names: ['mark', 'sirota', 'mark sirota'],
     wpm: 68,
     typoRate: 0.04,
     thinkMs: [900, 2700],
@@ -9227,6 +9245,7 @@ export const TALK_CORPUS = {
   // ruddy -- Kevin Ruddy, terminals
   // -----------------------------------------------------------------------
   ruddy: {
+    names: ['kevin', 'ruddy', 'kevin ruddy'],
     wpm: 70,
     typoRate: 0.05,
     thinkMs: [800, 2500],
@@ -9387,6 +9406,7 @@ export const TALK_CORPUS = {
   // texeira -- Mike Texeira, kernel internals
   // -----------------------------------------------------------------------
   texeira: {
+    names: ['mike', 'texeira', 'mike texeira'],
     wpm: 60,
     typoRate: 0.04,
     thinkMs: [1000, 3000],
@@ -9546,6 +9566,7 @@ export const TALK_CORPUS = {
   // fraize -- Scott Fraize, modems and checksums
   // -----------------------------------------------------------------------
   fraize: {
+    names: ['scott', 'fraize', 'scott fraize'],
     wpm: 72,
     typoRate: 0.06,
     thinkMs: [800, 2400],
@@ -9706,6 +9727,7 @@ export const TALK_CORPUS = {
   // brown -- Robert Brown, shell programming
   // -----------------------------------------------------------------------
   brown: {
+    names: ['robert', 'brown', 'rob', 'robert brown'],
     wpm: 68,
     typoRate: 0.06,
     thinkMs: [900, 2700],
@@ -9867,6 +9889,7 @@ export const TALK_CORPUS = {
   // finger plan: >inventory / You are carrying: / a leaflet / a brass lantern / a sword
   // -----------------------------------------------------------------------
   lebling: {
+    names: ['dave', 'lebling', 'dave lebling'],
     wpm: 62,
     typoRate: 0.03,
     thinkMs: [1200, 3500],
@@ -10055,6 +10078,7 @@ export const TALK_CORPUS = {
   // blank -- Marc Blank, Zork co-author, Z-machine architect
   // -----------------------------------------------------------------------
   blank: {
+    names: ['marc', 'blank', 'marc blank'],
     wpm: 70,
     typoRate: 0.04,
     thinkMs: [800, 2500],
@@ -10242,6 +10266,7 @@ export const TALK_CORPUS = {
   // brouwer -- Andries Brouwer, Dutch mathematician, NetHack developer
   // -----------------------------------------------------------------------
   brouwer: {
+    names: ['andries', 'brouwer', 'andries brouwer'],
     wpm: 55,
     typoRate: 0.02,
     thinkMs: [1500, 4000],

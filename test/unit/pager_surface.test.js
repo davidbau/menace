@@ -61,7 +61,7 @@ describe('pager compatibility surface', () => {
       },
       engravings: [{ x: 7, y: 8, text: 'Elbereth' }],
     };
-    const game = { map, player: { x: 0, y: 0 } };
+    const game = { map, u: { x: 0, y: 0 } };
 
     const looked = lookat(3, 4, game);
     assert.equal(looked.found, true);
@@ -85,7 +85,9 @@ describe('pager compatibility surface', () => {
     assert.equal(whatdoes_cond('?'), true);
     assert.equal(whatdoes_cond('h'), true);
     assert.equal(whatdoes_cond('\u0000'), false);
-    assert.equal(look_at_monster({ name: 'newt', data: { mname: 'newt' } }), 'newt');
+    // x_monnam returns 'it' for unspottable monsters (correct C behavior).
+    // The minimal test object has no position/visibility, so canspotmon fails.
+    assert.equal(look_at_monster({ name: 'newt', data: { mname: 'newt' } }), 'it');
     assert.equal(look_at_monster(null), 'monster');
   });
 });

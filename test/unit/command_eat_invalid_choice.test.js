@@ -32,7 +32,7 @@ function makeGame() {
         },
         clearRow() {},
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    return { u: player, map, display, fov: null, flags: { verbose: false } };
 }
 
 test('eat command reports missing object for invalid inventory letter', async () => {

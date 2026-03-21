@@ -6,6 +6,12 @@ import { setGame } from '../../js/gstate.js';
 import { ALTAR, ROOM, A_LAWFUL } from '../../js/const.js';
 import { PM_VAMPIRE, PM_MINOTAUR, S_VAMPIRE } from '../../js/monsters.js';
 
+function mkGame(props) {
+    const g = { ...props };
+    Object.defineProperty(g, 'player', { get() { return g.u; }, enumerable: false, configurable: true });
+    return g;
+}
+
 function mkMap(typ = ROOM) {
     return {
         flags: {},
@@ -37,7 +43,7 @@ test('onscary: vampire shifter is scared by altar square', () => {
 test('onscary: displaced Elbereth protection is honored', () => {
     const map = mkMap(ROOM);
     map.engravings.push({ x: 2, y: 2, text: 'Elbereth', guardobjects: false });
-    const game = { player: { x: 1, y: 1, displaced: true } };
+    const game = mkGame({ u: { x: 1, y: 1, displaced: true } });
     setGame(game);
     const mon = {
         mux: 2,
@@ -53,7 +59,7 @@ test('onscary: displaced Elbereth protection is honored', () => {
 test('onscary: Elbereth excludes minotaur', () => {
     const map = mkMap(ROOM);
     map.engravings.push({ x: 3, y: 3, text: 'Elbereth', guardobjects: false });
-    const game = { player: { x: 3, y: 3, displaced: false } };
+    const game = mkGame({ u: { x: 3, y: 3, displaced: false } });
     setGame(game);
     const mon = {
         mcansee: true,

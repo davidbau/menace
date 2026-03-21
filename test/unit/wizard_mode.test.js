@@ -47,18 +47,22 @@ describe('wizard mode init and commands', () => {
         await game.init({ seed: 123, wizard: true });
 
         assert.equal(game.wizard, true);
-        assert.equal(game.player.wizard, true);
-        assert.equal(game.player.name, 'Wizard');
+        assert.equal(game.u.wizard, true);
+        assert.equal(game.u.name, 'Wizard');
     });
 
     it('Ctrl+V level teleport moves through depths 2-5 in wizard mode', async () => {
         const game = await createHeadlessGame(5, 11, { wizard: true });
 
         for (let depth = 2; depth <= 5; depth++) {
+            // Dismiss any pending --More-- from previous command's message
+            if (game.display?.toplin === 1) {
+                game.input.pushInput(' '.charCodeAt(0));
+            }
             queueLine(game.input, String(depth));
             const result = await game.executeCommand(22); // Ctrl+V
             assert.equal(result.tookTime, false);
-            assert.equal(game.player.dungeonLevel, depth);
+            assert.equal(game.u.dungeonLevel, depth);
             assert.ok(game.levels[depth], `Expected cached level ${depth}`);
         }
 
@@ -67,13 +71,13 @@ describe('wizard mode init and commands', () => {
 
     it('Ctrl+V is unavailable when wizard mode is off', async () => {
         const game = await createHeadlessGame(5, 11, { wizard: false });
-        const beforeDepth = game.player.dungeonLevel;
+        const beforeDepth = game.u.dungeonLevel;
 
         queueLine(game.input, '5');
         const result = await game.executeCommand(22); // Ctrl+V
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.player.dungeonLevel, beforeDepth);
+        assert.equal(game.u.dungeonLevel, beforeDepth);
     });
 
     it('Ctrl+F reveals the full level in wizard mode', async () => {
@@ -92,24 +96,24 @@ describe('wizard mode init and commands', () => {
 
     it('Ctrl+T teleports to requested accessible coordinates in wizard mode', async () => {
         const game = await createHeadlessGame(9, 11, { wizard: true });
-        const before = { x: game.player.x, y: game.player.y };
+        const before = { x: game.u.x, y: game.u.y };
         const target = game.map.dnstair;
         assert.ok(target, 'Expected downstairs coordinates');
-        game.player._tipsShown = { ...(game.player._tipsShown || {}), getpos: true };
+        game.u._tipsShown = { ...(game.u._tipsShown || {}), getpos: true };
 
         queueMoves(game.input, before, target);
         const result = await game.executeCommand(20); // Ctrl+T
 
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.x, target.x);
-        assert.equal(game.player.y, target.y);
+        assert.equal(game.u.x, target.x);
+        assert.equal(game.u.y, target.y);
         assert.ok(before.x !== target.x || before.y !== target.y, 'Expected teleport destination to differ from start');
     });
 
     it('Ctrl+T rejects inaccessible coordinates in wizard mode', async () => {
         const game = await createHeadlessGame(9, 11, { wizard: true });
-        const before = { x: game.player.x, y: game.player.y };
-        game.player._tipsShown = { ...(game.player._tipsShown || {}), getpos: true };
+        const before = { x: game.u.x, y: game.u.y };
+        game.u._tipsShown = { ...(game.u._tipsShown || {}), getpos: true };
 
         let stone = null;
         for (let y = 0; y < ROWNO && !stone; y++) {
@@ -127,18 +131,18 @@ describe('wizard mode init and commands', () => {
         const result = await game.executeCommand(20); // Ctrl+T
 
         assert.equal(result.tookTime, true);
-        assert.ok(game.player.x !== stone.x || game.player.y !== stone.y, 'Expected teleport to avoid stone target');
+        assert.ok(game.u.x !== stone.x || game.u.y !== stone.y, 'Expected teleport to avoid stone target');
     });
 
     it('Ctrl+T is unavailable when wizard mode is off', async () => {
         const game = await createHeadlessGame(9, 11, { wizard: false });
-        const before = { x: game.player.x, y: game.player.y };
+        const before = { x: game.u.x, y: game.u.y };
 
         queueLine(game.input, '1,1');
         const result = await game.executeCommand(20); // Ctrl+T
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.player.x, before.x);
-        assert.equal(game.player.y, before.y);
+        assert.equal(game.u.x, before.x);
+        assert.equal(game.u.y, before.y);
     });
 });

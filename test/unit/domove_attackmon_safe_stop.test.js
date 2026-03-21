@@ -12,8 +12,8 @@ test('domove_attackmon_at stops running when safe monster blocks movement', asyn
     const mon = {
         mx: 11,
         my: 10,
-        peaceful: true,
-        tame: false,
+        mpeaceful: true,
+        mtame: false,
         mfrozen: 0,
         mcanmove: true,
         msleeping: false,

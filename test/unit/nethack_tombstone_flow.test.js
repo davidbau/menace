@@ -38,19 +38,19 @@ function makeDisplay() {
 }
 
 function seedPlayer(game) {
-    game.player.name = 'Hero';
-    game.player.gold = 123;
-    game.player.score = 1000;
-    game.player.dungeonLevel = 5;
-    game.player.maxDungeonLevel = 7;
-    game.player.hp = 0;
-    game.player.hpmax = 42;
-    game.player.turns = 321;
-    game.player.roleIndex = 11;
-    game.player.race = RACE_HUMAN;
-    game.player.gender = FEMALE;
-    game.player.alignment = A_NEUTRAL;
-    game.player.deathCause = 'killed by a newt';
+    game.u.name = 'Hero';
+    game.u.gold = 123;
+    game.u.score = 1000;
+    game.u.dungeonLevel = 5;
+    game.u.maxDungeonLevel = 7;
+    game.u.hp = 0;
+    game.u.hpmax = 42;
+    game.u.turns = 321;
+    game.u.roleIndex = 11;
+    game.u.race = RACE_HUMAN;
+    game.u.gender = FEMALE;
+    game.u.alignment = A_NEUTRAL;
+    game.u.deathCause = 'killed by a newt';
 }
 
 describe('NetHackGame showGameOver tombstone flow', () => {

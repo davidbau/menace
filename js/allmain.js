@@ -19,7 +19,7 @@ import { movemon, settrack, mon_regen } from './monmove.js';
 import { savebones } from './bones.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
-import { nh_timeout, do_storms } from './timeout.js';
+import { nh_timeout, do_storms, fall_asleep } from './timeout.js';
 import { pline, Norep } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, makemon_appear, withMakemonPlayerOverrideAsync } from './makemon.js';
 import { M2_WERE, PM_WIZARD, mons, NUMMONS, G_NOCORPSE } from './monsters.js';
@@ -46,16 +46,16 @@ import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vi
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
-import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth } from './dungeon.js';
+import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto, maybe_lvltport_feedback } from './do.js';
 import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          loadFlags, saveFlags, deserializeRng,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
-import { nhgetch, nhgetch_display_raw, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
+import { nhgetch, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
-         setCmdqRepeatRecordMode, more } from './input.js';
+         setCmdqRepeatRecordMode, more, hasActiveMoreBoundary } from './input.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
 import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
@@ -171,7 +171,7 @@ async function com_pager_quest_common(msgid, player) {
 // C ref: vision_full_recalc checked at top of each loop iteration (vision.c)
 // Autotranslated from allmain.c:169
 export async function moveloop_core(game, opts = {}) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     const setMonsterPhase = (isMonsterPhase) => {
         const v = !!isMonsterPhase;
         game.mon_moving = v;
@@ -207,7 +207,7 @@ export async function moveloop_core(game, opts = {}) {
             player._uhp_at_start = startHp;
             try {
                 do {
-                    monscanmove = await movemon((game.lev || game.map), player, game.display, game.fov, game);
+                    monscanmove = await movemon((game.map || game.map), player, game.display, game.fov, game);
                     // C ref: savelife() sets context.move=0 for the command
                     // cycle but does not interrupt the current "hero can't move"
                     // monster loop between movemon() passes. Finish draining any
@@ -292,7 +292,7 @@ export async function moveloop_core(game, opts = {}) {
 // game must provide: player, map, display, fov, multi, turnCount, seerTurn,
 //                    flags, travelPath, runMode
 export async function moveloop_turnend(game) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     const nextTurnCount = game.turnCount + 1;
     // C ref: allmain.c -- random spawn happens before svm.moves++.
     // During this turn-end frame, mkobj-side erosion checks should
@@ -300,7 +300,7 @@ export async function moveloop_turnend(game) {
     game.moves = game.turnCount;
 
     // C ref: mon.c m_calcdistress() — per-monster distress timers.
-    for (const mon of (game.lev || game.map).monsters) {
+    for (const mon of (game.map || game.map).monsters) {
         if (mon.dead) continue;
         // C ref: mon.c:1178-1183 — mblinded timeout
         if (mon.mblinded && typeof mon.mblinded === 'number') {
@@ -329,20 +329,20 @@ export async function moveloop_turnend(game) {
     }
 
     // C ref: mon.c m_calcdistress() — HP regen + mspec_used decrement, once per game turn.
-    for (const mon of (game.lev || game.map).monsters) {
+    for (const mon of (game.map || game.map).monsters) {
         if (mon.dead) continue;
         mon_regen(mon, false, nextTurnCount);
     }
 
     // C ref: mon.c m_calcdistress() shapechange + lycanthropy pass.
-    for (const mon of (game.lev || game.map).monsters) {
+    for (const mon of (game.map || game.map).monsters) {
         if (mon.dead) continue;
-        await runtimeDecideToShapeshift(mon, (game.u || game.player).dungeonLevel,
-            (game.lev || game.map), (game.u || game.player), game.fov, game.display);
+        await runtimeDecideToShapeshift(mon, (game.u || game.u).dungeonLevel,
+            (game.map || game.map), (game.u || game.u), game.fov, game.display);
         if ((mon.data || mon.type) && ((mon.data || mon.type).mflags2 & M2_WERE)) {
             await were_change(mon, {
-                player: (game.u || game.player),
-                map: (game.lev || game.map),
+                player: (game.u || game.u),
+                map: (game.map || game.map),
                 fov: game.fov,
                 display: game.display,
             });
@@ -350,7 +350,7 @@ export async function moveloop_turnend(game) {
     }
 
     // C ref: allmain.c:226-227 — reallocate movement to monsters via mcalcmove
-    await allocateMonsterMovement((game.lev || game.map));
+    await allocateMonsterMovement((game.map || game.map));
 
     // C ref: allmain.c:235-242 — occasional random monster spawn.
     // Rate depends on demigod state and depth relative to stronghold.
@@ -359,7 +359,14 @@ export async function moveloop_turnend(game) {
     const spawnRate = player?.uevent?.udemigod ? 25
         : (playerDepth > 27 ? 50 : 70);
     if (!rn2(spawnRate)) {
-        await makemon_appear(null, 0, 0, 0, (game.u || game.player).dungeonLevel, (game.lev || game.map));
+        await makemon_appear(
+            null,
+            0,
+            0,
+            0,
+            level_difficulty((game.map || game.map).uz, game),
+            (game.map || game.map)
+        );
     }
 
     // C ref: allmain.c:238 u_calc_moveamt(wtcap)
@@ -378,13 +385,13 @@ export async function moveloop_turnend(game) {
     // C ref: allmain.c once-per-turn block runs nh_timeout() after
     // mcalcdistress/mcalcmove and random spawn setup.
     await nh_timeout({
-        player: (game.u || game.player),
-        map: (game.lev || game.map),
+        player: (game.u || game.u),
+        map: (game.map || game.map),
         display: game.display,
         game,
     });
     // C ref: allmain.c:273-274 — run_regions() runs immediately after nh_timeout().
-    await run_regions((game.lev || game.map), (game.u || game.player), game);
+    await run_regions((game.map || game.map), (game.u || game.u), game);
     // C ref: lethal side effects during nh_timeout()/run_regions() route
     // through done(); once death is pending/final, do not continue turn-end
     // RNG work in this cycle.
@@ -394,7 +401,7 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:273-274 — ublesscnt countdown (prayer cooldown)
     {
-        const p = (game.u || game.player);
+        const p = (game.u || game.u);
         if (p.ublesscnt) p.ublesscnt--;
     }
 
@@ -421,7 +428,7 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:306-338 — Teleportation/Polymorph/Lycanthropy checks
     {
-        const p = (game.u || game.player);
+        const p = (game.u || game.u);
         const propActive = (propIdx, legacyName, legacyName2 = null) => {
             if (typeof p?.hasProp === 'function') return !!p.hasProp(propIdx);
             if (p?.uprops && p.uprops[propIdx]) {
@@ -452,8 +459,8 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:341-343 — autosearch for players with Searching
     // intrinsic (Archeologists/Rangers at level 1, Rogues at 10, etc.)
-    if ((game.u || game.player).searching && game.multi >= 0) {
-        await dosearch0((game.u || game.player), (game.lev || game.map), game.display, game, 1);
+    if ((game.u || game.u).searching && game.multi >= 0) {
+        await dosearch0((game.u || game.u), (game.map || game.map), game.display, game, 1);
     }
 
     // C ref: allmain.c:351 dosounds() — ambient sounds
@@ -463,62 +470,62 @@ export async function moveloop_turnend(game) {
     do_storms();
 
     // C ref: allmain.c:353 gethungry()
-    await gethungry((game.u || game.player));
+    await gethungry((game.u || game.u));
 
     // C ref: allmain.c:354 age_spells() — decrement spell retention each turn
-    ageSpells((game.u || game.player));
+    ageSpells((game.u || game.u));
 
     // C ref: allmain.c:355 exerchk() — exercise attribute checks.
     // C's exerchk() calls exerper() internally (attrib.c:601).
     const moves = game.turnCount + 1;
-    await exerchk((game.u || game.player), moves);
+    await exerchk((game.u || game.u), moves);
 
     // C ref: allmain.c:362 — invault() between exerchk and u_wipe_engr
-    await invault((game.lev || game.map), (game.u || game.player), game.fov || FOV);
+    await invault((game.map || game.map), (game.u || game.u), game.fov || FOV);
 
     // C ref: allmain.c:363-364 — amulet() when carrying Amulet of Yendor
-    if ((game.u || game.player).uhave?.amulet) {
-        await amulet((game.lev || game.map), (game.u || game.player), game.display);
+    if ((game.u || game.u).uhave?.amulet) {
+        await amulet((game.map || game.map), (game.u || game.u), game.display);
     }
 
     // C ref: allmain.c:359 — engrave wipe check (ACURR(A_DEX))
-    const dex = acurr((game.u || game.player), A_DEX);
+    const dex = acurr((game.u || game.u), A_DEX);
     if (!rn2(40 + dex * 3)) {
         // C ref: allmain.c:359-360 u_wipe_engr(rnd(3))
-        await wipe_engr_at((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y, rnd(3), false);
+        await wipe_engr_at((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y, rnd(3), false);
     }
 
     // C ref: allmain.c:374 — water/air planes update moving bubbles/clouds each turn.
-    if ((game.lev || game.map)?.flags?.is_waterlevel || (game.lev || game.map)?.flags?.is_airlevel) {
-        if ((game.lev || game.map)?._water && (game.u || game.player)) {
-            (game.lev || game.map)._water.heroPos = {
-                x: (game.u || game.player).x,
-                y: (game.u || game.player).y,
-                dx: (game.u || game.player).dx || 0,
-                dy: (game.u || game.player).dy || 0,
+    if ((game.map || game.map)?.flags?.is_waterlevel || (game.map || game.map)?.flags?.is_airlevel) {
+        if ((game.map || game.map)?._water && (game.u || game.u)) {
+            (game.map || game.map)._water.heroPos = {
+                x: (game.u || game.u).x,
+                y: (game.u || game.u).y,
+                dx: (game.u || game.u).dx || 0,
+                dy: (game.u || game.u).dy || 0,
             };
-            (game.lev || game.map)._water.onHeroMoved = (x, y) => {
-                (game.u || game.player).x = x;
-                (game.u || game.player).y = y;
+            (game.map || game.map)._water.onHeroMoved = (x, y) => {
+                (game.u || game.u).x = x;
+                (game.u || game.u).y = y;
                 mark_vision_dirty(); // player position changed
             };
-            (game.lev || game.map)._water.onVisionRecalc = () => {
+            (game.map || game.map)._water.onVisionRecalc = () => {
                 vision_recalc();
             };
         }
-        await movebubbles((game.lev || game.map));
-    } else if ((game.lev || game.map)?.flags?.fumaroles) {
+        await movebubbles((game.map || game.map));
+    } else if ((game.map || game.map)?.flags?.fumaroles) {
         // C ref: allmain.c:381-382 — fumaroles on fire/lava levels
-        await fumaroles((game.lev || game.map));
+        await fumaroles((game.map || game.map));
     }
 
     // C ref: allmain.c:385-393 — immobile turn countdown and unmul().
     if (game.multi < 0) {
         await runmode_delay_output(game, game.display);
         if (++game.multi === 0) {
-            await unmul(null, (game.u || game.player), game.display, game);
-            if ((game.u || game.player)?.utotype) {
-                await deferred_goto((game.u || game.player), game);
+            await unmul(null, (game.u || game.u), game.display, game);
+            if ((game.u || game.u)?.utotype) {
+                await deferred_goto((game.u || game.u), game);
             }
         }
     }
@@ -664,18 +671,34 @@ export async function run_command(game, ch, opts = {}) {
         || (chCode === 48 && game.countAccum != null);
     const _isExtCmdPrefix = (chCode === '#'.charCodeAt(0));
     const _suppressFreshRunstep = _isCountDigit || _isExtCmdPrefix;
+    // C ref: tty_clearmsg() — clear topline at start of command processing.
+    // toplin == 1 (NEED_MORE): fire more() so player reads the message first.
+    // toplin == 2 (NON_EMPTY): just clear (already acknowledged by keypress).
+    // toplin == 0 (EMPTY): nothing to do.
     if (!_isCountDigit && game.display && game.display.topMessage) {
-        // C ref: save topMessage length before clearing — needed by the extended
-        // command handler to detect if a new message would have overflowed the
-        // concat check (triggering --More-- in C's tty).
+        if (game.display.toplin === 1 && game.display._nhgetch) {
+            // Message not yet acknowledged — fire more() before clearing.
+            // This handles Phase B messages that arrive after the previous
+            // command and before nhgetch transitions toplin 1→2.
+            game.display.renderMoreMarker?.();
+            await more(game.display, {
+                site: 'run_command.tty_clearmsg',
+                clearAfter: true,
+                readKey: game.display._nhgetch,
+                refreshStatus: false,
+            });
+        }
         if (_isExtCmdPrefix) {
             game._extcmdPrecedingMsgLen = (game.display.topMessage || '').length;
         } else {
             game._extcmdPrecedingMsgLen = 0;
         }
-        game.display.clearRow(0);
-        game.display.topMessage = null;
+        if (game.display.topMessage) {
+            game.display.clearRow(0);
+            game.display.topMessage = null;
+        }
         game.display.messageNeedsMore = false;
+        game.display.toplin = 0;
     } else if (_isExtCmdPrefix) {
         game._extcmdPrecedingMsgLen = 0;
     }
@@ -723,7 +746,7 @@ export async function run_command(game, ch, opts = {}) {
     };
 
     // C ref: allmain.c:517 — u.umoved = FALSE; reset before each command
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     if (player) player.umoved = false;
 
     // Execute command
@@ -739,7 +762,7 @@ export async function run_command(game, ch, opts = {}) {
     // C ref: allmain.c deferred_goto() immediately follows rhack() whenever
     // u.utotype is set.
     if (game?.player?.utotype) {
-        await deferred_goto((game.u || game.player), game);
+        await deferred_goto((game.u || game.u), game);
     }
 
     // Clear advanceRunTurn
@@ -747,12 +770,22 @@ export async function run_command(game, ch, opts = {}) {
 
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
     if (result && result.tookTime && !skipTurnEnd) {
-        await finalizeTimedCommand(game, result, coreOpts);
-        await repeatLoop(game, {
-            coreOpts,
-            bumpHeroSeqN,
-            showRepeatInterruptMore,
-        });
+        if (result.travelStarted && (game.context || {}).mv) {
+            await runAcceptedTravelCommandLoop(game, {
+                coreOpts,
+                bumpHeroSeqN,
+            });
+        } else {
+            await finalizeTimedCommand(game, result, coreOpts);
+        }
+        if (!(game.context || {}).mv) {
+            await repeatLoop(game, {
+                coreOpts,
+                bumpHeroSeqN,
+                showRepeatInterruptMore,
+                mode: 'movement_only',
+            });
+        }
     }
 
     postRender(game, result);
@@ -767,6 +800,7 @@ async function repeatLoop(game, {
     coreOpts,
     bumpHeroSeqN,
     showRepeatInterruptMore,
+    mode = 'all',
 }) {
     // C ref: allmain.c:519-535 — when context.mv is set (movement/travel),
     // C calls domove() directly instead of rhack(). This is critical for
@@ -789,45 +823,15 @@ async function repeatLoop(game, {
 
         const ctx = game.context || {};
         if (ctx.mv) {
-            emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
-            // C ref: allmain.c:527-530 — movement/travel multi repeat.
-            // lookaround() can abort running by clearing multi.
-            const _p = game.u || game.player;
-            const _map = game.map;
-            const _fov = FOV;
-            const _display = game.display;
-            await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
-            if (game.multi <= 0) {
-                ctx.move = 0;
-                break;
-            }
-            // C ref: hack.c domove() can call end_running() internally
-            // (e.g. when findtravelpath exhausts the path), which clears
-            // ctx.run. Save run mode before domove to detect travel-end.
-            const savedRun = ctx.run;
-            if (game.multi < COLNO && !--game.multi) {
-                end_running(true, game);
-            }
-            game.advanceRunTurn = async () => {
-                await advanceTimedTurn(game, coreOpts);
-            };
-            const moveResult = await domove([0, 0], _p, _map, _display, game);
-            game.advanceRunTurn = null;
-            if (!moveResult || !moveResult.tookTime) {
-                // C ref: allmain.c moveloop — when travel ends via path
-                // exhaustion, run one more monster turn before exiting.
-                if (savedRun === 8) {
-                    await advanceTimedTurn(game, coreOpts);
-                }
-                break;
-            }
-            if (!moveResult.moved) {
-                break;
-            }
-            bumpHeroSeqN();
-            await advanceTimedTurn(game, coreOpts);
-            await _drainOccupation(game, coreOpts);
+            const moveRepeated = await runMovementRepeatSlice(game, {
+                coreOpts,
+                bumpHeroSeqN,
+            });
+            if (!moveRepeated) break;
         } else {
+            if (mode === 'movement_only') {
+                break;
+            }
             emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
             game.multi--;
             game.advanceRunTurn = async () => {
@@ -847,6 +851,77 @@ async function repeatLoop(game, {
             await _drainOccupation(game, coreOpts);
         }
     }
+}
+
+async function runAcceptedTravelCommandLoop(game, {
+    coreOpts,
+    bumpHeroSeqN,
+}) {
+    await advanceTimedTurn(game, coreOpts);
+    while (game.multi > 0 && game.context?.mv && !game?.playerDied) {
+        if (hasPendingCommandBoundaryDismiss(game)) {
+            await more(game.display, {
+                forceVisual: true,
+                clearAfter: true,
+                readKey: () => nhgetch(),
+            });
+            continue;
+        }
+        const continued = await runMovementRepeatSlice(game, {
+            coreOpts,
+            bumpHeroSeqN,
+        });
+        if (!continued) break;
+    }
+}
+
+// Current JS positive-multi movement/travel slice.
+// Stage B2a extracts this intact from repeatLoop() so later work can move its
+// owner without simultaneously changing the slice internals.
+async function runMovementRepeatSlice(game, {
+    coreOpts,
+    bumpHeroSeqN,
+}) {
+    const ctx = game.context || {};
+    emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
+    // C ref: allmain.c:527-530 — movement/travel multi repeat.
+    // lookaround() can abort running by clearing multi.
+    const _p = game.u || game.u;
+    const _map = game.map;
+    const _fov = FOV;
+    const _display = game.display;
+    await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
+    if (game.multi <= 0) {
+        ctx.move = 0;
+        return false;
+    }
+    // C ref: hack.c domove() can call end_running() internally
+    // (e.g. when findtravelpath exhausts the path), which clears
+    // ctx.run. Save run mode before domove to detect travel-end.
+    const savedRun = ctx.run;
+    if (game.multi < COLNO && !--game.multi) {
+        end_running(true, game);
+    }
+    game.advanceRunTurn = async () => {
+        await advanceTimedTurn(game, coreOpts);
+    };
+    const moveResult = await domove([0, 0], _p, _map, _display, game);
+    game.advanceRunTurn = null;
+    if (!moveResult || !moveResult.tookTime) {
+        // C ref: allmain.c moveloop — when travel ends via path exhaustion,
+        // run one more monster turn before exiting.
+        if (savedRun === 8 && moveResult?.stopReason === 'travel_path_exhausted') {
+            await advanceTimedTurn(game, coreOpts);
+        }
+        return false;
+    }
+    if (!moveResult.moved) {
+        return false;
+    }
+    bumpHeroSeqN();
+    await advanceTimedTurn(game, coreOpts);
+    await _drainOccupation(game, coreOpts);
+    return true;
 }
 
 async function rhackCore(game, chCode, {
@@ -906,7 +981,7 @@ async function promptStep(game, chCode, {
     // If a prompt was completed by this key, restore normal status/cursor
     // positioning for the next command frame (C tty command boundary).
     if (!game.pendingPrompt && !game.gameOver) {
-        const player = game.u || game.player;
+        const player = game.u || game.u;
         if (game.display && player) {
             if (typeof game.display.renderStatus === 'function') {
                 game.display.renderStatus(player);
@@ -925,14 +1000,12 @@ async function promptStep(game, chCode, {
     };
 }
 
-// C ref: allmain.c moveloop_core() lines 296-545 (monster turn) + 547-588 (pre-input).
-// Extracted from finalizeTimedCommand for Gate 1 of the game loop reorder.
-// This is the unit of work that C runs once per moveloop_core iteration when
-// context.move is true: monster movement, turn-end processing, and pre-input
-// vision/display sync.
-async function advanceTimedTurn(game, coreOpts) {
-    await moveloop_core(game, coreOpts);
-    const player = game.u || game.player;
+// Current JS structural split for the C moveloop frame:
+// - moveloop_core() performs monster-time / turn-end work
+// - this helper performs the pre-input sync currently bundled after it
+// Stage B will refine ownership further; this extraction is behavior-preserving.
+async function syncTimedTurnPreInputState(game) {
+    const player = game.u || game.u;
     find_ac(player);
     const ctx = game.context || {};
     const canUpdateVision = !ctx.mv || player?.blind;
@@ -954,6 +1027,14 @@ async function advanceTimedTurn(game, coreOpts) {
         }
     }
     await display_sync();
+}
+
+// C ref: allmain.c moveloop_core() lines 296-545 (monster turn) + 547-588 (pre-input).
+// Current JS Gate-1 unit: run the timed-turn core, then the pre-input sync
+// that JS still keeps outside moveloop_core().
+async function advanceTimedTurn(game, coreOpts) {
+    await moveloop_core(game, coreOpts);
+    await syncTimedTurnPreInputState(game);
 }
 
 // C ref: allmain.c moveloop_core() `gm.multi < 0` branch.
@@ -986,7 +1067,7 @@ async function runOccupationStep(game) {
     // C ref: allmain.c:610-614 — monster_nearby() check after one occupation
     // callback and before moveloop returns.
     if (game.occupation && monsterNearby(
-            (game.lev || game.map), (game.u || game.player), game.fov)) {
+            (game.map || game.map), (game.u || game.u), game.fov)) {
         await stop_occupation(game);
     }
 
@@ -1026,7 +1107,7 @@ function postRender(game, result) {
     // C ref: bot() + curs_on_u() — update status line and cursor position
     // after all command processing. In C, bot() runs at end-of-turn and
     // curs_on_u() runs before waiting for the next key.
-    const player = game.u || game.player;
+    const player = game.u || game.u;
     if (!game.display || !player || result?.terminalScreenOwned || game?._terminalScreenOwnedByInput) return;
     if (game.display.messageNeedsMore) {
         flush_screen(1);
@@ -1127,7 +1208,7 @@ async function _drainOccupation(game, coreOpts) {
 // Includes Upolyd branch and C turn-modulo timing for monster-form healing.
 // Simplified: eel out-of-water degeneration is still not implemented.
 async function regen_hp(game) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     const wtcap = near_capacity(player);
     const encumbrance_ok = (wtcap < MOD_ENCUMBER || !player.umoved);
     // C ref: U_CAN_REGEN() macro; Sleepy/asleep refinement can be added later.
@@ -1169,21 +1250,20 @@ async function regen_hp(game) {
 
 // C ref: hack.c:3015 — overexert_hp(): lose 1 HP when moving while encumbered
 async function overexert_hp(game) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     if (player.uhp > 1) {
         player.uhp -= 1;
     } else {
         await pline('You pass out from exertion!');
         await exercise(player, A_CON, false);
-        // fall_asleep(-10, false) — sleep timeout not fully ported
-        // TODO: wire fall_asleep when available
+        fall_asleep(-10, false);
     }
 }
 
 // C ref: allmain.c:598 — regen_pw(wtcap): regenerate power (mana) each turn
 // Fires every ((MAXULEV+8-ulevel) * (wizard?3:4) / 6) turns when unencumbered.
 function regen_pw_turnend(game) {
-    const player = (game.u || game.player);
+    const player = (game.u || game.u);
     const moves = game.turnCount + 1; // svm.moves equivalent
     if (player.uen == null || player.uenmax == null) return; // pw not initialized
     if (player.uen < player.uenmax) {
@@ -1480,7 +1560,7 @@ export class NetHackGame {
         setGame(this); // Mirror C's global game state — modules read gstate.game
         // C ref: rnl() accesses the global Luck macro. Set up the lazy player
         // accessor so rnl() can auto-detect luck without explicit arguments.
-        setRnlPlayerAccessor(() => this.u || this.player);
+        setRnlPlayerAccessor(() => this.u);
         this.deps = deps;
         this.lifecycle = deps.lifecycle || {};
         this.hooks = deps.hooks || {};
@@ -1500,7 +1580,7 @@ export class NetHackGame {
         this.gameOverReason = '';
         this.turnCount = 0;
         this._currentTurn = 0; // C ref: timeout.c timer reference turn
-        this.moves = 1; // C ref: svm.moves starts at 1
+        this.moves = 0; // C ref: svm.moves starts at 0; set to 1 in u_init_role()
         this._inMklev = false; // C ref: gi.in_mklev
         this._levelDepth = 1; // depth being generated (C: implicit from mklev args)
         this._dungeonAlign = 0; // A_NONE — dungeon branch alignment for makemon
@@ -1509,7 +1589,6 @@ export class NetHackGame {
         this.seerTurn = 0;
         this.occupation = null;
         this._pendingPrompt = null;
-        this.pendingDeferredTimedTurn = false;
         this.seed = 0;
         this.multi = 0;
         this.inDoAgain = false;
@@ -1537,7 +1616,7 @@ export class NetHackGame {
         this.dungeonAlignOverride = undefined;
 
         // Browser/headless path: player/map set up later in async init()
-        this.player = new Player();
+        this.u = new Player();
         this.map = null;
         this.display = deps.display || null;
         if (this.display && !this.display._game) {
@@ -1550,17 +1629,15 @@ export class NetHackGame {
             get: () => this.svc.context,
             set: (v) => { this.svc.context = v || {}; },
         });
-        Object.defineProperty(this, 'u', {
+        // game.u is the canonical hero reference (C: u).
+        // game.map is the canonical level reference (C: level/levl).
+        // game.player getter: 105+ references in display.js, headless.js etc.
+        // still read .player. Keep until those are migrated to .u.
+        Object.defineProperty(this, 'player', {
             configurable: true,
-            enumerable: true,
-            get: () => this.player,
-            set: (v) => { this.player = v; },
-        });
-        Object.defineProperty(this, 'lev', {
-            configurable: true,
-            enumerable: true,
-            get: () => this.map,
-            set: (v) => { this.map = v; },
+            enumerable: false,
+            get: () => this.u,
+            set: (v) => { this.u = v; },
         });
         // Legacy movement-prefix mirrors mapped onto canonical context fields.
         Object.defineProperty(this, 'runMode', {
@@ -1698,11 +1775,11 @@ export class NetHackGame {
     // Re-render game view (map + status). Called after a modal window closes.
     _rerenderGame() {
         if (!this.fov || !this.map || !this.display) return;
-        this.fov.compute(this.map, this.player.x, this.player.y);
+        this.fov.compute(this.map, this.u.x, this.u.y);
         this.display.renderMessageWindow();
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        this.display.renderStatus(this.u);
+        this.display.cursorOnPlayer(this.u);
     }
 
     // Initialize a new game — browser chargen path
@@ -1727,7 +1804,7 @@ export class NetHackGame {
             // C harness parity: tmp_at_start/step/end are canonical events.
             trace: true,
             canSee: (x, y) => {
-                return !!cansee_core(this.map || this.lev || null, this.player || this.u || null, this.fov || null, x, y);
+                return !!cansee_core(this.map || null, this.u || this.u || null, this.fov || null, x, y);
             },
             onDelayBoundary: (payload) => {
                 // Keep replay boundary semantics aligned with existing session logs.
@@ -1785,9 +1862,9 @@ export class NetHackGame {
         // Wire up nhwindow infrastructure
         init_nhwindows(this.display, nhgetch, () => this._rerenderGame());
         // Display-managed --More-- waits should use raw runtime key reads to
-        // avoid nested boundary helpers re-entering nhgetch.
+        // nhgetch is now simple (no boundary logic), safe for more() to use.
         if (this.display && typeof this.display.setNhgetch === 'function') {
-            this.display.setNhgetch(nhgetch_display_raw);
+            this.display.setNhgetch(() => nhgetch());
         }
         // Handle ?reset=1 — prompt to delete all saved data
         if (urlOpts.reset) {
@@ -1845,11 +1922,11 @@ export class NetHackGame {
                 ? role.validRaces.slice()
                 : [RACE_HUMAN];
 
-            let selectedRace = this.player.race;
+            let selectedRace = this.u.race;
             if (Number.isInteger(char.gender)) {
-                this.player.gender = char.gender;
+                this.u.gender = char.gender;
             } else if (typeof char.gender === 'string' && char.gender.toLowerCase() === 'female') {
-                this.player.gender = FEMALE;
+                this.u.gender = FEMALE;
             }
             const raceMap = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
             if (Number.isInteger(char.race)) {
@@ -1862,19 +1939,19 @@ export class NetHackGame {
                 selectedRace = roleRaces[0];
             }
 
-            this.player.initRole(roleIndex);
-            this.player.name = char.name || 'Agent';
-            this.player.race = selectedRace;
+            this.u.initRole(roleIndex);
+            this.u.name = char.name || 'Agent';
+            this.u.race = selectedRace;
 
             // C ref: role.c rigid_role_checks() -- enforce forced gender.
             if (role?.forceGender === 'female') {
-                this.player.gender = FEMALE;
+                this.u.gender = FEMALE;
             } else if (role?.forceGender === 'male') {
-                this.player.gender = MALE;
+                this.u.gender = MALE;
             }
 
             const alignMap = { lawful: A_LAWFUL, neutral: A_NEUTRAL, chaotic: A_CHAOTIC };
-            let selectedAlign = this.player.alignment;
+            let selectedAlign = this.u.alignment;
             if (Number.isInteger(char.alignment)) {
                 selectedAlign = char.alignment;
             } else if (typeof char.align === 'string') {
@@ -1890,7 +1967,7 @@ export class NetHackGame {
             if (!validAligns.includes(selectedAlign)) {
                 selectedAlign = validAligns[0] ?? role?.validAligns?.[0] ?? A_NEUTRAL;
             }
-            this.player.alignment = selectedAlign;
+            this.u.alignment = selectedAlign;
             // C ref: role.c:1222 pick_align(PICK_RIGID) via rigid_role_checks()
             // For manual-direct-live sessions, the C recording includes a rn2(1) call that
             // fires when the gender menu is shown (if alignment is forced to a single choice).
@@ -1900,20 +1977,20 @@ export class NetHackGame {
             }
         } else if (this.wizard) {
             // Wizard mode: auto-select Valkyrie (index 11)
-            this.player.initRole(11); // PM_VALKYRIE
-            this.player.name = 'Wizard';
-            this.player.race = RACE_HUMAN;
-            this.player.gender = FEMALE;
-            this.player.alignment = A_NEUTRAL;
+            this.u.initRole(11); // PM_VALKYRIE
+            this.u.name = 'Wizard';
+            this.u.race = RACE_HUMAN;
+            this.u.gender = FEMALE;
+            this.u.alignment = A_NEUTRAL;
         } else {
             await _playerSelection(this);
         }
 
         // C ref: flags.female is the source of truth for current hero sex, and
         // polymorph code mutates the mirrored player.female state directly.
-        const female = (this.player.gender === FEMALE);
+        const female = (this.u.gender === FEMALE);
         this.flags.female = female;
-        this.player.female = female;
+        this.u.female = female;
 
         // C ref: allmain.c moveloop_preamble() — real-world side effects.
         this.flags.moonphase = phase_of_the_moon();
@@ -1921,7 +1998,7 @@ export class NetHackGame {
             if (!urlOpts.character) {
                 await this.display.putstr_message('You are lucky!  Full moon tonight.');
             }
-            change_luck(1, this.player);
+            change_luck(1, this.u);
         } else if (this.flags.moonphase === 0) { // NEW_MOON
             if (!urlOpts.character) {
                 await this.display.putstr_message('Be careful!  New moon tonight.');
@@ -1932,7 +2009,7 @@ export class NetHackGame {
             if (!urlOpts.character) {
                 await this.display.putstr_message('Watch out!  Bad things can happen on Friday the 13th.');
             }
-            change_luck(-1, this.player);
+            change_luck(-1, this.u);
         }
 
         // First-level init
@@ -1940,7 +2017,7 @@ export class NetHackGame {
         this.dungeonAlignOverride = Number.isInteger(urlOpts.dungeonAlignOverride)
             ? urlOpts.dungeonAlignOverride : undefined;
         const startDlevel = Number.isInteger(urlOpts.startDlevel) ? urlOpts.startDlevel : 1;
-        const { map, initResult } = await initFirstLevel(this.player, this.player.roleIndex, this.wizard, {
+        const { map, initResult } = await initFirstLevel(this.u, this.u.roleIndex, this.wizard, {
             startDlevel,
             startDnum: this.dnum,
             dungeonAlignOverride: this.dungeonAlignOverride,
@@ -1957,13 +2034,13 @@ export class NetHackGame {
             this.map.uz = { dnum: startDnum, dlevel: startDepth };
             if (!Number.isInteger(this.map._genDnum)) this.map._genDnum = startDnum;
             if (!Number.isInteger(this.map._genDlevel)) this.map._genDlevel = startDepth;
-            this.player.uz = { dnum: startDnum, dlevel: startDepth };
+            this.u.uz = { dnum: startDnum, dlevel: startDepth };
             this.dnum = startDnum;
         }
         this.levels[startDlevel] = map;
-        this.player.wizard = this.wizard;
+        this.u.wizard = this.wizard;
         this.seerTurn = initResult.seerTurn;
-        await set_wear(this.player, null);
+        await set_wear(this.u, null);
 
         // For manual-direct-live session replays, the preamble (rnd(9000)+rnd(30)) is
         // already consumed by simulatePostLevelInit above. If the player chose the tutorial,
@@ -1974,25 +2051,25 @@ export class NetHackGame {
         }
 
         // Apply flags
-        this.player.showExp = this.flags.showexp;
-        this.player.showScore = this.flags.showscore;
-        this.player.showTime = this.flags.time;
+        this.u.showExp = this.flags.showexp;
+        this.u.showScore = this.flags.showscore;
+        this.u.showTime = this.flags.time;
 
         // Initial display
-        this.fov.compute(this.map, this.player.x, this.player.y);
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        this.fov.compute(this.map, this.u.x, this.u.y);
+        this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        this.display.renderStatus(this.u);
+        this.display.cursorOnPlayer(this.u);
 
         // C ref: moveloop_preamble() shows lore text with --More-- then
         // proceeds to welcome text. Keep this as an explicit startup prompt
         // boundary so step 0 captures lore and step 1 dismisses it to reveal
         // the welcome greeting.
         if (urlOpts.showLoreAndWelcome && urlOpts.character && !this.flags.tutorial) {
-            const roleIdx = this.player.roleIndex;
-            const raceIdx = this.player.race;
-            const female = this.player.gender === FEMALE;
-            const align = this.player.alignment;
+            const roleIdx = this.u.roleIndex;
+            const raceIdx = this.u.race;
+            const female = this.u.gender === FEMALE;
+            const align = this.u.alignment;
 
             let deityName = godForRoleAlign(roleIdx, align);
             let goddess = isGoddess(roleIdx, align);
@@ -2025,17 +2102,17 @@ export class NetHackGame {
                 genderStr = female ? 'female ' : 'male ';
             }
             // C ref: hello() uses plname directly (lowercase in wizard mode).
-            const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
+            const plname = this.wizard ? 'wizard' : this.u.name;
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
 
             this.pendingPrompt = buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg);
         } else if (urlOpts.showWelcomeMore && urlOpts.character && !this.flags.tutorial) {
             // Welcome --More-- only (lore was auto-dismissed by record_more_spaces).
             // Build welcome message for display but only create a --More-- prompt.
-            const roleIdx = this.player.roleIndex;
-            const raceIdx = this.player.race;
-            const female = this.player.gender === FEMALE;
-            const align = this.player.alignment;
+            const roleIdx = this.u.roleIndex;
+            const raceIdx = this.u.race;
+            const female = this.u.gender === FEMALE;
+            const align = this.u.alignment;
             const greeting = greetingForRole(roleIdx);
             const rName = roleNameForGender(roleIdx, female);
             const raceAdj = races[raceIdx].adj;
@@ -2046,7 +2123,7 @@ export class NetHackGame {
             } else {
                 genderStr = female ? 'female ' : 'male ';
             }
-            const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
+            const plname = this.wizard ? 'wizard' : this.u.name;
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
             if (this.display && typeof this.display.putstr_message === 'function') {
                 await this.display.putstr_message(welcomeMsg);
@@ -2060,10 +2137,10 @@ export class NetHackGame {
             // pendingPrompt that first shows the welcome --More--, then renders
             // the tutorial menu as a PICK_ONE overlay.  The replay loop feeds
             // keys one at a time so each step produces a screen capture.
-            const roleIdx = this.player.roleIndex;
-            const raceIdx = this.player.race;
-            const female = this.player.gender === FEMALE;
-            const align = this.player.alignment;
+            const roleIdx = this.u.roleIndex;
+            const raceIdx = this.u.race;
+            const female = this.u.gender === FEMALE;
+            const align = this.u.alignment;
             const greeting = greetingForRole(roleIdx);
             const rName = roleNameForGender(roleIdx, female);
             const raceAdj = races[raceIdx].adj;
@@ -2073,7 +2150,7 @@ export class NetHackGame {
             } else {
                 genderStr = female ? 'female ' : 'male ';
             }
-            const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
+            const plname = this.wizard ? 'wizard' : this.u.name;
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
             if (this.display && typeof this.display.putstr_message === 'function') {
                 await this.display.putstr_message(welcomeMsg);
@@ -2116,14 +2193,14 @@ export class NetHackGame {
     async changeLevel(depth, transitionDir = null, opts = {}) {
         const previousDnum = Number.isInteger(this.dnum)
             ? this.dnum
-            : (Number.isInteger((this.map || this.lev)?._genDnum) ? (this.map || this.lev)._genDnum : 0);
+            : (Number.isInteger((this.map)?._genDnum) ? (this.map)._genDnum : 0);
         // C ref: makemon.c byyou = (!in_mklev && x == u.ux && y == u.uy).
         // At level-gen time in C, u.ux/u.uy are 0,0 (player not yet placed),
         // so byyou is never true during fill_zoo. In JS the player still has
         // old-level coordinates, so we clear x/y here to prevent spurious
         // enexto_core calls when a zoo cell coincidentally matches.
         // Override makemon player ctx: clear x/y so byyou is never true during fill_zoo
-        const heroHasAmulet = !!(this.player?.uhave?.amulet);
+        const heroHasAmulet = !!(this.u?.uhave?.amulet);
         const targetDnum = Number.isInteger(opts?.targetDnum)
             ? opts.targetDnum
             : this.dnum;
@@ -2136,7 +2213,7 @@ export class NetHackGame {
 
         flush_screen(-1);   // C ref: do.c:1720 — suppress flushes during level transition
         await withMakemonPlayerOverrideAsync(
-            { ...this.player, x: null, y: null },
+            { ...this.u, x: null, y: null },
             async () => await changeLevelCore(this, depth, transitionDir, { ...opts, makeLevel })
         );
 
@@ -2158,7 +2235,7 @@ export class NetHackGame {
         // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
         // and before later arrival messages. This can consume dfr_post_msg
         // early so deferred_goto() won't print it again.
-        await maybe_lvltport_feedback(this.player);
+        await maybe_lvltport_feedback(this.u);
         await this.maybeShowQuestPortalCall(previousDnum, { suppressOutputForLvltport: false });
         await this.maybeShowQuestLocateHint(depth);
         if (typeof this.hooks.onLevelChange === 'function') {
@@ -2167,8 +2244,8 @@ export class NetHackGame {
     }
 
     getQuestPortalMsgId(previousDnum = null) {
-        const map = (this.lev || this.map);
-        const player = this.player;
+        const map = (this.map);
+        const player = this.u;
         if (!map || !player) return null;
         if (previousDnum === 3) return null; // QUEST
         const lev = {
@@ -2188,7 +2265,7 @@ export class NetHackGame {
     }
 
     async maybeShowQuestPortalCall(previousDnum = null, opts = {}) {
-        const player = this.player;
+        const player = this.u;
         const msgid = this.getQuestPortalMsgId(previousDnum);
         if (!msgid || !player) return;
         if (opts?.suppressOutputForLvltport) {
@@ -2224,35 +2301,28 @@ export class NetHackGame {
     }
 
     placePlayerOnLevel(transitionDir = null) {
-        const pos = getArrivalPosition(this.map, this.player.dungeonLevel, transitionDir);
-        this.player.x = pos.x;
-        this.player.y = pos.y;
+        const pos = getArrivalPosition(this.map, this.u.dungeonLevel, transitionDir);
+        this.u.x = pos.x;
+        this.u.y = pos.y;
     }
 
     // C ref: allmain.c interrupt_multi() — check if multi-command should be interrupted
     shouldInterruptMulti() {
         if ((this.context?.run || 0) > 0) return false;
         if (this.occupation) return this.shouldInterruptOccupation();
-        if (monsterNearby(this.map, this.player, this.fov)) return true;
-        if (this.lastHP !== undefined && this.player.uhp !== this.lastHP) {
-            this.lastHP = this.player.uhp;
+        if (monsterNearby(this.map, this.u, this.fov)) return true;
+        if (this.lastHP !== undefined && this.u.uhp !== this.lastHP) {
+            this.lastHP = this.u.uhp;
             return true;
         }
-        this.lastHP = this.player.uhp;
+        this.lastHP = this.u.uhp;
         return false;
     }
 
     // C ref: do.c cmd_safety_prevention()
     shouldInterruptOccupation() {
         if ((this.context?.run || 0) > 0) return false;
-        return monsterNearby(this.map, this.player, this.fov);
-    }
-
-    // Run the deferred timed turn postponed from a stop_occupation frame.
-    async runPendingDeferredTimedTurn() {
-        if (!this.pendingDeferredTimedTurn) return;
-        this.pendingDeferredTimedTurn = false;
-        await moveloop_core(this);
+        return monsterNearby(this.map, this.u, this.fov);
     }
 
     // C-parity naming for internal callers.
@@ -2270,10 +2340,10 @@ export class NetHackGame {
         // C ref: docrt() calls vision_recalc() which passes do_light_sources
         // to mark TEMP_LIT tiles for mobile light sources (lanterns, candles, etc.).
         // Without this, corridors adjacent to the player's light radius stay dark.
-        this.fov.compute(this.map, this.player.x, this.player.y, do_light_sources, this.player);
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        this.fov.compute(this.map, this.u.x, this.u.y, do_light_sources, this.u);
+        this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        this.display.renderStatus(this.u);
+        this.display.cursorOnPlayer(this.u);
     }
 
     // Render input-blocked UI state (for example active text popups) without
@@ -2332,13 +2402,13 @@ export class NetHackGame {
     checkpoint(phase = 'checkpoint') {
         return {
             phase,
-            level: this.player?.dungeonLevel || 0,
+            level: this.u?.dungeonLevel || 0,
             turn: this.turnCount,
             player: {
-                x: this.player?.x ?? 0,
-                y: this.player?.y ?? 0,
-                hp: this.player?.hp ?? 0,
-                hpmax: this.player?.hpmax ?? 0,
+                x: this.u?.x ?? 0,
+                y: this.u?.y ?? 0,
+                hp: this.u?.hp ?? 0,
+                hpmax: this.u?.hpmax ?? 0,
             },
             rng: this.getRngLog(),
             typGrid: this.getTypGrid(),
@@ -2379,15 +2449,15 @@ export class NetHackGame {
             this.hooks.onTurnAdvanced({ game: this, keyCode: code, result });
         }
 
-        this.fov.compute(this.map, this.player.x, this.player.y);
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        this.fov.compute(this.map, this.u.x, this.u.y);
+        this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        this.display.renderStatus(this.u);
+        this.display.cursorOnPlayer(this.u);
         if (typeof this.hooks.onScreenRendered === 'function') {
             this.hooks.onScreenRendered({ game: this, keyCode: code });
         }
 
-        if (this.player.uhp <= 0) {
+        if (this.u.uhp <= 0) {
             this.gameOver = true;
             this.gameOverReason = 'died';
         }
@@ -2460,13 +2530,13 @@ export class NetHackGame {
             rng: stepRng,
             typGrid: this.getTypGrid(),
             screen: this.getScreen(),
-            level: this.player?.dungeonLevel || 0,
+            level: this.u?.dungeonLevel || 0,
             turn: this.turnCount,
         };
     }
 
     async teleportToLevel(depth) {
-        if (!this.player?.wizard) {
+        if (!this.u?.wizard) {
             return { ok: false, reason: 'wizard-disabled' };
         }
         if (!Number.isInteger(depth) || depth <= 0) {
@@ -2532,8 +2602,12 @@ export class NetHackGame {
 
     async _gameLoopStep() {
         while (true) {
-            // Travel continuation
-            if (this.travelPath && this.travelStep < this.travelPath.length) {
+            const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
+
+            // Travel continuation fallback. Keep this behind the positive-move
+            // lane so armed move-continuation uses the same no-input owner.
+            if (!hasPositiveMoveContinuation
+                && this.travelPath && this.travelStep < this.travelPath.length) {
                 const result = await dotravel_target(this);
                 if (result.tookTime) {
                     await moveloop_core(this);
@@ -2542,18 +2616,20 @@ export class NetHackGame {
                 return;
             }
 
-            const hasTimedContinuation = (this.context?.move && this.multi < 0 && !(this?.playerDied))
+            const hasTimedContinuation = hasPositiveMoveContinuation
+                || (this.context?.move && this.multi < 0 && !(this?.playerDied))
                 || (this.multi >= 0 && this.occupation);
 
             // C-faithful boundary ownership: if the previous iteration left a
             // command-boundary --More-- pending, consume only that dismiss key
             // before running any no-input continuation work.
             if (hasTimedContinuation && hasPendingCommandBoundaryDismiss(this)) {
-                const boundaryCh = await nhgetch({ commandBoundary: true });
-                if (boundaryCh === 0) continue;
-                const boundaryResult = await this.runOneCommandCycle(boundaryCh);
-                if (!boundaryResult) return;
-                this.renderAndAutosave({ commandResult: boundaryResult, autosave: true });
+                // C ref: tty_clearmsg() fires more() before continuation work.
+                await more(this.display, {
+                    forceVisual: true,
+                    clearAfter: true,
+                    readKey: () => nhgetch(),
+                });
                 continue;
             }
 
@@ -2570,22 +2646,56 @@ export class NetHackGame {
                 continue;
             }
 
-            const firstCh = await nhgetch({ commandBoundary: true });
-            // Command-boundary --More-- dismissal is not a gameplay command.
-            // If a canned command is queued, execute it now before waiting for the
-            // next real gameplay key; C does this after the boundary dismiss key.
-            // Otherwise just refresh the command frame.
-            if (firstCh === 0) {
-                if (cmdq_peek(CQ_CANNED)) {
-                    const commandResult = await this.runOneCommandCycle(0);
-                    if (!commandResult) return;
-                    this.renderAndAutosave({ commandResult, autosave: true });
-                    continue;
-                }
-                if (this.player?.Hallucination) return;
-                this.renderAndAutosave({ autosave: false, forceRender: true });
+            if (hasPositiveMoveContinuation) {
+                const bumpHeroSeqN = () => {
+                    const prior = Number.isFinite(this?.heroSeqN) ? (this.heroSeqN | 0) : 0;
+                    this.heroSeqN = Math.min(7, prior + 1);
+                };
+                await runMovementRepeatSlice(this, {
+                    coreOpts: {},
+                    bumpHeroSeqN,
+                });
+                this.renderAndAutosave({ autosave: true });
                 return;
             }
+
+            // C ref: tty_clearmsg() — dismiss pending --More-- before command.
+            if (this.display?.messageNeedsMore && hasActiveMoreBoundary(this.display)) {
+                const pendingPromptOwnsInput = !!(
+                    this.pendingPrompt && typeof this.pendingPrompt.onKey === 'function'
+                );
+                if (!pendingPromptOwnsInput) {
+                    await more(this.display, {
+                        forceVisual: !!(this.display?.messageNeedsMoreBoundary),
+                        clearAfter: true,
+                        readKey: () => nhgetch(),
+                    });
+                    // After --More-- dismiss, check for canned commands
+                    if (cmdq_peek(CQ_CANNED)) {
+                        const commandResult = await this.runOneCommandCycle(0);
+                        if (!commandResult) return;
+                        this.renderAndAutosave({ commandResult, autosave: true });
+                        continue;
+                    }
+                    if (this.u?.Hallucination) return;
+                    this.renderAndAutosave({ autosave: false, forceRender: true });
+                    continue;
+                }
+            }
+            // Also handle canned-command-with-topline boundary (no --More-- but
+            // canned command queued while message visible)
+            if (cmdq_peek(CQ_CANNED) && this.display?.topMessage) {
+                await more(this.display, {
+                    forceVisual: true,
+                    clearAfter: true,
+                    readKey: () => nhgetch(),
+                });
+                const commandResult = await this.runOneCommandCycle(0);
+                if (!commandResult) return;
+                this.renderAndAutosave({ commandResult, autosave: true });
+                continue;
+            }
+            const firstCh = await nhgetch();
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
             this.renderAndAutosave({ commandResult, autosave: true });
@@ -2622,8 +2732,6 @@ export class NetHackGame {
         if (firstCh !== 1) {
             this.lastCommand = { key: ch, count: countPrefix };
         }
-
-        await this.runPendingDeferredTimedTurn();
 
         return await run_command(this, ch, {
             countPrefix,

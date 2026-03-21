@@ -1051,14 +1051,7 @@ export function spell_would_be_useless_hero(spellOtyp, player) {
     return false;
 }
 
-// C ref: spell.c check_unpaid() — check if spellbook is unpaid (shop system)
-// In C this is in shk.c; the spell.c just calls it. We provide a passthrough.
-export function check_unpaid(obj) {
-    // Shop handling: if obj is unpaid, the shop system charges for it.
-    // In the JS port, shop tracking is handled elsewhere.
-    if (!obj) return false;
-    return !!(obj.unpaid);
-}
+// check_unpaid: canonical in invent.js (sync check) and shk.js (async shop logic)
 
 // cf. spell.c docast() — main #cast command
 export async function docast(player, display, map, game = null) {

@@ -30,7 +30,8 @@ import { instapetrify, m_at } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym, canspotmon, docrt } from './display.js';
 import { currency, compactInvletPromptChars, freeinv, addinv,
-         inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried } from './invent.js';
+         inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried,
+         loot_classify } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
 import { touch_artifact } from './artifact.js';
 import { makemon, makemon_appear, set_malign } from './makemon.js';
@@ -45,6 +46,7 @@ import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE,
 import { Is_box, Has_contents, Is_mbag, thesimpleoname, otense, Doname2,
          cxname_singular } from './objnam.js';
 import { which_armor, extract_from_minvent } from './worn.js';
+import { count_unpaid } from './invent.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
 import { obfree, costly_spot, dopay, addtobill } from './shk.js';
@@ -1078,16 +1080,7 @@ function collect_obj_classes(objs, filter) {
     return { classes: [...ilets], itemcount };
 }
 
-// cf. pickup.c:1168 — count_unpaid(list)
-function count_unpaid(list) {
-    if (!list) return 0;
-    const items = Array.isArray(list) ? list : [];
-    let count = 0;
-    for (const obj of items) {
-        if (obj.unpaid) count++;
-    }
-    return count;
-}
+// count_unpaid imported from invent.js (was local non-recursive copy)
 
 // cf. pickup.c count_buc — count objects by BUC status
 function count_buc(list) {
@@ -1233,6 +1226,14 @@ async function handlePickup(player, map, display, game = null) {
                 const bi = inv_order.indexOf(String.fromCharCode(bc));
                 return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
             }
+            // C ref: invent.c sortloot_cmp() uses loot_classify() within class,
+            // so armor/tool/gem subclasses stay in C order before name tiebreaks.
+            const sa = { orderclass: 0, subclass: 0, disco: 0, inuse: 0 };
+            const sb = { orderclass: 0, subclass: 0, disco: 0, inuse: 0 };
+            loot_classify(sa, a);
+            loot_classify(sb, b);
+            if (sa.subclass !== sb.subclass) return sa.subclass - sb.subclass;
+            if (sa.disco !== sb.disco) return sa.disco - sb.disco;
             // C ref: invent.c sortloot_cmp() uses loot_xname(), which reduces
             // to cxname_singular(obj), so quantity/article prefixes do not
             // perturb pickup menu letter assignment.
@@ -1557,7 +1558,7 @@ async function announceLootedItems(display, player, items, verb) {
 //          'r' reversed (put in then take out), 'q'/ESC quit.
 // Returns { moved: false, tookTime: bool }.
 async function containerMenu(game, container) {
-    const { player, display, map } = game;
+    const { u: player, display, map } = game;
     let tookTime = false;
 
     // cf. C pickup.c:2993 — set current_container for in_container/out_container
@@ -1987,7 +1988,7 @@ async function containerMenu(game, container) {
 }
 
 async function handleLoot(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
 
     // Check floor containers at player's position.
     const floorContainers = (map.objectsAt(player.x, player.y) || [])

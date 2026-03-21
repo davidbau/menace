@@ -48,7 +48,7 @@ function makeGame() {
 
     map.monsters.push({
         mx: 12, my: 11, mhp: 20,
-        isshk: true, peaceful: true, dead: false,
+        isshk: true, mpeaceful: true, dead: false,
         shoproom: ROOMOFFSET,
         shknam: 'Dunfanaghy',
         shk: { x: 12, y: 11 },
@@ -78,7 +78,7 @@ function makeGame() {
     };
 
     return {
-        player,
+        u: player,
         map,
         display,
         fov: null,

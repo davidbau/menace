@@ -196,7 +196,7 @@ function exercise(player, attrIndex, inc_or_dec) {
 }
 
 function exerper(game) {
-    const { player } = game;
+    const { u: player } = game;
     const moves = game.turnCount + 1;
     if (!(moves % 10)) {
         if (player.hunger > 1000) {
@@ -208,7 +208,7 @@ function exerper(game) {
 }
 
 function simulateTurnEnd(game) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     game.turnCount++;
     player.turns = game.turnCount;
     for (const mon of map.monsters) {
@@ -240,13 +240,13 @@ async function setupGame() {
     simulatePostLevelInit(player, map, 1);
     const fov = new FOV();
     fov.compute(map, player.x, player.y);
-    return { player, map, fov, display: { putstr_message: () => {} }, turnCount: 0, seerTurn: 0 };
+    return { u: player, map, fov, display: { putstr_message: () => {} }, turnCount: 0, seerTurn: 0 };
 }
 
 function doTurn(game) {
-    movemon(game.map, game.player, game.display, game.fov);
+    movemon(game.map, game.u, game.display, game.fov);
     simulateTurnEnd(game);
-    game.fov.compute(game.map, game.player.x, game.player.y);
+    game.fov.compute(game.map, game.u.x, game.u.y);
 }
 
 // Direction vectors for movement keys
@@ -277,15 +277,15 @@ describe('Screen comparison (seed 42)', () => {
             if (state.step) {
                 const dir = KEY_DIRS[state.step.key];
                 if (dir) {
-                    game.player.x += dir[0];
-                    game.player.y += dir[1];
+                    game.u.x += dir[0];
+                    game.u.y += dir[1];
                 } else if (state.step.key === 's') {
-                    dosearch0(game.player, game.map, game.display);
+                    dosearch0(game.u, game.map, game.display);
                 }
 
                 if (!NON_TURN_KEYS.has(state.step.key)) {
                     doTurn(game);
-                    game.fov.compute(game.map, game.player.x, game.player.y);
+                    game.fov.compute(game.map, game.u.x, game.u.y);
                 }
             }
 
@@ -296,7 +296,7 @@ describe('Screen comparison (seed 42)', () => {
             const diffs = [];
             for (let mapY = 0; mapY < ROWNO; mapY++) {
                 const screenRow = mapY + 1;
-                const jsRow = renderMapRow(game.map, game.player, game.fov, mapY);
+                const jsRow = renderMapRow(game.map, game.u, game.fov, mapY);
                 const cRow = cScreen[screenRow];
 
                 for (let x = 0; x < COLNO; x++) {

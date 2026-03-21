@@ -36,7 +36,7 @@ function makeGame() {
     };
 
     const game = {
-        player,
+        u: player,
         map,
         display,
         fov: null,
@@ -70,8 +70,8 @@ describe('loot via meta key', () => {
         const { game, messages } = makeGame();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [makeTestItem()],
             olocked: false,
             obroken: false,
@@ -85,7 +85,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.length, 1);
+        assert.equal(game.u.inventory.length, 1);
         assert.equal(chest.contents.length, 0);
     });
 
@@ -93,8 +93,8 @@ describe('loot via meta key', () => {
         const { game, messages } = makeGame();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [makeTestItem()],
             olocked: false,
             obroken: false,
@@ -109,7 +109,7 @@ describe('loot via meta key', () => {
         const result = await rhack('o'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.length, 1);
+        assert.equal(game.u.inventory.length, 1);
         assert.equal(chest.contents.length, 0);
     });
 
@@ -117,8 +117,8 @@ describe('loot via meta key', () => {
         const { game, messages } = makeGame();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [makeTestItem()],
             olocked: false,
             obroken: false,
@@ -137,7 +137,7 @@ describe('loot via meta key', () => {
         const result = await rhack('#'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.length, 1);
+        assert.equal(game.u.inventory.length, 1);
         assert.equal(chest.contents.length, 0);
     });
 
@@ -145,8 +145,8 @@ describe('loot via meta key', () => {
         const { game, messages } = makeGame();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [makeTestItem()],
             olocked: true,
             obroken: false,
@@ -156,7 +156,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.player.inventory.length, 0);
+        assert.equal(game.u.inventory.length, 0);
         assert.equal(chest.contents.length, 1);
         assert.ok(messages.at(-1).includes('turns out to be locked'), `Expected locked message, got: ${messages.at(-1)}`);
     });
@@ -165,8 +165,8 @@ describe('loot via meta key', () => {
         const { game, messages } = makeGame();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [makeTestItem()],
             olocked: false,
             obroken: false,
@@ -177,7 +177,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.player.inventory.length, 0);
+        assert.equal(game.u.inventory.length, 0);
         assert.equal(chest.contents.length, 1);
         assert.ok(messages.some((m) => m.includes('Do what with')),
             `expected "Do what with" prompt, got: ${JSON.stringify(messages)}`);
@@ -188,8 +188,8 @@ describe('loot via meta key', () => {
         const item = makeTestItem();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [item],
             olocked: false,
             obroken: false,
@@ -202,7 +202,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.player.inventory.length, 0, 'no items taken');
+        assert.equal(game.u.inventory.length, 0, 'no items taken');
         assert.equal(chest.contents.length, 1, 'chest contents unchanged');
         // "Contents of" is rendered via display_nhwindow text popup (NHW_TEXT),
         // not captured by putstr/putstr_message mocks. Check the ':'→q flow
@@ -215,8 +215,8 @@ describe('loot via meta key', () => {
         const { game, messages } = makeGame();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [],
             olocked: false,
             obroken: false,
@@ -234,7 +234,7 @@ describe('loot via meta key', () => {
     it('loot direction prompt cancels on escape after invalid direction key', async () => {
         const { game, messages } = makeGame();
         // No containers on player square, but adjacent monster triggers direction prompt path.
-        game.map.monsters.push({ mx: game.player.x + 1, my: game.player.y, mpeaceful: 0, data: {} });
+        game.map.monsters.push({ mx: game.u.x + 1, my: game.u.y, mpeaceful: 0, data: {} });
         pushInput('o'.charCodeAt(0));   // invalid direction key
         pushInput(27);                  // ESC to cancel
 
@@ -249,11 +249,11 @@ describe('loot via meta key', () => {
         const { game, messages } = makeGame();
         const item = makeTestItem();
         item.invlet = 'a';
-        game.player.inventory = [item];
+        game.u.inventory = [item];
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [],
             olocked: false,
             obroken: false,
@@ -265,7 +265,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.length, 0);
+        assert.equal(game.u.inventory.length, 0);
         assert.equal(chest.contents.length, 1);
         assert.ok(messages.some((m) => m.includes('You put')),
             `expected "You put" message, got: ${JSON.stringify(messages)}`);
@@ -277,8 +277,8 @@ describe('loot via meta key', () => {
         const item2 = makeTestItem();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [item1, item2],
             olocked: false,
             obroken: false,
@@ -295,7 +295,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.length, 1);  // only one item taken
+        assert.equal(game.u.inventory.length, 1);  // only one item taken
         assert.equal(chest.contents.length, 1);          // one item remains
         assert.ok(messages.some((m) => m.includes('Take out what')),
             `expected "Take out what?" prompt, got: ${JSON.stringify(messages)}`);
@@ -309,8 +309,8 @@ describe('loot via meta key', () => {
         const item = makeTestItem();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [item],
             olocked: false,
             obroken: false,
@@ -323,7 +323,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.player.inventory.length, 0);
+        assert.equal(game.u.inventory.length, 0);
         assert.equal(chest.contents.length, 1);
     });
 
@@ -333,8 +333,8 @@ describe('loot via meta key', () => {
         const item2 = makeTestItem();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [item1, item2],
             olocked: false,
             obroken: false,
@@ -347,7 +347,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, true);
-        const movedQty = game.player.inventory.reduce((sum, it) => sum + (it.quan || 1), 0);
+        const movedQty = game.u.inventory.reduce((sum, it) => sum + (it.quan || 1), 0);
         assert.equal(movedQty, 2);
         assert.equal(chest.contents.length, 0);
     });
@@ -357,8 +357,8 @@ describe('loot via meta key', () => {
         const item = makeTestItem();
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [item],
             olocked: false,
             obroken: false,
@@ -370,7 +370,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.player.inventory.length, 0);
+        assert.equal(game.u.inventory.length, 0);
         assert.equal(chest.contents.length, 1);
     });
 
@@ -380,8 +380,8 @@ describe('loot via meta key', () => {
         const armor = makeTestItem(95); // class '['
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [weapon, armor],
             olocked: false,
             obroken: false,
@@ -399,8 +399,8 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.length, 1);
-        assert.equal(game.player.inventory[0].otyp, 18);
+        assert.equal(game.u.inventory.length, 1);
+        assert.equal(game.u.inventory[0].otyp, 18);
         assert.equal(chest.contents.length, 1);
         assert.ok(messages.some((m) => m.includes('Take out what type of objects?')),
             `expected type-filter prompt, got: ${JSON.stringify(messages)}`);
@@ -410,11 +410,11 @@ describe('loot via meta key', () => {
         const { game, messages } = makeGame();
         const item = makeTestItem();
         item.invlet = 'a';
-        game.player.inventory = [item];
+        game.u.inventory = [item];
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [],
             olocked: false,
             obroken: false,
@@ -432,7 +432,7 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, true);
-        assert.equal(game.player.inventory.length, 0);
+        assert.equal(game.u.inventory.length, 0);
         assert.equal(chest.contents.length, 1);
         assert.ok(messages.some((m) => m.includes('You put')),
             `expected "You put" message, got: ${JSON.stringify(messages)}`);
@@ -445,11 +445,11 @@ describe('loot via meta key', () => {
         const weapon = makeTestItem();  // otyp 18 = arrow, class 1 (WEAPON)
         weapon.invlet = 'a';
         const food = { otyp: 291, oclass: FOOD_CLASS, quan: 1, name: 'food ration', invlet: 'b' };
-        game.player.inventory = [weapon, food];
+        game.u.inventory = [weapon, food];
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [],
             olocked: false,
             obroken: false,
@@ -462,17 +462,17 @@ describe('loot via meta key', () => {
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.player.inventory.length, 2);
+        assert.equal(game.u.inventory.length, 2);
         assert.equal(chest.contents.length, 0);
     });
 
     it('containerMenu i put-in with empty inventory shows message', async () => {
         const { game, messages } = makeGame();
-        game.player.inventory = [];
+        game.u.inventory = [];
         const chest = {
             otyp: CHEST,
-            ox: game.player.x,
-            oy: game.player.y,
+            ox: game.u.x,
+            oy: game.u.y,
             contents: [],
             olocked: false,
             obroken: false,
@@ -490,7 +490,7 @@ describe('loot via meta key', () => {
 
     it('loot prompts for direction when monster is adjacent and no containers exist', async () => {
         const { game, messages } = makeGame();
-        game.map.monsters.push({ mx: game.player.x + 1, my: game.player.y, m_id: 1 });
+        game.map.monsters.push({ mx: game.u.x + 1, my: game.u.y, m_id: 1 });
         pushInput('.'.charCodeAt(0)); // underfoot target
 
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
@@ -504,7 +504,7 @@ describe('loot via meta key', () => {
 
     it('loot directional target away from self says there to loot', async () => {
         const { game, messages } = makeGame();
-        game.map.monsters.push({ mx: game.player.x + 1, my: game.player.y, m_id: 1 });
+        game.map.monsters.push({ mx: game.u.x + 1, my: game.u.y, m_id: 1 });
         pushInput('l'.charCodeAt(0)); // east target
 
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
@@ -516,7 +516,7 @@ describe('loot via meta key', () => {
 
     it('loot direction up reports ceiling wording and consumes a turn', async () => {
         const { game, messages } = makeGame();
-        game.map.monsters.push({ mx: game.player.x + 1, my: game.player.y, m_id: 1 });
+        game.map.monsters.push({ mx: game.u.x + 1, my: game.u.y, m_id: 1 });
         pushInput('<'.charCodeAt(0));
 
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
@@ -528,7 +528,7 @@ describe('loot via meta key', () => {
 
     it('loot invalid direction key cancels with never mind', async () => {
         const { game, messages } = makeGame();
-        game.map.monsters.push({ mx: game.player.x + 1, my: game.player.y, m_id: 1 });
+        game.map.monsters.push({ mx: game.u.x + 1, my: game.u.y, m_id: 1 });
         pushInput('x'.charCodeAt(0));   // invalid direction key → cmdassist
         pushInput('\n'.charCodeAt(0));  // cancel direction prompt
 

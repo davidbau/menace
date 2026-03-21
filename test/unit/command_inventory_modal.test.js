@@ -62,7 +62,7 @@ function makeGame() {
     };
 
     const game = {
-        player,
+        u: player,
         map,
         display,
         fov: null,
@@ -130,7 +130,7 @@ describe('inventory modal dismissal', () => {
     it('keeps wizard identify menu open on non-dismiss keys and closes on space', async () => {
         const { game } = makeGame();
         game.wizard = true;
-        game.player.inventory = [{
+        game.u.inventory = [{
             oclass: WEAPON_CLASS,
             otyp: SCALPEL,
             invlet: 'a',
@@ -163,7 +163,7 @@ describe('inventory modal dismissal', () => {
 
     it('paginates inventory list with space and restores prior page with b', async () => {
         const { game } = makeGame();
-        addInventoryItems(game.player, 25, WEAPON_CLASS);
+        addInventoryItems(game.u, 25, WEAPON_CLASS);
 
         pushInput(' '.charCodeAt(0)); // page 2
         pushInput('b'.charCodeAt(0)); // back to page 1
@@ -187,7 +187,7 @@ describe('inventory modal dismissal', () => {
 
     it('advances to next page with space and still shows next page items', async () => {
         const { game } = makeGame();
-        addInventoryItems(game.player, 25, WEAPON_CLASS);
+        addInventoryItems(game.u, 25, WEAPON_CLASS);
 
         pushInput(' '.charCodeAt(0)); // next page
         pushInput(' '.charCodeAt(0)); // dismiss after final page
@@ -205,7 +205,7 @@ describe('inventory modal dismissal', () => {
 
     it('ignores back-page on first page and keeps current page visible', async () => {
         const { game } = makeGame();
-        addInventoryItems(game.player, 25, WEAPON_CLASS);
+        addInventoryItems(game.u, 25, WEAPON_CLASS);
         const writes = [];
         game.display.putstr = function putstr(col, row, str, color, attr) {
             writes.push({ col, row, str, color, attr });
@@ -227,7 +227,7 @@ describe('inventory modal dismissal', () => {
 
     it('single-page inventory ignores back-page and dismisses on space', async () => {
         const { game } = makeGame();
-        addInventoryItems(game.player, 1, WEAPON_CLASS);
+        addInventoryItems(game.u, 1, WEAPON_CLASS);
 
         pushInput('b'.charCodeAt(0)); // should be ignored on one page
         pushInput(' '.charCodeAt(0)); // should dismiss
@@ -242,7 +242,7 @@ describe('inventory modal dismissal', () => {
 
     it('moves to next page with \'>\' and keeps menu open on final-page \'>\'', async () => {
         const { game } = makeGame();
-        addInventoryItems(game.player, 25, WEAPON_CLASS);
+        addInventoryItems(game.u, 25, WEAPON_CLASS);
 
         pushInput('>'.charCodeAt(0)); // next page
         pushInput('>'.charCodeAt(0)); // ignored on final page
@@ -261,7 +261,7 @@ describe('inventory modal dismissal', () => {
     it('supports first/last page jump controls', async () => {
         const { game } = makeGame();
         const writes = [];
-        addInventoryItems(game.player, 40, WEAPON_CLASS);
+        addInventoryItems(game.u, 40, WEAPON_CLASS);
         game.display.putstr = function putstr(col, row, str, color, attr) {
             writes.push({ col, row, str: String(str || ''), color, attr });
         };
@@ -283,7 +283,7 @@ describe('inventory modal dismissal', () => {
     it('jumps directly to last page with \'|\' and allows second-page item selection', async () => {
         const { game } = makeGame();
         const writes = [];
-        addInventoryItems(game.player, 40, WEAPON_CLASS);
+        addInventoryItems(game.u, 40, WEAPON_CLASS);
         game.display.putstr = function putstr(col, row, str, color, attr) {
             writes.push({ col, row, str: String(str || ''), color, attr });
         };
@@ -303,7 +303,7 @@ describe('inventory modal dismissal', () => {
 
     it('keeps exact full single page in one redraw and supports last item selection', async () => {
         const { game } = makeGame();
-        addInventoryItems(game.player, 19, WEAPON_CLASS); // header + 19 items + end fits one page
+        addInventoryItems(game.u, 19, WEAPON_CLASS); // header + 19 items + end fits one page
         const writes = [];
         game.display.putstr = function putstr(col, row, str, color, attr) {
             writes.push({ col, row, str, color, attr });
@@ -325,7 +325,7 @@ describe('inventory modal dismissal', () => {
 
     it('selects item from second page and opens matching action menu', async () => {
         const { game } = makeGame();
-        addInventoryItems(game.player, 25, WEAPON_CLASS);
+        addInventoryItems(game.u, 25, WEAPON_CLASS);
         const writes = [];
         game.display.putstr = function putstr(col, row, str, color, attr) {
             writes.push({ col, row, str, color, attr });
@@ -353,7 +353,7 @@ describe('inventory modal dismissal', () => {
 
     it('renders single-item action menu for stethoscope selections', async () => {
         const { game } = makeGame();
-        game.player.inventory.push({
+        game.u.inventory.push({
             oclass: TOOL_CLASS,
             otyp: STETHOSCOPE,
             invlet: 'c',
@@ -384,8 +384,8 @@ describe('inventory modal dismissal', () => {
             quan: 1,
             name: 'scalpel',
         };
-        game.player.inventory = [scalpel];
-        game.player.weapon = scalpel;
+        game.u.inventory = [scalpel];
+        game.u.weapon = scalpel;
 
         const writes = [];
         game.display.putstr = function putstr(col, row, str, color, attr) {
@@ -415,7 +415,7 @@ describe('inventory modal dismissal', () => {
     it('uses spellbook wording in inventory action prompt', async () => {
         const { game } = makeGame();
         discoverObject(SPE_HEALING, true, false);
-        game.player.inventory = [{
+        game.u.inventory = [{
             oclass: SPBOOK_CLASS,
             otyp: SPE_HEALING,
             invlet: 'g',
@@ -439,7 +439,7 @@ describe('inventory modal dismissal', () => {
 
     it('uses flint stone naming in stack action prompt', async () => {
         const { game } = makeGame();
-        game.player.inventory = [{
+        game.u.inventory = [{
             oclass: WEAPON_CLASS,
             otyp: FLINT,
             invlet: 'f',
@@ -471,7 +471,7 @@ describe('inventory modal dismissal', () => {
             known: true,
             dknown: true,
         };
-        game.player.inventory = [
+        game.u.inventory = [
             sling,
             {
                 oclass: WEAPON_CLASS,
@@ -482,7 +482,7 @@ describe('inventory modal dismissal', () => {
                 dknown: true,
             },
         ];
-        game.player.weapon = sling;
+        game.u.weapon = sling;
         const writes = [];
         game.display.putstr = function putstr(col, row, str, color, attr) {
             writes.push({ col, row, str, color, attr });
@@ -498,7 +498,7 @@ describe('inventory modal dismissal', () => {
 
     it('shows potion stack actions with dip/call/quaff entries', async () => {
         const { game } = makeGame();
-        game.player.inventory = [{
+        game.u.inventory = [{
             oclass: POTION_CLASS,
             otyp: POT_HEALING,
             invlet: 'f',
@@ -525,7 +525,7 @@ describe('inventory modal dismissal', () => {
     it('shows light and rub actions for oil lamps', async () => {
         const { game } = makeGame();
         discoverObject(OIL_LAMP, true, false);
-        game.player.inventory = [{
+        game.u.inventory = [{
             oclass: TOOL_CLASS,
             otyp: OIL_LAMP,
             invlet: 'e',
@@ -558,8 +558,8 @@ describe('inventory modal dismissal', () => {
             quan: 1,
             name: 'small shield',
         };
-        game.player.inventory = [shield];
-        game.player.shield = shield;
+        game.u.inventory = [shield];
+        game.u.shield = shield;
         const writes = [];
         game.display.putstr = function putstr(col, row, str, color, attr) {
             writes.push({ col, row, str, color, attr });

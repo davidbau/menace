@@ -31,15 +31,17 @@ function makePlayer(hunger = 900) {
 }
 
 function makeGame(player) {
-    return {
+    const g = {
         multi: 0,
         multi_reason: null,
         nomovemsg: null,
         occupation: null,
         disp: { botl: false },
         display: { putstr_message() {} },
-        player: player || null,
+        u: player || null,
     };
+    Object.defineProperty(g, 'player', { get() { return g.u; }, enumerable: false, configurable: true });
+    return g;
 }
 
 test.beforeEach(() => {

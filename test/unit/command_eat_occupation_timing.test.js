@@ -30,7 +30,7 @@ function makeGame({ quan = 1 } = {}) {
     };
 
     return {
-        player,
+        u: player,
         map,
         display,
         fov: null,
@@ -49,22 +49,22 @@ describe('eat occupation timing', () => {
         // occupation completes, before movemon — so food is consumed during the
         // final occupation tick, not deferred to a post-turn hook.
         const game = makeGame();
-        const ration = game.player.inventory[0];
+        const ration = game.u.inventory[0];
         pushInput('d'.charCodeAt(0));
 
         const result = await rhack('e'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
         assert.ok(game.occupation, 'expected eating occupation');
-        assert.ok(game.player.inventory.includes(ration), 'food should remain during ongoing occupation');
+        assert.ok(game.u.inventory.includes(ration), 'food should remain during ongoing occupation');
 
         let sawContinue = false;
         let removedOnFinalTick = false;
 
         while (game.occupation) {
             const occ = game.occupation;
-            const hadBefore = game.player.inventory.includes(ration);
+            const hadBefore = game.u.inventory.includes(ration);
             const cont = await occ.fn();
-            const hasAfter = game.player.inventory.includes(ration);
+            const hasAfter = game.u.inventory.includes(ration);
             if (cont) {
                 sawContinue = true;
                 assert.ok(hasAfter, 'food should still be present on non-final occupation turns');
@@ -80,16 +80,16 @@ describe('eat occupation timing', () => {
 
     it('keeps split stack piece in inventory until eating finishes', async () => {
         const game = makeGame({ quan: 2 });
-        const stack = game.player.inventory[0];
+        const stack = game.u.inventory[0];
         pushInput('d'.charCodeAt(0));
 
         const result = await rhack('e'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
         assert.ok(game.occupation, 'expected eating occupation');
         assert.equal(stack.quan, 1, 'stack should decrement immediately');
-        assert.equal(game.player.inventory.length, 2, 'split piece should stay in inventory while eating');
+        assert.equal(game.u.inventory.length, 2, 'split piece should stay in inventory while eating');
 
-        const splitPiece = game.player.inventory.find((obj) => obj !== stack && obj.invlet === 'd');
+        const splitPiece = game.u.inventory.find((obj) => obj !== stack && obj.invlet === 'd');
         assert.ok(splitPiece, 'expected split piece in inventory');
         assert.equal(splitPiece.quan, 1);
 
@@ -104,8 +104,8 @@ describe('eat occupation timing', () => {
             }
         }
 
-        assert.equal(game.player.inventory.length, 1, 'split piece should be removed on completion');
-        assert.equal(game.player.inventory[0], stack, 'original stack should remain');
+        assert.equal(game.u.inventory.length, 1, 'split piece should be removed on completion');
+        assert.equal(game.u.inventory[0], stack, 'original stack should remain');
         assert.equal(stack.quan, 1, 'one ration should remain after eating one from stack');
     });
 });

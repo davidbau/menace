@@ -36,8 +36,8 @@ function makeMonster(opts = {}) {
         attacks: opts.attacks || [{dmg: [1, 4]}],
         dead: false,
         exp: opts.exp || 10,
-        sleeping: false,
-        peaceful: false,
+        msleeping: false,
+        mpeaceful: false,
     };
 }
 
