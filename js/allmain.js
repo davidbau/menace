@@ -814,44 +814,11 @@ async function repeatLoop(game, {
 
         const ctx = game.context || {};
         if (ctx.mv) {
-            emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
-            // C ref: allmain.c:527-530 — movement/travel multi repeat.
-            // lookaround() can abort running by clearing multi.
-            const _p = game.u || game.player;
-            const _map = game.map;
-            const _fov = FOV;
-            const _display = game.display;
-            await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
-            if (game.multi <= 0) {
-                ctx.move = 0;
-                break;
-            }
-            // C ref: hack.c domove() can call end_running() internally
-            // (e.g. when findtravelpath exhausts the path), which clears
-            // ctx.run. Save run mode before domove to detect travel-end.
-            const savedRun = ctx.run;
-            if (game.multi < COLNO && !--game.multi) {
-                end_running(true, game);
-            }
-            game.advanceRunTurn = async () => {
-                await advanceTimedTurn(game, coreOpts);
-            };
-            const moveResult = await domove([0, 0], _p, _map, _display, game);
-            game.advanceRunTurn = null;
-            if (!moveResult || !moveResult.tookTime) {
-                // C ref: allmain.c moveloop — when travel ends via path
-                // exhaustion, run one more monster turn before exiting.
-                if (savedRun === 8) {
-                    await advanceTimedTurn(game, coreOpts);
-                }
-                break;
-            }
-            if (!moveResult.moved) {
-                break;
-            }
-            bumpHeroSeqN();
-            await advanceTimedTurn(game, coreOpts);
-            await _drainOccupation(game, coreOpts);
+            const moveRepeated = await runMovementRepeatSlice(game, {
+                coreOpts,
+                bumpHeroSeqN,
+            });
+            if (!moveRepeated) break;
         } else {
             if (mode === 'movement_only') {
                 break;
@@ -875,6 +842,55 @@ async function repeatLoop(game, {
             await _drainOccupation(game, coreOpts);
         }
     }
+}
+
+// Current JS positive-multi movement/travel slice.
+// Stage B2a extracts this intact from repeatLoop() so later work can move its
+// owner without simultaneously changing the slice internals.
+async function runMovementRepeatSlice(game, {
+    coreOpts,
+    bumpHeroSeqN,
+}) {
+    const ctx = game.context || {};
+    emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
+    // C ref: allmain.c:527-530 — movement/travel multi repeat.
+    // lookaround() can abort running by clearing multi.
+    const _p = game.u || game.player;
+    const _map = game.map;
+    const _fov = FOV;
+    const _display = game.display;
+    await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
+    if (game.multi <= 0) {
+        ctx.move = 0;
+        return false;
+    }
+    // C ref: hack.c domove() can call end_running() internally
+    // (e.g. when findtravelpath exhausts the path), which clears
+    // ctx.run. Save run mode before domove to detect travel-end.
+    const savedRun = ctx.run;
+    if (game.multi < COLNO && !--game.multi) {
+        end_running(true, game);
+    }
+    game.advanceRunTurn = async () => {
+        await advanceTimedTurn(game, coreOpts);
+    };
+    const moveResult = await domove([0, 0], _p, _map, _display, game);
+    game.advanceRunTurn = null;
+    if (!moveResult || !moveResult.tookTime) {
+        // C ref: allmain.c moveloop — when travel ends via path exhaustion,
+        // run one more monster turn before exiting.
+        if (savedRun === 8) {
+            await advanceTimedTurn(game, coreOpts);
+        }
+        return false;
+    }
+    if (!moveResult.moved) {
+        return false;
+    }
+    bumpHeroSeqN();
+    await advanceTimedTurn(game, coreOpts);
+    await _drainOccupation(game, coreOpts);
+    return true;
 }
 
 async function rhackCore(game, chCode, {

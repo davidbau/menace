@@ -14729,3 +14729,35 @@ effect was missing.
     - the first repeated `domove()`
   - do not use `advanceTimedTurn()` as if it were already a C-faithful unit of
     repeat-move ownership
+
+# 2026-03-21: Stage B2a can extract the movement-repeat slice safely before moving ownership
+
+- Evidence:
+  - after Stage B1, the next safe move was to extract the current
+    `context.mv == true` positive-`multi` slice from `repeatLoop()` without
+    changing who calls it
+  - this isolates the exact JS slice that later Stage B2b will move, while
+    preserving the current runtime owner for validation
+- Safe Stage B2a refactor:
+  - in [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js),
+    extracted the existing movement/travel repeat body into:
+    - `runMovementRepeatSlice(game, { coreOpts, bumpHeroSeqN })`
+  - `repeatLoop()` still calls that helper directly when `context.mv` is set
+  - ownership and ordering are unchanged in this step
+- Validation:
+  - `seed031_manual_direct` unchanged:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - targeted gameplay guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - `node scripts/test-unit-core.mjs` still reports the same pre-existing
+    unrelated `epitaph selection` failures
+- Lesson:
+  - Stage B should continue separating:
+    1. the shape of the repeat-move slice
+    2. the runtime owner of that slice
+  - extracting the slice first reduces risk when Stage B2b later moves
+    ownership toward the `_gameLoopStep()` / moveloop-style owner
