@@ -15183,3 +15183,34 @@ Lesson:
     as `933` on this session
   - the authoritative evidence for step movement on this patch is the
     normalized `comparison-window` output plus the per-step spillover summary
+
+# 2026-03-21: Exact C stop-before-attack is now the right local probe, but it exposes a narrower remaining bug
+
+- Reintroduced the exact `hack.c:2762-2773` rule on top of the validated owner
+  fix:
+  - if `context.run` is active and the destination square contains a visible
+    hostile monster, stop running via `nomul(0)` and return before bump/attack
+- This behaved differently from the earlier pre-owner-fix experiments:
+  - at the old bad contact point, JS now stopped cleanly
+  - trace:
+    - `step 938 domove_target from=26,13 to=27,13 mon=27@27,13`
+    - `step 938 domove_notime stop-visible-hostile-while-running ...`
+    - then monster `27` got its turn
+- New first raw mismatch under that probe:
+  - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+  - C: `rn2(8)=7 @ m_move(monmove.c:1979)`
+- New first event mismatch under that probe:
+  - JS: `^distfleeck[27@27,13 in=1 near=1 scare=0 brave=1 ...]`
+  - C: `^distfleeck[27@27,13 in=1 near=0 scare=0 brave=1 ...]`
+- Interpretation:
+  - the premature hero attack is no longer the next problem once the exact C
+    stop gate is present
+  - `brave` now aligns
+  - the remaining mismatch is specifically monster `27`'s post-stop `near`
+    state
+- So the next likely target is the post-stop monster-target handoff:
+  - `set_apparxy()`
+  - then `distfleeck()`
+  - not another broad owner rewrite
+- Reverted the code probe because it still did not move the first-divergence
+  step later, but it is the strongest diagnostic narrowing since the owner fix

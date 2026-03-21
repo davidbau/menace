@@ -1710,6 +1710,84 @@ patch is:
 That mismatch should be treated as step-label reporting lag, not as evidence
 that the owner fix failed.
 
+## Follow-up probe: exact C stop-before-attack gate is real, but not sufficient
+
+After `7feb605cd`, the next probe reintroduced the exact C hostile-visible
+running stop from `hack.c:2762-2773` on top of the validated owner fix:
+
+- if `context.run` is active
+- and the destination square contains a visible/sensed non-safe monster
+- stop running with `nomul(0)`, set `context.move = 0`, and return before
+  bump/attack
+
+### What changed
+
+This no longer behaved like the earlier pre-owner-fix experiments.
+
+On the owner-correct baseline, the probe did the right thing at the old bad
+ contact point:
+
+```text
+step 938 domove_target from=26,13 to=27,13 mon=27@27,13
+step 938 domove_notime stop-visible-hostile-while-running from=26,13 dir=1,0 run=0 travel=0
+step 938 movemon_turn[27@27,13 ...]
+```
+
+So JS no longer entered `domove_attackmon_at()` first. The old hero-attack
+ mismatch was removed.
+
+### New first mismatch under the probe
+
+The first raw RNG mismatch moved from hero attack to monster-side AI:
+
+- JS:
+  - `rn2(5)=0 @ dochug(monmove.js:847)`
+- C:
+  - `rn2(8)=7 @ m_move(monmove.c:1979)`
+
+And the first event mismatch became:
+
+- JS:
+  - `^distfleeck[27@27,13 in=1 near=1 scare=0 brave=1 ...]`
+- C:
+  - `^distfleeck[27@27,13 in=1 near=0 scare=0 brave=1 ...]`
+
+This is important because:
+
+- `brave` aligned
+- the premature hero attack disappeared
+- the remaining mismatch is now only the monster-side `near` state
+
+### Interpretation
+
+This means the exact C stop-before-attack rule is genuinely part of the final
+fix, but it is **not** the whole fix.
+
+The residual mismatch is now narrower:
+
+- after the stop gate fires, JS still hands monster `27` an adjacent apparent
+  hero target before the first post-stop `distfleeck()`
+- C does not
+
+So the next target is no longer `domove_core()` ownership. It is the
+post-stop monster-target handoff:
+
+- `set_apparxy()`
+- `distfleeck()`
+- and the exact state/order by which monster `27` inherits the hero target
+
+### Why the probe was reverted
+
+By the repo standard, it still did not move the session's first-divergence
+step later, so it was not kept as code.
+
+However, it was a successful diagnostic probe because it proved:
+
+1. the owner fix made this C gate meaningful
+2. the old hero-attack mismatch is now behind us once the gate is present
+3. the remaining bug is specifically the post-stop `near` state, not generic
+   travel ownership anymore
+
 ### Concrete prediction
 
 The fix will work when BOTH are done simultaneously:
