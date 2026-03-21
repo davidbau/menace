@@ -2,7 +2,7 @@
   "format": "zork-parity-v1",
   "source": "fortran",
   "seed": 1,
-  "timestamp": "2026-03-20T08:45:40.540Z",
+  "timestamp": "2026-03-21T01:57:17.973Z",
   "steps": [
     {
       "move": 0,
@@ -4637,11 +4637,13 @@
     },
     {
       "move": 387,
-      "input": "w",
+      "input": "look",
       "parse": {},
       "state": {},
       "output": [
-        " Cold Passage"
+        " This is a large square room with tall ceilings.  On the south wall",
+        " is an enormous mirror which fills the entire wall.  There are exits",
+        " on the other three sides of the room."
       ]
     },
     {
@@ -4650,11 +4652,43 @@
       "parse": {},
       "state": {},
       "output": [
-        " Slide Room"
+        " Cold Passage"
       ]
     },
     {
       "move": 389,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a cold and damp corridor where a long east-west passageway",
+        " intersects with a northward path."
+      ]
+    },
+    {
+      "move": 390,
+      "input": "w",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Slide Room"
+      ]
+    },
+    {
+      "move": 391,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small chamber, which appears to have been part of a",
+        " coal mine.  On the south wall of the chamber the letters \"Granite",
+        " Wall\" are etched into the rock.  To the east is a long passage,",
+        " and there is a steep metal slide twisting downward.  To the north",
+        " is a small opening."
+      ]
+    },
+    {
+      "move": 392,
       "input": "n",
       "parse": {},
       "state": {},
@@ -4665,7 +4699,7 @@
       ]
     },
     {
-      "move": 390,
+      "move": 393,
       "input": "nw",
       "parse": {},
       "state": {},
@@ -4675,7 +4709,7 @@
       ]
     },
     {
-      "move": 391,
+      "move": 394,
       "input": "w",
       "parse": {},
       "state": {},
@@ -4687,7 +4721,7 @@
       ]
     },
     {
-      "move": 392,
+      "move": 395,
       "input": "take jade figurine",
       "parse": {},
       "state": {},
@@ -4696,7 +4730,7 @@
       ]
     },
     {
-      "move": 393,
+      "move": 396,
       "input": "e",
       "parse": {},
       "state": {},
@@ -4705,7 +4739,7 @@
       ]
     },
     {
-      "move": 394,
+      "move": 397,
       "input": "s",
       "parse": {},
       "state": {},
@@ -4714,7 +4748,7 @@
       ]
     },
     {
-      "move": 395,
+      "move": 398,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -4727,7 +4761,7 @@
       ]
     },
     {
-      "move": 396,
+      "move": 399,
       "input": "put torch and screwdriver in basket",
       "parse": {},
       "state": {},
@@ -4739,7 +4773,7 @@
       ]
     },
     {
-      "move": 397,
+      "move": 400,
       "input": "turn on lamp",
       "parse": {},
       "state": {},
@@ -4748,7 +4782,7 @@
       ]
     },
     {
-      "move": 398,
+      "move": 401,
       "input": "n",
       "parse": {},
       "state": {},
@@ -4759,7 +4793,7 @@
       ]
     },
     {
-      "move": 399,
+      "move": 402,
       "input": "w",
       "parse": {},
       "state": {},
@@ -4770,7 +4804,7 @@
       ]
     },
     {
-      "move": 400,
+      "move": 403,
       "input": "d",
       "parse": {},
       "state": {},
@@ -4780,7 +4814,7 @@
       ]
     },
     {
-      "move": 401,
+      "move": 404,
       "input": "take bracelet",
       "parse": {},
       "state": {},
@@ -4789,7 +4823,7 @@
       ]
     },
     {
-      "move": 402,
+      "move": 405,
       "input": "u",
       "parse": {},
       "state": {},
@@ -4798,7 +4832,7 @@
       ]
     },
     {
-      "move": 403,
+      "move": 406,
       "input": "e",
       "parse": {},
       "state": {},
@@ -4807,35 +4841,8 @@
       ]
     },
     {
-      "move": 404,
-      "input": "ne",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is a non-descript part of a coal mine."
-      ]
-    },
-    {
-      "move": 405,
-      "input": "n",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is a non-descript part of a coal mine."
-      ]
-    },
-    {
-      "move": 406,
-      "input": "ne",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is a non-descript part of a coal mine."
-      ]
-    },
-    {
       "move": 407,
-      "input": "nw",
+      "input": "ne",
       "parse": {},
       "state": {},
       "output": [
@@ -4844,6 +4851,33 @@
     },
     {
       "move": 408,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a non-descript part of a coal mine."
+      ]
+    },
+    {
+      "move": 409,
+      "input": "ne",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a non-descript part of a coal mine."
+      ]
+    },
+    {
+      "move": 410,
+      "input": "nw",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a non-descript part of a coal mine."
+      ]
+    },
+    {
+      "move": 411,
       "input": "d",
       "parse": {},
       "state": {},
@@ -4854,7 +4888,7 @@
       ]
     },
     {
-      "move": 409,
+      "move": 412,
       "input": "d",
       "parse": {},
       "state": {},
@@ -4865,7 +4899,7 @@
       ]
     },
     {
-      "move": 410,
+      "move": 413,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -4875,7 +4909,7 @@
       ]
     },
     {
-      "move": 411,
+      "move": 414,
       "input": "take coal",
       "parse": {},
       "state": {},
@@ -4884,18 +4918,16 @@
       ]
     },
     {
-      "move": 412,
+      "move": 415,
       "input": "s",
       "parse": {},
       "state": {},
       "output": [
-        " This is a rather wide room.  On one side is the bottom of a narrow",
-        " wooden ladder.  To the northeast and the south are passages leaving",
-        " the room."
+        " Ladder Bottom"
       ]
     },
     {
-      "move": 413,
+      "move": 416,
       "input": "s",
       "parse": {},
       "state": {},
@@ -4907,7 +4939,7 @@
       ]
     },
     {
-      "move": 414,
+      "move": 417,
       "input": "drop all but rope",
       "parse": {},
       "state": {},
@@ -4925,7 +4957,7 @@
       ]
     },
     {
-      "move": 415,
+      "move": 418,
       "input": "take lamp, timber and coal",
       "parse": {},
       "state": {},
@@ -4939,54 +4971,56 @@
       ]
     },
     {
-      "move": 416,
+      "move": 419,
       "input": "n",
       "parse": {},
       "state": {},
       "output": [
-        " Ladder Bottom"
-      ]
-    },
-    {
-      "move": 417,
-      "input": "u",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Ladder Top"
-      ]
-    },
-    {
-      "move": 418,
-      "input": "u",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is a non-descript part of a coal mine."
-      ]
-    },
-    {
-      "move": 419,
-      "input": "e",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is a non-descript part of a coal mine."
+        " This is a rather wide room.  On one side is the bottom of a narrow",
+        " wooden ladder.  To the northeast and the south are passages leaving",
+        " the room."
       ]
     },
     {
       "move": 420,
-      "input": "e",
+      "input": "u",
       "parse": {},
       "state": {},
       "output": [
-        " This is a narrow tunnel with large wooden beams running across",
-        " the ceiling and around the walls.  A path from the south splits into",
-        " paths running west and northeast."
+        " This is a very small room.  In the corner is a rickety wooden",
+        " ladder, leading downward.  It might be safe to descend.  There is",
+        " also a staircase leading upward."
       ]
     },
     {
       "move": 421,
+      "input": "u",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a non-descript part of a coal mine."
+      ]
+    },
+    {
+      "move": 422,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Coal Mine"
+      ]
+    },
+    {
+      "move": 423,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Wooden Tunnel"
+      ]
+    },
+    {
+      "move": 424,
       "input": "s",
       "parse": {},
       "state": {},
@@ -4999,7 +5033,7 @@
       ]
     },
     {
-      "move": 422,
+      "move": 425,
       "input": "put coal in basket",
       "parse": {},
       "state": {},
@@ -5008,7 +5042,7 @@
       ]
     },
     {
-      "move": 423,
+      "move": 426,
       "input": "drop rope",
       "parse": {},
       "state": {},
@@ -5017,7 +5051,7 @@
       ]
     },
     {
-      "move": 424,
+      "move": 427,
       "input": "drop timber",
       "parse": {},
       "state": {},
@@ -5026,7 +5060,7 @@
       ]
     },
     {
-      "move": 425,
+      "move": 428,
       "input": "lower basket",
       "parse": {},
       "state": {},
@@ -5035,7 +5069,7 @@
       ]
     },
     {
-      "move": 426,
+      "move": 429,
       "input": "n",
       "parse": {},
       "state": {},
@@ -5044,35 +5078,8 @@
       ]
     },
     {
-      "move": 427,
-      "input": "ne",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Coal Mine"
-      ]
-    },
-    {
-      "move": 428,
-      "input": "n",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Coal Mine"
-      ]
-    },
-    {
-      "move": 429,
-      "input": "ne",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is a non-descript part of a coal mine."
-      ]
-    },
-    {
       "move": 430,
-      "input": "nw",
+      "input": "ne",
       "parse": {},
       "state": {},
       "output": [
@@ -5081,6 +5088,33 @@
     },
     {
       "move": 431,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a non-descript part of a coal mine."
+      ]
+    },
+    {
+      "move": 432,
+      "input": "ne",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Coal Mine"
+      ]
+    },
+    {
+      "move": 433,
+      "input": "nw",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a non-descript part of a coal mine."
+      ]
+    },
+    {
+      "move": 434,
       "input": "d",
       "parse": {},
       "state": {},
@@ -5089,18 +5123,16 @@
       ]
     },
     {
-      "move": 432,
+      "move": 435,
       "input": "d",
       "parse": {},
       "state": {},
       "output": [
-        " This is a rather wide room.  On one side is the bottom of a narrow",
-        " wooden ladder.  To the northeast and the south are passages leaving",
-        " the room."
+        " Ladder Bottom"
       ]
     },
     {
-      "move": 433,
+      "move": 436,
       "input": "s",
       "parse": {},
       "state": {},
@@ -5112,7 +5144,7 @@
       ]
     },
     {
-      "move": 434,
+      "move": 437,
       "input": "drop lamp",
       "parse": {},
       "state": {},
@@ -5121,7 +5153,7 @@
       ]
     },
     {
-      "move": 435,
+      "move": 438,
       "input": "sw",
       "parse": {},
       "state": {},
@@ -5137,7 +5169,7 @@
       ]
     },
     {
-      "move": 436,
+      "move": 439,
       "input": "take all",
       "parse": {},
       "state": {},
@@ -5151,7 +5183,7 @@
       ]
     },
     {
-      "move": 437,
+      "move": 440,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5166,7 +5198,7 @@
       ]
     },
     {
-      "move": 438,
+      "move": 441,
       "input": "open lid",
       "parse": {},
       "state": {},
@@ -5175,7 +5207,7 @@
       ]
     },
     {
-      "move": 439,
+      "move": 442,
       "input": "put coal in machine",
       "parse": {},
       "state": {},
@@ -5184,7 +5216,7 @@
       ]
     },
     {
-      "move": 440,
+      "move": 443,
       "input": "close lid",
       "parse": {},
       "state": {},
@@ -5193,7 +5225,7 @@
       ]
     },
     {
-      "move": 441,
+      "move": 444,
       "input": "turn switch with screwdriver",
       "parse": {},
       "state": {},
@@ -5204,7 +5236,7 @@
       ]
     },
     {
-      "move": 442,
+      "move": 445,
       "input": "open lid",
       "parse": {},
       "state": {},
@@ -5213,7 +5245,7 @@
       ]
     },
     {
-      "move": 443,
+      "move": 446,
       "input": "take diamond",
       "parse": {},
       "state": {},
@@ -5222,17 +5254,19 @@
       ]
     },
     {
-      "move": 444,
+      "move": 447,
       "input": "nw",
       "parse": {},
       "state": {},
       "output": [
-        " Lower Shaft",
+        " This is a small square room which is at the bottom of a long shaft",
+        " To the east is a passageway and to the northeast a very narrow",
+        " passage.  In the shaft can be seen a heavy iron chain.",
         " At the end of the chain is a basket."
       ]
     },
     {
-      "move": 445,
+      "move": 448,
       "input": "put all in basket",
       "parse": {},
       "state": {},
@@ -5246,7 +5280,7 @@
       ]
     },
     {
-      "move": 446,
+      "move": 449,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -5259,7 +5293,7 @@
       ]
     },
     {
-      "move": 447,
+      "move": 450,
       "input": "take all",
       "parse": {},
       "state": {},
@@ -5275,18 +5309,16 @@
       ]
     },
     {
-      "move": 448,
+      "move": 451,
       "input": "n",
       "parse": {},
       "state": {},
       "output": [
-        " This is a rather wide room.  On one side is the bottom of a narrow",
-        " wooden ladder.  To the northeast and the south are passages leaving",
-        " the room."
+        " Ladder Bottom"
       ]
     },
     {
-      "move": 449,
+      "move": 452,
       "input": "u",
       "parse": {},
       "state": {},
@@ -5295,7 +5327,7 @@
       ]
     },
     {
-      "move": 450,
+      "move": 453,
       "input": "u",
       "parse": {},
       "state": {},
@@ -5304,7 +5336,7 @@
       ]
     },
     {
-      "move": 451,
+      "move": 454,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5313,7 +5345,7 @@
       ]
     },
     {
-      "move": 452,
+      "move": 455,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5322,7 +5354,7 @@
       ]
     },
     {
-      "move": 453,
+      "move": 456,
       "input": "s",
       "parse": {},
       "state": {},
@@ -5333,7 +5365,7 @@
       ]
     },
     {
-      "move": 454,
+      "move": 457,
       "input": "drop garlic, jade and bracelet",
       "parse": {},
       "state": {},
@@ -5347,7 +5379,7 @@
       ]
     },
     {
-      "move": 455,
+      "move": 458,
       "input": "raise basket",
       "parse": {},
       "state": {},
@@ -5356,7 +5388,7 @@
       ]
     },
     {
-      "move": 456,
+      "move": 459,
       "input": "take torch, timber and rope",
       "parse": {},
       "state": {},
@@ -5370,7 +5402,7 @@
       ]
     },
     {
-      "move": 457,
+      "move": 460,
       "input": "turn off lamp",
       "parse": {},
       "state": {},
@@ -5379,7 +5411,7 @@
       ]
     },
     {
-      "move": 458,
+      "move": 461,
       "input": "drop all but rope, torch and timber",
       "parse": {},
       "state": {},
@@ -5389,7 +5421,7 @@
       ]
     },
     {
-      "move": 459,
+      "move": 462,
       "input": "w",
       "parse": {},
       "state": {},
@@ -5398,16 +5430,20 @@
       ]
     },
     {
-      "move": 460,
+      "move": 463,
       "input": "s",
       "parse": {},
       "state": {},
       "output": [
-        " Slide Room"
+        " This is a small chamber, which appears to have been part of a",
+        " coal mine.  On the south wall of the chamber the letters \"Granite",
+        " Wall\" are etched into the rock.  To the east is a long passage,",
+        " and there is a steep metal slide twisting downward.  To the north",
+        " is a small opening."
       ]
     },
     {
-      "move": 461,
+      "move": 464,
       "input": "drop timber",
       "parse": {},
       "state": {},
@@ -5416,7 +5452,7 @@
       ]
     },
     {
-      "move": 462,
+      "move": 465,
       "input": "tie rope to timber",
       "parse": {},
       "state": {},
@@ -5426,7 +5462,7 @@
       ]
     },
     {
-      "move": 463,
+      "move": 466,
       "input": "d",
       "parse": {},
       "state": {},
@@ -5439,7 +5475,7 @@
       ]
     },
     {
-      "move": 464,
+      "move": 467,
       "input": "d",
       "parse": {},
       "state": {},
@@ -5450,7 +5486,7 @@
       ]
     },
     {
-      "move": 465,
+      "move": 468,
       "input": "d",
       "parse": {},
       "state": {},
@@ -5461,7 +5497,7 @@
       ]
     },
     {
-      "move": 466,
+      "move": 469,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5471,7 +5507,7 @@
       ]
     },
     {
-      "move": 467,
+      "move": 470,
       "input": "s",
       "parse": {},
       "state": {},
@@ -5486,7 +5522,7 @@
       ]
     },
     {
-      "move": 468,
+      "move": 471,
       "input": "take sphere",
       "parse": {},
       "state": {},
@@ -5495,7 +5531,7 @@
       ]
     },
     {
-      "move": 469,
+      "move": 472,
       "input": "n",
       "parse": {},
       "state": {},
@@ -5504,7 +5540,7 @@
       ]
     },
     {
-      "move": 470,
+      "move": 473,
       "input": "w",
       "parse": {},
       "state": {},
@@ -5513,18 +5549,7 @@
       ]
     },
     {
-      "move": 471,
-      "input": "u",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is another spot within the coal chute.  Above you the rope",
-        " climbs into the darkness.  The end of the rope is dangling five",
-        " feet beneath you."
-      ]
-    },
-    {
-      "move": 472,
+      "move": 474,
       "input": "u",
       "parse": {},
       "state": {},
@@ -5533,7 +5558,18 @@
       ]
     },
     {
-      "move": 473,
+      "move": 475,
+      "input": "u",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is an uncomfortable spot within the coal chute.  The rope to",
+        " which you are clinging can be seen rising into the darkness above.",
+        " There is more rope dangling below you."
+      ]
+    },
+    {
+      "move": 476,
       "input": "u",
       "parse": {},
       "state": {},
@@ -5542,18 +5578,16 @@
       ]
     },
     {
-      "move": 474,
+      "move": 477,
       "input": "n",
       "parse": {},
       "state": {},
       "output": [
-        " You are standing at the entrance of what might have been a coal",
-        " mine.  To the northeast and the northwest are entrances to the mine,",
-        " and there is another exit on the south end of the room."
+        " Mine Entrance"
       ]
     },
     {
-      "move": 475,
+      "move": 478,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -5570,7 +5604,7 @@
       ]
     },
     {
-      "move": 476,
+      "move": 479,
       "input": "take all",
       "parse": {},
       "state": {},
@@ -5590,7 +5624,7 @@
       ]
     },
     {
-      "move": 477,
+      "move": 480,
       "input": "w",
       "parse": {},
       "state": {},
@@ -5599,7 +5633,7 @@
       ]
     },
     {
-      "move": 478,
+      "move": 481,
       "input": "s",
       "parse": {},
       "state": {},
@@ -5608,7 +5642,7 @@
       ]
     },
     {
-      "move": 479,
+      "move": 482,
       "input": "d",
       "parse": {},
       "state": {},
@@ -5619,12 +5653,14 @@
       ]
     },
     {
-      "move": 480,
+      "move": 483,
       "input": "d",
       "parse": {},
       "state": {},
       "output": [
-        " Slide",
+        " This is another spot within the coal chute.  Above you the rope",
+        " climbs into the darkness.  The end of the rope is dangling five",
+        " feet beneath you.",
         " The rope slips from your grasp and you tumble to the cellar.",
         " This is a dark and damp cellar with a narrow passageway leading",
         " east, and a crawlway to the south.  To the west is the bottom of",
@@ -5636,15 +5672,12 @@
       ]
     },
     {
-      "move": 481,
+      "move": 484,
       "input": "u",
       "parse": {},
       "state": {},
       "output": [
-        " This is the living room.  There is a door to the east.  To the west",
-        " is a cyclops-shaped hole in an old wooden door, above which is some",
-        " strange gothic lettering.",
-        " There is a rug lying next to an open trap door.",
+        " Living Room",
         " There is a trophy case here.",
         " A clear glass bottle is here.",
         " There is a nasty-looking knife lying here.",
@@ -5690,7 +5723,7 @@
       ]
     },
     {
-      "move": 482,
+      "move": 485,
       "input": "put treasure in case",
       "parse": {},
       "state": {},
@@ -5708,7 +5741,7 @@
       ]
     },
     {
-      "move": 483,
+      "move": 486,
       "input": "drop all",
       "parse": {},
       "state": {},
@@ -5722,7 +5755,7 @@
       ]
     },
     {
-      "move": 484,
+      "move": 487,
       "input": "take torch",
       "parse": {},
       "state": {},
@@ -5731,27 +5764,27 @@
       ]
     },
     {
-      "move": 485,
+      "move": 488,
       "input": "w",
       "parse": {},
       "state": {},
       "output": [
-        " Strange Passage"
+        " This is a long passage.  To the south is one entrance.  On the",
+        " east there is an old wooden door with a large hole in it (about",
+        " cyclops sized)."
       ]
     },
     {
-      "move": 486,
+      "move": 489,
       "input": "s",
       "parse": {},
       "state": {},
       "output": [
-        " This is a room with an exit on the west side, and a staircase",
-        " leading up.",
-        " The north wall, previously solid, now has a cyclops-shaped hole in it."
+        " Cyclops Room"
       ]
     },
     {
-      "move": 487,
+      "move": 490,
       "input": "u",
       "parse": {},
       "state": {},
@@ -5763,7 +5796,7 @@
       ]
     },
     {
-      "move": 488,
+      "move": 491,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5776,7 +5809,7 @@
       ]
     },
     {
-      "move": 489,
+      "move": 492,
       "input": "read paper",
       "parse": {},
       "state": {},
@@ -5798,7 +5831,7 @@
       ]
     },
     {
-      "move": 490,
+      "move": 493,
       "input": "d",
       "parse": {},
       "state": {},
@@ -5809,7 +5842,7 @@
       ]
     },
     {
-      "move": 491,
+      "move": 494,
       "input": "push east wall",
       "parse": {},
       "state": {},
@@ -5829,7 +5862,7 @@
       ]
     },
     {
-      "move": 492,
+      "move": 495,
       "input": "s",
       "parse": {},
       "state": {},
@@ -5841,7 +5874,7 @@
       ]
     },
     {
-      "move": 493,
+      "move": 496,
       "input": "sw",
       "parse": {},
       "state": {},
@@ -5853,7 +5886,7 @@
       ]
     },
     {
-      "move": 494,
+      "move": 497,
       "input": "push south wall",
       "parse": {},
       "state": {},
@@ -5865,7 +5898,7 @@
       ]
     },
     {
-      "move": 495,
+      "move": 498,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5877,7 +5910,7 @@
       ]
     },
     {
-      "move": 496,
+      "move": 499,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5889,7 +5922,7 @@
       ]
     },
     {
-      "move": 497,
+      "move": 500,
       "input": "push south wall",
       "parse": {},
       "state": {},
@@ -5901,7 +5934,7 @@
       ]
     },
     {
-      "move": 498,
+      "move": 501,
       "input": "n",
       "parse": {},
       "state": {},
@@ -5913,7 +5946,7 @@
       ]
     },
     {
-      "move": 499,
+      "move": 502,
       "input": "n",
       "parse": {},
       "state": {},
@@ -5925,7 +5958,7 @@
       ]
     },
     {
-      "move": 500,
+      "move": 503,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5937,7 +5970,7 @@
       ]
     },
     {
-      "move": 501,
+      "move": 504,
       "input": "push south wall",
       "parse": {},
       "state": {},
@@ -5951,7 +5984,7 @@
       ]
     },
     {
-      "move": 502,
+      "move": 505,
       "input": "take card",
       "parse": {},
       "state": {},
@@ -5960,7 +5993,7 @@
       ]
     },
     {
-      "move": 503,
+      "move": 506,
       "input": "push south wall",
       "parse": {},
       "state": {},
@@ -5972,7 +6005,7 @@
       ]
     },
     {
-      "move": 504,
+      "move": 507,
       "input": "e",
       "parse": {},
       "state": {},
@@ -5984,7 +6017,7 @@
       ]
     },
     {
-      "move": 505,
+      "move": 508,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -5996,7 +6029,7 @@
       ]
     },
     {
-      "move": 506,
+      "move": 509,
       "input": "push west wall",
       "parse": {},
       "state": {},
@@ -6008,7 +6041,7 @@
       ]
     },
     {
-      "move": 507,
+      "move": 510,
       "input": "push west wall",
       "parse": {},
       "state": {},
@@ -6021,7 +6054,7 @@
       ]
     },
     {
-      "move": 508,
+      "move": 511,
       "input": "push west wall",
       "parse": {},
       "state": {},
@@ -6033,7 +6066,7 @@
       ]
     },
     {
-      "move": 509,
+      "move": 512,
       "input": "push west wall",
       "parse": {},
       "state": {},
@@ -6045,7 +6078,7 @@
       ]
     },
     {
-      "move": 510,
+      "move": 513,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -6057,7 +6090,7 @@
       ]
     },
     {
-      "move": 511,
+      "move": 514,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -6070,7 +6103,7 @@
       ]
     },
     {
-      "move": 512,
+      "move": 515,
       "input": "n",
       "parse": {},
       "state": {},
@@ -6082,7 +6115,7 @@
       ]
     },
     {
-      "move": 513,
+      "move": 516,
       "input": "push east wall",
       "parse": {},
       "state": {},
@@ -6094,7 +6127,7 @@
       ]
     },
     {
-      "move": 514,
+      "move": 517,
       "input": "sw",
       "parse": {},
       "state": {},
@@ -6107,7 +6140,7 @@
       ]
     },
     {
-      "move": 515,
+      "move": 518,
       "input": "s",
       "parse": {},
       "state": {},
@@ -6119,7 +6152,7 @@
       ]
     },
     {
-      "move": 516,
+      "move": 519,
       "input": "se",
       "parse": {},
       "state": {},
@@ -6131,7 +6164,7 @@
       ]
     },
     {
-      "move": 517,
+      "move": 520,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -6143,7 +6176,7 @@
       ]
     },
     {
-      "move": 518,
+      "move": 521,
       "input": "n",
       "parse": {},
       "state": {},
@@ -6155,7 +6188,7 @@
       ]
     },
     {
-      "move": 519,
+      "move": 522,
       "input": "push west wall",
       "parse": {},
       "state": {},
@@ -6167,7 +6200,7 @@
       ]
     },
     {
-      "move": 520,
+      "move": 523,
       "input": "nw",
       "parse": {},
       "state": {},
@@ -6179,7 +6212,7 @@
       ]
     },
     {
-      "move": 521,
+      "move": 524,
       "input": "push south wall",
       "parse": {},
       "state": {},
@@ -6191,7 +6224,7 @@
       ]
     },
     {
-      "move": 522,
+      "move": 525,
       "input": "push south wall",
       "parse": {},
       "state": {},
@@ -6203,7 +6236,7 @@
       ]
     },
     {
-      "move": 523,
+      "move": 526,
       "input": "w",
       "parse": {},
       "state": {},
@@ -6215,7 +6248,7 @@
       ]
     },
     {
-      "move": 524,
+      "move": 527,
       "input": "nw",
       "parse": {},
       "state": {},
@@ -6227,7 +6260,7 @@
       ]
     },
     {
-      "move": 525,
+      "move": 528,
       "input": "nw",
       "parse": {},
       "state": {},
@@ -6240,7 +6273,7 @@
       ]
     },
     {
-      "move": 526,
+      "move": 529,
       "input": "push south wall",
       "parse": {},
       "state": {},
@@ -6252,7 +6285,7 @@
       ]
     },
     {
-      "move": 527,
+      "move": 530,
       "input": "se",
       "parse": {},
       "state": {},
@@ -6264,7 +6297,7 @@
       ]
     },
     {
-      "move": 528,
+      "move": 531,
       "input": "se",
       "parse": {},
       "state": {},
@@ -6277,7 +6310,7 @@
       ]
     },
     {
-      "move": 529,
+      "move": 532,
       "input": "se",
       "parse": {},
       "state": {},
@@ -6289,7 +6322,7 @@
       ]
     },
     {
-      "move": 530,
+      "move": 533,
       "input": "ne",
       "parse": {},
       "state": {},
@@ -6301,7 +6334,7 @@
       ]
     },
     {
-      "move": 531,
+      "move": 534,
       "input": "push west wall",
       "parse": {},
       "state": {},
@@ -6314,7 +6347,7 @@
       ]
     },
     {
-      "move": 532,
+      "move": 535,
       "input": "push west wall",
       "parse": {},
       "state": {},
@@ -6326,7 +6359,7 @@
       ]
     },
     {
-      "move": 533,
+      "move": 536,
       "input": "sw",
       "parse": {},
       "state": {},
@@ -6339,7 +6372,7 @@
       ]
     },
     {
-      "move": 534,
+      "move": 537,
       "input": "push north wall",
       "parse": {},
       "state": {},
@@ -6351,7 +6384,7 @@
       ]
     },
     {
-      "move": 535,
+      "move": 538,
       "input": "push north wall",
       "parse": {},
       "state": {},
@@ -6363,7 +6396,7 @@
       ]
     },
     {
-      "move": 536,
+      "move": 539,
       "input": "push north wall",
       "parse": {},
       "state": {},
@@ -6375,7 +6408,7 @@
       ]
     },
     {
-      "move": 537,
+      "move": 540,
       "input": "nw",
       "parse": {},
       "state": {},
@@ -6389,20 +6422,17 @@
       ]
     },
     {
-      "move": 538,
+      "move": 541,
       "input": "u",
       "parse": {},
       "state": {},
       "output": [
         " With the help of the ladder, you exit the puzzle.",
-        " This is a small square room, in the middle of which is a recently",
-        " created hole through which you can barely discern the floor some ten",
-        " feet below.  It doesn't seem likely you could climb back up.  There",
-        " are exits to the west and south."
+        " Small Square Room"
       ]
     },
     {
-      "move": 539,
+      "move": 542,
       "input": "w",
       "parse": {},
       "state": {},
@@ -6411,16 +6441,18 @@
       ]
     },
     {
-      "move": 540,
+      "move": 543,
       "input": "d",
       "parse": {},
       "state": {},
       "output": [
-        " Cyclops Room"
+        " This is a room with an exit on the west side, and a staircase",
+        " leading up.",
+        " The north wall, previously solid, now has a cyclops-shaped hole in it."
       ]
     },
     {
-      "move": 541,
+      "move": 544,
       "input": "n",
       "parse": {},
       "state": {},
@@ -6429,15 +6461,12 @@
       ]
     },
     {
-      "move": 542,
+      "move": 545,
       "input": "e",
       "parse": {},
       "state": {},
       "output": [
-        " This is the living room.  There is a door to the east.  To the west",
-        " is a cyclops-shaped hole in an old wooden door, above which is some",
-        " strange gothic lettering.",
-        " There is a rug lying next to an open trap door.",
+        " Living Room",
         " There is a clove of garlic here.",
         " There is a trophy case here.",
         " A clear glass bottle is here.",
@@ -6490,7 +6519,7 @@
       ]
     },
     {
-      "move": 543,
+      "move": 546,
       "input": "put card in case",
       "parse": {},
       "state": {},
@@ -6499,7 +6528,7 @@
       ]
     },
     {
-      "move": 544,
+      "move": 547,
       "input": "drop all",
       "parse": {},
       "state": {},
@@ -6511,7 +6540,7 @@
       ]
     },
     {
-      "move": 545,
+      "move": 548,
       "input": "take torch, lamp, guidebook, brick and matchbook",
       "parse": {},
       "state": {},
@@ -6529,7 +6558,7 @@
       ]
     },
     {
-      "move": 546,
+      "move": 549,
       "input": "d",
       "parse": {},
       "state": {},
@@ -6541,7 +6570,7 @@
       ]
     },
     {
-      "move": 547,
+      "move": 550,
       "input": "e",
       "parse": {},
       "state": {},
@@ -6550,16 +6579,17 @@
       ]
     },
     {
-      "move": 548,
+      "move": 551,
       "input": "n",
       "parse": {},
       "state": {},
       "output": [
-        " East-West Passage"
+        " This is a narrow east-west passageway.  There is a narrow stairway",
+        " leading down at the north end of the room."
       ]
     },
     {
-      "move": 549,
+      "move": 552,
       "input": "d",
       "parse": {},
       "state": {},
@@ -6568,7 +6598,7 @@
       ]
     },
     {
-      "move": 550,
+      "move": 553,
       "input": "d",
       "parse": {},
       "state": {},
@@ -6581,7 +6611,7 @@
       ]
     },
     {
-      "move": 551,
+      "move": 554,
       "input": "w",
       "parse": {},
       "state": {},
@@ -6592,7 +6622,7 @@
       ]
     },
     {
-      "move": 552,
+      "move": 555,
       "input": "take wire",
       "parse": {},
       "state": {},
@@ -6601,7 +6631,7 @@
       ]
     },
     {
-      "move": 553,
+      "move": 556,
       "input": "n",
       "parse": {},
       "state": {},
@@ -6612,7 +6642,7 @@
       ]
     },
     {
-      "move": 554,
+      "move": 557,
       "input": "throw torch",
       "parse": {},
       "state": {},
@@ -6626,19 +6656,17 @@
       ]
     },
     {
-      "move": 555,
+      "move": 558,
       "input": "turn on lamp",
       "parse": {},
       "state": {},
       "output": [
         " The lamp is now on.",
-        " This is a large room with giant icicles hanging from the walls",
-        " and ceiling.  There are passages to the north and east.",
-        " There is a large passageway leading westward."
+        " Glacier Room"
       ]
     },
     {
-      "move": 556,
+      "move": 559,
       "input": "w",
       "parse": {},
       "state": {},
@@ -6649,7 +6677,7 @@
       ]
     },
     {
-      "move": 557,
+      "move": 560,
       "input": "take ruby",
       "parse": {},
       "state": {},
@@ -6658,7 +6686,7 @@
       ]
     },
     {
-      "move": 558,
+      "move": 561,
       "input": "w",
       "parse": {},
       "state": {},
@@ -6668,7 +6696,7 @@
       ]
     },
     {
-      "move": 559,
+      "move": 562,
       "input": "s",
       "parse": {},
       "state": {},
@@ -6686,7 +6714,7 @@
       ]
     },
     {
-      "move": 560,
+      "move": 563,
       "input": "board",
       "parse": {},
       "state": {},
@@ -6695,7 +6723,7 @@
       ]
     },
     {
-      "move": 561,
+      "move": 564,
       "input": "open receptacle",
       "parse": {},
       "state": {},
@@ -6704,7 +6732,7 @@
       ]
     },
     {
-      "move": 562,
+      "move": 565,
       "input": "put guidebook in receptacle",
       "parse": {},
       "state": {},
@@ -6713,7 +6741,7 @@
       ]
     },
     {
-      "move": 563,
+      "move": 566,
       "input": "light match",
       "parse": {},
       "state": {},
@@ -6722,7 +6750,7 @@
       ]
     },
     {
-      "move": 564,
+      "move": 567,
       "input": "light guidebook with match",
       "parse": {},
       "state": {},
@@ -6733,7 +6761,7 @@
       ]
     },
     {
-      "move": 565,
+      "move": 568,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -6752,7 +6780,7 @@
       ]
     },
     {
-      "move": 566,
+      "move": 569,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -6772,7 +6800,7 @@
       ]
     },
     {
-      "move": 567,
+      "move": 570,
       "input": "land",
       "parse": {},
       "state": {},
@@ -6793,7 +6821,7 @@
       ]
     },
     {
-      "move": 568,
+      "move": 571,
       "input": "disembark",
       "parse": {},
       "state": {},
@@ -6802,7 +6830,7 @@
       ]
     },
     {
-      "move": 569,
+      "move": 572,
       "input": "tie rope to hook",
       "parse": {},
       "state": {},
@@ -6811,7 +6839,7 @@
       ]
     },
     {
-      "move": 570,
+      "move": 573,
       "input": "take coin",
       "parse": {},
       "state": {},
@@ -6820,7 +6848,7 @@
       ]
     },
     {
-      "move": 571,
+      "move": 574,
       "input": "s",
       "parse": {},
       "state": {},
@@ -6835,7 +6863,7 @@
       ]
     },
     {
-      "move": 572,
+      "move": 575,
       "input": "open purple book",
       "parse": {},
       "state": {},
@@ -6845,7 +6873,7 @@
       ]
     },
     {
-      "move": 573,
+      "move": 576,
       "input": "take stamp",
       "parse": {},
       "state": {},
@@ -6854,7 +6882,7 @@
       ]
     },
     {
-      "move": 574,
+      "move": 577,
       "input": "n",
       "parse": {},
       "state": {},
@@ -6873,7 +6901,7 @@
       ]
     },
     {
-      "move": 575,
+      "move": 578,
       "input": "untie rope from hook",
       "parse": {},
       "state": {},
@@ -6882,7 +6910,7 @@
       ]
     },
     {
-      "move": 576,
+      "move": 579,
       "input": "board",
       "parse": {},
       "state": {},
@@ -6891,7 +6919,7 @@
       ]
     },
     {
-      "move": 577,
+      "move": 580,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -6909,7 +6937,7 @@
       ]
     },
     {
-      "move": 578,
+      "move": 581,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -6929,7 +6957,7 @@
       ]
     },
     {
-      "move": 579,
+      "move": 582,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -6948,7 +6976,7 @@
       ]
     },
     {
-      "move": 580,
+      "move": 583,
       "input": "land",
       "parse": {},
       "state": {},
@@ -6968,7 +6996,7 @@
       ]
     },
     {
-      "move": 581,
+      "move": 584,
       "input": "disembark",
       "parse": {},
       "state": {},
@@ -6977,7 +7005,7 @@
       ]
     },
     {
-      "move": 582,
+      "move": 585,
       "input": "tie rope to hook",
       "parse": {},
       "state": {},
@@ -6986,7 +7014,7 @@
       ]
     },
     {
-      "move": 583,
+      "move": 586,
       "input": "s",
       "parse": {},
       "state": {},
@@ -6999,7 +7027,7 @@
       ]
     },
     {
-      "move": 584,
+      "move": 587,
       "input": "put brick in hole",
       "parse": {},
       "state": {},
@@ -7008,7 +7036,7 @@
       ]
     },
     {
-      "move": 585,
+      "move": 588,
       "input": "put wire in brick",
       "parse": {},
       "state": {},
@@ -7017,7 +7045,7 @@
       ]
     },
     {
-      "move": 586,
+      "move": 589,
       "input": "light match",
       "parse": {},
       "state": {},
@@ -7026,7 +7054,7 @@
       ]
     },
     {
-      "move": 587,
+      "move": 590,
       "input": "light wire with match",
       "parse": {},
       "state": {},
@@ -7036,7 +7064,7 @@
       ]
     },
     {
-      "move": 588,
+      "move": 591,
       "input": "n",
       "parse": {},
       "state": {},
@@ -7056,21 +7084,19 @@
       ]
     },
     {
-      "move": 589,
+      "move": 592,
       "input": "s",
       "parse": {},
       "state": {},
       "output": [
-        " This is a dusty old room which is virtually featureless, except",
-        " for an exit on the north side.",
-        " On the far wall is a rusty box, whose door has been blown off.",
+        " Dusty Room",
         " The excessively gaudy crown of Lord Dimwit Flathead is here.",
         " The box also contains:",
         "   A card."
       ]
     },
     {
-      "move": 590,
+      "move": 593,
       "input": "take crown",
       "parse": {},
       "state": {},
@@ -7079,7 +7105,7 @@
       ]
     },
     {
-      "move": 591,
+      "move": 594,
       "input": "n",
       "parse": {},
       "state": {},
@@ -7098,7 +7124,7 @@
       ]
     },
     {
-      "move": 592,
+      "move": 595,
       "input": "untie rope from hook",
       "parse": {},
       "state": {},
@@ -7110,7 +7136,7 @@
       ]
     },
     {
-      "move": 593,
+      "move": 596,
       "input": "board",
       "parse": {},
       "state": {},
@@ -7119,7 +7145,7 @@
       ]
     },
     {
-      "move": 594,
+      "move": 597,
       "input": "close receptacle",
       "parse": {},
       "state": {},
@@ -7136,7 +7162,7 @@
       ]
     },
     {
-      "move": 595,
+      "move": 598,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -7153,7 +7179,7 @@
       ]
     },
     {
-      "move": 596,
+      "move": 599,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -7171,7 +7197,7 @@
       ]
     },
     {
-      "move": 597,
+      "move": 600,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -7188,7 +7214,7 @@
       ]
     },
     {
-      "move": 598,
+      "move": 601,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -7205,7 +7231,7 @@
       ]
     },
     {
-      "move": 599,
+      "move": 602,
       "input": "disembark",
       "parse": {},
       "state": {},
@@ -7214,16 +7240,17 @@
       ]
     },
     {
-      "move": 600,
+      "move": 603,
       "input": "n",
       "parse": {},
       "state": {},
       "output": [
-        " Lava Room"
+        " This is a small room, whose walls are formed by an old lava flow.",
+        " There are exits here to the west and the south."
       ]
     },
     {
-      "move": 601,
+      "move": 604,
       "input": "w",
       "parse": {},
       "state": {},
@@ -7232,18 +7259,16 @@
       ]
     },
     {
-      "move": 602,
+      "move": 605,
       "input": "s",
       "parse": {},
       "state": {},
       "output": [
-        " This is a large room with giant icicles hanging from the walls",
-        " and ceiling.  There are passages to the north and east.",
-        " There is a large passageway leading westward."
+        " Glacier Room"
       ]
     },
     {
-      "move": 603,
+      "move": 606,
       "input": "n",
       "parse": {},
       "state": {},
@@ -7254,7 +7279,7 @@
       ]
     },
     {
-      "move": 604,
+      "move": 607,
       "input": "take torch",
       "parse": {},
       "state": {},
@@ -7263,7 +7288,7 @@
       ]
     },
     {
-      "move": 605,
+      "move": 608,
       "input": "e",
       "parse": {},
       "state": {},
@@ -7272,16 +7297,18 @@
       ]
     },
     {
-      "move": 606,
+      "move": 609,
       "input": "u",
       "parse": {},
       "state": {},
       "output": [
-        " Deep Canyon"
+        " You are on the south edge of a deep canyon.  Passages lead off",
+        " to the east, south, and northwest.  You can hear the sound of",
+        " flowing water below."
       ]
     },
     {
-      "move": 607,
+      "move": 610,
       "input": "s",
       "parse": {},
       "state": {},
@@ -7290,7 +7317,7 @@
       ]
     },
     {
-      "move": 608,
+      "move": 611,
       "input": "w",
       "parse": {},
       "state": {},
@@ -7300,31 +7327,29 @@
       ]
     },
     {
-      "move": 609,
+      "move": 612,
       "input": "w",
       "parse": {},
       "state": {},
       "output": [
-        " Troll Room"
+        " This is a small room with passages off in all directions.  Bloodstains",
+        " and deep scratches (perhaps made by an axe) mar the walls."
       ]
     },
     {
-      "move": 610,
+      "move": 613,
       "input": "w",
       "parse": {},
       "state": {},
       "output": [
-        " This is a dark and damp cellar with a narrow passageway leading",
-        " east, and a crawlway to the south.  To the west is the bottom of",
-        " a steep metal ramp which is unclimbable.",
-        " Above you is an open trap door.",
+        " Cellar",
         " A brown sack is here.",
         " The brown sack contains:",
         "   A lunch."
       ]
     },
     {
-      "move": 611,
+      "move": 614,
       "input": "open trap door",
       "parse": {},
       "state": {},
@@ -7333,7 +7358,7 @@
       ]
     },
     {
-      "move": 612,
+      "move": 615,
       "input": "u",
       "parse": {},
       "state": {},
@@ -7389,7 +7414,7 @@
       ]
     },
     {
-      "move": 613,
+      "move": 616,
       "input": "examine brochure",
       "parse": {},
       "state": {},
@@ -7418,7 +7443,7 @@
       ]
     },
     {
-      "move": 614,
+      "move": 617,
       "input": "examine coin",
       "parse": {},
       "state": {},
@@ -7447,7 +7472,7 @@
       ]
     },
     {
-      "move": 615,
+      "move": 618,
       "input": "examine matchbook",
       "parse": {},
       "state": {},
@@ -7472,7 +7497,7 @@
       ]
     },
     {
-      "move": 616,
+      "move": 619,
       "input": "examine newspaper",
       "parse": {},
       "state": {},
@@ -7498,7 +7523,7 @@
       ]
     },
     {
-      "move": 617,
+      "move": 620,
       "input": "examine stamp",
       "parse": {},
       "state": {},
@@ -7524,7 +7549,7 @@
       ]
     },
     {
-      "move": 618,
+      "move": 621,
       "input": "put treasure in case",
       "parse": {},
       "state": {},
@@ -7542,33 +7567,6 @@
       ]
     },
     {
-      "move": 619,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 620,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 621,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
       "move": 622,
       "input": "wait",
       "parse": {},
@@ -7579,6 +7577,33 @@
     },
     {
       "move": 623,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 624,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 625,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 626,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -7596,7 +7621,7 @@
       ]
     },
     {
-      "move": 624,
+      "move": 627,
       "input": "wait",
       "parse": {},
       "state": {},
@@ -7605,7 +7630,7 @@
       ]
     },
     {
-      "move": 625,
+      "move": 628,
       "input": "incant \"ZORK CQCBBBCA\"",
       "parse": {},
       "state": {},
@@ -7618,30 +7643,465 @@
       ]
     },
     {
-      "move": 626,
+      "move": 629,
+      "input": "help",
+      "parse": {},
+      "state": {},
+      "output": [
+        " 1 User Commands",
+        "  ",
+        " The following command may prove useful while playing Dungeon.",
+        " They are not, however, game commands; that is, they have no side",
+        " affects on the current game.",
+        "  ",
+        " 1.1 Verbosity",
+        "  ",
+        "     VERBOSE:\tThe default: prints long room descriptions on first",
+        " \t\tvisit, 20% of the time thereafter.",
+        "  ",
+        "     BRIEF:\tPrints short room descriptions and short object",
+        " \t\tdescriptions for rooms which have been visited.",
+        "  ",
+        "     SUPERBRIEF:\tPrints short room descriptions and short object",
+        " \t\tdescriptions all the time, even on the first visit.",
+        "  ",
+        " Note that the maximally verbose description may always be obtained",
+        " by the command \"LOOK\".  See also the \"ROOM\" and \"OBJECTS\" commands.",
+        "  ",
+        " 1.2 Help",
+        "  ",
+        "     INFO:\tPrints information on what the game is about.",
+        "  ",
+        "     HELP:\tPrints this message.",
+        "  ",
+        " 1.3 Progress",
+        "  ",
+        "     QUIT:\tPrints your score, and asks whether you wish to",
+        " \t\tcontinue playing; \"Q\" is equivalent.",
+        "  ",
+        "     SCORE:\tPrints your score (and deflates your ego).",
+        "  ",
+        "     TIME:\tPrints how much time you have wasted playing the game.",
+        "  ",
+        "     VERSION:\tPrints the current version number.",
+        "  ",
+        " 1.4 Save/Restore",
+        "  ",
+        "     SAVE:\tSaves the current game for future continuation.",
+        "  ",
+        "     RESTORE:\tRestores a previous saved game.",
+        "  ",
+        " SAVE and RESTORE take an optional file name, in quotation marks.  If",
+        " no name is given, the file name defaults to \"DSAVE.DAT\".",
+        "  ",
+        " 1.5 General",
+        "  ",
+        "     AGAIN:\tRepeats the last command.",
+        "  ",
+        "     LOOK:\tDescribes the current surroundings; \"L\" is equivalent.",
+        "  ",
+        "     ROOM:\tPrints the verbose description of the current room,",
+        " \t\twithout object descriptions.",
+        "  ",
+        "     RNAME:\tPrints the short description of the current room.",
+        "  ",
+        "     OBJECTS:\tPrints the verbose description of all the objects",
+        " \t\tin the current room, without describing the room.",
+        "  ",
+        "     INVENTORY:\tPrints a list of your possessions; \"I\" is equivalent.",
+        "  ",
+        "     DIAGNOSE:\tPrints your current state of health.",
+        "  ",
+        "     WAIT:\tCauses \"time\" to pass.",
+        "  ",
+        " 2 Command parser",
+        "  ",
+        " A command is one line of text terminated by a carriage return.",
+        " For reasons of simplicity, all words are distinguished by their",
+        " first eight letters.  All others are ignored.  For example, typing",
+        " \"DISASSEMBLE THE ENCYCLOPEDIA\" is not only meaningless, it also",
+        " creates excess effort for your fingers.  Note that this trunca-",
+        " tion may produce ambiguities in the interpretation of long words.",
+        "  ",
+        " You are talking to a moderately stupid parser, which understands",
+        " the following types of things:",
+        "  ",
+        " 2.1 Actions",
+        "  ",
+        "     Among the more obvious of these, TAKE, PUT, DROP, etc.  Fairly",
+        "     general forms of these may be used, such as PICK UP, PUT DOWN, etc.",
+        "  ",
+        " 2.2 Directions",
+        "  ",
+        "     NORTH, SOUTH, UP, DOWN, etc. and their various abbreviations.",
+        "     Other more obscure directions (LAND, CROSS) are appropriate in",
+        "     only certain situations.",
+        "  ",
+        " 2.3 Objects",
+        "  ",
+        "     Most objects have names and can be referenced by them.  Multiple",
+        "     objects, separated by commas or AND, can be used with TAKE, PUT,",
+        "     and DROP.  In addition, there are collective objects EVERYTHING,",
+        "     VALUABLES, and POSSESSIONS, which may also be used with TAKE",
+        "     PUT, and DROP.  Collective objects may be qualified with an",
+        "     EXCEPT clause; for example, TAKE EVERYTHING EXCEPT THE RUG.",
+        "  ",
+        " 2.4 Adjectives",
+        "  ",
+        "     Some adjectives are understood and required when there are",
+        "     two objects which can be referenced with the same noun (e.g.,",
+        "     DOORs, BUTTONs).",
+        "  ",
+        " 2.5 Prepositions",
+        "  ",
+        "     It may be necessary in some cases to include prepositions, but",
+        "     the parser attempts to handle cases which aren't ambiguous",
+        "     without.  Thus \"GIVE CAR TO DEMON\" will work, as will \"GIVE DEMON",
+        "     CAR\".  When a preposition is used, it should be appropriate;",
+        "     \"GIVE CAR WITH DEMON\" won't parse.",
+        "  ",
+        " 2.6 Sentences",
+        "  ",
+        "     The parser understands a reasonable number of things.  For example,",
+        "     multiple commands (separated by periods or semicolons) can be placed",
+        "     on the same line.",
+        "  ",
+        " 2.7 Ambiguity",
+        "  ",
+        "     The parser tries to be clever about what to do in the case of",
+        "     actions which require objects that are not explicitly specified.",
+        "     If there is only one possible object, the parser will assume",
+        "     that it should be used.  Otherwise, the parser will ask.",
+        "     Most questions asked by the parser can be answered.",
+        "  ",
+        " 3 Theories",
+        "  ",
+        " The following \"theories\" are fundamental to the game and should be noted.",
+        "  ",
+        " 3.1 Containment",
+        "  ",
+        "     Some objects can contain other objects.  Many such containers can",
+        "     be opened and closed.  The rest are always open.   They may or may",
+        "     not be transparent.  For you to access (e.g., take) an object",
+        "     which is in a container, the container must be open.  For you",
+        "     to see such an object, the container must be either open or",
+        "     transparent.  Containers have a capacity, and objects have sizes;",
+        "     the number of objects which will fit therefore depends on their",
+        "     sizes.  You may put any object you have access to (it need not be",
+        "     in your hands) into any other object.  At some point, the program",
+        "     will attempt to pick it up if you don't already have it, which",
+        "     process may fail if you're carrying too much.  Although containers",
+        "     can contain other containers, the program doesn't access more than",
+        "     one level down.",
+        "  ",
+        " 3.2 Fighting",
+        "  ",
+        "     Occupants of the dungeon will, as a rule, fight back when",
+        "     attacked.  In some cases, they may attack even if unprovoked.",
+        "     Useful verbs here are \"ATTACK <villain> WITH <weapon>\", \"KILL\",",
+        "     etc.  Knife-throwing may or may not be useful.  You have a",
+        "     fighting strength which varies with time.  Being in a fight,",
+        "     getting killed, and being injured all lower this strength.",
+        "     Strength is regained with time.  Thus, it is not a good idea to",
+        "     fight someone immediately after being killed.  Other details",
+        "     should become apparent after a few melees or deaths.  The",
+        "     \"DIAGNOSE\" command describes your state of health.",
+        "  ",
+        " 3.3 Vehicles",
+        "  ",
+        "     These are some objects in the labyrinth which are rumored to have",
+        "     the ability to transport the fearless adventurer to mysterious",
+        "     regions which are inaccessible on foot.  Needless to say, the",
+        "     adventurer faces great personal peril as he encounters these",
+        "     regions.  The vehicles can usually be entered with the \"BOARD\"",
+        "     command and can be exited with the \"DISEMBARK\" command."
+      ]
+    },
+    {
+      "move": 630,
+      "input": "info",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon!",
+        "  ",
+        "    You are near a large dungeon, which is reputed to contain vast",
+        " quantities of treasure.   Naturally, you wish to acquire some of it.",
+        " In order to do so, you must of course remove it from the dungeon.  To",
+        " receive full credit for it, you must deposit it safely in the trophy",
+        " case in the living room of the house.",
+        "  ",
+        "    In addition to valuables, the dungeon contains various objects",
+        " which may or may not be useful in your attempt to get rich.  You may",
+        " need sources of light, since dungeons are often dark, and weapons,",
+        " since dungeons often have unfriendly things wandering about.  Reading",
+        " material is scattered around the dungeon as well; some of it",
+        " is rumored to be useful.",
+        "  ",
+        "    To determine how successful you have been, a score is kept.",
+        " When you find a valuable object and pick it up, you receive a",
+        " certain number of points, which depends on the difficulty of finding",
+        " the object.  You receive extra points for transporting the treasure",
+        " safely to the living room and placing it in the trophy case.  In",
+        " addition, some particularly interesting rooms have a value associated",
+        " with visiting them.  The only penalty is for getting yourself killed,",
+        " which you may do only twice.",
+        "  ",
+        "    Of special note is a thief (always carrying a large bag) who likes",
+        " to wander around in the dungeon (he has never been seen by the light",
+        " of day).  He likes to take things.  Since he steals for pleasure",
+        " rather than profit and is somewhat sadistic, he only takes things which",
+        " you have seen.  Although he prefers valuables, sometimes in his haste",
+        " he may take something which is worthless.  From time to time, he examines",
+        " his take and discards objects which he doesn't like.  He may occas-",
+        " ionally stop in a room you are visiting, but more often he just wanders",
+        " through and rips you off (he is a skilled pickpocket)."
+      ]
+    },
+    {
+      "move": 631,
+      "input": "update",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Revision history:",
+        "  ",
+        " 01-Oct-94\tBug fixes (V3.2A).",
+        " 01-Feb-94\tPortable VMS/UNIX version (V3.1A).",
+        " 01-Jan-90\tPortable version (V3.0A).",
+        " 18-Oct-80\tRevised DECUS version (V2.6A).",
+        " 18-Jul-80\tTransportable data base file (V2.5A).",
+        " 28-Feb-80\tCompressed text file (V2.4A).",
+        " 15-Nov-79\tBug fixes (V2.3A).",
+        " 18-Jan-79\tRevised DECUS version (V2.2A).",
+        " 10-Oct-78\tPuzzle Room (V2.1A).",
+        " 10-Sep-78\tEndgame (V2.0A).",
+        " 10-Aug-78\tDECUS version (V1.1B).",
+        " 14-Jun-78\tPublic version with parser (V1.1A).",
+        " 04-Mar-78\tDebugging version (V1.0A)."
+      ]
+    },
+    {
+      "move": 632,
+      "input": "back",
+      "parse": {},
+      "state": {},
+      "output": [
+        " He who puts his hand to the plow and looks back is not fit for the",
+        " kingdom of winners.  In any case, \"BACK\" doesn't work."
+      ]
+    },
+    {
+      "move": 633,
+      "input": "mumble",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You'll have to speak up if you expect me to hear you."
+      ]
+    },
+    {
+      "move": 634,
+      "input": "barf",
+      "parse": {},
+      "state": {},
+      "output": [
+        " I don't know how to do that.  I win in all cases."
+      ]
+    },
+    {
+      "move": 635,
+      "input": "bletch",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Well, FOO, BAR, and BLETCH to you too!"
+      ]
+    },
+    {
+      "move": 636,
+      "input": "hop",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Have you tried hopping around the dungeon, too?"
+      ]
+    },
+    {
+      "move": 637,
+      "input": "skip",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Do you expect me to applaud?"
+      ]
+    },
+    {
+      "move": 638,
+      "input": "curse",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Oh, dear.  Such language from a supposedly winning adventurer!"
+      ]
+    },
+    {
+      "move": 639,
+      "input": "room",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are standing at the top of a flight of stairs that lead down to",
+        " a passage below.  Dim light, as from torches, can be seen in the",
+        " passage.  Behind you the stairs lead into untouched rock."
+      ]
+    },
+    {
+      "move": 640,
+      "input": "objects",
+      "parse": {},
+      "state": {},
+      "output": [
+        " I see no objects here."
+      ]
+    },
+    {
+      "move": 641,
+      "input": "rname",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Top of Stairs"
+      ]
+    },
+    {
+      "move": 642,
+      "input": "time",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You have been playing Dungeon for + 0 minutes."
+      ]
+    },
+    {
+      "move": 643,
+      "input": "exorcise",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Nothing happens."
+      ]
+    },
+    {
+      "move": 644,
+      "input": "brief",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Brief descriptions."
+      ]
+    },
+    {
+      "move": 645,
+      "input": "verbose",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Maximum verbosity."
+      ]
+    },
+    {
+      "move": 646,
+      "input": "superbrief",
+      "parse": {},
+      "state": {},
+      "output": [
+        " No long descriptions."
+      ]
+    },
+    {
+      "move": 647,
+      "input": "version",
+      "parse": {},
+      "state": {},
+      "output": [
+        " V4.0A"
+      ]
+    },
+    {
+      "move": 648,
+      "input": "swim",
+      "parse": {},
+      "state": {},
+      "output": [
+        " I don't really see how."
+      ]
+    },
+    {
+      "move": 649,
+      "input": "geronimo",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Wasn't he an Indian?"
+      ]
+    },
+    {
+      "move": 650,
+      "input": "pray",
+      "parse": {},
+      "state": {},
+      "output": [
+        " If you pray enough, your prayers may be answered."
+      ]
+    },
+    {
+      "move": 651,
+      "input": "treasure",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Nothing happens."
+      ]
+    },
+    {
+      "move": 652,
+      "input": "temple",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Nothing happens."
+      ]
+    },
+    {
+      "move": 653,
+      "input": "blast",
+      "parse": {},
+      "state": {},
+      "output": [
+        " I don't really know how to do that."
+      ]
+    },
+    {
+      "move": 654,
       "input": "go north",
       "parse": {},
       "state": {},
       "output": [
-        " You are standing near one end of a long dimly lit hall.  To the",
-        " south, stone stairs ascend.  To the north, the corridor is illum-",
-        " inated by torches set high in the wall, out of reach.  On one wall",
-        " is a red button."
+        " Stone Room"
       ]
     },
     {
-      "move": 627,
+      "move": 655,
       "input": "go north",
       "parse": {},
       "state": {},
       "output": [
-        " This is a small room, with narrow passages exiting to the north and",
-        " south.  A narrow red beam of light crosses the room at the north end,",
-        " inches above the floor."
+        " Small Room"
       ]
     },
     {
-      "move": 628,
+      "move": 656,
       "input": "drop lamp",
       "parse": {},
       "state": {},
@@ -7650,7 +8110,7 @@
       ]
     },
     {
-      "move": 629,
+      "move": 657,
       "input": "go south",
       "parse": {},
       "state": {},
@@ -7659,7 +8119,7 @@
       ]
     },
     {
-      "move": 630,
+      "move": 658,
       "input": "push red button",
       "parse": {},
       "state": {},
@@ -7668,17 +8128,17 @@
       ]
     },
     {
-      "move": 631,
+      "move": 659,
       "input": "go north",
       "parse": {},
       "state": {},
       "output": [
         " Small Room",
-        " There is a brass lantern (battery-powered) here."
+        " You can see: A lamp."
       ]
     },
     {
-      "move": 632,
+      "move": 660,
       "input": "take lamp",
       "parse": {},
       "state": {},
@@ -7687,59 +8147,25 @@
       ]
     },
     {
-      "move": 633,
+      "move": 661,
       "input": "go north",
       "parse": {},
       "state": {},
       "output": [
-        " This is part of the long hallway.  The east and west walls are",
-        " dressed stone.  In the center of the hall is a shallow stone channel.",
-        " In the center of the room the channel widens into a large hole around",
-        " which is engraved a compass rose.",
-        " A passage enters from the south.",
-        " A large mirror fills the north side of the hallway.",
-        " The mirror is mounted on a panel which has been opened outward."
+        " Hallway"
       ]
     },
     {
-      "move": 634,
+      "move": 662,
       "input": "in",
       "parse": {},
       "state": {},
       "output": [
-        " You are inside a rectangular box of wood whose structure is rather",
-        " complicated.  Four sides and the roof are filled in, and the floor",
-        " is open.",
-        "    As you face the side opposite the entrance, two short sides of",
-        " carved and polished wood are to your left and right.  The left panel",
-        " is mahogany, the right pine.  The wall you face is red on its left",
-        " half and black on its right.  On the entrance side, the wall is white",
-        " opposite the red part of the wall it faces, and yellow opposite the",
-        " black section.  The painted walls are at least twice the length of",
-        " the unpainted ones.  The ceiling is painted blue.",
-        "    In the floor is a stone channel about six inches wide and a foot",
-        " deep.  The channel is oriented in a north-south direction.  In the",
-        " exact center of the room the channel widens into a circular",
-        " depression perhaps two feet wide.  Incised in the stone around this",
-        " area is a compass rose.",
-        "    Running from one short wall to the other at about waist height",
-        " is a wooden bar, carefully carved and drilled.  This bar is pierced",
-        " in two places.  The first hole is in the center of the bar (and thus",
-        " in the center of the room).  The second is at the left end of the room",
-        " (as you face opposite the entrance).  Through each hole runs a wooden",
-        " pole.",
-        "    The pole at the left end of the bar is short, extending about a",
-        " foot above the bar, and ends in a hand grip.  The pole has been",
-        " dropped into a hole carved in the stone floor.",
-        "    The long pole at the center of the bar extends from the ceiling",
-        " through the bar to the circular area in the stone channel.  The",
-        " bottom end of this pole has a T-bar a bit less than two feet long",
-        " attached to it.  On the T-bar is carved an arrow.  The arrow and",
-        " T-bar are pointing west."
+        " Inside Mirror"
       ]
     },
     {
-      "move": 635,
+      "move": 663,
       "input": "raise short pole",
       "parse": {},
       "state": {},
@@ -7748,7 +8174,7 @@
       ]
     },
     {
-      "move": 636,
+      "move": 664,
       "input": "push red wall",
       "parse": {},
       "state": {},
@@ -7759,7 +8185,7 @@
       ]
     },
     {
-      "move": 637,
+      "move": 665,
       "input": "push red wall",
       "parse": {},
       "state": {},
@@ -7769,7 +8195,7 @@
       ]
     },
     {
-      "move": 638,
+      "move": 666,
       "input": "lower short pole",
       "parse": {},
       "state": {},
@@ -7778,7 +8204,7 @@
       ]
     },
     {
-      "move": 639,
+      "move": 667,
       "input": "push mahogany wall",
       "parse": {},
       "state": {},
@@ -7787,7 +8213,7 @@
       ]
     },
     {
-      "move": 640,
+      "move": 668,
       "input": "push mahogany wall",
       "parse": {},
       "state": {},
@@ -7797,7 +8223,7 @@
       ]
     },
     {
-      "move": 641,
+      "move": 669,
       "input": "push mahogany wall",
       "parse": {},
       "state": {},
@@ -7807,7 +8233,7 @@
       ]
     },
     {
-      "move": 642,
+      "move": 670,
       "input": "raise short pole",
       "parse": {},
       "state": {},
@@ -7816,7 +8242,7 @@
       ]
     },
     {
-      "move": 643,
+      "move": 671,
       "input": "push red wall",
       "parse": {},
       "state": {},
@@ -7826,7 +8252,7 @@
       ]
     },
     {
-      "move": 644,
+      "move": 672,
       "input": "push red wall",
       "parse": {},
       "state": {},
@@ -7836,7 +8262,7 @@
       ]
     },
     {
-      "move": 645,
+      "move": 673,
       "input": "push red wall",
       "parse": {},
       "state": {},
@@ -7846,7 +8272,7 @@
       ]
     },
     {
-      "move": 646,
+      "move": 674,
       "input": "push red wall",
       "parse": {},
       "state": {},
@@ -7856,7 +8282,7 @@
       ]
     },
     {
-      "move": 647,
+      "move": 675,
       "input": "push pine wall",
       "parse": {},
       "state": {},
@@ -7865,21 +8291,17 @@
       ]
     },
     {
-      "move": 648,
+      "move": 676,
       "input": "go north",
       "parse": {},
       "state": {},
       "output": [
         " As you leave, the door swings shut.",
-        " This is a north-south hallway which ends in a large wooden door.",
-        " The south side of the room is divided by a wooden wall into small",
-        " hallways to the southeast and southwest.",
-        " The wooden door has a barred panel in it at about head height.  The",
-        " panel is closed, and the door is closed."
+        " Dungeon Entrance"
       ]
     },
     {
-      "move": 649,
+      "move": 677,
       "input": "knock on wooden door",
       "parse": {},
       "state": {},
@@ -7900,53 +8322,221 @@
         " admit you to these regions.",
         "    \"All answers should be in the form 'ANSWER \"answer\"'.\"",
         " The booming voice asks:",
-        " \"Beside the Temple, to which room is it possible to go from the Altar?\""
+        " \"What is the absolute minimum specified value of the Zorkmid",
+        " treasures, in Zorkmids?\""
       ]
     },
     {
-      "move": 650,
-      "input": "wait",
+      "move": 678,
+      "input": "answer \"30003\"",
       "parse": {},
       "state": {},
       "output": [
-        " Time passes...",
+        " The dungeon master says, \"Excellent.\"",
         " The booming voice asks:",
-        " \"Beside the Temple, to which room is it possible to go from the Altar?\""
+        " \"The taking of which object offends the ghosts?\""
       ]
     },
     {
-      "move": 651,
-      "input": "wait",
+      "move": 679,
+      "input": "answer \"BONES\"",
       "parse": {},
       "state": {},
       "output": [
-        " Time passes...",
+        " The dungeon master says, \"Excellent.\"",
         " The booming voice asks:",
-        " \"Beside the Temple, to which room is it possible to go from the Altar?\""
+        " \"From which room can one enter the robber's hideaway without passing",
+        " through the cyclops room?\""
       ]
     },
     {
-      "move": 652,
-      "input": "score",
+      "move": 680,
+      "input": "answer \"TEMPLE\"",
       "parse": {},
       "state": {},
       "output": [
-        " Your score in the endgame is+  45 [total of 100 points], in  652 moves.",
-        " This gives you the rank of Advanced Cheater.",
-        " The booming voice asks:",
-        " \"Beside the Temple, to which room is it possible to go from the Altar?\""
+        " The dungeon master says, \"Excellent.\"",
+        " The dungeon master, obviously pleased, says, \"You are indeed a",
+        " master of lore.  I am proud to be at your service.\"  The massive",
+        " wooden door swings open, and the master motions for you to enter."
       ]
     },
     {
-      "move": 653,
-      "input": "quit",
+      "move": 681,
+      "input": "go north",
       "parse": {},
       "state": {},
       "output": [
-        " Your score in the endgame would be+  45 [total of 100 points], in  653 moves.",
-        " This gives you the rank of Advanced Cheater.",
-        " Do you wish to leave the game?",
-        " Ok.",
+        " Narrow Corridor",
+        " You can see: A dungeon master."
+      ]
+    },
+    {
+      "move": 682,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " South Corridor",
+        " The dungeon master follows you."
+      ]
+    },
+    {
+      "move": 683,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " East Corridor",
+        " The dungeon master follows you."
+      ]
+    },
+    {
+      "move": 684,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " South Corridor",
+        " The dungeon master follows you."
+      ]
+    },
+    {
+      "move": 685,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " West Corridor",
+        " The dungeon master follows you."
+      ]
+    },
+    {
+      "move": 686,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " North Corridor",
+        " The dungeon master follows you."
+      ]
+    },
+    {
+      "move": 687,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Parapet",
+        " The dungeon master follows you."
+      ]
+    },
+    {
+      "move": 688,
+      "input": "turn dial to 4",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The dial now points to \"four\"."
+      ]
+    },
+    {
+      "move": 689,
+      "input": "push button",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The button depresses with a slight click and pops back."
+      ]
+    },
+    {
+      "move": 690,
+      "input": "turn dial to 1",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The dial now points to \"one\"."
+      ]
+    },
+    {
+      "move": 691,
+      "input": "tell master \"stay\"",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The dungeon master says, \"I will stay.\""
+      ]
+    },
+    {
+      "move": 692,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " North Corridor"
+      ]
+    },
+    {
+      "move": 693,
+      "input": "open cell door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The wooden door opens."
+      ]
+    },
+    {
+      "move": 694,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Prison Cell"
+      ]
+    },
+    {
+      "move": 695,
+      "input": "tell master \"push button\"",
+      "parse": {},
+      "state": {},
+      "output": [
+        " \"If you wish,\" he replies.",
+        " The button depresses with a slight click and pops back.",
+        " The cell door is now closed."
+      ]
+    },
+    {
+      "move": 696,
+      "input": "open bronze door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The bronze door opens.",
+        " On the other side of the door is a narrow passage which opens out",
+        " into a larger area."
+      ]
+    },
+    {
+      "move": 697,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Nirvana",
+        " --More--",
+        "    As you gleefully examine your new-found riches, the Dungeon",
+        " Master himself materializes beside you and says, \"Now that you have",
+        " solved all the mysteries of the dungeon, it is time for you to assume",
+        " your rightfully-earned place in the scheme of things.  Long have I",
+        " waited for one capable of releasing me from my burden!\"  He taps you",
+        " lightly on the head with his staff, mumbling a few well-chosen spells,",
+        " and you feel yourself changing, growing older and more stooped.  For",
+        " a moment there are two identical mages staring at each other among",
+        " the treasures, then you watch as your counterpart dissolves into a",
+        " mist and disappears, a sardonic grin on his face.",
+        " --More--",
+        " Your score in the endgame is+ 100 [total of 100 points], in  697 moves.",
+        " This gives you the rank of Dungeon Master.",
         ""
       ]
     }

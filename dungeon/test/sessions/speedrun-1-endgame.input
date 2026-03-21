@@ -384,8 +384,11 @@ e
 se
 e
 touch mirror
+look
 w
+look
 w
+look
 n
 nw
 w
@@ -623,6 +626,31 @@ wait
 wait
 wait
 incant "ZORK CQCBBBCA"
+help
+info
+update
+back
+mumble
+barf
+bletch
+hop
+skip
+curse
+room
+objects
+rname
+time
+exorcise
+brief
+verbose
+superbrief
+version
+swim
+geronimo
+pray
+treasure
+temple
+blast
 go north
 go north
 drop lamp
@@ -647,8 +675,23 @@ push red wall
 push pine wall
 go north
 knock on wooden door
-wait
-wait
-score
-quit
-y
+answer "30003"
+answer "BONES"
+answer "TEMPLE"
+go north
+go north
+go east
+go south
+go west
+go north
+go north
+turn dial to 4
+push button
+turn dial to 1
+tell master "stay"
+go south
+open cell door
+go south
+tell master "push button"
+open bronze door
+go north

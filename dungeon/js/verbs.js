@@ -2215,19 +2215,26 @@ function v_dig(G, odo2, odi2) {
 }
 
 // V90 — Time
+// Mirrors Fortran FORMAT with '+' carriage-control printed literally and
+// Iw right-justified integer fields (I3 for hours, I2 for minutes).
 function v_time(G) {
   const k = G.pltime || 0;
   const hours = Math.floor(k / 60);
   const mins = k % 60;
+  // Fortran FORMAT('+',I2,' minutes.') etc. — '+' is carriage-control
+  // printed literally, Iw pads with spaces on the left.
+  function iw(n, w) { return String(n).padStart(w, ' '); }
   let s = ' You have been playing Dungeon for ';
   if (hours !== 0) {
-    s += `${hours} hour`;
-    if (hours >= 2) s += 's';
-    s += ' and ';
+    s += `+${iw(hours, 3)} hour`;   // FORMAT('+',I3,' hour',$)
+    if (hours >= 2) s += '+s and '; // FORMAT('+s and ',$)
+    else s += '+ and ';             // FORMAT('+ and ',$)
   }
-  s += `${mins} minute`;
-  if (mins !== 1) s += 's';
-  s += '.';
+  if (mins === 1) {
+    s += `+${iw(mins, 2)} minute.`; // FORMAT('+',I2,' minute.')
+  } else {
+    s += `+${iw(mins, 2)} minutes.`; // FORMAT('+',I2,' minutes.')
+  }
   G.output(s);
   G.telflg = true;
   return true;
