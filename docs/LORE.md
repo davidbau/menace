@@ -14637,3 +14637,49 @@ effect was missing.
   - branch-local dungeon level is not a safe substitute for C
     `level_difficulty()` in runtime generation paths; branch-aware difficulty
     must be preserved anywhere random monster strength is chosen
+
+# 2026-03-21: Stage repeat-owner rewrites must preserve counted-command `multi`
+
+- Evidence from a failed broad `runmode_delay_output`/repeat-owner rewrite:
+  - trying to move all positive-`multi` ownership out of `run_command()` caused
+    `seed031_manual_direct` to regress catastrophically:
+    - first RNG divergence `933 -> 163`
+    - first event divergence `934 -> 166`
+  - the early regression window `160..166` is not travel-specific; it is
+    ordinary count-prefixed `"m."` command repetition
+  - baseline step `166` already shows:
+    - `fresh_cmd`
+    - `cmd='.'`
+    - `multi=7`
+    - `mv=0`
+  - so positive `multi` is not one uniform travel-only case in current JS
+- Root cause:
+  - the failed rewrite changed ownership for both:
+    - counted repeated commands (`context.mv == false`)
+    - movement/travel repetition (`context.mv == true`)
+  - that re-attributed whole continuation bundles across earlier counted-command
+    boundaries before reaching the later travel seam
+- Safe Stage A fix:
+  - in [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js),
+    stop `run_command()` from draining repeated non-movement commands
+    (`repeat_cmd`) in its local `repeatLoop()`
+  - keep movement/travel repetition (`context.mv == true`) on the existing path
+    for now
+  - this preserves early counted-command behavior while isolating travel for a
+    later Stage B port
+- Validation:
+  - `seed031_manual_direct` stayed unchanged at:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - early counted-repeat corridor stayed stable:
+    - `seed031` step-summary `160..166` unchanged
+  - targeted guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - any future `runmode_delay_output`/repeat-owner port must stage the work:
+    1. preserve counted-command `multi` semantics first
+    2. then port travel-specific continuation ownership
+  - do not rewrite positive `multi` as if it were only the `_` travel case

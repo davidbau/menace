@@ -775,6 +775,7 @@ export async function run_command(game, ch, opts = {}) {
             coreOpts,
             bumpHeroSeqN,
             showRepeatInterruptMore,
+            mode: ((game.context || {}).mv ? 'all' : 'movement_only'),
         });
     }
 
@@ -790,6 +791,7 @@ async function repeatLoop(game, {
     coreOpts,
     bumpHeroSeqN,
     showRepeatInterruptMore,
+    mode = 'all',
 }) {
     // C ref: allmain.c:519-535 — when context.mv is set (movement/travel),
     // C calls domove() directly instead of rhack(). This is critical for
@@ -851,6 +853,9 @@ async function repeatLoop(game, {
             await advanceTimedTurn(game, coreOpts);
             await _drainOccupation(game, coreOpts);
         } else {
+            if (mode === 'movement_only') {
+                break;
+            }
             emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
             game.multi--;
             game.advanceRunTurn = async () => {
