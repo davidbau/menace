@@ -14997,3 +14997,33 @@ Lesson:
   - the first resumed `_` slice itself must stop at the same C boundary that
     exists before the next positive-repeat iteration's monster work becomes
     visible
+
+# 2026-03-21: The concrete collapsed boundary is `finalizeTimedCommand()` -> local `repeatLoop()`
+
+- The structural mismatch is now precise.
+- Current JS sequence for the initial resumed `_` step:
+  1. `dotravel_target()` performs the first `domove()`
+  2. `run_command()` calls `finalizeTimedCommand()`
+  3. `finalizeTimedCommand()` calls `advanceTimedTurn()`
+  4. `advanceTimedTurn()` runs:
+     - `moveloop_core()`
+     - then `syncTimedTurnPreInputState()`
+  5. control returns to `run_command()`
+  6. `run_command()` immediately enters local `repeatLoop()`
+  7. `repeatLoop()` starts the next positive-repeat movement bundle in the
+     same resumed command
+- C does not collapse those boundaries together.
+  - after `rhack(0)` and the first `domove()`, control returns to
+    `moveloop_core()`
+  - only on a later outer `moveloop()` re-entry does C execute the
+    positive-repeat branch:
+    - `u.umoved = FALSE`
+    - `lookaround()`
+    - `runmode_delay_output()`
+    - repeated `domove()`
+- Lesson:
+  - the next fix target is the boundary between:
+    - `finalizeTimedCommand()` completing the initial `_` travel step
+    - and local `repeatLoop()` starting the next travel step
+  - that boundary is where JS is currently pulling C's next positive-repeat
+    iteration into step `933`

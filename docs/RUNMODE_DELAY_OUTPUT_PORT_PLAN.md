@@ -516,6 +516,47 @@ Implication for the fix:
   positive-repeat slice need a unified C-shaped contract; otherwise JS will
   keep pulling next-iteration monster work into step `933`
 
+### Exact JS sequence that collapses the C boundary
+
+The current JS call chain for the initial resumed `_` step is:
+
+1. `dotravel_target()`
+   - arms `context.travel/run/mv`
+   - performs the first `domove()`
+2. `run_command()`
+   - sees `result.tookTime`
+   - calls `finalizeTimedCommand(result, ...)`
+3. `finalizeTimedCommand()`
+   - calls `advanceTimedTurn()`
+4. `advanceTimedTurn()`
+   - calls `moveloop_core()`
+   - then immediately calls `syncTimedTurnPreInputState()`
+5. control returns to `run_command()`
+6. `run_command()` immediately calls local `repeatLoop()`
+7. `repeatLoop()` enters `runMovementRepeatSlice()` and starts the next
+   positive-repeat movement bundle in the same resumed command
+
+That is the concrete premature boundary crossing.
+
+What C does instead:
+- `rhack(0)` runs `dotravel_target()` and the first `domove()`
+- control returns to `moveloop_core()`
+- later, the outer `moveloop()` re-enters `moveloop_core()` for the
+  once-per-player-input positive-repeat branch
+- only there does C do:
+  - `u.umoved = FALSE`
+  - `lookaround()`
+  - `runmode_delay_output()`
+  - repeated `domove()`
+
+So the missing boundary is not inside `dotravel_target()` itself.
+It is between:
+- `finalizeTimedCommand()` completing the initial travel step
+- and JS entering local `repeatLoop()` for the next travel step
+
+This is why the first resumed JS step already contains dog work that belongs
+to C's later positive-repeat branch.
+
 ## Design Goal
 
 Port JS so that positive `multi` continuation is owned by the JS equivalent of
