@@ -908,3 +908,117 @@ The next implementation should be:
 3. then test whether the first seam finally moves
 
 Only after that should ownership move again.
+
+## Review of Updated Plan (Second Engineer, 2026-03-21)
+
+The "Corrections After Deeper C/JS Analysis" section is excellent — each
+finding is verified against the source. Some notes:
+
+### Finding #1 (missing repeat-branch `runmode_delay_output`) — Confirmed
+
+Verified: C's `allmain.c:629` calls `runmode_delay_output()` between
+`lookaround()` and `domove()` in the positive-multi block. JS's
+`runMovementRepeatSlice()` goes directly from `lookaround()` to `domove()`
+at line 877 with no delay call between. The move-local delay inside
+`domove()` is a different call site with different semantics.
+
+### Finding #2 (`u.umoved = FALSE` per slice) — Confirmed
+
+Verified: C's `allmain.c:624` sets `u.umoved = FALSE` before the
+`gm.multi > 0` block on every `moveloop_core()` iteration. JS sets
+`player.umoved = false` only at `run_command()` line 750 — once per fresh
+command, not per repeat slice. This is a real per-iteration invariant
+that `runMovementRepeatSlice` must add.
+
+### Finding #3 (`advanceTimedTurn` spans too much) — Confirmed
+
+Verified: `advanceTimedTurn()` at line 1004 calls `moveloop_core()` then
+`syncTimedTurnPreInputState()` (which does `find_ac`, vision refresh,
+`display_sync`). In C, these are separate sub-phases within one
+`moveloop_core()` iteration. The fusion means any code that calls
+`advanceTimedTurn` is consuming an entire C iteration, not just "the
+time-passed phase."
+
+### Finding #4 (initial vs repeated travel inconsistency) — Important
+
+This is a subtle point. After `dotravel_target()`, JS currently calls
+`moveloop_core()` alone (no `syncTimedTurnPreInputState`), while repeated
+slices call `advanceTimedTurn()` (which includes the sync). In C, both
+paths go through the same `moveloop_core()` iteration. This asymmetry
+could cause the first travel step to have different vision/AC state than
+subsequent steps.
+
+### Finding #5 (cross-iteration fusing) — The core insight
+
+This is the most important finding. The JS slice does:
+
+```
+lookaround → domove → advanceTimedTurn
+                       ├─ moveloop_core (= next C iteration Phase 1)
+                       └─ syncTimedTurnPreInputState (= next C iteration Phase 2 prefix)
+```
+
+But in C, one `moveloop_core()` iteration is:
+
+```
+Phase 1: movemon (monsters use old hero pos) → turn-end
+Phase 2: pre-input sync → umoved=FALSE → lookaround → delay → domove
+```
+
+So `domove` is the LAST thing in a C iteration, and `movemon` is the
+FIRST thing in the NEXT iteration. The JS slice puts `domove` BEFORE
+`advanceTimedTurn` (which contains `movemon`), which is actually the
+correct ordering! The monsters in `advanceTimedTurn`'s `moveloop_core()`
+do see the post-`domove` hero position, but that's iteration N+1 seeing
+iteration N's result — which is correct.
+
+**However**, the problem is that `advanceTimedTurn` also includes the
+pre-input sync (Phase 2 prefix of iteration N+1), so after
+`runMovementRepeatSlice` returns, the JS state has already crossed into
+the middle of the next C iteration. The next call to
+`runMovementRepeatSlice` then starts with `lookaround` + `domove`, which
+is the tail of that partially-consumed iteration — but without the
+`u.umoved = FALSE` reset that C does at the iteration boundary.
+
+This means the fix is straightforward in principle:
+
+1. Add `player.umoved = false` before `lookaround()` in `runMovementRepeatSlice`
+2. Add the repeat-branch `runmode_delay_output()` between `lookaround()` and `domove()`
+3. Handle `context.move = 0` when `lookaround()` clears multi
+
+These are all local changes to `runMovementRepeatSlice` — no owner move
+needed for Stage C3.
+
+### Stage C1-C4 plan assessment
+
+The staged approach is correct. One concern about Stage C2 (equalizing
+initial and repeated travel framing): this could be high-risk if
+`dotravel_target()` has dependencies on the current framing. Suggest
+verifying with a narrow test before changing the initial travel path.
+
+Stage C3 is the most likely to produce the `ud=8` fix, since it directly
+addresses the two missing invariants (`umoved` reset and `runmode_delay_output`
+call). I'd suggest starting Stage C3 immediately after C1, even before C2,
+since C3's changes are local to `runMovementRepeatSlice` and don't depend
+on the initial/repeated travel equalization.
+
+### Concrete first step
+
+The smallest testable change for Stage C3 would be adding these three
+lines to `runMovementRepeatSlice`, right before `lookaround()`:
+
+```javascript
+// C ref: allmain.c:624 — u.umoved = FALSE before every positive-repeat slice
+const player = game.u || game.player;
+if (player) player.umoved = false;
+```
+
+And after `lookaround()`, before `domove()`:
+
+```javascript
+// C ref: allmain.c:629 — runmode_delay_output() before repeated domove
+await runmode_delay_output(game);
+```
+
+Then run `seed031` and check whether `^dog_invent_decision ... ud=8`
+matches C at step 933.
