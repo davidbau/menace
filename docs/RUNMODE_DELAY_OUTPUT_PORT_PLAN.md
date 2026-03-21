@@ -1120,3 +1120,83 @@ Updated implication:
 So the next code step should not commit the local-invariant patch by itself.
 The next code step should target the next smallest framing mismatch that still
 separates the first dog-goal/gas-spore seam from C.
+
+## Second Engineer Review of C3 Probe Failure
+
+*2026-03-21.*
+
+The C3 probe result is informative. The `umoved` reset and `runmode_delay_output`
+call are real missing invariants but they're not the cause of the dog-goal
+mismatch at step 933. Here's why:
+
+### The real issue: `while (multi > 0)` still packs everything into one step
+
+The C3 probe added correct per-slice invariants, but the slice is still inside
+`repeatLoop()`'s `while (game.multi > 0)` loop. That means ALL travel hops
+still execute within a single replay step (one `_gameLoopStep` call). C
+spreads them across separate `moveloop_core()` iterations, each of which is
+a separate "step" from the harness perspective.
+
+The `runmode_delay_output()` call is not just a display boundary — in C's
+harness, it's where `auto_inp` / `auto_step` checkpoint events fire. Each
+checkpoint corresponds to one step in the C session. When JS packs 5 travel
+hops into one step, the C session has 5 steps for the same hops. This is why
+seed032 has 678 C steps but only 664 JS steps — the 14-step difference is
+exactly the travel hops that JS packs together.
+
+### What this means for the fix
+
+The `umoved` reset and `runmode_delay_output` are necessary but not
+sufficient. The sufficient fix requires either:
+
+1. **Breaking the `while` loop** (the original Stage B approach) so each
+   travel hop is a separate `_gameLoopStep` iteration — but this failed
+   because the slice internals weren't C-shaped yet.
+
+2. **Making the slice internals C-shaped first** (Stage C approach), then
+   breaking the loop — which is the current plan.
+
+The C3 probe confirmed that option 2 is correct: fixing slice internals
+alone doesn't help because the outer `while` loop still fuses everything.
+The invariants need to be combined with the owner move.
+
+### Concrete prediction
+
+The fix will work when BOTH are done simultaneously:
+- Stage C3 invariants (umoved reset + repeat-branch delay) inside the slice
+- Stage C4 owner move (one slice per `_gameLoopStep` iteration)
+
+Neither alone is sufficient. The C3 probe proved this for the invariants;
+the earlier Stage B2b probe proved it for the owner move.
+
+### Seed032 analysis supports this
+
+Seed032 has perfect RNG (29881/29881) but 48 screen failures. Analysis shows:
+- C has 678 steps, JS has 664 — a 14-step deficit
+- The 48 failing screens are ALL step-alignment issues: C shows messages or
+  map content at steps where JS is offset by the packed travel hops
+- The step deficit exactly corresponds to travel/run commands (`L`, `K`) where
+  C spreads hops across multiple steps but JS packs them into one
+- Once the moveloop refactor makes JS produce one step per hop, the step
+  counts will match and the screen failures will resolve
+
+This is the same root cause as seed031's step-933 divergence — both are
+symptoms of the `while (multi > 0)` packing.
+
+### Connection to the three-way framing asymmetry
+
+The "Current Travel Framing Mismatch To Eliminate" section above identifies
+three different JS frames for what C treats uniformly. The seed032 step-count
+analysis provides quantitative evidence for the same conclusion:
+
+- C produces 678 steps because each travel hop goes through a separate
+  `moveloop_core()` iteration with its own `auto_step` checkpoint
+- JS produces 664 steps because `repeatLoop`'s `while` loop fuses multiple
+  hops into one `_gameLoopStep` call
+- The 14-step deficit is exactly the hop count from `L`/`K` commands
+
+Eliminating the three-way asymmetry (making initial, repeated, and top-level
+travel all go through the same one-hop-per-iteration structure) would
+automatically fix both the step count and the dog-goal ordering, because
+each hop would get its own `movemon()` pass where monsters see the pre-hop
+hero position.
