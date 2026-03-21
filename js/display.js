@@ -2468,7 +2468,7 @@ function _getDisplayCtx() {
     if (!_gstate) return null;
     return {
         display: _gstate.display,
-        player: _gstate.player,
+        player: _gstate.u || _gstate.player,
         fov: _gstate.fov,
         flags: _gstate.display?.flags || _gstate.flags,
         map: _gstate.map,
