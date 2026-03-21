@@ -214,6 +214,7 @@ export class LogoInterpreter {
       stream.pos++;
 
       // Special forms
+      if (name === 'HELP') return this._handleHelp(stream, env);
       if (name === 'TO') return this._handleTo(stream, env);
       if (name === 'IF') return this._handleIf(stream, env);
       if (name === 'IFELSE') return this._handleIfElse(stream, env);
@@ -442,6 +443,110 @@ export class LogoInterpreter {
     }
   }
 
+  async _handleHelp(stream, env) {
+    const TOPICS = {
+      FORWARD:    'FORWARD n (FD n) — move forward n steps\n  try: FD 50',
+      FD:         'FORWARD n (FD n) — move forward n steps\n  try: FD 50',
+      BACK:       'BACK n (BK n) — move backward n steps\n  try: BK 30',
+      BK:         'BACK n (BK n) — move backward n steps\n  try: BK 30',
+      RIGHT:      'RIGHT n (RT n) — turn right n degrees\n  try: RT 90',
+      RT:         'RIGHT n (RT n) — turn right n degrees\n  try: RT 90',
+      LEFT:       'LEFT n (LT n) — turn left n degrees\n  try: LT 45',
+      LT:         'LEFT n (LT n) — turn left n degrees\n  try: LT 45',
+      PENUP:      'PENUP (PU) — lift pen, stop drawing\n  try: PU FD 50 PD FD 50',
+      PU:         'PENUP (PU) — lift pen, stop drawing\n  try: PU FD 50 PD FD 50',
+      PENDOWN:    'PENDOWN (PD) — lower pen, start drawing\n  try: PU FD 50 PD FD 50',
+      PD:         'PENDOWN (PD) — lower pen, start drawing\n  try: PU FD 50 PD FD 50',
+      HOME:       'HOME — move turtle to center, heading north\n  try: FD 50 RT 90 FD 50 HOME',
+      CLEARSCREEN:'CLEARSCREEN (CS) — clear screen and home turtle\n  try: CS',
+      CS:         'CLEARSCREEN (CS) — clear screen and home turtle\n  try: CS',
+      SETPOS:     'SETPOS [x y] — move to position\n  try: SETPOS [50 50]',
+      SETHEADING: 'SETHEADING n (SETH n) — set heading (0=N 90=E 180=S 270=W)\n  try: SETH 45 FD 50',
+      SETH:       'SETHEADING n (SETH n) — set heading (0=N 90=E 180=S 270=W)\n  try: SETH 45 FD 50',
+      SETPENCOLOR:'SETPENCOLOR n (SETPC) — set color (0-7 or CSS name)\n  0=black 1=white 2=green 3=violet 4=orange 5=blue 6=cyan 7=yellow\n  try: SETPC 4 FD 80\n  try: SETPC "PURPLE FD 80',
+      SETPC:      'SETPENCOLOR n (SETPC) — set color (0-7 or CSS name)\n  try: SETPC 4 FD 80',
+      SETPENSIZE: 'SETPENSIZE n — set pen width\n  try: SETPENSIZE 3 FD 80',
+      SHOWTURTLE: 'SHOWTURTLE (ST) — show turtle cursor\n  try: HT WAIT 30 ST',
+      ST:         'SHOWTURTLE (ST) — show turtle cursor',
+      HIDETURTLE: 'HIDETURTLE (HT) — hide turtle cursor\n  try: HT',
+      HT:         'HIDETURTLE (HT) — hide turtle cursor\n  try: HT',
+      REPEAT:     'REPEAT n [commands] — run commands n times\n  :REPCOUNT gives the current iteration (1, 2, ...)\n  try: REPEAT 4 [FD 50 RT 90]\n  try: REPEAT 36 [FD 50 RT 170]',
+      IF:         'IF condition [commands] — run if TRUE\n  try: MAKE "X 5 IF :X > 3 [PRINT "BIG]',
+      IFELSE:     'IFELSE cond [true] [false]\n  try: MAKE "X 5 IFELSE :X > 3 [PRINT "BIG] [PRINT "SMALL]',
+      TO:         'TO name :arg ... — define a procedure, end with END\n  try:\n  TO SQUARE :SIZE\n    REPEAT 4 [FD :SIZE RT 90]\n  END\n  SQUARE 50',
+      MAKE:       'MAKE "name value — set a variable\n  try: MAKE "SIDE 60 FD :SIDE',
+      PRINT:      'PRINT value (PR) — print and newline\n  try: PRINT 3 + 4\n  try: PRINT [HELLO WORLD]',
+      PR:         'PRINT value (PR) — print and newline\n  try: PR "HELLO',
+      TYPE:       'TYPE value — print without newline\n  try: TYPE "HELLO TYPE "WORLD PRINT ""',
+      SHOW:       'SHOW value — print with brackets for lists\n  try: SHOW [1 2 3]',
+      OUTPUT:     'OUTPUT value (OP) — return value from a procedure\n  try:\n  TO DOUBLE :N\n    OUTPUT :N * 2\n  END\n  PRINT DOUBLE 21',
+      OP:         'OUTPUT value (OP) — return value from a procedure',
+      STOP:       'STOP — exit a procedure without returning a value',
+      BYE:        'BYE — exit Logo and return to the shell',
+      SAVE:       'SAVE — save all procedures to browser storage',
+      LOAD:       'LOAD — restore saved procedures',
+      WAIT:       'WAIT n — pause for n/60 seconds\n  try: REPEAT 4 [FD 50 RT 90 WAIT 10]',
+      RANDOM:     'RANDOM n — random integer 0 to n-1\n  try: PRINT RANDOM 100',
+      ARC:        'ARC angle radius — draw arc\n  try: ARC 360 40',
+      FIRST:      'FIRST thing — first element or character\n  try: PRINT FIRST [A B C]',
+      LAST:       'LAST thing — last element or character\n  try: PRINT LAST [A B C]',
+      BUTFIRST:   'BUTFIRST thing (BF) — all but first\n  try: PRINT BF [A B C]',
+      BF:         'BUTFIRST thing (BF) — all but first\n  try: PRINT BF [A B C]',
+      BUTLAST:    'BUTLAST thing (BL) — all but last\n  try: PRINT BL [A B C]',
+      BL:         'BUTLAST thing (BL) — all but last',
+      COUNT:      'COUNT thing — number of elements/characters\n  try: PRINT COUNT [A B C D]',
+      LIST:       'LIST a b — make a two-element list\n  try: SHOW LIST 1 2',
+      SENTENCE:   'SENTENCE a b (SE) — combine into flat list\n  try: SHOW SE [A B] [C D]',
+      SE:         'SENTENCE a b (SE) — combine into flat list',
+      WORD:       'WORD a b — join two words\n  try: PRINT WORD "HELLO "WORLD',
+      FPUT:       'FPUT item list — add to front\n  try: SHOW FPUT 0 [1 2 3]',
+      LPUT:       'LPUT item list — add to end\n  try: SHOW LPUT 4 [1 2 3]',
+      PICK:       'PICK list — random element\n  try: PRINT PICK [RED GREEN BLUE]',
+      PROCEDURES: 'PROCEDURES — list all defined procedures',
+      XCOR:       'XCOR — turtle x coordinate\n  try: PRINT XCOR',
+      YCOR:       'YCOR — turtle y coordinate',
+      HEADING:    'HEADING — turtle heading in degrees',
+      POS:        'POS — turtle position as [x y]',
+      ITEM:       'ITEM n list — nth element (1-indexed)\n  try: PRINT ITEM 2 [A B C]',
+      AND:        'AND a b — TRUE if both TRUE',
+      OR:         'OR a b — TRUE if either TRUE',
+      NOT:        'NOT a — TRUE if FALSE, FALSE if TRUE',
+      EQUALP:     'EQUALP a b (EQUAL?) — TRUE if equal\n  try: PRINT EQUALP 3 3',
+      'EQUAL?':   'EQUALP a b (EQUAL?) — TRUE if equal',
+      LOCAL:      'LOCAL "name — declare a local variable in current procedure',
+    };
+    // Optionally consume one argument (topic)
+    let topic = '';
+    if (stream.pos < stream.items.length) {
+      const next = stream.items[stream.pos];
+      if (next.type === 'QUOTED') { topic = next.value.toUpperCase(); stream.pos++; }
+      else if (next.type === 'WORD') { topic = next.value; stream.pos++; }
+    }
+    if (topic && TOPICS[topic]) {
+      this._output(TOPICS[topic] + '\n');
+      return;
+    }
+    if (topic) {
+      this._output(`NO HELP FOR ${topic}\n`);
+      return;
+    }
+    // General help
+    const out = (...args) => this._output(args.join(''));
+    out('TURTLE:  FD BK RT LT  PU PD  HOME CS  ST HT\n');
+    out('         SETPOS SETH SETPC SETPENSIZE ARC\n');
+    out('CONTROL: REPEAT IF IFELSE TO/END OUTPUT STOP\n');
+    out('VARS:    MAKE "NAME VALUE   :NAME   LOCAL\n');
+    out('MATH:    + - * / = < >   SQRT POWER RANDOM\n');
+    out('LOGIC:   AND OR NOT  EQUALP LESSP GREATERP\n');
+    out('LISTS:   LIST FIRST LAST BF BL FPUT LPUT COUNT\n');
+    out('I/O:     PRINT TYPE SHOW CT\n');
+    out('OTHER:   PROCEDURES SAVE LOAD ERALL WAIT BYE\n');
+    out('\n');
+    out('TRY:     REPEAT 36 [FD 50 RT 170]\n');
+    out('\n');
+    out('TYPE HELP "COMMAND FOR DETAILS\n');
+  }
+
   async _handleMake(stream, env) {
     const name = await this._evalExpr(stream, env);
     const value = await this._evalExpr(stream, env);
@@ -660,6 +765,8 @@ export class LogoInterpreter {
       else out(names.join(' ') + '\n');
     });
     def('HELP', 0, () => {
+      // Handled as special form in _handleHelp; this is a fallback
+
       out('TURTLE:  FD BK RT LT  PU PD  HOME CS  ST HT\n');
       out('         SETPOS SETH SETPC SETPENSIZE ARC\n');
       out('CONTROL: REPEAT IF IFELSE TO/END OUTPUT STOP\n');
