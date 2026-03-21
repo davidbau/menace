@@ -136,6 +136,27 @@ For the full narratives of how these lessons were discovered, see the
   - the remaining seam is now monster-side target refresh timing, not hero
     attack ownership
 
+## The remaining gas-spore seam is one target refresh too early
+
+- After the exact visible-hostile stop gate landed, fresh
+  `WEBHACK_MONMOVE_TRACE` showed the remaining `seed031` bug is not in
+  `distfleeck()` or `set_apparxy()` formulas themselves.
+- Monster `27` (gas spore) is already being refreshed to the hero's exact
+  square on the immediately preceding turn.
+- Evidence:
+  - prior turn:
+    - `set_apparxy ... old=(62,15) new=(64,15)`
+  - then, within the same `dochug()/m_move()` corridor:
+    - second `set_apparxy ... mode=direct u_at_old=1`
+  - next turn:
+    - first `distfleeck()` starts from that already-direct target and logs
+      `near=1`
+- Practical rule:
+  - if the bad turn starts with a direct inherited target, do not patch the
+    bad turn first
+  - patch the earlier extra target refresh / earlier monster-turn boundary that
+    created that inherited target
+
 ## The Cardinal Rules
 
 ### 1. The RNG is the source of truth

@@ -1892,6 +1892,44 @@ This change is no longer provisional because it:
 So the next stage should build on that stop gate, not revisit whether it is
 correct.
 
+### New lower-level finding after the stop-gate fix
+
+Fresh `WEBHACK_MONMOVE_TRACE` on top of `6c72c5e14` shows the remaining
+`near=1` mismatch is not caused by `distfleeck()` or `set_apparxy()` doing the
+wrong work on the bad turn itself.
+
+What actually happens in JS:
+
+- on monster `27`'s prior turn, `set_apparxy()` already refreshes `mux/muy` to
+  the hero's exact square (for example `old=(62,15) -> new=(64,15)`)
+- then the second `set_apparxy()` call inside the same `dochug()/m_move()`
+  corridor immediately hits the fast path:
+  - `mode=direct`
+  - `u_at_old=1`
+- on the next monster `27` turn, the first `set_apparxy()` starts from that
+  already-direct target, so the first `distfleeck()` inevitably sees
+  `near=1`
+
+This means:
+
+- the remaining bug is upstream of the bad `distfleeck()` call
+- the real difference is that JS gives monster `27` one direct target refresh
+  too early, on the immediately preceding turn
+- therefore the next fix target is not:
+  - `distfleeck()`
+  - `monnear()`
+  - or the `set_apparxy()` formulas themselves
+- the next fix target is:
+  - why monster `27` gets that preceding turn / target refresh earlier than C
+
+Concrete implication:
+
+- the next parity question is:
+  - "what earlier timed-turn / movemon boundary lets JS refresh monster `27` to
+    the hero's exact square one cycle before C?"
+- not:
+  - "how should `near` be calculated?"
+
 ### Why this probe was reverted
 
 By the repo standard it still did not move the legacy first-divergence step
