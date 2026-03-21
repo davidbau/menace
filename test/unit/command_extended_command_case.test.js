@@ -140,7 +140,7 @@ test('#wipe prints face-clean message and returns tookTime true', async () => {
         `expected face message, got: ${JSON.stringify(game.display.messages)}`);
 });
 
-test('#pray shows prayer message', { skip: 'dopray requires full game state (can_pray calls multiple subsystems)' }, async () => {
+test('#pray shows prayer message', async () => {
     clearInputQueue();
     const game = makeGame();
     for (const ch of 'pray') pushInput(ch.charCodeAt(0));
