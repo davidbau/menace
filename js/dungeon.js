@@ -527,7 +527,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
         const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
         const peaceful = mon?.mpeaceful ? 1 : 0;
-        const sleeping = mon?.sleeping ? 1 : 0;
+        const sleeping = mon?.msleeping ? 1 : 0;
         const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
         const canmove = mon?.mcanmove === false ? 0 : 1;
         const trapped = mon?.mtrapped ? 1 : 0;
@@ -3932,11 +3932,9 @@ function fill_zoo_room(map, sroom, depth) {
             else if (type === ANTHOLE) monType = antholemon(depth);
             else monType = null; // ZOO: random
 
-            // C: MM_ASLEEP | MM_NOGRP — keep both fields in sync until legacy
-            // `sleeping` alias is fully removed.
+            // C: MM_ASLEEP | MM_NOGRP
             const mon = makemon(monType, sx, sy, MM_NOGRP, depth, map);
             if (mon) {
-                mon.sleeping = true;
                 mon.msleeping = 1;
                 if (type === COURT && mon.mpeaceful) {
                     mon.mpeaceful = false;

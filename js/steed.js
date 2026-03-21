@@ -115,7 +115,7 @@ export async function maybewakesteed(steed) {
     const wasimmobile = !!(steed.msleeping || (steed.mfrozen && !steed.mcanmove));
 
     steed.msleeping = 0;
-    steed.sleeping = false;
+    steed.msleeping = 0;
     let frozen = steed.mfrozen || 0;
     if (frozen) {
         frozen = Math.floor((frozen + 1) / 2); // half
@@ -317,7 +317,7 @@ export async function kick_steed(player, map, display) {
         if ((steed.mcanmove || steed.mfrozen) && !rn2(2)) {
             if (steed.mcanmove) {
                 steed.msleeping = 0;
-                steed.sleeping = false;
+                steed.msleeping = 0;
             } else if (steed.mfrozen > 2) {
                 steed.mfrozen -= 2;
             } else {

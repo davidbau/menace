@@ -388,7 +388,7 @@ function mm_2way_aggression(magr, mdef, map) {
 }
 
 function mm_aggression(magr, mdef, map) {
-    if (magr?.tame && mdef?.tame) return { allowM: false, allowTM: false };
+    if (magr?.mtame && mdef?.mtame) return { allowM: false, allowTM: false };
     const attackerIdx = magr?.mndx;
     const defenderIdx = mdef?.mndx;
     const isPurpleWorm = attackerIdx === PM_PURPLE_WORM || attackerIdx === PM_BABY_PURPLE_WORM;
@@ -493,7 +493,7 @@ export function mfndpos(mon, map, player, flag) {
     const nodiag = (mon.mndx === PM_GRID_BUG);
 
     // C ref: mon.c:2142-2145 — confused: grant all, remove notonl
-    if (mon.confused) {
+    if (mon.mconf) {
         flag |= ALLOW_ALL;
         flag &= ~NOTONL;
     }
@@ -686,7 +686,7 @@ export function mfndpos(mon, map, player, flag) {
                     const mmAllowTM = !!(flag & ALLOW_TM) || aggr.allowTM;
                     if (mmAllowM) {
                         posInfo |= ALLOW_M;
-                        if (monAtPos.tame) {
+                        if (monAtPos.mtame) {
                             if (!mmAllowTM) continue;
                             posInfo |= ALLOW_TM;
                         }
@@ -836,7 +836,7 @@ export function handleHiderPremove(mon, map, player, fov) {
 
     if (!blocked) {
         if (ptr.mlet === S_MIMIC) {
-            if (!(mon.sleeping || (mon.mfrozen > 0))) {
+            if (!(mon.msleeping || (mon.mfrozen > 0))) {
                 mon.m_ap_type = mon.m_ap_type || M_AP_OBJECT;
                 return true;
             }
@@ -1392,7 +1392,6 @@ export function wake_msg(mon, via_attack) {
 // C ref: mon.c wakeup() — wake monster, possibly anger
 export function wakeup(mon, via_attack, map, player) {
     mon.msleeping = 0;
-    mon.sleeping = false;
     // Reveal hidden mimic
     if (mon.m_ap_type && mon.m_ap_type !== M_AP_MONSTER) {
         seemimic(mon, map);
@@ -1417,7 +1416,6 @@ export function wake_nearto_core(x, y, distance, petcall, map) {
         if (distance === 0 || dist2(mon.mx, mon.my, x, y) < distance) {
             // C ref: mon.c:4378-4381
             mon.msleeping = 0;
-            mon.sleeping = false;
             const mdat = mon.data || mon.type || {};
             if (!((mdat.geno || 0) & G_UNIQ)) {
                 mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_WAITMASK;
@@ -1462,7 +1460,7 @@ export function setmangry(mon, via_attack, map, player) {
     mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_WAITMASK;
 
     if (!mon.mpeaceful) return;
-    if (mon.tame) return;
+    if (mon.mtame) return;
     mon.mpeaceful = false;
     // C ref: mon.c:4291-4297 — alignment penalty
     if (mon.ispriest) {
@@ -1686,7 +1684,7 @@ export function meatbox(mon, otmp, map) {
 // Missing: poly/grow/stone/mimic/pyrolisk (unported subsystems).
 export function m_consume_obj(mon, otmp, map) {
     if (!mon || !otmp) return;
-    const ispet = !!mon.tame;
+    const ispet = !!mon.mtame;
 
     // Non-pet: heal up to object weight in HP
     if (!ispet && (mon.mhp || 0) < (mon.mhpmax || 0)) {
@@ -1713,7 +1711,7 @@ export function m_consume_obj(mon, otmp, map) {
 // Returns: 0 = nothing, 1 = ate something, 2 = died
 export function meatmetal(mon, map) {
     if (!mon || !map) return 0;
-    if (mon.tame) return 0;
+    if (mon.mtame) return 0;
 
     const objects = map.objectsAt ? map.objectsAt(mon.mx, mon.my) : [];
     for (const otmp of [...objects]) {
@@ -1734,7 +1732,7 @@ export function meatmetal(mon, map) {
         // Rust monster vs erodeproof: spit it out
         if (mon.mndx === PM_RUST_MONSTER && otmp.oerodeproof) {
             otmp.oerodeproof = false;
-            mon.stunned = true;
+            mon.mstun = true;
             return 0; // didn't actually eat it
         }
 
@@ -1757,7 +1755,7 @@ export function meatmetal(mon, map) {
 // Returns: 0 = nothing, 1 = ate/engulfed, 2 = died
 export function meatobj(mon, map) {
     if (!mon || !map) return 0;
-    if (mon.tame) return 0;
+    if (mon.mtame) return 0;
 
     const objects = map.objectsAt ? map.objectsAt(mon.mx, mon.my) : [];
     let count = 0, ecount = 0;
@@ -1804,7 +1802,7 @@ export function meatobj(mon, map) {
 // Returns: 0 = nothing, 1 = ate, 2 = died
 export function meatcorpse(mon, map) {
     if (!mon || !map) return 0;
-    if (mon.tame) return 0;
+    if (mon.mtame) return 0;
 
     const objects = map.objectsAt ? map.objectsAt(mon.mx, mon.my) : [];
     for (const otmp of [...objects]) {
@@ -2084,7 +2082,7 @@ export function mon_givit(mon, ptr) {
             mon.perminvis = true;
             mon.minvis = true;
         }
-        mon.stunned = true;
+        mon.mstun = true;
         return;
     }
 
@@ -2187,7 +2185,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 `mv=${mon.movement + NORMAL_SPEED}->${mon.movement}`,
                 `flee=${mon.mflee ? 1 : 0}`,
                 `peace=${mon.mpeaceful ? 1 : 0}`,
-                `conf=${mon.confused ? 1 : 0}`);
+                `conf=${mon.mconf ? 1 : 0}`);
             // C ref: mon.c:1250-1251 — minliquid() before gear/hider logic.
             if (await minliquid(mon, map, player)) continue;
             // C ref: mon.c:1254-1267 — monster may spend turn equipping gear (I_SPECIAL check)
@@ -2795,7 +2793,7 @@ export function monnear(mon, x, y) {
 // C ref: monst.h helpless(mon) — sleeping or unable to move.
 export function helpless(mon) {
     if (!mon) return true;
-    if (mon.msleeping || mon.sleeping) return true;
+    if (mon.msleeping) return true;
     if (mon.mcanmove === false || mon.mcanmove === 0) return true;
     if (Number(mon.mfrozen || 0) > 0) return true;
     return false;

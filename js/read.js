@@ -825,9 +825,8 @@ export async function seffect_light(sobj, player, display, game) {
                                 MM_EDOG | NO_MINVENT, depth, map);
             if (mon) {
                 mon.msleeping = 0;
-                mon.sleeping = false;
                 mon.mcan = true; // cancelled — won't explode
-                mon.tame = true;
+                mon.mtame = 10;
                 sawlights = true;
             }
         }
@@ -908,13 +907,12 @@ export async function seffect_scare_monster(sobj, player, display, game) {
                 mtmp.mflee = false;
                 mtmp.mfrozen = 0;
                 mtmp.msleeping = 0;
-                mtmp.sleeping = false;
                 mtmp.mcanmove = true;
             } else if (!resist(mtmp, SCROLL_CLASS)) {
                 // cf. read.c:1420 monflee(mtmp, 0, FALSE, FALSE)
                 await monflee(mtmp, 0, false, false);
             }
-            if (!mtmp.tame) ct++;
+            if (!mtmp.mtame) ct++;
         }
     }
 
@@ -1387,7 +1385,7 @@ async function seffect_amnesia(sobj, player, display) {
 
 function mon_tame_state(mon) {
     const mtame = Number(mon?.mtame || 0);
-    return mtame > 0 || !!mon?.tame;
+    return mtame > 0;
 }
 
 function mon_peaceful_state(mon) {

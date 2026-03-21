@@ -97,7 +97,7 @@ import { set_itimeout, make_sick, make_stunned, make_confused,
 import { feel_cockatrice, sobj_at, carried, update_inventory, carrying } from './invent.js';
 import { reset_utrap } from './trap.js';
 import { destroy_arm, makeknown } from './do_wear.js';
-import { init_uhunger } from './eat.js';
+import { init_uhunger, eaten_stat } from './eat.js';
 import { record_achievement, align_str } from './insight.js';
 import { obfree } from './shk.js';
 import { region_danger, region_safety } from './region.js';
@@ -1301,9 +1301,9 @@ async function give_spell(player, map) {
         }
         obfree(otmp);
     } else {
-        // C: if (otmp->otyp == SPE_BLANK_PAPER || !rn2(100)) makeknown(otmp->otyp)
+        // C ref: pray.c — divine gift spellbooks may be identified
         if (otmp.otyp === SPE_BLANK_PAPER || !rn2(100)) {
-            // makeknown — RNG consumed above
+            makeknown(otmp.otyp);
         }
         bless_obj(otmp);
         await at_your_feet(upstart(ansimpleoname(otmp)), player);
@@ -1899,8 +1899,9 @@ export function sacrifice_value(otmp, player) {
         || ((player.turns || 0) <= peek_at_iced_corpse_age(otmp) + 50)) {
         const mdat = mons[otmp.corpsenm];
         value = (mdat ? mdat.difficulty || 0 : 0) + 1;
+        // C ref: pray.c — partially eaten corpses use eaten_stat()
         if (otmp.oeaten)
-            value = Math.floor(value * (otmp.oeaten / 100)); // simplified eaten_stat
+            value = eaten_stat(value, otmp);
     }
     return value;
 }
@@ -2331,7 +2332,6 @@ async function maybe_turn_mon_iter(mtmp, player, map) {
         && (is_undead(mdat)
             || (is_demon(mdat) && (player.ulevel || 1) > 15))) {
         mtmp.msleeping = 0;
-        mtmp.sleeping = false;
         if (player.confused) {
             if (!turn_undead_msg_cnt++)
                 await pline("Unfortunately, your voice falters.");

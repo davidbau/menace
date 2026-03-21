@@ -514,8 +514,7 @@ export async function priest_talk(priest, map, player, display) {
             await pline("%s breaks out of %s reverie!", Monnam(priest),
                   priest.female ? "her" : "his");
             priest.mfrozen = 0;
-            priest.msleeping = false;
-            priest.sleeping = false;
+            priest.msleeping = 0;
             priest.mcanmove = true;
         }
         priest.mpeaceful = false;
@@ -624,8 +623,7 @@ export async function mk_roamer(ptr, alignment, x, y, peaceful, depth, map, play
     roamer.isminion = true;
     if (mon_learns_traps) mon_learns_traps(roamer, ALL_TRAPS);
     roamer.mpeaceful = peaceful;
-    roamer.msleeping = false;
-    roamer.sleeping = false;
+    roamer.msleeping = 0;
     set_malign(roamer, player);
 
     return roamer;

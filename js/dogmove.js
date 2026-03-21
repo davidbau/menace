@@ -299,7 +299,7 @@ export function can_carry(mon, obj, player = null) {
     // C ref: mon.c:2002 — steeds don't pick up stuff (to avoid shop abuse)
     if (player && mon === player.usteed) return 0;
 
-    if (mon.mpeaceful && !mon.tame) return 0;
+    if (mon.mpeaceful && !mon.mtame) return 0;
     if ((mdat.mflags2 & M2_ROCKTHROW) && obj.otyp === BOULDER) return iquan;
     if (mdat.mlet === S_NYMPH)
         return (obj.oclass === ROCK_CLASS) ? 0 : iquan;
@@ -327,7 +327,7 @@ export async function dog_eat(mon, obj, map, turnCount, ctx = null) {
     pushRngLogEntry(`^eat[${mon.mndx}@${mon.mx},${mon.my},${obj.otyp}]`);
     edog.hungrytime += nutrit;
 
-    mon.confused = 0;
+    mon.mconf = 0;
     if (edog.mhpmax_penalty) {
         mon.mhpmax = (mon.mhpmax || 0) + edog.mhpmax_penalty;
         edog.mhpmax_penalty = 0;
@@ -336,8 +336,8 @@ export async function dog_eat(mon, obj, map, turnCount, ctx = null) {
     if (mon.mflee && mon.mfleetim > 1)
         mon.mfleetim = Math.floor(mon.mfleetim / 2);
 
-    if (mon.tame < 20)
-        mon.tame++;
+    if (mon.mtame < 20)
+        mon.mtame++;
 
     let removeFromMap = true;
     if ((obj.quan || 1) > 1 && obj.oclass === FOOD_CLASS) {
@@ -415,7 +415,7 @@ export async function dog_hunger(mon, edog, turnCount, map, display, player, fov
             edog.hungrytime = turnCount + DOG_WEAK;
         } else if (!edog.mhpmax_penalty) {
             const newmhpmax = Math.floor((mon.mhpmax || 0) / 3);
-            mon.confused = 1;
+            mon.mconf = 1;
             edog.mhpmax_penalty = (mon.mhpmax || 0) - newmhpmax;
             mon.mhpmax = newmhpmax;
             if ((mon.mhp || 0) > mon.mhpmax)
@@ -820,7 +820,7 @@ export function find_friends(mon, target, maxdist, map, player) {
         // C ref: dogmove.c:724-736 — tame monster behind target
         const pal = map.monsterAt(curx, cury);
         if (pal && !pal.dead) {
-            if (pal.tame) {
+            if (pal.mtame) {
                 const perceiveInvis = !!(mons[mon.mndx]?.mflags1 & M1_SEE_INVIS);
                 if (!pal.minvis || perceiveInvis) return true;
             }
@@ -842,7 +842,7 @@ export function find_friends(mon, target, maxdist, map, player) {
 function score_targ(mon, target, map, player) {
     let score = 0;
     // C ref: dogmove.c:753 — if not confused, or 1-in-3 chance, do full scoring
-    if (!mon.confused || !rn2(3)) {
+    if (!mon.mconf || !rn2(3)) {
         // C ref: dogmove.c:758-769 — alignment checks (minions/priests)
         // Simplified: early-game monsters are not minions/priests
 
@@ -858,7 +858,7 @@ function score_targ(mon, target, map, player) {
         }
         // C ref: dogmove.c:785-789 — tame monsters and player never targeted
         // Returns BEFORE rnd(5) at line 835
-        if (target.tame || target.isPlayer) {
+        if (target.mtame || target.isPlayer) {
             score -= 3000;
             return score;
         }
@@ -895,7 +895,7 @@ function score_targ(mon, target, map, player) {
     // C ref: dogmove.c:835 — fuzz factor (consumed for all targets that reach here)
     score += rnd(5);
     // C ref: dogmove.c:837-838 — confused penalty
-    if (mon.confused && !rn2(3)) score -= 1000;
+    if (mon.mconf && !rn2(3)) score -= 1000;
     return score;
 }
 
@@ -1216,7 +1216,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     }
 
     // C ref: dogmove.c:610-611 — confused pets don't approach or flee
-    if (mon.confused) appr = 0;
+    if (mon.mconf) appr = 0;
 
     // C ref: dogmove.c:603-637 — redirect goal when pet can't see master
     if (gx === player.x && gy === player.y && !inMastersSight) {
@@ -1351,8 +1351,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                     - 2;
                 const conflictActive = !!(player?.hasProp?.(CONFLICT));
                 const targetMpeaceful = !!target.mpeaceful;
-                const targetMtame = !!((target.mtame || 0) > 0 || target.tame);
-                const monMtame = !!((mon.mtame || 0) > 0 || mon.tame);
+                const targetMtame = !!((target.mtame || 0) > 0 || target.mtame);
+                const monMtame = !!((mon.mtame || 0) > 0 || mon.mtame);
                 const targetMsound = ((target.data || target.type)?.msound
                     ?? mons[target.mndx]?.msound ?? 0);
                 const passiveDmg = max_passive_dmg(target, mon);

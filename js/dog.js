@@ -149,7 +149,7 @@ export function dogfood(mon, obj, moves) {
         if (!carni && !herbi)
             return obj.cursed ? UNDEF : APPORT;
 
-        const starving = !!(mon.tame && !mon.isminion
+        const starving = !!(mon.mtame && !mon.isminion
                            && mon.edog && mon.edog.mhpmax_penalty);
         const mblind = false;
 
@@ -187,7 +187,7 @@ export function dogfood(mon, obj, moves) {
                 || (fptr && acidic(fptr) && !resists_acid(mon))
                 || (fptr && poisonous(fptr) && !resists_poison(mon)))
                 return POISON;
-            else if (polyfood(obj) && mon.tame > 1 && !starving)
+            else if (polyfood(obj) && mon.mtame > 1 && !starving)
                 return MANFOOD;
             else if (fptr && mon_vegan(fptr))
                 return herbi ? CADAVER : MANFOOD;
@@ -297,7 +297,7 @@ export function makedog(map, player, depth) {
     if (petName) pet.name = petName;
 
     // C ref: dog.c:271 — initedog(mtmp, TRUE)
-    pet.tame = true;
+    pet.mtame = 1;
     pet.mtame = is_domestic(mons[pmIdx]) ? 10 : 5;
     pet.mpeaceful = true;
     pet.edog.apport = 0;
@@ -442,7 +442,7 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
         if (wasOnOldMap) {
             oldMap.removeMonster(pet);
         }
-        const mtame = pet.mtame || (pet.tame ? 10 : 0);
+        const mtame = pet.mtame || (pet.mtame ? 10 : 0);
         const bound = mtame > 0 ? 10 : (pet.mpeaceful ? 5 : 2);
 
         pet.mux = heroX;
@@ -533,7 +533,7 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
 
         pet.mx = petX;
         pet.my = petY;
-        pet.sleeping = false;
+        pet.msleeping = 0;
         pet.dead = false;
         if (Number.isInteger(currentMoves)) pet.mlstmv = currentMoves;
         if ('migrating' in pet) pet.migrating = false;
@@ -606,7 +606,7 @@ export async function make_familiar(otmp, x, y, quietly) {
   }
   if (reallytame) initedog(mtmp, true);
   mtmp.msleeping = 0;
-  mtmp.sleeping = false;
+  mtmp.msleeping = 0;
   set_malign(mtmp);
   newsym(mtmp.mx, mtmp.my);
   if (mtmp.mtame && attacktype(mtmp.data, AT_WEAP)) { mtmp.weapon_check = NEED_HTH_WEAPON; await mon_wield_item(mtmp); }
@@ -717,7 +717,7 @@ export async function keepdogs(pets_only, game, map, player) {
       mtmp.mtrapped = 0;
       finish_meating(mtmp);
       mtmp.msleeping = 0;
-      mtmp.sleeping = false;
+      mtmp.msleeping = 0;
       mtmp.mfrozen = 0;
       mtmp.mcanmove = 1;
     }

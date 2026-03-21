@@ -1298,7 +1298,7 @@ export async function bhitm(mon, otmp, map, player) {
   if (wake && mon.mhp > 0) {
     if (mon.msleeping) {
         mon.msleeping = 0;
-        mon.sleeping = false;
+        mon.msleeping = 0;
     }
     if (mon.mcanmove === false || mon.mcanmove === 0) { mon.mcanmove = 1; mon.mfrozen = 0; }
   }

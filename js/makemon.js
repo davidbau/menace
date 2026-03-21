@@ -2560,13 +2560,12 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         attacks: ptr.mattk,
         mpeaceful: monPeaceful,
         female: monFemale,
-        tame: false,
+        mtame: 0,
         mflee: false,
         mfleetim: 0,
-        confused: false,
-        stunned: false,
+        mconf: 0,
+        mstun: 0,
         blind: false,
-        sleeping: false,
         msleeping: 0,
         mundetected: startsUndetected ? 1 : 0,
         dead: false,
@@ -2601,11 +2600,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     // C ref: makemon.c — MM_ASLEEP sets initial sleep state.
     if (mmflags & MM_ASLEEP) {
         mon.msleeping = 1;
-        mon.sleeping = true;
     }
     if (startsSleeping) {
         mon.msleeping = 1;
-        mon.sleeping = true;
     }
 
     // C ref: makemon.c:1396 — MM_EDOG: allocate edog structure

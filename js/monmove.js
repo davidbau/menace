@@ -148,20 +148,18 @@ function mon_is_peaceful(mon) {
 
 function mon_is_tame(mon) {
     if (!mon) return false;
-    if (mon.mtame !== undefined) return !!mon.mtame;
-    return !!mon.tame;
+    return !!mon.mtame;
 }
 
 function mon_is_confused(mon) {
     if (!mon) return false;
-    if (mon.mconf !== undefined) return !!mon.mconf;
-    return !!mon.confused;
+    return !!mon.mconf;
 }
 
 function mon_is_stunned(mon) {
     if (!mon) return false;
     if (mon.mstun !== undefined) return !!mon.mstun;
-    return !!mon.stunned;
+    return !!mon.mstun;
 }
 
 
@@ -707,7 +705,7 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
             if (hides_under(mon.data || mon.type || {}) && cansee_for_hider_avoidance(map, player, fov, xx, yy)) continue;
             const occ = monsterByCoord[idx] || null;
             if (occ && occ !== mon) {
-                const occHelpless = !!occ.sleeping
+                const occHelpless = !!occ.msleeping
                     || (Number(occ.mfrozen || 0) > 0)
                     || !occ.mcanmove;
                 const occHidden = !!occ.mundetected;
@@ -809,7 +807,7 @@ function aggravate(map) {
         // C: clears STRAT_WAITFORU | STRAT_APPEARMSG from mstrategy.
         mtmp.mstrategy = Number(mtmp.mstrategy || 0) & ~STRAT_WAITFORU;
         if (mtmp.waiting) mtmp.waiting = false;
-        mtmp.sleeping = false;
+        mtmp.msleeping = 0;
         if (!mtmp.mcanmove && !rn2(5)) {
             mtmp.mfrozen = 0;
             mtmp.mcanmove = true;
@@ -1151,7 +1149,7 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
             // C does wakeup(m2,FALSE) here; current JS wakeup side effects still
             // over-propagate screen messages in some replay seeds, so keep
             // minimal wake semantics here until wakeup parity is tightened.
-            m2.sleeping = false;
+            m2.msleeping = 0;
             const m2dmg = rnd(15);
             m2.mhp = (m2.mhp ?? 0) - m2dmg;
             monmoveTrace('mind_blast',
@@ -1337,11 +1335,10 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // C ref: monmove.c:738-743 — confused/stunned clearing
     if (mon_is_confused(mon) && !rn2(50)) {
         mon.mconf = 0;
-        mon.confused = false;
     }
     if (mon_is_stunned(mon) && !rn2(10)) {
         mon.mstun = 0;
-        mon.stunned = false;
+        mon.mstun = false;
     }
 
     // C ref: monmove.c:746 — flee teleport
@@ -2527,7 +2524,7 @@ export function should_displace(mon, positions, goalx, goaly) {
 export function mb_trapped(mon, map, player) {
     if (!mon || !map) return false;
     mon.mstun = 1;
-    mon.stunned = true;
+    mon.mstun = true;
     mon.mhp = (mon.mhp || 0) - rnd(15);
     if ((mon.mhp || 0) <= 0) {
         mondead(mon, map, player);

@@ -540,7 +540,6 @@ export async function monster_detect(otmp, mclass, player, map, display, game) {
                 map_monst(mtmp, true);
             if (otmp && otmp.cursed && monHelpless(mtmp)) {
                 mtmp.msleeping = 0;
-                mtmp.sleeping = false;
                 mtmp.mfrozen = 0;
                 mtmp.mcanmove = 1;
                 woken = true;

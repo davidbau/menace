@@ -6510,8 +6510,7 @@ async function createScriptMonster(deferred) {
                 mtmp.mpeaceful = !!opts.peaceful;
             }
             if (opts.asleep !== undefined) {
-                mtmp.msleeping = !!opts.asleep;
-                mtmp.sleeping = !!opts.asleep;
+                mtmp.msleeping = opts.asleep ? 1 : 0;
             }
             if (opts.waiting !== undefined) {
                 const waiting = !!opts.waiting;

@@ -149,7 +149,7 @@ export async function morgue_mon_sound(mtmp, hallu, game) {
 // cf. sounds.c:114 — zoo_mon_sound(mtmp): zoo ambient sound
 export async function zoo_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.data || mtmp.type;
-    if ((mtmp.sleeping || is_animal(ptr))
+    if ((mtmp.msleeping || is_animal(ptr))
         && mon_in_room(mtmp, ZOO, (game.lev || game.map))) {
         const zoo_msg = [
             'a sound reminiscent of an elephant stepping on a peanut.',
@@ -168,7 +168,7 @@ export async function zoo_mon_sound(mtmp, hallu, game) {
 // Full implementation requires inhistemple, temple_occupied, EPRI which
 // are not yet ported. We consume RNG to match C, then emit a generic message.
 export async function temple_priest_sound(mtmp, hallu, game) {
-    if (mtmp.ispriest && !mtmp.sleeping) {
+    if (mtmp.ispriest && !mtmp.msleeping) {
         // Simplified check: priest must be in a TEMPLE room
         if (!mon_in_room(mtmp, TEMPLE, (game.lev || game.map))) return false;
 
@@ -332,7 +332,7 @@ export async function dosounds(game) {
             if (mtmp.dead) continue;
             if (is_mercenary(mtmp.data || mtmp.type)
                 && mon_in_room(mtmp, BARRACKS, map)
-                && (mtmp.sleeping || ++count > 5)) {
+                && (mtmp.msleeping || ++count > 5)) {
                 await game.display.putstr_message(`You hear ${barracks_msg[rn2(3) + hallu]}`);
                 return;
             }
@@ -448,7 +448,7 @@ export function growl_sound(mtmp) {
 
 // cf. sounds.c:401 — growl(mtmp): seriously abused pet growls at hero
 export async function growl(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed || mtmp.stunned)
+    if ((mtmp.msleeping || mtmp.paralyzed || mtmp.mstun)
         || (mtmp.data || mtmp.type).msound === MS_SILENT)
         return;
 
@@ -473,7 +473,7 @@ export async function growl(mtmp, game) {
 
 // cf. sounds.c:426 — yelp(mtmp): mistreated pet yelps
 export async function yelp(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
+    if ((mtmp.msleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
         return;
 
     let verb = null;
@@ -516,7 +516,7 @@ export async function yelp(mtmp, game) {
 
 // cf. sounds.c:478 — whimper(mtmp): distressed pet whimpers
 export async function whimper(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
+    if ((mtmp.msleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
         return;
 
     let verb = null;
@@ -550,7 +550,7 @@ export async function whimper(mtmp, game) {
 
 // cf. sounds.c:518 — beg(mtmp): hungry pet begs for food
 export async function beg(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed)
+    if ((mtmp.msleeping || mtmp.paralyzed)
         || !(carnivorous(mtmp.data || mtmp.type) || herbivorous(mtmp.data || mtmp.type)))
         return;
 
@@ -789,7 +789,7 @@ export async function domonnoise(mtmp, game) {
             pline_msg = 'howls.';
         } else if (mtmp.mpeaceful) {
             if (isTame
-                && (mtmp.confused || mtmp.mflee || mtmp.trapped
+                && (mtmp.mconf || mtmp.mflee || mtmp.trapped
                     || (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
                     || tameLevel < 5))
                 pline_msg = 'whines.';
@@ -807,7 +807,7 @@ export async function domonnoise(mtmp, game) {
 
     case MS_MEW:
         if (isTame) {
-            if (mtmp.confused || mtmp.mflee || mtmp.trapped
+            if (mtmp.mconf || mtmp.mflee || mtmp.trapped
                 || tameLevel < 5)
                 pline_msg = 'yowls.';
             else if (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
@@ -970,7 +970,7 @@ export async function domonnoise(mtmp, game) {
             pline_msg = 'wants nothing to do with you.';
         else if (mtmp.hp < Math.floor((mtmp.hpmax || 1) / 4))
             pline_msg = 'moans.';
-        else if (mtmp.confused || mtmp.stunned)
+        else if (mtmp.mconf || mtmp.mstun)
             verbl_msg = !rn2(3) ? 'Huh?' : rn2(2) ? 'What?' : 'Eh?';
         else if (mtmp.blinded)
             verbl_msg = "I can't see!";

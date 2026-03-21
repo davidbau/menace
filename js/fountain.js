@@ -125,7 +125,6 @@ export async function dowaternymph(player, map, display) {
         else
             await You_hear("a seductive voice.");
         mtmp.msleeping = 0;
-        mtmp.sleeping = false;
         const trap = map.trapAt ? map.trapAt(mtmp.mx, mtmp.my) : null;
         if (trap) {
             // mintrap(mtmp) -- trap interaction

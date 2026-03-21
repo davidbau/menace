@@ -92,8 +92,7 @@ function wakeNear(map, x, y, dist2max) {
         const dx = mon.mx - x;
         const dy = mon.my - y;
         if ((dx * dx + dy * dy) >= dist2max) continue;
-        mon.sleeping = false;
-        mon.msleeping = false;
+        mon.msleeping = 0;
     }
 }
 
@@ -109,9 +108,8 @@ export async function new_were(mon, newMndx, ctx = null) {
     mon.attacks = data.mattk;
 
     // Transformation wakes helpless monsters
-    if (mon.sleeping || (mon.mfrozen > 0) || mon.mcanmove === false) {
-        mon.sleeping = false;
-        mon.msleeping = false;
+    if (mon.msleeping || (mon.mfrozen > 0) || mon.mcanmove === false) {
+        mon.msleeping = 0;
         mon.mfrozen = 0;
         mon.mcanmove = true;
     }

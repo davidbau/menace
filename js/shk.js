@@ -958,7 +958,7 @@ export async function rouse_shk(shkp, verbosely) {
   if (monHelpless(shkp)) {
     if (verbosely && canspotmon(shkp)) await pline("%s %s.", Shknam(shkp), shkp.msleeping ? "wakes up" : "can move again");
     shkp.msleeping = 0;
-    shkp.sleeping = false;
+    shkp.msleeping = 0;
     shkp.mfrozen = 0;
     shkp.mcanmove = 1;
   }
@@ -2837,7 +2837,7 @@ export function noisy_shop(sroom, map) {
             const dy = Number(m.my || 0) - sy;
             if (dx * dx + dy * dy <= (11 * 11)) {
                 m.msleeping = 0;
-                m.sleeping = false;
+                m.msleeping = 0;
                 m.mfrozen = 0;
                 m.mcanmove = 1;
             }

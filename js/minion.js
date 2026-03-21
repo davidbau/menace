@@ -333,7 +333,7 @@ export async function demon_talk(mtmp, map, player, display) {
             await You_feel("tension building.");
         }
         mtmp.mpeaceful = false;
-        mtmp.tame = false;
+        mtmp.mtame = 0;
         if (map && display) newsym(mtmp.mx, mtmp.my);
         return 0;
     }

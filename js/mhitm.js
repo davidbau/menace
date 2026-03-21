@@ -705,7 +705,6 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
         tmp += 4;
         if (mdef.msleeping) {
             mdef.msleeping = 0;
-            mdef.sleeping = false;
         }
     }
 
@@ -930,7 +929,6 @@ export function mdisplacem(magr, mdef, quietly, map) {
     if (mdef.mundetected) mdef.mundetected = false;
     if (mdef.msleeping) {
         mdef.msleeping = 0;
-        mdef.sleeping = false;
     }
 
     // Petrification check: aggressor touching cockatrice

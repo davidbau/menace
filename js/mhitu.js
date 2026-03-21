@@ -2613,7 +2613,7 @@ export function cloneu(player, game, map) {
     christen_monst(mon, player.name || player.plname || 'hero');
     // C: initedog(mon, TRUE) — set tame/apport
     mon.mtame = 10;
-    mon.tame = true;
+    mon.mtame = 1;
     mon.mpeaceful = true;
     mon.m_lev = youmonst_data.mlevel || youmonst_data.m_lev || 0;
     mon.mhpmax = player.mhmax || player.uhpmax || 0;

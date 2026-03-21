@@ -660,7 +660,6 @@ export async function ghitm(mtmp, gold, player, map) {
         const value = (gold.quan || 1) * (objectData[gold.otyp] ? objectData[gold.otyp].oc_cost || 1 : 1);
 
         mtmp.msleeping = 0;
-        mtmp.sleeping = false;
         finish_meating(mtmp);
         if (!mtmp.isgd && !rn2(4))
             setmangry(mtmp, true, map, player);

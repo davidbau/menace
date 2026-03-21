@@ -618,7 +618,7 @@ function notice_mons_cmp(a, b) {
 export async function domove_bump_mon(mon, _glyph, _nopick, game, display) {
     const ctx = ensure_context(game);
     if (!mon || mon.dead) return { handled: false, tookTime: false };
-    const visibleEnough = (!mon.mundetected) || !!mon.tame || !!mon.mpeaceful;
+    const visibleEnough = (!mon.mundetected) || !!mon.mtame || !!mon.mpeaceful;
     // C: m-prefix bump into known/visible monster consumes a turn and stops.
     if (_nopick && !ctx.travel && visibleEnough) {
         if (mon.mpeaceful && !game?.flags?.hallucination) {
@@ -714,7 +714,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
     // Use map+FOV-aware spotting semantics so safe-mon gating matches C.
     const safeMonVisible = canSpotMonsterForMap(mon, map, player, game?.fov || null);
     // C ref: is_safemon() protects peaceful monsters and (optionally) tame pets.
-    const safeMon = !!mon.mpeaceful || (!!mon.tame && safeDogEnabled);
+    const safeMon = !!mon.mpeaceful || (!!mon.mtame && safeDogEnabled);
     const shouldDisplace = safeMon
         && safeMonVisible
         && !disoriented
@@ -724,7 +724,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         'domove_attackmon_at',
         `mon=${mon?.mndx ?? '?'}@${mon?.mx},${mon?.my}`,
         `target=${nx},${ny}`,
-        `tame=${mon?.tame ? 1 : 0}`,
+        `tame=${mon?.mtame ? 1 : 0}`,
         `peaceful=${mon?.mpeaceful ? 1 : 0}`,
         `visible=${safeMonVisible ? 1 : 0}`,
         `safe=${safeMon ? 1 : 0}`,
@@ -757,7 +757,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         }
         const blocked = (inTendedShop || foo);
         if (blocked) {
-            if (mon.tame) {
+            if (mon.mtame) {
                 await monflee(mon, rnd(6), false, false, player, display, null);
             }
             const label = YMonnam(mon);
@@ -784,7 +784,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         return { handled: false, pendingSwap: true, mon };
     }
 
-    if (mon.mpeaceful && !mon.tame && game.flags?.confirm) {
+    if (mon.mpeaceful && !mon.mtame && game.flags?.confirm) {
         const answer = await ynFunction(
             `Really attack ${x_monnam(mon)}?`,
             'yn',
@@ -969,8 +969,8 @@ export async function domove_core(dir, player, map, display, game) {
             } else if (escapeRoll === 3 && !canMove) {
                 // Wake/release frozen monster, then check tame
                 stuckMon.mfrozen = 1;
-                stuckMon.sleeping = false;
-                if (stuckMon.tame && !game?.flags?.conflict) {
+                stuckMon.msleeping = 0;
+                if (stuckMon.mtame && !game?.flags?.conflict) {
                     await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
@@ -979,7 +979,7 @@ export async function domove_core(dir, player, map, display, game) {
                 }
             } else {
                 // Failed to escape
-                if (stuckMon.tame && !game?.flags?.conflict) {
+                if (stuckMon.mtame && !game?.flags?.conflict) {
                     await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
@@ -1696,7 +1696,7 @@ export async function lookaround(map, player, fov, dir, runStyle = 'run', displa
                 && mon.m_ap_type !== M_AP_OBJECT
                 && canSeeMonsterForMap(mon, map, player, fov));
             if (monVisible) {
-                const isSafeMon = !!(mon.tame || mon.mpeaceful);
+                const isSafeMon = !!(mon.mtame || mon.mpeaceful);
                 if ((runMode !== 1 && !isSafeMon) || (infront && !travel)) {
                     return { stopReason: infront ? 'monster-in-front' : 'hostile-nearby' };
                 }
@@ -4027,7 +4027,7 @@ export { dist2, distmin };
 function monsterIsTame(mon) {
     if (!mon) return false;
     if (mon.mtame !== undefined) return !!mon.mtame;
-    return !!mon.tame;
+    return !!mon.mtame;
 }
 
 function sanitizeMonsterType(mon) {
