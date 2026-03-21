@@ -223,7 +223,7 @@ export class Turtle {
     const left = [bx - half * perpX, by - half * perpY];
     const right = [bx + half * perpX, by + half * perpY];
 
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#0f0';
     ctx.beginPath();
     ctx.moveTo(tip[0], tip[1]);
     ctx.lineTo(left[0], left[1]);
