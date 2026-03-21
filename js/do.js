@@ -1356,7 +1356,7 @@ export async function deferred_goto(player, game) {
     // check_special_room(FALSE) before return. The newlev=TRUE call resets
     // urooms so the subsequent FALSE call detects all rooms as "entered".
     if (dest !== fromDepth) {
-        const newMap = game?.map || game?.map;
+        const newMap = game?.map || game?.lev;
         move_update(true, player, newMap);
         await check_special_room(false, player, newMap, game?.display, game?.fov || null);
         const objs = newMap?.objectsAt ? newMap.objectsAt(player.x, player.y) : [];
