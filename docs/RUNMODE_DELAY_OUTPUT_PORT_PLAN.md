@@ -461,3 +461,63 @@ explicit stages:
 This staging is necessary because the failed rewrite proved that "positive
 multi" is not one uniform case in the current JS runtime, even if it is one
 uniform ownership site in C.
+
+## Stage B Failure Analysis
+
+The first travel-only Stage B attempt was also wrong, but it failed in a much
+more informative way than the broad rewrite:
+
+- it did **not** regress to an earlier session frontier
+- it stayed at step `933`
+- but it moved the first bad RNG/event **earlier within step `933`**
+
+Observed first bad RNG under the failed Stage B patch:
+- JS: `rn2(4)=2 @ dochug(monmove.js:847)`
+- C: `rn2(100)=38 @ obj_resists(zap.c:1467)`
+
+Observed first bad event under the failed Stage B patch:
+- JS: `^dog_invent_decision[32@22,15 ud=5 act=0 otyp=-1 carry=0 rv=0]`
+- C: `^dog_invent_decision[32@22,15 ud=8 act=0 otyp=-1 carry=0 rv=0]`
+
+This is the key new insight:
+- the patch did not merely "change the travel boundary"
+- it exposed the hero's advanced repeated-travel position to dog-goal
+  evaluation too early in step `933`
+
+Focused trace from the failed patch:
+
+```text
+[RUN_TRACE] step=933 domove_target from=22,14 to=23,13
+[MONMOVE_TRACE] set_apparxy step=933 ... u=(23,13) old=(22,14) new=(23,13)
+[MONMOVE_TRACE] dog_move-begin step=933 ... pos=(21,17) goal=(22,16) appr=1 udist=20
+...
+[MONMOVE_TRACE] set_apparxy step=933 ... u=(23,13) old=(23,13) new=(23,13)
+[MONMOVE_TRACE] dog_move-begin step=933 ... pos=(22,16) goal=(22,15) appr=1 udist=10
+```
+
+Interpretation:
+- the travel-only patch made JS feed the first repeated travel position
+  (`u=(23,13)`) into dog evaluation earlier than C does
+- that reduces the dog's `ud` state too early (`8 -> 5`)
+- which in turn moves the RNG seam earlier from the later gas-spore
+  contact/attack mismatch into dog-goal / `dochug` work
+
+This means the next Stage B attempt must preserve an additional invariant:
+
+**Stage B invariant**:
+- the first repeated travel slice must not become visible to dog-goal
+  evaluation earlier than it does in C's post-`runmode_delay_output`
+  ordering
+
+So the remaining problem is narrower than "travel owner is wrong":
+- the specific ordering among
+  - first repeated hero travel position,
+  - `runmode_delay_output`,
+  - first post-delay dog turn,
+  - and `set_apparxy()` / `dog_invent_decision`
+  is still not C-equivalent
+
+The next implementation should therefore:
+1. preserve Stage A counted-repeat behavior
+2. preserve the dog-goal ordering in step `933`
+3. only then attempt to move the later gas-spore contact seam
