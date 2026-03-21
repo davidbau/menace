@@ -95,6 +95,7 @@ import {
 import { roles, races } from './player.js';
 import { discoverObject } from './o_init.js';
 import { mons } from './monsters.js';
+import { game as _gstate } from './gstate.js';
 import { makedog, mon_arrive } from './dog.js';
 import { MON_ARRIVE_WITH_YOU,
          P_DAGGER, P_POLEARMS, P_SPEAR, P_BOW, P_CROSSBOW,
@@ -637,6 +638,12 @@ export function trquan(trop) {
 
 // C ref: u_init.c u_init_role() — role-specific starting inventory
 function u_init_role(player) {
+    // C ref: u_init.c:643 — svm.moves = 1L
+    // Set moves to 1 here (was 0 during level generation) so that
+    // mkobj checks like `svm.moves <= 1 && !gi.in_mklev` correctly
+    // identify hero init inventory vs level-gen objects.
+    if (_gstate) _gstate.moves = 1;
+
     // Reset nocreate state for this role
     nocreate = nocreate2 = nocreate3 = nocreate4 = 0;
     player.umoney0 = 0;

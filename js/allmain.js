@@ -1549,7 +1549,7 @@ export class NetHackGame {
         this.gameOverReason = '';
         this.turnCount = 0;
         this._currentTurn = 0; // C ref: timeout.c timer reference turn
-        this.moves = 1; // C ref: svm.moves starts at 1
+        this.moves = 0; // C ref: svm.moves starts at 0; set to 1 in u_init_role()
         this._inMklev = false; // C ref: gi.in_mklev
         this._levelDepth = 1; // depth being generated (C: implicit from mklev args)
         this._dungeonAlign = 0; // A_NONE — dungeon branch alignment for makemon
