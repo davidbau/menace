@@ -3769,3 +3769,43 @@ Next step:
 - localize the exact C-vs-JS owner boundary inside `monshoot()/m_throw_timed()`
 - then make that monster missile path C-shaped without adding replay
   compensation
+
+### Monster missile intro text fixed; new seam is the carried throw tail at 1060
+
+Validated local fix:
+- `mthrowu.monshoot()` now builds the intro message the way C does:
+  - multishot: `N xname(otmp)`
+  - single shot: `a/an/the + singular(xname(otmp))`
+- JS no longer uses the ordinal `_m_shot` wording in the intro line
+
+Why this mattered:
+- JS was emitting:
+  - `"The hobgoblin shoots the 3rd crossbow bolt!"`
+- C emits:
+  - `"The hobgoblin shoots a crossbow bolt!"`
+  - or the multishot count form when appropriate
+- The JS intro was longer than C and caused a premature topline overflow /
+  `--More--` split before:
+  - `"You are hit by a crossbow bolt."`
+
+Validated effect on `seed031_manual_direct.session.json`:
+- matched RNG:
+  - `36949/51561 -> 37324/51561`
+- matched events:
+  - `21226/28950 -> 21263/28950`
+- first RNG divergence:
+  - `1057 -> 1060`
+- first event divergence:
+  - `1058 -> 1060`
+
+New live seam at `1060`:
+- the monster missile message corridor now matches
+- the remaining mismatch is in the carried post-throw timed tail
+- JS starts the fresh `n` move while C is still packing more carried pet/timed
+  work under gameplay step `1060`
+
+Design consequence:
+- do not revisit replay-core
+- the next fix belongs in the core throw continuation boundary:
+  - `js/dothrow.js`
+  - `js/allmain.js`

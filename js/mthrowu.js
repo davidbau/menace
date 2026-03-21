@@ -30,7 +30,7 @@ import {
     ARM_GLOVES,
 } from './objects.js';
 import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mkobj.js';
-import { mshot_xname, obj_is_pname, the, an } from './objnam.js';
+import { mshot_xname, obj_is_pname, the, an, singular } from './objnam.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
     x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
@@ -676,10 +676,9 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
         const shooting = ammo_and_launcher(otmp, mwep);
         const onm = shots > 1
             ? `${shots} ${xname(otmp)}`
-            : thrownObjectMessageName({ ...otmp, quan: 1 }, player, {
-                forceSingle: true,
-                forceArticleForPlural: true,
-            });
+            : (obj_is_pname(otmp)
+                ? the(await singular(otmp, xname))
+                : an(await singular(otmp, xname)));
         throwTrace(map, display, 'monshoot:before_throws_msg');
         await display.putstr_message(
             `The ${x_monnam(mon)} ${shooting ? 'shoots' : 'throws'} ${onm}${targetName}!`

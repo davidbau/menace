@@ -15283,3 +15283,52 @@ When a correct parity fix regresses a session:
   - the apply/pick-axe fix is validated and should be kept
   - the next seam is again owner/boundary shaped, but now on the monster
     missile path rather than the player `apply` path
+
+## 2026-03-21: `monshoot()` intro text must match C exactly; seed031 moved to 1060
+
+- The `1057/1058` seam was not generic replay or `--More--` weirdness.
+- It was a concrete `mthrowu.monshoot()` text mismatch.
+
+- C `monshoot()` builds the intro line as:
+  - multishot:
+    - `N xname(otmp)` (for example `3 crossbow bolts`)
+  - single-shot:
+    - `a/an/the + singular(xname(otmp))`
+- JS was incorrectly using ordinal `_m_shot` wording in the intro message:
+  - `"The hobgoblin shoots the 3rd crossbow bolt!"`
+- That ordinal phrasing belongs later in shot-specific hit text, not in the
+  intro line.
+
+- Why it mattered:
+  - the JS intro line was longer than C's
+  - that caused a premature topline overflow / `--More--` split before:
+    - `"You are hit by a crossbow bolt."`
+  - once the intro message was made C-faithful, the hit message stayed on the
+    same topline progression as C
+
+- Keepable fix:
+  - `js/mthrowu.js`
+    - use C-shaped `monshoot()` intro naming:
+      - multishot count form
+      - otherwise `a/an/the + singular(xname(...))`
+
+- Result:
+  - `seed031_manual_direct.session.json` moved to:
+    - first RNG divergence `1060`
+    - first event divergence `1060`
+    - matched RNG `37324/51561`
+    - matched events `21263/28950`
+  - `t11_s755_w_covmax9_gp`: PASS
+
+- New live seam:
+  - the monster missile message corridor now matches
+  - the remaining bug is in the carried post-throw timed tail before the next
+    fresh `n` move is admitted
+  - JS starts the fresh move while C is still packing more carried pet/timed
+    work under gameplay step `1060`
+
+- Durable lesson:
+  - monster missile parity can hinge on exact C message phrasing, not just on
+    turn ownership
+  - wrong text length can create a real gameplay-visible `--More--` split and
+    shift subsequent ownership
