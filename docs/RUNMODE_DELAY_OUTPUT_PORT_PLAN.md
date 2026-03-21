@@ -2911,3 +2911,97 @@ For this problem, the invariant framing was a strategic improvement even though
 the first command-boundary invariant did not itself produce the final fix. It
 removed bad solution spaces, clarified what was real, and led to the current
 more incisive slice-level target-refresh invariant.
+
+## Second Engineer Review: C trace confirms step-packing is the root cause
+
+*2026-03-21.*
+
+I read the C session data at this corridor directly.
+
+### What C actually does
+
+**C step 947 (key ".")**:
+```
+distfleeck[27@29,14 near=0]  → gas spore at (29,14)
+distfleeck[27@28,13 near=0]  → moved to (28,13)
+distfleeck[27@28,13 near=0]  → stayed at (28,13)
+distfleeck[27@27,13 near=1]  → adjacent to hero
+```
+
+Gas spore takes 4 evaluations (3 movement attempts) in ONE C step.
+C's `movemon()` gives fast monsters multiple moves per iteration.
+
+**C step 948 (key "h")**:
+```
+distfleeck[27@27,13 near=0]  → hero moved away, target refreshed
+distfleeck[27@26,13 near=1]  → follows hero
+```
+
+Between steps 947 and 948, the hero moved via "h". Gas spore's
+`set_apparxy` refreshed at the top of step 948's `movemon`, so it
+sees the NEW hero position. At (27,13), `near=0` because the hero
+is no longer adjacent.
+
+### The exact divergence mechanism
+
+In C, each travel hop is a separate `moveloop_core()` iteration.
+Between each hop, `movemon()` runs and gas spore gets a turn. So:
+
+```
+C iteration N: movemon (gas spore moves from 29,14 → 28,13) → domove (hero hops)
+C iteration N+1: movemon (gas spore moves from 28,13 → 27,13) → domove (hero hops)
+```
+
+Each iteration, gas spore sees ONE new hero position.
+
+In JS, multiple hero hops are packed into one step. Gas spore gets
+fewer turns between hops, so by the time it evaluates at (27,13),
+the hero has already hopped TWICE (24,13 → 25,13 → 26,13). Gas spore
+sees (26,13) instead of (25,13), making `near=1` instead of `near=0`.
+
+### Why the top-of-slice reorder regressed
+
+Moving `advanceTimedTurn` to before `lookaround` broke the dog
+ordering because monsters saw the hero at the NEW position before
+the hero finished moving. This proves the ordering WITHIN a slice
+is correct: `domove` first, then `advanceTimedTurn` (movemon).
+
+The problem is between slices: the movemon at the END of slice N
+and the movemon at the START of slice N+1 run back-to-back without
+a hero hop between them. Or equivalently: two hero hops run
+back-to-back without a movemon between them.
+
+### What the fix should do
+
+The fix must ensure each positive-repeat slice causes `_gameLoopStep()`
+to RETURN, and the replay engine must NOT push the next fixture key
+before re-entering for the continuation slice. The validated owner fix
+already does the first part. The missing piece is the second part:
+`isWaitingInput()` returning false when `multi > 0 && context.mv`.
+
+Concretely:
+1. Keep the owner fix (return after one slice) ✓
+2. Keep the stop gate ✓
+3. Keep deferred timed turn for initial hop ✓
+4. Keep `advanceTimedTurn` at END of slice (don't move to top) ✓
+5. **Make `isWaitingInput()` return false when positive-repeat is active**
+
+Point 5 is what prevents the replay engine from pushing the next
+fixture key between slices. Without it, the next key arrives, gets
+queued, and the owner trace shows `qlen=1..4` while
+`positiveMoveContinuation` is active — the invariant violation you
+already identified.
+
+### Why I'm confident
+
+The C trace shows gas spore 27 gets a turn between EVERY hero hop.
+JS only gives it a turn every 2 hops (because two hops are packed
+into one step). Making `_gameLoopStep()` return after each hop AND
+preventing key admission between hops would give gas spore a turn
+between each hop — matching C exactly.
+
+The earlier probes that tried replay-side drains or same-step
+extensions broke termination. The `isWaitingInput()` fix avoids that
+because it doesn't change the drain/extension logic — it simply
+prevents the replay engine from declaring "waiting for input" when
+the game isn't actually waiting.
