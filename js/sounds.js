@@ -29,10 +29,10 @@ import {
     is_lord, is_prince, is_animal, is_undead, is_flyer, is_silent,
     is_mercenary, is_elf, is_dwarf, is_gnome, is_humanoid,
     carnivorous, herbivorous, likes_magic, same_race,
-    x_monnam, is_mplayer,
+    is_mplayer,
 } from './mondata.js';
 import { canseemon } from './display.js';
-import { Monnam } from './do_name.js';
+import { Monnam, x_monnam } from './do_name.js';
 import { wake_nearto } from './mon.js';
 import { night, midnight } from './calendar.js';
 import { vault_occupied, findgd } from './vault.js';
