@@ -490,9 +490,11 @@ function nhgetch_raw() {
     const snap = beginOriginAwait(activeGame, 'input');
     return Promise.resolve(activeInputRuntime.nhgetch())
         .then((ch) => {
-            // C ref: tty topline key acknowledgement semantics.
-            // After any keypress, topline should no longer be in NEED_MORE state.
+            // C ref: tty_nhgetch transitions toplin 1→2 (NEED_MORE → NON_EMPTY).
+            // The message is now "acknowledged" — tty_clearmsg will just clear it
+            // without firing more(). Does NOT transition to 0 (EMPTY).
             if (display) {
+                if (display.toplin === 1) display.toplin = 2;
                 display.messageNeedsMore = false;
                 display.moreMarkerActive = false;
                 display.messageNeedsMoreBoundary = false;
@@ -624,6 +626,7 @@ export async function more(display, {
         if ('messageNeedsMore' in display) display.messageNeedsMore = false;
         if ('moreMarkerActive' in display) display.moreMarkerActive = false;
         if ('topMessage' in display) display.topMessage = null;
+        if ('toplin' in display) display.toplin = 0; // TOPLINE_EMPTY
     }
     // Non-dismiss key: leave messageNeedsMore/moreMarkerActive as-is so the
     // boundary fires again on the next key.

@@ -671,18 +671,34 @@ export async function run_command(game, ch, opts = {}) {
         || (chCode === 48 && game.countAccum != null);
     const _isExtCmdPrefix = (chCode === '#'.charCodeAt(0));
     const _suppressFreshRunstep = _isCountDigit || _isExtCmdPrefix;
+    // C ref: tty_clearmsg() — clear topline at start of command processing.
+    // toplin == 1 (NEED_MORE): fire more() so player reads the message first.
+    // toplin == 2 (NON_EMPTY): just clear (already acknowledged by keypress).
+    // toplin == 0 (EMPTY): nothing to do.
     if (!_isCountDigit && game.display && game.display.topMessage) {
-        // C ref: save topMessage length before clearing — needed by the extended
-        // command handler to detect if a new message would have overflowed the
-        // concat check (triggering --More-- in C's tty).
+        if (game.display.toplin === 1 && game.display._nhgetch) {
+            // Message not yet acknowledged — fire more() before clearing.
+            // This handles Phase B messages that arrive after the previous
+            // command and before nhgetch transitions toplin 1→2.
+            game.display.renderMoreMarker?.();
+            await more(game.display, {
+                site: 'run_command.tty_clearmsg',
+                clearAfter: true,
+                readKey: game.display._nhgetch,
+                refreshStatus: false,
+            });
+        }
         if (_isExtCmdPrefix) {
             game._extcmdPrecedingMsgLen = (game.display.topMessage || '').length;
         } else {
             game._extcmdPrecedingMsgLen = 0;
         }
-        game.display.clearRow(0);
-        game.display.topMessage = null;
+        if (game.display.topMessage) {
+            game.display.clearRow(0);
+            game.display.topMessage = null;
+        }
         game.display.messageNeedsMore = false;
+        game.display.toplin = 0;
     } else if (_isExtCmdPrefix) {
         game._extcmdPrecedingMsgLen = 0;
     }

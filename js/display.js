@@ -331,6 +331,9 @@ export class Display {
         this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
+        // C ref: ttyDisplay->toplin — 3-state topline status
+        // 0 = TOPLINE_EMPTY, 1 = TOPLINE_NEED_MORE, 2 = TOPLINE_NON_EMPTY
+        this.toplin = 0;
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
         this.messageCursorRow = 0;
@@ -610,6 +613,7 @@ span.nh-cursor {
                 : null;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
             this.messageCursorRow = 0;
+            this.toplin = 1; // C ref: update_topl sets toplin = TOPLINE_NEED_MORE
             if (freshAfterMore && typeof this.renderStatus === 'function') {
             const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
                 if (encumberRefreshMsg || refreshPlayer?._botl) {
