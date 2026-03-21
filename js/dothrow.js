@@ -253,6 +253,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         o: item.otyp,
         s: multishot > 1 ? 's' : null,
     };
+    let deferredPostFlight = false;
     for (let i = 1; i <= multishot; i++) {
         player._m_shot.i = i;
         let thrownItem = item;
@@ -268,10 +269,26 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
             if (player.quiver === item) uqwepgone(player);
         }
         thrownItem._thrownByPlayer = true;
-        await throwit(thrownItem, wep_mask, false, null, player, map, game);
+        const throwResult = await throwit(
+            thrownItem,
+            wep_mask,
+            false,
+            null,
+            player,
+            map,
+            game,
+            { deferPostFlightResolution: !!fromFire }
+        );
+        if (throwResult?.deferredPostFlight) {
+            deferredPostFlight = true;
+            break;
+        }
         if (game && !game.thrownobj) break;
     }
     player._m_shot = null;
+    if (deferredPostFlight) {
+        return { moved: false, tookTime: false };
+    }
     return { moved: false, tookTime: true };
 }
 
@@ -1065,7 +1082,60 @@ export async function throwit_mon_hit(obj, mon, player, map, game) {
 }
 
 // cf. dothrow.c:1509 -- throwit(obj, wep_mask, twoweap, oldslot, player, map, game)
-export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game) {
+async function resolveThrownObjectPostFlight({
+    obj, wep_mask, twoweap, oldslot, player, map, game,
+    hitMon, bx, by, dx, dy, tethered_weapon, impaired,
+}) {
+    if (game) game.bhitpos = { x: bx, y: by };
+
+    if (hitMon) {
+        if (hitMon.isshk && obj.where === OBJ_MINVENT && obj.ocarry === hitMon) {
+            throwit_return(true, game); return;
+        }
+        const obj_gone = await thitmonst(hitMon, obj, player, map, game);
+        if (obj_gone) {
+            if (game) game.thrownobj = null;
+        }
+    }
+    if (game && !game.thrownobj) { throwit_return(false, game); return; }
+
+    if (tethered_weapon) {
+        const madeItBack = !!rn2(100);
+        if (madeItBack) {
+            await tmp_at_end_async(BACKTRACK);
+            if (!impaired && rn2(100)) {
+                return_throw_to_inv(obj, wep_mask, twoweap, oldslot, player);
+                throwit_return(true, game);
+                return;
+            }
+            obj.ox = player.x;
+            obj.oy = player.y;
+            placeFloorObject(map, obj);
+            if (game) game.thrownobj = null;
+            throwit_return(true, game);
+            return;
+        }
+    } else if (obj.otyp === BOOMERANG) {
+        await boomhit_visual(obj, dx, dy, player, map, game);
+    }
+
+    const landLoc = typeof map.at === 'function' ? map.at(bx, by) : null;
+    if (landLoc && !IS_SOFT(landLoc.typ) && breaktest(obj)) {
+        tmp_at(DISP_FLASH, objectTmpGlyph(obj));
+        tmp_at(bx, by);
+        await nh_delay_output();
+        tmp_at(DISP_END, 0);
+        await breakmsg(obj, true);
+        if (await breakobj(obj, bx, by, true, true, player, map)) { throwit_return(true, game); return; }
+    }
+    obj.ox = bx; obj.oy = by;
+    placeFloorObject(map, obj);
+    if (game) game.thrownobj = null;
+    throwit_return(false, game);
+}
+
+export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game, opts = {}) {
+    const { deferPostFlightResolution = false } = opts;
     const uwep = player.weapon;
     const impaired = !!(player.confused || player.stunned || player.blind
         || player.hallucinating || player.fumbling);
@@ -1129,6 +1199,7 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     let bx = player.x, by = player.y;
     const projGlyph = objectTmpGlyph(obj);
     let animationClosed = false;
+    let flightStepCount = 0;
     tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
     try {
         let point_blank = true; // C: first cell is point-blank (no rn2(5) for iron bars)
@@ -1218,63 +1289,42 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
             // C ref: zap.c:4075-4076 — animation step
             tmp_at(bx, by);
             await nh_delay_output();
+            flightStepCount++;
 
             // C ref: zap.c:4080-4081 — sink stops physical objects
             if (IS_SINK(typ)) break;
         }
     } finally {
-        if (!animationClosed) tmp_at(DISP_END, 0);
+        if (!animationClosed && !(deferPostFlightResolution && flightStepCount > 1)) {
+            tmp_at(DISP_END, 0);
+        }
     }
+    if (deferPostFlightResolution && flightStepCount > 1) {
+        if (game) {
+            game.pendingDeferredAction = async () => {
+                tmp_at(DISP_END, 0);
+                await resolveThrownObjectPostFlight({
+                    obj, wep_mask, twoweap, oldslot, player, map, game,
+                    hitMon, bx, by, dx, dy, tethered_weapon, impaired,
+                });
+            };
+            game.pendingDeferredTimedTurn = true;
+        } else {
+            tmp_at(DISP_END, 0);
+            await resolveThrownObjectPostFlight({
+                obj, wep_mask, twoweap, oldslot, player, map, game,
+                hitMon, bx, by, dx, dy, tethered_weapon, impaired,
+            });
+        }
+        return { deferredPostFlight: true };
+    }
+
     if (game) game.bhitpos = { x: bx, y: by };
-
-    // C ref: dothrow.c:1482-1506 throwit_mon_hit() — call thitmonst after bhit
-    if (hitMon) {
-        if (hitMon.isshk && obj.where === OBJ_MINVENT && obj.ocarry === hitMon) {
-            throwit_return(true, game); return;
-        }
-        const obj_gone = await thitmonst(hitMon, obj, player, map, game);
-        if (obj_gone) {
-            if (game) game.thrownobj = null;
-        }
-    }
-    if (game && !game.thrownobj) { throwit_return(false, game); return; }
-
-    if (tethered_weapon) {
-        const madeItBack = !!rn2(100);
-        if (madeItBack) {
-            animationClosed = true;
-            await tmp_at_end_async(BACKTRACK);
-            if (!impaired && rn2(100)) {
-                return_throw_to_inv(obj, wep_mask, twoweap, oldslot, player);
-                throwit_return(true, game);
-                return;
-            }
-            obj.ox = player.x;
-            obj.oy = player.y;
-            placeFloorObject(map, obj);
-            if (game) game.thrownobj = null;
-            throwit_return(true, game);
-            return;
-        }
-    } else if (obj.otyp === BOOMERANG) {
-        // C ref: zap.c boomhit() — curving boomerang visual sequence.
-        await boomhit_visual(obj, dx, dy, player, map, game);
-    }
-
-    const landLoc = typeof map.at === 'function' ? map.at(bx, by) : null;
-    if (landLoc && !IS_SOFT(landLoc.typ) && breaktest(obj)) {
-        // C ref: dothrow.c:1784-1787 — show break animation before breakmsg/breakobj
-        tmp_at(DISP_FLASH, objectTmpGlyph(obj));
-        tmp_at(bx, by);
-        await nh_delay_output();
-        tmp_at(DISP_END, 0);
-        await breakmsg(obj, true);
-        if (await breakobj(obj, bx, by, true, true, player, map)) { throwit_return(true, game); return; }
-    }
-    obj.ox = bx; obj.oy = by;
-    placeFloorObject(map, obj);
-    if (game) game.thrownobj = null;
-    throwit_return(false, game);
+    await resolveThrownObjectPostFlight({
+        obj, wep_mask, twoweap, oldslot, player, map, game,
+        hitMon, bx, by, dx, dy, tethered_weapon, impaired,
+    });
+    return { deferredPostFlight: false };
 }
 
 // cf. dothrow.c:1854 [static] -- return_throw_to_inv(obj, wep_mask, twoweap, oldslot, player)

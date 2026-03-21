@@ -3459,3 +3459,93 @@ It is now:
 - **after fixing the accepted `_` command stop condition, what remaining
   gameplay ownership/state difference causes JS to reach thrown-object combat
   RNG at gameplay step `940` where C is still in non-throw post-move state?**
+## Throw / Fire Follow-On After The `_` Fix
+
+The first post-travel seam is now at gameplay step `940`, and it is a
+fire/throw ownership seam rather than a travel seam.
+
+What C shows on the shared gameplay stream:
+- gameplay step `938` key `"f"` has no RNG
+- gameplay step `939` key `"l"` contains:
+  - `tmp_at_start`
+  - one or more `tmp_at_step`
+  - and then stops
+- gameplay step `940` key `"f"` begins with:
+  - `tmp_at_end`
+  - `thitmonst(...)`
+  - immediate post-hit / turn-end work
+
+That means JS still owns too much inside one awaited throw/fire command body.
+
+Important corrective evidence:
+- this split is **not universal** for every fire direction key
+- earlier `seed031` fire steps such as gameplay steps `503` and `505` remain
+  same-key in C:
+  - `tmp_at_start`
+  - `tmp_at_end`
+  - `thitmonst(...)`
+  - turn-end work
+- the distinguishing feature is that those earlier shots are effectively
+  point-blank: they do not have a carried `tmp_at_step` flight segment
+
+Refined comparison:
+- gameplay step `513` is a critical control case
+- C step `513` still stays same-key even though it has:
+  - `tmp_at_start`
+  - one `tmp_at_step`
+  - `tmp_at_end`
+  - `thitmonst(...)`
+  - monster turns
+- gameplay step `939` is different:
+  - it has two `tmp_at_step` entries
+  - and C stops there, deferring:
+    - `tmp_at_end`
+    - `thitmonst(...)`
+    - turn-end work
+    to gameplay step `940`
+
+So the next working hypothesis is more specific:
+- zero-step and one-step projectile flights stay same-key
+- multi-step projectile flight crosses the ownership boundary
+
+So the next structural target is narrower than "split all single-shot fire":
+- the post-flight boundary is tied to actual projectile-flight animation
+- adjacent/point-blank throws stay same-key
+- animated flight can defer post-flight resolution
+
+Plan refinement:
+1. keep the accepted `_` structural loop already landed
+2. do **not** widen replay/harness logic
+3. refactor the fire/throw path to a C-shaped continuation owner only for the
+   animated-flight case
+4. ensure the continuation owner does not also start the next fresh fire
+   command too early; that was the failure mode of the first JS deferred-action
+   probe
+
+### First keepable throw-ownership result
+
+A narrower structural probe is now validated:
+
+- add a deferred core action owner
+- let fire/throw defer post-flight resolution only when the projectile
+  animation took **more than one** `tmp_at_step`
+
+This directly matches the observed C control cases:
+- `503` / `505`: no split
+- `513`: one-step flight, no split
+- `939`: two-step flight, split
+
+Validated result:
+- `seed031_manual_direct.session.json`
+  - first RNG divergence moved from gameplay step `940` to `854`
+  - matched RNG improved to `33459/51561`
+  - matched events improved to `18170/28950`
+- guardrails stayed green:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+
+New active question after this structural gain:
+- why does JS still reach monster-side `dochug()` RNG at gameplay step `854`
+  while C is only beginning a later `throw_obj()` there?

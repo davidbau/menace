@@ -1594,6 +1594,7 @@ export class NetHackGame {
         this.seerTurn = 0;
         this.occupation = null;
         this._pendingPrompt = null;
+        this.pendingDeferredAction = null;
         this.pendingDeferredTimedTurn = false;
         this.pendingTravelTimedTurn = false;
         this.seed = 0;
@@ -2334,6 +2335,13 @@ export class NetHackGame {
         return monsterNearby(this.map, this.player, this.fov);
     }
 
+    async runPendingDeferredAction() {
+        if (typeof this.pendingDeferredAction !== 'function') return;
+        const deferredAction = this.pendingDeferredAction;
+        this.pendingDeferredAction = null;
+        await deferredAction();
+    }
+
     // Run the deferred timed turn postponed from a stop_occupation frame.
     async runPendingDeferredTimedTurn() {
         if (!this.pendingDeferredTimedTurn) return;
@@ -2751,6 +2759,7 @@ export class NetHackGame {
             this.lastCommand = { key: ch, count: countPrefix };
         }
 
+        await this.runPendingDeferredAction();
         await this.runPendingDeferredTimedTurn();
 
         return await run_command(this, ch, {

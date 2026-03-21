@@ -14989,3 +14989,103 @@ When a correct parity fix regresses a session:
   - the structural accepted-command loop is the right family
   - but the stop condition must be modeled by explicit C-faithful stop causes,
     not by a coarse `savedRun === 8` rule
+
+# 2026-03-21: the step-940 throw seam is structural, but not every fire direction key splits the same way
+
+- After landing the accepted `_` travel fix, `seed031_manual_direct` moved to a
+  new first gameplay seam at step `940`.
+- C evidence on the shared gameplay stream:
+  - step `938` key `"f"` has no RNG
+  - step `939` key `"l"` has:
+    - `tmp_at_start`
+    - `tmp_at_step`
+    - `tmp_at_step`
+    - then stops
+  - step `940` key `"f"` begins with:
+    - `tmp_at_end`
+    - `thitmonst(...)`
+    - post-hit / turn-end work
+- That strongly suggests JS still collapses too much fire/throw work into one
+  awaited prompt body.
+- First structural probe:
+  - added a deferred post-flight owner in core JS so direction key flight would
+    end early and the next gameplay key would own `tmp_at_end` plus hit
+    resolution
+  - result: wrong as written
+    - `seed031` regressed much earlier (first at gameplay step `505`, then
+      `513` after narrowing)
+- Critical new discriminator from C:
+  - earlier fire steps `503` and `505` do **not** split
+  - C keeps these same-key:
+    - `tmp_at_start`
+    - `tmp_at_end`
+    - `thitmonst(...)`
+    - turn-end work
+  - those earlier shots are effectively point-blank and do not have a carried
+    `tmp_at_step` flight segment
+- Lesson:
+  - do not split all single-shot fire/throw commands
+  - the structural boundary seems tied to actual animated projectile flight,
+    but that is still too broad
+  - the first deferred-action probe also wrongly allowed the same gameplay key
+    to start the next fresh fire command too early
+  - next fix should be a narrower C-shaped animated-flight continuation owner,
+    not a blanket fire-command split
+
+## 2026-03-21: one-step fire flights stay same-key in C; the late split appears after multi-step flight
+
+- Further control-case comparison on `seed031_manual_direct`:
+  - gameplay step `513` in C has:
+    - `tmp_at_start`
+    - one `tmp_at_step`
+    - `tmp_at_end`
+    - `thitmonst(...)`
+    - monster turns
+  - and it stays same-key
+- gameplay step `939` in C has:
+  - `tmp_at_start`
+  - two `tmp_at_step`
+  - and then stops
+- gameplay step `940` then begins with:
+  - `tmp_at_end`
+  - `thitmonst(...)`
+  - post-hit / turn-end work
+- So the earlier structural probe was still too broad in a more precise way:
+  - it deferred any animated-flight fire
+  - but C appears to defer only the multi-step flight case
+- Working hypothesis:
+  - zero-step and one-step projectile flights remain same-key
+  - multi-step projectile flight crosses the boundary into the next gameplay key
+
+## 2026-03-21: deferring only multi-step fire flight is the first keepable throw-ownership improvement
+
+- Structural probe kept the accepted `_` travel fix intact and changed only the
+  fire/throw ownership shape:
+  - add a deferred core action owner
+  - let `promptDirectionAndThrowItem()` / `throwit()` defer post-flight
+    resolution only when the projectile animation took more than one
+    `tmp_at_step`
+- This matches the C control cases:
+  - `503` / `505`: no split
+  - `513`: one-step flight, no split
+  - `939`: two-step flight, split at post-flight boundary
+- Validation on `seed031_manual_direct.session.json`:
+  - first RNG divergence moved from gameplay step `940` to `854`
+  - matched RNG improved to `33459/51561`
+  - matched events improved to `18170/28950`
+- Guardrails remained green:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Current first mismatch after this change:
+  - JS:
+    - `rn2(5)=4 @ dochug(monmove.js:847)`
+  - C:
+    - `rnd(1)=1 @ throw_obj(dothrow.c:233)`
+  - gameplay step `854`
+- Lesson:
+  - the throw seam was fundamentally structural
+  - the correct boundary is narrower than "any animated flight"
+  - a multi-step flight-specific continuation owner is the first version that
+    produces a large `seed031` gain without tripping the existing guardrails
