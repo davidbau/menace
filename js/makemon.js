@@ -585,7 +585,8 @@ export function rndmonnum_adj(minadj, maxadj, depth) {
     if (chosen >= 0) return chosen;
 
     // Plan B: any common monster, matching C's rn1-based fallback.
-    const excludeflags = G_UNIQ | G_NOGEN | G_HELL;
+    // C ref: mkobj.c:407 — Inhell ? G_NOHELL : G_HELL
+    const excludeflags = G_UNIQ | G_NOGEN | (_gstate?.Inhell ? G_NOHELL : G_HELL);
     let idx;
     do {
         idx = rn1(SPECIAL_PM - LOW_PM, LOW_PM);
