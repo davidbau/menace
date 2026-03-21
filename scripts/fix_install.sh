@@ -45,4 +45,11 @@ for f in symbols cmdhelp help hh history opthelp wizhelp data oracles rumors que
     [[ -f "$PATCHED/dat/$f" ]] && cp "$PATCHED/dat/$f" "$INSTALL/" 2>/dev/null || true
 done
 
+# Copy sysconf and fix wizard mode access
+if [[ -f "$PATCHED/sys/unix/sysconf" ]]; then
+    cp "$PATCHED/sys/unix/sysconf" "$INSTALL/sysconf"
+    # Allow all users to use wizard mode (needed for session replay)
+    sed -i 's/^WIZARDS=.*/WIZARDS=*/' "$INSTALL/sysconf"
+fi
+
 echo "Install fixed: $(ls -la "$INSTALL/nethack" | awk '{print $6, $7, $8, $9}')"
