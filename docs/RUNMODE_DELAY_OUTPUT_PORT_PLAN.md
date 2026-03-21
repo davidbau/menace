@@ -238,6 +238,43 @@ So the mismatch is upstream in when and how `mux/muy` are refreshed.
 
 A prior attempt moved positive-`multi` ownership out of `run_command()` too aggressively and regressed `seed031` from step `933` back to step `163`.
 
+### 5. Replay boundary is currently weaker than "wait until input is needed"
+
+The remaining post-`933` seam clarified an important runtime fact:
+
+- session steps are still input-keyed
+- but the JS replay executor currently allows a step to finish when
+  `_gameLoopStep()` resolves, even if the game has not actually reached an
+  input wait yet
+
+This is visible in `js/replay_core.js:drainUntilInput()`:
+- it races command completion against `waitForInputWait(...)`
+- if the command promise resolves first, it returns `done: true`
+- that means replay can record a step on promise completion rather than on a
+  true input boundary
+
+That distinction did not matter much while `_gameLoopStep()` usually returned
+only at real input waits. It matters now because the validated owner fix
+deliberately made `_gameLoopStep()` return after one positive-repeat slice.
+
+The consequence is subtle but important:
+- changing an internal loop boundary does **not** by itself redefine a
+  session step
+- however, if replay admits the next queued key after `_gameLoopStep()`
+  completes while `input.isWaitingInput()` is still false, then JS is
+  effectively allowing the next input earlier than the runtime is actually
+  ready for it
+
+So the next replay/runtime question is precise:
+- after the resumed `_` travel command, when JS finishes one no-input slice
+  and `_gameLoopStep()` returns, has the game truly reached an input wait?
+- if not, replay must continue driving no-input continuation before consuming
+  the next session key
+
+This does **not** mean "step numbers are not input-delimited".
+It means the current JS executor is not yet enforcing that input-delimited
+boundary strongly enough.
+
 That failure showed:
 - the repeat ownership must move in a way that preserves the full C frame around it
 - especially the split between:

@@ -15322,3 +15322,39 @@ conditional on `gehennom`/`inhell` for G_HELL/G_NOHELL gating. No change needed.
 **Pattern**: When a function has an `Inhell`/`In_hell` conditional in C, check
 all callers and related functions for the same pattern. The G_HELL/G_NOHELL
 distinction is always conditional on being in Gehennom.
+
+# 2026-03-21: `drainUntilInput()` is currently weaker than a true input boundary
+
+- The remaining post-`933` seam exposed an executor/runtime contract issue:
+  - replay step boundaries are intended to be input-delimited
+  - but `js/replay_core.js:drainUntilInput()` currently ends a consumed key
+    when either:
+    1. the game reaches an actual input wait, or
+    2. the `_gameLoopStep()` promise resolves
+- That second condition is weaker than the intended meaning of
+  "drain until input":
+  - after the owner fix, `_gameLoopStep()` can now return after one
+    positive-repeat slice
+  - but the runtime may still have valid no-input continuation pending
+  - if replay admits the next queued key at that point, JS is accepting input
+    earlier than the game is truly ready for it
+- Important clarification:
+  - internal loop boundaries do **not** automatically redefine session steps
+  - the problem is specifically when replay treats promise completion as a
+    sufficient end-of-step condition even though `input.isWaitingInput()` is
+    still false
+- Evidence:
+  - pending trace around the improved `seed031` corridor shows:
+    - step `933` resumes and completes cleanly
+    - later steps such as `937` can still end with `owner=none waiting=0`
+  - this means the consumed key has ended from replay's perspective even
+    though the runtime has not yet blocked for fresh input
+- Current best interpretation:
+  - the remaining monster-27 target-refresh seam may now be partly caused by
+    the next queued key being introduced before the JS runtime has reached the
+    true no-input completion boundary that C would reach first
+- Next step:
+  - tighten the replay/runtime contract so a consumed key does not finish
+    merely because `_gameLoopStep()` returned, if no-input continuation is
+    still pending and the game is not actually waiting for input
+
