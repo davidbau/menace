@@ -14792,3 +14792,26 @@ effect was missing.
   - next work should target the **slice internals** before another owner move
   - the owner question still matters, but only after the repeated-travel slice
     is internally closer to C
+
+# 2026-03-21: Deeper C read found missing repeat-slice invariants beyond ownership
+
+- We had been treating the remaining travel problem too abstractly. A closer
+  C/JS comparison exposed several concrete gaps:
+  1. C positive-repeat branch has a pre-`domove()` `runmode_delay_output()`
+     in `allmain.c`; JS still only has the move-local `domove()` delay call
+  2. C resets `u.umoved = FALSE` before every positive-repeat slice; JS only
+     resets `player.umoved` once at fresh-command start
+  3. JS `advanceTimedTurn()` is not one C phase; it is a fused helper spanning
+     `moveloop_core()` plus later pre-input sync
+  4. initial `_` travel-step handling and repeated travel-step handling are
+     currently framed differently in JS
+  5. current `runMovementRepeatSlice(...)` is a fused cross-iteration helper,
+     not one exact C repeat slice
+- Lesson:
+  - the next faithful port step is not another owner rewrite
+  - first make the C repeat-slice invariants explicit in JS:
+    - per-slice `u.umoved = FALSE`
+    - repeat-branch `runmode_delay_output()` before repeated `domove()`
+    - consistent framing between initial and repeated travel steps
+  - only after the slice internals are C-shaped does it make sense to revisit
+    moving the outer runtime owner

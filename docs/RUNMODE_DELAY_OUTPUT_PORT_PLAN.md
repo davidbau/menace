@@ -733,3 +733,178 @@ Updated implication for Stage B:
      repeated `domove()`
 4. Only after that internal ordering becomes more C-faithful does it make
    sense to revisit the outer owner move.
+
+## Corrections After Deeper C/JS Analysis
+
+The first versions of this plan were still abstracting too much. A closer read
+of both C and JS shows several concrete mismatches that must be addressed
+explicitly.
+
+### 1. The repeat branch in C has a pre-`domove()` delay boundary that JS still lacks
+
+C positive-repeat ordering is:
+
+1. `lookaround()`
+2. `runmode_delay_output()`            // `allmain.c:629`
+3. `if (!gm.multi) { context.move=0; return; }`
+4. one repeated `domove()` / `rhack()`
+
+JS currently has the move-local `runmode_delay_output()` inside `domove()`,
+but the extracted `runMovementRepeatSlice(...)` still does:
+
+1. `lookaround()`
+2. repeated `domove()`
+3. later timed-turn work
+
+So JS is still missing the repeat-branch `runmode_delay_output()` call site
+that C executes before the repeated `domove()`.
+
+This is not cosmetic. It is the exact boundary that the dog-goal and gas-spore
+ordering evidence keeps pointing at.
+
+### 2. C resets `u.umoved = FALSE` before every positive-repeat slice
+
+In C, just before the `gm.multi > 0` branch:
+
+- `u.umoved = FALSE;`                  // `allmain.c:624`
+
+That happens on every `moveloop_core()` entry before a repeated move is
+considered.
+
+Current JS only resets `player.umoved = false` once at the start of a fresh
+command in `run_command()`. It does **not** reset `umoved` before each
+repeated movement slice.
+
+This is a real behavioral difference because later logic reads `u.umoved`
+during end-of-turn and timeout handling.
+
+### 3. JS still treats `advanceTimedTurn()` as if it were one C phase, but it spans a full C iteration
+
+`advanceTimedTurn()` currently does:
+
+1. `moveloop_core()`                   // monster-time / turn-end work
+2. `find_ac()`
+3. vision / monster refresh
+4. `display_sync()`
+
+That is already more than one conceptual C sub-phase. It is effectively JS's
+fused version of "the next `moveloop_core()` iteration after a timed action",
+not just "actual time passed".
+
+Any plan that inserts a repeated `domove()` merely "before or after
+`advanceTimedTurn()`" is therefore still too coarse.
+
+### 4. Initial travel-step handling is inconsistent with repeated travel-step handling
+
+After `_` travel target confirmation, JS currently does:
+
+- `dotravel_target()`
+- if `tookTime`, only `moveloop_core()`
+- then returns from `_gameLoopStep()`
+
+That means the initial travel step gets:
+- monster-time / turn-end work
+- but **not** the same post-`moveloop_core()` pre-input sync that repeated
+  slices currently get via `advanceTimedTurn()`
+
+So the initial travel step and repeated travel steps are already running under
+different JS frames, which is not a stable foundation for Stage B.
+
+### 5. The current repeated movement slice is really spanning two C iterations
+
+Current JS `runMovementRepeatSlice(...)` does:
+
+1. `lookaround()`
+2. repeated `domove()`
+3. `advanceTimedTurn()`
+
+But in C, the repeated `domove()` happens at the tail of one
+`moveloop_core()` iteration, and the corresponding monster-time work happens
+in the **next** outer-loop iteration.
+
+So the current JS slice helper is not "one C repeat slice". It is a fused
+cross-iteration helper:
+
+- tail of C iteration N
+- plus head/middle of C iteration N+1
+
+That fused model is not automatically wrong, but the plan must acknowledge it
+explicitly. Otherwise owner moves will keep failing because we will be moving a
+unit that does not actually correspond to one C slice.
+
+### 6. `advanceRunTurn` is relevant to run/rush, not to travel repeat parity
+
+`game.advanceRunTurn` is actively consumed by `do_run()` in `hack.js`.
+The travel-repeat path in `runMovementRepeatSlice(...)` currently sets
+`advanceRunTurn`, but `domove()` does not consume that hook for travel.
+
+That means the hook is currently noise for the travel-specific analysis.
+It should not be part of the Stage B reasoning except as an implementation
+cleanup detail.
+
+## Updated Faithful-Port Plan
+
+The corrected plan should now be:
+
+### Stage C1: make the JS frame boundaries explicit
+
+Before any further owner moves, split the runtime into helpers that reflect the
+actual C structure more faithfully:
+
+1. **actual-time-passed iteration work**
+   - current `moveloop_core()` responsibility
+2. **once-per-player-input pre-input sync**
+   - current `syncTimedTurnPreInputState()`
+3. **positive-repeat pre-`domove()` boundary**
+   - must include:
+     - `u.umoved = FALSE`
+     - `lookaround()`
+     - repeat-branch `runmode_delay_output()`
+     - `context.move = 0` on lookaround cancel
+4. **repeated hero step**
+   - one repeated `domove()` / `rhack()`
+
+This stage is still about expressing the right boundaries, not moving owners.
+
+### Stage C2: make initial travel-step and repeated travel-step framing consistent
+
+Before revisiting ownership:
+
+- the initial `_` travel step after `dotravel_target()` must pass through the
+  same post-step/pre-input framing model as later repeated travel steps
+- otherwise Stage C3 will be comparing unlike units
+
+### Stage C3: adjust the repeated movement slice internals
+
+Once the boundaries are explicit:
+
+- add the missing repeat-branch `runmode_delay_output()` before repeated
+  `domove()`
+- reset `u.umoved = FALSE` before each repeated slice
+- ensure the dog sees the pre-`domove()` hero square on the first relevant
+  post-delay monster turn
+
+Primary observable:
+- `^dog_invent_decision ... ud=8` where C has `ud=8`
+
+### Stage C4: only then revisit the outer owner move
+
+Only after Stage C3 shows the slice itself is C-shaped:
+
+- move `context.mv == true` continuation ownership outward
+- revalidate:
+  - counted-repeat corridor `160..166`
+  - dog-ordering corridor `933..934`
+  - later gas-spore seam
+
+## Practical Implication
+
+The next implementation should **not** be another direct owner rewrite.
+
+The next implementation should be:
+
+1. make the missing per-slice invariants explicit in code
+2. equalize the framing of initial and repeated travel steps
+3. then test whether the first seam finally moves
+
+Only after that should ownership move again.
