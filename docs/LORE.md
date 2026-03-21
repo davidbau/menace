@@ -15089,3 +15089,58 @@ When a correct parity fix regresses a session:
   - the correct boundary is narrower than "any animated flight"
   - a multi-step flight-specific continuation owner is the first version that
     produces a large `seed031` gain without tripping the existing guardrails
+
+## 2026-03-21: the `854` regression shows that C splits projectile flight itself, not just post-flight resolution
+
+- Follow-up comparison on the same `seed031` seam showed the deeper C shape:
+  - gameplay step `851` key `"f"`:
+    - direction prompt only
+  - gameplay step `852` key `"k"`:
+    - `throw_obj(...)`
+    - `next_ident(...)`
+    - `tmp_at_start`
+    - `tmp_at_step`
+    - `tmp_at_step`
+  - gameplay step `853` key `"k"`:
+    - one more `tmp_at_step`
+  - gameplay step `854` key `"f"`:
+    - `tmp_at_end`
+    - `thitmonst(...)`
+    - `exercise(...)`
+    - `should_mulch_missile(...)`
+    - monster-turn / moveloop work
+- This means the first structural JS throw probe was still too shallow:
+  - it deferred only post-flight resolution
+  - but C already carries the projectile flight loop itself across gameplay keys
+- Practical lesson:
+  - the next throw/fire refactor must model **flight slices** plus the later
+    resolution slice
+  - not just "defer `thitmonst()` when `flightStepCount > 1`"
+
+## 2026-03-21: keep the throw-local continuation owner even though the first seam stays at 940
+
+- Refactor:
+  - removed the generic `pendingDeferredAction` throw path
+  - replaced it with a throw-local continuation owner:
+    - `pendingThrowContinuation`
+    - stepped by `_gameLoopStep()` before fresh input
+    - explicit phases:
+      - `flight`
+      - `resolve`
+- Validation:
+  - `seed031_manual_direct.session.json` stayed exactly on the validated
+    baseline:
+    - first RNG divergence `940`
+    - matched RNG `34575/51561`
+    - matched events `19208/28950`
+  - guardrails stayed green:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - keep the structural cleanup even without immediate first-divergence
+    movement when it preserves the validated baseline and simplifies the next
+    faithful fix
+  - the next remaining throw task is now narrowly about the
+    `flight -> resolve` handoff, not about generic deferred scheduling

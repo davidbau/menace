@@ -78,6 +78,7 @@ import {
     tmp_at, tmp_at_end_async, nh_delay_output,
 } from './animation.js';
 import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
+import { moveloop_core } from './allmain.js';
 import { u_wipe_engr } from './engrave.js';
 import { confdir } from './hack.js';
 import { game as _gstate } from './gstate.js';
@@ -1134,6 +1135,186 @@ async function resolveThrownObjectPostFlight({
     throwit_return(false, game);
 }
 
+function closeThrowAnimation(state) {
+    if (state.animationClosed) return;
+    tmp_at(DISP_END, 0);
+    state.animationClosed = true;
+}
+
+function buildThrowContinuationState({
+    obj, wep_mask, twoweap, oldslot, player, map, game,
+    tethered_weapon, impaired, range, dx, dy, bx, by,
+    skiprange_start, skiprange_end, allow_skip, projGlyph,
+}) {
+    return {
+        phase: 'flight',
+        obj, wep_mask, twoweap, oldslot, player, map, game,
+        tethered_weapon, impaired, range, dx, dy, bx, by,
+        skiprange_start, skiprange_end, allow_skip,
+        projGlyph,
+        point_blank: true,
+        in_skip: false,
+        skipcount: 0,
+        flightIndex: 0,
+        flightStepCount: 0,
+        hitMon: null,
+        animationClosed: false,
+    };
+}
+
+async function stepThrowFlight(state, maxAnimationSteps) {
+    let animationStepsThisSlice = 0;
+    while (state.flightIndex < state.range) {
+        const nx = state.bx + state.dx;
+        const ny = state.by + state.dy;
+        if (!isok(nx, ny)) {
+            state.phase = 'resolve';
+            return;
+        }
+        const loc = typeof state.map.at === 'function' ? state.map.at(nx, ny) : null;
+        if (!loc) {
+            state.phase = 'resolve';
+            return;
+        }
+        state.bx = nx;
+        state.by = ny;
+        const typ = loc.typ;
+
+        if (typ === IRONBARS) {
+            const always_hit = state.point_blank ? 0 : !rn2(5);
+            if (await hits_bars(
+                state.obj,
+                state.bx - state.dx,
+                state.by - state.dy,
+                state.bx,
+                state.by,
+                always_hit,
+                1,
+                state.map,
+                state.player,
+                state.game
+            )) {
+                state.bx -= state.dx;
+                state.by -= state.dy;
+                state.phase = 'resolve';
+                return;
+            }
+        }
+        state.point_blank = false;
+
+        let mtmp = state.map.monsterAt ? state.map.monsterAt(state.bx, state.by) : null;
+        const ttmp = t_at(state.bx, state.by, state.map);
+        if (!mtmp && ttmp && ttmp.ttyp === WEB && !rn2(3)) {
+            if (!state.player?.blind) {
+                const objName = state.obj.oname || objectData[state.obj.otyp]?.oc_name || 'object';
+                await pline("The %s gets stuck in a web!", objName);
+                ttmp.tseen = true;
+                newsym(state.bx, state.by);
+            }
+            state.phase = 'resolve';
+            return;
+        }
+
+        if (state.skiprange_start
+            && ((state.range - state.flightIndex) === state.skiprange_start)
+            && state.allow_skip) {
+            if (IS_POOL(typ) && !mtmp) {
+                state.in_skip = true;
+                state.skipcount++;
+            } else if (state.skiprange_start > state.skiprange_end + 1) {
+                --state.skiprange_start;
+            }
+        }
+        if (state.in_skip) {
+            if ((state.range - state.flightIndex) <= state.skiprange_end) {
+                state.in_skip = false;
+            } else if (mtmp) {
+                const mdat = mtmp.data || mtmp.type || {};
+                if (IS_POOL(typ) && is_swimmer(mdat)) {
+                    mtmp = null;
+                }
+            }
+        }
+
+        if (mtmp) {
+            if (shade_miss(state.player, mtmp, state.obj, true, true)
+                || ((mtmp.m_ap_type || 0) === M_AP_OBJECT)) {
+                mtmp = null;
+            }
+        }
+
+        if (mtmp) {
+            state.hitMon = mtmp;
+            state.phase = 'resolve';
+            return;
+        }
+
+        if (!ZAP_POS(typ) || closed_door(state.bx, state.by, state.map)) {
+            state.bx -= state.dx;
+            state.by -= state.dy;
+            state.phase = 'resolve';
+            return;
+        }
+
+        tmp_at(state.bx, state.by);
+        await nh_delay_output();
+        state.flightStepCount++;
+        state.flightIndex++;
+        animationStepsThisSlice++;
+
+        if (IS_SINK(typ)) {
+            state.phase = 'resolve';
+            return;
+        }
+        if (animationStepsThisSlice >= maxAnimationSteps && state.flightIndex < state.range) {
+            return;
+        }
+    }
+    state.phase = 'resolve';
+}
+
+async function resolveThrowContinuation(state) {
+    closeThrowAnimation(state);
+    await resolveThrownObjectPostFlight({
+        obj: state.obj,
+        wep_mask: state.wep_mask,
+        twoweap: state.twoweap,
+        oldslot: state.oldslot,
+        player: state.player,
+        map: state.map,
+        game: state.game,
+        hitMon: state.hitMon,
+        bx: state.bx,
+        by: state.by,
+        dx: state.dx,
+        dy: state.dy,
+        tethered_weapon: state.tethered_weapon,
+        impaired: state.impaired,
+    });
+}
+
+export function hasPendingThrowContinuation(game) {
+    return !!game?.pendingThrowContinuation;
+}
+
+export async function runPendingThrowContinuation(game) {
+    const state = game?.pendingThrowContinuation;
+    if (!state) return null;
+
+    if (state.phase === 'flight') {
+        await stepThrowFlight(state, 1);
+        if (state.phase === 'flight') {
+            return { moved: false, tookTime: false, suppressUntimedTailRender: true };
+        }
+        return { moved: false, tookTime: false, suppressUntimedTailRender: true };
+    }
+
+    game.pendingThrowContinuation = null;
+    await resolveThrowContinuation(state);
+    await moveloop_core(game);
+    return { moved: false, tookTime: true };
+}
+
 export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game, opts = {}) {
     const { deferPostFlightResolution = false } = opts;
     const uwep = player.weapon;
@@ -1194,17 +1375,40 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
         allow_skip = !rn2(3);
     }
 
-    let hitMon = null;
     const dx = player.dx || 0, dy = player.dy || 0;
     let bx = player.x, by = player.y;
     const projGlyph = objectTmpGlyph(obj);
     let animationClosed = false;
     let flightStepCount = 0;
+    let hitMon = null;
+    let point_blank = true; // C: first cell is point-blank (no rn2(5) for iron bars)
+    let in_skip = false;
+    let skipcount = 0;
+
+    if (deferPostFlightResolution && game) {
+        const state = buildThrowContinuationState({
+            obj, wep_mask, twoweap, oldslot, player, map, game,
+            tethered_weapon, impaired, range, dx, dy, bx, by,
+            skiprange_start, skiprange_end, allow_skip, projGlyph,
+        });
+        tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
+        await stepThrowFlight(state, 2);
+        if (state.flightStepCount <= 1 && state.phase === 'resolve') {
+            closeThrowAnimation(state);
+            await resolveThrowContinuation(state);
+            return { deferredPostFlight: false };
+        }
+        if (state.flightStepCount > 1) {
+            game.pendingThrowContinuation = state;
+            return { deferredPostFlight: true };
+        }
+        closeThrowAnimation(state);
+        await resolveThrowContinuation(state);
+        return { deferredPostFlight: false };
+    }
+
     tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
     try {
-        let point_blank = true; // C: first cell is point-blank (no rn2(5) for iron bars)
-        let in_skip = false;
-        let skipcount = 0;
         for (let i = 0; i < range; i++) {
             const nx = bx + dx, ny = by + dy;
             if (!isok(nx, ny)) break;
@@ -1295,28 +1499,9 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
             if (IS_SINK(typ)) break;
         }
     } finally {
-        if (!animationClosed && !(deferPostFlightResolution && flightStepCount > 1)) {
+        if (!animationClosed) {
             tmp_at(DISP_END, 0);
         }
-    }
-    if (deferPostFlightResolution && flightStepCount > 1) {
-        if (game) {
-            game.pendingDeferredAction = async () => {
-                tmp_at(DISP_END, 0);
-                await resolveThrownObjectPostFlight({
-                    obj, wep_mask, twoweap, oldslot, player, map, game,
-                    hitMon, bx, by, dx, dy, tethered_weapon, impaired,
-                });
-            };
-            game.pendingDeferredTimedTurn = true;
-        } else {
-            tmp_at(DISP_END, 0);
-            await resolveThrownObjectPostFlight({
-                obj, wep_mask, twoweap, oldslot, player, map, game,
-                hitMon, bx, by, dx, dy, tethered_weapon, impaired,
-            });
-        }
-        return { deferredPostFlight: true };
     }
 
     if (game) game.bhitpos = { x: bx, y: by };

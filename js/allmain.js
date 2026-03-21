@@ -77,6 +77,7 @@ import { amulet } from './wizard.js';
 import { dosounds } from './sounds.js';
 import { find_ac, set_wear } from './do_wear.js';
 import { any_visible_region, run_regions } from './region.js';
+import { hasPendingThrowContinuation, runPendingThrowContinuation } from './dothrow.js';
 
 const QUEST_PORTAL_INFO_BY_ROLE = {
     Arc: { leader: 'Lord Carnarvon', homebase: 'the College of Archeology' },
@@ -1594,8 +1595,7 @@ export class NetHackGame {
         this.seerTurn = 0;
         this.occupation = null;
         this._pendingPrompt = null;
-        this.pendingDeferredAction = null;
-        this.pendingDeferredTimedTurn = false;
+        this.pendingThrowContinuation = null;
         this.pendingTravelTimedTurn = false;
         this.seed = 0;
         this.multi = 0;
@@ -2335,20 +2335,6 @@ export class NetHackGame {
         return monsterNearby(this.map, this.player, this.fov);
     }
 
-    async runPendingDeferredAction() {
-        if (typeof this.pendingDeferredAction !== 'function') return;
-        const deferredAction = this.pendingDeferredAction;
-        this.pendingDeferredAction = null;
-        await deferredAction();
-    }
-
-    // Run the deferred timed turn postponed from a stop_occupation frame.
-    async runPendingDeferredTimedTurn() {
-        if (!this.pendingDeferredTimedTurn) return;
-        this.pendingDeferredTimedTurn = false;
-        await moveloop_core(this);
-    }
-
     // C-parity naming for internal callers.
     async stop_occupation() {
         await stop_occupation(this);
@@ -2627,6 +2613,7 @@ export class NetHackGame {
     async _gameLoopStep() {
         while (true) {
             const hasPendingTravelTimedTurn = !!this.pendingTravelTimedTurn;
+            const hasThrowContinuation = hasPendingThrowContinuation(this);
             const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
 
             // Travel continuation fallback. Keep this behind the positive-move
@@ -2642,6 +2629,7 @@ export class NetHackGame {
             }
 
             const hasTimedContinuation = hasPendingTravelTimedTurn
+                || hasThrowContinuation
                 || hasPositiveMoveContinuation
                 || (this.context?.move && this.multi < 0 && !(this?.playerDied))
                 || (this.multi >= 0 && this.occupation);
@@ -2670,6 +2658,15 @@ export class NetHackGame {
                 await runOccupationStep(this);
                 this.renderAndAutosave({ autosave: true });
                 continue;
+            }
+
+            if (hasThrowContinuation) {
+                const continuationResult = await runPendingThrowContinuation(this);
+                this.renderAndAutosave({
+                    commandResult: continuationResult,
+                    autosave: !!continuationResult?.tookTime,
+                });
+                return;
             }
 
             if (hasPendingTravelTimedTurn) {
@@ -2758,9 +2755,6 @@ export class NetHackGame {
         if (firstCh !== 1) {
             this.lastCommand = { key: ch, count: countPrefix };
         }
-
-        await this.runPendingDeferredAction();
-        await this.runPendingDeferredTimedTurn();
 
         return await run_command(this, ch, {
             countPrefix,

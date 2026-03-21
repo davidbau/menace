@@ -3549,3 +3549,80 @@ Validated result:
 New active question after this structural gain:
 - why does JS still reach monster-side `dochug()` RNG at gameplay step `854`
   while C is only beginning a later `throw_obj()` there?
+
+### Deeper throw-flight correction after the `854` regression
+
+The `854` regression clarified that the first throw-owner split was still too
+shallow.
+
+What C actually does around the new first seam:
+- gameplay step `851` key `"f"`:
+  - direction prompt only
+- gameplay step `852` key `"k"`:
+  - `rnd(1)=1 @ throw_obj(...)`
+  - `rnd(2)=1 @ next_ident(...)`
+  - `tmp_at_start`
+  - `tmp_at_step`
+  - `tmp_at_step`
+- gameplay step `853` key `"k"`:
+  - one more `tmp_at_step`
+- gameplay step `854` key `"f"`:
+  - `tmp_at_end`
+  - `thitmonst(...)`
+  - `exercise(...)`
+  - `should_mulch_missile(...)`
+  - monster-turn / moveloop work
+
+So the important correction is:
+- the multi-step fire seam is **not just post-flight resolution**
+- in C, the projectile flight itself already spans multiple gameplay keys
+
+That explains the `854` regression directly:
+- the first structural JS probe deferred only:
+  - `tmp_at_end`
+  - `thitmonst(...)`
+  - post-hit work
+- but it still finished the whole projectile-flight loop too early
+
+So the next C-shaped owner has to be stronger:
+1. carry **flight slices** across gameplay keys for the multi-step case
+2. then carry the final `tmp_at_end + thitmonst + moveloop` resolution slice
+3. do not split:
+   - point-blank shots
+   - one-step flight shots
+
+This is the same architectural lesson as the accepted `_` command fix:
+- the JS bug is not best thought of as a local predicate mistake
+- it is a collapsed loop/owner structure versus the C outer-loop shape
+
+### Keepable throw-owner cleanup
+
+A follow-up refactor replaced the generic deferred-action path with a
+throw-local continuation owner in core gameplay:
+
+- `pendingThrowContinuation`
+- `_gameLoopStep()` owns it before fresh input
+- phases are explicit:
+  - `flight`
+  - `resolve`
+
+This is a structural cleanup, not yet a parity gain by itself.
+
+Validated result:
+- `seed031_manual_direct.session.json`
+  - preserved the validated baseline:
+    - first RNG divergence still `940`
+    - matched RNG still `34575/51561`
+    - matched events still `19208/28950`
+- gameplay guardrails stayed green:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+
+Why keep it:
+- it removes the over-general `pendingDeferredAction` machinery
+- it makes throw continuation ownership explicit and C-shaped
+- it gives the next throw fix a simpler base:
+  - adjust the `flight -> resolve` handoff
+  - without also untangling generic deferred behavior
