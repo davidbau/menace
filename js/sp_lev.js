@@ -4993,15 +4993,10 @@ export function set_wallprop_in_selection(selection, propKind) {
     }
 
     if (Array.isArray(selection.coords)) {
+        // selection.area() already converts coordinates to absolute via
+        // _toAbsoluteCoord/getLocationCoord. Do NOT re-convert here.
         for (const c of selection.coords) {
-            let x = c.x;
-            let y = c.y;
-            if (levelState.mapCoordMode) {
-                const abs = toAbsoluteCoords(x, y);
-                x = abs.x;
-                y = abs.y;
-            }
-            sel_set_wall_property(x, y, propKind);
+            sel_set_wall_property(c.x, c.y, propKind);
         }
         return;
     }
