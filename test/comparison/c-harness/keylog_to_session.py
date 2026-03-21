@@ -68,9 +68,11 @@ no_delay_env = _session.no_delay_env
 test_move_event_env = _session.test_move_event_env
 runstep_event_env = _session.runstep_event_env
 repaint_trace_env = _session.repaint_trace_env
+repaint_debug_env = _session.repaint_debug_env
 exp_trace_env = _session.exp_trace_env
 capture_cursor = _session.capture_cursor
 collect_mapdump_checkpoints = _session.collect_mapdump_checkpoints
+report_repaint_debug_log = _session.report_repaint_debug_log
 
 
 def parse_args():
@@ -357,6 +359,7 @@ def run_from_keylog(
     tmpdir = tempfile.mkdtemp(prefix='webhack-keylog-session-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
     mapdump_dir = os.path.join(tmpdir, 'mapdumps')
+    repaint_debug_log_path = os.path.join(tmpdir, 'repaintdbg.log')
     os.makedirs(mapdump_dir, exist_ok=True)
     session_name = f'webhack-keylog-{seed}-{os.getpid()}'
     keylog_moves_base = int(events[0].get('moves', 0))
@@ -370,6 +373,7 @@ def run_from_keylog(
     test_move_env = test_move_event_env()
     runstep_env = runstep_event_env()
     repaint_env = repaint_trace_env()
+    repaint_debug = repaint_debug_env(repaint_debug_log_path)
     exp_env = exp_trace_env()
     rnglog_disp_env = f'NETHACK_RNGLOG_DISP={os.environ.get("NETHACK_RNGLOG_DISP", "")} ' if os.environ.get('NETHACK_RNGLOG_DISP', '') else ''
 
@@ -384,6 +388,7 @@ def run_from_keylog(
             f'{test_move_env}'
             f'{runstep_env}'
             f'{repaint_env}'
+            f'{repaint_debug}'
             f'{exp_env}'
             f'{rnglog_disp_env}'
             f'NETHACK_SEED={seed} '
@@ -544,6 +549,7 @@ def run_from_keylog(
         with open(output_json, 'w') as f:
             f.write(compact_session_json(session_data))
         print(f'Wrote {output_json}')
+        report_repaint_debug_log(repaint_debug_log_path, output_json)
 
     finally:
         subprocess.run(['tmux', 'kill-session', '-t', session_name], capture_output=True)
