@@ -1589,8 +1589,6 @@ export class NetHackGame {
         this.seerTurn = 0;
         this.occupation = null;
         this._pendingPrompt = null;
-        this.pendingDeferredTimedTurn = false;
-        this.pendingTravelTimedTurn = false;
         this.seed = 0;
         this.multi = 0;
         this.inDoAgain = false;
@@ -2327,13 +2325,6 @@ export class NetHackGame {
         return monsterNearby(this.map, this.u, this.fov);
     }
 
-    // Run the deferred timed turn postponed from a stop_occupation frame.
-    async runPendingDeferredTimedTurn() {
-        if (!this.pendingDeferredTimedTurn) return;
-        this.pendingDeferredTimedTurn = false;
-        await moveloop_core(this);
-    }
-
     // C-parity naming for internal callers.
     async stop_occupation() {
         await stop_occupation(this);
@@ -2611,7 +2602,6 @@ export class NetHackGame {
 
     async _gameLoopStep() {
         while (true) {
-            const hasPendingTravelTimedTurn = !!this.pendingTravelTimedTurn;
             const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
 
             // Travel continuation fallback. Keep this behind the positive-move
@@ -2626,8 +2616,7 @@ export class NetHackGame {
                 return;
             }
 
-            const hasTimedContinuation = hasPendingTravelTimedTurn
-                || hasPositiveMoveContinuation
+            const hasTimedContinuation = hasPositiveMoveContinuation
                 || (this.context?.move && this.multi < 0 && !(this?.playerDied))
                 || (this.multi >= 0 && this.occupation);
 
@@ -2655,13 +2644,6 @@ export class NetHackGame {
                 await runOccupationStep(this);
                 this.renderAndAutosave({ autosave: true });
                 continue;
-            }
-
-            if (hasPendingTravelTimedTurn) {
-                this.pendingTravelTimedTurn = false;
-                await advanceTimedTurn(this, {});
-                this.renderAndAutosave({ autosave: true });
-                return;
             }
 
             if (hasPositiveMoveContinuation) {
@@ -2750,8 +2732,6 @@ export class NetHackGame {
         if (firstCh !== 1) {
             this.lastCommand = { key: ch, count: countPrefix };
         }
-
-        await this.runPendingDeferredTimedTurn();
 
         return await run_command(this, ch, {
             countPrefix,

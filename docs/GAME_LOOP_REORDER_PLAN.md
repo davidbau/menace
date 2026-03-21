@@ -1,5 +1,44 @@
 # Game Loop Reorder Plan
 
+## Current Status (March 21, 2026)
+
+The game loop infrastructure is substantially complete. The `_gameLoopStep`
+`while(true)` loop in `allmain.js` handles all continuation types (negative
+multi, occupation, travel, positive-move repeat). The remaining work is to
+move `advanceTimedTurn` (Phase B) to the TOP of the loop — before the player
+command — matching C's `moveloop_core` structure where monsters move first.
+
+### What has been done
+- `_gameLoopStep` uses `while(true)` with explicit continuation dispatch
+- `runNegativeMultiStep`, `runOccupationStep`, `runMovementRepeatSlice` are
+  one-step-per-iteration helpers matching C's per-iteration model
+- `context.move` gates monster movement (Phase B), matching C
+- `finalizeTimedCommand` handles post-command turn processing
+
+### What remains
+- Move `advanceTimedTurn` from `finalizeTimedCommand` (runs AFTER player
+  command) to the top of `_gameLoopStep` (runs BEFORE player command)
+- This is the single structural change that fixes the game loop ordering
+  divergence affecting seed031/032/033/328/theme27
+
+### Removed: pendingDeferredTimedTurn
+
+`pendingDeferredTimedTurn` was previously considered as a way to defer
+Phase B to the next command cycle: `finalizeTimedCommand` would set a flag
+instead of calling `advanceTimedTurn`, and `runPendingDeferredTimedTurn`
+would execute it at the start of the next cycle. This approach was
+abandoned because:
+
+1. C has no deferral mechanism — it's a simple `for(;;) { moveloop_core(); }`
+2. The deferral pattern adds synthetic queueing, which AGENTS.md prohibits
+3. The flag was built but never activated (dead code since creation)
+4. The correct approach is structural: move Phase B to the top of the loop
+
+The `pendingDeferredTimedTurn` field, `runPendingDeferredTimedTurn()` method,
+and `pendingTravelTimedTurn` field have been deleted.
+
+---
+
 ## Review Notes (from original plan author)
 
 I reviewed the branch implementation (`a818b2930`) against the original
