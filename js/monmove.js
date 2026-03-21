@@ -4,7 +4,7 @@
 // Focus: exact RNG consumption alignment with C NetHack
 //
 // INCOMPLETE / MISSING vs C monmove.c:
-// - dochug: no Conflict handling (C:870), no covetous/quest/vault guards
+// - dochug: no Conflict handling (C:870), no covetous/vault guards
 // - dochug: mind_blast RNG-faithful but losehp stubbed
 // - dochug: flees_light: artifact_light limited to Sunsword + gold dragon scales
 // - m_move: no boulder-pushing to adjacent square by strong monsters (C:2020)
@@ -127,6 +127,7 @@ import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HAS
 import { hasWeaponAttack, maybeMonsterWieldBeforeAttack, linedUpToPlayer } from './mthrowu.js';
 import { m_carrying } from './mthrowu.js';
 import { find_defensive, use_defensive, find_misc, use_misc, find_offensive, searches_for_item } from './muse.js';
+import { quest_stat_check } from './quest.js';
 
 // ========================================================================
 // movemon — wrapper that binds dochug into mon.js movemon
@@ -1265,6 +1266,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
             mon.mstrategy = Number(mon.mstrategy || 0) & ~STRAT_WAITFORU;
         }
     }
+
+    // C ref: monmove.c:715 — update quest status flags
+    quest_stat_check(mon, player);
 
     // C ref: monmove.c:717-724 — immobile/waiting monsters cannot act.
     // Preserve Hallucination newsym side effect when represented.
