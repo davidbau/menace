@@ -53,9 +53,9 @@ import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
-import { nhgetch, nhgetch_display_raw, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
+import { nhgetch, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
-         setCmdqRepeatRecordMode, more } from './input.js';
+         setCmdqRepeatRecordMode, more, hasActiveMoreBoundary } from './input.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
 import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
@@ -1784,9 +1784,9 @@ export class NetHackGame {
         // Wire up nhwindow infrastructure
         init_nhwindows(this.display, nhgetch, () => this._rerenderGame());
         // Display-managed --More-- waits should use raw runtime key reads to
-        // avoid nested boundary helpers re-entering nhgetch.
+        // nhgetch is now simple (no boundary logic), safe for more() to use.
         if (this.display && typeof this.display.setNhgetch === 'function') {
-            this.display.setNhgetch(nhgetch_display_raw);
+            this.display.setNhgetch(() => nhgetch());
         }
         // Handle ?reset=1 — prompt to delete all saved data
         if (urlOpts.reset) {
@@ -2548,11 +2548,12 @@ export class NetHackGame {
             // command-boundary --More-- pending, consume only that dismiss key
             // before running any no-input continuation work.
             if (hasTimedContinuation && hasPendingCommandBoundaryDismiss(this)) {
-                const boundaryCh = await nhgetch({ commandBoundary: true });
-                if (boundaryCh === 0) continue;
-                const boundaryResult = await this.runOneCommandCycle(boundaryCh);
-                if (!boundaryResult) return;
-                this.renderAndAutosave({ commandResult: boundaryResult, autosave: true });
+                // C ref: tty_clearmsg() fires more() before continuation work.
+                await more(this.display, {
+                    forceVisual: true,
+                    clearAfter: true,
+                    readKey: () => nhgetch(),
+                });
                 continue;
             }
 
@@ -2569,22 +2570,43 @@ export class NetHackGame {
                 continue;
             }
 
-            const firstCh = await nhgetch({ commandBoundary: true });
-            // Command-boundary --More-- dismissal is not a gameplay command.
-            // If a canned command is queued, execute it now before waiting for the
-            // next real gameplay key; C does this after the boundary dismiss key.
-            // Otherwise just refresh the command frame.
-            if (firstCh === 0) {
-                if (cmdq_peek(CQ_CANNED)) {
-                    const commandResult = await this.runOneCommandCycle(0);
-                    if (!commandResult) return;
-                    this.renderAndAutosave({ commandResult, autosave: true });
+            // C ref: tty_clearmsg() — dismiss pending --More-- before command.
+            if (this.display?.messageNeedsMore && hasActiveMoreBoundary(this.display)) {
+                const pendingPromptOwnsInput = !!(
+                    this.pendingPrompt && typeof this.pendingPrompt.onKey === 'function'
+                );
+                if (!pendingPromptOwnsInput) {
+                    await more(this.display, {
+                        forceVisual: !!(this.display?.messageNeedsMoreBoundary),
+                        clearAfter: true,
+                        readKey: () => nhgetch(),
+                    });
+                    // After --More-- dismiss, check for canned commands
+                    if (cmdq_peek(CQ_CANNED)) {
+                        const commandResult = await this.runOneCommandCycle(0);
+                        if (!commandResult) return;
+                        this.renderAndAutosave({ commandResult, autosave: true });
+                        continue;
+                    }
+                    if (this.player?.Hallucination) return;
+                    this.renderAndAutosave({ autosave: false, forceRender: true });
                     continue;
                 }
-                if (this.player?.Hallucination) return;
-                this.renderAndAutosave({ autosave: false, forceRender: true });
-                return;
             }
+            // Also handle canned-command-with-topline boundary (no --More-- but
+            // canned command queued while message visible)
+            if (cmdq_peek(CQ_CANNED) && this.display?.topMessage) {
+                await more(this.display, {
+                    forceVisual: true,
+                    clearAfter: true,
+                    readKey: () => nhgetch(),
+                });
+                const commandResult = await this.runOneCommandCycle(0);
+                if (!commandResult) return;
+                this.renderAndAutosave({ commandResult, autosave: true });
+                continue;
+            }
+            const firstCh = await nhgetch();
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
             this.renderAndAutosave({ commandResult, autosave: true });
