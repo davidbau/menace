@@ -1788,6 +1788,101 @@ However, it was a successful diagnostic probe because it proved:
 3. the remaining bug is specifically the post-stop `near` state, not generic
    travel ownership anymore
 
+## Follow-up probe: defer repeated travel timed turns, then reapply the exact C stop gate
+
+After the validated owner fix in `7feb605cd`, the next useful structural probe
+was to treat repeated travel hops like the initial resumed `_` hop:
+
+- repeated `context.mv` slices no longer finalized their timed turn inline
+- instead they armed a pending timed continuation for the next `_gameLoopStep()`
+- then the exact C visible-hostile stop gate from `hack.c:2762-2773` was
+  reapplied on top
+
+### What improved
+
+This combination was materially better than either piece alone:
+
+- `seed031` matched RNG increased to `34371/51561`
+- `seed031` matched events increased to `19071/28950`
+- the old hero-attack mismatch disappeared again
+- the first raw mismatch became:
+  - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+  - C: `rn2(8)=7 @ m_move(monmove.c:1979)`
+- the first event mismatch became:
+  - JS: `^distfleeck[27@27,13 in=1 near=1 scare=0 brave=1 ...]`
+  - C: `^distfleeck[27@27,13 in=1 near=0 scare=0 brave=1 ...]`
+
+The normalized RNG seam also moved later again:
+
+- previous owner-fix baseline: first normalized RNG mismatch at JS step `938`
+- combined probe: first normalized RNG mismatch at JS step `941`
+
+So this is the cleanest surviving seam so far:
+
+- `brave` aligns
+- the hero attack is gone
+- the residual mismatch is only monster `27`'s `near` state before `m_move()`
+
+### What the trace proved
+
+The focused propagation trace around steps `940..942` showed:
+
+```text
+JS step 940:
+  set_apparxy ... id=279 old=(24,13) new=(26,13)
+  distfleeck ... pos=(28,13) roll=1
+  m_move-begin ... pos=(28,13) target=(26,13)
+  distfleeck ... pos=(27,13) roll=1
+
+JS step 941:
+  domove_target from=26,13 to=27,13 mon=27@27,13
+  domove_notime stop-visible-hostile-while-running ...
+  set_apparxy ... id=279 old=(26,13) new=(26,13)
+  distfleeck ... pos=(27,13) roll=0
+```
+
+At the comparable C window:
+
+- monster `27`'s first relevant event is still:
+  - `^distfleeck[27@27,13 in=1 near=0 ...]`
+- and only *after* that does C reach:
+  - `rn2(8)=7 @ m_move(monmove.c:1979)`
+  - then the follow-up `^distfleeck[27@26,13 in=1 near=1 ...]`
+
+So JS is still refreshing monster `27`'s apparent target to `(26,13)` too
+early, one slice before C does.
+
+### Corrected interpretation
+
+The remaining bug is no longer in:
+
+- the direct hero attack path
+- generic top-level travel ownership
+- or the visible-hostile stop gate itself
+
+It is specifically in the timed-turn handoff *before* monster `27`'s first
+post-stop `distfleeck()`:
+
+- JS gives monster `27` a turn at `28,13 -> 27,13` with `mux/muy=(26,13)`
+- C does not expose that state yet at the comparable boundary
+
+This points at one more lower-level boundary bug:
+
+- the repeated-travel timed continuation is still entering monster work one
+  slice too early relative to C, even after the owner fix and stop gate
+
+### Why this probe was reverted
+
+By the repo standard it still did not move the legacy first-divergence step
+label later, and it was not yet clear enough to keep as code.
+
+However, this was still a strong diagnostic result because it showed:
+
+1. deferred repeated travel timed turns are directionally correct
+2. the exact C stop gate stays correct on top of that deferral
+3. the remaining difference is now narrowed to monster `27`'s pre-`m_move()`
+   handoff, not hero attack logic
+
 ### Concrete prediction
 
 The fix will work when BOTH are done simultaneously:

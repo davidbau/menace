@@ -15214,3 +15214,33 @@ Lesson:
   - not another broad owner rewrite
 - Reverted the code probe because it still did not move the first-divergence
   step later, but it is the strongest diagnostic narrowing since the owner fix
+
+# 2026-03-21: Deferring repeated travel timed turns helps, but monster 27 still gets its target too early
+
+- On top of `7feb605cd`, a combined probe did two things:
+  - deferred repeated `context.mv` timed turns instead of finalizing them inline
+  - reapplied the exact `hack.c:2762-2773` visible-hostile stop gate
+- This was materially better than either piece alone:
+  - `seed031` matched RNG improved to `34371/51561`
+  - matched events improved to `19071/28950`
+  - the old hero-attack mismatch disappeared
+  - normalized RNG first mismatch moved from JS step `938` to JS step `941`
+- The remaining first raw mismatch under that probe became:
+  - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+  - C: `rn2(8)=7 @ m_move(monmove.c:1979)`
+- And the remaining first event mismatch became:
+  - JS: `^distfleeck[27@27,13 in=1 near=1 scare=0 brave=1 ...]`
+  - C: `^distfleeck[27@27,13 in=1 near=0 scare=0 brave=1 ...]`
+- Focused trace around steps `940..942` showed why:
+  - JS step `940` already did:
+    - `set_apparxy ... id=279 old=(24,13) new=(26,13)`
+    - gas spore move `28,13 -> 27,13`
+  - then JS step `941` stopped before attack, but monster `27` already carried
+    `mux/muy=(26,13)` into its first post-stop `distfleeck()`
+- So the remaining bug is now even narrower:
+  - not hero attack logic
+  - not generic travel ownership
+  - monster `27` still inherits an advanced apparent hero target one slice too
+    early before its first post-stop `m_move()`
+- Reverted the probe because the legacy first-divergence step label did not
+  move later, but this is the cleanest remaining seam yet
