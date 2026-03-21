@@ -12,7 +12,7 @@ export class LogoDisplay {
     for (let r = 0; r < this.ROWS; r++) {
       this.grid[r] = [];
       for (let c = 0; c < this.COLS; c++) {
-        this.grid[r][c] = { ch: ' ', color: '#0f0' };
+        this.grid[r][c] = { ch: ' ', color: '#fff' };
       }
     }
 
@@ -42,7 +42,7 @@ export class LogoDisplay {
       `font-size: ${fontSize}px`,
       `line-height: ${lineHeight}`,
       'background: transparent',
-      'color: #0f0',
+      'color: #fff',
       'margin: 0',
       'padding: 8px',
       'white-space: pre',
@@ -73,7 +73,7 @@ export class LogoDisplay {
     const style = document.createElement('style');
     style.textContent = `
 @keyframes logo-cursor-blink {
-  0%, 49% { background-color: rgba(0, 255, 0, 0.7); color: #000; }
+  0%, 49% { background-color: rgba(255, 255, 255, 0.7); color: #000; }
   50%, 100% { background-color: transparent; }
 }
 span.logo-cursor {
@@ -106,7 +106,7 @@ span.logo-cursor {
   // Clear a row
   clearRow(row) {
     for (let c = 0; c < this.COLS; c++) {
-      this.putChar(c, row, ' ', '#0f0');
+      this.putChar(c, row, ' ', '#fff');
     }
   }
 

@@ -19,9 +19,9 @@ export class Turtle {
     this._canvas = canvas;
     this._ctx = canvas.getContext('2d');
 
-    // Logical canvas size (Apple II hi-res)
-    this.WIDTH = 280;
-    this.HEIGHT = 192;
+    // Logical canvas size (320×200, period-appropriate retro resolution)
+    this.WIDTH = 320;
+    this.HEIGHT = 200;
     canvas.width = this.WIDTH;
     canvas.height = this.HEIGHT;
 
@@ -223,7 +223,7 @@ export class Turtle {
     const left = [bx - half * perpX, by - half * perpY];
     const right = [bx + half * perpX, by + half * perpY];
 
-    ctx.fillStyle = '#0f0';
+    ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.moveTo(tip[0], tip[1]);
     ctx.lineTo(left[0], left[1]);
