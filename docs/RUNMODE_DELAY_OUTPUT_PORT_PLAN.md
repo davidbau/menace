@@ -1561,6 +1561,71 @@ This is a stronger and more complete model than the earlier
 - the top-level `travelPath` branch is a secondary wrong owner
 - the missing owner is the real C-faithful outer no-input continuation lane
 
+## Probe result: a positive-`multi` lane inside `_gameLoopStep()` is still too low-level
+
+We tested the obvious next probe:
+
+- suppress local movement overdrain in `run_command()`
+- add a positive-`multi` / `context.mv` no-input lane inside the existing
+  `_gameLoopStep()` `while` loop
+- run one `runMovementRepeatSlice(...)` per loop pass
+
+This probe was informative but still not correct.
+
+### Validation result
+
+- `seed031` still first diverged at:
+  - RNG `933`
+  - event `934`
+- later spillover improved sharply again:
+  - `933..936`: `rng +130 / evt +95`
+- the current targeted gameplay guardrail
+  `t11_s755_w_covmax9_gp.session.json` stayed green
+
+### Why it still failed
+
+Trace on the probe showed step `933` still contained multiple repeated travel
+hops:
+
+```text
+step=933 domove_target from=22,14 to=23,13
+... kitten turns at u=(23,13) ...
+step=933 domove_target from=23,13 to=24,13
+... gas spore / kitten turns ...
+step=933 domove_target from=24,13 to=25,13
+step=933 domove_target from=25,13 to=26,13
+step=933 domove_target from=26,13 to=27,13 mon=27@27,13
+step=933 domove_attackmon_at ...
+```
+
+So even though the new lane removed the command-local `repeatLoop()`, it still
+did not create a C-faithful boundary. The reason is structural:
+
+- `_gameLoopStep()` itself owns an internal `while (true)` loop
+- as long as that loop keeps `continue`-ing through no-input continuation
+  work, replay still sees it as the **same gameplay step**
+- therefore positive-travel slices are still fused together inside one replay
+  step, just under a different local owner
+
+### Corrected implication
+
+The missing owner is not merely "inside `_gameLoopStep()`".
+It must be:
+
+- a no-input continuation owner that yields **after one slice**
+- so the runtime can re-enter for the next slice without consuming a new key
+- but also without keeping all slices inside one `_gameLoopStep()` call
+
+In other words:
+
+- local `repeatLoop()` is too early
+- later dedicated `travelPath` is too late
+- `_gameLoopStep()`-internal `while` continuation is still too fused
+
+The real C-faithful boundary must sit **above** the current `_gameLoopStep()`
+internal loop, or `_gameLoopStep()` itself must be refactored so one
+positive-repeat slice causes it to return rather than `continue`.
+
 ### Concrete prediction
 
 The fix will work when BOTH are done simultaneously:

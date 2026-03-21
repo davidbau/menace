@@ -15103,3 +15103,34 @@ Lesson:
     lane in `_gameLoopStep()`
   - neither command-local `while (multi > 0)` draining nor a later dedicated
     `travelPath` shortcut is the right owner
+
+# 2026-03-21: A positive-multi lane inside `_gameLoopStep()` is still too fused
+
+- Probe:
+  - suppress local movement `repeatLoop()` in `run_command()`
+  - add a positive-`multi` / `context.mv` no-input lane inside the existing
+    `_gameLoopStep()` `while`
+  - have that lane execute one `runMovementRepeatSlice(...)` per loop pass
+- Validation:
+  - `seed031_manual_direct` still first diverged at:
+    - RNG `933`
+    - event `934`
+  - but later spillover again improved sharply:
+    - steps `933..936`: `rng +130 / evt +95`
+  - `t11_s755_w_covmax9_gp` stayed green
+- Decisive trace result:
+  - step `933` still contained multiple repeated travel hops:
+    - `22,14 -> 23,13`
+    - `23,13 -> 24,13`
+    - `24,13 -> 25,13`
+    - `25,13 -> 26,13`
+    - `26,13 -> 27,13`
+  - plus the later gas-spore contact/attack
+- Lesson:
+  - moving positive-travel continuation into `_gameLoopStep()` is not enough
+    if `_gameLoopStep()` itself keeps looping without returning
+  - replay still treats that whole internal `_gameLoopStep()` loop as one
+    gameplay step
+  - so the true C-faithful boundary must be above the current internal
+    `_gameLoopStep()` `while`, or `_gameLoopStep()` must be refactored to
+    return after one positive-repeat slice instead of `continue`
