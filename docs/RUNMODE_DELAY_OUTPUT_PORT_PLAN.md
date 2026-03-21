@@ -2057,3 +2057,116 @@ travel all go through the same one-hop-per-iteration structure) would
 automatically fix both the step count and the dog-goal ordering, because
 each hop would get its own `movemon()` pass where monsters see the pre-hop
 hero position.
+
+## Strategic Review (Second Engineer, 2026-03-21)
+
+### Assessment of the investigation
+
+The 8 probes have been excellent work. Each one was disciplined: isolated
+one variable, measured the result, reverted, documented. The cumulative
+knowledge is now substantial:
+
+| What works | Evidence |
+|---|---|
+| Owner fix: one slice per `_gameLoopStep` return | Step 933 now one hop, guardrails green |
+| C stop-before-attack gate | Hero-attack mismatch eliminated |
+| Deferred repeated timed turns | Best RNG yet: 34371/51561 |
+
+| What's left | Evidence |
+|---|---|
+| Monster 27 gets `set_apparxy` refresh one turn early | `near=1` vs `near=0` |
+| Preceding turn gives monster 27 `mux/muy = hero exact square` | Trace: `mode=direct, u_at_old=1` |
+
+### The pattern I see
+
+Each probe fixes one boundary, then reveals the next boundary is also
+wrong. This isn't random — it's causal. The fused `advanceTimedTurn()`
+propagates a one-iteration timing offset forward through the monster
+turn chain. Fixing one monster's timing relative to the hero exposes that
+the NEXT monster's timing is also off by one iteration.
+
+The probes have been surgically correct but structurally incomplete.
+They're treating symptoms of the same root cause.
+
+### Concrete recommendation
+
+You're very close. The validated owner fix + stop gate + deferred timed
+turns got you to 34371/51561 (67% RNG match). The remaining 33% gap is
+the one-turn-early `set_apparxy` refresh.
+
+That refresh happens because `advanceTimedTurn()` runs `moveloop_core()`
+(which calls `movemon()` → `set_apparxy()`) AFTER `domove()` has already
+updated the hero position. Monster 27 sees the post-hop hero position
+when it should see the pre-hop position.
+
+**The fix**: in the deferred-timed-turn model (your best probe so far),
+the repeated slice currently does:
+
+```
+domove() → hero moves
+pendingTravelTimedTurn → advanceTimedTurn()
+  → moveloop_core() → movemon() → set_apparxy sees NEW hero pos  ← bug
+```
+
+C does:
+
+```
+moveloop_core() → movemon() → set_apparxy sees OLD hero pos
+domove() → hero moves
+```
+
+The ordering difference: C runs `movemon` BEFORE `domove`. JS runs it
+AFTER. For the INITIAL travel hop this doesn't matter (the hop is part
+of the current `moveloop_core` iteration which already ran `movemon`).
+But for REPEATED hops, the deferred timed turn runs `movemon` with the
+hero already at the new position.
+
+**To fix**: the deferred timed turn for a repeated hop should run
+`movemon` BEFORE the next `domove`, not after the current one. In
+practice this means the repeated-hop slice should be:
+
+```
+// Phase 1 of THIS iteration (from previous deferred turn)
+moveloop_core()         ← monsters see hero at CURRENT position
+syncTimedTurnPreInput() ← pre-input sync
+// Phase 2 of THIS iteration
+umoved = false
+lookaround()
+runmode_delay_output()
+domove()                ← hero moves to NEXT position
+// DON'T run moveloop_core here — defer to next slice
+return (one slice done)
+```
+
+The key insight: `moveloop_core` (which contains `movemon`) should run
+at the TOP of each repeat slice, not at the BOTTOM. The deferred timed
+turn runs it at the bottom (after domove), which is the wrong ordering
+for repeated hops.
+
+This is a one-line reorder, not a structural refactor. Move the
+`moveloop_core` + `syncTimedTurnPreInputState` calls from AFTER `domove`
+to BEFORE `lookaround` in the repeated-hop slice. The deferred-turn flag
+just becomes "run phase 1+2 at the start of the next `_gameLoopStep`
+entry rather than at the end of the current one."
+
+### Why I'm confident
+
+The trace data from your latest probe proves the exact mechanism:
+monster 27's `set_apparxy` runs with the hero at `(26,13)` when it
+should be at `(24,13)`. That's a two-hop offset. The hero moved from
+`(24,13)` → `(25,13)` → `(26,13)` and then the deferred `movemon` ran.
+If `movemon` had run BEFORE those two hops (at the top of the slice
+instead of after), it would see `(24,13)` — matching C.
+
+### Suggested experiment
+
+On top of your best probe (deferred timed turns + stop gate):
+
+1. In the repeated-hop slice, move the `advanceTimedTurn` call from
+   after `domove` to before `lookaround`
+2. For the first repeated hop after the initial `_` command, the
+   deferred timed turn should fire before `lookaround`, not after `domove`
+3. Test: does `^dog_invent_decision ... ud=8` now match C?
+
+If yes, commit. If no, trace where `movemon` actually runs relative to
+`domove` in the reordered slice and compare with C's trace.
