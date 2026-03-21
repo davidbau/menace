@@ -87,29 +87,61 @@ export class Turtle {
   }
 
   _moveTo(nx, ny) {
-    // Wrap (toroidal) — default mode
     const halfW = this.WIDTH / 2;
     const halfH = this.HEIGHT / 2;
+    const ctx = this._drawCtx;
 
     if (this.penIsDown) {
-      const ctx = this._drawCtx;
       ctx.strokeStyle = COLORS[this.penColor] || COLORS[1];
       ctx.lineWidth = this.penWidth;
       ctx.lineCap = 'square';
-      ctx.beginPath();
-      const [px1, py1] = this._toPixel(this.x, this.y);
-      ctx.moveTo(px1, py1);
-      const [px2, py2] = this._toPixel(nx, ny);
-      ctx.lineTo(px2, py2);
-      ctx.stroke();
     }
 
-    // Wrap coordinates
-    nx = ((nx + halfW) % this.WIDTH + this.WIDTH) % this.WIDTH - halfW;
-    ny = ((ny + halfH) % this.HEIGHT + this.HEIGHT) % this.HEIGHT - halfH;
+    // Walk from current position to target, wrapping at edges
+    let cx = this.x, cy = this.y;
+    let dx = nx - cx, dy = ny - cy;
+    let remaining = 1.0; // fraction of total move remaining
 
-    this.x = nx;
-    this.y = ny;
+    for (let safety = 0; safety < 100 && remaining > 0.0001; safety++) {
+      // Find the earliest edge crossing (as fraction t of remaining move)
+      let tMin = remaining;
+      // Check all four edges
+      if (dx > 0) { const t = (halfW - cx) / dx; if (t > 0 && t < tMin) tMin = t; }
+      if (dx < 0) { const t = (-halfW - cx) / dx; if (t > 0 && t < tMin) tMin = t; }
+      if (dy > 0) { const t = (halfH - cy) / dy; if (t > 0 && t < tMin) tMin = t; }
+      if (dy < 0) { const t = (-halfH - cy) / dy; if (t > 0 && t < tMin) tMin = t; }
+
+      // Draw segment from cx,cy to cx+dx*tMin, cy+dy*tMin
+      const ex = cx + dx * tMin;
+      const ey = cy + dy * tMin;
+
+      if (this.penIsDown) {
+        const [px1, py1] = this._toPixel(cx, cy);
+        const [px2, py2] = this._toPixel(ex, ey);
+        ctx.beginPath();
+        ctx.moveTo(px1, py1);
+        ctx.lineTo(px2, py2);
+        ctx.stroke();
+      }
+
+      remaining -= tMin;
+      if (remaining <= 0.0001) {
+        // Reached target within bounds — wrap final position
+        cx = ex; cy = ey;
+        break;
+      }
+
+      // Wrap at the edge we hit
+      cx = ex; cy = ey;
+      if (cx >= halfW) cx = -halfW + 0.01;
+      else if (cx <= -halfW) cx = halfW - 0.01;
+      if (cy >= halfH) cy = -halfH + 0.01;
+      else if (cy <= -halfH) cy = halfH - 0.01;
+    }
+
+    // Final wrap
+    this.x = ((cx + halfW) % this.WIDTH + this.WIDTH) % this.WIDTH - halfW;
+    this.y = ((cy + halfH) % this.HEIGHT + this.HEIGHT) % this.HEIGHT - halfH;
     this._render();
   }
 
