@@ -594,24 +594,57 @@ async function runGameplayResult(session) {
         if (cmp.rng.total > 0) {
             recordRng(result, cmp.rng.matched, cmp.rng.total, cmp.rng.firstDivergence);
             setFirstDivergence(result, 'rng', cmp.rng.firstDivergence);
-            // --dump-rng: show entries around first divergence
-            if (cmp.rng.firstDivergence && (process.argv.includes('--dump-rng') || process.env.DUMP_RNG === '1')) {
-                const idx = cmp.rng.firstDivergence.index || 0;
-                const windowArg = process.argv.find(a => a.startsWith('--dump-rng='));
-                const window = windowArg ? parseInt(windowArg.split('=')[1], 10) : 10;
-                const isComp = (e) => typeof e === 'string' && e[0] !== '^' && e[0] !== '>' && e[0] !== '<' && e[0] !== '~'
-                    && !e.startsWith('rnl(') && !e.startsWith('rne(') && !e.startsWith('rnz(') && !e.startsWith('d(');
-                const strip = (e) => { const s = String(e).replace(/^\d+\s+/, ''); const m = s.indexOf(' @ '); return m >= 0 ? s.substring(0, m) : s; };
-                const jsF = (cmp.rng.allJsRng || []).filter(isComp);
-                const cF = (cmp.rng.allSessionRng || []).filter(isComp);
-                console.error(`\n=== RNG dump around divergence (flat index ${idx}) ===`);
-                for (let i = Math.max(0, idx - window); i <= idx + window; i++) {
-                    const jsE = jsF[i] || '(end)';
-                    const cE = cF[i] || '(end)';
-                    const match = strip(jsE) === strip(cE) ? '  ' : '>>';
-                    const jsStr = String(jsE).replace(/^\d+\s+/, '').substring(0, 68).padEnd(70);
-                    const cStr = String(cE).substring(0, 68);
-                    console.error(`${match} [${i}] JS: ${jsStr} C: ${cStr}`);
+            // --dump-rng=FROM:TO  dump comparable RNG entries in range [FROM,TO]
+            // --dump-rng          dump 10 entries around first divergence
+            // Also activated by DUMP_RNG env (value = "FROM:TO" or "1")
+            // Examples:
+            //   --dump-rng=2370:2395   show entries 2370-2395
+            //   --dump-rng=0:50        show first 50 entries
+            //   --dump-rng             auto-center on first divergence
+            //   DUMP_RNG=2300:2400     same via env var
+            {
+                const dumpArg = (typeof process !== 'undefined' && process.argv || []).find(a => a.startsWith('--dump-rng'));
+                const dumpEnv = (typeof process !== 'undefined') ? process.env.DUMP_RNG : undefined;
+                const dumpRequested = dumpArg || dumpEnv;
+                if (dumpRequested && (cmp.rng.allJsRng || cmp.rng.allSessionRng)) {
+                    const isComp = (e) => typeof e === 'string' && e[0] !== '^' && e[0] !== '>' && e[0] !== '<' && e[0] !== '~'
+                        && !e.startsWith('rnl(') && !e.startsWith('rne(') && !e.startsWith('rnz(') && !e.startsWith('d(');
+                    const strip = (e) => { const s = String(e).replace(/^\d+\s+/, ''); const m = s.indexOf(' @ '); return m >= 0 ? s.substring(0, m) : s; };
+                    const jsF = (cmp.rng.allJsRng || []).filter(isComp);
+                    const cF = (cmp.rng.allSessionRng || []).filter(isComp);
+
+                    // Parse range
+                    let from, to;
+                    const rangeStr = (dumpArg && dumpArg.includes('=') ? dumpArg.split('=')[1] : null)
+                        || (dumpEnv && dumpEnv !== '1' ? dumpEnv : null);
+                    if (rangeStr && rangeStr.includes(':')) {
+                        [from, to] = rangeStr.split(':').map(Number);
+                    } else if (rangeStr) {
+                        // Single number = center with window 10
+                        const center = Number(rangeStr);
+                        from = Math.max(0, center - 10);
+                        to = center + 10;
+                    } else {
+                        // Auto: center on first divergence
+                        const divIdx = cmp.rng.firstDivergence?.index ?? 0;
+                        from = Math.max(0, divIdx - 10);
+                        to = divIdx + 10;
+                    }
+
+                    const maxIdx = Math.max(jsF.length, cF.length);
+                    from = Math.max(0, from);
+                    to = Math.min(to, maxIdx - 1);
+
+                    const divIdx = cmp.rng.firstDivergence?.index ?? -1;
+                    console.error(`\n=== RNG dump [${from}:${to}] (JS: ${jsF.length} entries, C: ${cF.length} entries, first div: ${divIdx}) ===`);
+                    for (let i = from; i <= to; i++) {
+                        const jsE = jsF[i] || '(end)';
+                        const cE = cF[i] || '(end)';
+                        const match = strip(jsE) === strip(cE) ? '  ' : '>>';
+                        const jsStr = String(jsE).replace(/^\d+\s+/, '').substring(0, 68).padEnd(70);
+                        const cStr = String(cE).substring(0, 68);
+                        console.error(`${match} [${i}] JS: ${jsStr} C: ${cStr}`);
+                    }
                 }
             }
         }
@@ -1233,8 +1266,9 @@ export async function runSessionBundle({
     } else {
         // Run sequentially
         results = [];
+        // Skip worker-based timeout when DUMP_RNG is active (workers can't write to parent stderr)
         const useSessionTimeout = Number.isInteger(sessionTimeoutMs)
-            && sessionTimeoutMs > 0;
+            && sessionTimeoutMs > 0 && !process.env.DUMP_RNG;
         for (const session of filteredSessions) {
             const result = useSessionTimeout
                 ? await runSingleSessionWithTimeout(session, sessionTimeoutMs)
