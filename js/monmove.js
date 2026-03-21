@@ -81,7 +81,7 @@ import { gd_move } from './vault.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
-import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse } from './mon.js';
+import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse, m_consume_obj } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym, canspotmon, canseemon } from './display.js';
