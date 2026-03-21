@@ -43,7 +43,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          PICK_AXE, DWARVISH_MATTOCK, AXE, BATTLE_AXE,
          CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
-         VENOM_CLASS, CORPSE, objectData } from './objects.js';
+         VENOM_CLASS, CORPSE, LUMP_OF_ROYAL_JELLY, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
 import { an, vtense, makeplural } from './objnam.js';
 import { delobj, g_at, sobj_at, carrying, objChainItems } from './invent.js';
@@ -65,7 +65,7 @@ import { can_teleport, noeyes, perceives, nohands,
          can_track, likes_gold,
          is_vampshifter, DEADMONSTER, noattacks, M_AP_TYPE, m_canseeu,
          locomotion, mhis } from './mondata.js';
-import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_GAZE, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M1_CONCEAL, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
+import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_KILLER_BEE, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_GAZE, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M1_CONCEAL, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
 import { create_gas_cloud, visible_region_at, m_in_out_region } from './region.js';
 import { dog_move, could_reach_item } from './dogmove.js';
 import { initrack, settrack, gettrack } from './track.js';
@@ -128,6 +128,7 @@ import { hasWeaponAttack, maybeMonsterWieldBeforeAttack, linedUpToPlayer } from 
 import { m_carrying } from './mthrowu.js';
 import { find_defensive, use_defensive, find_misc, use_misc, find_offensive, searches_for_item } from './muse.js';
 import { quest_stat_check } from './quest.js';
+import { is_organic } from './objdata.js';
 
 // ========================================================================
 // movemon — wrapper that binds dochug into mon.js movemon
@@ -1403,6 +1404,19 @@ async function dochug(mon, map, player, display, fov, game = null) {
         ({ inrange, nearby, scared } = await distfleeck(mon, map, player, display, fov));
     }
 
+    // C ref: monmove.c:866-878 — bee/gelcube special actions before phase3
+    if (mon.mndx === PM_KILLER_BEE) {
+        const jelly = sobj_at(LUMP_OF_ROYAL_JELLY, mon.mx, mon.my, map);
+        if (jelly) {
+            const res = await bee_eat_jelly(mon, jelly, game, map);
+            if (res >= 0) return;
+        }
+    }
+    if (mon.mndx === PM_GELATINOUS_CUBE) {
+        const res = gelcube_digests(mon);
+        if (res >= 0) return;
+    }
+
     const { x: targetX, y: targetY } = monApparentTarget(mon);
     const isWanderer = !!(mdat.mflags2 & M2_WANDER);
     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
@@ -2659,6 +2673,11 @@ export function find_pmmonst(pm, game, map) {
   }
   return mtmp;
 }
+
+// C ref: is_mines_prize/is_soko_prize check obj->o_id against prize IDs.
+// JS doesn't track prize OIDs yet; always return false.
+function is_mines_prize(obj) { return false; }
+function is_soko_prize(obj) { return false; }
 
 // Autotranslated from monmove.c:424
 export function gelcube_digests(mtmp) {

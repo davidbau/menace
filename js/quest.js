@@ -592,5 +592,6 @@ export async function quest_talk(mtmp) {
 // cf. quest.c:499 — quest_stat_check(mtmp): update nemesis battle status
 // Autotranslated from quest.c:499
 export function quest_stat_check(mtmp, player) {
-  if (mtmp.data.msound === MS_NEMESIS) Qstat(in_battle) = (!helpless(mtmp) && monnear(mtmp, player.x, player.y));
+  const mdat = mtmp.data || mtmp.type;
+  if (mdat && mdat.msound === MS_NEMESIS) Qstat(in_battle) = (!helpless(mtmp) && monnear(mtmp, player.x, player.y));
 }
