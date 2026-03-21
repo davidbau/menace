@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo 1982 -- Mazes of Menace</title>
+  <link rel="preload" href="../assets/fonts/DejaVuSansMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/fonts/dejavu-sans-mono.css">
+  <style>
+    :root {
+      --game-font-size: 16px;
+      --game-line-height: 1.1875;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #logo-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    #logo-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      /* Apple II pixelated rendering */
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+    #logo-container {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+  <script>
+    // Read font size from localStorage (shared with shell/hack/rogue/nethack)
+    try {
+      var sz = parseInt(localStorage.getItem('menace-font-size')) || 16;
+    } catch(e) { var sz = 16; }
+    document.documentElement.style.setProperty('--game-font-size', sz + 'px');
+  </script>
+</head>
+<body>
+  <div id="logo-wrapper">
+    <canvas id="logo-canvas" width="280" height="192"></canvas>
+    <div id="logo-container"></div>
+  </div>
+  <script type="module" src="js/entry.js"></script>
+</body>
+</html>
