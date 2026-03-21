@@ -320,6 +320,7 @@ Set `RNG_LOG_TAGS=0` to disable caller tags when you need lower-overhead runs.
    - `skills/topline-async-boundary/SKILL.md`
    - `skills/area-parity-sweep/SKILL.md`
    - `skills/long-running-task/SKILL.md`
+   - `skills/trace-before-theorize/SKILL.md`
 3. `AGENTS.md` remains the source of truth for non-negotiable policy.
 4. If skill loading is unavailable in a client, follow the workflow and guardrails from the referenced `SKILL.md` manually.
 5. Skill guardrails are mandatory when applicable, including:
