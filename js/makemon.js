@@ -419,13 +419,16 @@ function monmin_difficulty(levdif) {
     return Math.floor(levdif / 6);
 }
 
-// C ref: makemon.c uncommon()
+// C ref: makemon.c:1588-1599 uncommon()
 export function uncommon(mndx) {
     const ptr = mons[mndx];
     if (ptr.geno & (G_NOGEN | G_UNIQ)) return true;
     const mvflags = Number(_gstate?.mvitals?.[mndx]?.mvflags || 0);
     if (mvflags & G_GONE) return true;
-    // Not Inhell at standard depths → check G_HELL
+    // C ref: In_hell → exclude good-aligned; else → exclude G_HELL-flagged
+    if (_gstate?.Inhell) {
+        return (ptr.maligntyp || 0) > A_NEUTRAL;
+    }
     return !!(ptr.geno & G_HELL);
 }
 
@@ -518,7 +521,11 @@ export function rndmonst_adj(minadj, maxadj, depth) {
             if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=uncommon');
             continue;
         }
-        // Not Inhell, so skip G_NOHELL check
+        // C ref: makemon.c:1686-1687 — exclude G_NOHELL monsters in hell
+        if (_gstate?.Inhell && (ptr.geno & G_NOHELL)) {
+            if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=nohell');
+            continue;
+        }
 
         const freq = (ptr.geno & G_FREQ);
         const ashift = align_shift(ptr);
