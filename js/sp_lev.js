@@ -7047,7 +7047,13 @@ export async function finalize_level() {
     if (levelState.map && !levelState.flags.corrmaze) {
         wallification(levelState.map);
     }
-    captureCheckpoint('after_wallification');
+    // C ref: lspo_finalize_level() emits "after_wallification";
+    // load_special() emits "after_wallification_special".
+    // Distinguish by checking if this is a special level finalization.
+    const wallPhase = levelState.finalizeContext?.isSpecialLevel
+        ? 'after_wallification_special'
+        : 'after_wallification';
+    captureCheckpoint(wallPhase);
 
     // C ref: lspo_finalize_level(NULL) skips flip_level_rnd() on wiz-load
     // second-stage finalize. Other finalize paths still flip normally.
@@ -7219,6 +7225,7 @@ export async function load_special(name) {
             dlevel: where.dlevel,
             specialName: typeof special.name === 'string' ? special.name : name,
             isBranchLevel: false,
+            isSpecialLevel: true,
         }, async () => await special.generator())
     );
     if (!map) return false;

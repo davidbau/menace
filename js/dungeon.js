@@ -1787,6 +1787,7 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
             dunlevs: dunlevs_in_dungeon(actualDnum),
             specialName,
             isBranchLevel: isBranchLevel(actualDnum, actualDlevel),
+            isSpecialLevel: true,
         }, async () => {
             // C ref: nhlua.c load_lua()/nhl_init() for every special-level load.
             // Each load initializes a fresh Lua state and executes nhlib.lua,
@@ -5052,6 +5053,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                     dunlevs: dunlevs_in_dungeon(useDnum),
                     specialName,
                     isBranchLevel: isBranchLevel(useDnum, useDlevel),
+                    isSpecialLevel: true,
                 }, async () => {
                     // C ref: nhlua.c load_lua()/nhl_init() for load_special():
                     // each special-level generation loads nhlib.lua and consumes
