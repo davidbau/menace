@@ -92,7 +92,7 @@ export class Turtle {
     const ctx = this._drawCtx;
 
     if (this.penIsDown) {
-      ctx.strokeStyle = COLORS[this.penColor] || COLORS[1];
+      ctx.strokeStyle = this.penColorCSS();
       ctx.lineWidth = this.penWidth;
       ctx.lineCap = 'square';
     }
@@ -153,7 +153,16 @@ export class Turtle {
   setpencolor(c) {
     if (typeof c === 'number') {
       this.penColor = Math.abs(Math.floor(c)) % COLORS.length;
+      this._penCSS = null; // use palette
+    } else if (typeof c === 'string') {
+      // Accept any CSS color name or hex: "purple", "#0FF", "rgb(255,0,0)"
+      this._penCSS = c;
     }
+  }
+
+  // Get the current pen color as a CSS string
+  penColorCSS() {
+    return this._penCSS || COLORS[this.penColor] || COLORS[1];
   }
 
   setpensize(w) {
@@ -214,7 +223,7 @@ export class Turtle {
   arc(angle, radius) {
     const [cx, cy] = this._toPixel(this.x, this.y);
     const ctx = this._drawCtx;
-    ctx.strokeStyle = COLORS[this.penColor] || COLORS[1];
+    ctx.strokeStyle = this.penColorCSS();
     ctx.lineWidth = this.penWidth;
     // Starting angle: turtle's heading converted to canvas angle
     // Canvas: 0 = right, clockwise. Logo heading: 0 = north (up).

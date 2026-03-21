@@ -516,8 +516,11 @@ export class LogoInterpreter {
     def('HEADING', 0, () => t.getHeading());
     def('POS', 0, () => t.pos());
     def(['PENDOWNP', 'PENDOWN?'], 0, () => t.ispendown() ? 'TRUE' : 'FALSE');
-    def(['SETPENCOLOR', 'SETPC'], 1, (c) => t.setpencolor(num(c)));
-    def(['PENCOLOR', 'PC'], 0, () => t.penColor);
+    def(['SETPENCOLOR', 'SETPC'], 1, (c) => {
+      if (typeof c === 'number') t.setpencolor(c);
+      else t.setpencolor(String(c).toLowerCase());
+    });
+    def(['PENCOLOR', 'PC'], 0, () => t._penCSS || t.penColor);
     def(['SHOWTURTLE', 'ST'], 0, () => t.showturtle());
     def(['HIDETURTLE', 'HT'], 0, () => t.hideturtle());
     def(['SHOWNP', 'SHOWN?'], 0, () => t.shownp() ? 'TRUE' : 'FALSE');

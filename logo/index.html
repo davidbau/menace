@@ -68,12 +68,29 @@
       color: var(--color-accent-dark);
       text-decoration: none;
       font-weight: 500;
-      opacity: 0;
-      transition: color var(--transition-fast), opacity var(--transition-fast);
+      transition: color var(--transition-fast);
     }
 
-    #nav:hover a { opacity: 1; }
     #nav a:hover { color: var(--color-accent); text-decoration: underline; }
+
+    #help-bar {
+      font-size: calc(var(--game-font-size) * 0.75);
+      color: var(--color-text-muted);
+      text-align: center;
+      font-family: var(--font-serif);
+      padding: 0.4em 0;
+      max-width: calc(var(--game-font-size) * 80 * 0.60205078125 + 34px);
+    }
+
+    .help-key {
+      font-family: var(--font-mono);
+      font-size: calc(var(--game-font-size) * 0.7);
+      color: var(--color-text);
+    }
+
+    .sep {
+      padding: 0 0.4em;
+    }
 
     #main {
       display: flex;
@@ -285,7 +302,20 @@
         <button class="hm-item" id="hm-darkmode"><span class="hm-check"></span>Dark mode</button>
       </div>
     </div>
-    <div id="nav-spacer"></div>
+    <div id="nav-spacer">
+      <div id="help-bar">
+        <span class="help-key">FD</span> forward <span class="sep">&middot;</span>
+        <span class="help-key">BK</span> back <span class="sep">&middot;</span>
+        <span class="help-key">RT</span> right <span class="sep">&middot;</span>
+        <span class="help-key">LT</span> left <span class="sep">&middot;</span>
+        <span class="help-key">PU</span> pen up <span class="sep">&middot;</span>
+        <span class="help-key">PD</span> pen down <span class="sep">&middot;</span>
+        <span class="help-key">CS</span> clear <span class="sep">&middot;</span>
+        <span class="help-key">REPEAT</span> <span class="sep">&middot;</span>
+        <span class="help-key">HELP</span> <span class="sep">&middot;</span>
+        <span class="help-key">BYE</span> quit
+      </div>
+    </div>
   </div>
 
   <script>
