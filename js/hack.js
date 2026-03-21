@@ -3613,7 +3613,7 @@ export async function showdamage(dmg, player, display, game) {
 
 // C ref: hack.c Maybe_Half_Phys() macro — halve physical damage if player has Half_physical_damage
 export function Maybe_Half_Phys(n, player) {
-    const p = player || _gstate?.player;
+    const p = player || _gstate?.u;
     if (p && p.halfPhysDamage) return Math.max(1, Math.floor(n / 2));
     return n;
 }
@@ -3980,7 +3980,7 @@ export async function getdir(prompt, display) {
     // valid direction is chosen.  Other code relies on these persisting
     // after getdir returns (e.g. spelleffects when a later getdir fails).
     if (result) {
-        const u = _gstate?.player || _gstate?.u;
+        const u = _gstate?.u;
         if (u) {
             u.dx = result.dx;
             u.dy = result.dy;

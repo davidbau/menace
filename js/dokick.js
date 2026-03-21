@@ -1104,7 +1104,7 @@ function kickstr(kickobjnam, maploc) {
 // ============================================================================
 // Autotranslated from dokick.c:833
 export async function watchman_thief_arrest(mtmp) {
-  if (is_watch(mtmp.data) && couldsee(_gstate.map, _gstate.player, mtmp.mx, mtmp.my) && mtmp.mpeaceful) {
+  if (is_watch(mtmp.data) && couldsee(_gstate.map, _gstate.u, mtmp.mx, mtmp.my) && mtmp.mpeaceful) {
     await mon_yells(mtmp, "Halt, thief! You're under arrest!");
     await angry_guards(false);
     return true;
@@ -1118,7 +1118,7 @@ export async function watchman_thief_arrest(mtmp) {
 // ============================================================================
 // Autotranslated from dokick.c:845
 export async function watchman_door_damage(mtmp, x, y, map) {
-  if (is_watch(mtmp.data) && mtmp.mpeaceful && couldsee(_gstate.map, _gstate.player, mtmp.mx, mtmp.my)) {
+  if (is_watch(mtmp.data) && mtmp.mpeaceful && couldsee(_gstate.map, _gstate.u, mtmp.mx, mtmp.my)) {
     if (map.locations[x][y].looted & D_WARNED) {
       await mon_yells(mtmp, "Halt, vandal! You're under arrest!");
       await angry_guards(false);

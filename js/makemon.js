@@ -203,7 +203,7 @@ let _makemonPlayerOverride = null;
 
 function _getMakemonPlayerCtx() {
     if (_makemonPlayerOverride) return _makemonPlayerOverride;
-    const player = _gstate?.player || _gstate?.u;
+    const player = _gstate?.u;
     if (!player) {
         return normalizePlayerContext({
             roleIndex: Number.isInteger(_gstate?._makemonRoleIndex)
@@ -268,7 +268,7 @@ function getRndmonTraceCtx() {
 }
 
 function _currentMonsterGenerationLevel(mapArg = null) {
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     const candidates = [mapArg, _gstate?.map];
     // Generation-time branch/depth context is authoritative for monster selection
     // and must match mklev/makemon callsite behavior.
@@ -293,7 +293,7 @@ function _currentMonsterGenerationLevel(mapArg = null) {
 // C ref: makemon.c:34 is_home_elemental()
 export function is_home_elemental(ptr, lev = null) {
     if (!ptr || ptr.mlet !== S_ELEMENTAL) return false;
-    const currentLev = lev || _gstate?.map?.uz || _gstate?.player?.uz || null;
+    const currentLev = lev || _gstate?.map?.uz || _gstate?.u?.uz || null;
     if (!currentLev) return false;
     const pm = monsndx(ptr);
     switch (pm) {
@@ -442,8 +442,8 @@ function align_shift(ptr) {
         const liveMoves = Number.isInteger(_gstate.moves) ? _gstate.moves : 0;
         if (_gstate._alignShiftMoves !== liveMoves) {
             const levelRef = _gstate._useLiveUzForMklevAlign
-                ? (_gstate._mklevAlignLevelRef || _gstate.u?.uz || _gstate.player?.uz || null)
-                : (_gstate.u?.uz || _gstate.player?.uz || null);
+                ? (_gstate._mklevAlignLevelRef || _gstate.u?.uz || _gstate.u?.uz || null)
+                : (_gstate.u?.uz || _gstate.u?.uz || null);
             _gstate._dungeonAlign = level_align(levelRef);
             _gstate._alignShiftMoves = liveMoves;
         }
@@ -879,7 +879,7 @@ export function newmonhp(mndx, depth = 1) {
 
     if (makemonTraceEnabled()) {
         const playerCtx = _getMakemonPlayerCtx();
-        const liveUz = _gstate?.player?.uz || _gstate?.map?.uz || null;
+        const liveUz = _gstate?.u?.uz || _gstate?.map?.uz || null;
         const mapGen = _gstate?.map
             ? `${Number(_gstate.map._genDnum) || 0}:${Number(_gstate.map._genDlevel) || 0}`
             : 'none';
@@ -2908,7 +2908,7 @@ export async function grow_up(mtmp, victim, game) {
 
 // Autotranslated from makemon.c:2315
 export function set_malign(mtmp, player = null) {
-  const playerCtx = player || _gstate?.player || _getMakemonPlayerCtx();
+  const playerCtx = player || _gstate?.u || _getMakemonPlayerCtx();
   let mdata = mtmp.data || mtmp.type || null;
   if (Number.isInteger(mdata)) mdata = mons[mdata] || null;
   if (!mdata) mdata = {};

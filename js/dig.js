@@ -709,7 +709,7 @@ export async function draft_message(unexpected, player = null) {
 
 export function watch_dig(mtmp, x, y, zap, map) {
     const lev = map?.at?.(x, y);
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     if (!lev || !player) return;
     const inTown = in_town(x, y, map);
     const watchedSurface = closed_door(x, y, map) || lev.typ === SDOOR

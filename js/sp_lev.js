@@ -100,7 +100,7 @@ import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
 import { defsyms } from './symbols.js';
 
 function currentAlignmentDnum(ctx = null) {
-    const liveUz = _gstate?.player?.uz || _gstate?.map?.uz || null;
+    const liveUz = _gstate?.u?.uz || _gstate?.map?.uz || null;
     if (Number.isFinite(liveUz?.dnum)) return liveUz.dnum;
     if (Number.isFinite(_gstate?.map?._genDnum)) return _gstate.map._genDnum;
     if (Number.isFinite(_gstate?.lev?._genDnum)) return _gstate.lev._genDnum;

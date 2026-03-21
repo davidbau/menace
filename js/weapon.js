@@ -238,7 +238,7 @@ export function weapon_hit_bonus(weapon) {
     if (!skillSystemActive) return 0;
     const wep_type = weapon_type(weapon);
     // C ref: twoweap override — use P_TWO_WEAPON_COMBAT when dual-wielding
-    const player = _gstate?.u ?? _gstate?.player;
+    const player = _gstate?.u;
     const type = (player?.twoweap && weapon &&
                   (weapon === player?.weapon || weapon === player?.swapWeapon))
         ? P_TWO_WEAPON_COMBAT : wep_type;
@@ -288,7 +288,7 @@ export function weapon_hit_bonus(weapon) {
 export function weapon_dam_bonus(weapon) {
     if (!skillSystemActive) return 0;
     const wep_type = weapon_type(weapon);
-    const player = _gstate?.u ?? _gstate?.player;
+    const player = _gstate?.u;
     const type = (player?.twoweap && weapon &&
                   (weapon === player?.weapon || weapon === player?.swapWeapon))
         ? P_TWO_WEAPON_COMBAT : wep_type;

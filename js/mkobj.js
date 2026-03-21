@@ -95,7 +95,7 @@ export function place_object(obj, x, y, map) {
 // IMPORTANT: Do NOT add a mergable() implementation to invent.js.
 //            See stackobj.js for a full explanation of the dependency issue.
 export function mergable(otmp, obj) {
-    const player = _gstate?.u ?? _gstate?.player;
+    const player = _gstate?.u;
     const blind = !!(player?.Blind || player?.blind);
     const hallucinating = !!(player?.Hallucination || player?.hallucinating);
     const roleIsCleric = player?.roleMnum === PM_CLERIC;
@@ -204,7 +204,7 @@ function _getLevelDepth() {
     if (map?.uz && Number.isInteger(map.uz.dnum) && Number.isInteger(map.uz.dlevel)) {
         return level_difficulty(map.uz, _gstate);
     }
-    const player = _gstate?.u ?? _gstate?.player;
+    const player = _gstate?.u;
     if (player?.uz && Number.isInteger(player.uz.dnum) && Number.isInteger(player.uz.dlevel)) {
         return level_difficulty(player.uz, _gstate);
     }
@@ -437,7 +437,7 @@ export function bless(obj) {
     obj.cursed = false;
     obj.blessed = true;
     if (carried(obj) && confers_luck(obj))
-        set_moreluck(_gstate?.player);
+        set_moreluck(_gstate?.u);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -446,7 +446,7 @@ export function bless(obj) {
 export function unbless(obj) {
     obj.blessed = false;
     if (carried(obj) && confers_luck(obj))
-        set_moreluck(_gstate?.player);
+        set_moreluck(_gstate?.u);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -457,7 +457,7 @@ export function curse(obj) {
     obj.blessed = false;
     obj.cursed = true;
     if (carried(obj) && confers_luck(obj))
-        set_moreluck(_gstate?.player);
+        set_moreluck(_gstate?.u);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -466,7 +466,7 @@ export function curse(obj) {
 export function uncurse(obj) {
     obj.cursed = false;
     if (carried(obj) && confers_luck(obj))
-        set_moreluck(_gstate?.player);
+        set_moreluck(_gstate?.u);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }

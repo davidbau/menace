@@ -932,7 +932,7 @@ async function maybe_cannibal(player, pm, allowmsg) {
 // Autotranslated from eat.c:866
 export async function fix_petrification() {
   let buf;
-  const player = _gstate?.player;
+  const player = _gstate?.u;
   if (!player) return;
   if (player?.Hallucination) {
     buf = `What a pity--you just ruined a future piece of ${acurr(player, A_CHA) > 15 ? "fine " : ""}art!`;

@@ -1177,7 +1177,7 @@ export function can_blnd(magr, mdef, aatyp, obj) {
         } else {
             return false;
         }
-        if (magr && (magr === _gstate?.youmonst) && _gstate?.player?.uswallow)
+        if (magr && (magr === _gstate?.youmonst) && _gstate?.u?.uswallow)
             return false;
         break;
     case AT_ENGL:
@@ -1187,7 +1187,7 @@ export function can_blnd(magr, mdef, aatyp, obj) {
         break;
     case AT_CLAW:
         if (is_you && mdef.ublindf) return false;
-        if (magr && (magr === _gstate?.youmonst) && _gstate?.player?.uswallow)
+        if (magr && (magr === _gstate?.youmonst) && _gstate?.u?.uswallow)
             return false;
         check_visor = true;
         break;
@@ -1326,7 +1326,7 @@ export function mstrength(ptr) {
 // Return the permonst ptr for the race of the monster.
 // ========================================================================
 export function raceptr(mtmp) {
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     if (player && mtmp === player && !player.Upolyd) {
         const raceNum = player.urace?.mnum ?? -1;
         return raceNum >= 0 ? mons[raceNum] : mtmp.data;
@@ -1394,7 +1394,7 @@ export function msummon_environ(mptr) {
 export function pronoun_gender(mtmp, pg_flags) {
     const override_vis = !!(pg_flags & PRONOUN_NO_IT);
     const hallu_rand = !!(pg_flags & PRONOUN_HALLU);
-    const player = _gstate?.player;
+    const player = _gstate?.u;
 
     if (hallu_rand && player?.hallucination) return rn2(4);
     if (!override_vis && !_canseemon(mtmp)) return 2;
@@ -1788,7 +1788,7 @@ export function is_lminion(mon) {
 // C ref: mondata.h m_canseeu(mtmp) — can monster see hero?
 export function m_canseeu(mon) {
     if (!mon) return false;
-    const player = _gstate.player;
+    const player = _gstate.u;
     if (!player) return false;
     const heroInvis = !!(player.Invis || player.invisible);
     const ptr = mon.data || mon.type || mons[mon.mndx] || {};
@@ -1911,7 +1911,7 @@ export function likes_fire(ptr) {
 // C ref: monst.h #define engulfing_u(mon) (u.uswallow && (u.ustuck == (mon)))
 // Accesses player from gstate like C accesses global u
 export function engulfing_u(mon) {
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     return !!(player && player.uswallow && player.ustuck === mon);
 }
 

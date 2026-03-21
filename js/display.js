@@ -548,7 +548,7 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW);
                 this.putstr(0, MESSAGE_ROW, combined, CLR_GRAY);
                 this.topMessage = combined;
-                const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+                const statusPlayer = _gstate?.u || this._lastMapState?.player || null;
                 this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
                     ? statusPlayer.uhp
                     : (Number.isFinite(statusPlayer?.hp)
@@ -599,7 +599,7 @@ span.nh-cursor {
         if (msg.length <= this.cols) {
             this.putstr(0, MESSAGE_ROW, msg, CLR_GRAY);
             this.topMessage = msg;
-            const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+            const statusPlayer = _gstate?.u || this._lastMapState?.player || null;
             this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
                 ? statusPlayer.uhp
                 : (Number.isFinite(statusPlayer?.hp)
@@ -615,7 +615,7 @@ span.nh-cursor {
             this.messageCursorRow = 0;
             this.toplin = 1; // C ref: update_topl sets toplin = TOPLINE_NEED_MORE
             if (freshAfterMore && typeof this.renderStatus === 'function') {
-            const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
+            const refreshPlayer = _gstate?.u || this._lastMapState?.player || null;
                 if (encumberRefreshMsg || refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     if (refreshPlayer?._botl) refreshPlayer._botl = false;
@@ -633,7 +633,7 @@ span.nh-cursor {
 
             this.putstr(0, MESSAGE_ROW, row0, CLR_GRAY);
             this.topMessage = row0;
-            const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+            const statusPlayer = _gstate?.u || this._lastMapState?.player || null;
             this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
                 ? statusPlayer.uhp
                 : (Number.isFinite(statusPlayer?.hp)
@@ -648,7 +648,7 @@ span.nh-cursor {
             this.messageCursorCol = Math.min(row0.length, this.cols - 1);
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {
-                const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
+                const refreshPlayer = _gstate?.u || this._lastMapState?.player || null;
                 if (encumberRefreshMsg || refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     if (refreshPlayer?._botl) refreshPlayer._botl = false;
@@ -2186,7 +2186,7 @@ export function mimic_light_blocking(mtmp) {
               || app < 12 /* S_ndoor = walls */
               || app === 18 /* S_tree */));
   if (!isLightBlocker) return;
-  const player = _gstate?.player;
+  const player = _gstate?.u;
   const seeInvis = !!(player?.seeInvisible || player?.See_invisible);
   if (seeInvis) block_point(mtmp.mx, mtmp.my);
   else unblock_point(mtmp.mx, mtmp.my);
@@ -2468,7 +2468,7 @@ function _getDisplayCtx() {
     if (!_gstate) return null;
     return {
         display: _gstate.display,
-        player: _gstate.u || _gstate.player,
+        player: _gstate.u,
         fov: _gstate.fov,
         flags: _gstate.display?.flags || _gstate.flags,
         map: _gstate.map,

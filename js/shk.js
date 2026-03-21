@@ -317,7 +317,7 @@ function get_cost(obj, shkp) {
     let tmp = getprice_base(obj, false);
     let multiplier = 1;
     let divisor = 1;
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
 
     if (!tmp) tmp = 5;
 
@@ -590,7 +590,7 @@ export function money2mon(mon, amount) {
         impossible("%s payment in money2mon!", amount ? "negative" : "zero");
         return 0;
     }
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     let remaining = amount;
     if (player && Array.isArray(player.inventory)) {
         for (const otmp of [...player.inventory]) {
@@ -629,7 +629,7 @@ export function money2u(mon, amount) {
     if (mon) {
         mon.mgold = Math.max(0, (mon.mgold || 0) - amount);
     }
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     if (player) {
         player.gold = Number(player.gold || 0) + amount;
     }
@@ -718,7 +718,7 @@ export async function addtobill(obj, ininv, dummy, silent) {
         return;
     }
     const map = _gstate?.map;
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     if (!map || !player) {
         obj.unpaid = 1;
         return;
@@ -879,7 +879,7 @@ export function setpaid(shkp) {
         if (root.nobj) walkObjects(root.nobj, fn);
     };
     const map = _gstate?.map || null;
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     walkObjects(player?.inventory || [], (obj) => {
         if (obj && obj.unpaid) obj.unpaid = 0;
         if (obj && obj.no_charge) obj.no_charge = 0;
@@ -1577,7 +1577,7 @@ export async function shk_chat(shkp, map) {
 
 // C ref: shk.c shk_names_obj() -- shopkeeper names/describes object after transaction
 export async function shk_names_obj(shkp, obj, fmt, amt, arg) {
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     const obj_name = doname(obj, player);
     const jsFmt = String(fmt || '').replace(/%ld/g, '%d');
     await You(jsFmt, obj_name, amt, plur(amt), arg || "");
@@ -1923,7 +1923,7 @@ function make_itemized_bill(shkp) {
     const eshkp = ESHK(shkp) || {};
     const bill = Array.isArray(eshkp.bill) ? eshkp.bill : [];
     const ebillct = Number(eshkp.billct || bill.length);
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     const isOnBill = (obj) => obj?.where === OBJ_ONBILL;
     const isContained = (obj) => obj?.where === OBJ_CONTAINED;
     const ibill = [];
@@ -2005,7 +2005,7 @@ async function menu_pick_pay_items(_ibillct, ibill) {
             const item = ibill[i];
             if (!item?.obj) continue;
             const cost = Math.max(0, Number(item.cost || 0));
-            const label = `${cost} Zm, ${doname(item.obj, _gstate?.player || null)}`;
+            const label = `${cost} Zm, ${doname(item.obj, _gstate?.u || null)}`;
             add_menu(
                 tmpwin,
                 nul_glyphinfo,
@@ -2036,14 +2036,14 @@ async function menu_pick_pay_items(_ibillct, ibill) {
 
 // C ref: shk.c reject_purchase()
 async function reject_purchase(shkp, obj, quantity) {
-    const name = doname(obj, _gstate?.player || null);
+    const name = doname(obj, _gstate?.u || null);
     const qty = Number(quantity || obj?.quan || 1);
     await pline("%s declines to sell %ld %s.", Shknam(shkp), qty, name);
 }
 
 // C ref: shk.c insufficient_funds()
 function insufficient_funds(shkp, obj, ltmp) {
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     let cash = Number(player?.gold || 0);
     if (!cash && Array.isArray(player?.inventory)) {
         for (const otmp of player.inventory) {
@@ -2061,7 +2061,7 @@ function insufficient_funds(shkp, obj, ltmp) {
 // C ref: shk.c dopayobj()
 async function dopayobj(shkp, bp, obj, which, itemize, sightunseen) {
     if (!shkp || !bp || !obj) return PAY_SKIP;
-    if (!obj.unpaid && !bp.useup && !(Has_contents(obj) && unpaid_cost(obj, COST_CONTENTS, _gstate?.player || null))) {
+    if (!obj.unpaid && !bp.useup && !(Has_contents(obj) && unpaid_cost(obj, COST_CONTENTS, _gstate?.u || null))) {
         impossible("Paid object on bill??");
         return PAY_BUY;
     }
@@ -2159,7 +2159,7 @@ async function buy_container(shkp, indx, ibillct, ibill) {
 // C ref: shk.c pay_billed_items()
 async function pay_billed_items(shkp, ibillct, ibill, stashedGold, paidRef = { paid: false }) {
     const eshkp = ESHK(shkp) || {};
-    const umoney = money_cnt(_gstate?.player?.inventory || _gstate?.player?.invent || []);
+    const umoney = money_cnt(_gstate?.u?.inventory || _gstate?.u?.invent || []);
     if (!umoney && !Number(eshkp.credit || 0)) {
         await You("%shave no gold or credit%s.",
             stashedGold ? "seem to " : "", paidRef.paid ? " left" : "");
@@ -2453,7 +2453,7 @@ export async function block_entry(x, y, map, player) {
 // ============================================================
 
 // C ref: shk.c append_honorific()
-function append_honorific(buf, player = _gstate?.player) {
+function append_honorific(buf, player = _gstate?.u) {
     const honored = [
         'good', 'honored', 'most gracious', 'esteemed', 'most renowned and sacred'
     ];
@@ -2510,7 +2510,7 @@ export function shk_your(obj, map) {
     if (own) return `${own} `;
     const inInvent = (obj.where === OBJ_INVENT);
     // JS objects may not have .where set; check player inventory as fallback
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     const inPlayerInv = player?.inventory?.includes(obj);
     return inInvent || obj.carried || inPlayerInv ? 'your ' : 'the ';
 }
@@ -2774,7 +2774,7 @@ export async function u_left_shop(leaveroom, newlev, map, player) {
 // C ref: shk.c pick_pick() -- called when removing pick from container
 export async function pick_pick(obj, map) {
     if (!obj || obj.unpaid || !is_pick(obj)) return;
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     if (!player || !map) return;
     const rooms = in_rooms(map, Number(player.x || 0), Number(player.y || 0), SHOPBASE);
     if (!rooms.length) return;
@@ -3035,7 +3035,7 @@ export async function special_stock(obj, shkp, quietly, player) {
 // ============================================================
 
 function cad(altusage) {
-    const player = _gstate?.player || {};
+    const player = _gstate?.u || {};
     const female = !!player.female;
     const race = String(player.race || '').toLowerCase();
     let res = 'cad';
@@ -3272,7 +3272,7 @@ export function bp_to_obj(bp) {
 }
 
 // C ref: shk.c find_oid() -- search all object lists except billobjs
-export function find_oid(id, map = _gstate?.map, player = _gstate?.player) {
+export function find_oid(id, map = _gstate?.map, player = _gstate?.u) {
     const oid = Number(id);
     if (!Number.isFinite(oid)) return null;
 
@@ -3445,7 +3445,7 @@ export function repairable_damage(dam, shkp, game, map = _gstate?.map) {
     }
     if (x === Number(shkp.mx) && y === Number(shkp.my)) return false;
 
-    const player = game?.player || _gstate?.player || null;
+    const player = game?.player || _gstate?.u || null;
     if (player && x === Number(player.x) && y === Number(player.y)) return false;
     if (typeof map.monsterAt === 'function') {
         const mtmp = map.monsterAt(x, y);
@@ -3503,7 +3503,7 @@ function discard_damage_owned_by(shkp, map = _gstate?.map) {
 export async function shk_fixes_damage(shkp, map = _gstate?.map, game = _gstate) {
     const dam = find_damage(shkp, map, game);
     if (!dam) return;
-    const player = game?.player || _gstate?.player || null;
+    const player = game?.player || _gstate?.u || null;
     const shkCloseBy = !!player
         && ((Number(shkp.mx) - Number(player.x)) ** 2
             + (Number(shkp.my) - Number(player.y)) ** 2) <= 64;

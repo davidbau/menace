@@ -249,7 +249,7 @@ export function resist(mon, oclass) {
     case SCROLL_CLASS:  alev = 9; break;
     case POTION_CLASS:  alev = 6; break;
     case RING_CLASS:    alev = 5; break;
-    default:            alev = _gstate?.player?.ulevel || 1; break; // C: u.ulevel for spells
+    default:            alev = _gstate?.u?.ulevel || 1; break; // C: u.ulevel for spells
     }
 
     // C ref: zap.c:6104-6109 — defense level
@@ -1658,7 +1658,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           || (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED)) && range >= 0))) {
         // Bounce logic
         // C ref: STONE→10, mine walls→20, else→75
-        const currentLevel = player?.uz || _gstate?.u?.uz || _gstate?.player?.uz || null;
+        const currentLevel = player?.uz || _gstate?.u?.uz || _gstate?.u?.uz || null;
         const bchance = (loc.typ === STONE)
           ? 10
           : (currentLevel && In_mines(currentLevel) && IS_WALL(loc.typ))
@@ -2291,7 +2291,7 @@ export async function bhito(obj, otmp, map) {
     } else {
       // C ref: zap.c:2298-2306 — hero_breaks / breaks for other objects
       const oox = obj.ox, ooy = obj.oy;
-      const player = _gstate?.player;
+      const player = _gstate?.u;
       if (_gstate?.context?.mon_moving
           ? !await breaks(obj, oox, ooy, player, map)
           : !await hero_breaks(obj, oox, ooy, 0, player, map)) {

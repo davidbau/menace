@@ -419,7 +419,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         || map?.player
         || map?.u
         || _gstate?.u
-        || _gstate?.player
+        || _gstate?.u
         || null;
     const heroX = hero ? (hero.x | 0) : 0;
     const heroY = hero ? (hero.y | 0) : 0;
@@ -2644,8 +2644,8 @@ function find_random_launch_coord(map, trap) {
 // C ref: trap.c mk_trap_statue()
 function mk_trap_statue(map, x, y, depth = 1) {
     const sgn = (v) => (v > 0 ? 1 : (v < 0 ? -1 : 0));
-    const roleIndex = Number.isInteger(_gstate?.player?.roleIndex)
-        ? _gstate.player.roleIndex
+    const roleIndex = Number.isInteger(_gstate?.u?.roleIndex)
+        ? _gstate.u.roleIndex
         : (Number.isInteger(_gstate?._makemonRoleIndex) ? _gstate._makemonRoleIndex : 11);
     const ualign = roles[roleIndex]?.align || 0;
     let trycount = 10;
@@ -2799,7 +2799,7 @@ function dng_bottom(map) {
         : (Number.isInteger(useLev?.dnum) ? useLev.dnum : DUNGEONS_OF_DOOM);
     let bottom = dunlevs_in_dungeon(dnum);
     // C ref: trap.c dng_bottom() — before invocation, Sanctum is not reachable.
-    const invoked = !!(map?._invoked || map?.game?.player?.uevent?.invoked || _gstate?.player?.uevent?.invoked);
+    const invoked = !!(map?._invoked || map?.game?.player?.uevent?.invoked || _gstate?.u?.uevent?.invoked);
     if (dnum === GEHENNOM && !invoked) {
         bottom = Math.max(1, bottom - 1);
     }
@@ -5835,7 +5835,7 @@ export function unplaced_floater(_lev = null) {
 
 // C ref: dungeon.c:1599
 export function u_on_rndspot(map, player = null) {
-  const u = player || map?.player || _gstate?.player;
+  const u = player || map?.player || _gstate?.u;
   if (!map || !u) return false;
   if (Number.isInteger(map?.upstair?.x) && Number.isInteger(map?.upstair?.y)) {
     u.x = map.upstair.x;

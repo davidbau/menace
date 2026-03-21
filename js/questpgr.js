@@ -146,7 +146,7 @@ const QUEST_ENEMY_DATA = Object.freeze({
 });
 
 function getQuestEnemyData() {
-  const roleMnum = Number.isInteger(_gstate?.player?.roleMnum) ? _gstate.player.roleMnum : NON_PM;
+  const roleMnum = Number.isInteger(_gstate?.u?.roleMnum) ? _gstate.u.roleMnum : NON_PM;
   return QUEST_ENEMY_DATA[roleMnum] || null;
 }
 
@@ -166,7 +166,7 @@ function get_common_pager_message(msgid) {
 
 function convert_common_pager_line(line) {
   if (typeof line !== 'string' || line.length === 0) return line;
-  const player = _gstate?.player || _gstate?.u || null;
+  const player = _gstate?.u;
   const playerName = String(player?.name || 'player');
   const originalAlign = player?.originalAlignment ?? player?.alignment ?? 0;
   const lawfulDeity = align_gname(1, player) || 'Marduk';

@@ -233,7 +233,7 @@ export function onscary(map, x, y, mon = null) {
     if (map) {
         const ep = sengr_at(map, "Elbereth", x, y, true);
         if (ep) {
-            const player = _gstate?.player;
+            const player = _gstate?.u;
             const atHero = player && x === player.x && y === player.y;
             // C ref: monmove.c:296-298 — Elbereth requires hero presence,
             // displaced image, or guardobjects with objects present
@@ -2901,7 +2901,7 @@ export function mon_allowflags(mon, map, player = null) {
     if (throws_rocks(mdat)) allow |= ALLOW_WALL;
     if (player && monnear(mon, player.x, player.y)) allow |= ALLOW_U;
     try {
-        if (in_your_sanctuary(mon?.mx || 0, mon?.my || 0, map, player || _gstate?.player)) allow |= ALLOW_SANCT;
+        if (in_your_sanctuary(mon?.mx || 0, mon?.my || 0, map, player || _gstate?.u)) allow |= ALLOW_SANCT;
     } catch (_e) {
         // Keep compatibility helper side-effect free in minimal test contexts.
     }
@@ -2973,21 +2973,21 @@ export function kill_genocided_monsters(map = null, game = _gstate) {
 }
 
 // C ref: mon.c:2678
-export function mon_leaving_level(mon, map = null, player = _gstate?.player) {
+export function mon_leaving_level(mon, map = null, player = _gstate?.u) {
     if (!mon) return false;
     unstuck(mon, player);
     return relmon(mon, map);
 }
 
 // C ref: mon.c:3283
-export function monstone(mon, map = null, player = _gstate?.player) {
+export function monstone(mon, map = null, player = _gstate?.u) {
     if (!mon) return 0;
     mondead(mon, map || _gstate?.map || _gstate?.lev, player);
     return 1;
 }
 
 // C ref: mon.c:1196
-export async function movemon_singlemon(mon, map = null, player = _gstate?.player) {
+export async function movemon_singlemon(mon, map = null, player = _gstate?.u) {
     if (!mon || mon.dead) return false;
     mcalcmove(mon, true);
     if (player && monnear(mon, player.x, player.y) && !mon.mpeaceful) {
@@ -3065,12 +3065,12 @@ export function restrap(_mon, _trap) {
 }
 
 // C ref: mon.c:5789
-export function usmellmon(mon, player = _gstate?.player) {
+export function usmellmon(mon, player = _gstate?.u) {
     if (!mon || !player) return false;
     return dist2(mon.mx, mon.my, player.x, player.y) <= 2;
 }
 
 // C ref: mon.c:2886
-export function vamprises(_mon, _map = null, _player = _gstate?.player) {
+export function vamprises(_mon, _map = null, _player = _gstate?.u) {
     return false;
 }

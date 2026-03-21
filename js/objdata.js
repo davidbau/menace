@@ -77,7 +77,7 @@ const _roleToQuestarti = {
 export function is_quest_artifact(obj) {
     // C ref: questpgr.c:66 — checks if obj->oartifact == urole.questarti
     if (!obj || !obj.oartifact) return false;
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     if (!player) return false;
     const questarti = _roleToQuestarti[player.roleMnum];
     return questarti !== undefined && obj.oartifact === questarti;

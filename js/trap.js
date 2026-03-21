@@ -1273,7 +1273,7 @@ export function water_damage(obj, ostr, force) {
             obj.greased = false;
         }
         return ER_GREASED;
-    } else if (!force && (Luck(_gstate?.player || _gstate?.u) + 5) > rn2(20)) {
+    } else if (!force && (Luck(_gstate?.u) + 5) > rn2(20)) {
         // C ref: (Luck + 5) > rn2(20)
         return ER_NOTHING;
     } else if (obj.oclass === SCROLL_CLASS) {
@@ -1404,7 +1404,7 @@ export function mk_trap_statue(x, y, game, player) {
 
 // Autotranslated from trap.c:417
 export function dng_bottom(lev, player) {
-  const usePlayer = player || _gstate?.player || {};
+  const usePlayer = player || _gstate?.u || {};
   let bottom = dunlevs_in_dungeon(lev);
   if (In_hell(lev)) {
     if (!usePlayer?.uevent?.invoked) {
@@ -1417,7 +1417,7 @@ export function dng_bottom(lev, player) {
 // Autotranslated from trap.c:441
 export function hole_destination(dst, map) {
   const useMap = map || _gstate?.map || null;
-  const usePlayer = useMap?.player || _gstate?.player || null;
+  const usePlayer = useMap?.player || _gstate?.u || null;
   let bottom = dng_bottom(useMap?.uz || map?.uz, usePlayer);
   dst.dnum = useMap?.uz?.dnum;
   dst.dlevel = dunlev(useMap?.uz || map?.uz);

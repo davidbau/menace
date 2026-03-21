@@ -1592,7 +1592,7 @@ export function useupall(obj, player) {
 // C ref: invent.c useup() — consume one item from a stack
 // Autotranslated from invent.c:1320
 export function useup(obj, player) {
-  if (!player) player = _gstate?.player;
+  if (!player) player = _gstate?.u;
   if (obj.quan > 1) {
     obj.in_use = false;
     obj.quan--;
@@ -1996,7 +1996,7 @@ export function handledGetobjFeedbackResult(overrides = {}) {
 // Matches C behavior: auto-selects if exactly one GETOBJ_SUGGEST item and
 // GETOBJ_PROMPT flag is not set; otherwise prompts via nhgetch().
 export async function getobj(word, obj_ok, flags = 0, player = null) {
-    const p = player || _gstate?.player || null;
+    const p = player || _gstate?.u || null;
     const display = _gstate?.display || null;
     if (!p || typeof obj_ok !== 'function') return null;
 
@@ -2160,7 +2160,7 @@ export function ggetobj_count(word, player) {
 
 // C ref: invent.c ggetobj() — C-name wrapper over simplified count helper
 export function ggetobj(word, _fn, _mx, _word = null, player = null) {
-    const p = player || _gstate?.player || null;
+    const p = player || _gstate?.u || null;
     return ggetobj_count(word, p || { inventory: [] });
 }
 
@@ -2451,7 +2451,7 @@ function countFromInventoryResult(result) {
 // C ref: invent.c display_pickinv() — inventory menu helper for display/getobj.
 export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_reply, out_cnt,
     player = null, display = null, options = null) {
-    const p = player || _gstate?.player || null;
+    const p = player || _gstate?.u || null;
     const d = display || _gstate?.display || null;
     if (!p || !d) return '';
     const wizIdentify = !!options?.wizardIdentify;
@@ -2588,14 +2588,14 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
 
 // C ref: invent.c display_inventory()
 export async function display_inventory(lets, want_reply, player = null, display = null, options = null) {
-    const p = player || _gstate?.player || null;
+    const p = player || _gstate?.u || null;
     return await display_pickinv(lets, null, null, false, !!want_reply, null, p, display, options);
 }
 
 // C ref: invent.c dispinv_with_action()
 export async function dispinv_with_action(lets, use_inuse_ordering, alt_label, game = null) {
     const g = game || _gstate || null;
-    const p = g?.player || _gstate?.player || null;
+    const p = g?.player || _gstate?.u || null;
     const d = g?.display || _gstate?.display || null;
     const len = typeof lets === 'string' ? lets.length : 0;
     const menumode = (len !== 1) || !!g?.flags?.menu_requested;
@@ -2950,7 +2950,7 @@ export async function doprtool(player) {
 // C calls dispinv_with_action(NULL, TRUE, NULL) which shows an overlay menu
 // grouped by slot category ("Wielded/Readied Weapons", "Worn Armor", etc.).
 export async function doprinuse(player) {
-    const p = player || _gstate?.player || null;
+    const p = player || _gstate?.u || null;
     const d = _gstate?.display || null;
     const inuse = (p?.inventory || []).filter(o => is_inuse(o, p));
     if (!inuse.length) {
@@ -3363,7 +3363,7 @@ export function cinv_doname(obj, player) {
 // cf. invent.c:3467 — display_used_invlets()
 // Show which inventory letters are in use. Debug/UI function.
 export function display_used_invlets() {
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     const display = _gstate?.display || null;
     if (!player || !display || typeof display.putstr_message !== 'function') return '';
 
@@ -3398,7 +3398,7 @@ export async function doperminv() {
 // cf. invent.c:3827 — dotypeinv()
 // Display inventory filtered by type. UI function.
 export async function dotypeinv() {
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     const display = _gstate?.display || null;
     if (!player || !display || typeof display.putstr_message !== 'function') return 0;
 
@@ -3418,7 +3418,7 @@ export async function dotypeinv() {
 // cf. invent.c:3654 — dounpaid()
 // List unpaid items. UI function.
 export async function dounpaid() {
-    const player = _gstate?.player || null;
+    const player = _gstate?.u || null;
     const display = _gstate?.display || null;
     if (!player || !display || typeof display.putstr_message !== 'function') return 0;
 
@@ -3464,7 +3464,7 @@ export function loot_xname(obj, player) {
 // cf. invent.c:2660 — menu_identify(id_limit)
 // Identify items via menu. UI function.
 export async function menu_identify(id_limit, player) {
-    const p = player || _gstate?.player || null;
+    const p = player || _gstate?.u || null;
     if (!p) return 0;
     const limit = Number.isFinite(id_limit) ? Math.max(0, Math.floor(id_limit)) : 0;
     await identify_pack(limit, p, false);
@@ -3477,7 +3477,7 @@ export async function menu_identify(id_limit, player) {
 // cf. invent.c:2552 — reroll_menu()
 // Re-roll identification selection menu. UI function.
 export async function reroll_menu() {
-    const p = _gstate?.player || null;
+    const p = _gstate?.u || null;
     if (!p) return 0;
     await menu_identify(0, p);
     return 0;

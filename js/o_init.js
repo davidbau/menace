@@ -330,7 +330,7 @@ export function observe_object(obj) {
 
 // Autotranslated from o_init.c:519
 export function interesting_to_discover(i) {
-  if (Role_if(_gstate.player, PM_SAMURAI) && Japanese_item_name(i,  0)) return true;
+  if (Role_if(_gstate.u, PM_SAMURAI) && Japanese_item_name(i,  0)) return true;
   return  (objectData[i].oc_uname != null || ((objectData[i].oc_name_known || objectData[i].oc_encountered) && objectData[i].oc_descr != null));
 }
 
@@ -364,7 +364,7 @@ export async function choose_disco_sort(mode, game) {
 // Autotranslated from o_init.c:651
 export function disco_typename(otyp) {
   let result = obj_typename(otyp);
-  if (Role_if(_gstate.player, PM_SAMURAI) && Japanese_item_name(otyp,  0)) {
+  if (Role_if(_gstate.u, PM_SAMURAI) && Japanese_item_name(otyp,  0)) {
     let buf;
     let actualn = (((otyp !== MAGIC_HARP && otyp !== WOODEN_HARP) || objectData[otyp].oc_name_known) ? objectData[otyp].oc_name : "harp");
     if (!actualn) {
@@ -496,7 +496,7 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue 
         // exercise wisdom iff credit_hero (creditClue in JS) is true.
         // Gate on newlyKnown: only fire when name was not already known.
         if (creditClue && newlyKnown) {
-            const player = _gstate?.u || _gstate?.player || null;
+            const player = _gstate?.u;
             if (player) exercise(player, A_WIS, true);
         }
     }

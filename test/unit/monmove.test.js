@@ -364,7 +364,7 @@ describe('Monster movement', () => {
                 messages.push(msg);
             },
         };
-        setGame({ display, map, player, fov: { canSee: () => true }, flags: { msg_window: false } });
+        setGame({ display, map, u: player, fov: { canSee: () => true }, flags: { msg_window: false } });
 
         await movemon(map, player, display);
 

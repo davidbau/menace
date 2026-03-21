@@ -533,7 +533,7 @@ export async function use_lamp(obj) {
 // cf. apply.c:1699 -- STUB: light_cocktail
 export async function light_cocktail(obj) {
     if (obj.lamplit) { await You("snuff the lit potion."); end_burn(obj, true); return; }
-    const player = _gstate?.player;
+    const player = _gstate?.u;
     await You("light %spotion.%s", shk_your(obj), player?.Blind ? "" : "  It gives off a dim light.");
     begin_burn(obj, false);
 }
