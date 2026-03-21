@@ -2,8 +2,6 @@
 
 ## Background
 
-Current `main` is at commit `fecf9f28d` in `/tmp/mazes_main_compare`.
-
 The active gameplay parity blocker is:
 - `test/comparison/sessions/seed031_manual_direct.session.json`
 - first RNG divergence: step `933`
@@ -62,52 +60,98 @@ So in C, `runmode_delay_output()` is the exact boundary before the next repeated
 
 ### Outer loop
 
-`allmain.c:moveloop()`:
-- calls `moveloop_core()` forever
+`allmain.c:moveloop()` (line 706):
+- `for (;;) { moveloop_core(); }` — calls `moveloop_core()` forever
 
-### `moveloop_core()` phases
+### `moveloop_core()` phases (lines 226–675)
 
 `moveloop_core()` has two major phases:
 
-1. **Actual-time-passed phase** if `context.move`
-- decrements `u.umovement`
-- runs the "hero can't move this turn" loop
-- runs monster movement until hero can act or monsters are out of steam
-- when both hero and monsters are out of steam, performs once-per-turn updates
-- handles negative `gm.multi < 0` here
+1. **Actual-time-passed phase** (lines 253–545) — gated by `if (context.move)`
+- decrements `u.umovement -= NORMAL_SPEED` (line 255)
+- runs the "hero can't move this turn" loop (`do {...} while (u.umovement < NORMAL_SPEED)`)
+- runs monster movement until hero can act or monsters are out of steam (`do { monscanmove = movemon(); ... } while (monscanmove)`)
+- when both hero and monsters are out of steam, performs once-per-turn updates (regen_hp, regen_pw, nh_timeout, dosounds, gethungry, age_spells, etc.)
+- handles negative `gm.multi < 0` here (lines 486–494):
+  ```c
+  if (gm.multi < 0) {
+      runmode_delay_output();
+      if (++gm.multi == 0) {
+          unmul((char *) 0);
+          if (u.utotype) deferred_goto();
+      }
+  }
+  ```
+  Note: this is **one iteration per `moveloop_core()` call** — the outer `for(;;)` drives the loop, not a `while` inside the phase. JS's `finalizeTimedCommand()` uses `while (game.multi < 0)` instead, which is the same structural mismatch (though less likely to cause divergence since negative multi is simpler).
 
-2. **Once-per-player-input phase**
+2. **Once-per-player-input phase** (lines 547–675)
 - `clear_splitobjs()`
 - amulet wish check
 - `find_ac()`
 - hallucination / telepathy / warning visibility refresh
 - `bot()` / cursor update as needed
-- `m_everyturn_effect()`
-- `context.move = 1`
-- occupation branch
-- positive `gm.multi > 0` branch
+- `m_everyturn_effect()` (line 585) — called BEFORE the multi check; each travel slice gets one call
+- `context.move = 1` (line 589)
+- occupation branch (lines 591–617) — checked BEFORE positive multi; if an occupation is set during travel (e.g., from a trap), it takes priority over multi continuation
+- positive `gm.multi > 0` branch (lines 626–644)
 - otherwise fresh command branch `rhack(0)`
 
-### Positive repeat branch in C
+### Positive repeat branch in C (lines 626–644)
 
 In the once-per-player-input phase:
 
-- if `gm.multi > 0`:
-  - `RUNSTEP_EVENT(...)`
-  - `lookaround()`
-  - `runmode_delay_output()`
-  - if `!gm.multi`, set `context.move = 0` and return
-  - if `context.mv`:
-    - if `gm.multi < COLNO && !--gm.multi`, `end_running(TRUE)`
-    - `domove()`
-  - else:
-    - `--gm.multi`
-    - `rhack(gc.cmd_key)`
+```c
+if (gm.multi > 0) {
+    RUNSTEP_EVENT(svc.context.mv ? "repeat_mv" : "repeat_cmd", gc.cmd_key);
+    lookaround();
+    runmode_delay_output();
+    if (!gm.multi) {
+        /* lookaround() cleared multi — cancel without advancing time */
+        svc.context.move = 0;
+        return;
+    }
+    if (svc.context.mv) {
+        if (gm.multi < COLNO && !--gm.multi)
+            end_running(TRUE);
+        domove();
+    } else {
+        --gm.multi;
+        nhassert(gc.command_count != 0);
+        rhack(gc.cmd_key);
+    }
+} else if (gm.multi == 0) {
+    rhack(0);  /* fresh command */
+}
+```
 
 Critically:
 - this is **one repeat slice per `moveloop_core()` call**
 - the outer `moveloop()` re-enters `moveloop_core()` again later
 - C does **not** drain an unbounded `while (gm.multi > 0)` loop inside command execution
+- when `lookaround()` clears multi, `context.move` is set to 0 — this prevents the time-passed phase from running on the next `moveloop_core()` iteration
+- `end_running(TRUE)` fires when `gm.multi < COLNO && !--gm.multi` — the travel countdown reaching zero
+
+### Where `runmode_delay_output()` is called (hack.c:2994)
+
+```c
+void runmode_delay_output(void) {
+    if ((svc.context.run || gm.multi) && flags.runmode != RUN_TPORT) {
+        if (flags.runmode != RUN_LEAP || !(svm.moves % 7L)) {
+            disp.time_botl = flags.time;
+            curs_on_u();
+            nh_delay_output();
+            /* ... crawl mode extra delays ... */
+        }
+    }
+}
+```
+
+Called at three sites:
+- line 487: negative multi (time-passed phase)
+- line 615: occupation (once-per-player-input phase)
+- line 629: positive multi (once-per-player-input phase)
+
+Note: `domove_core()` (hack.c:2710) does NOT call `runmode_delay_output()` — that is the caller's responsibility. The delay call is always at the `moveloop_core()` level.
 
 ## Current JS Structure
 
@@ -118,8 +162,8 @@ Relevant current JS files:
 Current JS behavior:
 - `run_command()` executes the command
 - if the command took time, it calls:
-  - `finalizeTimedCommand()`
-  - then `repeatLoop()`
+  - `finalizeTimedCommand()` — which has `while (game.multi < 0)` draining negative multi
+  - then `repeatLoop()` — which has `while (game.multi > 0)` draining positive multi
 - `repeatLoop()` does:
   - `while (game.multi > 0)`
   - for travel/repeat movement, repeatedly:
@@ -130,6 +174,17 @@ Current JS behavior:
 This means one command execution can drain many positive-`multi` repeat slices before returning.
 
 That is the core structural mismatch.
+
+### Structural comparison
+
+| Aspect | C | JS |
+|--------|---|-----|
+| Negative multi | 1 iteration per `moveloop_core()` call; outer `for(;;)` loops | `while(multi < 0)` loop inside `finalizeTimedCommand()` |
+| Positive multi | 1 step per `moveloop_core()` call; outer `for(;;)` loops | `while(multi > 0)` loop inside `repeatLoop()` |
+| `lookaround()` | Called inside `moveloop_core()` at line 628 | Called inside `repeatLoop()` |
+| `runmode_delay_output()` | Called inside `moveloop_core()` at line 629 (after lookaround) | Not called in `repeatLoop()` |
+| Occupation check | Before positive multi in `moveloop_core()` | Handled in `_drainOccupation()` |
+| `m_everyturn_effect()` | Called once per `moveloop_core()` iteration, before multi check | Not called per repeat slice |
 
 ## Evidence Supporting This Diagnosis
 
@@ -185,9 +240,9 @@ This helper should own:
 - `find_ac()`
 - visibility refresh rules
 - status/cursor update conditions
-- `m_everyturn_effect()`
+- `m_everyturn_effect()` — must be called once per slice, before the multi check, matching C line 585
 - `context.move = 1`
-- occupation handling
+- occupation handling — must be checked BEFORE positive multi, matching C lines 591–617
 - positive `multi > 0` handling
 - fresh-command fallback
 
@@ -203,6 +258,8 @@ It should execute **one** repeat slice when `multi > 0`, then return.
 It should stop owning:
 - `while (multi > 0)` repeat draining
 
+Note: the `while (multi < 0)` loop in `finalizeTimedCommand()` is the same structural mismatch as positive multi. C runs one negative-multi iteration per `moveloop_core()` call. This is lower risk (negative multi is simpler) but should be fixed for correctness if the refactor touches this area.
+
 ### 3. Re-enter the once-per-player-input helper from outer runtime drivers
 
 The browser loop (`_gameLoopStep()`) and replay path (`replayStep()` / `executeReplayStep()`) should re-enter the once-per-player-input helper exactly the way C re-enters `moveloop_core()` from `moveloop()`.
@@ -210,6 +267,8 @@ The browser loop (`_gameLoopStep()`) and replay path (`replayStep()` / `executeR
 That means:
 - one no-input continuation slice per re-entry
 - not one command-owned `while` drain
+
+**Key integration concern**: `_gameLoopStep()` currently yields to the input system between calls. When `multi > 0`, it must NOT wait for input — it should immediately re-enter for the next slice. The replay engine's `drainUntilInput()` needs to see these as non-input-waiting continuations, not as separate input-consuming steps. This is the highest-risk part of the integration.
 
 ### 4. Preserve current `runmode_delay_output()` body semantics
 
@@ -222,6 +281,22 @@ Headless/test behavior should remain effectively `0ms` delay.
 Interactive deployed behavior can keep a tiny awaitable delay.
 
 The main port target is **call-site semantics**, not the delay body's milliseconds.
+
+## C Invariants to Preserve
+
+These ordering and state invariants from C must be carried into the JS rewrite:
+
+1. **`context.move = 0` when multi is cancelled by `lookaround()`** (line 632): This prevents the time-passed phase from running on the next `moveloop_core()` iteration. If JS doesn't set this, a cancelled travel will incorrectly advance time.
+
+2. **`u.umovement` accounting**: The time-passed phase decrements `u.umovement -= NORMAL_SPEED` once per `moveloop_core()` iteration (line 255), not once per travel hop. Verify that the JS equivalent (`advanceTimedTurn` → `moveloop_core`) maintains this 1:1 relationship.
+
+3. **`m_everyturn_effect()` ordering** (line 585): Called in the once-per-player-input phase, BEFORE the multi check. Each travel slice gets one `m_everyturn_effect()` call. JS must not skip this or reorder it.
+
+4. **Occupation before multi** (lines 591–617 vs 626–644): Occupation is checked BEFORE positive multi in C. If an occupation is set during travel (e.g., from a trap), it takes priority over multi continuation.
+
+5. **`end_running(TRUE)` countdown** (line 637): `if (gm.multi < COLNO && !--gm.multi) end_running(TRUE)`. This is the travel countdown for finite-distance runs. The JS port needs this exact condition.
+
+6. **`domove_core()` does not call `runmode_delay_output()`**: The delay is always at the `moveloop_core()` level, not inside movement. JS must not add a delay inside `domove()`.
 
 ## Non-Goals
 
@@ -248,10 +323,18 @@ Success criteria:
 - no larger regressions on the current guardrails
 - no replay/comparator masking
 
-## Review Questions For Another Engineer
+## Review Responses
 
-1. Does the C control-flow summary above match your reading of `allmain.c`, `cmd.c`, and `hack.c`?
-2. Do you agree that the structural mismatch is specifically JS `run_command()` owning a `while (multi > 0)` repeat drain?
-3. Do you agree the correct JS analogue is a once-per-player-input helper re-entered one slice at a time, rather than another local patch inside `repeatLoop()`?
-4. Are there any additional C invariants around `u.umovement`, `context.move`, or `vision/status` ordering that should be carried into the first rewrite?
+*Reviewed by second engineer, 2026-03-21.*
 
+**Q1: Does the C control-flow summary match?**
+Yes. Verified against `allmain.c:226-675`. The positive multi block is at lines 626–644, with exactly one `domove()` or `rhack()` per `moveloop_core()` call. The outer loop at line 706 is `for(;;) { moveloop_core(); }`. The doc's description is accurate.
+
+**Q2: Is the structural mismatch specifically the `while (multi > 0)` drain?**
+Yes. `repeatLoop()` in `allmain.js` has `while (game.multi > 0)` that drains all travel/repeat steps before returning. C executes one step per `moveloop_core()` call and returns to the outer loop. JS packs multiple travel hops + monster turns into a single "step" from the replay engine's perspective.
+
+**Q3: Is a once-per-player-input helper the right fix?**
+Yes. The JS equivalent of C's outer `for(;;)` is `_gameLoopStep()`. The fix should make `_gameLoopStep()` check `multi > 0` and execute one slice (lookaround + one domove), rather than having `run_command()` drain everything. The highest-risk area is the replay engine integration — `drainUntilInput()` must correctly handle non-input continuations.
+
+**Q4: Additional invariants?**
+See "C Invariants to Preserve" section above. The most critical are: `context.move = 0` on lookaround cancel, `m_everyturn_effect()` ordering, and occupation-before-multi priority.
