@@ -656,6 +656,20 @@ export class LogoInterpreter {
       if (names.length === 0) out('NO PROCEDURES DEFINED\n');
       else out(names.join(' ') + '\n');
     });
+    def('HELP', 0, () => {
+      out('TURTLE:  FD BK RT LT  PU PD  HOME CS  ST HT\n');
+      out('         SETPOS SETH SETPC SETPENSIZE ARC\n');
+      out('         XCOR YCOR HEADING POS PC\n');
+      out('CONTROL: REPEAT IF IFELSE TO/END OUTPUT STOP\n');
+      out('VARS:    MAKE "NAME VALUE   :NAME   LOCAL\n');
+      out('MATH:    + - * / = < >   SUM DIFFERENCE PRODUCT\n');
+      out('         QUOTIENT REMAINDER SQRT POWER RANDOM\n');
+      out('LOGIC:   AND OR NOT  EQUALP LESSP GREATERP\n');
+      out('LISTS:   LIST FIRST LAST BF BL FPUT LPUT COUNT\n');
+      out('         SENTENCE WORD ITEM PICK\n');
+      out('I/O:     PRINT TYPE SHOW READLIST CT\n');
+      out('OTHER:   PROCEDURES SAVE LOAD ERALL WAIT BYE\n');
+    });
     def('SAVE', 0, () => {
       try {
         const data = {};
