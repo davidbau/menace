@@ -953,13 +953,11 @@ async function promptStep(game, chCode, {
     };
 }
 
-// C ref: allmain.c moveloop_core() lines 296-545 (monster turn) + 547-588 (pre-input).
-// Extracted from finalizeTimedCommand for Gate 1 of the game loop reorder.
-// This is the unit of work that C runs once per moveloop_core iteration when
-// context.move is true: monster movement, turn-end processing, and pre-input
-// vision/display sync.
-async function advanceTimedTurn(game, coreOpts) {
-    await moveloop_core(game, coreOpts);
+// Current JS structural split for the C moveloop frame:
+// - moveloop_core() performs monster-time / turn-end work
+// - this helper performs the pre-input sync currently bundled after it
+// Stage B will refine ownership further; this extraction is behavior-preserving.
+async function syncTimedTurnPreInputState(game) {
     const player = game.u || game.player;
     find_ac(player);
     const ctx = game.context || {};
@@ -982,6 +980,14 @@ async function advanceTimedTurn(game, coreOpts) {
         }
     }
     await display_sync();
+}
+
+// C ref: allmain.c moveloop_core() lines 296-545 (monster turn) + 547-588 (pre-input).
+// Current JS Gate-1 unit: run the timed-turn core, then the pre-input sync
+// that JS still keeps outside moveloop_core().
+async function advanceTimedTurn(game, coreOpts) {
+    await moveloop_core(game, coreOpts);
+    await syncTimedTurnPreInputState(game);
 }
 
 // C ref: allmain.c moveloop_core() `gm.multi < 0` branch.

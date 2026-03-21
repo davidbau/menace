@@ -14683,3 +14683,49 @@ effect was missing.
     1. preserve counted-command `multi` semantics first
     2. then port travel-specific continuation ownership
   - do not rewrite positive `multi` as if it were only the `_` travel case
+
+# 2026-03-21: Stage B1 should split JS moveloop helpers before moving travel ownership
+
+- Evidence:
+  - the reviewed `RUNMODE_DELAY_OUTPUT_PORT_PLAN` and the failed Stage B trace
+    agreed that JS still lacks a clean equivalent of the C boundary between:
+    - monster-time / turn-end work
+    - once-per-player-input pre-input sync
+    - the positive-`multi` repeat branch
+  - current JS helper [`advanceTimedTurn()`](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js)
+    was bundling:
+    - `moveloop_core()`
+    - plus `find_ac()`
+    - plus vision/monster refresh
+    - plus `display_sync()`
+  - that made it too coarse for Stage B experiments, because the first repeated
+    travel `domove()` needs to be placed relative to those sub-phases exactly
+    the way C does
+- Safe Stage B1 refactor:
+  - in [js/allmain.js](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js),
+    extracted the post-`moveloop_core()` sync work into:
+    - `syncTimedTurnPreInputState(game)`
+  - kept `advanceTimedTurn(game, coreOpts)` behavior unchanged:
+    1. `moveloop_core(game, coreOpts)`
+    2. `syncTimedTurnPreInputState(game)`
+  - no ownership was moved yet; this is purely a behavior-preserving split so
+    later Stage B work can target smaller C-shaped boundaries
+- Validation:
+  - `seed031_manual_direct` unchanged:
+    - first RNG divergence `933`
+    - first event divergence `934`
+  - targeted gameplay guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - `node scripts/test-unit-core.mjs` still ends on existing unrelated
+    `epitaph selection` failures; this refactor did not touch that area
+- Lesson:
+  - before moving travel-specific repeat ownership, first split JS helpers so
+    the code can express the exact C ordering boundary around:
+    - `lookaround()`
+    - `runmode_delay_output()`
+    - the first repeated `domove()`
+  - do not use `advanceTimedTurn()` as if it were already a C-faithful unit of
+    repeat-move ownership
