@@ -4,7 +4,7 @@
 // Focus: exact RNG consumption alignment with C NetHack
 //
 // INCOMPLETE / MISSING vs C monmove.c:
-// - dochug: no Conflict handling (C:870), no covetous/vault guards
+// - dochug: no Conflict handling (C:870), no covetous/vault guards, no demonic blackmail
 // - dochug: mind_blast RNG-faithful but losehp stubbed
 // - dochug: flees_light: artifact_light limited to Sunsword + gold dragon scales
 // - m_move: no boulder-pushing to adjacent square by strong monsters (C:2020)
