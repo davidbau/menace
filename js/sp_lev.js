@@ -1104,6 +1104,7 @@ function applyFinalizeContext(ctx = null) {
         boundDiggingIsMazeLevel: (typeof ctx.boundDiggingIsMazeLevel === 'boolean')
             ? ctx.boundDiggingIsMazeLevel
             : undefined,
+        isSpecialLevel: !!ctx.isSpecialLevel,
     };
 }
 
@@ -4966,8 +4967,8 @@ export function sel_set_wall_property(x, y, propKind) {
     if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
     const loc = levelState.map?.locations?.[x]?.[y];
     if (!loc) return;
-    // C ref: sel_set_wall_property() only applies to walls, trees, and iron bars.
-    if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
+    // C ref: sel_set_wall_property() uses IS_STWALL (includes STONE) plus iron bars.
+    if (!(IS_STWALL(loc.typ) || loc.typ === IRONBARS)) return;
     if (propKind === 'nondiggable') {
         setWallInfoBits(loc, W_NONDIGGABLE);
         loc.nondiggable = true; // compatibility mirror
