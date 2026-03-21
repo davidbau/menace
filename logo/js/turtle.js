@@ -210,20 +210,18 @@ export class Turtle {
 
   _drawTurtle(ctx) {
     const [px, py] = this._toPixel(this.x, this.y);
-    const size = 7;
+    const len = 10;   // tip to center distance
+    const half = 4;   // half-width at base
     const rad = this.heading * Math.PI / 180;
-    // Wider isoceles triangle pointing in heading direction
-    // Tip at front, base perpendicular to heading, half-width = size * 0.6
-    const tip = [px + size * Math.sin(rad), py - size * Math.cos(rad)];
-    const baseAngle = Math.PI * 2.4;  // ~140 degrees spread
-    const left = [
-      px + size * 0.6 * Math.sin(rad - baseAngle),
-      py - size * 0.6 * Math.cos(rad - baseAngle),
-    ];
-    const right = [
-      px + size * 0.6 * Math.sin(rad + baseAngle),
-      py - size * 0.6 * Math.cos(rad + baseAngle),
-    ];
+    // Pointy isoceles triangle: long tip forward, narrow base behind
+    const tip = [px + len * Math.sin(rad), py - len * Math.cos(rad)];
+    const backDist = len * 0.45;
+    const perpX = Math.cos(rad);  // perpendicular to heading
+    const perpY = Math.sin(rad);
+    const bx = px - backDist * Math.sin(rad);
+    const by = py + backDist * Math.cos(rad);
+    const left = [bx - half * perpX, by - half * perpY];
+    const right = [bx + half * perpX, by + half * perpY];
 
     ctx.fillStyle = '#0f0';
     ctx.beginPath();
