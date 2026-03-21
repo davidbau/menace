@@ -14881,6 +14881,38 @@ effect was missing.
   - the next Stage C2 work should treat prompt-owned initial travel as its own
     concrete mismatch, not just as a generic instance of fresh-command travel
 
+# 2026-03-21: Top-level repeat-slice substitution helped later spillover, but prompt-finalization specialization did not
+
+- Probe A:
+  - replace top-level direct travel continuation
+    - from `_gameLoopStep() -> dotravel_target() -> moveloop_core()`
+    - to the extracted `runMovementRepeatSlice(...)`
+- Probe B:
+  - keep Probe A
+  - also special-case prompt-owned travel completion so `run_command()` uses
+    `moveloop_core()` instead of full `finalizeTimedCommand()`
+
+Validation:
+- both probes were safe on the targeted gameplay guardrails:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Probe A materially reduced later `seed031` spillover:
+  - baseline `934..936`: `rng +431 / evt +169`
+  - Probe A: `rng +130 / evt +95`
+- but Probe A still did not move the first seam later:
+  - first RNG divergence stayed `933`
+  - first event divergence stayed `934`
+- Probe B produced the same result as Probe A
+
+Lesson:
+- replacing the top-level direct travel continuation is part of the correct
+  direction
+- but prompt-finalization specialization is not the next missing piece
+- the remaining earliest mismatch is still earlier, inside the initial
+  prompt-owned travel step itself
+
 # 2026-03-21: Reordering the top-level travelPath branch was safe but not sufficient
 
 - Probe patch:

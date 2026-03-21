@@ -401,6 +401,34 @@ That makes the current JS asymmetry effectively:
 
 not just three generic travel steps.
 
+One broader probe partially improved the right region:
+- replacing the top-level direct `travelPath -> dotravel_target() -> moveloop_core()`
+  continuation with the extracted `runMovementRepeatSlice(...)` reduced the
+  later spillover in `seed031` from:
+  - baseline `step 934..936`: `rng +431 / evt +169`
+  - to `rng +130 / evt +95`
+- and all four targeted gameplay guardrails stayed green
+
+But it still did not move the first divergence later:
+- first RNG divergence stayed `933`
+- first event divergence stayed `934`
+- overall matched totals actually got slightly worse
+
+A follow-up combined probe also changed prompt-owned travel finalization:
+- for prompt-owned travel completion, use `moveloop_core()` directly instead of
+  full `finalizeTimedCommand()`
+
+That added no measurable effect beyond the top-level replacement alone.
+
+So the refined conclusion is:
+- replacing the top-level direct travel continuation is part of the right
+  direction
+- but the remaining earliest mismatch is still earlier than prompt-finalization
+  handling
+- the next target should be the still-earlier behavior inside the initial
+  prompt-owned travel step itself, not another tweak to post-prompt turn
+  finalization
+
 ## Design Goal
 
 Port JS so that positive `multi` continuation is owned by the JS equivalent of
