@@ -196,7 +196,7 @@ function exercise(player, attrIndex, inc_or_dec) {
 }
 
 function exerper(game) {
-    const { player } = game;
+    const { u: player } = game;
     const moves = game.turnCount + 1;
     if (!(moves % 10)) {
         if (player.hunger > 1000) {
@@ -208,7 +208,7 @@ function exerper(game) {
 }
 
 function simulateTurnEnd(game) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     game.turnCount++;
     player.turns = game.turnCount;
     for (const mon of map.monsters) {

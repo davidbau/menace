@@ -1635,7 +1635,7 @@ export function describeGroundObjectForPlayer(obj, player, map) {
 }
 
 export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
-    const { map, player, display } = game;
+    const { map, u: player, display } = game;
     const oldShops = in_rooms(map, oldX, oldY, SHOPBASE);
     const newShops = in_rooms(map, player.x, player.y, SHOPBASE);
     game._ushops = newShops;
@@ -1684,7 +1684,7 @@ export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
 
 // C ref: shk.c dopay() -- the #pay command
 export async function dopay(game) {
-    const { map, player } = game;
+    const { map, u: player } = game;
     if (!map) return 0;
     let tookTime = false;
     const moneyOnHand = () => {

@@ -247,7 +247,7 @@ async function do_look_symbol(display, symChar) {
 
 // C ref: pager.c do_look(mode, click_cc) -- partial structural port.
 export async function do_look(game, mode = 0, click_cc = null) {
-    const { map, player, display, flags } = game || {};
+    const { map, u: player, display, flags } = game || {};
     if (!map || !player || !display) return { moved: false, tookTime: false };
 
     const quick = (mode === 1);
@@ -391,7 +391,7 @@ function build_dolook_message(ctx) {
 // C ref: invent.c dolook() → look_here() → read_engr_at()
 // Shows engraving type message, pauses for --More--, then shows engraving text.
 export async function dolook(game) {
-    const { map, player, display } = game || {};
+    const { map, u: player, display } = game || {};
     if (!display) return { moved: false, tookTime: false };
     const blind = !!player?.blind;
     let tookTime = false;
@@ -765,7 +765,7 @@ export async function handlePrevMessages(display) {
 // View map prompt
 // C ref: cmd.c dooverview()
 export async function handleViewMapPrompt(game) {
-    const { display, map, player, fov, flags } = game;
+    const { display, map, u: player, fov, flags } = game;
     const men = create_nhwindow(NHW_MENU);
     start_menu(men, MENU_BEHAVE_STANDARD);
     add_menu(men, null, { a_int: 1 }, 0, 0, ATR_NONE, 0,

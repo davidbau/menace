@@ -1608,6 +1608,14 @@ export class NetHackGame {
         });
         // game.u is the canonical hero reference (C: u).
         // game.map is the canonical level reference (C: level/levl).
+        // game.player getter: 105+ references in display.js, headless.js etc.
+        // still read .player. Keep until those are migrated to .u.
+        Object.defineProperty(this, 'player', {
+            configurable: true,
+            enumerable: false,
+            get: () => this.u,
+            set: (v) => { this.u = v; },
+        });
         // Legacy movement-prefix mirrors mapped onto canonical context fields.
         Object.defineProperty(this, 'runMode', {
             configurable: true,

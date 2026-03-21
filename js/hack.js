@@ -1847,7 +1847,7 @@ export function findPath(map, startX, startY, endX, endY) {
 export async function findtravelpath(mode, game) {
     if (!game || !(game.u || game.u) || !(game.map || game.map)) return false;
     const ctx = ensure_context(game);
-    const { player, map } = game;
+    const { u: player, map } = game;
     const tx = game.travelX;
     const ty = game.travelY;
     if (!Number.isInteger(tx) || !Number.isInteger(ty) || !isok(tx, ty)) return false;
@@ -2170,7 +2170,7 @@ export async function findtravelpath(mode, game) {
 
 // C ref: cmd.c dotravel()
 export async function dotravel(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     const ctx = ensure_context(game);
     const getposTipSeen = !!player?._tipsShown?.getpos;
     const travelPrompt = (game?.flags?.verbose && getposTipSeen)
@@ -2230,7 +2230,7 @@ export async function dotravel(game) {
 // then calls domove() once. The moveloop_core multi loop repeats domove()
 // for up to ~80 travel steps, with monster turns between each step.
 export async function dotravel_target(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     const ctx = ensure_context(game);
 
     if (!isok(game.travelX, game.travelY)) {

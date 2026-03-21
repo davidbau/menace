@@ -50,7 +50,7 @@
 
 // cf. wizcmds.c:176 — wiz_map(): reveal level map, traps, and engravings
 export async function wizMap(game) {
-    const { map, player, display, fov } = game;
+    const { map, u: player, display, fov } = game;
     if (!game.wizard) {
         await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
@@ -85,7 +85,7 @@ export async function wizMap(game) {
 
 // cf. wizcmds.c:203 — wiz_genesis(): generate monster(s) at hero's location
 export async function wizGenesis(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     if (!game.wizard) {
         await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
@@ -211,7 +211,7 @@ import { tele } from './teleport.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {
-    const { player, display } = game;
+    const { u: player, display } = game;
     if (!game.wizard) {
         await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
@@ -233,7 +233,7 @@ export async function wizWish(game) {
 // cf. wizcmds.c:376 wiz_load_splua()
 // JS version loads a special level generator by name instead of a Lua file.
 export async function handleWizLoadDes(game) {
-    const { player, display } = game;
+    const { u: player, display } = game;
     const input = await getlin('Load which des lua file? ', display);
     if (input === null || input.trim() === '') {
         return { moved: false, tookTime: false };
@@ -326,7 +326,7 @@ export async function handleWizLoadDes(game) {
 // cf. wizcmds.c:399 — wiz_level_tele(): level teleportation wizard command
 // cf. wizcmds.c:446 — wiz_level_change(): adjust hero experience level
 export async function wizLevelPort(game) {
-    const { player, display } = game;
+    const { u: player, display } = game;
     if (!game.wizard) {
         await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
@@ -350,7 +350,7 @@ export async function wizLevelPort(game) {
 
 // cf. wizcmds.c:446 — #levelchange adjusts hero experience level.
 export async function wizLevelChange(game) {
-    const { player, display } = game;
+    const { u: player, display } = game;
     if (!game.wizard) {
         await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };

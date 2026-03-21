@@ -1558,7 +1558,7 @@ async function announceLootedItems(display, player, items, verb) {
 //          'r' reversed (put in then take out), 'q'/ESC quit.
 // Returns { moved: false, tookTime: bool }.
 async function containerMenu(game, container) {
-    const { player, display, map } = game;
+    const { u: player, display, map } = game;
     let tookTime = false;
 
     // cf. C pickup.c:2993 — set current_container for in_container/out_container
@@ -1988,7 +1988,7 @@ async function containerMenu(game, container) {
 }
 
 async function handleLoot(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
 
     // Check floor containers at player's position.
     const floorContainers = (map.objectsAt(player.x, player.y) || [])

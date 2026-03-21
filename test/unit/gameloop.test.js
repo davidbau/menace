@@ -48,7 +48,7 @@ function mcalcmove(mon) {
 
 // Inline simulateTurnEnd for testing (mirrors nethack.js)
 function simulateTurnEnd(game) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     game.turnCount++;
     player.turns = game.turnCount;
 

@@ -89,7 +89,7 @@ function hasVisibleMorePrompt(display) {
 // Returns: { moved: boolean, tookTime: boolean }
 // Autotranslated from cmd.c:3744
 export async function rhack(ch, game) {
-    const { player, map, display, fov } = game;
+    const { u: player, map, display, fov } = game;
     const svc = game.svc || (game.svc = {});
     const context = svc.context || (svc.context = {});
     const getRunMode = () => {
@@ -807,7 +807,7 @@ function clearTopline() {
 }
 
 async function handleExtendedCommand(game) {
-    const { player, display } = game;
+    const { u: player, display } = game;
     const input = await readExtendedCommandLine(game, display);
     if (input !== null && (game?.cmdKey | 0) === '#'.charCodeAt(0)
         && typeof game.emitRunstep === 'function') {
@@ -1220,7 +1220,7 @@ async function readExtendedCommandLine(game, display) {
 }
 
 async function handleExtendedCommandUntrap(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
     let dir = null;
     while (!dir) {
         await display.putstr_message('In what direction? ');
@@ -1292,7 +1292,7 @@ async function handleExtendedCommandUntrap(game) {
 // C ref: cmd.c do_naming() — #name command menu
 // C shows a PICK_ONE menu first; if dismissed, falls through to a ynFunction prompt.
 async function handleExtendedCommandName(game) {
-    const { player, display, map } = game;
+    const { u: player, display, map } = game;
 
     // C ref: cmd.c do_naming() — build PICK_ONE menu matching C's tty output
     const menuLines = [

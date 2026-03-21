@@ -1868,7 +1868,7 @@ export function is_inuse(obj, player) {
 // C ref: invent.c doorganize() — #adjust extended command
 // Prompt for an inventory item then reassign its letter.
 export async function doorganize(game) {
-    const { player, display } = game;
+    const { u: player, display } = game;
     const inv = Array.isArray(player.inventory) ? player.inventory : [];
     if (!inv.length) {
         await display.putstr_message("You have nothing to adjust.");

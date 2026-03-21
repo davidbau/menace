@@ -40,7 +40,7 @@ function makeCtx(overrides = {}) {
 }
 
 test('warning_of scales from monster level when warning is active', () => {
-    const { player } = makeCtx();
+    const { u: player } = makeCtx();
     const mon = { m_lev: 20, mhp: 10, mpeaceful: 0, mtame: 0 };
     assert.equal(mon_warning(mon, player), true);
     assert.equal(warning_of(mon, player), 5);

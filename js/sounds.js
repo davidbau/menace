@@ -1138,7 +1138,7 @@ export async function domonnoise(mtmp, game) {
 // cf. sounds.c:1247 — dotalk(): #chat command handler
 // cf. sounds.c:1247-1409 — full direction + monster-lookup implementation.
 export async function dotalk(game) {
-    const { player, map, display } = game;
+    const { u: player, map, display } = game;
 
     // cf. sounds.c:1262 — swallowed: can't chat from inside a monster
     if (player.uswallow) {

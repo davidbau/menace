@@ -2096,7 +2096,7 @@ const STATUS_CONDITION_DEFAULT_ON = new Set([
 // Interactive menu with immediate toggle - stays open until q/ESC.
 // Pass { showAdvanced: true } for #optionsfull to include Advanced options page.
 export async function handleSet(game, { showAdvanced = false } = {}) {
-    const { display, player } = game;
+    const { display, u: player } = game;
     const flags = game.flags;
 
     let currentPage = 1;

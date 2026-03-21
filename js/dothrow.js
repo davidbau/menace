@@ -791,7 +791,7 @@ export async function hurtle_jump(arg, x, y) {
 
 // cf. dothrow.c:772 -- hurtle_step(arg, x, y)
 export async function hurtle_step(arg, x, y) {
-    const { player, map } = arg;
+    const { u: player, map } = arg;
     if (!isok(x, y)) { await pline("You feel the spirits holding you back."); return false; }
     if (arg.range <= 0) return false;
     const loc = typeof map.at === 'function' ? map.at(x, y) : null;

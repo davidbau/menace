@@ -80,7 +80,7 @@ export function resetobjs(list, restore) {
 // Move player inventory to floor at death position.
 // C ref: bones.c:319 — iterate invent, curse with rn2(5), give with rn2(8)
 export function drop_upon_death(game) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     const x = player.x;
     const y = player.y;
     const toRemove = [];
@@ -275,7 +275,7 @@ export function newebones(mtmp) {
 // Full bones save pipeline on player death.
 // C ref: bones.c:399
 export function savebones(game) {
-    const { player, map } = game;
+    const { u: player, map } = game;
     if (!map) return;
     const depth = player.dungeonLevel;
 
