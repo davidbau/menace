@@ -34,7 +34,7 @@ function makeMindFlayer() {
         mx: 10,
         my: 10,
         mpeaceful: false,
-        peaceful: false,
+        mpeaceful: false,
         mcansee: true,
         dead: false,
     };
@@ -95,7 +95,7 @@ test('mind_blast from peaceful mind flayer is soothing and non-damaging', async 
     initRng(9);
     const mon = makeMindFlayer();
     mon.mpeaceful = true;
-    mon.peaceful = true;
+    mon.mpeaceful = true;
     const map = makeMap(mon);
     const display = makeDisplay();
     const player = {
@@ -126,10 +126,10 @@ test('mind_blast wakes sleeping monster victims before applying damage', async (
         mx: 11,
         my: 11,
         mpeaceful: true,
-        peaceful: true,
+        mpeaceful: true,
         mcansee: true,
         blind: true,
-        sleeping: true,
+        msleeping: true,
         mhp: 20,
         dead: false,
     };
@@ -152,5 +152,5 @@ test('mind_blast wakes sleeping monster victims before applying damage', async (
 
     await mind_blast(mon, map, player, display, fov, null);
 
-    assert.equal(victim.sleeping, false);
+    assert.equal(victim.msleeping, false);
 });

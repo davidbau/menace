@@ -173,9 +173,9 @@ describe('Monster save/restore (saveMon/restMon)', () => {
             mlevel: 1, mac: 10, speed: 12, movement: 0,
             type: mons[0], attacks: mons[0].attacks,
             displayChar: 'a', displayColor: 7,
-            peaceful: false, tame: false, flee: false,
+            mpeaceful: false, mtame: false, flee: false,
             confused: false, stunned: false, blind: false,
-            sleeping: false, dead: false, passive: false,
+            msleeping: false, dead: false, passive: false,
             mtrack: [{x:1,y:2},{x:3,y:4},{x:0,y:0},{x:0,y:0}],
         };
         const restored = restMon(JSON.parse(JSON.stringify(saveMon(mon))));
@@ -189,9 +189,9 @@ describe('Monster save/restore (saveMon/restMon)', () => {
             mlevel: 1, mac: 10, speed: 12, movement: 0,
             type: mons[0], attacks: mons[0].attacks,
             displayChar: 'a', displayColor: 7,
-            peaceful: false, tame: true, flee: false,
+            mpeaceful: false, mtame: true, flee: false,
             confused: false, stunned: false, blind: false,
-            sleeping: false, dead: false, passive: false,
+            msleeping: false, dead: false, passive: false,
             minvent: [item],
             mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
         };

@@ -40,8 +40,8 @@ test('kick_ouch subtracts from current HP (uhp), not max HP (uhpmax)', async () 
     player.attributes[A_WIS] = 10;
     player.attributes[A_CHA] = 10;
 
-    const nearSleeper = { mx: 10, my: 15, dead: false, mhp: 5, msleeping: 1, sleeping: true, mstrategy: 0 };
-    const farSleeper = { mx: 20, my: 20, dead: false, mhp: 5, msleeping: 1, sleeping: true, mstrategy: 0 };
+    const nearSleeper = { mx: 10, my: 15, dead: false, mhp: 5, msleeping: 1, msleeping: true, mstrategy: 0 };
+    const farSleeper = { mx: 20, my: 20, dead: false, mhp: 5, msleeping: 1, msleeping: true, mstrategy: 0 };
     const map = {
         rooms: [],
         engravings: [],
@@ -62,7 +62,7 @@ test('kick_ouch subtracts from current HP (uhp), not max HP (uhpmax)', async () 
     assert.ok(player.uhp >= 1 && player.uhp <= 4,
         `expected HP to be reduced from current HP 5; got ${player.uhp}`);
     assert.equal(nearSleeper.msleeping, 0);
-    assert.equal(nearSleeper.sleeping, false);
+    assert.equal(nearSleeper.msleeping, false);
     assert.equal(farSleeper.msleeping, 1);
-    assert.equal(farSleeper.sleeping, true);
+    assert.equal(farSleeper.msleeping, true);
 });

@@ -11,7 +11,7 @@ function makeShopState() {
         isshk: true,
         dead: false,
         mpeaceful: true,
-        peaceful: true,
+        mpeaceful: true,
         following: 0,
         shoproom: ROOMOFFSET,
         mx: 10,

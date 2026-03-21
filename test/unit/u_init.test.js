@@ -211,7 +211,7 @@ describe('Post-level initialization (u_init)', () => {
             my: player.y,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: true,
@@ -235,7 +235,7 @@ describe('Post-level initialization (u_init)', () => {
             my: player.y,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: false,
@@ -247,7 +247,7 @@ describe('Post-level initialization (u_init)', () => {
         const moved = mon_arrive(oldMap, newMap, player, { heroX: 10, heroY: 10 });
         assert.equal(moved, true, 'pet should migrate with explicit destination hero coordinates');
         assert.equal(oldMap.monsters.length, oldCount - 1, 'migrated pet should leave old map');
-        const arrived = newMap.monsters.find(m => m.tame && m.mhp > 0);
+        const arrived = newMap.monsters.find(m => m.mtame && m.mhp > 0);
         assert.ok(arrived, 'migrated pet should be on new map');
         const dx = Math.abs(arrived.mx - 10);
         const dy = Math.abs(arrived.my - 10);
@@ -261,7 +261,7 @@ describe('Post-level initialization (u_init)', () => {
             my: player.y + 10,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: false,
@@ -283,7 +283,7 @@ describe('Post-level initialization (u_init)', () => {
             my: 10,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: false,
@@ -322,7 +322,7 @@ describe('Post-level initialization (u_init)', () => {
             my: player.y + 10,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: false,
@@ -356,7 +356,7 @@ describe('Post-level initialization (u_init)', () => {
             my: player.y,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: false,
@@ -378,7 +378,7 @@ describe('Post-level initialization (u_init)', () => {
             my: player.y + 10,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: false,
@@ -410,7 +410,7 @@ describe('Post-level initialization (u_init)', () => {
             my: player.y + 10,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: false,
@@ -437,7 +437,7 @@ describe('Post-level initialization (u_init)', () => {
             my: player.y + 10,
             mhp: 5,
             dead: false,
-            tame: true,
+            mtame: true,
             mtame: 10,
             mpeaceful: true,
             mtrapped: false,

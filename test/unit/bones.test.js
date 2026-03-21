@@ -218,8 +218,8 @@ describe('removeMonFromBones', () => {
     it('removes tame monsters', () => {
         const map = new GameMap();
         map.monsters = [
-            { name: 'dog', tame: true, dead: false },
-            { name: 'jackal', tame: false, dead: false },
+            { name: 'dog', mtame: true, dead: false },
+            { name: 'jackal', mtame: false, dead: false },
         ];
         removeMonFromBones(map);
         assert.equal(map.monsters.length, 1);
