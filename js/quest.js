@@ -387,7 +387,7 @@ async function chat_with_leader(mtmp, game) {
     const map = (game.lev || game.map);
     const qs = Qstat(game);
 
-    if (!mtmp.peaceful || qs.pissed_off)
+    if (!mtmp.mpeaceful || qs.pissed_off)
         return;
 
     // Rule 0: Cheater checks
@@ -467,7 +467,7 @@ export async function leader_speaks(mtmp, game) {
     const map = (game.lev || game.map);
 
     // Maybe you attacked leader?
-    if (!mtmp.peaceful) {
+    if (!mtmp.mpeaceful) {
         if (!qs.pissed_off) {
             await qt_pager("leader_last", game);
         }
@@ -538,7 +538,7 @@ export async function prisoner_speaks(mtmp, game) {
         // C: SetVoice(mtmp, 0, 80, 0) — voice system not ported
         await verbalize("I'm finally free!");
         mtmp.mstrategy = (mtmp.mstrategy || 0) & ~STRAT_WAITMASK;
-        mtmp.peaceful = true;
+        mtmp.mpeaceful = true;
 
         // Your god is happy...
         adjalign(player, 3);

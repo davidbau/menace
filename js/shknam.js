@@ -513,7 +513,7 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     const eshkp = shk.mextra.eshk;
 
     // C ref: shknam.c:666-681 — set shopkeeper flags
-    shk.peaceful = true;
+    shk.mpeaceful = true;
     shk.isshk = true;
     shk.shoptype = shp_indx + SHOPBASE; // C ref: shknam.c:672 eshkp->shoptype = sroom->rtype
     shk.shoproom = (map.rooms || []).indexOf(sroom) + ROOMOFFSET;

@@ -601,7 +601,6 @@ export function clonewiz(map, player, display) {
         mtmp2.msleeping = 0;
         mtmp2.tame = false;
         mtmp2.mtame = 0;
-        mtmp2.peaceful = false;
         mtmp2.mpeaceful = false;
 
         // Give clone a fake amulet sometimes
@@ -724,7 +723,6 @@ export async function nasty(summoner, map, player, display, fov) {
                 mtmp.sleeping = false;
                 mtmp.msleeping = 0;
                 mtmp.mpeaceful = false;
-                mtmp.peaceful = false;
                 mtmp.tame = false;
                 mtmp.mtame = 0;
                 // set_malign(mtmp) — alignment penalty not set (deferred)
@@ -819,7 +817,6 @@ export async function resurrect(map, player, display) {
         mtmp.tame = false;
         mtmp.mtame = 0;
         mtmp.mpeaceful = false;
-        mtmp.peaceful = false;
         // set_malign(mtmp) — deferred
 
         // C: if (!Deaf)

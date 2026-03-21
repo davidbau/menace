@@ -299,7 +299,7 @@ export function can_carry(mon, obj, player = null) {
     // C ref: mon.c:2002 — steeds don't pick up stuff (to avoid shop abuse)
     if (player && mon === player.usteed) return 0;
 
-    if (mon.peaceful && !mon.tame) return 0;
+    if (mon.mpeaceful && !mon.tame) return 0;
     if ((mdat.mflags2 & M2_ROCKTHROW) && obj.otyp === BOULDER) return iquan;
     if (mdat.mlet === S_NYMPH)
         return (obj.oclass === ROCK_CLASS) ? 0 : iquan;
@@ -868,7 +868,7 @@ function score_targ(mon, target, map, player) {
             return score;
         }
         // C ref: dogmove.c:797-798 — hostile bonus
-        if (!target.peaceful) score += 10;
+        if (!target.mpeaceful) score += 10;
         // C ref: dogmove.c:800-801 — passive monster penalty
         const mdat = mons[target.mndx];
         if (mdat && mdat.mattk && mdat.mattk[0] && mdat.mattk[0].aatyp === AT_NONE) {
@@ -1350,7 +1350,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                     + Math.floor((5 * (mon.mhp || 1)) / Math.max(1, mon.mhpmax || 1))
                     - 2;
                 const conflictActive = !!(player?.hasProp?.(CONFLICT));
-                const targetMpeaceful = !!(target.mpeaceful ?? target.peaceful);
+                const targetMpeaceful = !!target.mpeaceful;
                 const targetMtame = !!((target.mtame || 0) > 0 || target.tame);
                 const monMtame = !!((mon.mtame || 0) > 0 || mon.tame);
                 const targetMsound = ((target.data || target.type)?.msound

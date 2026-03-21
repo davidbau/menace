@@ -299,7 +299,6 @@ export function makedog(map, player, depth) {
     // C ref: dog.c:271 — initedog(mtmp, TRUE)
     pet.tame = true;
     pet.mtame = is_domestic(mons[pmIdx]) ? 10 : 5;
-    pet.peaceful = true;
     pet.mpeaceful = true;
     pet.edog.apport = 0;
     pet.edog.hungrytime = 1000;

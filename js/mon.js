@@ -246,7 +246,7 @@ export function onscary(map, x, y, mon = null) {
                 // C ref: monmove.c:299-302 — Elbereth exclusions
                 if (mon) {
                     if (mon.isshk || mon.isgd || !mon.mcansee
-                        || mon.mpeaceful || mon.peaceful
+                        || mon.mpeaceful
                         || (mon.data || mon.type || {}).mndx === PM_MINOTAUR)
                         return false;
                 }
@@ -1118,7 +1118,7 @@ export async function xkilled(mon, xkill_flags, map, player) {
             // You("murderer!"); // cosmetic
         }
         // Peaceful/tame luck penalty — rn2(2) is RNG-consuming
-        if ((mon.peaceful && !rn2(2)) || mon.mtame)
+        if ((mon.mpeaceful && !rn2(2)) || mon.mtame)
             change_luck(-1, player);
         // Unicorn guilt — same alignment
         if (is_unicorn(mdat) && sgn(player.alignment ?? 0) === sgn(mdat.maligntyp || 0)) {
@@ -1450,7 +1450,7 @@ export function setmangry(mon, via_attack, map, player) {
     // C ref: mon.c:4261-4279 — Elbereth hypocrisy (MUST come before mpeaceful check)
     if (via_attack && map && player
         && sengr_at(map, "Elbereth", player.x, player.y, true)
-        && (onscary(map, player.x, player.y, mon) || mon.peaceful)) {
+        && (onscary(map, player.x, player.y, mon) || mon.mpeaceful)) {
         // C: You_feel("like a hypocrite.");
         const record = player.alignmentRecord ?? 0;
         adjalign(player, (record > 5) ? -5 : -rnd(5));
@@ -1461,9 +1461,9 @@ export function setmangry(mon, via_attack, map, player) {
     // C ref: mon.c:4282 — clear wait strategy
     mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_WAITMASK;
 
-    if (!mon.peaceful) return;
+    if (!mon.mpeaceful) return;
     if (mon.tame) return;
-    mon.peaceful = false;
+    mon.mpeaceful = false;
     // C ref: mon.c:4291-4297 — alignment penalty
     if (mon.ispriest) {
         if (player && p_coaligned(mon, player))
@@ -2186,7 +2186,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 `pos=(${oldx},${oldy})`,
                 `mv=${mon.movement + NORMAL_SPEED}->${mon.movement}`,
                 `flee=${mon.mflee ? 1 : 0}`,
-                `peace=${mon.peaceful ? 1 : 0}`,
+                `peace=${mon.mpeaceful ? 1 : 0}`,
                 `conf=${mon.confused ? 1 : 0}`);
             // C ref: mon.c:1250-1251 — minliquid() before gear/hider logic.
             if (await minliquid(mon, map, player)) continue;
@@ -2227,7 +2227,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                     : couldsee(map, player, mon.mx, mon.my);
                 const couldSeeOld = fov?.canSee ? fov.canSee(oldx, oldy)
                     : couldsee(map, player, oldx, oldy);
-                if ((player?.hallucinating || (!mon.peaceful && !noAttacks))
+                if ((player?.hallucinating || (!mon.mpeaceful && !noAttacks))
                     && newDist <= threatRangeSq
                     && (!alreadySawMon || !couldSeeOld || oldDist > threatRangeSq)
                     && canSpotMonsterForMap(mon, map, player, fov)

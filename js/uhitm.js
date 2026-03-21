@@ -245,7 +245,7 @@ export async function attack_checks(mtmp, wep, opts = {}) {
             if (display) await display.putstr_message('You stop. Your pet is in the way!');
             return true;
         }
-        if (mtmp.peaceful && !pets_too) {
+        if (mtmp.mpeaceful && !pets_too) {
             if (display) await display.putstr_message(`Really attack ${x_monnam(mtmp)}?`);
             return true;
         }

@@ -2661,7 +2661,6 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
                 gy = cc.y;
                 const mate = makemon(mndx, gx, gy, mmflags | MM_NOGRP, depth, map);
                 if (mate) {
-                    mate.peaceful = false;
                     mate.mpeaceful = false;
                     mate.mavenge = 0;
                 }

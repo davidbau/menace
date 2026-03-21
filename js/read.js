@@ -1392,7 +1392,7 @@ function mon_tame_state(mon) {
 
 function mon_peaceful_state(mon) {
     if (mon?.mpeaceful != null) return !!mon.mpeaceful;
-    return !!mon?.peaceful;
+    return !!mon?.mpeaceful;
 }
 
 // cf. read.c maybe_tame() — taming effect on a monster
@@ -1404,9 +1404,7 @@ async function maybe_tame(mtmp, sobj, player, game, map) {
         // Cursed: anger the monster
         setmangry(mtmp, false, map, player);
         if (was_peaceful && mon_peaceful_state(mtmp)) {
-            // Keep mpeaceful/peaceful aliases coherent for C-style checks.
-            if ('mpeaceful' in mtmp || !('peaceful' in mtmp)) mtmp.mpeaceful = 0;
-            if ('peaceful' in mtmp || !('mpeaceful' in mtmp)) mtmp.peaceful = false;
+            mtmp.mpeaceful = false;
         }
         if (was_peaceful && !mon_peaceful_state(mtmp)) return -1;
     } else {

@@ -54,7 +54,7 @@ import { holetime } from './dig.js';
 import { cansee, couldsee, m_cansee } from './vision.js';
 import { pline, pline_mon, pline_The, You_hear, set_msg_xy, verbalize } from './pline.js';
 import { can_teleport, noeyes, perceives, nohands,
-         hides_under, is_mercenary, YMonnam, Monnam,
+         hides_under, is_mercenary, is_watch, YMonnam, Monnam,
          mon_knows_traps, is_rider, is_mind_flayer,
          is_mindless, telepathic,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
@@ -143,8 +143,7 @@ const ydir = [-1, -1, 0, 1, 1, 1, 0, -1];
 
 function mon_is_peaceful(mon) {
     if (!mon) return false;
-    if (mon.mpeaceful !== undefined) return !!mon.mpeaceful;
-    return !!mon.peaceful;
+    return !!mon.mpeaceful;
 }
 
 function mon_is_tame(mon) {
@@ -1132,7 +1131,7 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
     // C ref: monmove.c:630-645 — blast hits other monsters
     for (const m2 of map.monsters || []) {
         if (m2.dead) continue;
-        if (!!(m2?.mpeaceful ?? m2?.peaceful) === !!(mon?.mpeaceful ?? mon?.peaceful)) continue;
+        if (!!m2?.mpeaceful === !!mon?.mpeaceful) continue;
         if (is_mindless(m2.data || m2.type || {})) continue;
         if (m2 === mon) continue;
 
@@ -1186,7 +1185,7 @@ function isUndirectedSpell(adtyp, spellid) {
 }
 
 function spellWouldBeUseless(mon, adtyp, spellid, player = null) {
-    const mpeaceful = !!(mon?.mpeaceful ?? mon?.peaceful);
+    const mpeaceful = !!mon?.mpeaceful;
     if (adtyp === AD_SPEL) {
         if (mpeaceful
             && (spellid === MGC_AGGRAVATION || spellid === MGC_SUMMON_MONS || spellid === MGC_CLONE_WIZ)) {
@@ -1395,9 +1394,11 @@ async function dochug(mon, map, player, display, fov, game = null) {
 
     // INCOMPLETE: C:803 — demonic blackmail (rare demon interaction)
 
-    // C ref: monmove.c:832-836 — mind flayer psychic blast
+    // C ref: monmove.c:828-835 — watch_on_duty / mind_blast (else-if)
     const mdat = mon.data || mon.type || {};
-    if (is_mind_flayer(mdat) && !rn2(20)) {
+    if (is_watch(mdat)) {
+        watch_on_duty(mon);
+    } else if (is_mind_flayer(mdat) && !rn2(20)) {
         await mind_blast(mon, map, player, display, fov, game);
         set_apparxy(mon, map, player);
         // C ref: monmove.c:835 — recalculate distfleeck after mind_blast

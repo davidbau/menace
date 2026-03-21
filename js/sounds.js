@@ -756,7 +756,7 @@ export async function domonnoise(mtmp, game) {
                         ? 'I beg you, help me satisfy this growing craving!'
                         : 'I find myself growing a little weary.';
             }
-        } else if (mtmp.peaceful) {
+        } else if (mtmp.mpeaceful) {
             verbl_msg = 'I only drink... potions.';
         } else {
             // Hostile vampire — consumes rn2(2)
@@ -787,7 +787,7 @@ export async function domonnoise(mtmp, game) {
     case MS_BARK:
         if (game.flags?.moonphase === 2 && night()) {
             pline_msg = 'howls.';
-        } else if (mtmp.peaceful) {
+        } else if (mtmp.mpeaceful) {
             if (isTame
                 && (mtmp.confused || mtmp.mflee || mtmp.trapped
                     || (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
@@ -821,11 +821,11 @@ export async function domonnoise(mtmp, game) {
         }
         // FALLTHRU
     case MS_GROWL: // eslint-disable-line no-fallthrough
-        pline_msg = mtmp.peaceful ? 'snarls.' : 'growls!';
+        pline_msg = mtmp.mpeaceful ? 'snarls.' : 'growls!';
         break;
 
     case MS_ROAR:
-        pline_msg = mtmp.peaceful ? 'snarls.' : 'roars!';
+        pline_msg = mtmp.mpeaceful ? 'snarls.' : 'roars!';
         break;
 
     case MS_SQEEK:
@@ -833,21 +833,21 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_SQAWK:
-        if (ptr === mons[PM_RAVEN] && !mtmp.peaceful)
+        if (ptr === mons[PM_RAVEN] && !mtmp.mpeaceful)
             verbl_msg = 'Nevermore!';
         else
             pline_msg = 'squawks.';
         break;
 
     case MS_HISS:
-        if (!mtmp.peaceful)
+        if (!mtmp.mpeaceful)
             pline_msg = 'hisses!';
         else
             return 0; // no sound
         break;
 
     case MS_BUZZ:
-        pline_msg = mtmp.peaceful ? 'drones.' : 'buzzes angrily.';
+        pline_msg = mtmp.mpeaceful ? 'drones.' : 'buzzes angrily.';
         break;
 
     case MS_GRUNT:
@@ -928,7 +928,7 @@ export async function domonnoise(mtmp, game) {
     case MS_DJINNI:
         if (isTame)
             verbl_msg = "Sorry, I'm all out of wishes.";
-        else if (mtmp.peaceful) {
+        else if (mtmp.mpeaceful) {
             if (ptr === mons[PM_WATER_DEMON])
                 pline_msg = 'gurgles.';
             else
@@ -942,7 +942,7 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_BOAST:
-        if (!mtmp.peaceful) {
+        if (!mtmp.mpeaceful) {
             switch (rn2(4)) {
             case 0:
                 await game.display.putstr_message(
@@ -961,7 +961,7 @@ export async function domonnoise(mtmp, game) {
         }
         // FALLTHRU to MS_HUMANOID
     case MS_HUMANOID: // eslint-disable-line no-fallthrough
-        if (!mtmp.peaceful) {
+        if (!mtmp.mpeaceful) {
             pline_msg = 'threatens you.';
             break;
         }
@@ -1043,7 +1043,7 @@ export async function domonnoise(mtmp, game) {
         break;
     }
     case MS_ARREST:
-        if (mtmp.peaceful) {
+        if (mtmp.mpeaceful) {
             const title = game.flags?.female ? "Ma'am" : 'Sir';
             await game.display.putstr_message(`"Just the facts, ${title}."`);
         } else {
@@ -1057,14 +1057,14 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_BRIBE:
-        if (mtmp.peaceful && !isTame) {
+        if (mtmp.mpeaceful && !isTame) {
             // C: demon_talk(mtmp) — not ported
             await game.display.putstr_message(`${x_monnam(mtmp)} makes a deal.`);
             break;
         }
         // FALLTHRU
     case MS_CUSS: // eslint-disable-line no-fallthrough
-        if (!mtmp.peaceful) {
+        if (!mtmp.mpeaceful) {
             // C: cuss(mtmp) — not ported
             await game.display.putstr_message(`${x_monnam(mtmp)} curses at you!`);
         } else {
@@ -1096,7 +1096,7 @@ export async function domonnoise(mtmp, game) {
             "The food's not fit for Orcs!",
             "My feet hurt, I've been on them all day!",
         ];
-        verbl_msg = mtmp.peaceful ? soldier_pax[rn2(3)]
+        verbl_msg = mtmp.mpeaceful ? soldier_pax[rn2(3)]
             : soldier_foe[rn2(3)];
         break;
     }

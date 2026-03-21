@@ -303,7 +303,7 @@ export function savebones(game) {
         ghost.mhp = player.ulevel * 10;
         ghost.mhpmax = player.ulevel * 10;
         ghost.m_lev = player.ulevel;
-        ghost.peaceful = false;
+        ghost.mpeaceful = false;
     }
 
     // C ref: bones.c:503 — cemetery metadata

@@ -6507,7 +6507,6 @@ async function createScriptMonster(deferred) {
             if (opts.name !== undefined) mtmp.customName = String(opts.name);
             if (opts.female !== undefined) mtmp.female = !!opts.female;
             if (opts.peaceful !== undefined) {
-                mtmp.peaceful = !!opts.peaceful;
                 mtmp.mpeaceful = !!opts.peaceful;
             }
             if (opts.asleep !== undefined) {
