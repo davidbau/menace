@@ -134,9 +134,10 @@ export async function wizGenesis(game) {
     const mon = await makemon_appear(whichpm, player.x, player.y, MM_NOEXCLAM, player.dungeonLevel, map);
     if (!mon) {
         await display.putstr_message('There is no room near you to create a monster.');
-    } else {
-        mon.msleeping = 0;
     }
+    // C ref: create_particular_creation() does NOT clear msleeping after
+    // makemon. The monster keeps its default sleep state from makemon
+    // (e.g., nymphs start sleeping 4/5 of the time).
     return { moved: false, tookTime: false };
 }
 
