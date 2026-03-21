@@ -14846,7 +14846,9 @@ effect was missing.
 - After re-reading C `moveloop_core()` and the current JS runtime, the deeper
   remaining mismatch is that JS still has three distinct travel-step frames:
   1. initial `_` travel command:
-     `dotravel_target()` then `finalizeTimedCommand()` -> `advanceTimedTurn()`
+     `getpos('.')` completes through `promptStep()`, which calls
+     `dotravel_target()`, then `run_command()` does
+     `finalizeTimedCommand()` -> `advanceTimedTurn()` and returns early
   2. repeated travel slice:
      `lookaround()` -> repeated `domove()` -> `advanceTimedTurn()`
   3. top-level travel continuation:
@@ -14862,6 +14864,22 @@ effect was missing.
     single C-shaped travel-step contract
   - otherwise we are still comparing three different JS timings against one C
     timing model
+
+# 2026-03-21: The initial `_` travel step is a prompt-owned early-return frame in JS
+
+- The `.` key that completes `getpos()` for `_` travel does not fall through
+  into normal command execution.
+- It is consumed by `promptStep()`.
+- If that prompt result takes time, `run_command()` currently does:
+  - `finalizeTimedCommand(promptResult)`
+  - then returns immediately
+- So the first travel step is not just a fresh-command frame with travel armed.
+  It is a prompt-owned early-return frame with its own timing boundary.
+- C does not have this special framing. In C, `dotravel_target()` is just the
+  tail of normal `rhack(0)` processing inside `moveloop_core()`.
+- Lesson:
+  - the next Stage C2 work should treat prompt-owned initial travel as its own
+    concrete mismatch, not just as a generic instance of fresh-command travel
 
 # 2026-03-21: Reordering the top-level travelPath branch was safe but not sufficient
 

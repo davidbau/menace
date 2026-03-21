@@ -295,8 +295,14 @@ The deepest remaining JS/C mismatch is now the existence of three different
 travel step frames in JS for what C treats as one moveloop structure:
 
 1. Initial `_` travel command in JS
-- `rhack()` -> `dotravel_target()` arms travel and performs the first `domove()`
-- `run_command()` then calls `finalizeTimedCommand()`
+- `getpos('.')` completion is consumed by `promptStep()`, not by ordinary
+  command execution
+- the prompt handler calls `dotravel_target()`, which arms travel and performs
+  the first `domove()`
+- `run_command()` then does only `finalizeTimedCommand(promptResult)` and
+  returns early
+- so this initial travel step bypasses normal post-command positive-repeat
+  handling entirely
 - `finalizeTimedCommand()` calls `advanceTimedTurn()`
 - `advanceTimedTurn()` is still a fused helper:
   `moveloop_core()` plus `syncTimedTurnPreInputState()`
@@ -321,7 +327,7 @@ travel step frames in JS for what C treats as one moveloop structure:
 
 C does not have these three different frames. In C:
 - the initial `_` travel step is just the tail of a normal `rhack(0)` inside
-  `moveloop_core()`
+  `moveloop_core()`, not a special prompt-owned early-return frame
 - later repeated travel steps are owned by the next `moveloop_core()` entries
 - the once-per-player-input sync is not selectively skipped or fused depending
   on which JS helper is driving travel
@@ -379,6 +385,21 @@ Recommendation: the next attempt should combine B2b + C3 + travelPath
 reorder as one atomic change, since each has been proven individually safe
 but individually insufficient. The risk is manageable because each component
 was tested in isolation without regressions.
+
+The newest correction is that the initial `_` travel step is also more special
+than we had been treating it:
+- because `getpos('.')` completes through `promptStep()`, the first travel step
+  currently takes time in a prompt-owned frame and returns before ordinary
+  `run_command()` positive-repeat handling
+- so the initial step is not merely "fresh command then travel"; it is a
+  prompt-owned early-return path with its own timing boundary
+
+That makes the current JS asymmetry effectively:
+- prompt-owned initial travel frame
+- repeated travel slice frame
+- top-level travel continuation frame
+
+not just three generic travel steps.
 
 ## Design Goal
 
