@@ -15134,3 +15134,52 @@ Lesson:
   - so the true C-faithful boundary must be above the current internal
     `_gameLoopStep()` `while`, or `_gameLoopStep()` must be refactored to
     return after one positive-repeat slice instead of `continue`
+
+# 2026-03-21: One positive-repeat slice per `_gameLoopStep()` return moves `seed031` later
+
+- Validated code change in `/tmp/mazes_main_compare`:
+  - suppress local movement overdrain in `run_command()` when `context.mv`
+    is active
+  - add a positive-`multi` no-input continuation lane in `_gameLoopStep()`
+  - make that lane return after one slice instead of continuing the internal
+    `_gameLoopStep()` `while`
+  - defer the timed continuation for the initial resumed `_` travel hop to a
+    dedicated `pendingTravelTimedTurn` pass before later positive-repeat slices
+- Why this is the right shape:
+  - it creates three separate outer re-entries where JS previously fused them:
+    1. initial resumed `_` travel hop
+    2. timed continuation after that first hop
+    3. one later positive-repeat slice per `_gameLoopStep()` return
+- Evidence of real progress:
+  - `comparison-window --step-summary` for `seed031` now shows:
+    - step `933`: `rng 0 / evt 0`
+    - first new spillover begins at step `934`
+  - normalized RNG window moved from:
+    - baseline JS step `933`
+    - to JS step `938`
+  - normalized event window moved from:
+    - baseline JS step `934`
+    - to JS step `996`
+- Focused trace after the fix:
+  - step `933`: initial resumed hop only
+  - step `934`: gas-spore / kitten timed continuation after first hop
+  - step `935`: one travel hop
+  - step `936`: one travel hop
+  - so the multi-hop same-step packing has been eliminated
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - later normalized RNG/event divergence as above
+    - counted-repeat corridor `160..166` unchanged
+  - gameplay guardrails still green:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - nearby controls remain on their prior issue classes:
+    - `seed032_manual_direct` unchanged in RNG-full / screen-event drift class
+    - `seed033_manual_direct` unchanged at its early special-level RNG seam
+- Caveat:
+  - `session_test_runner` still reports legacy `firstDivergence.step` metadata
+    as `933` on this session
+  - the authoritative evidence for step movement on this patch is the
+    normalized `comparison-window` output plus the per-step spillover summary

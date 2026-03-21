@@ -1626,6 +1626,90 @@ The real C-faithful boundary must sit **above** the current `_gameLoopStep()`
 internal loop, or `_gameLoopStep()` itself must be refactored so one
 positive-repeat slice causes it to return rather than `continue`.
 
+## Validated owner fix: one positive-repeat slice per `_gameLoopStep()` return
+
+The next probe finally produced a meaningful parity improvement.
+
+Implemented together:
+
+1. suppress local movement overdrain in `run_command()` when `context.mv`
+   is active
+2. add a positive-`multi` no-input continuation lane in `_gameLoopStep()`
+3. make that lane `return` after one slice instead of `continue`-ing the
+   internal `_gameLoopStep()` loop
+4. defer the timed continuation after the initial resumed `_` travel hop into
+   a dedicated `pendingTravelTimedTurn` pass
+
+### Why all four parts mattered together
+
+Earlier probes established these partial truths:
+
+- suppressing only the local `repeatLoop()` removed the dominant overdrain but
+  still left the first resumed `_` slice wrong
+- adding a positive lane inside `_gameLoopStep()` without returning after one
+  slice was still too fused
+- deferring the initial travel timed turn without fixing the later owner
+  boundaries was also insufficient
+
+The combined fix works because it creates separate outer runtime re-entries
+for:
+
+1. the initial resumed `_` hop
+2. the timed continuation after that hop
+3. each later positive-repeat slice
+
+That is the first JS structure in this investigation that no longer collapses
+all of those into one replay-visible step family.
+
+### Validation evidence
+
+`seed031_manual_direct.session.json`
+
+- `comparison-window --step-summary --step-from 931 --step-to 936` now shows:
+  - step `933`: `rng 0 / evt 0`
+  - first new spillover begins at step `934`
+- normalized RNG window moved from:
+  - baseline JS step `933`
+  - to JS step `938`
+- normalized event window moved from:
+  - baseline JS step `934`
+  - to JS step `996`
+
+Focused trace after the fix:
+
+```text
+step 933: initial resumed hop only
+step 934: timed continuation after first hop
+step 935: one travel hop
+step 936: one travel hop
+```
+
+So the same-step multi-hop packing has been eliminated.
+
+### Stability checks
+
+- counted-repeat corridor `160..166`: unchanged
+- gameplay guardrails still green:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- nearby controls stayed on their prior divergence classes:
+  - `seed032_manual_direct`: unchanged RNG-full / screen-event drift class
+  - `seed033_manual_direct`: unchanged early special-level RNG seam
+
+### Reporting caveat
+
+`session_test_runner`'s legacy `firstDivergence.step` metadata still reports
+`933` on this session. The authoritative evidence for step movement on this
+patch is:
+
+- normalized `comparison-window` output
+- and the per-step spillover summary
+
+That mismatch should be treated as step-label reporting lag, not as evidence
+that the owner fix failed.
+
 ### Concrete prediction
 
 The fix will work when BOTH are done simultaneously:

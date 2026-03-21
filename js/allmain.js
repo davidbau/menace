@@ -770,13 +770,19 @@ export async function run_command(game, ch, opts = {}) {
 
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
     if (result && result.tookTime && !skipTurnEnd) {
-        await finalizeTimedCommand(game, result, coreOpts);
-        await repeatLoop(game, {
-            coreOpts,
-            bumpHeroSeqN,
-            showRepeatInterruptMore,
-            mode: ((game.context || {}).mv ? 'all' : 'movement_only'),
-        });
+        if (result.travelStarted && (game.context || {}).mv) {
+            game.pendingTravelTimedTurn = true;
+        } else {
+            await finalizeTimedCommand(game, result, coreOpts);
+        }
+        if (!(game.context || {}).mv) {
+            await repeatLoop(game, {
+                coreOpts,
+                bumpHeroSeqN,
+                showRepeatInterruptMore,
+                mode: 'movement_only',
+            });
+        }
     }
 
     postRender(game, result);
@@ -1559,6 +1565,7 @@ export class NetHackGame {
         this.occupation = null;
         this._pendingPrompt = null;
         this.pendingDeferredTimedTurn = false;
+        this.pendingTravelTimedTurn = false;
         this.seed = 0;
         this.multi = 0;
         this.inDoAgain = false;
@@ -2581,8 +2588,13 @@ export class NetHackGame {
 
     async _gameLoopStep() {
         while (true) {
-            // Travel continuation
-            if (this.travelPath && this.travelStep < this.travelPath.length) {
+            const hasPendingTravelTimedTurn = !!this.pendingTravelTimedTurn;
+            const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
+
+            // Travel continuation fallback. Keep this behind the positive-move
+            // lane so armed move-continuation uses the same no-input owner.
+            if (!hasPositiveMoveContinuation
+                && this.travelPath && this.travelStep < this.travelPath.length) {
                 const result = await dotravel_target(this);
                 if (result.tookTime) {
                     await moveloop_core(this);
@@ -2591,7 +2603,9 @@ export class NetHackGame {
                 return;
             }
 
-            const hasTimedContinuation = (this.context?.move && this.multi < 0 && !(this?.playerDied))
+            const hasTimedContinuation = hasPendingTravelTimedTurn
+                || hasPositiveMoveContinuation
+                || (this.context?.move && this.multi < 0 && !(this?.playerDied))
                 || (this.multi >= 0 && this.occupation);
 
             // C-faithful boundary ownership: if the previous iteration left a
@@ -2618,6 +2632,26 @@ export class NetHackGame {
                 await runOccupationStep(this);
                 this.renderAndAutosave({ autosave: true });
                 continue;
+            }
+
+            if (hasPendingTravelTimedTurn) {
+                this.pendingTravelTimedTurn = false;
+                await advanceTimedTurn(this, {});
+                this.renderAndAutosave({ autosave: true });
+                return;
+            }
+
+            if (hasPositiveMoveContinuation) {
+                const bumpHeroSeqN = () => {
+                    const prior = Number.isFinite(this?.heroSeqN) ? (this.heroSeqN | 0) : 0;
+                    this.heroSeqN = Math.min(7, prior + 1);
+                };
+                await runMovementRepeatSlice(this, {
+                    coreOpts: {},
+                    bumpHeroSeqN,
+                });
+                this.renderAndAutosave({ autosave: true });
+                return;
             }
 
             // C ref: tty_clearmsg() — dismiss pending --More-- before command.
