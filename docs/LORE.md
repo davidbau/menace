@@ -15053,3 +15053,29 @@ Lesson:
     for that specific spillover effect
   - because the first seam still remains at `933`, the next remaining bug is
     inside the first resumed `_` slice itself
+
+# 2026-03-21: Full deferred-travel implementation still collapsed to the same partial result
+
+- Implementation attempt:
+  - skip immediate timed-turn finalization for the initial resumed `_` travel hop
+  - defer that timed turn to the next `_gameLoopStep()`
+  - process that deferred turn as:
+    - `moveloop_core()`
+    - `syncTimedTurnPreInputState()`
+  - route later top-level travel continuation through `runMovementRepeatSlice(...)`
+- Validation:
+  - targeted gameplay guardrails still passed:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - `seed031_manual_direct` still first diverged at:
+    - RNG `933`
+    - event `934`
+  - and matched the same partial-improvement shape as the earlier combined
+    owner probe
+- Lesson:
+  - the Phase 1/Phase 2 inversion insight is real, but implementing it at the
+    current helper boundaries is still not sufficient
+  - one more lower-level mismatch remains inside the first resumed `_` slice,
+    even after the deferred-timed-turn rewrite

@@ -591,6 +591,33 @@ That means the next analysis target should be:
   `dotravel_target() -> domove() -> finalizeTimedCommand()/advanceTimedTurn()`
   still reaches the gas-spore contact corridor too early
 
+### Full deferred-travel implementation attempt
+
+A direct implementation of the reviewed model was tested:
+- initial resumed `_` travel step:
+  - skip immediate `finalizeTimedCommand()`
+  - set a deferred travel timed-turn flag
+- next `_gameLoopStep()`:
+  - run deferred `moveloop_core() + syncTimedTurnPreInputState()`
+  - then use `runMovementRepeatSlice(...)` for top-level travel continuation
+
+Validation:
+- targeted gameplay guardrails all still passed
+- but `seed031` reproduced the same result as the earlier combined owner probe:
+  - first RNG divergence still `933`
+  - first event divergence still `934`
+  - later spillover improved, but the first seam did not move
+
+Interpretation:
+- the reviewed Phase 1/Phase 2 inversion insight is real and explains why the
+  owner-only changes help the right region
+- but implementing that model at the current helper boundaries still collapses
+  to the same insufficient behavior
+- so one more lower-level mismatch remains inside the first resumed `_` slice,
+  even after:
+  - deferring the initial travel timed turn
+  - and routing later continuation through `runMovementRepeatSlice(...)`
+
 ### Second engineer review of boundary collapse analysis
 
 The call chain trace is exactly right. The key insight is at step 4:
