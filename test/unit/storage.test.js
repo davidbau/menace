@@ -561,6 +561,7 @@ describe('Save/load game (localStorage, v2 format)', () => {
 
         const game = {
             player,
+        u: player,
             map,
             display: { messages: ['Hello', 'World'] },
             levels: { 1: map },
@@ -635,7 +636,8 @@ describe('Save/load game (localStorage, v2 format)', () => {
         player.confused = true;
 
         const game = {
-            player, map,
+            player,
+        u: player, map,
             display: { messages: [] },
             levels: { 1: map },
             seed: 42, turnCount: 0, wizard: false, seerTurn: 0,
@@ -943,6 +945,7 @@ describe('Multi-level save (v2 format)', () => {
 
         const game = {
             player,
+        u: player,
             map: map3,
             display: { messages: [] },
             levels: { 1: map1, 3: map3 },
@@ -992,6 +995,7 @@ describe('saveGameState/restGameState round-trip', () => {
 
         const game = {
             player,
+        u: player,
             map: null,
             display: { messages: ['test message'] },
             levels: {},
@@ -1031,6 +1035,7 @@ describe('saveGameState/restGameState round-trip', () => {
         player.initRole(11);
         const game = {
             player,
+        u: player,
             map: null,
             display: { messages: [] },
             levels: {},

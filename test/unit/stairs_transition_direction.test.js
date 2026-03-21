@@ -20,6 +20,7 @@ function makeGameForStairs(flag, depth) {
     const calls = [];
     const game = {
         player,
+        u: player,
         map,
         display: { putstr_message: () => {} },
         fov: null,

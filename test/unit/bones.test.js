@@ -131,14 +131,16 @@ describe('bones surface helpers', () => {
 describe('canMakeBones', () => {
     it('always returns false on level 1', () => {
         initRng(42);
-        const game = { player: { dungeonLevel: 1 } };
+        const _p = { dungeonLevel: 1 };
+        const game = { u: _p, player: _p };
         assert.equal(canMakeBones(game), false);
     });
 
     it('consumes rn2 on deeper levels', () => {
         initRng(42);
         initLevelGeneration();
-        const game = { player: { dungeonLevel: 5 } };
+        const _p = { dungeonLevel: 5 };
+        const game = { u: _p, player: _p };
         // Just verify it doesn't throw and returns a boolean
         const result = canMakeBones(game);
         assert.equal(typeof result, 'boolean');
@@ -147,7 +149,8 @@ describe('canMakeBones', () => {
     it('depth 2: rn2(1) always returns 0, so ghost always appears', () => {
         // depth >> 2 = 0, so rn2(1 + 0) = rn2(1) = always 0
         initRng(99);
-        const game = { player: { dungeonLevel: 2 } };
+        const _p = { dungeonLevel: 2 };
+        const game = { u: _p, player: _p };
         assert.equal(canMakeBones(game), true);
     });
 });
@@ -338,7 +341,8 @@ describe('dropUponDeath', () => {
         player.addToInventory(food);
         player.weapon = sword;
 
-        const game = { player, map };
+        const game = { player,
+        u: player, map };
         dropUponDeath(game);
 
         assert.equal(player.inventory.length, 0);
@@ -360,7 +364,8 @@ describe('dropUponDeath', () => {
         player.armor = armor;
         player.shield = { name: 'shield' };
 
-        const game = { player, map };
+        const game = { player,
+        u: player, map };
         dropUponDeath(game);
 
         assert.equal(player.weapon, null);
@@ -421,7 +426,8 @@ describe('savebones (full pipeline)', () => {
         player.name = 'TestGhost';
         player.level = 3;
 
-        const game = { player, map, gameOverReason: 'killed' };
+        const game = { player,
+        u: player, map, gameOverReason: 'killed' };
         savebones(game);
 
         const bonesData = loadBones(2);

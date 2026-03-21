@@ -29,6 +29,7 @@ function makeGame() {
 
     const game = {
         player,
+        u: player,
         map,
         display,
         fov: {
@@ -69,6 +70,7 @@ function makeCornerRunGame() {
 
     const game = {
         player,
+        u: player,
         map,
         display,
         fov: {

@@ -90,7 +90,8 @@ test('display_used_invlets reports current letters', async () => {
 test('doperminv toggles perm_invent and reports state', async () => {
     const display = makeDisplay();
     const player = makePlayer();
-    const game = { player, display, flags: { perm_invent: false } };
+    const game = { player,
+        u: player, display, flags: { perm_invent: false } };
     setGame(game);
 
     await doperminv();

@@ -24,7 +24,8 @@ describe('loot messaging', () => {
 
         const messages = [];
         const game = {
-            player: {
+            u: player,
+        player: {
                 x: 10,
                 y: 5,
                 inventory: [],

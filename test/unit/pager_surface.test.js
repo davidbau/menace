@@ -61,7 +61,8 @@ describe('pager compatibility surface', () => {
       },
       engravings: [{ x: 7, y: 8, text: 'Elbereth' }],
     };
-    const game = { map, player: { x: 0, y: 0 } };
+    const game = { map, u: player,
+        player: { x: 0, y: 0 } };
 
     const looked = lookat(3, 4, game);
     assert.equal(looked.found, true);

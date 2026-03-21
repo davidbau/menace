@@ -37,7 +37,8 @@ test('onscary: vampire shifter is scared by altar square', () => {
 test('onscary: displaced Elbereth protection is honored', () => {
     const map = mkMap(ROOM);
     map.engravings.push({ x: 2, y: 2, text: 'Elbereth', guardobjects: false });
-    const game = { player: { x: 1, y: 1, displaced: true } };
+    const _p = { x: 1, y: 1, displaced: true };
+        const game = { u: _p, player: _p };
     setGame(game);
     const mon = {
         mux: 2,
@@ -53,7 +54,8 @@ test('onscary: displaced Elbereth protection is honored', () => {
 test('onscary: Elbereth excludes minotaur', () => {
     const map = mkMap(ROOM);
     map.engravings.push({ x: 3, y: 3, text: 'Elbereth', guardobjects: false });
-    const game = { player: { x: 3, y: 3, displaced: false } };
+    const _p = { x: 3, y: 3, displaced: false };
+        const game = { u: _p, player: _p };
     setGame(game);
     const mon = {
         mcansee: true,
