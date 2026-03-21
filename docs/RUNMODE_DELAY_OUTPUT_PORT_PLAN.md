@@ -2170,3 +2170,301 @@ On top of your best probe (deferred timed turns + stop gate):
 
 If yes, commit. If no, trace where `movemon` actually runs relative to
 `domove` in the reordered slice and compare with C's trace.
+=======
+## 2026-03-21 correction: reason on gameplay-step numbering, not raw `steps[]`
+
+For `manual-direct-live` sessions, the runtime diagnostics and replay key
+stream operate on `getSessionGameplaySteps(session)`, not the raw JSON
+`session.steps[]` indices.
+
+For `seed031_manual_direct`:
+- raw steps length: `1366`
+- gameplay steps length: `1351`
+- offset: `15`
+
+Concrete gameplay-key window at the remaining seam:
+- gameplay `931`: `"l"`
+- gameplay `932`: `"l"`
+- gameplay `933`: `"."`
+- gameplay `934`: `"h"`
+- gameplay `935`: `"b"`
+- gameplay `936`: `"y"`
+- gameplay `937`: `"."`
+- gameplay `938`: `"f"`
+- gameplay `939`: `"l"`
+
+So any owner or mapdump analysis for this corridor must be aligned to gameplay
+steps, not the raw JSON step numbers. A raw `dbgmapdump --steps 933-938`
+comparison is looking at the wrong part of the session for this bug.
+
+## 2026-03-21 probe result: fresh keys arrive, but JS still honors carried travel state
+
+With the validated baseline on `armoroff-general-fix`:
+- `7feb605cd` owner-side travel fix ported onto branch
+- `6c72c5e14` exact visible-hostile stop gate ported onto branch
+- branch head after push: `a98f4379f`
+
+live replay inspection around gameplay steps `933..939` shows:
+
+```json
+{"step":933,"key":".","u":[23,13],"multi":80,"ctx":{"run":8,"travel":1,"mv":true,"move":1}}
+{"step":934,"key":"h","u":[24,13],"multi":80,"ctx":{"run":8,"travel":1,"mv":true,"move":1}}
+{"step":935,"key":"b","u":[25,13],"multi":80,"ctx":{"run":8,"travel":1,"mv":true,"move":1}}
+{"step":936,"key":"y","u":[26,13],"multi":80,"ctx":{"run":8,"travel":1,"mv":true,"move":1}}
+{"step":937,"key":".","u":[26,13],"multi":0,"ctx":{"run":0,"travel":0,"mv":false,"move":0}}
+```
+
+And `REPLAY_PENDING_TRACE` shows those later steps are **fresh** command cycles:
+
+```text
+step=934 key="h" mode=start-gameloop start=done owner=none waiting=0 ...
+step=935 key="b" mode=start-gameloop start=done owner=none waiting=0 ...
+step=936 key="y" mode=start-gameloop start=done owner=none waiting=0 ...
+```
+
+But `RUN_TRACE` still shows:
+
+```text
+step=934 domove_target from=23,13 to=24,13 mon=none
+step=935 domove_target from=24,13 to=25,13 mon=none
+step=936 domove_target from=25,13 to=26,13 mon=none
+```
+
+This is the strongest current evidence:
+- the post-`933` drift is not a still-pending `_` prompt or pending command
+- fresh gameplay keys are arriving
+- but JS still lets the previously armed travel/run state drive `domove_target`
+  inside those fresh command cycles
+
+So the remaining bug is not just "repeat ownership is wrong". More precisely:
+- JS is failing to cancel or supersede carried travel state when a new real
+  command key is consumed
+- the surviving gas-spore seam is downstream of that state-carry behavior
+
+## 2026-03-21 rejected probe: top-of-loop queue preemption is not sufficient
+
+A narrow probe changed `_gameLoopStep()` so the positive-repeat movement lane
+would not activate when `input.getInputState().queueLength > 0`.
+
+Result:
+- `t11_s755_w_covmax9_gp` stayed green
+- `seed031_manual_direct` changed slightly:
+  - matched RNG `34371 -> 34381`
+  - matched events `19071 -> 19069`
+- first seam did **not** move later
+
+More importantly, the probe did **not** fix the actual mechanism:
+- fresh keys still accumulated in the queue while steps `934..936` advanced
+  `domove_target`
+- by step `936`, `queueLength` had grown to `3`
+
+So the bad continuation is not chosen only by the top-level
+`hasPositiveMoveContinuation` branch. The fresh key is entering a command cycle
+that still honors the carried travel state.
+
+That probe was reverted.
+
+## Current best next step
+
+Inspect the fresh-command path itself:
+- `runOneCommandCycle(firstCh)`
+- `rhackCore()`
+- move command setup in JS vs C `cmd.c:set_move_cmd()`
+
+The likely missing behavior is:
+- when a fresh real movement key is consumed after auto-travel was armed,
+  JS must cancel or supersede the previous travel/run state before executing the
+  new command
+- rather than continuing to interpret the turn as `domove_target()` under the
+  carried travel state
+
+## 2026-03-21 rejected probe: fresh-movement setup alone is not enough
+
+A narrow `cmd.js` probe attempted to make fresh movement keys perform a
+`set_move_cmd()`-style state transition before `domove()`:
+- set `player.dx/dy`
+- clear `travel/travel1`
+- clear carried auto-travel state
+
+Result:
+- `seed031_manual_direct` was unchanged:
+  - first RNG divergence still `933`
+  - first event divergence still `934`
+- `t11_s755_w_covmax9_gp` stayed green
+
+More importantly, targeted traces were unchanged:
+
+```text
+step=934 domove_target from=23,13 to=24,13 mon=none
+step=935 domove_target from=24,13 to=25,13 mon=none
+step=936 domove_target from=25,13 to=26,13 mon=none
+```
+
+So the bad `934..936` travel hops are not being caused solely by the fresh
+movement branch in `rhack()`. That patch was reverted.
+
+## 2026-03-21 decisive owner trace: queued fresh keys exist, but `_gameLoopStep()` still takes the positive-repeat lane first
+
+A temporary `_gameLoopStep()` branch-owner trace showed the exact control flow
+for gameplay steps `933..937`:
+
+```text
+step=933 branch=pendingTravelTimedTurn multi=80 run=8 mv=1 travel=1 pendingTravel=1 qlen=0
+step=934 branch=positiveMoveContinuation multi=80 run=8 mv=1 travel=1 pendingTravel=0 qlen=1
+step=935 branch=positiveMoveContinuation multi=80 run=8 mv=1 travel=1 pendingTravel=0 qlen=2
+step=936 branch=positiveMoveContinuation multi=80 run=8 mv=1 travel=1 pendingTravel=0 qlen=3
+step=937 branch=positiveMoveContinuation multi=80 run=8 mv=1 travel=1 pendingTravel=0 qlen=4
+```
+
+At the same time, replay traces report fresh gameplay keys:
+
+```text
+step=934 key="h" mode=start-gameloop start=done ...
+step=935 key="b" mode=start-gameloop start=done ...
+step=936 key="y" mode=start-gameloop start=done ...
+step=937 key="." mode=start-gameloop start=done ...
+```
+
+This proves:
+- fresh keys have already been queued (`qlen=1..4`)
+- but before consuming them, `_gameLoopStep()` is still choosing the
+  `positiveMoveContinuation` lane
+- those queued keys are therefore being attributed to travel slices that still
+  belong to the previously armed auto-travel state
+
+That is the clearest current statement of the seam:
+- same fixture key stream
+- but JS is still assigning explicit no-input positive-repeat work to later
+  queued keys before those keys are actually consumed
+
+## 2026-03-21 rejected probe: post-step explicit-owner drain in `replay_core` did not change the session
+
+A narrow replay-only probe tried to drain only the already-explicit no-input
+owners after a command completed:
+- `pendingTravelTimedTurn`
+- `multi > 0 && context.mv`
+- negative `multi`
+- `occupation`
+- `travelPath` fallback
+
+Result:
+- `seed031_manual_direct` unchanged
+- `t11_s755_w_covmax9_gp` still green
+
+So simply adding a post-step explicit-owner drain in `replay_core` did not fix
+the attribution problem. That probe was reverted immediately.
+
+What this means:
+- the owner-trace diagnosis is real
+- but the specific replay-side drain attempted here was not sufficient as an
+  implementation
+- the next fix must be reasoned from the exact point where a queued key first
+  becomes visible to replay ownership, not from a generic "drain more after the
+  step" rule
+
+## 2026-03-21 strategy refinement: define the seam as violated ownership invariants
+
+The most productive next step is to stop describing the remaining problem as a
+general "travel attribution bug" and instead define it as a small set of
+explicit ownership invariants that JS must satisfy.
+
+This is useful because:
+- the remaining seam is now narrow
+- several plausible one-off fixes have already been rejected
+- the current evidence is strongest when phrased as a forbidden coexistence of
+  runtime states, not as a guessed branch rewrite
+
+### Core invariant family
+
+The shared fixture key stream is authoritative. Therefore the remaining bug can
+be expressed as a question of when the runtime is allowed to expose the next
+fixture key relative to the previous command's no-input continuation owners.
+
+The key invariant candidates are:
+
+1. **Queued-key / positive-repeat exclusion**
+   - once a fresh gameplay key is already queued for the current fixture step,
+     JS must not still execute the previous command's explicit no-input
+     positive-repeat travel slice first
+   - current `seed031` evidence violates exactly this:
+     - `qlen=1..4`
+     - while `_gameLoopStep()` still chooses `branch=positiveMoveContinuation`
+
+2. **Queued-key / prior-owner exclusion**
+   - more generally, once a fresh gameplay key is visible to the runtime,
+     prior-command explicit no-input owners should already be exhausted
+   - relevant owners are the ones already modeled in `_gameLoopStep()`:
+     - `pendingTravelTimedTurn`
+     - `multi > 0 && context.mv`
+     - `context.move && multi < 0`
+     - `occupation`
+     - `travelPath` fallback
+
+3. **Step-finalization discipline**
+   - replay should only finalize a captured gameplay step after the explicit
+     no-input owners that belong to that consumed fixture key have been fully
+     accounted for
+   - if a later key is already visible before that point, the boundary is wrong
+
+### Why this is better than another speculative fix
+
+The rejected probes already showed:
+- a fresh-movement `cmd.js` patch was too shallow
+- a generic replay-side "drain more" rule was too blunt
+- a top-of-loop queue-preemption patch was not sufficient
+
+Those failures were all missing the same thing:
+- they changed control flow without first stating exactly which state
+  combinations are forbidden
+
+The invariant formulation gives a better procedure:
+1. encode the forbidden coexistence as a debug-only assertion or diagnostic
+2. reproduce `seed031`
+3. identify the first point where JS violates the invariant
+4. fix the owner boundary that is demonstrably responsible
+
+### Physical assertions / diagnostics to add
+
+These should be debug-only and high-signal at first, not shipping behavior
+changes:
+
+1. **Pre-positive-repeat guard**
+   - before `_gameLoopStep()` takes `hasPositiveMoveContinuation`
+   - assert or log if `input.getInputState().queueLength > 0`
+   - this directly encodes the currently observed seam
+
+2. **Key-admission guard**
+   - when replay is about to expose the next fixture key to the runtime
+   - assert or log if any explicit no-input owner from the prior command is
+     still armed
+
+3. **Step-finalization guard**
+   - when replay decides a gameplay step is complete
+   - assert or log whether explicit no-input owners still exist for that same
+     consumed key
+
+These assertions are not the fix. They are there to force the next iteration to
+be argued in terms of a concrete ownership contract rather than intuition.
+
+### Current hypothesis, stated as an invariant violation
+
+The best current reading of `seed031` is:
+- JS is allowing a fresh fixture key to become visible while the previous
+  command still owns `positiveMoveContinuation`
+- then replay captures the resulting travel hop under the later queued key
+
+That is the invariant violation to attack next.
+
+### Practical next step
+
+Add the debug-only invariant checks above, using the existing owner predicates
+already present in `_gameLoopStep()` rather than inventing new owner concepts.
+
+The desired outcome of that pass is not an immediate parity fix. It is to
+produce one precise answer to this question:
+
+- **At what exact point does the next fixture key first become visible while a
+  prior explicit no-input owner is still active?**
+
+Once that answer is recorded, the next behavior patch can target the actual
+boundary owner instead of another approximate proxy.
