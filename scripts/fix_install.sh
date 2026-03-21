@@ -45,6 +45,21 @@ for f in symbols cmdhelp help hh history opthelp wizhelp data oracles rumors que
     [[ -f "$PATCHED/dat/$f" ]] && cp "$PATCHED/dat/$f" "$INSTALL/" 2>/dev/null || true
 done
 
+# Generate encrypted/compiled data files via makedefs
+# C ref: sys/unix/Makefile.dat
+#   -d → data    -r → rumors    -h → oracles
+#   -1 → epitaph -2 → engrave   -3 → bogusmon
+MAKEDEFS="$PATCHED/util/makedefs"
+if [[ -x "$MAKEDEFS" ]]; then
+    for flag_file in "-d data" "-r rumors" "-h oracles" "-1 epitaph" "-2 engrave" "-3 bogusmon"; do
+        flag="${flag_file%% *}"
+        file="${flag_file##* }"
+        if [[ ! -f "$INSTALL/$file" ]] || [[ "$PATCHED/dat/${file}.txt" -nt "$INSTALL/$file" ]] 2>/dev/null; then
+            (cd "$PATCHED/dat" && "$MAKEDEFS" "$flag" 2>/dev/null && cp "$file" "$INSTALL/" 2>/dev/null) || true
+        fi
+    done
+fi
+
 # Copy sysconf and fix wizard mode access
 if [[ -f "$PATCHED/sys/unix/sysconf" ]]; then
     cp "$PATCHED/sys/unix/sysconf" "$INSTALL/sysconf"
