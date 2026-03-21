@@ -169,7 +169,7 @@ export function getBuiltinCommands() {
         hack: launchGame('hack'),
         rogue: launchGame('rogue'),
         dungeon: launchDungeon,
-        zork: launchDungeon,
+        zork: launchZork,
         exit: doExit,
         logout: doExit,
         rm, cp, mv, mkdir, rmdir, chmod, su, emacs, nano, finger, mail, passwd, talk,
@@ -392,6 +392,19 @@ function launchGame(name) {
         }
         return { action: 'launch', game: name };
     };
+}
+
+// Jay Fenlason's 1982 Zork stub from hack/hack-c/upstream/zork/dungeon.c —
+// init() always fails because the Zork data files don't exist.
+async function launchZork(args, shell) {
+    shell.println('Suddenly a sinister, wraithlike figure appears before you');
+    shell.println('seeming to float in the air.  In a low, sorrowful voice he says,');
+    shell.println('"Alas, the very nature of the world has changed, and the dungeon');
+    shell.println('cannot be found.  All must now pass away."  Raising his oaken staff');
+    shell.println('in farewell, he fades into the spreading darkness.  In his place');
+    shell.println('appears a tastefully lettered sigh reading:\n');
+    shell.println('\t\tINITIALIZATION FAILURE\n');
+    shell.println('The darkness becomes all encompassing, and your vision fails.');
 }
 
 async function launchDungeon(args, shell) {

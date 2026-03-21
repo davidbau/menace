@@ -91,16 +91,31 @@ async function getdir() {
   return movecm(ch);
 }
 
-// C ref: getlin(buf) — read a line of input
-// C: sets flags.topl=1 at start (prevents --More-- on next pline)
+// C ref: getlin(buf) — read a line of input, echoing each character
+// C: sets flags.topl=1, echoes chars with write(1,str,1)/curx++, backspace = "\b \b"
 async function getlin() {
   game.flags.topl = 1;  // C: getlin() sets flags.topl=1 before reading
+  const disp = game.display;
   let s = '';
   for (;;) {
     const ch = await game.input.getKey();
     if (ch === '\r' || ch === '\n') break;
-    if (ch === '\b' || ch === '\x7f') { s = s.slice(0, -1); continue; }
+    if (ch === '\b' || ch === '\x7f') {
+      if (s.length > 0) {
+        s = s.slice(0, -1);
+        game.curx--;
+        disp.moveCursor(game.curx, 1);
+        disp.putCharAtCursor(' ');
+        disp.moveCursor(game.curx, 1);
+        disp.flush();
+      }
+      continue;
+    }
     if (ch === '\x1b') { s = ''; break; }
+    disp.moveCursor(game.curx, 1);
+    disp.putCharAtCursor(ch);
+    game.curx++;
+    disp.flush();
     s += ch;
   }
   return s;
@@ -206,8 +221,11 @@ async function drink1(otmp) {
       break;
     }
     case 1: {
-      // #SMALL: "This tastes like liquid fire!" — confusion + maybe pass out
-      await pline('This tastes like liquid fire!');
+      // C ref: hack.do.c drink1() — #ifndef SMALL uses rn2(4) to pick booze message
+      const boozeMsg = ['This is an excellent (but powerful) wine.',
+        'This is White Lightning!', 'Ooph!  120 Proof grain alcohol!',
+        'Gee, a can of Billy Beer!'][rn2(4)];
+      await pline(boozeMsg);
       game.u.uconfused += d(3,8);
       if (game.u.uhp < game.u.uhpmax) losehp(-1);
       if (!rn2(4)) { await pline('You pass out.'); game.multi = -rnd(15); }
@@ -221,8 +239,8 @@ async function drink1(otmp) {
       break;
     }
     case 3: {
-      // #SMALL: "This is fruit juice." — lesshungry
-      await pline('This is fruit juice.');
+      // C ref: hack.do.c drink1() — #ifndef SMALL message
+      await pline('Wow! This tastes like watermelon juice.');
       lesshungry(20);
       break;
     }
@@ -297,8 +315,8 @@ async function drink1(otmp) {
       break;
     }
     case 11: {
-      // #SMALL: "You are moving faster." — speed
-      await pline('You are moving faster.');
+      // C ref: hack.do.c drink1() — #ifndef SMALL message
+      await pline('You feel yourself speeding up.');
       game.u.ufast += rn1(10,100);
       break;
     }

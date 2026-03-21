@@ -156,7 +156,9 @@ export function mklev() {
   // calls don't advance the main game's RNG, but in the harness they DO appear in the
   // same step rng log. We match this by resetting rngSeed to initialSeed before mklev
   // and letting the seed advance through mklev (not restoring it after).
-  game.rngSeed = game.initialSeed + game.dlevel;
+  // NOTE: C mklev ALWAYS reseeds from the original seed (via srand(getpid()) → seed_override),
+  // so every level starts mklev with the same seed. JS matches this exactly.
+  game.rngSeed = game.initialSeed;
 
   const tspe = game.dlevel === game.flags.maze ? 'b' :
                game.dlevel === game.flags.maze - 1 ? 'n' : 'a';

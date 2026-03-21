@@ -4,3 +4,6 @@
 [submodule "dungeon/fortran-upstream"]
 	path = dungeon/fortran-upstream
 	url = https://github.com/GOFAI/dungeon.git
+[submodule "hack/hack-c/upstream"]
+	path = hack/hack-c/upstream
+	url = https://github.com/Sustainable-Games/fenlason-hack

@@ -413,10 +413,11 @@ describe('Shell commands', () => {
         assert.deepEqual(result, { action: 'dungeon' });
     });
 
-    it('zork returns dungeon action', async () => {
+    it('zork prints initialization failure', async () => {
         const cmds = getBuiltinCommands();
         const result = await cmds.zork([], shell);
-        assert.deepEqual(result, { action: 'dungeon' });
+        assert.equal(result, undefined);
+        assert.ok(output.some(l => l.includes('INITIALIZATION FAILURE')));
     });
 
     it('exit returns exit action', async () => {

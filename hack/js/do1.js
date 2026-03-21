@@ -96,7 +96,9 @@ export async function findit() {
       } else {
         const gtmp = g_at_gen(zx, zy, game.ftrap);
         if (gtmp) {
-          if (!(gtmp.gflag & SEEN)) { gtmp.gflag |= SEEN; atl(zx, zy, '^'); num++; }
+          // C ref: hack.do1.c findit() has precedence bug: !gtmp->gflag&SEEN == (!gtmp->gflag)&SEEN
+          // SEEN=32, so (!gflag)&32 is always 0 — traps are never revealed by findit() in C.
+          if ((!gtmp.gflag) & SEEN) { gtmp.gflag |= SEEN; atl(zx, zy, '^'); num++; }
         } else {
           const gold = g_at_gen(zx, zy, game.fgold);
           if (gold && !gold.gflag) {

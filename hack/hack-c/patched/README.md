@@ -6,8 +6,8 @@ modified to produce deterministic JSON sessions for parity testing.
 ## Building
 
 ```bash
-# Copy upstream source files first
-cp ../upstream/*.c ../upstream/*.h .
+# Copy upstream source files first (submodule at ../upstream/hack/)
+cp ../upstream/hack/*.c ../upstream/hack/*.h .
 
 # Build
 make
