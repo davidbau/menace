@@ -659,16 +659,22 @@ export class LogoInterpreter {
     def('HELP', 0, () => {
       out('TURTLE:  FD BK RT LT  PU PD  HOME CS  ST HT\n');
       out('         SETPOS SETH SETPC SETPENSIZE ARC\n');
-      out('         XCOR YCOR HEADING POS PC\n');
       out('CONTROL: REPEAT IF IFELSE TO/END OUTPUT STOP\n');
       out('VARS:    MAKE "NAME VALUE   :NAME   LOCAL\n');
-      out('MATH:    + - * / = < >   SUM DIFFERENCE PRODUCT\n');
-      out('         QUOTIENT REMAINDER SQRT POWER RANDOM\n');
+      out('MATH:    + - * / = < >   SQRT POWER RANDOM\n');
       out('LOGIC:   AND OR NOT  EQUALP LESSP GREATERP\n');
       out('LISTS:   LIST FIRST LAST BF BL FPUT LPUT COUNT\n');
-      out('         SENTENCE WORD ITEM PICK\n');
-      out('I/O:     PRINT TYPE SHOW READLIST CT\n');
+      out('I/O:     PRINT TYPE SHOW CT\n');
       out('OTHER:   PROCEDURES SAVE LOAD ERALL WAIT BYE\n');
+      out('\n');
+      out('TRY:     REPEAT 36 [FD 50 RT 170]\n');
+      out('\n');
+      out('TO SPIRAL :SIZE :ANGLE\n');
+      out('  IF :SIZE > 100 [STOP]\n');
+      out('  FD :SIZE RT :ANGLE\n');
+      out('  SPIRAL :SIZE + 2 :ANGLE\n');
+      out('END\n');
+      out('SPIRAL 1 91\n');
     });
     def('SAVE', 0, () => {
       try {
