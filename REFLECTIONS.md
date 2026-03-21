@@ -101,3 +101,5 @@ This project — reconstructing old software — has sharpened my sense of what 
 ---
 
 *The [Mazes of Menace](https://mazesofmenace.net/) project is at [mazesofmenace.net](https://mazesofmenace.net/) and [on GitHub](https://github.com/davidbau/menace). A previous post on [vibe coding](https://davidbau.com/archives/2025/12/16/vibe_coding.html) describes earlier lessons from the same methodology.*
+
+*Originally posted at <a href="https://davidbau.com/archives/2026/03/20/does_computer_science_still_exist.html" target="_blank">davidbau.com</a>.*
