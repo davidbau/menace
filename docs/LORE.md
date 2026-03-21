@@ -145,6 +145,44 @@ For the full narratives of how these lessons were discovered, see the
   - so the next core fix has to look earlier in the resumed `_` command path,
     not just at the single deferred-timed-turn branch
 
+## 2026-03-21 - removing the fresh-key admission pattern still does not move the first seam
+
+- Stronger core probe:
+  - after a command that started travel,
+  - keep the resumed `_gameLoopStep()` call owning later
+    `positiveMoveContinuation` slices in the same call
+- Outcome:
+  - the bad fresh-key admission pattern in the traced `933..939` window
+    disappeared entirely
+  - `t11_s755_w_covmax9_gp` still passed
+  - but `seed031_manual_direct` did **not** improve at all
+- Durable lesson:
+  - the fresh-key admission / carried-owner coexistence is real
+  - but removing it is not sufficient to move the earliest causal mismatch
+  - so that coexistence is not the first bug to fix
+  - the next useful analysis has to move earlier again, inside the resumed
+    travel slice before that later admission pattern becomes visible
+
+## 2026-03-21 - the bad `near=1` is caused by two extra hero hops before gas spore 27's next turn
+
+- Targeted `WEBHACK_MONMOVE_TRACE` over gameplay steps `934..937` isolated the
+  gas spore sequence directly.
+- JS sequence:
+  - step `934`: gas spore `27` at `(29,14)` refreshes target to `(24,13)` and
+    moves to `(28,13)`
+  - step `936`: gas spore `27` at `(28,13)` refreshes target to `(26,13)` and
+    moves to `(27,13)`
+  - step `937`: gas spore `27` starts at `(27,13)` with target still `(26,13)`
+    and therefore gets `near=1`
+- Durable lesson:
+  - the most concrete causal bug is now:
+    JS advances the hero from `(24,13)` to `(26,13)` before gas spore 27's next
+    turn at `(27,13)`
+  - once that happens, the later `near=1` is not surprising
+  - so the next comparison should be about **how many hero moves C allows**
+    between those two gas-spore turns, not about fresh-key admission in the
+    abstract
+
 ## 2026-03-19 - object age and thrown-kill ownership
 
 - `mkobj.newobj()` must seed `obj.age` from the current move count, not a
@@ -14796,3 +14834,34 @@ When a correct parity fix regresses a session:
   - for manual-direct parity seams, always reason on gameplay-step numbering and
     verify whether later keys are already queued before blaming fresh-command
     parsing or monster AI formulas
+
+# 2026-03-21: the command-boundary invariant was useful, but the active fix target has shifted to a slice-level target-refresh invariant
+
+- Assessment:
+  - the command-boundary invariant work was productive:
+    - it exposed a real queued-key / carried-owner coexistence bug
+    - it ruled out replay-side drains and simple owner-extension fixes
+  - but it is not the earliest causal bug for the surviving gas-spore seam
+- Stronger causal chain:
+  - gas spore `27` first refreshes to target `(24,13)` and moves to `(28,13)`
+  - before gas spore `27`'s next relevant turn, JS advances the apparent target
+    to `(26,13)`
+  - then at `(27,13)`, `near=1` is the natural downstream result
+- Negative probe:
+  - moving `advanceTimedTurn()` to the top of every repeated movement slice was
+    wrong
+  - `t11_s755_w_covmax9_gp` stayed green, but `seed031_manual_direct`
+    regressed to the older dog seam:
+    - first RNG mismatch:
+      - JS `rn2(4)=2 @ dochug(monmove.js:847)`
+      - C `rn2(100)=38 @ obj_resists(zap.c:1467)`
+    - first event mismatch:
+      - JS `^dog_invent_decision[32@22,15 ud=5 ...]`
+      - C `^dog_invent_decision[32@22,15 ud=8 ...]`
+- Lesson:
+  - do not treat the remaining problem as "move all repeated timed turns earlier"
+  - keep the command-boundary invariant as a diagnostic model
+  - shift the active fix target to a slice/state invariant:
+    - between gas spore `27`'s turn at `(29,14)` targeting `(24,13)` and its
+      next `distfleeck()` at `(27,13)`, JS must not advance the apparent target
+      to `(26,13)`

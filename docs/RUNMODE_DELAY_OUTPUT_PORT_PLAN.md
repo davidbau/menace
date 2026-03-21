@@ -2263,6 +2263,110 @@ that still honors the carried travel state.
 
 That probe was reverted.
 
+## 2026-03-21 sharper gas-spore causal chain: JS advances the hero from `(24,13)` to `(26,13)` before gas spore 27's next turn
+
+Targeted `WEBHACK_MONMOVE_TRACE` over gameplay steps `934..937` produced the
+clearest sequence so far:
+
+### JS gas-spore progression
+
+Step `934`:
+
+```text
+turn-start step=934 id=279 name=gas spore pos=(29,14)
+set_apparxy ... old=(16,14) new=(24,13)
+distfleeck ... pos=(29,14) roll=0
+m_move-begin ... target=(24,13) mux=(24,13)
+distfleeck ... pos=(28,13) roll=1
+```
+
+Step `936`:
+
+```text
+turn-start step=936 id=279 name=gas spore pos=(28,13)
+set_apparxy ... old=(24,13) new=(26,13)
+distfleeck ... pos=(28,13) roll=1
+m_move-begin ... target=(26,13) mux=(26,13)
+distfleeck ... pos=(27,13) roll=1
+```
+
+Step `937`:
+
+```text
+turn-start step=937 id=279 name=gas spore pos=(27,13)
+set_apparxy ... old=(26,13) new=(26,13)
+distfleeck ... pos=(27,13) roll=0
+```
+
+This yields the normalized mismatch:
+
+```text
+JS ^distfleeck[27@27,13 in=1 near=1 ...]
+C  ^distfleeck[27@27,13 in=1 near=0 ...]
+```
+
+### Refined interpretation
+
+The most concrete causal statement is now:
+
+- JS lets the resumed travel command advance the hero from `(24,13)` to
+  `(26,13)` before gas spore 27's next turn at `(27,13)`
+- once that happens, `near=1` is the natural downstream result
+
+This is stronger than the earlier boundary-only framing because it identifies
+the exact extra state change that creates the bad `near=1`.
+
+### Consequence
+
+The next comparison should not start from replay key admission. It should ask:
+
+- between gas spore turn `(29,14 target=24,13)` and the next gas spore turn
+  `(27,13)`, how many hero moves does C allow?
+
+If C allows fewer hero moves in that interval than JS, then the next fix should
+match that pacing directly.
+
+## 2026-03-21 rejected probe: keeping resumed travel ownership in the same `_gameLoopStep()` call still does not move the first seam
+
+A stronger core-runtime probe tried the natural next hypothesis:
+
+- after a command that started travel (`travelStarted`),
+- keep the resumed `_gameLoopStep()` call owning subsequent
+  `positiveMoveContinuation` slices,
+- instead of returning after the first post-resume slice
+
+Observed effect:
+
+- the bad fresh-key admission pattern disappeared entirely in the traced
+  `933..939` window
+- [t11_s755_w_covmax9_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json)
+  still passed
+
+But the first seam did **not** move at all:
+
+- `seed031_manual_direct` remained:
+  - matched RNG `34371/51561`
+  - matched events `19071/28950`
+  - first RNG divergence `933`
+  - first event divergence `934`
+
+Interpretation:
+
+- the fresh-key admission/coexistence invariant is real,
+- but eliminating that pattern is not sufficient to move the earliest causal
+  mismatch
+- therefore that coexistence is either:
+  - downstream of an even earlier core mismatch, or
+  - a true but non-leading ownership artifact
+
+This is an important correction:
+
+- the next step should not keep drilling on the command-boundary handoff alone
+- the earliest causal seam is still likely inside the resumed travel slice
+  before the later fresh-key admission pattern becomes visible
+
+That probe was reverted.
+
 ## 2026-03-21 rejected probe: same-step positive-move drain still breaks termination
 
 A narrower follow-up probe tried to avoid the broader replay mistake:
@@ -2781,3 +2885,112 @@ produce one precise answer to this question:
 
 Once that answer is recorded, the next behavior patch can target the actual
 boundary owner instead of another approximate proxy.
+
+## 2026-03-21 assessment update: keep the command-boundary invariant as a diagnostic, but shift the active fix target to a slice-level state invariant
+
+The command-boundary invariant work was productive:
+
+- it exposed a real bug class
+- it ruled out broad replay-side and simple owner-extension fixes
+- it improved the model of the seam
+
+But it is no longer the leading fix target for the surviving gas-spore mismatch.
+
+### Why the emphasis shifts
+
+The strongest remaining evidence is earlier and more concrete than queued-key
+admission:
+
+- gas spore `27` first refreshes to target `(24,13)` and moves to `(28,13)`
+- before gas spore `27`'s next relevant turn, JS advances the visible target to
+  `(26,13)`
+- then at `(27,13)`, `^distfleeck[27@27,13 in=1 near=1 ...]` is the natural
+  consequence
+
+That means:
+
+- the queued-key / owner coexistence is real
+- but it is not the earliest causal bug for the surviving `near=1` vs `near=0`
+  seam
+
+So the next active invariant should be phrased at the slice/state level:
+
+- **between gas spore `27`'s turn at `(29,14)` targeting `(24,13)` and its next
+  `distfleeck()` at `(27,13)`, JS must not advance monster `27`'s apparent
+  target to `(26,13)`**
+
+This is closer to the live bug than another queue/owner rule.
+
+### Failed probe that sharpens this conclusion
+
+The simple "move all repeated timed turns to the top of `runMovementRepeatSlice`"
+probe was wrong.
+
+What it did:
+
+- moved `advanceTimedTurn()` from after repeated `domove()` to before
+  `lookaround()`
+- left the rest of the repeated slice intact
+
+What happened:
+
+- `t11_s755_w_covmax9_gp` stayed green
+- but `seed031_manual_direct` regressed earlier:
+  - matched RNG fell to `34291/51561`
+  - matched events fell to `19009/28950`
+  - first RNG divergence stayed at step `933` but changed back to the older dog
+    seam:
+    - JS `rn2(4)=2 @ dochug(monmove.js:847)`
+    - C `rn2(100)=38 @ obj_resists(zap.c:1467)`
+  - first event divergence became:
+    - JS `^dog_invent_decision[32@22,15 ud=5 ...]`
+    - C `^dog_invent_decision[32@22,15 ud=8 ...]`
+
+So the remaining seam is *not* solved by a uniform top-of-slice reorder.
+
+### Revised strategic plan
+
+1. Keep the command-boundary invariant as a diagnostic guard and explanatory
+   model.
+2. Stop treating it as the primary fix target for this seam.
+3. Treat the active bug as a slice-level state invariant around monster `27`'s
+   target refresh.
+4. Next analysis should answer:
+   - how many hero hops does C actually allow between gas spore `27`'s
+     `(29,14 target=24,13)` turn and its next `distfleeck()` at `(27,13)`?
+   - does C keep the same number of hops but delay the `set_apparxy()` refresh,
+     or does it truly interleave turns differently?
+5. Only after that answer is explicit should another core gameplay patch be
+   attempted.
+
+### Process lesson: persistence is necessary, but strategy must sharpen over time
+
+This seam has taken many rounds because several hypotheses were directionally
+plausible but incomplete. The useful lesson is not "stop after a hard probe"
+and not "keep trying random nearby rewrites until one works." The useful lesson
+is:
+
+- stay persistent on the same hard problem until the model improves
+- but periodically reassess the strategy so the next probe is *sharper* than
+  the last one
+
+In practice, that has meant moving from:
+
+- broad travel-owner theories
+- to command-boundary ownership invariants
+- and now to a narrower slice/state invariant around monster `27`'s target
+  refresh
+
+That is the pattern to preserve:
+
+1. do not give up just because the seam is difficult
+2. do not keep a loose basket of hypotheses for too long
+3. periodically ask whether there is a more incisive invariant, conservation
+   law, or forbidden state combination that will collapse the search space
+4. prefer the next probe that most directly discriminates among the remaining
+   explanations
+
+For this problem, the invariant framing was a strategic improvement even though
+the first command-boundary invariant did not itself produce the final fix. It
+removed bad solution spaces, clarified what was real, and led to the current
+more incisive slice-level target-refresh invariant.
