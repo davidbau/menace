@@ -2170,7 +2170,7 @@ On top of your best probe (deferred timed turns + stop gate):
 
 If yes, commit. If no, trace where `movemon` actually runs relative to
 `domove` in the reordered slice and compare with C's trace.
-=======
+
 ## 2026-03-21 correction: reason on gameplay-step numbering, not raw `steps[]`
 
 For `manual-direct-live` sessions, the runtime diagnostics and replay key
@@ -2468,3 +2468,102 @@ produce one precise answer to this question:
 
 Once that answer is recorded, the next behavior patch can target the actual
 boundary owner instead of another approximate proxy.
+
+## Review of invariant-based approach (Second Engineer)
+
+The invariant-based framing is the right move. Three observations:
+
+### 1. The owner trace is the breakthrough finding
+
+The decisive trace at steps 933-937 is the clearest evidence in this
+entire investigation:
+
+```
+step=934 branch=positiveMoveContinuation qlen=1
+step=935 branch=positiveMoveContinuation qlen=2
+step=936 branch=positiveMoveContinuation qlen=3
+```
+
+Fresh keys are queued but `_gameLoopStep()` keeps choosing the travel
+continuation lane. This is the invariant violation stated precisely. The
+previous probes were working around this without seeing it directly.
+
+### 2. Correcting my earlier "reorder moveloop_core" advice
+
+I previously recommended moving `moveloop_core` from after `domove` to
+before `lookaround`. That was based on the assumption that the
+repeated-hop slice was the issue. But the owner trace shows the real
+problem is upstream: JS is still running travel continuation slices when
+it should be consuming the queued fresh key instead. The ordering within
+a slice may be fine — the issue is that the slice shouldn't be running
+at all when fresh keys are waiting.
+
+### 3. Why the invariant approach should work
+
+The forbidden state is clear: `qlen > 0 && branch == positiveMoveContinuation`.
+In C, this can't happen because:
+
+- `moveloop_core()` returns after one iteration
+- the outer `for(;;)` loop re-enters `moveloop_core()`
+- C's `nhgetch()` at the `rhack(0)` call in Phase 2 consumes the next
+  key immediately
+- if a key is already buffered, `nhgetch` returns instantly
+- the key is consumed BEFORE any positive-repeat continuation is
+  considered (because `rhack(0)` runs AFTER the positive-repeat branch
+  in C's if/else-if chain)
+
+Wait — actually that's backwards. In C's `moveloop_core()` at lines
+626-650:
+
+```c
+if (gm.multi > 0) {
+    // positive repeat runs FIRST
+    lookaround();
+    domove();
+} else if (gm.multi == 0) {
+    rhack(0);  // fresh command runs ONLY when multi == 0
+}
+```
+
+C checks `multi > 0` BEFORE `multi == 0`. So C ALSO runs positive-repeat
+before consuming a fresh key. The difference is: in C, the fresh key
+hasn't been read yet (it's waiting in the terminal buffer). In JS, the
+replay engine has already pushed it into the queue.
+
+This means the invariant violation is actually a **replay engine** issue,
+not a `_gameLoopStep` issue. The replay engine pushes the next fixture
+key before the previous command's no-input owners have completed. In C,
+the next key simply hasn't arrived yet because `nhgetch` hasn't been
+called.
+
+### What this means for the fix
+
+The fix should be in how the replay engine exposes keys to the runtime,
+not in how `_gameLoopStep` prioritizes branches. The replay engine
+should NOT push the next fixture key until all no-input owners from the
+current step are exhausted.
+
+In `replay_core.js`, `drainUntilInput()` determines when a step is
+"done" (the game is waiting for input). If it declares the step done
+too early — while positive-repeat continuation is still active — then
+the next key gets pushed and queued, creating the `qlen > 0` state that
+causes `_gameLoopStep` to attribute the continuation to the wrong step.
+
+### Concrete suggestion
+
+Check `drainUntilInput()` and `isWaitingInput()`: do they correctly
+detect that positive-repeat continuation is still active? If
+`isWaitingInput()` returns true while `multi > 0 && context.mv`, the
+replay engine will push the next key prematurely.
+
+The fix may be as simple as: `isWaitingInput` should return false when
+`hasPositiveMoveContinuation` is true, so the replay engine keeps
+draining instead of exposing the next key.
+
+### My recommendation
+
+1. Add the debug assertions (they're cheap and will confirm)
+2. Check `isWaitingInput()` / `drainUntilInput()` for premature
+   input-ready detection during positive-repeat continuation
+3. If `isWaitingInput` is the culprit, the fix is one predicate change —
+   not a structural refactor
