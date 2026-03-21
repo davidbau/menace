@@ -3375,3 +3375,87 @@ The next question is now:
 
 This is narrower than generic replay draining and narrower than
 `pendingTravelTimedTurn` alone.
+
+## 2026-03-21 structural accepted-`_` loop: keep the command-owned loop, but only grant the extra no-time timed turn for path exhaustion
+
+The strongest result so far came from replacing the accepted `_` travel path's
+coarse `pendingTravelTimedTurn` boolean with a command-owned continuation loop:
+
+- after `dotravel_target()` starts travel, keep ownership in the accepted `_`
+  command itself
+- run the initial timed turn immediately
+- keep executing positive-repeat travel slices under that same accepted command
+  until the C-equivalent stop point
+
+That structural change by itself was directionally right but initially too
+broad: it overpacked gameplay step `933` and pulled
+`^movemon_turn[27@27,13 ...]` into step `933`.
+
+### Exact overshoot cause
+
+The overshoot came from one specific rule in `runMovementRepeatSlice()`:
+
+- any no-time travel stop with `savedRun === 8` triggered one more full
+  `advanceTimedTurn()`
+
+That was correct for the travel-path-exhaustion family but too broad for the
+visible-hostile stop family.
+
+On the structural probe:
+
+- JS step `933` correctly packed:
+  - gas spore `27` at `(29,14)`
+  - gas spore `27` at `(28,13)`
+- but then the visible-hostile stop at `26,13 -> 27,13` also triggered the
+  extra timed turn
+- that extra timed turn incorrectly pulled:
+  - `^movemon_turn[27@27,13 ...]`
+  into gameplay step `933`
+
+### Corrected generalized rule
+
+The fix was to make `domove()` report explicit no-time stop causes and only
+grant the extra timed turn for the path-exhaustion cause:
+
+- `travel_path_exhausted`
+- `visible_hostile_while_running`
+
+Then:
+
+- keep the extra timed turn only for `travel_path_exhausted`
+- do **not** grant it for `visible_hostile_while_running`
+
+### Result
+
+This is the first structural fix that is both meaningful and keepable:
+
+- `seed031_manual_direct.session.json`
+  - first RNG divergence moved from gameplay step `933` to `940`
+  - matched RNG improved to `34575/51561`
+  - matched events improved to `19208/28950`
+- gameplay guardrails still passed:
+  - `t11_s755_w_covmax9_gp`
+  - `t11_s756_w_covmax10_gp`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+
+### New active question
+
+The carried `_` command termination seam at gameplay step `933` is no longer
+the first divergence.
+
+The next active seam is now:
+
+- first RNG divergence at gameplay step `940`
+- JS:
+  - `rn2(19)=10 @ thitmonst(...) <= throwit(...)`
+- C:
+  - `rn2(19)=0 @ exercise(attrib.c:510)`
+
+So the next task is no longer "why does JS end `_` too early?"
+
+It is now:
+
+- **after fixing the accepted `_` command stop condition, what remaining
+  gameplay ownership/state difference causes JS to reach thrown-object combat
+  RNG at gameplay step `940` where C is still in non-throw post-move state?**

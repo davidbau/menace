@@ -888,7 +888,7 @@ export async function domove_core(dir, player, map, display, game) {
             // C ref: hack.c domove() when findtravelpath fails to set dx/dy.
             end_running(true, game);
             domoveNotime('travel.no-path');
-            return { moved: false, tookTime: false };
+            return { moved: false, tookTime: false, stopReason: 'travel_path_exhausted' };
         }
     }
     let nx = player.x + moveDir[0];
@@ -1016,7 +1016,7 @@ export async function domove_core(dir, player, map, display, game) {
                 nomul(0, game);
                 ctx.move = 0;
                 domoveNotime('stop-visible-hostile-while-running');
-                return { moved: false, tookTime: false };
+                return { moved: false, tookTime: false, stopReason: 'visible_hostile_while_running' };
             }
         }
         // C ref: hack.c:2789-2790 — hostile contact (or forcefight) clears

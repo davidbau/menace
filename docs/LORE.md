@@ -14941,3 +14941,51 @@ When a correct parity fix regresses a session:
     - between gas spore `27`'s turn at `(29,14)` targeting `(24,13)` and its
       next `distfleeck()` at `(27,13)`, JS must not advance the apparent target
       to `(26,13)`
+
+# 2026-03-21: the first keepable structural `_` travel fix was to keep the accepted command owning continuation, but only grant the extra no-time timed turn for path exhaustion
+
+- Structural change that worked:
+  - when `dotravel_target()` starts accepted `_` travel, do not hand the path
+    back to coarse `pendingTravelTimedTurn`
+  - instead let the accepted `_` command own its carried continuation directly
+    through a local loop:
+    - initial timed turn
+    - then repeated movement slices
+- Why the first structural probe still overpacked:
+  - `runMovementRepeatSlice()` gave **every** no-time travel stop with
+    `savedRun === 8` one more full `advanceTimedTurn()`
+  - that was too broad
+  - it treated:
+    - visible-hostile stop
+    - and travel-path exhaustion
+    as if they had the same same-key continuation behavior
+- Exact observed overshoot:
+  - JS step `933` correctly packed gas spore `27` turns at:
+    - `(29,14)`
+    - `(28,13)`
+  - but then also pulled in:
+    - `^movemon_turn[27@27,13 ...]`
+  - C step `933` does **not** contain that next gas-spore turn
+  - C only reaches `27,13` as the result of the prior `m_move()` inside
+    step `933`; the actual turn at `27,13` belongs to gameplay step `934`
+- Keepable generalized fix:
+  - make `domove()` report explicit no-time stop causes
+  - currently useful causes:
+    - `travel_path_exhausted`
+    - `visible_hostile_while_running`
+  - only grant the extra timed turn for `travel_path_exhausted`
+  - do **not** grant it for `visible_hostile_while_running`
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - first RNG divergence moved from gameplay step `933` to `940`
+    - matched RNG improved to `34575/51561`
+    - matched events improved to `19208/28950`
+  - still green:
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+- Lesson:
+  - the structural accepted-command loop is the right family
+  - but the stop condition must be modeled by explicit C-faithful stop causes,
+    not by a coarse `savedRun === 8` rule

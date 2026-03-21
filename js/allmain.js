@@ -776,7 +776,10 @@ export async function run_command(game, ch, opts = {}) {
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
     if (result && result.tookTime && !skipTurnEnd) {
         if (result.travelStarted && (game.context || {}).mv) {
-            game.pendingTravelTimedTurn = true;
+            await runAcceptedTravelCommandLoop(game, {
+                coreOpts,
+                bumpHeroSeqN,
+            });
         } else {
             await finalizeTimedCommand(game, result, coreOpts);
         }
@@ -855,6 +858,28 @@ async function repeatLoop(game, {
     }
 }
 
+async function runAcceptedTravelCommandLoop(game, {
+    coreOpts,
+    bumpHeroSeqN,
+}) {
+    await advanceTimedTurn(game, coreOpts);
+    while (game.multi > 0 && game.context?.mv && !game?.playerDied) {
+        if (hasPendingCommandBoundaryDismiss(game)) {
+            await more(game.display, {
+                forceVisual: true,
+                clearAfter: true,
+                readKey: () => nhgetch(),
+            });
+            continue;
+        }
+        const continued = await runMovementRepeatSlice(game, {
+            coreOpts,
+            bumpHeroSeqN,
+        });
+        if (!continued) break;
+    }
+}
+
 // Current JS positive-multi movement/travel slice.
 // Stage B2a extracts this intact from repeatLoop() so later work can move its
 // owner without simultaneously changing the slice internals.
@@ -890,7 +915,7 @@ async function runMovementRepeatSlice(game, {
     if (!moveResult || !moveResult.tookTime) {
         // C ref: allmain.c moveloop — when travel ends via path exhaustion,
         // run one more monster turn before exiting.
-        if (savedRun === 8) {
+        if (savedRun === 8 && moveResult?.stopReason === 'travel_path_exhausted') {
             await advanceTimedTurn(game, coreOpts);
         }
         return false;
