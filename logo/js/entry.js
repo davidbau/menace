@@ -42,15 +42,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const repl = new LogoRepl(display, interp);
   const getch = makeGetch();
 
-  // Size the canvas to match the terminal's pixel dimensions
+  // Size the canvas to exactly match the terminal <pre> element
   function sizeCanvas() {
     const pre = display.getPreElement();
     if (!pre) return;
-    const rect = pre.getBoundingClientRect();
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-    canvas.style.left = rect.left + 'px';
-    canvas.style.top = rect.top + 'px';
+    // Canvas fills the same space as the <pre> within the wrapper
+    canvas.style.width = pre.offsetWidth + 'px';
+    canvas.style.height = pre.offsetHeight + 'px';
   }
   // Size after a frame so layout is computed
   requestAnimationFrame(() => {
