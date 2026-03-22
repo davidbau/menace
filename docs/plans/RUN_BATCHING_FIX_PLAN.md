@@ -202,10 +202,15 @@ observed between iterations of the run.
   after `runMovementRepeatSlice` (batching within while loop) still diverges
   at 2938, same as yielding. This proves the issue is INSIDE
   `runMovementRepeatSlice` itself, not in the inter-iteration mechanism.
-- **Next step**: diff the raw RNG output of `do_run`'s loop vs
-  `runMovementRepeatSlice` at the first run to find the EXACT call that differs.
-  The difference must be in how the two paths handle domove, advanceTimedTurn,
-  or one of the stop checks.
+- **Key finding**: Basic RNG (rn2/rnd/rn1) matches C perfectly (7421/7421).
+  But COMPOSITE RNG (rnl/rne/rnz/d) differs: JS has 23, C has 53. These
+  are spell/damage dice rolls that JS isn't executing. The comparator
+  filters composites, hiding this real gameplay divergence.
+- **Root cause**: The game stops producing basic RNG at index 7421 not
+  because of run batching, but because the game state diverged through
+  missing composite RNG calls (fewer combat/spell operations in JS).
+- **Next step**: Find which composite calls are missing in JS. These
+  represent missing combat/enchantment code paths.
 
 ## Validation
 1. seed032 RNG should increase from 7421/29881
