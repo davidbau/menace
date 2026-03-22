@@ -605,7 +605,7 @@ function u_calc_moveamt(player) {
     // player._wc was set by near_capacity→inv_weight above; reuse it.
     // Recompute wt cheaply: inv_weight sets player._wc and returns wt-wc.
     const _iw = inv_weight(player);
-    pushRngLogEntry(`^moveamt[wtcap=${wtcap} moveamt=${moveamt} umovement=${player.umovement} wt=${_iw} wc=${player._wc}]`);
+    pushRngLogEntry(`^moveamt[wtcap=${wtcap} moveamt=${moveamt} umovement=${player.umovement} wt=${_iw} wc=${player._wc} pos=${player.x},${player.y}]`);
 }
 
 // C ref: sounds.c:202-339 dosounds() — ambient level sounds
