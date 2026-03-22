@@ -110,7 +110,13 @@ export class Shell {
             const echoColors = Array.from(echoText, (_, i) => i < promptStr.length ? PROMPT_COLOR : OUTPUT_COLOR);
             this._addLine(echoText, PROMPT_COLOR, echoColors);
 
-            const result = await this._execute(line.trim());
+            let result;
+            try {
+                result = await this._execute(line.trim());
+            } catch (e) {
+                this._addLine(`sh: internal error: ${e.message || e}`, OUTPUT_COLOR);
+                continue;
+            }
             if (result) {
                 this.result = result;
                 this.running = false;
