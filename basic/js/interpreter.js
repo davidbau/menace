@@ -1187,10 +1187,25 @@ export class BasicInterpreter {
   }
 
   // ---- File I/O ----
-  // Files are stored in localStorage as basic-file-<name>
+  // Files stored in menace-fs (virtual filesystem shared with shell)
+
+  _vfsRead(filename) {
+    try {
+      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
+      return fs['home/' + filename.toLowerCase()] || null;
+    } catch (e) { return null; }
+  }
+
+  _vfsWrite(filename, content) {
+    try {
+      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
+      fs['home/' + filename.toLowerCase()] = content;
+      localStorage.setItem('menace-fs', JSON.stringify(fs));
+    } catch (e) { throw new BasicError('?FILE WRITE ERROR'); }
+  }
+
   _execOpen(expr, lineNum) {
     // OPEN "filename" FOR INPUT AS FILE #n  or  OPEN "filename" FOR OUTPUT AS FILE #n
-    // Simplified: OPEN "filename" AS #n  or  OPEN "filename" FOR INPUT AS #n
     const m = expr.match(/^"([^"]+)"\s+(?:FOR\s+(\w+)\s+)?AS\s+#?(\d+)/i) ||
               expr.match(/^(.+?)\s+(?:FOR\s+(\w+)\s+)?AS\s+#?(\d+)/i);
     if (!m) throw new BasicError('?SYNTAX ERROR', lineNum);
@@ -1198,12 +1213,11 @@ export class BasicInterpreter {
     const mode = (m[2] || 'INPUT').toUpperCase();
     const fileNum = parseInt(m[3]);
     if (!this._files) this._files = {};
-    const key = 'basic-file-' + filename.toUpperCase();
     if (mode === 'OUTPUT') {
-      this._files[fileNum] = { key, mode: 'output', lines: [], filename };
+      this._files[fileNum] = { filename, mode: 'output', lines: [] };
     } else {
-      const raw = localStorage.getItem(key) || '';
-      this._files[fileNum] = { key, mode: 'input', lines: raw.split('\n'), pos: 0, filename };
+      const raw = this._vfsRead(filename) || '';
+      this._files[fileNum] = { filename, mode: 'input', lines: raw.split('\n'), pos: 0 };
     }
     return null;
   }
@@ -1213,7 +1227,7 @@ export class BasicInterpreter {
     if (this._files && this._files[fileNum]) {
       const f = this._files[fileNum];
       if (f.mode === 'output') {
-        try { localStorage.setItem(f.key, f.lines.join('\n')); } catch (e) {}
+        this._vfsWrite(f.filename, f.lines.join('\n'));
       }
       delete this._files[fileNum];
     }
