@@ -441,6 +441,19 @@ Required evidence:
 - `session_test_runner.js --verbose`
 - `comparison-window --step-summary 1236..1246`
 - focused replay-owner traces around the same raw keys
+- one explicit state-transition capture across:
+  - prompt emission in `handleEat()`
+  - raw answer consumption
+  - `resume=done` return to owner `none`
+  - the immediately following command loop
+
+Required tracked fields:
+
+- `toplin`
+- `topMessage`
+- `messageNeedsMore`
+- `moreMarkerActive`
+- input owner
 
 Exit criterion:
 
@@ -459,18 +472,38 @@ Constraints:
 - do not keep `eat.js` changes that do not move the authoritative seam
 - do not broaden the patch beyond the proven owner boundary
 
+### Stage 2a. Prefer a local `handleEat()` fix first
+
+Use this branch if the evidence continues to show that the bad overlap is
+created inside or immediately around the `handleEat()` raw-input wait.
+
 Likely kinds of fix:
 
-- clearing message-boundary state at the correct point before raw input wait
-- preventing raw in-command input from starting while boundary ack state still
-  owns the next key
-- moving a prompt/ack path so it resumes in the same semantic caller that
-  requested it
+- correcting how the floor-food / resume prompt leaves topline state
+- correcting when `handleEat()` may begin a raw `nhgetch()` wait
+- correcting which local path clears or preserves message-boundary state before
+  returning to owner `none`
 
 Exit criterion:
 
+- the local `handleEat()` corridor no longer leaves a stale owner/state overlap
 - the per-step redistribution in `1236..1246` shrinks
 - first authoritative divergence moves later than `1241`
+
+### Stage 2b. Only widen to command-boundary policy with proof
+
+A broader `_gameLoopStep()` or command-boundary change is allowed only if Stage
+1 proves the mismatch is not local to `handleEat()`.
+
+Guardrail:
+
+- do not generalize from `toplin==1` or `messageNeedsMore` alone; the failed
+  global boundary patch showed that such a rule breaks unrelated sessions early
+
+Exit criterion:
+
+- a broader invariant is directly supported by trace evidence, not inferred from
+  one late meal seam
 
 ### Stage 3. Validate narrowly, then widen
 
