@@ -217,11 +217,16 @@ def main():
     args = [a for a in args if not a.startswith('--')]
 
     if do_all:
-        session_files = sorted([
-            os.path.join(SESSIONS_DIR, f)
-            for f in os.listdir(SESSIONS_DIR)
-            if f.endswith('.session.json')
-        ])
+        # Find all session files recursively, including coverage/ and maps/
+        import glob
+        search_dirs = [
+            os.path.join(SESSIONS_DIR, '**', '*.session.json'),
+            os.path.join(PROJECT_ROOT, 'test', 'comparison', 'maps', '*.session.json'),
+        ]
+        session_files = sorted(set(
+            f for pattern in search_dirs
+            for f in glob.glob(pattern, recursive=True)
+        ))
     else:
         session_files = [os.path.abspath(a) for a in args]
 
