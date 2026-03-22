@@ -219,8 +219,39 @@ observed between iterations of the run.
 - **Fix**: Add '>' (and '<') stair-jump handling to getpos_async in getpos.js,
   matching C's getpos_menu stair target selection.
 
+## Session 30 Progress (March 22, 2026)
+
+### Travel Termination Fixes (COMMITTED)
+Three fixes for travel reaching its target:
+1. Clear stale travelPath before findtravelpath in domove_core
+2. Guard _gameLoopStep's travel fallback on context.travel
+3. Change _gameLoopStep positive-multi continuation from `return` to `continue`
+
+**seed032: RNG 25% → 43% (7421 → 12789/29881), screens 42 → 186/664.**
+
+### xname Poisoned Prefix (COMMITTED)
+C's xname() adds "poisoned" for weapons with opoisoned. JS had this only in
+doname(). Fixed: moved prefix from doname to xname_for_doname. Affects
+cxname_singular sorting in pickup menus. No regressions.
+
+### Remaining seed032 Divergence (index 12532)
+JS `rn2(7)=1` (fumble check in throwit) vs C `rnd(20)=18` (hit check in
+thitmonst). The thrown dart (invlet 'r') is cursed in JS but not in C.
+
+Investigation ruled out:
+- Object ordering in place_object/objectsAt (reversal caused 38 regressions)
+- xname poisoned prefix (fixed but didn't change invlet assignment)
+- Pickup menu sort order (both JS and C produce same sort)
+- RNG divergence (12532 entries match perfectly)
+
+Likely cause: the two poisoned darts are assigned invlets in opposite order
+because of a subtle difference in the creation or placement sequence. Both
+darts were created during level generation with identical RNG, but the
+physical dart assigned to invlet 'r' differs. Needs further investigation
+of the level generation object placement order.
+
 ## Validation
-1. seed032 RNG should increase from 7421/29881
-2. Full suite 565/568 should not regress
+1. seed032 RNG increased from 7421 to 12789/29881 ✓
+2. Full suite 565/568 did not regress ✓
 3. Verify `lookaround()` handles all run-stop conditions (doors, engravings,
    monsters, corridor branches)
