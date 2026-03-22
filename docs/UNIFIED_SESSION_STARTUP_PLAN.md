@@ -235,6 +235,18 @@ and `nethackrc` instead of the current `options` dictionary.
 
 **Test:** Record a new session. Load and replay it. Verify parity.
 
+**Verification of re-recorded sessions:** When re-recording existing sessions
+through the simplified recorder, verify that the new recording achieves the
+same gameplay as the original — not just matching RNG, but similar:
+- Events (combat, item interactions, traps triggered)
+- Screens (same messages, same map layouts)
+- Dungeon levels visited (same depth progression)
+- Interesting encounters (monsters fought, items used)
+
+This ensures the `.nethackrc` + `env` startup produces a game state equivalent
+to the original V3 `options` startup. A session that was designed to test
+artifact invocation should still reach the point where artifacts are invoked.
+
 ## Risks and Mitigations
 
 1. **Risk:** `.nethackrc` parsing differences between C and JS.
