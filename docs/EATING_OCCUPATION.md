@@ -885,3 +885,38 @@ The best current summary is:
 - the next correct fix should start from the remaining object/corpse set seen
   by `dog_goal()` and nearby late-step eating state, not from generic topline
   or `--More--` handling
+
+## 9. Active seam after the meal fixes
+
+The validated floor-meal fixes moved the live `seed031` seam again.
+
+Current authoritative state:
+
+- session: `test/comparison/sessions/seed031_manual_direct.session.json`
+- first RNG divergence: gameplay step `1313`
+  - JS: `rn2(5)=2 @ dochug(monmove.js:847)`
+  - C: `rn2(9)=6 @ dog_invent(dogmove.c:416)`
+- first event divergence: gameplay step `1315`
+  - JS: `^distfleeck[33@42,9 in=1 near=0 scare=0 brave=0 saw=0 light=0 sanct=0]`
+  - C: `^dog_invent_decision[33@42,9 ud=8 act=0 otyp=-1 carry=0 rv=0]`
+
+What that means:
+
+- the active seam is no longer the corpse-identity bug fixed above
+- it is now a tame-pet control-flow seam in `dog_invent()` / `dog_goal()`
+  territory
+
+Useful late-step JS state collected during this pass:
+
+- by step `1315`, the pet is still a tame pet with live `edog` state
+- local JS inspection confirmed:
+  - `mtame=20`
+  - `edog.apport=1`
+  - `minventCount=1`
+  - the carried item is an unworn, uncursed `dwarvish cloak`
+
+So the next debugging lane should not reopen the old eating-occupation fixes.
+The remaining fault is now narrower:
+
+- why does the tame pet fail to stay aligned with C's `dog_invent()` lane once
+  the meal/object identity bugs are removed?

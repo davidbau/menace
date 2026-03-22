@@ -16481,3 +16481,31 @@ distinction is always conditional on being in Gehennom.
   - any JS floor-item default selection built on `objectsAt()` must explicitly
     translate oldest-first array order back into C floor-chain order before
     choosing the top/default item
+
+## 2026-03-22 - after the floor-meal fixes, the live `seed031` seam moved into tame-pet `dog_invent()`
+
+- After the validated floor-meal fixes, the active `seed031` seam is no longer
+  best described as an eating-occupation identity bug.
+- Current authoritative baseline on `main`:
+  - `test/comparison/sessions/seed031_manual_direct.session.json`
+  - first RNG divergence at gameplay step `1313`
+  - JS: `rn2(5)=2 @ dochug(monmove.js:847)`
+  - C: `rn2(9)=6 @ dog_invent(dogmove.c:416)`
+  - first event divergence at gameplay step `1315`
+  - JS: `^distfleeck[33@42,9 in=1 near=0 scare=0 brave=0 saw=0 light=0 sanct=0]`
+  - C: `^dog_invent_decision[33@42,9 ud=8 act=0 otyp=-1 carry=0 rv=0]`
+- Authoritative comparison-window evidence around `1310..1315`:
+  - C-heavy at `1311`, `1312`, `1314`, `1315`
+  - large JS payback spike at `1313`
+- Late JS debug state at step `1315` still shows the housecat as a real tame
+  pet with live `edog` state:
+  - pet row: `37,42,9,33,17,22,0,0,1,1,1,0,44,11,1`
+  - additional local inspection during this pass confirmed:
+    - `mtame=20`
+    - `edog.apport=1`
+    - `minventCount=1`
+    - carried item is an unworn, uncursed `dwarvish cloak`
+- That narrows the remaining fault:
+  - the live seam is now in tame-pet `dog_invent()` / `droppables()` /
+    nearby pet-control branch selection
+  - not in the already-fixed floor-meal object identity path
