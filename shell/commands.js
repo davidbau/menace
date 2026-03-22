@@ -361,6 +361,20 @@ const MAN_PAGES = {
     rogue: 'ROGUE(6)\n\nNAME\n     rogue - Exploring The Dungeons of Doom\n\nSYNOPSIS\n     rogue\n\nDESCRIPTION\n     Rogue is a computer fantasy game with a new strstrtwist. It is CRT\n     oriented and the strstrchief strstrexperience is of dodging and fighting\n     monsters in a dangerous world.'.replace(/strstr/g, ''),
     hack: 'HACK(6)\n\nNAME\n     hack - Exploring The Dungeons of Doom\n\nSYNOPSIS\n     hack\n\nDESCRIPTION\n     Hack is a Strstrcheerful strstrversion of rogue with strstrmore strstrmonsters.\n     Good luck.'.replace(/[Ss]trstr/g, ''),
     dungeon: 'DUNGEON(6)\n\nNAME\n     dungeon - the game of Dungeon\n\nSYNOPSIS\n     dungeon\n\nDESCRIPTION\n     The game of Dungeon is a computer fanstrtasy game running\n     in a PDP environment. In it, you expstrlore an ancient\n     dungeon, seeking the Twenty Treasures of Zork.'.replace(/str/g, ''),
+    logo: 'LOGO(6)\n\nNAME\n     logo - Logo programming language\n\nSYNOPSIS\n     logo\n\nDESCRIPTION\n     Logo is a programming language designed for learning.\n     It features turtle graphics: type FORWARD 100 and the\n     turtle draws a line. Type HELP at the ? prompt for\n     a list of commands.',
+    more: 'MORE(1)\n\nNAME\n     more - file perusal filter\n\nSYNOPSIS\n     more file\n\nDESCRIPTION\n     More is a filter for paging through text one screenful\n     at a time. Press space for the next page, q to quit.',
+    cd: 'CD(1)\n\nNAME\n     cd - change working directory\n\nSYNOPSIS\n     cd [directory]\n\nDESCRIPTION\n     Change the current directory to directory. If no directory\n     is given, change to the home directory.',
+    pwd: 'PWD(1)\n\nNAME\n     pwd - print working directory name\n\nSYNOPSIS\n     pwd\n\nDESCRIPTION\n     Pwd prints the pathname of the current working directory.',
+    echo: 'ECHO(1)\n\nNAME\n     echo - echo arguments\n\nSYNOPSIS\n     echo [arg ...]\n\nDESCRIPTION\n     Echo writes its arguments to standard output, followed\n     by a newline.',
+    who: 'WHO(1)\n\nNAME\n     who - display who is on the system\n\nSYNOPSIS\n     who\n\nDESCRIPTION\n     Who displays a list of users currently logged in,\n     showing username, terminal, and login time.',
+    finger: 'FINGER(1)\n\nNAME\n     finger - user information lookup program\n\nSYNOPSIS\n     finger [user]\n\nDESCRIPTION\n     Finger displays information about system users including\n     login name, full name, terminal, idle time, login time,\n     office location, and the contents of their .plan file.',
+    mail: 'MAIL(1)\n\nNAME\n     mail - send and receive mail\n\nSYNOPSIS\n     mail [user]\n\nDESCRIPTION\n     With no arguments, mail prints the user\'s mailbox.\n     At the & prompt, type a message number to read it,\n     r to reply, d to delete, q to quit.\n\n     With an argument, mail sends a message to that user.\n     Type the message, then a period on a line by itself.',
+    talk: 'TALK(1)\n\nNAME\n     talk - talk to another user\n\nSYNOPSIS\n     talk user\n\nDESCRIPTION\n     Talk is a visual communication program which copies lines\n     from your terminal to that of another user. The screen is\n     split into two windows. Type Ctrl-C to end.',
+    uname: 'UNAME(1)\n\nNAME\n     uname - print system information\n\nSYNOPSIS\n     uname [-a]\n\nDESCRIPTION\n     Uname prints the name of the current system.\n     -a prints all information: system name, hostname,\n     release, version, and machine type.',
+    date: 'DATE(1)\n\nNAME\n     date - print date and time\n\nSYNOPSIS\n     date\n\nDESCRIPTION\n     Date prints the current date and time.',
+    whoami: 'WHOAMI(1)\n\nNAME\n     whoami - print effective user name\n\nSYNOPSIS\n     whoami\n\nDESCRIPTION\n     Whoami prints the user name associated with the current\n     effective user id.',
+    clear: 'CLEAR(1)\n\nNAME\n     clear - clear terminal screen\n\nSYNOPSIS\n     clear\n\nDESCRIPTION\n     Clear clears the terminal screen.',
+    help: 'HELP(1)\n\nNAME\n     help - display command help\n\nSYNOPSIS\n     help [command]\n\nDESCRIPTION\n     With no arguments, list available commands.\n     With a command name, display detailed usage information.',
 };
 
 async function man(args, shell) {
@@ -463,32 +477,39 @@ async function help(args, shell) {
         return;
     }
     const cmds = [
-        ['ls',       'list directory contents'],
-        ['cat',      'display file contents'],
-        ['more',     'page through files'],
-        ['cd',       'change directory'],
-        ['pwd',      'print working directory'],
-        ['echo',     'echo arguments'],
+        ['ls',       'list files'],
+        ['cat',      'show file'],
+        ['more',     'page file'],
+        ['cd',       'change dir'],
+        ['pwd',      'print dir'],
+        ['echo',     'echo text'],
         ['clear',    'clear screen'],
-        ['whoami',   'print login name'],
-        ['date',     'print date and time'],
-        ['who',      'list logged-in users'],
-        ['uname',    'print system information'],
+        ['whoami',   'login name'],
+        ['date',     'date/time'],
+        ['who',      'logged-in users'],
+        ['uname',    'system info'],
+        ['man',      'manual page'],
         ['vi',       'text editor'],
-        ['finger',   'show user info'],
-        ['mail',     'read and send mail'],
-        ['talk',     'real-time chat with another user'],
-        ['help',     'display this help'],
+        ['finger',   'user info'],
+        ['mail',     'read/send mail'],
+        ['talk',     'real-time chat'],
+        ['help',     'this help'],
         ['exit',     'exit shell'],
-        ['logo',     'launch Logo'],
-        ['nethack',  'launch NetHack'],
-        ['hack',     'launch Hack'],
-        ['rogue',    'launch Rogue'],
-        ['dungeon',  'launch Dungeon'],
+        ['logo',     'Logo'],
+        ['nethack',  'NetHack'],
+        ['hack',     'Hack (1982)'],
+        ['rogue',    'Rogue (1980)'],
+        ['dungeon',  'Dungeon'],
     ];
-    shell.println('Available commands (type help <command> for details):');
-    for (const [name, desc] of cmds) {
-        shell.println(`  ${name.padEnd(12)}${desc}`);
+    shell.println('Commands (type help <command> for details):');
+    // Two columns
+    const half = Math.ceil(cmds.length / 2);
+    for (let i = 0; i < half; i++) {
+        const left = cmds[i];
+        const right = cmds[i + half];
+        let line = `  ${left[0].padEnd(10)}${left[1].padEnd(18)}`;
+        if (right) line += `  ${right[0].padEnd(10)}${right[1]}`;
+        shell.println(line);
     }
 }
 
