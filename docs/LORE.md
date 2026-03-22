@@ -16647,3 +16647,31 @@ distinction is always conditional on being in Gehennom.
   - do not keep speculative render-cache or map-redraw tweaks here
   - the next productive question is which tty-facing hallucination display path
     in C is consuming those `random_object` calls when JS is not
+- 2026-03-22: `COSMIC_DISPLAY_LOGS` Milestone 1/2 is now implemented as a
+  shared C/JS owner/branch/display-RNG schema for screen-only seams.
+  - C initial batch:
+    - `make_hallucinated()`
+    - `see_monsters()`
+    - `see_objects()`
+    - `see_traps()`
+    - `docrt_flags()`
+    - `newsym()`
+    - `_map_location()`
+    - contextualized `random_monster` / `random_object` logs
+  - JS mirrors the same owner names, branch enums, map-location categories,
+    and inline `~drn2_disp[...]` entries.
+  - Important harness gotcha:
+    - custom `NETHACK_*` env vars are not reliably inherited by an existing
+      tmux server
+    - short C traces such as `run_trace.py` need either:
+      - the vars embedded in the launched command string, or
+      - `tmux set-environment -g ...`
+    - otherwise cosmic/display logging can appear "missing" even when the
+      binary is correct.
+  - Regression check:
+    - `seed031_manual_direct.session.json` remains gameplay-green after the
+      instrumentation layer:
+      - RNG `51561/51561`
+      - events `28950/28950`
+      - remaining divergence unchanged in the preexisting screen/cursor lane
+        at step `41`

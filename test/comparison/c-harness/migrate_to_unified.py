@@ -147,8 +147,57 @@ def migrate_session(info, dry_run=False, probe_only=False):
         return result
 
     elif stype == 'chargen':
-        print(f'  SKIP {name}: chargen needs nethackrc fix (remove role/race/gender/align)')
-        return None
+        # Chargen sessions need role/race/gender/align REMOVED from nethackrc
+        # so the interactive chargen prompts appear.  The existing step keys
+        # already include the chargen selections + --More-- spaces.
+        # We just need to fix the nethackrc and prepend the initial lore --More--.
+        chargen_rc_lines = []
+        for line in nethackrc.split('\n'):
+            stripped = line.strip()
+            if stripped.upper().startswith('WIZARD='):
+                continue  # Handled by -D flag
+            if stripped.upper().startswith('OPTIONS='):
+                # Remove role/race/gender/align from OPTIONS
+                opts_part = stripped.split('=', 1)[1]
+                kept = []
+                for opt in opts_part.split(','):
+                    opt_lower = opt.strip().lower()
+                    if any(opt_lower.startswith(f'{k}:') for k in ('role', 'race', 'gender', 'align')):
+                        continue
+                    kept.append(opt.strip())
+                if kept:
+                    chargen_rc_lines.append('OPTIONS=' + ','.join(kept))
+            else:
+                if stripped:
+                    chargen_rc_lines.append(stripped)
+        chargen_nethackrc = '\n'.join(chargen_rc_lines) + '\n'
+        # Add WIZARD back for JS side (will be stripped for C)
+        if _has_wizard_directive(nethackrc):
+            chargen_nethackrc += 'WIZARD=Wizard\n'
+
+        # Probe for startup keys with the chargen nethackrc
+        startup_keys = probe_startup_keys(env, chargen_nethackrc)
+
+        if probe_only:
+            print(f'  {name}: {len(startup_keys)} startup + {len(info["step_keys"])} chargen+gameplay keys')
+            return None
+
+        full_keys = startup_keys + info['step_keys']
+
+        if dry_run:
+            print(f'  {name} (chargen): {len(startup_keys)} startup + {len(info["step_keys"])} chargen = {len(full_keys)} total')
+            print(f'    nethackrc: {repr(chargen_nethackrc[:80])}')
+            return None
+
+        regen = dict(info['regen']) if info['regen'] else {}
+        result = record_c_session(
+            env, chargen_nethackrc, full_keys, info['path'],
+            key_delay_s=0.1,
+            regen_metadata=regen,
+            session_type=stype,
+            verbose=True,
+        )
+        return result
 
     elif stype in ('manual-direct-live', 'keylog'):
         print(f'  SKIP {name}: manual/keylog sessions need separate handling')

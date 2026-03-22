@@ -47,7 +47,17 @@ import { cansee, couldsee, clear_vision_full_recalc, block_point, unblock_point 
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
-import { rn2 } from './rng.js';
+import {
+    rn2,
+    cosmic_display_push_owner,
+    cosmic_display_pop_owner,
+    cosmic_display_set_cell,
+    cosmic_display_clear_cell,
+    cosmic_display_log_newsym,
+    cosmic_display_log_maploc,
+    cosmic_display_clear_newsym_branch,
+    cosmic_display_clear_maploc_branch,
+} from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { more } from './input.js';
 import { game as _gstate } from './gstate.js';
@@ -2208,6 +2218,7 @@ export function set_mimic_blocking() {
 // JS: map.objects is a flat array; we newsym each unique occupied cell.
 export function see_objects() {
   const map = _gstate?.map;
+  cosmic_display_push_owner('see_objects');
   if (map?.objects) {
     const seen = new Set();
     for (const obj of map.objects) {
@@ -2219,6 +2230,7 @@ export function see_objects() {
     }
   }
   update_inventory();
+  cosmic_display_pop_owner('see_objects');
 }
 
 // C ref: display.c:1565 see_nearby_objects()
@@ -2261,12 +2273,14 @@ export function see_nearby_objects() {
 // Autotranslated from display.c:1599
 export function see_traps() {
   const map = _gstate?.map;
+  cosmic_display_push_owner('see_traps');
   if (map?.traps) {
     for (const trap of map.traps) {
       const glyph = glyph_at(trap.tx, trap.ty);
       if (glyph_is_trap(glyph)) newsym(trap.tx, trap.ty);
     }
   }
+  cosmic_display_pop_owner('see_traps');
 }
 
 // Autotranslated from display.c:1675
@@ -2289,6 +2303,7 @@ function docrtRecalc(ctx) {
 export async function docrt_flags(recalc = null, ctxOrMap = null) {
   const ctx = _resolveDisplayCtx(ctxOrMap);
   if (!ctx?.display || !ctx?.map) return;
+  cosmic_display_push_owner('docrt_flags');
   if (typeof recalc === 'function') recalc(ctx);
   for (let x = 1; x < COLNO; x++) {
     for (let y = 0; y < ROWNO; y++) {
@@ -2296,6 +2311,7 @@ export async function docrt_flags(recalc = null, ctxOrMap = null) {
     }
   }
   flush_screen(0);
+  cosmic_display_pop_owner('docrt_flags');
 }
 
 // Autotranslated from display.c:1690
@@ -2526,6 +2542,9 @@ export function newsym(x, y, ctxOrMap = null) {
     if (!display || typeof display.setCell !== 'function') return;
     const loc = map.at(x, y);
     if (!loc) return;
+    cosmic_display_set_cell(x, y);
+    cosmic_display_clear_newsym_branch();
+    cosmic_display_clear_maploc_branch();
     const mapOffset = flags?.msg_window ? 3 : MAP_ROW_START;
     const col = x - 1;
     const row = y + mapOffset;
@@ -2545,9 +2564,13 @@ export function newsym(x, y, ctxOrMap = null) {
     // C ref: display.c:930-935 — when swallowed, only show hero at own position
     if (player?.uswallow || player?.engulfed) {
         if (x === player.x && y === player.y) {
+            cosmic_display_log_newsym(x, y, 'hero-swallowed', true);
             const heroGlyph = playerMapGlyph(player);
             putMapCell(display, loc, map, col, row, heroGlyph.ch, heroGlyph.color);
         }
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
 
@@ -2555,8 +2578,12 @@ export function newsym(x, y, ctxOrMap = null) {
     // even when out of FOV (e.g. during levitation on stairs).
     // When mounted, C shows the steed glyph on hero square instead.
     if (player && x === player.x && y === player.y && !player.usteed) {
+        cosmic_display_log_newsym(x, y, 'hero-visible', true);
         const heroGlyph = playerMapGlyph(player);
         display.setCell(col, row, heroGlyph.ch, heroGlyph.color);
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
 
@@ -2565,20 +2592,28 @@ export function newsym(x, y, ctxOrMap = null) {
         const mon = map.monsterAt(x, y);
         const detectMonsters = hasPlayerProp(player, DETECT_MONSTERS, 'detectMonsters', 'Detect_monsters');
         if (mon && detectMonsters) {
+            cosmic_display_log_newsym(x, y, 'oos-sensed-mon', false);
             // C ref: display.c newsym() out-of-sight branch shows monsters
             // when Detect_monsters is active; glyph is inverse-video.
             const hallu = !!(player?.Hallucination || player?.hallucinating);
             const glyph = monsterMapGlyph(mon, hallu);
             putMapCell(display, loc, map, col, row, glyph.ch, glyph.color, 1);
             mon.meverseen = 1;
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
             return;
         }
         // C ref: display.c:1039-1040 — infravision: see warm-blooded monsters
         if (mon && see_with_infrared(mon, player) && monVisibleForMap(mon, player)) {
+            cosmic_display_log_newsym(x, y, 'oos-sensed-mon', false);
             const hallu = !!(player?.Hallucination || player?.hallucinating);
             const glyph = monsterMapGlyph(mon, hallu);
             putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
             mon.meverseen = 1;
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
             return;
         }
         const monVisibleByOwnLight = !!(mon
@@ -2586,22 +2621,35 @@ export function newsym(x, y, ctxOrMap = null) {
             && couldsee(map, player, x, y)
             && monVisibleForMap(mon, player));
         if (monVisibleByOwnLight) {
+            cosmic_display_log_newsym(x, y, 'oos-sensed-mon', false);
             const hallu = !!(player?.Hallucination || player?.hallucinating);
             const glyph = monsterMapGlyph(mon, hallu);
             putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
             return;
         }
         if (loc.mem_invis) {
+            cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
             return;
         }
         if (loc.mem_obj && !loc.mem_magic_trap) {
+            cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
                 ? loc.mem_obj_color : 0;
             putMapCell(display, loc, map, col, row, loc.mem_obj, rememberedObjColor);
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
             return;
         }
         if (loc.mem_trap) {
+            cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             const memTrapColor = Number.isInteger(loc.mem_trap_color)
                 ? loc.mem_trap_color : 0;
             // C: when cell goes out of FOV after magic mapping, show trap. Clear mem_magic_trap
@@ -2609,9 +2657,13 @@ export function newsym(x, y, ctxOrMap = null) {
             // fresh (matching C newsym behavior for visibility-changed cells).
             loc.mem_magic_trap = false;
             putMapCell(display, loc, map, col, row, loc.mem_trap, memTrapColor);
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
             return;
         }
         if (loc.seenv) {
+            cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             if (typeof loc.mem_terrain_ch === 'string') {
                 const rememberedColor = Number.isInteger(loc.mem_terrain_color)
                     ? loc.mem_terrain_color
@@ -2622,8 +2674,12 @@ export function newsym(x, y, ctxOrMap = null) {
                 putMapCell(display, loc, map, col, row, remembered.ch, remembered.color);
             }
         } else {
+            cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             putMapCell(display, loc, map, col, row, ' ', CLR_GRAY);
         }
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
 
@@ -2637,6 +2693,7 @@ export function newsym(x, y, ctxOrMap = null) {
     // Monster (checked before mem_magic_trap — visible monsters always override the stored glyph)
     const mon = map.monsterAt(x, y);
     if (monsterShownOnMap(mon, player, map)) {
+        cosmic_display_log_newsym(x, y, 'visible-mon', true);
         // C ref: display.c:1008-1014 — trapped monster reveals physical traps
         if (mon.mtrapped) {
             const trap = map.trapAt ? map.trapAt(x, y) : null;
@@ -2671,14 +2728,25 @@ export function newsym(x, y, ctxOrMap = null) {
         loc.mem_magic_trap = false;
         putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
         mon.meverseen = 1;
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
     if (mon && mon_warning(mon, player, ctx)) {
+        cosmic_display_log_newsym(x, y, 'visible-warning', true);
         display_warning(mon, player, ctx);
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
     if (loc.mem_invis) {
+        cosmic_display_log_newsym(x, y, 'visible-invis', true);
         putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
 
@@ -2689,14 +2757,20 @@ export function newsym(x, y, ctxOrMap = null) {
     // mem_magic_trap is cleared when the cell goes out-of-FOV (then coming back in will
     // re-evaluate from game state, matching C's behavior for visibility-changed cells).
     if (loc.mem_magic_trap && loc.displayGlyph?.ch) {
+        cosmic_display_log_newsym(x, y, 'visible-map-location', true);
         putMapCell(display, loc, map, col, row, loc.displayGlyph.ch,
             Number.isInteger(loc.displayGlyph.color) ? loc.displayGlyph.color : CLR_GRAY);
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
 
     // Objects
     const objs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
     if (objs.length > 0) {
+        cosmic_display_log_newsym(x, y, 'visible-map-location', true);
+        cosmic_display_log_maploc(x, y, 'obj', true);
         const topObj = objs[objs.length - 1];
         const hallu = !!(player?.Hallucination || player?.hallucinating);
         const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
@@ -2707,6 +2781,9 @@ export function newsym(x, y, ctxOrMap = null) {
         loc.mem_obj_color = Number.isInteger(memGlyph.color)
             ? memGlyph.color : CLR_GRAY;
         putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
     loc.mem_obj = 0;
@@ -2715,10 +2792,15 @@ export function newsym(x, y, ctxOrMap = null) {
     // Traps
     const trap = map.trapAt(x, y);
     if (trapShownOnMap(trap, player) && !coversObjectsAt(loc, player)) {
+        cosmic_display_log_newsym(x, y, 'visible-map-location', true);
+        cosmic_display_log_maploc(x, y, 'trap', true);
         const tg = trapGlyph(trap.ttyp);
         loc.mem_trap = tg.ch;
         loc.mem_trap_color = tg.color;
         putMapCell(display, loc, map, col, row, tg.ch, tg.color);
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
     loc.mem_trap = 0;
@@ -2729,20 +2811,35 @@ export function newsym(x, y, ctxOrMap = null) {
         && engr
         && (player?.wizard || !player?.blind || engr.erevealed)
         && !coversObjectsAt(loc, player)) {
+        cosmic_display_log_newsym(x, y, 'visible-map-location', true);
+        cosmic_display_log_maploc(x, y, 'engr', true);
         const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
         loc.mem_obj = engrCh;
         loc.mem_obj_color = CLR_BRIGHT_BLUE;
         putMapCell(display, loc, map, col, row, engrCh, CLR_BRIGHT_BLUE);
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
 
     // Terrain
     if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
+        cosmic_display_log_newsym(x, y, 'visible-map-location', true);
+        cosmic_display_log_maploc(x, y, 'terrain', true);
         putMapCell(display, loc, map, col, row, ' ', CLR_GRAY);
+        cosmic_display_clear_newsym_branch();
+        cosmic_display_clear_maploc_branch();
+        cosmic_display_clear_cell();
         return;
     }
+    cosmic_display_log_newsym(x, y, 'visible-map-location', true);
+    cosmic_display_log_maploc(x, y, 'terrain', true);
     const sym = renderTerrainSymbol(loc, map, x, y, flags);
     putMapCell(display, loc, map, col, row, sym.ch, sym.color);
+    cosmic_display_clear_newsym_branch();
+    cosmic_display_clear_maploc_branch();
+    cosmic_display_clear_cell();
 }
 
 // C ref: display.c:1480 see_monsters()
@@ -2754,6 +2851,7 @@ export function see_monsters(map) {
 
     // C ref: display.c:1486 — defer_see_monsters check
     if (ctx.defer_see_monsters) return;
+    cosmic_display_push_owner('see_monsters');
 
     // C ref: display.c:1493-1496 — steed/ustuck always meverseen
     if (player?.usteed) player.usteed.meverseen = 1;
@@ -2766,6 +2864,7 @@ export function see_monsters(map) {
     if (player && !player.usteed) {
         newsym(player.x, player.y);
     }
+    cosmic_display_pop_owner('see_monsters');
 }
 
 // C ref: vision.c:511 vision_recalc()

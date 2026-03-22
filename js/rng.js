@@ -37,6 +37,82 @@ let rngTagOverride = null;   // explicit caller tag override for hotspot paths
 const rngTagCache = new Map();
 const rngEventTagCache = new Map();
 const rngDispTagCache = new Map();
+const cosmicOwnerStack = [];
+let cosmicCell = null;
+let cosmicNewsymBranch = null;
+let cosmicMaplocBranch = null;
+let cosmicRngKind = null;
+
+function cosmicDisplayEnabled() {
+    const env = getEnvObject();
+    return !!(rngLog && env?.WEBHACK_COSMIC_DISPLAY_LOGS === '1');
+}
+
+function cosmicCurrentOwner() {
+    return cosmicOwnerStack.length > 0
+        ? cosmicOwnerStack[cosmicOwnerStack.length - 1]
+        : null;
+}
+
+export function cosmic_display_log_enabled() {
+    return cosmicDisplayEnabled();
+}
+
+export function cosmic_display_push_owner(owner) {
+    if (!cosmicDisplayEnabled()) return;
+    const parent = cosmicCurrentOwner();
+    cosmicOwnerStack.push(owner);
+    pushRngLogEntry(`^disp_owner_begin[owner=${owner} depth=${cosmicOwnerStack.length}${parent ? ` parent=${parent}` : ''}]`);
+}
+
+export function cosmic_display_pop_owner(owner) {
+    if (!cosmicDisplayEnabled()) return;
+    const current = cosmicCurrentOwner();
+    pushRngLogEntry(`^disp_owner_end[owner=${owner} depth=${cosmicOwnerStack.length}${current ? ` current=${current}` : ''}]`);
+    if (cosmicOwnerStack.length > 0) cosmicOwnerStack.pop();
+}
+
+export function cosmic_display_set_cell(x, y) {
+    cosmicCell = { x, y };
+}
+
+export function cosmic_display_clear_cell() {
+    cosmicCell = null;
+}
+
+export function cosmic_display_set_newsym_branch(branch) {
+    cosmicNewsymBranch = branch;
+}
+
+export function cosmic_display_clear_newsym_branch() {
+    cosmicNewsymBranch = null;
+}
+
+export function cosmic_display_set_maploc_branch(branch) {
+    cosmicMaplocBranch = branch;
+}
+
+export function cosmic_display_clear_maploc_branch() {
+    cosmicMaplocBranch = null;
+}
+
+export function cosmic_display_prepare_rng_kind(kind) {
+    cosmicRngKind = kind;
+}
+
+export function cosmic_display_log_newsym(x, y, branch, cansee) {
+    if (!cosmicDisplayEnabled()) return;
+    cosmic_display_set_cell(x, y);
+    cosmic_display_set_newsym_branch(branch);
+    pushRngLogEntry(`^disp_newsym[owner=${cosmicCurrentOwner() || '?'} x=${x} y=${y} cansee=${cansee ? 1 : 0} branch=${branch}]`);
+}
+
+export function cosmic_display_log_maploc(x, y, branch, show) {
+    if (!cosmicDisplayEnabled()) return;
+    cosmic_display_set_cell(x, y);
+    cosmic_display_set_maploc_branch(branch);
+    pushRngLogEntry(`^disp_maploc[owner=${cosmicCurrentOwner() || '?'} x=${x} y=${y} show=${show ? 1 : 0} branch=${branch}]`);
+}
 
 export function enableRngLog(withTags = true) {
     const tagsPref = getEnv('RNG_LOG_TAGS');
@@ -105,6 +181,11 @@ export function disableRngLog() {
     rngTagCache.clear();
     rngEventTagCache.clear();
     rngDispTagCache.clear();
+    cosmicOwnerStack.length = 0;
+    cosmicCell = null;
+    cosmicNewsymBranch = null;
+    cosmicMaplocBranch = null;
+    cosmicRngKind = null;
 }
 
 // C ref: rnd.c:37 rng_log_init()
@@ -428,8 +509,15 @@ export function rn2_on_display_rng(x) {
                 tag = ` @ ${callerTag}`;
             }
         }
-        rngLog.push(`~drn2(${x})=${result}${tag}`);
+        if (processEnv?.WEBHACK_COSMIC_DISPLAY_LOGS === '1') {
+            const xCoord = cosmicCell?.x ?? -1;
+            const yCoord = cosmicCell?.y ?? -1;
+            rngLog.push(`~drn2_disp[n=${x} idx=${result} owner=${cosmicCurrentOwner() || '?'} kind=${cosmicRngKind || '?'} x=${xCoord} y=${yCoord}${cosmicNewsymBranch ? ` newsym=${cosmicNewsymBranch}` : ''}${cosmicMaplocBranch ? ` maploc=${cosmicMaplocBranch}` : ''}]${tag}`);
+        } else {
+            rngLog.push(`~drn2(${x})=${result}${tag}`);
+        }
     }
+    cosmicRngKind = null;
     return result;
 }
 
