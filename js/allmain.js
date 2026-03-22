@@ -64,7 +64,8 @@ import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, IS_DOOR } from './c
 import { initFirstLevel } from './u_init.js';
 import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
          playerSelection as _playerSelection, maybeDoTutorial as _maybeDoTutorial,
-         enterTutorial as _enterTutorial, showGameOver as _showGameOver } from './chargen.js';
+         enterTutorial as _enterTutorial, showGameOver as _showGameOver,
+         showLoreAndWelcome as _showLoreAndWelcome } from './chargen.js';
 import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { encumber_msg } from './pickup.js';
@@ -1567,6 +1568,10 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg) {
         async onKey(ch, g) {
             if (!isDismiss(ch)) return { handled: true, tookTime: false, moved: false, prompt: true };
             clearLoreOverlay(g?.display);
+            // Re-render the map that was underneath the lore overlay.
+            if (g?.display && g.map && g.u && g.fov && typeof g.display.renderMap === 'function') {
+                g.display.renderMap(g.map, g.u, g.fov, g.flags);
+            }
             if (g?.display && typeof g.display.putstr_message === 'function') {
                 await g.display.putstr_message(welcomeMsg);
             }
