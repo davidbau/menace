@@ -69,6 +69,42 @@ LIBNH_SYSCONF_SOURCE = os.path.join(PROJECT_ROOT, 'nethack-c', 'patched', 'sys',
 DEFAULT_FIXED_DATETIME = '20000110090000'
 import re
 
+
+def build_v4_fields(seed, character, wizard=True, extra_env=None):
+    """Build V4 env + nethackrc fields for a session dict.
+
+    These are the two universal startup fields that fully determine
+    game configuration for C, headless JS, and browser JS.
+    """
+    # Build .nethackrc contents
+    rc_lines = []
+    if character:
+        parts = []
+        for key in ('name', 'role', 'race', 'gender', 'align'):
+            if key in character and character[key]:
+                parts.append(f'{key}:{character[key]}')
+        if parts:
+            rc_lines.append(f'OPTIONS={",".join(parts)}')
+    rc_lines.append('OPTIONS=!autopickup')
+    rc_lines.append('OPTIONS=suppress_alert:3.4.3')
+    rc_lines.append('OPTIONS=symset:DECgraphics')
+    if wizard and character and character.get('name'):
+        rc_lines.append(f'WIZARD={character["name"]}')
+    rc_lines.append('')  # trailing newline
+
+    # Build env dict
+    env = {'NETHACK_SEED': str(seed)}
+    dt = harness_fixed_datetime()
+    if dt:
+        env['NETHACK_FIXED_DATETIME'] = dt
+    if extra_env:
+        env.update(extra_env)
+
+    return {
+        'env': env,
+        'nethackrc': '\n'.join(rc_lines),
+    }
+
 def _get_git_hash(path):
     """Return the short git commit hash for the given directory, or 'unknown'."""
     try:
@@ -347,8 +383,11 @@ def ensure_install_sysconf():
             f.write(updated)
 
 
-def setup_home(character=None, chargen_in_keys=False):
+def setup_home(character=None, chargen_in_keys=False, nethackrc_contents=None):
     """Write .nethackrc for the session.
+
+    nethackrc_contents: if provided, write this string directly as .nethackrc
+    (V4 path — the session file contains the exact .nethackrc to use).
 
     chargen_in_keys=True: write no character OPTIONS at all so that the full
     interactive chargen flows (role/race/gender/align/name/tutorial) and the
@@ -361,15 +400,19 @@ def setup_home(character=None, chargen_in_keys=False):
     os.makedirs(RESULTS_DIR, exist_ok=True)
     nethackrc = os.path.join(RESULTS_DIR, '.nethackrc')
     with open(nethackrc, 'w') as f:
-        if not chargen_in_keys:
-            f.write(f'OPTIONS=name:{char["name"]}\n')
-            f.write(f'OPTIONS=race:{char["race"]}\n')
-            f.write(f'OPTIONS=role:{char["role"]}\n')
-            f.write(f'OPTIONS=gender:{char["gender"]}\n')
-            f.write(f'OPTIONS=align:{char["align"]}\n')
-        f.write('OPTIONS=!autopickup\n')
-        f.write('OPTIONS=suppress_alert:3.4.3\n')
-        f.write('OPTIONS=symset:DECgraphics\n')
+        if nethackrc_contents is not None:
+            # V4 path: write the exact .nethackrc from the session file
+            f.write(nethackrc_contents)
+        else:
+            if not chargen_in_keys:
+                f.write(f'OPTIONS=name:{char["name"]}\n')
+                f.write(f'OPTIONS=race:{char["race"]}\n')
+                f.write(f'OPTIONS=role:{char["role"]}\n')
+                f.write(f'OPTIONS=gender:{char["gender"]}\n')
+                f.write(f'OPTIONS=align:{char["align"]}\n')
+            f.write('OPTIONS=!autopickup\n')
+            f.write('OPTIONS=suppress_alert:3.4.3\n')
+            f.write('OPTIONS=symset:DECgraphics\n')
 
     # Clean up stale game state to avoid prompts and non-determinism from prior runs.
     # Remove: save files, level/lock files (e.g. 501wizard.0), bones files,
@@ -1229,7 +1272,8 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
         }
 
         session_data = {
-            'version': 3,
+            'version': 4,
+            **build_v4_fields(seed, CHARACTER, wizard=True),
             'seed': seed,
             'source': 'c',
             'recorded_with': get_recorded_with(),
@@ -1676,8 +1720,11 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
         if selected['align']:
             options['align'] = selected['align']
 
+        # Chargen: nethackrc has name only (role/race/gender/align are interactive)
+        chargen_char = {'name': options.get('name', CHARACTER['name'])}
         session_data = {
-            'version': 3,
+            'version': 4,
+            **build_v4_fields(seed, chargen_char, wizard=options.get('wizard', True)),
             'seed': seed,
             'source': 'c',
             'recorded_with': get_recorded_with(),
@@ -1780,7 +1827,8 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
         }
 
         session_data = {
-            'version': 3,
+            'version': 4,
+            **build_v4_fields(seed, CHARACTER, wizard=True),
             'seed': seed,
             'source': 'c',
             'recorded_with': get_recorded_with(),
@@ -2180,7 +2228,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             'cursor': startup_cursor,
         }
         session_data = {
-            'version': 3,
+            'version': 4,
+            **build_v4_fields(seed, char, wizard=bool(wizard_mode)),
             'seed': seed,
             'source': 'c',
             'recorded_with': get_recorded_with(),
