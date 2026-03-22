@@ -16402,3 +16402,40 @@ distinction is always conditional on being in Gehennom.
   - for resumed floor-object occupations, always pass `game.map` into
     `obj_here()`; otherwise the C-faithful “food still here?” check silently
     collapses into a false reset
+
+## 2026-03-22 - `delobj()` must honor floor map context
+
+- The next late `seed031` eat seam turned out not to be another prompt bug.
+- Object-id tracing showed JS calling `done_eating()` for corpse `379` at the
+  late seam, but then selecting that same corpse again from the floor two steps
+  later.
+- That cannot happen in C:
+  - `done_eating()` ends with `useupf(piece, 1L)` for floor food
+  - `useupf()` calls `delobj(otmp)` and removes the floor object
+- In JS, [`js/invent.js`](js/invent.js) had a broken wrapper:
+  - `delobj(obj)` ignored the optional `map` argument that many callers passed
+  - it called `delobj_core(obj, false)`, so floor deletions without an explicit
+    global map fallback could leave the object behind in `map.objects`
+- Faithful fix:
+  - change `delobj()` to accept optional `(obj, map = null, force = false)`
+  - resolve `map || _gstate?.lev || _gstate?.map`
+  - pass that to `delobj_core()`
+- Validated effect:
+  - `seed031_manual_direct.session.json`
+    - before: `rng=47502/51561`, `events=26421/28950`,
+      first RNG divergence step `1241`
+    - after: `rng=47522/51561`, `events=26451/28950`,
+      first RNG divergence still step `1241`
+    - the late seam moved deeper into the same step:
+      - JS still first diverges in `dog_goal()`-adjacent late pet logic
+      - but with 20 more matched RNG calls and 30 more matched events overall
+  - control sessions stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+  - nearby manual-direct regression check stayed unchanged:
+    - `seed032_manual_direct.session.json` still first diverges at step `144`
+- Practical rule:
+  - any JS wrapper around `delobj()` must preserve floor map ownership; if the
+    map context is dropped, floor objects can survive semantic deletion and
+    create downstream parity drift that looks like prompt or AI logic

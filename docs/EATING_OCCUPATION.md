@@ -751,6 +751,30 @@ What this means for the remaining plan:
 - the next remaining owner is later in the resumed-meal / pet-turn corridor,
   not the missing floor-object lookup itself
 
+## 7. New Constraints From Validated Fixes
+
+Two validated fixes changed the late corridor without clearing it:
+
+1. Resumed `eatfood()` floor checks must pass `game.map` into `obj_here()`.
+   Without the map argument, JS could falsely believe the active floor meal had
+   disappeared and drop into `do_reset_eat()`.
+2. `delobj()` must honor floor map context.
+   JS was able to call `done_eating()` for a floor corpse and still leave that
+   corpse physically present in `map.objects`, which then let the hero or pet
+   reconsider it on later keys.
+
+These fixes matter because they convert two earlier hypotheses into settled
+facts:
+
+- the seam is not just message-boundary noise
+- late corpse-state / floor-object integrity bugs were real and measurable
+
+But they also sharpen what remains:
+
+- `seed031` still first diverges at gameplay step `1241`
+- the remaining mismatch is now deeper in the resumed-meal / pet-food corridor,
+  after the missing `obj_here(map)` and `delobj(map)` bugs are fixed
+
 ### Stage 3. Validate narrowly, then widen
 
 Minimum validation:
@@ -779,17 +803,18 @@ After a validated fix:
 
 ### Stage 5. Track what remains unknown
 
-Even after the current evidence review, these questions remain open:
+Even after the validated fixes above, these questions remain open:
 
-- is the exact wrong owner handoff in `handleEat()` itself, or in the display /
-  input boundary state that surrounds it?
-- is the failing key one of the explicit eat answers, or an earlier boundary key
-  that leaves stale message state behind?
-- is there one owner bug, or a pair of small owner bugs that only line up in
-  this meal corridor?
+- after `done_eating()` removes the right floor corpse, why does JS still reach
+  a different pet-food evaluation set than C at step `1241`?
+- which remaining corpse/object ids should still be present on `(42,7)` at the
+  first bad `dog_goal()` call, and how does that differ from JS?
+- is the remaining mismatch still in eating control flow, or has the fix now
+  exposed a narrower pet-food/object-selection bug?
 
-Those unknowns are acceptable. What is not acceptable is continuing to patch
-`eat.js` speculatively without first proving the owner boundary.
+Those unknowns are acceptable. What is not acceptable is returning to broad
+prompt-boundary speculation now that two concrete floor-object bugs have been
+proven and fixed.
 
 ## 6. Practical Summary
 
@@ -799,9 +824,9 @@ The best current summary is:
 - `victual` stores meal progress; it does not decide who owns the next key
 - the JS port should preserve the same single-owner semantics despite async
   implementation details
-- the active `seed031` failure is best understood as cross-step ownership drift
-  in a late meal corridor
-- the strongest current clue is JS waiting for raw input inside `handleEat()`
-  while message-boundary state is still live
-- the next correct fix is the one that restores the right owner handoff, not
-  the one that merely changes downstream monster behavior
+- the active `seed031` failure is now narrower than the earlier prompt theory:
+  two concrete floor-object bugs have been removed, but the late resumed-meal /
+  pet-food corridor still diverges
+- the next correct fix should start from the remaining object/corpse set seen
+  by `dog_goal()` and nearby late-step eating state, not from generic topline
+  or `--More--` handling
