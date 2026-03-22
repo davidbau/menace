@@ -2093,7 +2093,6 @@ async function handleEat(player, display, game) {
             const finishEating = async (gameCtx) => {
                 // cf. eat.c done_eating()/cpostfx() runs from eatfood() when
                 // occupation reaches completion, before moveloop's next monster turn.
-                consumeInventoryItem();
                 // Clear victual eating state
                 if (game && game.svc && game.svc.context && game.svc.context.victual) {
                     game.svc.context.victual.eating = 0;
@@ -2105,12 +2104,16 @@ async function handleEat(player, display, game) {
                     // cf. eat.c done_eating() generic multi-turn completion line.
                     await display.putstr_message("You're finally finished.");
                 }
-                // cf. eat.c done_eating():562-565 — dispatch to cpostfx/fpostfx
+                // C ref: eat.c done_eating() — cpostfx/fpostfx runs BEFORE
+                // food_disappears (item removal).  eye_of_newt_buzz and other
+                // eating effects must consume RNG before obj_resists in the
+                // item-removal path.
                 if (isCorpse) {
                     await cpostfx(player, cnum, display);
                 } else {
                     await fpostfx(player, eatenItem);
                 }
+                consumeInventoryItem();
             };
             // cf. eat.c eatfood() / start_eating() — set_occupation
             let fullwarn = false;
