@@ -1061,26 +1061,23 @@ export async function dosearch0(player, map, display, game = null, aflag = 0) {
             if (!loc) continue;
 
             if (loc.typ === SDOOR) {
+                // C ref: detect.c:2044 — rnl(7 - fund); fund from search artifact + lenses
                 if (rnl(7) === 0) {
                     cvt_sdoor_to_door(loc);
                     recalc_block_point(nx, ny);
                     await exercise(player, A_WIS, true);
-                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
-                        game.multi = 0;
-                    }
-                    feel_newsym(nx, ny);
-                    await display.putstr_message('You find a hidden door.');
+                    nomul(0, game);
+                    feel_location(nx, ny, map); // C ref: feel_location after cvt
+                    await You('find a hidden door.');
                 }
             } else if (loc.typ === SCORR) {
                 if (rnl(7) === 0) {
                     loc.typ = CORR;
                     unblock_point(nx, ny);
                     await exercise(player, A_WIS, true);
-                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
-                        game.multi = 0;
-                    }
+                    nomul(0, game);
                     feel_newsym(nx, ny);
-                    await display.putstr_message('You find a hidden passage.');
+                    await You('find a hidden passage.');
                 }
             } else {
                 // C ref: detect.c dosearch0() explicit-search monster reveal path.
