@@ -424,7 +424,7 @@ export async function moveloop_turnend(game) {
     }
 
     // C ref: allmain.c:304 — regen_pw(mvl_wtcap)
-    regen_pw_turnend(game);
+    await regen_pw_turnend(game);
 
     // C ref: allmain.c:306-338 — Teleportation/Polymorph/Lycanthropy checks
     {
@@ -1218,12 +1218,16 @@ async function regen_hp(game) {
     const player = (game.u || game.u);
     const wtcap = near_capacity(player);
     const encumbrance_ok = (wtcap < MOD_ENCUMBER || !player.umoved);
-    // C ref: U_CAN_REGEN() macro; Sleepy/asleep refinement can be added later.
-    const can_regen = !!player.regeneration;
+    // C ref: allmain.c:622 U_CAN_REGEN() = Regeneration || (Sleepy && u.usleep)
+    const sleepyRegen = !!(player.sleepy && player.usleep);
+    const can_regen = !!player.regeneration || sleepyRegen;
     let heal = 0;
     let reached_full = false;
     if (Upolyd(player)) {
-        if ((player.mh || 0) < (player.mhmax || 0)) {
+        if ((player.mh || 0) < 1) {
+            // C ref: allmain.c:633-634 — shouldn't happen; rehumanize
+            // rehumanize() not fully ported; skip for now
+        } else if ((player.mh || 0) < (player.mhmax || 0)) {
             const moves = Number.isFinite(game.turnCount) ? game.turnCount : 0;
             if (can_regen || (encumbrance_ok && !(moves % 20))) {
                 heal = 1;
@@ -1237,6 +1241,8 @@ async function regen_hp(game) {
     } else if ((player.uhp || 0) < (player.uhpmax || 0) && (encumbrance_ok || can_regen)) {
         heal = ((player.ulevel || 1) + acurr(player, A_CON)) > rn2(100) ? 1 : 0;
         if (can_regen) heal += 1;
+        // C ref: allmain.c:664-665 — extra heal when Sleepy and asleep
+        if (sleepyRegen) heal++;
         if (heal) {
             player.uhp = (player.uhp || 0) + heal;
             if ((player.uhp || 0) > (player.uhpmax || 0)) player.uhp = player.uhpmax || 0;
@@ -1269,7 +1275,7 @@ async function overexert_hp(game) {
 
 // C ref: allmain.c:598 — regen_pw(wtcap): regenerate power (mana) each turn
 // Fires every ((MAXULEV+8-ulevel) * (wizard?3:4) / 6) turns when unencumbered.
-function regen_pw_turnend(game) {
+async function regen_pw_turnend(game) {
     const player = (game.u || game.u);
     const moves = game.turnCount + 1; // svm.moves equivalent
     if (player.uen == null || player.uenmax == null) return; // pw not initialized
@@ -1286,6 +1292,10 @@ function regen_pw_turnend(game) {
             player.uen += rn1(upper, 1);
             if (player.uen > player.uenmax)
                 player.uen = player.uenmax;
+            // C ref: allmain.c:617-618 — interrupt multi when mana full
+            if (player.uen === player.uenmax) {
+                await interrupt_multi('You feel full of energy.', game);
+            }
         }
     }
 }
