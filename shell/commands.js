@@ -168,6 +168,7 @@ export function getBuiltinCommands() {
         nethack: launchGame('nethack'),
         hack: launchGame('hack'),
         rogue: launchGame('rogue'),
+        logo: launchGame('logo'),
         dungeon: launchDungeon,
         zork: launchZork,
         exit: doExit,
@@ -439,6 +440,7 @@ async function help(_args, shell) {
         ['hack',     'launch Hack'],
         ['rogue',    'launch Rogue'],
         ['dungeon',  'launch Dungeon'],
+        ['logo',     'launch Logo'],
     ];
     shell.println('Available commands:');
     for (const [name, desc] of cmds) {

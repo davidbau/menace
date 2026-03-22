@@ -389,7 +389,7 @@
             -webkit-user-select: none;
         }
 
-        /* Loading message */
+        /* Loading message — stays invisible for 6s to let app load silently */
         #loading {
             color: var(--color-text-muted);
             font-size: 15px;
@@ -402,6 +402,12 @@
             letter-spacing: 0.02em;
             text-align: center;
             white-space: normal;
+            opacity: 0;
+            animation: loading-appear 0.5s ease 6s forwards;
+        }
+
+        @keyframes loading-appear {
+            to { opacity: 1; }
         }
 
         /* Loading animation */
@@ -412,7 +418,7 @@
 
         @media (prefers-reduced-motion: no-preference) {
             #loading {
-                animation: pulse 2s ease-in-out infinite;
+                animation: loading-appear 0.5s ease 6s forwards, pulse 2s ease-in-out 6s infinite;
             }
         }
 

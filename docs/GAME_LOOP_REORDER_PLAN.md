@@ -4,9 +4,101 @@
 
 The game loop infrastructure is substantially complete. The `_gameLoopStep`
 `while(true)` loop in `allmain.js` handles all continuation types (negative
-multi, occupation, travel, positive-move repeat). The remaining work is to
-move `advanceTimedTurn` (Phase B) to the TOP of the loop — before the player
-command — matching C's `moveloop_core` structure where monsters move first.
+multi, occupation, travel, positive-move repeat).
+
+### Circular symmetry of the game loop
+
+C's `moveloop_core` is a `for(;;)` loop. In any circular loop, "first" is
+the same as "last" — you can always save state across the loop boundary to
+make any position equivalent to any other. The ordering of Phase B (monsters)
+relative to Phase F (player command) within the cycle is a free choice as
+long as turn 0 is handled correctly. In C, `context.move` starts at 0, so
+Phase B is SKIPPED on the first iteration — the player acts first. JS
+already matches this by running `advanceTimedTurn` after the player command.
+
+#### The real ordering constraint: Phase B vs `cmd_safety_prevention`
+
+The issue is not about Phase B's position in the loop. It is about an
+ordering dependency between Phase B and a **sub-step within Phase F**:
+`cmd_safety_prevention`.
+
+In C, the "." (wait/rest) command checks `cmd_safety_prevention()` to see
+if a monster is nearby. If so, the command is rejected (`tookTime = false`).
+This check runs **during** Phase F. But Phase B (movemon + mcalcmove) runs
+**before** Phase F. This means monsters have already moved by the time
+`cmd_safety_prevention` checks for them.
+
+Concrete example from `theme27_seed1511` step 14:
+
+```
+C step 14 ("."):
+  Phase B:  movemon() runs → wood nymph moves AWAY from player
+  Phase F:  "." → cmd_safety_prevention → monster_nearby=0 → takes time
+  Turn-end: mcalcmove, dosounds, gethungry...
+```
+
+The wood nymph moved away during Phase B, so `monster_nearby` returns 0
+(false), the "." takes time, and turn-end processing runs normally.
+
+In JS, Phase B runs AFTER the command (inside `finalizeTimedCommand`). So
+when `cmd_safety_prevention` checks for nearby monsters, the wood nymph
+hasn't moved yet:
+
+```
+JS step 14 ("."):
+  Phase F:  "." → cmd_safety_prevention → monsterNearby=true → rejected
+  Phase B:  never runs (tookTime=false → finalizeTimedCommand skips)
+```
+
+The nymph is still adjacent because Phase B hasn't run. The safety check
+fires, the command is untimed, and Phase B never runs at all. This creates
+a cascading divergence: the monster never gets movement, subsequent "."
+commands are also prevented, and the RNG stream diverges.
+
+#### The predicate for when Phase B should run
+
+Phase B should run exactly once after each timed command, **before** the
+next command's `cmd_safety_prevention` check. The predicate is:
+
+> **Run Phase B when the previous command took time and Phase B has not yet
+> run for that command.**
+
+In C, this is implemented via `context.move`:
+- Phase C sets `context.move = 1` before each command
+- Phase B checks `context.move` at the top of each iteration
+- Untimed commands clear `context.move = 0` in Phase F
+- Phase B runs at most once per timed command (the gate clears after running)
+
+A second safety-prevented "." will NOT trigger Phase B again, because the
+first safety prevention cleared `context.move = 0`, and Phase B at the top
+of the next iteration reads that 0 and skips.
+
+#### Resolution: Phase B ordering is correct; root cause is player position
+
+Further investigation (March 21) revealed that the `theme27_seed1511`
+divergence is NOT caused by Phase B ordering or `monster_nearby` logic.
+Both C and JS have identical `monster_nearby` implementations. The
+divergence is that the **player starts at different positions**:
+
+- C: player at (29,11)
+- JS: player at (30,10)
+
+The wood nymph is created at (31,11) in both. From C's player position,
+the nymph is 2 cells away (outside the 3x3 `monster_nearby` check). From
+JS's player position, the nymph is diagonally adjacent (inside the check).
+This causes `monster_nearby` to return different results, which cascades
+into the "." being safety-prevented in JS but not in C.
+
+The root cause is a **player placement divergence during level generation**,
+not game loop ordering.
+
+**Phase B ordering is already correct.** JS runs Phase B after the player
+command (inside `finalizeTimedCommand`), which is equivalent to C running
+it at the top of the next iteration, because turn 0 is handled correctly
+(`context.move` starts at 0). This has been a recurring source of confusion
+— future investigations should verify that the specific divergent function
+(the one producing different RNG entries) is actually a loop ordering issue
+before attempting loop restructuring.
 
 ### What has been done
 - `_gameLoopStep` uses `while(true)` with explicit continuation dispatch
@@ -16,9 +108,10 @@ command — matching C's `moveloop_core` structure where monsters move first.
 - `finalizeTimedCommand` handles post-command turn processing
 
 ### What remains
-- Move `advanceTimedTurn` from `finalizeTimedCommand` (runs AFTER player
-  command) to the top of `_gameLoopStep` (runs BEFORE player command)
-- This is the single structural change that fixes the game loop ordering
+- Run Phase B (advanceTimedTurn) before `cmd_safety_prevention`, gated by a
+  "Phase B owed" flag set after each timed command. This ensures monsters
+  move before the next command checks for nearby monsters.
+- This is the structural change needed to fix the game loop ordering
   divergence affecting seed031/032/033/328/theme27
 
 ### Removed: pendingDeferredTimedTurn

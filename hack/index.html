@@ -134,7 +134,7 @@
       -webkit-user-select: none;
     }
 
-    /* Loading message — hidden once game screen appears */
+    /* Loading message — stays invisible for 6s to let app load silently */
     #loading {
       color: var(--color-text-muted);
       font-family: var(--font-serif);
@@ -143,6 +143,12 @@
       font-weight: 500;
       letter-spacing: 0.02em;
       text-align: center;
+      opacity: 0;
+      animation: loading-appear 0.5s ease 6s forwards;
+    }
+
+    @keyframes loading-appear {
+      to { opacity: 1; }
     }
 
     @keyframes pulse {
@@ -151,7 +157,7 @@
     }
 
     @media (prefers-reduced-motion: no-preference) {
-      #loading { animation: pulse 2s ease-in-out infinite; }
+      #loading { animation: loading-appear 0.5s ease 6s forwards, pulse 2s ease-in-out 6s infinite; }
     }
 
     /* ============================================================
@@ -864,6 +870,13 @@
         if (req) req.call(el).catch(function() {});
       }
     };
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        window._toggleFullscreen();
+      }
+    });
   })();
 
   /* Docs overlay — fetch HISTORY.md, render as HTML, minimap the game */

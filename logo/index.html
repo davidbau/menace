@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo 1982 -- Mazes of Menace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="preload" href="../assets/fonts/DejaVuSansMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/fonts/dejavu-sans-mono.css">
+  <style>
+    :root {
+      --color-bg: #f9f7f1;
+      --color-text: #333;
+      --color-text-muted: #666;
+      --color-accent: #6b2c2c;
+      --color-accent-dark: #4a2020;
+      --color-terminal-bg: #000;
+      --color-terminal-border: #2a2a2a;
+      --color-shadow: rgba(0, 0, 0, 0.15);
+      --font-mono: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace;
+      --font-serif: 'EB Garamond', Georgia, serif;
+      --game-font-size: 16px;
+      --game-line-height: 1.1875;
+      --transition-fast: 0.2s;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-serif);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    #nav-spacer {
+      flex-shrink: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5em;
+      padding: 0.5em 0;
+      font-size: calc(var(--game-font-size) * 1.0);
+      justify-content: center;
+      width: 100%;
+      order: -2;
+    }
+
+    #nav a {
+      color: var(--color-accent-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color var(--transition-fast);
+    }
+
+    #nav a:hover { color: var(--color-accent); text-decoration: underline; }
+
+    #help-bar {
+      font-size: calc(var(--game-font-size) * 0.75);
+      color: var(--color-text-muted);
+      text-align: center;
+      font-family: var(--font-serif);
+      padding: 0.4em 0;
+      max-width: calc(var(--game-font-size) * 80 * 0.60205078125 + 34px);
+    }
+
+    .help-link {
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--color-text-muted);
+    }
+
+    .help-link:hover { color: var(--color-accent); }
+    .help-link:hover .help-key { text-decoration: underline; }
+
+    .help-key {
+      font-family: var(--font-mono);
+      font-size: calc(var(--game-font-size) * 0.7);
+      color: var(--color-text);
+    }
+
+    .help-link:hover .help-key { color: var(--color-accent); }
+
+    .sep {
+      padding: 0 0.4em;
+    }
+
+    #main {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      order: 0;
+    }
+
+    #logo-container {
+      background: var(--color-terminal-bg);
+      border: 3px solid var(--color-terminal-border);
+      padding: 6px;
+      box-shadow: 0 4px 12px var(--color-shadow), 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 16px;
+      min-width: calc(var(--game-font-size) * 80 * 0.60205078125 + 34px);
+      min-height: calc(var(--game-font-size) * 24 * var(--game-line-height) + 34px);
+      max-width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #logo-container:focus-within {
+      border-color: var(--color-accent);
+      box-shadow: 0 4px 12px var(--color-shadow), 0 0 0 2px rgba(107,44,44,0.2);
+    }
+
+    #logo-container * { user-select: none; -webkit-user-select: none; }
+
+    #logo-canvas {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      z-index: 0;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+      filter: drop-shadow(0 2px 8px var(--color-shadow));
+    }
+
+    #controls button {
+      background: var(--color-bg);
+      border: 2px solid var(--color-accent);
+      color: var(--color-accent);
+      padding: 0.4em 0.8em;
+      font-size: calc(var(--game-font-size) * 1.0);
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all var(--transition-fast);
+      font-family: var(--font-serif);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .mono-char { font-family: var(--font-mono); }
+    #controls button:hover { background: var(--color-accent); color: #fff; }
+    #controls button:active { transform: scale(0.95); }
+
+    #panel-toggle.menu-open { background: var(--color-accent); color: var(--color-bg); }
+
+    #hamburger-menu {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      flex-direction: column;
+      background: var(--color-bg);
+      border: 2px solid var(--color-accent);
+      border-radius: 4px;
+      min-width: 200px;
+      box-shadow: 0 4px 16px var(--color-shadow);
+      z-index: 100;
+    }
+
+    #hamburger-menu.open { display: flex; }
+
+    #hamburger-menu .hm-item {
+      background: none;
+      border: none;
+      border-radius: 0;
+      color: var(--color-accent);
+      padding: 0.25em 1em;
+      text-align: left;
+      cursor: pointer;
+      font-family: var(--font-serif);
+      font-size: calc(var(--game-font-size) * 1.0);
+      white-space: nowrap;
+      width: 100%;
+      transition: background var(--transition-fast), color var(--transition-fast);
+      filter: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .hm-check { display: inline-block; width: 1.2em; }
+    #hamburger-menu .hm-item:hover:not(:disabled) { background: var(--color-accent); color: #fff; }
+    #hamburger-menu .hm-item:disabled { opacity: 0.35; cursor: default; }
+    .hm-divider { border-top: 1px solid var(--color-accent); margin: 0.3em 0; }
+
+    body.dark-mode {
+      --color-bg: #111;
+      --color-text: #aaa;
+      --color-text-muted: #888;
+      --color-accent: #555;
+      --color-accent-dark: #888;
+      --color-shadow: rgba(0, 0, 0, 0.4);
+    }
+    body.dark-mode #controls button { background: #222; }
+    body.dark-mode #controls button:hover { background: #333; border-color: #666; }
+    body.dark-mode #hamburger-menu { background: #222; }
+    body.dark-mode #hamburger-menu .hm-item { background: #222; color: #888; }
+    body.dark-mode #hamburger-menu .hm-item:hover:not(:disabled) { background: #444; color: #ccc; }
+    body.dark-mode .hm-divider { border-top-color: #444; }
+
+    /* Docs overlay */
+    #docs-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 100;
+      background: var(--color-bg);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s;
+      overflow-y: auto;
+    }
+    #docs-overlay.open { opacity: 1; visibility: visible; }
+
+    body.docs-mode #page {
+      position: fixed;
+      z-index: 102;
+      width: fit-content;
+      cursor: grab;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      border-radius: 8px;
+      outline: 3px solid var(--color-accent);
+      overflow: hidden;
+      pointer-events: auto;
+    }
+    body.docs-mode #nav,
+    body.docs-mode #nav-spacer,
+    body.docs-mode #controls { display: none; }
+
+    #docs-content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 2em 1.5em 4em;
+      font-size: 18px;
+      line-height: 1.65;
+    }
+    #docs-content h1 { font-size: 2em; color: var(--color-accent-dark); margin: 0 0 0.3em; font-weight: 600; }
+    #docs-content h2 { font-size: 1.4em; color: var(--color-accent-dark); margin: 1.8em 0 0.5em; font-weight: 600; border-bottom: 1px solid #ddd; padding-bottom: 0.2em; }
+    #docs-content h3 { font-size: 1.15em; color: var(--color-accent); margin: 1.4em 0 0.4em; font-weight: 600; }
+    #docs-content p { margin: 0.8em 0; }
+    #docs-content a { color: var(--color-accent); text-decoration: none; }
+    #docs-content a:hover { text-decoration: underline; }
+    #docs-content blockquote { border-left: 3px solid var(--color-accent); margin: 1em 0; padding: 0.5em 1em; color: var(--color-text-muted); font-style: italic; }
+    #docs-content pre, #docs-content code { font-family: var(--font-mono); font-size: 0.82em; }
+    #docs-content pre { background: #f0ede6; padding: 1em; border-radius: 4px; overflow-x: auto; line-height: 1.4; margin: 1em 0; cursor: pointer; position: relative; }
+    #docs-content pre:hover { outline: 2px solid var(--color-accent); }
+    #docs-content pre::after { content: '▶ click to run'; position: absolute; top: 4px; right: 8px; font-size: 11px; color: var(--color-accent); opacity: 0; transition: opacity 0.2s; font-family: var(--font-serif); }
+    #docs-content pre:hover::after { opacity: 1; }
+    #docs-content code { background: #f0ede6; padding: 0.15em 0.4em; border-radius: 3px; }
+    #docs-content pre code { background: none; padding: 0; }
+    #docs-content hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+    #docs-content ul, #docs-content ol { margin: 0.8em 0; padding-left: 1.5em; }
+    #docs-content li { margin: 0.3em 0; }
+    #docs-content img { max-width: 100%; height: auto; display: block; margin: 1.5em auto; border-radius: 4px; }
+    #docs-content figure { margin: 1.5em 0; text-align: center; }
+    #docs-content figcaption { font-size: 0.85em; color: var(--color-text-muted); margin-top: 0.5em; font-style: italic; }
+
+    body.dark-mode #docs-overlay { background: #1a1a1a; }
+    body.dark-mode #docs-content pre { background: #2a2a2a; }
+    body.dark-mode #docs-content code { background: #2a2a2a; }
+    body.dark-mode #docs-content pre::after { color: #888; }
+  </style>
+</head>
+<body>
+  <div id="page">
+    <nav id="nav" role="navigation">
+      <a href="#about" id="about-link">About Logo</a>
+    </nav>
+    <main id="main">
+      <div id="logo-container">
+        <canvas id="logo-canvas" width="320" height="200"></canvas>
+      </div>
+    </main>
+    <div id="controls">
+      <button id="font-smaller" title="Decrease font size" tabindex="-1"><span class="mono-char">A</span>&#x2212;</button>
+      <button id="font-larger" title="Increase font size" tabindex="-1"><span class="mono-char">A</span>+</button>
+      <button id="panel-toggle" title="Game menu" tabindex="-1">&#x2630;</button>
+      <div id="hamburger-menu">
+        <button class="hm-item" id="hm-shell"><span class="hm-check"></span>Back to Shell</button>
+        <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-nethack"><span class="hm-check"></span>Play NetHack</button>
+        <button class="hm-item" id="hm-hack"><span class="hm-check"></span>Play Hack (1982)</button>
+        <button class="hm-item" id="hm-rogue"><span class="hm-check"></span>Play Rogue (1980)</button>
+        <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-darkmode"><span class="hm-check"></span>Dark mode</button>
+      </div>
+    </div>
+    <div id="nav-spacer">
+      <div id="help-bar">
+        <a class="help-link" data-cmd="FD"><span class="help-key">FD</span> forward</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="BK"><span class="help-key">BK</span> back</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="RT"><span class="help-key">RT</span> right</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="LT"><span class="help-key">LT</span> left</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="PU"><span class="help-key">PU</span> pen up</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="PD"><span class="help-key">PD</span> pen down</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="CS"><span class="help-key">CS</span> clear</a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="REPEAT"><span class="help-key">REPEAT</span></a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="HELP"><span class="help-key">HELP</span></a><span class="sep">&middot;</span>
+        <a class="help-link" data-cmd="BYE"><span class="help-key">BYE</span> quit</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* Line-height pre-computation (same as shell/rogue/hack) */
+  (function() {
+    var FONT_FAMILY = '"DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace';
+    function measureLineHeight(fontSize) {
+      try {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        ctx.font = fontSize + 'px ' + FONT_FAMILY;
+        var m = ctx.measureText('\u2502');
+        if (m.fontBoundingBoxAscent != null && m.fontBoundingBoxDescent != null) {
+          var h = Math.floor(m.fontBoundingBoxAscent + m.fontBoundingBoxDescent);
+          return Math.max(h / fontSize, 1.0);
+        }
+      } catch(e) {}
+      return 1.1875;
+    }
+    function currentFontSize() {
+      try { return parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) { return 16; }
+    }
+    function applyLineHeight() {
+      var lh = measureLineHeight(currentFontSize());
+      document.documentElement.style.setProperty('--game-line-height', lh);
+    }
+    applyLineHeight();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(applyLineHeight);
+    }
+    window._applyLineHeight = applyLineHeight;
+  })();
+
+  /* Font size from localStorage */
+  (function() {
+    var sz = 16;
+    try { sz = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+    document.documentElement.style.setProperty('--game-font-size', sz + 'px');
+    var container = document.getElementById('logo-container');
+    if (container) container.style.fontSize = sz + 'px';
+  })();
+
+  /* Font size buttons */
+  document.addEventListener('DOMContentLoaded', function() {
+    function setFontSize(sz) {
+      sz = Math.max(10, Math.min(28, sz));
+      document.documentElement.style.setProperty('--game-font-size', sz + 'px');
+      var container = document.getElementById('logo-container');
+      if (container) container.style.fontSize = sz + 'px';
+      try { localStorage.setItem('menace-font-size', String(sz)); } catch(e) {}
+      if (window._applyLineHeight) window._applyLineHeight();
+    }
+    function currentSize() {
+      try { return parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) { return 16; }
+    }
+    document.getElementById('font-smaller').addEventListener('click', function() { setFontSize(currentSize() - 1); });
+    document.getElementById('font-larger').addEventListener('click', function() { setFontSize(currentSize() + 1); });
+
+    /* Hamburger menu */
+    var toggle = document.getElementById('panel-toggle');
+    var menu = document.getElementById('hamburger-menu');
+    toggle.addEventListener('click', function() {
+      menu.classList.toggle('open');
+      toggle.classList.toggle('menu-open');
+    });
+    document.getElementById('hm-shell').addEventListener('click', function() { window.location.href = '/shell/'; });
+    document.getElementById('hm-nethack').addEventListener('click', function() { window.location.href = '/'; });
+    document.getElementById('hm-hack').addEventListener('click', function() { window.location.href = '/hack/'; });
+    document.getElementById('hm-rogue').addEventListener('click', function() { window.location.href = '/rogue/'; });
+    document.getElementById('hm-darkmode').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      try {
+        localStorage.setItem('menace-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
+      } catch(e) {}
+    });
+
+    /* Restore dark mode */
+    try {
+      if (localStorage.getItem('menace-dark-mode') === '1') document.body.classList.add('dark-mode');
+    } catch(e) {}
+
+    /* Help bar: click a command to inject HELP "CMD into the REPL */
+    document.querySelectorAll('#help-bar .help-link[data-cmd]').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        var cmd = el.getAttribute('data-cmd');
+        var text = 'HELP "' + cmd;
+        for (var i = 0; i < text.length; i++) {
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: text[i] }));
+        }
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      });
+    });
+  });
+  </script>
+
+  <!-- Documentation overlay -->
+  <div id="docs-overlay">
+    <div id="docs-content"></div>
+  </div>
+
+  <script>
+  /* Docs overlay — fetch HISTORY.md, render, minimap, clickable code */
+  (function() {
+    var overlay = document.getElementById('docs-overlay');
+    var content = document.getElementById('docs-content');
+    var aboutLink = document.getElementById('about-link');
+    var page = document.getElementById('page');
+    var docsOpen = false, docsLoaded = false;
+
+    function renderMarkdown(md) {
+      var html = '';
+      var lines = md.split('\n');
+      var inPre = false, inList = false, paraLines = [];
+      var bqLines = [], inBlockquote = false;
+      function flushPara() {
+        if (paraLines.length) { html += '<p>' + processInline(paraLines.join(' ')) + '</p>\n'; paraLines = []; }
+      }
+      function flushBq() {
+        if (bqLines.length) { html += '<blockquote>' + processInline(bqLines.join(' ')) + '</blockquote>\n'; bqLines = []; }
+        inBlockquote = false;
+      }
+      function processInline(text) {
+        text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure><img alt="$1" src="$2"><figcaption>$1</figcaption></figure>');
+        text = text.replace(/\[([^\]]+)\]\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+        return text;
+      }
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.match(/^```/)) {
+          flushPara(); flushBq();
+          if (!inPre) { if (inList) { html += '</ul>\n'; inList = false; } html += '<pre><code>'; inPre = true; }
+          else { html += '</code></pre>\n'; inPre = false; }
+          continue;
+        }
+        if (inPre) { html += line.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '\n'; continue; }
+        if (line.trim() === '') { flushPara(); flushBq(); if (inList) { html += '</ul>\n'; inList = false; } continue; }
+        if (line.match(/^>\s?/)) {
+          flushPara(); inBlockquote = true;
+          var bqText = line.replace(/^>\s?/, '');
+          if (bqText.trim() === '') { flushBq(); } else { bqLines.push(bqText); }
+          continue;
+        } else if (inBlockquote) { flushBq(); }
+        var hMatch = line.match(/^(#{1,6})\s+(.+)/);
+        if (hMatch) { flushPara(); if (inList) { html += '</ul>\n'; inList = false; } html += '<h' + hMatch[1].length + '>' + processInline(hMatch[2]) + '</h' + hMatch[1].length + '>\n'; continue; }
+        if (line.match(/^---+\s*$/)) { flushPara(); if (inList) { html += '</ul>\n'; inList = false; } html += '<hr>\n'; continue; }
+        if (line.match(/^[-*]\s+/)) { flushPara(); if (!inList) { html += '<ul>\n'; inList = true; } html += '<li>' + processInline(line.replace(/^[-*]\s+/, '')) + '</li>\n'; continue; }
+        if (inList) { html += '</ul>\n'; inList = false; }
+        paraLines.push(line.trim());
+      }
+      flushPara(); flushBq();
+      if (inPre) html += '</code></pre>\n';
+      if (inList) html += '</ul>\n';
+      return html;
+    }
+
+    function openDocs() {
+      if (docsOpen) { closeDocs(); return; }
+      overlay.classList.add('open');
+      document.body.classList.add('docs-mode');
+      docsOpen = true;
+      // Minimap: shrink page to bottom-right corner
+      page.style.left = 'auto';
+      page.style.right = '20px';
+      page.style.bottom = '20px';
+      page.style.top = 'auto';
+      page.style.transformOrigin = 'bottom right';
+      page.style.transform = 'scale(0.35)';
+      if (!docsLoaded) {
+        fetch('HISTORY.md').then(function(r) { return r.text(); }).then(function(md) {
+          content.innerHTML = renderMarkdown(md);
+          docsLoaded = true;
+          // Make code blocks clickable — type into Logo REPL
+          content.querySelectorAll('pre').forEach(function(pre) {
+            pre.addEventListener('click', function() {
+              var code = pre.textContent.trim();
+              // Filter out comment-only and reference-style lines
+              var lines = code.split('\n').filter(function(l) {
+                var t = l.trim();
+                return t && !t.match(/^[A-Z]+\s+\d+\s{2,}/) && !t.match(/^;/);
+              });
+              if (lines.length === 0) return;
+              // Type each line into the Logo REPL
+              lines.forEach(function(line) {
+                for (var i = 0; i < line.length; i++) {
+                  document.dispatchEvent(new KeyboardEvent('keydown', { key: line[i] }));
+                }
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+              });
+              closeDocs();
+            });
+          });
+        });
+      }
+      history.replaceState(null, '', '#about');
+    }
+
+    function closeDocs() {
+      overlay.classList.remove('open');
+      document.body.classList.remove('docs-mode');
+      docsOpen = false;
+      page.style.left = page.style.right = page.style.bottom = page.style.top = '';
+      page.style.transform = page.style.transformOrigin = '';
+      history.replaceState(null, '', window.location.pathname);
+    }
+
+    if (aboutLink) aboutLink.addEventListener('click', function(e) { e.preventDefault(); openDocs(); });
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDocs(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && docsOpen) closeDocs(); });
+
+    // Open on #about hash
+    if (window.location.hash === '#about') {
+      setTimeout(function() { openDocs(); }, 100);
+    }
+  })();
+  </script>
+
+  <script type="module" src="js/entry.js"></script>
+</body>
+</html>

@@ -3579,3 +3579,55 @@ A keepable structural fix landed for the raw `#apply` / pick-axe corridor in
 
 After this fix batch, the next `seed031` first RNG divergence on current `main`
 is gameplay step `1057`, not the raw apply corridor.
+
+## 2026-03-21 update: `how_lost` + minventory merge fix on current `main`
+
+A keepable object-state parity fix landed for the later `seed031` pet/object
+corridor.
+
+### Fixed structural/state bugs
+
+1. Thrown-state tagging:
+- [`throwit()`](js/dothrow.js) was writing `obj.how_lost = 'thrown'` as a
+  string.
+- The live merge/autopickup logic expects integer `LOST_*` states, so thrown
+  objects were silently treated like `LOST_NONE`.
+
+2. Monster pickup state transition:
+- [`mpickobj()`](js/steal.js) was not applying the C `how_lost` remapping for
+  non-pet monsters.
+- C changes:
+  - `LOST_THROWN -> LOST_STOLEN`
+  - `LOST_DROPPED -> LOST_NONE`
+
+3. Monster inventory merge predicate:
+- [`addToMonsterInventory()`](js/invent.js) used a reduced
+  `canMergeMonsterInventoryObj()` predicate.
+- C `add_to_minv()` uses full `merged()/mergable()` semantics, so the JS helper
+  was allowed to collapse stacks that C would keep distinct.
+
+### Keepable fix shape
+
+- set `obj.how_lost = LOST_THROWN` in [`throwit()`](js/dothrow.js)
+- update [`mpickobj()`](js/steal.js) to remap `how_lost` like C before adding
+  an item to monster inventory
+- make monster-inventory merging delegate to [`mergable()`](js/mkobj.js)
+
+### Result
+
+- `seed031` improved from:
+  - RNG `37324/51561`
+  - events `21263/28950`
+  - first RNG divergence at gameplay step `1060`
+- to:
+  - RNG `37850/51561`
+  - events `21756/28950`
+  - first RNG divergence at gameplay step `1082`
+- `t11_s755_w_covmax9_gp.session.json`
+  - still green
+
+### New active seam
+
+After this fix batch, the next `seed031` first RNG divergence on current
+`main` is gameplay step `1082`, inside a later `dog_move()` candidate-choice
+corridor rather than the earlier monster-pickup/object-collapse seam.
