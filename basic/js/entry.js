@@ -14,7 +14,7 @@ function makeGetch() {
   }
   document.addEventListener('keydown', e => {
     let code = null;
-    if (e.ctrlKey && !e.altKey && !e.metaKey) {
+    if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.length === 1) {
       const c = e.key.toLowerCase().charCodeAt(0);
       if (c >= 97 && c <= 122) code = c - 96;
     } else if (!e.ctrlKey && !e.altKey && !e.metaKey) {

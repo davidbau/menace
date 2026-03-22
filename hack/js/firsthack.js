@@ -10,6 +10,7 @@ import { _setHackDeps, setsee, unsee, seeoff, nomul, tele, amon, attmon } from '
 import { _setDo1Deps } from './do1.js';
 import { newsym, newsym as newsym_fn } from './pri.js';
 import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup } from './main.js';
+import { Interrupted } from './input.js';
 import { rhack } from './do.js';
 import { killed, rloc, mnexto, newcham, poisoned } from './mon.js';
 import { dosearch, dorecover } from './do1.js';
@@ -90,6 +91,16 @@ async function startGame() {
     if (e instanceof GameOver) {
       // Return to the shell — like logging out of hack
       localStorage.setItem('shell_context', JSON.stringify({ app: 'hack', user: 'rodney', rows: null }));
+      window.location.href = '/shell/';
+      return;
+    } else if (e instanceof Interrupted) {
+      // ^C — capture current screen and return to shell showing it
+      const rows = [];
+      for (let r = 1; r <= display.ROWS; r++) {
+        rows.push({ text: display.grid[r].slice(1).join('').trimEnd(), color: 7 });
+      }
+      while (rows.length > 0 && rows[rows.length - 1].text === '') rows.pop();
+      localStorage.setItem('shell_context', JSON.stringify({ app: 'hack', user: 'rodney', rows }));
       window.location.href = '/shell/';
       return;
     } else {

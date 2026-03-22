@@ -1,15 +1,32 @@
 // Async keyboard input queue for Hack browser port.
 // Adapted from Menace input.js — same async queue pattern.
 
+export class Interrupted extends Error {
+  constructor() { super('Interrupted'); }
+}
+
 export class Input {
   constructor() {
     this._queue = [];
     this._resolve = null;
+    this._reject = null;
+    this._interrupted = false;
     this._bound = this._onKeyDown.bind(this);
     document.addEventListener('keydown', this._bound);
   }
 
   _onKeyDown(e) {
+    if (e.ctrlKey && e.key === 'c') {
+      e.preventDefault();
+      if (this._reject) {
+        const rej = this._reject;
+        this._resolve = null; this._reject = null;
+        rej(new Interrupted());
+      } else {
+        this._interrupted = true;
+      }
+      return;
+    }
     // Translate keydown → character
     let ch = null;
     if (e.key.length === 1) {
@@ -59,13 +76,13 @@ export class Input {
     for (const ch of keys) this.inject(ch);
   }
 
-  // await getKey() — returns next key pressed
+  // await getKey() — returns next key pressed, or throws Interrupted on ^C
   getKey() {
-    if (this._queue.length > 0) {
-      return Promise.resolve(this._queue.shift());
-    }
-    return new Promise(resolve => {
+    if (this._interrupted) { this._interrupted = false; return Promise.reject(new Interrupted()); }
+    if (this._queue.length > 0) return Promise.resolve(this._queue.shift());
+    return new Promise((resolve, reject) => {
       this._resolve = resolve;
+      this._reject = reject;
     });
   }
 
