@@ -194,8 +194,18 @@ observed between iterations of the run.
 - Direction fix for running continuation (committed)
 - Spell FOV guard (committed)
 - Comparator trailing tolerance fix (committed)
-- do_run unbatching: NOT yet working — needs further investigation of
-  _gameLoopStep inter-iteration state changes
+- do_run unbatching: NOT yet working
+- **Corridor direction persist**: added `player.dx/dy` update from
+  `lookaround.nextDir` in `runMovementRepeatSlice`. Didn't fix divergence
+  (first run is straight, no turning needed).
+- **continue vs return**: changing `_gameLoopStep` from `return` to `continue`
+  after `runMovementRepeatSlice` (batching within while loop) still diverges
+  at 2938, same as yielding. This proves the issue is INSIDE
+  `runMovementRepeatSlice` itself, not in the inter-iteration mechanism.
+- **Next step**: diff the raw RNG output of `do_run`'s loop vs
+  `runMovementRepeatSlice` at the first run to find the EXACT call that differs.
+  The difference must be in how the two paths handle domove, advanceTimedTurn,
+  or one of the stop checks.
 
 ## Validation
 1. seed032 RNG should increase from 7421/29881
