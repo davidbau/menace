@@ -157,6 +157,11 @@ u_calc_moveamt(int wtcap)
     u.umovement += moveamt;
     if (u.umovement < 0)
         u.umovement = 0;
+    {
+        int iw = inv_weight(); /* sets gw.wc as side effect */
+        event_log("moveamt[wtcap=%d moveamt=%d umovement=%d wt=%d wc=%d]",
+                  wtcap, moveamt, u.umovement, iw, gw.wc);
+    }
 }
 
 #if defined(MICRO) || defined(WIN32)

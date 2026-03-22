@@ -41,7 +41,7 @@ import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
+import { monsterNearby, nomul, unmul, near_capacity, inv_weight, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -595,6 +595,11 @@ function u_calc_moveamt(player) {
         moveamt -= Math.floor((moveamt * 7) / 8);
     }
     player.umovement = Math.max(0, (player.umovement || 0) + moveamt);
+    // C ref: event_log for hero movement amount — matches C ^moveamt event.
+    // player._wc was set by near_capacity→inv_weight above; reuse it.
+    // Recompute wt cheaply: inv_weight sets player._wc and returns wt-wc.
+    const _iw = inv_weight(player);
+    pushRngLogEntry(`^moveamt[wtcap=${wtcap} moveamt=${moveamt} umovement=${player.umovement} wt=${_iw} wc=${player._wc}]`);
 }
 
 // C ref: sounds.c:202-339 dosounds() — ambient level sounds

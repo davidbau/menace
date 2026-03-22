@@ -573,12 +573,16 @@ export function isIgnorableEventEntry(entry) {
     //   events consume no RNG and are unreliable for cross-implementation parity.
     // `repaint[...]` is a diagnostic-only midlevel display channel; compare it
     //   separately without polluting gameplay event parity.
+    // `moveamt[...]` is hero movement/encumbrance diagnostic — C sessions
+    //   recorded before the ^moveamt patch don't have it. Compare separately
+    //   once C is recompiled with the event.
     return typeof entry === 'string'
         && (entry.startsWith('^trick[') || entry.startsWith('^mapdump[')
             || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_')
             || entry.startsWith('^runstep[')
             || entry.startsWith('^place[') || entry.startsWith('^remove[')
-            || entry.startsWith('^repaint[') || entry.startsWith('^more['));
+            || entry.startsWith('^repaint[') || entry.startsWith('^more[')
+            || entry.startsWith('^moveamt['));
 }
 
 function isTestMoveEvent(entry) {
