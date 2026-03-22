@@ -15,10 +15,10 @@
 //   // Interactive subshell:
 //   await sh.interactive();
 
-import { ShEnv, Interpreter } from './interpreter.js';
+import { ShEnv, Interpreter, ShAction, ExitSignal } from './interpreter.js';
 import { stripQuotes } from './expand.js';
 
-export { ShEnv, Interpreter };
+export { ShEnv, Interpreter, ShAction, ExitSignal };
 
 export class Sh {
   // io: { fs, println, print, getch, shell? }
@@ -56,6 +56,16 @@ export class Sh {
   async runSource(src, args = []) {
     if (args.length) this.env.setPos(args);
     return this._interp.runSource(src);
+  }
+
+  // Run one interactive line — propagates ExitSignal and ShAction to caller.
+  async runLine(src) {
+    return this._interp.runLine(src, this.env, this.io);
+  }
+
+  // Register additional builtins (e.g., shell-specific commands).
+  addBuiltins(map) {
+    Object.assign(this._interp.builtins, map);
   }
 
   // Run a file from the virtual filesystem.
@@ -105,9 +115,11 @@ export class Sh {
       }
 
       try {
-        await interp.runSource(src, env, io);
+        await interp.runLine(src, env, io);
       } catch (e) {
-        if (e && e.message) io.println(`sh: ${e.message}`);
+        if (e instanceof ExitSignal) break;  // exit exits the subshell
+        if (e instanceof ShAction) throw e;  // propagate game launches etc.
+        if (e?.message) io.println(`sh: ${e.message}`);
       }
     }
   }

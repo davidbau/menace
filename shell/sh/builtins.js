@@ -3,10 +3,11 @@
 // Each builtin: async (args, env, io, interpreter) => exitStatus (0 = success)
 // args: already-expanded string array, NOT including the command name.
 // env: ShEnv instance
-// io:  { println, print, getch, fs, shell }
+// io:  { println, print, getch, fs, shell, clearLine? }
 // interpreter: Interpreter instance (for eval, ., exec)
 
 import { ShError } from './expand.js';
+import { ExitSignal } from './interpreter.js';
 
 // --- test / [ -----------------------------------------------------------
 
@@ -339,6 +340,84 @@ async function builtinPrintf(args, env, io) {
   return 0;
 }
 
+// --- more ----------------------------------------------------------------
+// Reads from io.stdin (for pipelines) and/or files, paginates output.
+
+async function builtinMore(args, env, io) {
+  let text = '';
+  if (io.stdin !== undefined && io.stdin !== null) {
+    text = io.stdin;
+    io.stdin = '';
+  }
+  const files = args.filter(a => !a.startsWith('-'));
+  if (!text && files.length === 0) {
+    io.println('usage: more file [...]');
+    return 1;
+  }
+  for (const f of files) {
+    const content = io.fs.cat(io.fs.resolve(f));
+    if (content === null) {
+      if (io.fs.isDir && io.fs.isDir(f))              io.println(`more: ${f}: Is a directory`);
+      else if (io.fs.isRestricted && io.fs.isRestricted(f)) io.println(`more: ${f}: Permission denied`);
+      else                                              io.println(`more: ${f}: No such file or directory`);
+      continue;
+    }
+    if (text) text += '\n';
+    text += content;
+  }
+  const lines = text.split('\n');
+  const pageSize = 22;
+  for (let i = 0; i < lines.length; i++) {
+    io.println(lines[i]);
+    if ((i + 1) % pageSize === 0 && i + 1 < lines.length) {
+      io.print('--More--');
+      const ch = await io.getch();
+      if (io.clearLine) io.clearLine();
+      else io.println('');
+      const code = typeof ch === 'number' ? ch : ch.charCodeAt(0);
+      if (code === 113 || code === 27) break; // q or ESC
+    }
+  }
+  return 0;
+}
+
+// --- clear ---------------------------------------------------------------
+
+async function builtinClear(args, env, io) {
+  if (io.clearDisplay) io.clearDisplay();
+  return 0;
+}
+
+// --- date ----------------------------------------------------------------
+
+async function builtinDate(args, env, io) {
+  const d = new Date();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const day = days[d.getDay()]; const mon = months[d.getMonth()];
+  const date = String(d.getDate()).padStart(2);
+  const h = String(d.getHours()).padStart(2,'0');
+  const m = String(d.getMinutes()).padStart(2,'0');
+  const s = String(d.getSeconds()).padStart(2,'0');
+  io.println(`${day} ${mon} ${date} ${h}:${m}:${s} EDT ${d.getFullYear()}`);
+  return 0;
+}
+
+// --- uname ---------------------------------------------------------------
+
+async function builtinUname(args, env, io) {
+  const all = args.includes('-a');
+  if (all) io.println('Unix menace 4.2BSD #1: Sat Jan  1 00:00:00 EDT 1983  vax');
+  else io.println('Unix');
+  return 0;
+}
+
+// --- logout --------------------------------------------------------------
+
+async function builtinLogout(args, env, io) {
+  throw new ExitSignal(0);
+}
+
 // --- export map ----------------------------------------------------------
 
 export const BUILTINS = {
@@ -360,4 +439,9 @@ export const BUILTINS = {
   expr:      builtinExpr,
   type:      builtinType,
   printf:    builtinPrintf,
+  more:      builtinMore,
+  clear:     builtinClear,
+  date:      builtinDate,
+  uname:     builtinUname,
+  logout:    builtinLogout,
 };

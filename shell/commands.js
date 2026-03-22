@@ -6,7 +6,7 @@
 // Returns: void (output via shell.print/println), or a special action object.
 
 import { USERNAME, HOMEDIR, getSessionStart, checkPassword, setPassword } from './filesystem.js';
-import { Sh } from './sh/index.js';
+import { Sh, ShAction, ExitSignal } from './sh/index.js';
 import {
     loadMailState, saveMailState, seedInboxIfNeeded, deliverPending,
     getMessages, getMessage, saveMessage, deleteSavedMessage,
@@ -1123,4 +1123,206 @@ async function mail(args, shell) {
     }
     if (deleted > 0) shell.println(`${deleted} message${deleted !== 1 ? 's' : ''} deleted.`);
     if (deleted < msgCount) shell.println('Saved 0 messages.');
+}
+
+// -------------------------------------------------------------------------
+// getShellBuiltins — sh-compatible builtins for shell-specific commands.
+// These are registered on the Sh instance used by the main shell (and
+// subshells), giving sh access to games, vi, ls, help, etc.
+//
+// Builtin signature: async (args, env, io, interp) => exitStatus
+// io.shell is the Shell instance when running in a shell context.
+// -------------------------------------------------------------------------
+
+// Wrap a legacy (args, shell) command function for use as a sh builtin.
+// Redirects println/printPrompt/getch to io.* so output can be captured
+// in pipelines.  Throws ShAction for any { action } result.
+function shellWrap(fn) {
+    return async (args, env, io) => {
+        const proxy = {
+            fs:               io.fs,
+            println:          (t) => io.println(t),
+            printPrompt:      (t) => io.print(t),
+            getch:            io.getch,
+            clearPromptLine:  io.clearLine || (() => {}),
+            display:          io.shell?.display,
+            get isRoot()      { return io.shell?.isRoot; },
+            set isRoot(v)     { if (io.shell) io.shell.isRoot = v; },
+            get scrollBuffer(){ return io.shell?.scrollBuffer; },
+            _renderScrollBuffer: () => io.shell?._renderScrollBuffer?.(),
+            clearDisplay:     () => io.clearDisplay?.(),
+        };
+        const result = await fn(args, proxy);
+        if (result?.action) throw new ShAction(result);
+        return 0;
+    };
+}
+
+export function getShellBuiltins(shell) {
+    // --- ls (reimplemented to use io so it's pipeable) --------------------
+    async function builtinLs(args, env, io) {
+        let showAll = false, showLong = false;
+        const paths = [];
+        for (const arg of args) {
+            if (arg === '-a') showAll = true;
+            else if (arg === '-l') showLong = true;
+            else if (arg === '-la' || arg === '-al') { showAll = true; showLong = true; }
+            else paths.push(arg);
+        }
+        const target = paths[0] || '.';
+        if (showLong) {
+            const entries = io.fs.lsLong(target);
+            if (entries === 'PERMISSION_DENIED') { io.println(`ls: ${target}: Permission denied`); return 1; }
+            if (!entries) { io.println(`ls: ${target}: No such file or directory`); return 1; }
+            const filtered = showAll ? entries : entries.filter(e => !e.name.startsWith('.'));
+            io.println(`total ${filtered.length}`);
+            for (const e of filtered) {
+                const sizeStr = String(e.size).padStart(7);
+                const owner = (e.owner || USERNAME).padEnd(8);
+                const group = (e.group || 'wheel').padEnd(6);
+                const suffix = e.isDir ? '/' : e.isSymlink ? '@' : e.isExec ? '*' : '';
+                io.println(`${e.perms}  1 ${owner} ${group} ${sizeStr} ${e.date} ${(e.displayName||e.name)}${suffix}`);
+            }
+        } else {
+            const node = io.fs.getNode(target);
+            if (node && node.type !== 'dir') { io.println(target.split('/').pop()); return 0; }
+            const names = io.fs.ls(target);
+            if (names === 'PERMISSION_DENIED') { io.println(`ls: ${target}: Permission denied`); return 1; }
+            if (!names) { io.println(`ls: ${target}: No such file or directory`); return 1; }
+            const filtered = showAll ? names : names.filter(n => !n.startsWith('.'));
+            const maxLen = Math.max(0, ...filtered.map(n => n.length));
+            const colWidth = maxLen + 2;
+            const numCols = Math.max(1, Math.floor(80 / colWidth));
+            for (let i = 0; i < filtered.length; i += numCols) {
+                let line = '';
+                for (let j = 0; j < numCols && i + j < filtered.length; j++) {
+                    const name = filtered[i + j];
+                    const n = io.fs.getNode(target === '.' ? name : target + '/' + name);
+                    const sfx = n?.type === 'dir' ? '/' : n?.type === 'symlink' ? '@' : n?.type === 'exec' ? '*' : '';
+                    line += (name + sfx).padEnd(colWidth);
+                }
+                io.println(line.trimEnd());
+            }
+        }
+        return 0;
+    }
+
+    // --- whoami -----------------------------------------------------------
+    async function builtinWhoami(args, env, io) {
+        io.println(USERNAME);
+        return 0;
+    }
+
+    // --- who (reimplemented with io.println) ------------------------------
+    async function builtinWho(args, env, io) {
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const now = new Date();
+        const mon = months[now.getMonth()];
+        const day = String(now.getDate()).padStart(2);
+        for (let i = 0; i < USER_SESSIONS.length; i++) {
+            if (!isCurrentlyLoggedIn(i)) continue;
+            const { user, tty, minAgo } = USER_SESSIONS[i];
+            const t = user === USERNAME
+                ? new Date(getSessionStart())
+                : new Date(now.getTime() - minAgo * 60000);
+            const th = String(t.getHours()).padStart(2, '0');
+            const tm = String(t.getMinutes()).padStart(2, '0');
+            io.println(`${user.padEnd(10)}tty${tty}    ${mon} ${day} ${th}:${tm}`);
+        }
+        return 0;
+    }
+
+    // --- man (reimplemented with io.println) ------------------------------
+    async function builtinMan(args, env, io) {
+        if (args.length === 0) { io.println('usage: man command'); return 1; }
+        const page = MAN_PAGES[args[0].toLowerCase()];
+        if (!page) { io.println(`No manual entry for ${args[0]}`); return 1; }
+        for (const line of page.split('\n')) io.println(line);
+        return 0;
+    }
+
+    // --- help (reimplemented with io.println) -----------------------------
+    async function builtinHelp(args, env, io) {
+        if (args.length > 0) {
+            const cmd = args[0].toLowerCase();
+            if (HELP_DETAILS[cmd]) { io.println(HELP_DETAILS[cmd]); return 0; }
+            io.println(`help: no help for '${cmd}'`); return 1;
+        }
+        const cmds = [
+            ['ls','list files'],['cat','show file'],['more','page file'],
+            ['cd','change dir'],['pwd','print dir'],['echo','echo text'],
+            ['clear','clear screen'],['whoami','login name'],['date','date/time'],
+            ['who','logged-in users'],['uname','system info'],['man','manual page'],
+            ['vi','text editor'],['finger','user info'],['mail','read/send mail'],
+            ['talk','real-time chat'],['help','this help'],['exit','exit shell'],
+            ['basic','BASIC'],['logo','Logo'],['nethack','NetHack'],
+            ['hack','Hack (1982)'],['rogue','Rogue (1980)'],['dungeon','Dungeon'],
+        ];
+        io.println('Commands (type help <command> for details):');
+        const half = Math.ceil(cmds.length / 2);
+        for (let i = 0; i < half; i++) {
+            const [ln, ld] = cmds[i];
+            const right = cmds[i + half];
+            let line = `  ${ln.padEnd(10)}${ld.padEnd(18)}`;
+            if (right) line += `  ${right[0].padEnd(10)}${right[1]}`;
+            io.println(line);
+        }
+        return 0;
+    }
+
+    // --- game launchers ---------------------------------------------------
+    function makeLaunchBuiltin(game) {
+        return async (args, env, io) => {
+            if (args.includes('--help') || args.includes('-h')) {
+                io.println(GAME_HELP[game] || `${game}: no help available`);
+                return 0;
+            }
+            throw new ShAction({ action: game === 'dungeon' ? 'dungeon' : 'launch', game });
+        };
+    }
+
+    // --- vi ---------------------------------------------------------------
+    async function builtinVi(args, env, io) {
+        if (args.length === 0) { io.println('usage: vi file'); return 1; }
+        throw new ShAction({ action: 'vi', file: args[0] });
+    }
+
+    // --- sh (subshell) ----------------------------------------------------
+    async function builtinSh(args, env, io) {
+        const subsh = new Sh(io);
+        subsh.addBuiltins(getShellBuiltins(io.shell || shell));
+        if (args.length > 0) return subsh.runFile(io.fs.resolve(args[0]), args.slice(1));
+        return subsh.interactive();
+    }
+
+    return {
+        ls:      builtinLs,
+        whoami:  builtinWhoami,
+        who:     builtinWho,
+        man:     builtinMan,
+        help:    builtinHelp,
+        vi:      builtinVi,
+        vim:     builtinVi,
+        sh:      builtinSh,
+        nethack: makeLaunchBuiltin('nethack'),
+        hack:    makeLaunchBuiltin('hack'),
+        rogue:   makeLaunchBuiltin('rogue'),
+        basic:   makeLaunchBuiltin('basic'),
+        logo:    makeLaunchBuiltin('logo'),
+        dungeon: makeLaunchBuiltin('dungeon'),
+        zork:    shellWrap(launchZork),
+        finger:  shellWrap(finger),
+        su:      shellWrap(su),
+        passwd:  shellWrap(passwd),
+        mail:    shellWrap(mail),
+        talk:    shellWrap(talk),
+        emacs:   shellWrap(emacs),
+        nano:    shellWrap(nano),
+        rm:      shellWrap(rm),
+        cp:      shellWrap(cp),
+        mv:      shellWrap(mv),
+        mkdir:   shellWrap(mkdir),
+        rmdir:   shellWrap(rmdir),
+        chmod:   shellWrap(chmod),
+    };
 }

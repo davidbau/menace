@@ -2,9 +2,9 @@
 // Simulates a 1980s Unix login shell using the existing Display class.
 
 import { VirtualFS, USERNAME, HOMEDIR, loginBanner, loginHeader, lastLoginLine, initDefaultVfsFiles, checkPassword } from './filesystem.js';
-import { getBuiltinCommands } from './commands.js';
+import { getBuiltinCommands, getShellBuiltins } from './commands.js';
 import { ViEditor } from './vi.js';
-import { Sh } from './sh/index.js';
+import { Sh, ShAction, ExitSignal } from './sh/index.js';
 import {
     CLR_GREEN, CLR_GRAY, CLR_WHITE, CLR_CYAN, CLR_YELLOW,
 } from '../js/render.js';
@@ -20,7 +20,7 @@ export class Shell {
         this.getch = getch;
         initDefaultVfsFiles();
         this.fs = new VirtualFS();
-        this.commands = getBuiltinCommands();
+        this.commands = getBuiltinCommands(); // kept for tab-completion list
         this.scrollBuffer = []; // lines currently on screen
         this.inputLine = '';
         this.cursorPos = 0;
@@ -29,6 +29,30 @@ export class Shell {
         this.running = true;
         this.result = null; // set when shell should return an action
         this.isRoot = false;
+
+        // Persistent sh interpreter — ShEnv is the authoritative environment.
+        const io = this._makeIo();
+        this.sh = new Sh(io, { PWD: this.fs.cwd });
+        this.sh.addBuiltins(getShellBuiltins(this));
+    }
+
+    // Build the io object used by the sh interpreter.
+    _makeIo() {
+        return {
+            fs:           this.fs,
+            println:      (t) => this._addLine(t, OUTPUT_COLOR),
+            print:        (t) => this.printPrompt(t),
+            getch:        () => this.getch(),
+            clearLine:    () => this.clearPromptLine(),
+            clearDisplay: () => this.clearDisplay(),
+            shell:        this,
+        };
+    }
+
+    // Called by the sh interpreter when it encounters a game executable.
+    // Throws ShAction so it propagates back to _execute.
+    launch(gameName) {
+        throw new ShAction({ action: gameName === 'dungeon' ? 'dungeon' : 'launch', game: gameName });
     }
 
     // Entry point: takes over the display, returns when shell exits.
@@ -432,56 +456,18 @@ export class Shell {
     // Parse and execute a command line
     async _execute(line) {
         if (!line) return;
-
-        // Simple tokenization (respect double quotes)
-        const tokens = this._tokenize(line);
-        if (tokens.length === 0) return;
-
-        const cmdName = tokens[0];
-        const args = tokens.slice(1);
-
-        // Check for path-based commands (e.g. /usr/games/nethack, ./nethack)
-        if (cmdName.includes('/')) {
-            const game = this.fs.getGame(cmdName);
-            if (game) {
-                if (game === 'dungeon') return { action: 'dungeon' };
-                return { action: 'launch', game };
+        try {
+            await this.sh.runLine(line);
+        } catch (e) {
+            if (e instanceof ShAction) {
+                const action = e.action;
+                if (action.action === 'vi') return await this._runVi(action.file);
+                if (action.action === 'dungeon') { await this._runDungeon(); return; }
+                return action; // launch, exit, etc.
             }
-            // Try running as a shell script
-            const content = this.fs.cat(cmdName);
-            if (content !== null) {
-                const shIo = {
-                    fs: this.fs, println: (t) => this.println(t),
-                    print: (t) => this.printPrompt(t), getch: () => this.getch(),
-                    shell: this,
-                };
-                const sh = new Sh(shIo);
-                await sh.runFile(cmdName, args);
-                return;
-            }
-            if (this.fs.getNode && (() => { try { this.fs.getNode(cmdName); return true; } catch { return false; } })()) {
-                this.println(`${cmdName}: Permission denied`);
-                return;
-            }
-            this.println(`${cmdName}: No such file or directory`);
-            return;
+            if (e instanceof ExitSignal) return { action: 'exit' };
+            if (e?.message) this._addLine(`sh: ${e.message}`, OUTPUT_COLOR);
         }
-
-        const cmd = this.commands[cmdName];
-        if (!cmd) {
-            this.println(`${cmdName}: Command not found.`);
-            return;
-        }
-
-        const result = await cmd(args, this);
-        if (result && result.action === 'vi') {
-            return await this._runVi(result.file);
-        }
-        if (result && result.action === 'dungeon') {
-            await this._runDungeon();
-            return;
-        }
-        return result;
     }
 
     async _runVi(filename) {

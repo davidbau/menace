@@ -4,10 +4,15 @@ import { expandWords, expandWord, stripQuotes, ShError } from './expand.js';
 import { BUILTINS } from './builtins.js';
 
 // Sentinel exceptions for control flow
-class BreakSignal  { constructor(n=1){this.n=n;} }
+class BreakSignal    { constructor(n=1){this.n=n;} }
 class ContinueSignal { constructor(n=1){this.n=n;} }
-class ReturnSignal { constructor(v=0){this.value=v;} }
-class ExitSignal   { constructor(v=0){this.value=v;} }
+class ReturnSignal   { constructor(v=0){this.value=v;} }
+export class ExitSignal { constructor(v=0){this.value=v;} }
+
+// ShAction: thrown by builtins that need to signal the shell loop
+// (e.g., game launches, vi, exit-to-parent).
+// action is the same object Shell._execute returns: { action, game?, file?, ... }
+export class ShAction { constructor(action){this.action=action;} }
 
 // ---- ShEnv: variable environment ----------------------------------------
 
@@ -323,9 +328,11 @@ export class Interpreter {
       const child = env.child();
       child.setPos(args, cmd);
       const childInterp = new Interpreter(child, io);
+      childInterp.builtins = this.builtins;
       return await childInterp.runSource(content);
     } catch (e) {
       if (e instanceof ShError) throw e;
+      if (e instanceof ShAction) throw e;
       io.println(`sh: ${cmd}: not found`);
       return 127;
     }
@@ -495,7 +502,8 @@ export class Interpreter {
     await child.runSource(src);
   }
 
-  // Parse and run source text
+  // Parse and run source text (for scripts — catches ExitSignal, returns its value).
+  // ShAction propagates to the caller.
   async runSource(src, env, io) {
     env = env || this.env;
     io  = io  || this.io;
@@ -514,7 +522,29 @@ export class Interpreter {
         return 2;
       }
       if (e instanceof ExitSignal) return e.value;
-      throw e;
+      throw e; // ShAction and others propagate
+    }
+  }
+
+  // Parse and run one interactive line — propagates ExitSignal and ShAction to caller.
+  async runLine(src, env, io) {
+    env = env || this.env;
+    io  = io  || this.io;
+    const { Lexer } = await import('./lexer.js');
+    const { Parser } = await import('./parser.js');
+    try {
+      const lexer = new Lexer(src);
+      const parser = new Parser(lexer.tokens);
+      const ast = parser.parse();
+      const child = new Interpreter(env, io);
+      child.builtins = this.builtins;
+      return await child._exec(ast, env, io);
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        io.println(`sh: syntax error: ${e.message}`);
+        return 2;
+      }
+      throw e; // ExitSignal, ShAction propagate to shell loop
     }
   }
 }
