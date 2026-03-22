@@ -1051,6 +1051,139 @@ export function parseFlagsFromNethackrc(text) {
     return out;
 }
 
+// Character selection fields recognized in OPTIONS= lines.
+// These are not game flags (not in C_DEFAULTS) but affect character creation.
+const CHARACTER_OPTION_KEYS = new Set(['name', 'role', 'race', 'gender', 'align']);
+
+// Parse .nethackrc into { flags, character, wizard }.
+// flags: game option flags (same as parseFlagsFromNethackrc)
+// character: { name, role, race, gender, align } (strings, only fields present)
+// wizard: true if WIZARD= directive found matching character name
+//
+// C ref: options.c initoptions() parses OPTIONS= for game flags and character
+// selection. WIZARD= is a separate directive that enables debug/wizard mode.
+export function parseNethackrcFull(text) {
+    const flags = {};
+    const character = {};
+    let wizardName = null;
+
+    for (const rawLine of String(text || '').split('\n')) {
+        const commentIdx = rawLine.indexOf('#');
+        const line = (commentIdx >= 0 ? rawLine.slice(0, commentIdx) : rawLine).trim();
+        if (!line) continue;
+
+        // WIZARD= directive
+        const wizMatch = line.match(/^WIZARD\s*=\s*(.*)/i);
+        if (wizMatch) {
+            wizardName = wizMatch[1].trim();
+            continue;
+        }
+
+        // OPTIONS= directive
+        const optMatch = line.match(/^OPTIONS\s*=\s*(.*)/i);
+        if (!optMatch) continue;
+
+        // Parse each comma-separated token
+        for (const rawToken of optMatch[1].split(',')) {
+            const token = rawToken.trim();
+            if (!token) continue;
+
+            // Extract key:value or key=value
+            const colon = token.indexOf(':');
+            const equals = token.indexOf('=');
+            let sep = -1;
+            if (colon === -1) sep = equals;
+            else if (equals === -1) sep = colon;
+            else sep = Math.min(colon, equals);
+
+            if (sep !== -1) {
+                const key = token.slice(0, sep).trim().toLowerCase();
+                const value = token.slice(sep + 1).trim();
+                if (CHARACTER_OPTION_KEYS.has(key)) {
+                    character[key] = value;
+                    continue;
+                }
+            }
+
+            // !option or nooption for character fields
+            let negKey = null;
+            if (token.startsWith('!')) negKey = token.slice(1).trim().toLowerCase();
+            else if (token.toLowerCase().startsWith('no') && !token.includes(':'))
+                negKey = token.slice(2).trim().toLowerCase();
+            if (negKey === 'tutorial') {
+                // !tutorial is a flag, not a character field, but we track it
+                // specially since it affects startup flow
+                flags.tutorial = false;
+                continue;
+            }
+            if (negKey === 'autopickup') {
+                flags.pickup = false;
+                continue;
+            }
+
+            // Delegate to existing flag parser for game options
+            Object.assign(flags, parseNethackOptionsString(token));
+        }
+    }
+
+    const wizard = !!(wizardName && (
+        !character.name || character.name === wizardName
+    ));
+
+    return { flags, character, wizard };
+}
+
+// Build a .nethackrc string from session options.
+// Inverse of parseNethackrcFull: takes { character, flags, wizard } and produces text.
+export function buildNethackrc({ character = {}, flags = {}, wizard = false } = {}) {
+    const lines = [];
+
+    // Character selection OPTIONS
+    const charParts = [];
+    if (character.name) charParts.push(`name:${character.name}`);
+    if (character.role) charParts.push(`role:${character.role}`);
+    if (character.race) charParts.push(`race:${character.race}`);
+    if (character.gender) charParts.push(`gender:${character.gender}`);
+    if (character.align) charParts.push(`align:${character.align}`);
+    if (charParts.length > 0) lines.push(`OPTIONS=${charParts.join(',')}`);
+
+    // Game flags OPTIONS — only write non-default values
+    const defaults = DEFAULT_FLAGS;
+    const flagParts = [];
+    for (const key of Object.keys(C_DEFAULTS).sort()) {
+        if (!(key in flags)) continue;
+        const val = flags[key];
+        const def = defaults[key];
+        if (val === def) continue;
+        if (key === 'invlet_constant') continue;
+        if (typeof def === 'boolean') {
+            flagParts.push(val ? key : `!${key}`);
+        } else {
+            flagParts.push(`${key}:${val}`);
+        }
+    }
+    // Handle special flags not in C_DEFAULTS
+    if (flags.tutorial === false) flagParts.push('!tutorial');
+    if (flags.pickup === false && !flagParts.includes('!pickup')) flagParts.push('!autopickup');
+    if (flagParts.length > 0) lines.push(`OPTIONS=${flagParts.join(',')}`);
+
+    // WIZARD directive
+    if (wizard) {
+        lines.push(`WIZARD=${character.name || 'Wizard'}`);
+    }
+
+    lines.push(''); // trailing newline
+    return lines.join('\n');
+}
+
+// Build an env dictionary from session fields.
+export function buildSessionEnv(seed, datetime) {
+    const env = {};
+    if (seed != null) env.NETHACK_SEED = String(seed);
+    if (datetime) env.NETHACK_FIXED_DATETIME = datetime;
+    return env;
+}
+
 // Parse URL query: supports ?NETHACKOPTIONS=... and explicit ?name=...&pickup=...
 function parseUrlConfig() {
     if (typeof window === 'undefined' || !window.location) {
