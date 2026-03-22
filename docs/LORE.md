@@ -16673,8 +16673,10 @@ distinction is always conditional on being in Gehennom.
       instrumentation layer:
       - RNG `51561/51561`
       - events `28950/28950`
-      - remaining divergence unchanged in the preexisting screen/cursor lane
-        at step `41`
+      - the old step-`41` row-0 seam was a separate chest take-out teardown
+        bug, not a hallucination/display-RNG seam
+      - after that `js/pickup.js` fix, the remaining screen-only seam is still
+        the hallucination lane at step `144`
 
 ---
 
@@ -16775,3 +16777,36 @@ within the moveloop.
 
 **Status**: Open. Both have identical moveamt/wtcap transitions. The drift
 source is elsewhere in the moveloop phase ordering.
+
+## 2026-03-22 - `seed031` step-41 screen seam was container prompt teardown, not cosmic display drift
+
+- The first post-gameplay `seed031` screen failure at step `41` turned out to
+  be simpler than the cosmic-display investigation target:
+  - C/session row `0`: `"m - a cyan spellbook.  n - 2 swirly potions."`
+  - JS row `0`: blank
+- The compared gameplay steps there are the chest `#loot` take-out submenu:
+  - step `39`: `"Take out what?"`
+  - step `40`: item menu
+  - step `41`: post-selection pickup summary line
+- Root cause in `js/pickup.js`:
+  - `out_container()` already emits the correct C-shaped summary line via
+    `pline("%s - %s.", ...)`
+  - but `containerMenu()` then unconditionally cleared row `0` when tearing
+    down the submenu
+  - that erased the valid summary message that C leaves visible after the menu
+    closes
+- Faithful fix:
+  - only clear row `0` when no take-out message replaced the prompt:
+    `if (!didTake && typeof display?.clearRow === 'function') display.clearRow(0);`
+- Validated impact:
+  - `seed031_manual_direct.session.json`
+    - RNG remains `51561/51561`
+    - events remain `28950/28950`
+    - first screen divergence moves later from step `41` to step `144`
+  - nearby controls stay on their existing gameplay seams:
+    - `seed032_manual_direct.session.json` still first diverges at step `279`
+    - `seed033_manual_direct.session.json` still first diverges at step `338`
+- Practical rule:
+  - when a JS submenu emits a real topline message during teardown, do not
+    blindly clear row `0`; match the C tty ownership of the surviving prompt
+    vs message line
