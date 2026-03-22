@@ -34,7 +34,7 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE, TER_DETECT,
          TELEPORT, POLYMORPH, Upolyd } from './const.js';
 import { ageSpells } from './spell.js';
-import { wipe_engr_at } from './engrave.js';
+import { wipe_engr_at, can_reach_floor } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
 import { exerchk } from './attrib_exercise.js';
@@ -488,11 +488,13 @@ export async function moveloop_turnend(game) {
         await amulet((game.map || game.map), (game.u || game.u), game.display);
     }
 
-    // C ref: allmain.c:359 — engrave wipe check (ACURR(A_DEX))
+    // C ref: allmain.c:364 — engrave wipe check (ACURR(A_DEX))
     const dex = acurr((game.u || game.u), A_DEX);
     if (!rn2(40 + dex * 3)) {
-        // C ref: allmain.c:359-360 u_wipe_engr(rnd(3))
-        await wipe_engr_at((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y, rnd(3), false);
+        // C ref: engrave.c u_wipe_engr() — only wipe if can reach floor
+        if (can_reach_floor((game.u || game.u), (game.map || game.map), true)) {
+            await wipe_engr_at((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y, rnd(3), false);
+        }
     }
 
     // C ref: allmain.c:374 — water/air planes update moving bubbles/clouds each turn.
