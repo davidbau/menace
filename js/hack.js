@@ -2483,12 +2483,15 @@ export function inv_weight(player) {
     let wt = 0;
     let hasCoinObject = false;
     const inv = player.inventory || [];
+    // C ref: hack.c inv_weight() — boulders don't count for throws_rocks() forms
+    const heroData = hero_data(player);
+    const canThrowRocks = !!(heroData && throws_rocks(heroData));
     for (const obj of inv) {
         if (!obj) continue;
         if (obj.oclass === COIN_CLASS) {
             hasCoinObject = true;
             wt += Math.floor(((obj.quan || 0) + 50) / 100);
-        } else {
+        } else if (obj.otyp !== BOULDER || !canThrowRocks) {
             wt += obj.owt || 0;
         }
     }
