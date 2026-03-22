@@ -1591,9 +1591,9 @@ async function containerMenu(game, container) {
         }
     }
 
-    const clearMenuOptionRows = (startCol = 0) => {
+    const clearMenuOptionRows = (startCol = 0, startRow = 2, endRow = 10) => {
         const cols = display?.cols || 80;
-        for (let r = 2; r <= 10; r++) {
+        for (let r = startRow; r <= endRow; r++) {
             if (typeof display?.putstr === 'function') {
                 // C ref: tty clears only the menu text area, preserving the
                 // underlying map cells on the left side of the screen.
@@ -1758,9 +1758,15 @@ async function containerMenu(game, container) {
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
             const displayRows = buildContainerDisplayRows(visible, available, selected, player);
+            if (typeof display?.renderMap === 'function' && game?.map && game?.u && game?.fov) {
+                display.renderMap(game.map, game.u, game.fov, game.flags);
+                if (typeof display?.renderStatus === 'function') display.renderStatus(game.u);
+                if (typeof display?.cursorOnPlayer === 'function') display.cursorOnPlayer(game.u);
+            }
             // C ref: clear menu area but preserve map cells on the left.
             // Previous class menu may extend left of menuPad; use tracked minimum.
-            clearMenuOptionRows(lowestMenuPad);
+            const menuRowEnd = 1 + displayRows.length;
+            clearMenuOptionRows(lowestMenuPad, 2, menuRowEnd);
             await putMenuPrompt('Take out what?', menuPad);
             for (let i = 0; i < displayRows.length; i++) {
                 const row = displayRows[i];

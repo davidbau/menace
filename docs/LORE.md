@@ -16161,3 +16161,35 @@ distinction is always conditional on being in Gehennom.
   around gameplay step `1241`:
   - JS first RNG: `rn2(3)=0 @ dochug(monmove.js:847)`
   - C first RNG: `rn2(5)=0 @ distfleeck(monmove.c:539)`
+
+## 2026-03-22 - `seed031`: chest take-out submenu was erasing map rows under the menu
+
+- While chasing the long-running `seed031` gameplay seam, the earliest
+  authoritative comparable visible divergence was much earlier than the RNG
+  split: gameplay screen step `39` inside a `#loot` chest take-out submenu.
+- The actual compared gameplay steps there are container prompts, not startup
+  or engraving prompts:
+  - step `35`: `Do what with the chest?`
+  - step `36`: `Take out what type of objects?`
+  - step `38/39`: `Take out what?`
+- JS was clearing too much of the underlying map when transitioning from the
+  class submenu to the item submenu in [`containerMenu()`](js/pickup.js):
+  - `clearMenuOptionRows()` always blanked rows `2..10`
+  - then the `Take out what?` submenu only redrew rows `2..6`
+  - this left rows `7..10` either blank or stale class-menu text while C had
+    already restored the map behind the menu
+- Narrow faithful fix in [`js/pickup.js`](js/pickup.js):
+  - let `clearMenuOptionRows()` accept an explicit row range
+  - before drawing the `Take out what?` submenu, rerender the underlying
+    map/status/cursor
+  - clear only the rows actually occupied by that submenu
+- Result:
+  - `seed031` first screen divergence moved later from step `39` to step `41`
+  - screen matches improved `1281 -> 1285`
+  - color matches improved `11234 -> 11244`
+  - cursor matches improved `411/415 -> 415/419`
+  - RNG/events were unchanged; the live gameplay seam remains at step `1241`
+- Targeted validation:
+  - `seed031_manual_direct.session.json`: improved screen/color/cursor, same RNG/events
+  - `coverage/locks-containers-pickup/t02_s714_w_cardbox_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
