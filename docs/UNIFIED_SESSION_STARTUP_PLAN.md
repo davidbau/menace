@@ -263,13 +263,13 @@ artifact invocation should still reach the point where artifacts are invoked.
    **Mitigation:** Gate 3 ensures backward compatibility. V3 sessions continue
    to work. V4 is opt-in until Gate 6.
 
-### Gate 8: Cleanup — Remove All Backward Compatibility Shims
+### Gate 8: Cleanup — Unified Recording and Replay
 
 **This is the most important gate.** The entire goal is to reduce complexity.
-Every shim added during Gates 2-7 must be removed. The final state must be
-simpler than the starting state.
+Every shim added during Gates 2-7 must be removed, and the recording
+infrastructure must be consolidated into a single path per runtime.
 
-Specifically, remove:
+#### 8A. Remove V3 Backward Compatibility Shims
 
 1. **V3 `options` field from session files** — V4 sessions should only have
    `env` + `nethackrc` + `regen` + `steps`. No more `options.role`, `options.wizard`, etc.
@@ -290,17 +290,133 @@ Specifically, remove:
 6. **Session version branching** — No `if (session.version === 3)` checks.
    All sessions are V4.
 
-**Measurable:** The total line count of session loading/parsing code should
-decrease. `parseSessionCharacter` (50+ lines of status-line role inference)
-should be deleted. `buildGameplayReplayFlags` should be replaced by
-`parseNethackrcFull`. The session file format section of SESSION_FORMAT docs
-should be shorter.
+#### 8B. Unified C Recording Path
 
-**Test:** All 562 passing sessions still pass. No V3-specific code paths remain.
+**Problem:** There are currently 6+ scripts that each launch C NetHack
+differently (`run_session.py` with 4 modes, `gen_interface_sessions.py`,
+`gen_option_sessions.py`, `gen_discoveries_session.py`, `keylog_to_session.py`).
+Each has its own code for writing `.nethackrc`, setting env vars, starting
+tmux, and capturing screens.  This duplication is the source of bugs
+(e.g., missing `name:Wizard` in some generators, inconsistent capture-pane
+flags, inconsistent --More-- handling).
 
-## Non-Goals (for this PR)
+**Target:** One function that records a C session.  Everything else is just
+data (env, nethackrc, keys).
 
-- Changing the step/keystroke format
-- Changing the RNG logging format
-- Changing the screen capture format
-- Restructuring the test runner
+```python
+def record_c_session(env, nethackrc, keys, output_path):
+    """The single C recording path.
+
+    1. Write nethackrc to a temp HOME dir
+    2. Set env vars (NETHACK_SEED, NETHACK_FIXED_DATETIME, etc.)
+    3. Launch nethack in tmux
+    4. For each key in keys:
+       a. Send the key
+       b. Wait for RNG to settle (level-gen detection)
+       c. Capture screen, RNG delta, cursor
+       d. Record step
+    5. Write session JSON
+    """
+```
+
+**Key design principle: no special startup modes.**
+
+- The `.nethackrc` determines what the game does at startup.  If it has
+  `role:Valkyrie,race:human,...` then chargen is skipped by the game itself.
+  If it omits those fields, chargen runs and the key sequence must include
+  the selection keys.
+
+- Startup `--More--` prompts (LANGSTROTH messages) are NOT auto-cleared.
+  They are part of the session: the key sequence includes the space keys
+  to dismiss them, and the screens before/after each `--More--` are
+  captured as steps like any other.
+
+- `#wizloaddes castle` is NOT a special post-startup action.  It's just
+  keys in the sequence: `#`, `w`, `i`, `z`, `l`, `o`, `a`, `d`, `d`,
+  `e`, `s`, `\n`, `c`, `a`, `s`, `t`, `l`, `e`, `\n`.
+
+- Interactive chargen, tutorial prompts, name prompts — all just keys.
+
+**What gets deleted:**
+
+| Current | Replaced by |
+|---------|-------------|
+| `run_session.py` gameplay mode | `record_c_session(env, nethackrc, keys)` |
+| `run_session.py` --chargen mode | same function, nethackrc omits role/race |
+| `run_session.py` --interface mode | same function |
+| `run_session.py` --wizload mode | same function, keys include #wizloaddes |
+| `gen_interface_sessions.py` | thin wrapper calling `record_c_session` |
+| `gen_option_sessions.py` | thin wrapper calling `record_c_session` |
+| `gen_discoveries_session.py` | thin wrapper calling `record_c_session` |
+| `keylog_to_session.py` | same function, keys from keylog file |
+| `wait_for_game_ready()` | deleted — no auto-advance through chargen |
+| `clear_more_prompts()` | deleted — --More-- keys are in the sequence |
+| `_build_gameplay/_build_chargen/etc.` in rerecord.py | one path |
+
+**rerecord.py simplification:** Currently dispatches to 5+ builder
+functions.  After cleanup, re-recording any session is: read `env` +
+`nethackrc` + `keys` from the session file, call `record_c_session`.
+The `regen` field is only needed to reconstruct keys for sessions
+that store a compact move notation rather than the full key list.
+
+#### 8C. Unified JS Replay Path
+
+Two JS paths (headless and browser) should share the same core:
+
+1. Parse `nethackrc` → flags + character options
+2. Apply `env` (seed, datetime)
+3. Initialize the game
+4. Feed keys one at a time, capture state after each
+
+The headless test runner and the browser `?session=` handler should
+both call the same initialization code.  The only difference is the
+display backend (HeadlessDisplay vs Display).
+
+**Browser plumbing note:** The browser path uses `?session=path` with
+`&clearLocalStorage` to ensure a clean slate.  Because localStorage is
+wiped, startup configuration (seed, datetime, nethackrc options) must
+be passed via URL parameters rather than localStorage — e.g.,
+`&NETHACKOPTIONS=...&NETHACK_SEED=...&NETHACK_DATETIME=...`.  The
+browser init code reads these URL params and applies them the same way
+the headless path applies `env` + `nethackrc`.  The mechanism differs
+(URL params vs function args) but the logic is identical.
+
+#### 8D. Session Key Sequences Must Be Complete
+
+**All sessions must store the complete key sequence from game launch.**
+This means:
+
+- Startup `--More--` dismissals (space keys) are recorded as steps
+- Chargen selections are recorded as steps (if chargen is interactive)
+- Tutorial prompt responses are recorded as steps
+- `#wizloaddes` typing is recorded as steps
+
+The `keys` in a session should be sufficient to fully replay the session
+from a cold nethack launch with only the `env` + `nethackrc` configuration.
+No hidden auto-advance or auto-clear logic.
+
+**Migration:** Existing sessions that rely on auto-advance (most gameplay
+sessions) need their key sequences extended to include the startup
+`--More--` spaces and any chargen-skip confirmations.  This can be done
+by re-recording with the unified recorder, which captures everything.
+
+#### Measurables
+
+- **Line count:** Total lines in `run_session.py` + `gen_*.py` +
+  `keylog_to_session.py` + `rerecord.py` should decrease significantly.
+  The gen_* scripts become < 30 lines each (just data + a call to
+  `record_c_session`).
+
+- **Code paths:** One C recording function.  One JS replay core.
+  No `if mode == 'gameplay'` / `elif mode == 'chargen'` branching.
+
+- **Session format:** `parseSessionCharacter` (50+ lines of status-line
+  role inference) deleted.  `buildGameplayReplayFlags` replaced by
+  `parseNethackrcFull`.  No V3 code paths.
+
+- **Correctness:** All sessions re-record identically (modulo the known
+  platform differences: tmux encoding, C source line numbers, step
+  boundary timing at level transitions).
+
+**Test:** All currently passing sessions still pass.  No V3-specific
+code paths remain.  Re-recording any session type uses the same function.

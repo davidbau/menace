@@ -641,9 +641,15 @@ def capture_screen_lines(session):
 
 
 def capture_screen_ansi_lines(session):
-    """Capture tmux screen with ANSI escapes preserved; return as 24 lines."""
+    """Capture tmux screen with ANSI escapes preserved; return as 24 lines.
+
+    Uses -e (escapes) but NOT -J (join), because -J implies -T which strips
+    trailing attributed-space cells on tmux 3.6a, losing inverse-video bar
+    information.  Trailing default-attr spaces are trimmed by tmux but our
+    normalizer pads them back to 80 cols with defaults.
+    """
     result = subprocess.run(
-        ['tmux', 'capture-pane', '-t', session, '-p', '-e', '-J', '-S', '0', '-E', '30'],
+        ['tmux', 'capture-pane', '-t', session, '-p', '-e', '-S', '0', '-E', '30'],
         capture_output=True, text=True, check=True
     )
     _raise_on_dump_error(result.stdout)
@@ -2313,6 +2319,43 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             else:
                 tmux_send(session_name, ch)
 
+        saw_ctrl_v = False  # Ctrl-V = teleport command
+
+        def _is_level_gen_key(ch):
+            """Return True if this key triggers level generation."""
+            nonlocal saw_ctrl_v
+            result = False
+            if ch == '>' or ch == '<':
+                result = True
+            elif ch == '\n' and saw_ctrl_v:
+                result = True
+            # Track Ctrl-V state (teleport command)
+            if ch == '\x16':
+                saw_ctrl_v = True
+            elif ch == '\n' or ch == '\x1b':
+                saw_ctrl_v = False
+            return result
+
+        def _wait_for_rng_settle():
+            """Poll the RNG log until the count stops growing.
+
+            After a key that triggers level generation, the C binary may
+            still be computing.  Poll every 20ms; once the count is stable
+            for 50ms we know it has finished.
+            """
+            prev_count, _ = read_rng_log(rng_log_file)
+            stable_ticks = 0
+            for _ in range(100):   # up to 2s
+                time.sleep(0.02)
+                cur_count, _ = read_rng_log(rng_log_file)
+                if cur_count == prev_count:
+                    stable_ticks += 1
+                    if stable_ticks >= 3:   # stable for ~60ms
+                        return
+                else:
+                    stable_ticks = 0
+                    prev_count = cur_count
+
         print(f'\n=== MOVES ({len(replay_keys)} steps, key_delay={key_delay_s:.3f}s) ===')
         if key_delay_overrides:
             print(f'Per-turn key delay overrides: {len(key_delay_overrides)} steps')
@@ -2322,6 +2365,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             ch = replay_keys[idx]
             key = ch
             description = describe_key(ch)
+            triggers_level_gen = _is_level_gen_key(ch)
 
             # Send the character
             send_char(ch)
@@ -2329,6 +2373,11 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             step_num = idx + 1
             step_delay = key_delay_overrides.get(step_num, key_delay_s)
             time.sleep(max(0.0, step_delay))
+
+            # After level-gen keys (>, <, Enter-after-Ctrl-V), wait for
+            # the C binary to finish computing before capturing the screen.
+            if triggers_level_gen:
+                _wait_for_rng_settle()
 
             # Optional final-frame settle for the very last captured step.
             if idx == len(replay_keys) - 1 and final_capture_delay_s > 0.0:
