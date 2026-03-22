@@ -299,9 +299,9 @@ export class BasicInterpreter {
       return this._execOn(stmt.slice(2).trimStart(), lineNum);
     }
 
-    // HGR — clear graphics
+    // HGR — clear graphics (no turtle in BASIC)
     if (upper === 'HGR' || upper === 'HGR2') {
-      if (this._turtle) this._turtle.clearscreen();
+      if (this._turtle) { this._turtle.clearscreen(); this._turtle.hideturtle(); }
       return null;
     }
 
