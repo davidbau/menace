@@ -2581,9 +2581,9 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
         return { count: esc, pick_list: [] };
     }
 
-    // fix up counts
+    // fix up counts — select_menu returns { identifier, count }
     const items = result.map(r => {
-        const obj = r.item?.a_obj || r.a_obj;
+        const obj = r.identifier?.a_obj || r.item?.a_obj || r.a_obj;
         let cnt = r.count;
         if (cnt === -1 || cnt > (obj?.quan || 1)) cnt = obj?.quan || 1;
         return { obj, count: cnt };
