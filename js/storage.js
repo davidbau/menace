@@ -942,6 +942,7 @@ function normalizeOptionKey(rawKey) {
     const lower = key.toLowerCase();
     if (lower === 'autopickup') return 'pickup';
     if (lower === 'showexp') return 'showexp';
+    if (lower === 'symset') return 'symset';  // handled specially in parseNethackOptionsString
     const exactLower = Object.keys(C_DEFAULTS).find((k) => k.toLowerCase() === lower);
     return exactLower || null;
 }
@@ -1119,6 +1120,17 @@ export function parseNethackrcFull(text) {
             if (negKey === 'autopickup') {
                 flags.pickup = false;
                 continue;
+            }
+
+            // Handle symset:DECgraphics → DECgraphics flag
+            if (sep !== -1) {
+                const sKey = token.slice(0, sep).trim().toLowerCase();
+                const sVal = token.slice(sep + 1).trim();
+                if (sKey === 'symset' && sVal === 'DECgraphics') {
+                    flags.DECgraphics = true;
+                    continue;
+                }
+                if (sKey === 'suppress_alert') continue;  // not a game flag
             }
 
             // Delegate to existing flag parser for game options
