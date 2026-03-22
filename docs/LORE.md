@@ -16509,3 +16509,31 @@ distinction is always conditional on being in Gehennom.
   - the live seam is now in tame-pet `dog_invent()` / `droppables()` /
     nearby pet-control branch selection
   - not in the already-fixed floor-meal object identity path
+
+## 2026-03-22 - pet `oeaten` timing must shorten `meating`
+
+- C `dog_nutrition()` applies `eaten_stat()` to both `mtmp->meating` and the
+  awarded nutrition when `obj->oeaten` is non-zero.
+- JS `dog_nutrition()` was still using full-food timing for partially eaten pet
+  food.
+- In the late `seed031` corridor, live JS tracing showed the housecat still in
+  the eating lane across the authoritative pet seam:
+  - step `1313`: `meating=6`
+  - step `1315`: `meating=4`
+  - step `1317`: `meating=3`
+- That was the reason JS skipped the C-side `dog_move() -> dog_invent()` lane
+  on the matching late turns.
+- Faithful fix:
+  - in `js/dogmove.js`, when `obj.oeaten` is set, reduce both `mon.meating`
+    and `nutrit` with `eaten_stat()` exactly as C does
+- Validated impact:
+  - `seed031_manual_direct.session.json`
+    - first RNG divergence improved `1313 -> 1333`
+    - matched RNG calls improved `50883/51561 -> 51560/51732`
+    - matched events improved `28348/28950 -> 28950/28952`
+  - controls stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+  - nearby regression check stayed stable:
+    - `seed032_manual_direct.session.json` still first diverges at step `144`

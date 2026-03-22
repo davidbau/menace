@@ -816,6 +816,53 @@ Those unknowns are acceptable. What is not acceptable is returning to broad
 prompt-boundary speculation now that two concrete floor-object bugs have been
 proven and fixed.
 
+## 7. Partially eaten pet food must shorten `meating`
+
+Another validated `seed031` fix resolved the last active eating-lane seam.
+
+Key fact:
+
+- C `dog_nutrition()` reduces both `mtmp->meating` and the awarded nutrition
+  through `eaten_stat()` whenever `obj->oeaten` is set
+- JS `dog_nutrition()` was still using full-food timing for partially eaten
+  food
+
+That mismatch mattered in the late `seed031` corridor because the housecat was
+eating a partially eaten corpse.
+
+Concrete evidence:
+
+- live JS Phase 3 tracing showed the housecat still in the eating lane across
+  the late pet seam:
+  - step `1313`: `meating=6`
+  - step `1315`: `meating=4`
+  - step `1317`: `meating=3`
+- while `meating > 0`, JS never reached `dog_move() -> dog_invent()` on the
+  same turn where C already did
+- the authoritative C side at the corresponding seam was already back in:
+  - `dog_invent()`
+  - `dog_goal()`
+  - later pet combat / endgame work
+
+Faithful fix:
+
+- in [`js/dogmove.js`](/share/u/davidbau/git/mazesofmenace/game/js/dogmove.js),
+  apply `eaten_stat()` to both `mon.meating` and `nutrit` when `obj.oeaten`
+  is non-zero, matching C `dog_nutrition()`
+
+Validated impact:
+
+- `seed031_manual_direct.session.json`
+  - first RNG divergence improved from step `1313` to `1333`
+  - matched RNG calls improved from `50883/51561` to `51560/51732`
+  - matched events improved from `28348/28950` to `28950/28952`
+- controls stayed green:
+  - `t11_s755_w_covmax9_gp.session.json`
+  - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+  - `t04_s993_w_eatground_gp.session.json`
+- nearby regression check stayed stable:
+  - `seed032_manual_direct.session.json` still first diverges at step `144`
+
 ## 8. Newest floor-object selection is part of C-faithful meal identity
 
 A later validated `seed031` fix narrowed the remaining meal seam further.
@@ -890,7 +937,7 @@ The best current summary is:
 
 The validated floor-meal fixes moved the live `seed031` seam again.
 
-Current authoritative state:
+Previous authoritative state before the pet `oeaten` fix:
 
 - session: `test/comparison/sessions/seed031_manual_direct.session.json`
 - first RNG divergence: gameplay step `1313`
@@ -900,13 +947,13 @@ Current authoritative state:
   - JS: `^distfleeck[33@42,9 in=1 near=0 scare=0 brave=0 saw=0 light=0 sanct=0]`
   - C: `^dog_invent_decision[33@42,9 ud=8 act=0 otyp=-1 carry=0 rv=0]`
 
-What that means:
+What that meant:
 
 - the active seam is no longer the corpse-identity bug fixed above
 - it is now a tame-pet control-flow seam in `dog_invent()` / `dog_goal()`
   territory
 
-Useful late-step JS state collected during this pass:
+Useful late-step JS state collected during that pass:
 
 - by step `1315`, the pet is still a tame pet with live `edog` state
 - local JS inspection confirmed:
@@ -915,8 +962,6 @@ Useful late-step JS state collected during this pass:
   - `minventCount=1`
   - the carried item is an unworn, uncursed `dwarvish cloak`
 
-So the next debugging lane should not reopen the old eating-occupation fixes.
-The remaining fault is now narrower:
+That seam is now resolved by the validated `oeaten` fix above.
 
-- why does the tame pet fail to stay aligned with C's `dog_invent()` lane once
-  the meal/object identity bugs are removed?
+The live `seed031` seam is now later than this document's original eating lane.
