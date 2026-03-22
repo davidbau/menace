@@ -2370,7 +2370,8 @@ export async function handleMonsterKilled(player, monster, display, map) {
     // C ref: mon.c LEVEL_SPECIFIC_NOCORPSE() + xkilled() gate.
     // This pre-check suppresses both treasure drops and corpse creation.
     const isRogueLevel = !!map?.flags?.is_rogue_level;
-    const deathdropsDisabled = map?.flags?.deathdrops === false;
+    // C ref: !svl.level.flags.deathdrops — falsy check (0 or false, not undefined)
+    const deathdropsDisabled = (map?.flags?.deathdrops != null && !map.flags.deathdrops);
     let graveyardUndeadNoCorpse = false;
     if (!isRogueLevel && !deathdropsDisabled && map?.flags?.graveyard && is_undead(mdat)) {
         // C macro term: (graveyard && is_undead(mdat) && rn2(3))

@@ -887,8 +887,9 @@ export function corpse_chance(mon) {
     // C ref: mon.c:3241-3242 — LEVEL_SPECIFIC_NOCORPSE
     const map = _gstate?.lev ?? _gstate?.map;
     const levelFlags = map?.flags || {};
+    // C ref: LEVEL_SPECIFIC_NOCORPSE — check deathdrops as falsy (0 or false)
     if (levelFlags.is_rogue_level
-        || (levelFlags.deathdrops === false)
+        || (levelFlags.deathdrops != null && !levelFlags.deathdrops)
         || (levelFlags.graveyard && is_undead(mdat) && rn2(3)))
         return false;
 
@@ -1068,9 +1069,12 @@ export async function xkilled(mon, xkill_flags, map, player) {
     const mndx = mon.mndx ?? 0;
     const game = _gstate;
     const levelFlags = map?.flags || {};
+    // C ref: mon.c LEVEL_SPECIFIC_NOCORPSE — check deathdrops as falsy
+    // (0 or false), not strict === false, since the flag may be 0.
+    // Guard against undefined (unset) by requiring != null.
     const levelSpecificNocorpse =
         levelFlags.is_rogue_level
-        || (levelFlags.deathdrops === false)
+        || (levelFlags.deathdrops != null && !levelFlags.deathdrops)
         || (levelFlags.graveyard && is_undead(mdat) && rn2(3));
     if (!levelSpecificNocorpse) {
         if (map && !rn2(6)
