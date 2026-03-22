@@ -1252,6 +1252,12 @@ async function dochug(mon, map, player, display, fov, game = null) {
         return;
     }
 
+    // C ref: monmove.c:705-708 — one-time arrival effect
+    if ((Number(mon.mstrategy || 0) & STRAT_ARRIVE) !== 0) {
+        const res = m_arrival(mon);
+        if (res >= 0) return res;
+    }
+
     // C ref: monmove.c:710-712 — waiting monsters wake once they can see
     // the hero or after taking damage.
     if ((Number(mon.mstrategy || 0) & STRAT_WAITFORU) !== 0) {
@@ -1337,7 +1343,6 @@ async function dochug(mon, map, player, display, fov, game = null) {
     }
     if (mon_is_stunned(mon) && !rn2(10)) {
         mon.mstun = 0;
-        mon.mstun = false;
     }
 
     // C ref: monmove.c:746 — flee teleport
