@@ -11,6 +11,7 @@ import { mon_arrive } from './dog.js';
 import { Player, roles } from './player.js';
 import { RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from './const.js';
 import { initrack } from './monmove.js';
+import { parseNethackrcFull } from './storage.js';
 
 // ---------------------------------------------------------------------------
 // Screen normalization
@@ -349,6 +350,34 @@ export function hasStartupBurstInFirstStep(session) {
 
 // Build (seed, opts, keys) args for replaySession from a session object.
 export function prepareReplayArgs(seed, session, opts = {}) {
+    // V4 support: if session has nethackrc, derive options fields from it
+    // so the rest of this function works uniformly with V3 and V4 sessions.
+    if (session.nethackrc && !session._v4OptionsApplied) {
+        const { character, flags, wizard } = parseNethackrcFull(session.nethackrc);
+        if (!session.options) session.options = {};
+        // Fill in character fields from nethackrc if not already in options
+        if (character.name && !session.options.name) session.options.name = character.name;
+        if (character.role && !session.options.role) session.options.role = character.role;
+        if (character.race && !session.options.race) session.options.race = character.race;
+        if (character.gender && !session.options.gender) session.options.gender = character.gender;
+        if (character.align && !session.options.align) session.options.align = character.align;
+        if (wizard && session.options.wizard === undefined) session.options.wizard = true;
+        // Fill in flag fields
+        if (flags.pickup === false && session.options.autopickup === undefined) session.options.autopickup = false;
+        if (flags.verbose === false && session.options.verbose === undefined) session.options.verbose = false;
+        if (flags.tutorial === false && session.options.tutorial === undefined) session.options.tutorial = false;
+        if (flags.DECgraphics && !session.options.symset) session.options.symset = 'DECgraphics';
+        if (flags.time === true && session.options.time === undefined) session.options.time = true;
+        if (flags.color === false && session.options.color === undefined) session.options.color = false;
+        if (flags.rest_on_space && session.options.rest_on_space === undefined) session.options.rest_on_space = true;
+        // Fill in env-derived fields
+        if (session.env) {
+            if (session.env.NETHACK_FIXED_DATETIME && !session.options.datetime) {
+                session.options.datetime = session.env.NETHACK_FIXED_DATETIME;
+            }
+        }
+        session._v4OptionsApplied = true;
+    }
     const chargenKeys = getChargenKeys(session);
     const sessionChar = parseSessionCharacter(session);
     const tutorialFlag = typeof opts.tutorial === 'boolean'
