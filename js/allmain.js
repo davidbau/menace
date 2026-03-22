@@ -457,10 +457,14 @@ export async function moveloop_turnend(game) {
         }
     }
 
-    // C ref: allmain.c:341-343 — autosearch for players with Searching
+    // C ref: allmain.c:346-348 — autosearch for players with Searching
     // intrinsic (Archeologists/Rangers at level 1, Rogues at 10, etc.)
-    if ((game.u || game.u).searching && game.multi >= 0) {
-        await dosearch0((game.u || game.u), (game.map || game.map), game.display, game, 1);
+    // C also checks !svl.level.flags.noautosearch.
+    {
+        const mapFlags = (game.map || game.map)?.flags || {};
+        if ((game.u || game.u).searching && !mapFlags.noautosearch && game.multi >= 0) {
+            await dosearch0((game.u || game.u), (game.map || game.map), game.display, game, 1);
+        }
     }
 
     // C ref: allmain.c:351 dosounds() — ambient sounds
