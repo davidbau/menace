@@ -118,6 +118,85 @@ if (!hasNegativeMulti && !hasOccupation && !hasPositiveMultiMv) {
   `do_run` returns with continuation pending
 - `finalizeTimedCommand` at line 790 handles the first turn-end
 
+## Progress and Findings (March 22, 2026)
+
+### Completed
+- **Comparator fix**: trailing tolerance removed (was hiding JS-shorter gaps).
+  seed032 honestly reports 7421/29881 (25%).
+- **Travel batching fixed**: `runAcceptedTravelCommandLoop` no longer loops.
+- **Direction fix**: `runMovementRepeatSlice` now passes `[player.dx, player.dy]`
+  for running (was `[0,0]` = no movement). Committed.
+- **runMovementRepeatSlice restructured**: now matches do_run's ordering
+  (domove → turn-end → checks → lookaround). Committed.
+- **Spell FOV guard**: prevents crash when spell menu renders with null FOV.
+
+### The Double Turn-End Problem
+When `do_run` is changed to do ONE move:
+1. `do_run` calls `game.advanceRunTurn()` (hook set by `run_command` line 755)
+   → processes turn-end for the first move
+2. `do_run` returns `tookTime: true`
+3. `run_command` calls `finalizeTimedCommand` → `advanceTimedTurn` → **second
+   turn-end for the same move**
+
+With the old `tookTime: hasRunTurnHook ? false : timedTurns > 0` return, this
+was avoided because `tookTime: false` skipped `finalizeTimedCommand`. But then
+the continuation in `_gameLoopStep` uses `runMovementRepeatSlice` which calls
+`advanceTimedTurn` directly — and this produces RNG that doesn't match `do_run`'s
+hook-based approach (divergence at index ~2846).
+
+### Root Cause of Continuation Divergence
+The first move's turn-end goes through `game.advanceRunTurn` (hook path).
+The continuation's turn-end goes through `advanceTimedTurn` (direct call).
+Even though they call the same underlying function, the CALLING CONTEXT differs:
+- Hook path: called from inside `do_run`, before `run_command` returns
+- Direct path: called from `runMovementRepeatSlice`, after `_gameLoopStep` looped
+
+The game state may differ subtly between these two points (e.g., `run_command`
+cleanup code runs between them).
+
+### Fix Approach (Next Step)
+Make the first move NOT use the hook. Instead:
+1. `run_command`: do NOT set `game.advanceRunTurn` before calling `do_run`
+   (or clear it before the call)
+2. `do_run`: with no hook, the first move does domove but NO turn-end
+3. `do_run`: returns `tookTime: true`
+4. `run_command`: calls `finalizeTimedCommand` → `advanceTimedTurn` (first turn-end)
+5. `run_command`: returns with multi > 0, context.mv = true
+6. `_gameLoopStep`: continuation → `runMovementRepeatSlice` → domove +
+   advanceTimedTurn (second move's turn-end)
+
+This ensures BOTH the first and continuation turn-ends go through the same
+`advanceTimedTurn` path, eliminating the divergence.
+
+### Attempted: Remove Hook + Route Through finalizeTimedCommand
+- Removed `game.advanceRunTurn` setup in `run_command`
+- `do_run` returns `tookTime: true`, goes through `finalizeTimedCommand`
+- Result: 3140/29881 — WORSE than baseline (7421)
+- Also tried routing through `runAcceptedTravelCommandLoop` — same result
+
+### Attempted: Skip --More-- Dismiss During Run Continuation
+- Added `!hasPositiveMoveContinuation` guard to `--More--` dismiss
+- No effect — the dismiss wasn't firing anyway
+
+### Root Cause of Unbatching Failure
+Something in `_gameLoopStep`'s loop mechanics (renderAndAutosave, state between
+iterations, --More-- boundary handling) changes game state compared to do_run's
+tight inner loop. The exact divergence at index ~2939 shows JS pet and C pet
+at different processing stages, indicating turn-end ordering or monster processing
+differs.
+
+**The gap is NOT in the turn-end function itself** (both paths call
+advanceTimedTurn → moveloop_core). The gap is in WHEN and HOW game state is
+observed between iterations of the run.
+
+### Current Status
+- `runMovementRepeatSlice` restructured to match do_run ordering (committed)
+- Direction fix for running continuation (committed)
+- Spell FOV guard (committed)
+- Comparator trailing tolerance fix (committed)
+- do_run unbatching: NOT yet working — needs further investigation of
+  _gameLoopStep inter-iteration state changes
+
 ## Validation
 1. seed032 RNG should increase from 7421/29881
 2. Full suite 565/568 should not regress
