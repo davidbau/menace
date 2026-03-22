@@ -146,6 +146,21 @@ span.logo-cursor {
     }
   }
 
+  // Get current screen text as an array of row strings (for shell scrollback)
+  getRows() {
+    const rows = [];
+    for (let r = 0; r < this.ROWS; r++) {
+      let line = '';
+      for (let c = 0; c < this.COLS; c++) {
+        line += this.grid[r][c].ch;
+      }
+      rows.push(line.replace(/\s+$/, '')); // trim trailing spaces
+    }
+    // Trim trailing empty rows
+    while (rows.length > 0 && rows[rows.length - 1] === '') rows.pop();
+    return rows;
+  }
+
   // Get the <pre> element (for sizing the canvas to match)
   getPreElement() {
     return this._pre;

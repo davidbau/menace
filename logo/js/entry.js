@@ -64,6 +64,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Expose so font-size buttons can trigger a re-fit
   window._sizeLogoCanvas = sizeCanvas;
+  // Expose display for exit-to-shell screen capture
+  window._logoDisplay = display;
 
   repl.start(getch);
 });

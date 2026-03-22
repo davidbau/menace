@@ -238,7 +238,8 @@ export class LogoInterpreter {
       if (name === 'STOP') throw new StopSignal();
       if (name === 'BYE') {
         if (typeof window !== 'undefined') {
-          try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: null })); } catch(e) {}
+          var rows = window._logoDisplay ? window._logoDisplay.getRows() : [];
+          try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: rows })); } catch(e) {}
           window.location.href = '/shell/';
         }
         return;

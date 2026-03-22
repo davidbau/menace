@@ -127,7 +127,8 @@ export class LogoRepl {
         this._write('^C\n');
         this._running = false;
         if (typeof window !== 'undefined') {
-          try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: null })); } catch(e) {}
+          var rows = window._logoDisplay ? window._logoDisplay.getRows() : [];
+          try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: rows })); } catch(e) {}
           window.location.href = '/shell/';
         }
         return null;
