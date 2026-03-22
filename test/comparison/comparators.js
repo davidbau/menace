@@ -282,7 +282,12 @@ export function compareScreenLines(actualLines = [], expectedLines = []) {
 }
 
 function ansiSpacesFromCursorForward(text) {
-    return String(text || '').replace(/\x1b\[(\d*)C/g, (_m, n) => ' '.repeat(Math.max(1, Number(n || '1'))));
+    // Cursor-forward (\x1b[nC) moves the cursor without writing content.
+    // Expand to NUL placeholders (not spaces) so the parser can assign
+    // default attributes to these positions instead of carrying forward
+    // the current SGR state.
+    return String(text || '').replace(/\x1b\[(\d*)C/g, (_m, n) =>
+        '\0'.repeat(Math.max(1, Number(n || '1'))));
 }
 
 function parseAnsiLineToCells(line) {
@@ -338,6 +343,12 @@ function parseAnsiLineToCells(line) {
                 i = j + 1;
                 continue;
             }
+        }
+        if (ch === '\0') {
+            // NUL: cursor-forward placeholder — default-attribute space
+            cells.push({ ch: ' ', fg: 7, bg: 0, attr: 0 });
+            i++;
+            continue;
         }
         if (ch !== '\r' && ch !== '\n') {
             const outCh = decGraphics ? decodeDecSpecialChar(ch) : ch;
