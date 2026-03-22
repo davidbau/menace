@@ -16028,3 +16028,38 @@ distinction is always conditional on being in Gehennom.
   - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
 - New active seam after this batch is later monster/object handling around
   gameplay step `1175`, not the old striking-wand corpse-generation gap.
+
+## 2026-03-22 - `seed031`: restore monster-wand floor-object hits via `bhito`
+
+- After the monster wand-hit death fix, `seed031` next diverged at gameplay
+  step `1175` immediately after `^corpse[165,41,5]`.
+- C ground truth there showed one extra floor-object interaction before beam
+  damage continued:
+  - `rn2(100)=86 @ obj_resists(zap.c:1467)`
+  - then the later `mbhitm()` damage rolls
+- The root cause was in [`js/muse.js`](js/muse.js):
+  - C passes `bhito` into `mbhit()` for monster
+    `WAN_TELEPORTATION` / `WAN_UNDEAD_TURNING` / `WAN_STRIKING`
+  - JS was still passing `null`, so monster-fired wand traversal never hit
+    floor objects at all
+  - JS `fhito_loc()` was also synchronous, so it could not call async floor
+    object handlers faithfully
+- The faithful fix is:
+  - import [`bhito`](js/zap.js) into [`js/muse.js`](js/muse.js)
+  - pass `bhito` into `mbhit()` for those monster wand paths
+  - make `fhito_loc()` async and await `fhito(otmp, obj, map)`
+- This restores the missing C object-resistance / floor-object side effects in
+  monster-fired wand beams without changing comparator or replay behavior.
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `44709 -> 45313`
+    - matched events improved `24808 -> 25141`
+    - first RNG divergence moved `1175 -> 1199`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- New active seam after this batch is later still, in a monster throw corridor
+  around gameplay step `1199`:
+  - JS first RNG: `rn2(5)=3 @ dochug(monmove.js:847)`
+  - C first RNG: `rn2(6)=3 @ thrwmu(mthrowu.c:1231)`
