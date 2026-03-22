@@ -1194,6 +1194,81 @@ def compact_session_json(session_data):
     return '\n'.join(lines) + '\n'
 
 
+def probe_startup_keys(env, nethackrc, max_keys=20):
+    """Launch nethack and discover the startup key sequence.
+
+    Sends spaces until the game map is visible (status line with Dlvl:/HP:).
+    Returns the list of keys needed to get through startup --More-- prompts.
+    """
+    tmpdir = tempfile.mkdtemp(prefix='nh-probe-')
+    rc_path = os.path.join(tmpdir, '.nethackrc')
+    with open(rc_path, 'w') as f:
+        for line in nethackrc.split('\n'):
+            if not line.strip().upper().startswith('WIZARD='):
+                f.write(line + '\n')
+
+    ensure_install_sysconf()
+    ensure_canonical_scorefiles()
+
+    player_name = _parse_name_from_nethackrc(nethackrc) or 'Wizard'
+    cmd_env = {
+        'NETHACKDIR': INSTALL_DIR,
+        'HOME': tmpdir,
+        'TERM': 'xterm-256color',
+        'NETHACK_NO_DELAY': '1',
+    }
+    cmd_env.update(env)
+    env_str = ' '.join(f'{k}={v}' for k, v in cmd_env.items())
+
+    binary_args = NETHACK_BINARY
+    if player_name:
+        binary_args += f' -u {player_name}'
+    if _has_wizard_directive(nethackrc):
+        binary_args += ' -D'
+
+    session_name = f'nh-probe-{os.getpid()}'
+    cmd = f'{env_str} {binary_args}; sleep 999'
+    subprocess.run(
+        ['tmux', 'new-session', '-d', '-s', session_name, '-x', '80', '-y', '24', cmd],
+        check=True
+    )
+
+    startup_keys = []
+    try:
+        time.sleep(1.0)
+        for _ in range(max_keys):
+            content = tmux_capture(session_name)
+            # Check if game map is visible (status line)
+            if 'Dlvl:' in content or 'HP:' in content or 'St:' in content:
+                # Check there's no --More-- blocking
+                if '--More--' not in content:
+                    break
+            if '--More--' in content:
+                tmux_send_special(session_name, 'Space')
+                startup_keys.append(' ')
+                time.sleep(0.3)
+            elif 'Do you want a tutorial' in content:
+                tmux_send(session_name, 'n')
+                startup_keys.append('n')
+                time.sleep(0.3)
+            elif 'Shall I pick' in content:
+                tmux_send(session_name, 'y')
+                startup_keys.append('y')
+                time.sleep(0.3)
+            elif 'Is this ok' in content:
+                tmux_send(session_name, 'y')
+                startup_keys.append('y')
+                time.sleep(0.3)
+            else:
+                time.sleep(0.2)
+    finally:
+        subprocess.run(['tmux', 'kill-session', '-t', session_name],
+                       capture_output=True, check=False)
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+    return startup_keys
+
+
 def load_seeds_config():
     """Load test/comparison/seeds.json configuration."""
     config_path = os.path.join(PROJECT_ROOT, 'test', 'comparison', 'seeds.json')

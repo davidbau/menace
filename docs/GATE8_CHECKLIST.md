@@ -224,9 +224,23 @@ After each section (8A, 8B, 8C, 8D), run:
 
 Recommended execution order (dependencies flow downward):
 
-1. **8C.1**: Make JS game.init() key-driven — this is the prerequisite for everything
-2. **8B.3**: Re-record all sessions with unified recorder (startup as steps)
-3. **8C.2-8C.4**: Delete JS startup hacks + simplify comparison framework
+**Phase 1: C recording (source of truth)**
+1. **8B.3**: Re-record ALL sessions with unified C recorder (startup as
+   steps). Store as the new session files. The C infrastructure is ready
+   (`record_c_session`, `probe_startup_keys`, `migrate_to_unified.py`).
+   Old sessions available in git history as reference.
+
+**Phase 2: JS replay migration**
+2. **8C.1**: Update JS game.init() to be key-driven at startup. The new
+   sessions provide the reference screens to test against.
+3. **8C.2-8C.4**: Delete JS startup hacks, simplify comparison framework.
+   Old sessions in git history serve as regression reference.
+
+**Phase 3: Cleanup**
 4. **8A.1-8A.9**: Strip V3 shims from JS (options field, version branching, etc.)
 5. **8B.4-8B.7**: Simplify/delete C recording scripts, auto-advance code
 6. **8D.1-8D.2**: Finalize format docs and validation
+
+Key insight: the C side is the fixture. JS is just for comparison and
+can be updated later. We do NOT need JS to work with both formats
+simultaneously — we switch the session files, then update JS to match.
