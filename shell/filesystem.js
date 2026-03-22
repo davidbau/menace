@@ -425,7 +425,7 @@ function buildTree() {
                     games: {
                         type: 'dir', children: {
                             rogue:   { type: 'exec', game: 'rogue',   owner: 'root', group: 'games', date: 'Jun 15  1980', size: 61440,  perms: '-rwxr-sr-x' },
-                            dungeon: { type: 'exec', game: 'dungeon', owner: 'root', group: 'games', date: 'Apr  1  1980', size: 204800, perms: '-rwxr-sr-x' },
+                            dungeon: { type: 'exec', game: 'dungeon', owner: 'root', group: 'games', date: 'Dec  2  1981', size: 204800, perms: '-rwxr-sr-x' },
                             zork:    { type: 'exec', game: 'zork',    owner: 'root', group: 'games', date: 'Apr  1  1980', size: 28672,  perms: '-rwxr-sr-x' },
                             hack:    { type: 'exec', game: 'hack',    owner: 'root', group: 'games', date: 'Dec  8  1984', size: 155648, perms: '-rwxr-sr-x' },
                             nethack: { type: 'exec', game: 'nethack', owner: 'root', group: 'games', date: 'Mar  1  2026', size: 2097152, perms: '-rwxr-sr-x' },
