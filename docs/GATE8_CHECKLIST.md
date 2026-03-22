@@ -130,6 +130,21 @@
 ## 8C. Unified JS Replay Path
 
 ### 8C.1 Make JS game.init() key-driven at startup
+
+**Current state (partial):**
+- `showLoreAndWelcome` detection in `prepareReplayArgs` works for both
+  old and unified formats (detects lore in step 0 screen)
+- `buildStartupLorePromptFlow` re-renders map after lore dismissal (fixed)
+- `normalizeSession` correctly folds startup --More-- steps into startup
+- C session data matches original on all channels after migration
+- **Blocker:** JS replay with `showLoreAndWelcome=true` produces slightly
+  different screen output than without it. The welcome message display
+  and --More-- prompt handling during the pendingPrompt flow doesn't
+  perfectly match the non-lore path. Need to debug the JS replay screen
+  differences when lore flow is active.
+
+- [ ] Fix JS replay screen output when `showLoreAndWelcome` is active
+  to match the non-lore path for post-startup gameplay steps
 - [ ] `game.init()` renders lore text + --More-- and WAITS (sets pendingPrompt)
 - [ ] Space key dismisses --More--, reveals welcome + --More--
 - [ ] Second space dismisses welcome, reveals game map
