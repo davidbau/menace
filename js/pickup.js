@@ -71,6 +71,10 @@ let picked_filter = false;         // gp.picked_filter
 let val_for_n_or_more = 0;         // gv.val_for_n_or_more
 let pickup_encumbrance = 0;        // gp.pickup_encumbrance
 let oldcap = 0;                    // go.oldcap
+const slightloadpfx = 'You have a little trouble';
+const moderateloadpfx = 'You have trouble';
+const nearloadpfx = 'You have much trouble';
+const overloadpfx = 'You have extreme difficulty';
 const diagEncumber = (() => {
     const v = getEnv('WEBHACK_DIAG_ENCUMBER');
     return v === '1' || v === 'true';
@@ -522,7 +526,7 @@ async function lift_object(obj, container, cnt_p, telekinesis, player) {
 // Autotranslated from pickup.c:1896
 export async function pick_obj(otmp, player) {
   let result, ox = otmp.ox, oy = otmp.oy;
-  let robshop = (!player.uswallow && otmp !== uball && costly_spot(ox, oy));
+  let robshop = (!player.uswallow && otmp !== player.uball && costly_spot(ox, oy));
   obj_extract_self(otmp);
   newsym(ox, oy);
     if (robshop) {
@@ -580,14 +584,25 @@ async function pickup_object(obj, count, telekinesis, player, map) {
         obj = splitobj(obj, cnt_p.value);
 
     obj = await pick_obj(obj, player, map);
-    // C ref: pickup.c — encumber_msg() called after pick_obj/pickup_prinv
-    await encumber_msg(player);
+    pickup_prinv(obj, cnt_p.value, 'lifting', player);
     return 1;
 }
 
 // cf. pickup.c:1945 — pickup_prinv(obj, count, verb)
-// Stub: prinv not yet ported; message handled by handlePickup
-function pickup_prinv(_obj, _count, _verb) { }
+function pickup_prinv(obj, count, verb, player) {
+    const nearload = near_capacity(player);
+    let prefix = null;
+    if (nearload !== pickup_encumbrance) {
+        prefix = (nearload >= EXT_ENCUMBER) ? overloadpfx
+            : (nearload >= HVY_ENCUMBER) ? nearloadpfx
+                : (nearload >= MOD_ENCUMBER) ? moderateloadpfx
+                    : (nearload >= SLT_ENCUMBER) ? slightloadpfx
+                        : null;
+        pickup_encumbrance = nearload;
+    }
+    const pbuf = prefix ? `${prefix} ${verb}` : null;
+    prinv(pbuf, obj, count, player);
+}
 
 // cf. pickup.c:1972 — encumber_msg()
 // Uses player._oldcap to track per-session baseline (avoids
@@ -1219,6 +1234,7 @@ async function handlePickup(player, map, display, game = null) {
     // C-faithful command boundary: ',' on a multi-object pile enters a
     // selector flow (same command) where letter keys are not global commands.
     if (objs.length > 1) {
+        pickup_encumbrance = 0;
         const inv_order = game?.flags?.inv_order || '';
         const choiceObjs = [...objs].sort((a, b) => {
             // C-like pickup menu ordering: group by class per inv_order, then by name.
@@ -1238,11 +1254,10 @@ async function handlePickup(player, map, display, game = null) {
             loot_classify(sb, b);
             if (sa.subclass !== sb.subclass) return sa.subclass - sb.subclass;
             if (sa.disco !== sb.disco) return sa.disco - sb.disco;
-            // C ref: invent.c sortloot_cmp() uses loot_xname(), which reduces
-            // to cxname_singular(obj), so quantity/article prefixes do not
-            // perturb pickup menu letter assignment.
-            const an = String(cxname_singular(a) || '');
-            const bn = String(cxname_singular(b) || '');
+            // C ref: invent.c sortloot_cmp() orders equal class/subclass items
+            // by loot_xname(), which preserves known enchantment text like "+2 dart".
+            const an = String(xname(a, player) || '');
+            const bn = String(xname(b, player) || '');
             const byName = an.localeCompare(bn);
             if (byName !== 0) return byName;
             // C ref: sortloot uses stable sort; equal items preserve floor
@@ -1273,33 +1288,27 @@ async function handlePickup(player, map, display, game = null) {
         destroy_nhwindow(win);
 
         if (!Array.isArray(picks) || picks.length === 0) {
+            pickup_encumbrance = 0;
             return { moved: false, tookTime: false };
         }
 
+        if (player.inventory) {
+            for (const inv of player.inventory) {
+                if (inv) inv.pickup_prev = 0;
+            }
+        }
+
+        let nPicked = 0;
         for (const pick of picks) {
             const obj = pick?.identifier;
             if (!obj || !map.objects.includes(obj)) continue;
-            observeObject(obj);
-            // C ref: pickup.c pick_obj() — addtobill before addinv for shop items
-            if (!player.uswallow && obj !== player.uchain
-                && costly_spot(obj.ox, obj.oy, map) && !obj.no_charge) {
-                await addtobill(obj, true, false, false);
-            }
-            const addResult = player.addToInventory(obj, { withMeta: true });
-            map.removeObject(obj);
-            // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
-            if (addResult?.item) addResult.item.pickup_prev = 1;
-            if (obj.oclass === COIN_CLASS) {
-                await pline("%s", formatGoldPickupMessage(obj, player));
-            } else {
-                await pline(
-                    "%s - %s.",
-                    addResult?.item?.invlet || obj.invlet || '-',
-                    doname(addResult?.item || obj, player)
-                );
-            }
+            const count = pick?.count && pick.count > 0 ? pick.count : (obj.quan || 0);
+            const res = await pickup_object(obj, count, false, player, map);
+            if (res < 0) break;
+            nPicked += res;
         }
-        return { moved: false, tookTime: true };
+        pickup_encumbrance = 0;
+        return { moved: false, tookTime: nPicked > 0 };
     }
 
     // C ref: pickup.c pickup_object() calls reset_justpicked(gi.invent) for
@@ -1536,6 +1545,18 @@ function cContainerOrder(items) {
     return [...(items || [])].reverse();
 }
 
+function sortSameClassContainerItems(items) {
+    return [...(items || [])]
+        .map((obj, indx) => ({ obj, indx }))
+        .sort((ea, eb) => {
+            const a = ea.obj;
+            const b = eb.obj;
+            if ((a?.otyp || 0) !== (b?.otyp || 0)) return (a?.otyp || 0) - (b?.otyp || 0);
+            return ea.indx - eb.indx;
+        })
+        .map((entry) => entry.obj);
+}
+
 function buildContainerDisplayRows(items, letters, selected, player) {
     const rows = [];
     let lastHeader = null;
@@ -1608,6 +1629,37 @@ async function containerMenu(game, container) {
             }
         }
     };
+    const captureOverlayRows = (startCol = 0, startRow = 2, endRow = 10) => {
+        if (!display?.grid) return null;
+        const cols = display?.cols || 80;
+        const rows = [];
+        for (let r = startRow; r <= endRow; r++) {
+            const savedRow = [];
+            for (let c = startCol; c < cols; c++) {
+                const cell = display.grid?.[r]?.[c];
+                savedRow.push(cell ? { ...cell } : null);
+            }
+            rows.push(savedRow);
+        }
+        return { startCol, startRow, endRow, rows };
+    };
+    const restoreOverlayRows = (snapshot, endRow = null) => {
+        if (!snapshot || !display?.setCell) return;
+        const limit = Number.isInteger(endRow) ? Math.min(endRow, snapshot.endRow) : snapshot.endRow;
+        for (let r = snapshot.startRow; r <= limit; r++) {
+            const savedRow = snapshot.rows[r - snapshot.startRow] || [];
+            for (let c = snapshot.startCol; c < (display?.cols || 80); c++) {
+                const cell = savedRow[c - snapshot.startCol];
+                if (cell) display.setCell(c, r, cell.ch, cell.color, cell.attr || 0);
+                else display.setCell(c, r, ' ', CLR_GRAY, 0);
+            }
+        }
+    };
+    const baseOverlaySnapshot = captureOverlayRows(
+        0,
+        2,
+        Math.max(2, (display?.rows || 24) - 1)
+    );
     const drawMenuOptionLine = (col, row, text) => {
         if (typeof display?.putstr !== 'function') return;
         display.putstr(col, row, text);
@@ -1638,6 +1690,12 @@ async function containerMenu(game, container) {
 
     const doTakeOut = async () => {
         let lowestMenuPad = _containerMenuPad || 0;
+        let overlaySnapshot = null;
+        let overlayEndRow = 10;
+        const hallucinating = !!(player?.Hallucination || player?.hallucinating);
+        if (hallucinating) {
+            overlaySnapshot = baseOverlaySnapshot;
+        }
         const currentContents = getContainerContents(container);
         if (!currentContents.length) {
             await display.putstr_message('It is empty.');
@@ -1657,8 +1715,10 @@ async function containerMenu(game, container) {
             const classPrompt = 'Take out what type of objects?';
             const classPad = centeredPad(classPrompt, 23);
             lowestMenuPad = Math.min(lowestMenuPad, classPad);
+            overlayEndRow = Math.max(overlayEndRow, 10);
             const hasUnknownBUC = currentContents.some((o) => !o?.bknown);
-            clearMenuOptionRows(classPad);
+            if (hallucinating) restoreOverlayRows(overlaySnapshot, overlayEndRow);
+            else clearMenuOptionRows(classPad);
             await putMenuPrompt(classPrompt, classPad);
             drawMenuOptionLine(classPad, 2, 'A - Auto-select every relevant item');
             drawMenuOptionLine(classPad + 4, 3, '(ignored unless some other choices are also picked)');
@@ -1758,20 +1818,24 @@ async function containerMenu(game, container) {
                     if (allowedClasses === null) return true;
                     return allowedClasses.has(CLASS_SYMBOLS[o?.oclass]);
                 })
-                : baseVisible;
+                : sortSameClassContainerItems(baseVisible);
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
             const displayRows = buildContainerDisplayRows(visible, available, selected, player);
-            if (typeof display?.renderMap === 'function' && game?.map && game?.u && game?.fov) {
+            overlayEndRow = Math.max(overlayEndRow, 1 + displayRows.length);
+            // C tty menus overlay text onto the existing map/status display.
+            // Re-rendering the map here re-consumes hallucination display RNG
+            // on each submenu key, which drifts screen parity while the menu
+            // is open even though the underlying map has not changed.
+            if (hallucinating) {
+                restoreOverlayRows(overlaySnapshot, overlayEndRow);
+            } else if (typeof display?.renderMap === 'function' && game?.map && game?.u && game?.fov) {
                 display.renderMap(game.map, game.u, game.fov, game.flags);
                 if (typeof display?.renderStatus === 'function') display.renderStatus(game.u);
                 if (typeof display?.cursorOnPlayer === 'function') display.cursorOnPlayer(game.u);
             }
-            // C ref: clear menu area but preserve map cells on the left.
-            // Previous class menu may extend left of menuPad; use tracked minimum.
-            const menuRowEnd = 1 + displayRows.length;
-            clearMenuOptionRows(lowestMenuPad, 2, menuRowEnd);
+            clearMenuOptionRows(menuPad, 2, 1 + displayRows.length);
             await putMenuPrompt('Take out what?', menuPad);
             for (let i = 0; i < displayRows.length; i++) {
                 const row = displayRows[i];
@@ -1817,7 +1881,8 @@ async function containerMenu(game, container) {
         // Only clear the prompt row when no removal message replaced it.
         // C's menu window teardown leaves pickup_prinv()/pline output visible.
         if ((didTake === false) && typeof display?.clearRow === 'function') display.clearRow(0);
-        clearMenuOptionRows(lowestMenuPad);  // clear menu area, preserve map cells left
+        if (hallucinating) restoreOverlayRows(overlaySnapshot, overlayEndRow);
+        else clearMenuOptionRows(lowestMenuPad);
         return didTake;
     };
 
@@ -2553,7 +2618,6 @@ async function query_category(qstr, olist, qflags, how, player, game) {
 // ---------------------------------------------------------------------------
 async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
     if (!olist) return { count: 0, pick_list: [] };
-
     const BY_NEXTHERE = 0x01;
     const AUTOSELECT_SINGLE = 0x04;
     const SIGNAL_NOMENU = 0x20;
@@ -2576,7 +2640,6 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
     // build menu
     const win = create_nhwindow(NHW_MENU);
     start_menu(win, MENU_BEHAVE_STANDARD);
-
     for (let curr = olist; curr; curr = FOLLOW(curr)) {
         if (allow_fn(curr)) {
             const itemCh = typeof curr.invlet === 'string' ? curr.invlet.charCodeAt(0) : (curr.invlet || 0);

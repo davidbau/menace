@@ -1025,8 +1025,9 @@ async function syncTimedTurnPreInputState(game) {
     find_ac(player);
     const ctx = game.context || {};
     const canUpdateVision = !ctx.mv || player?.blind;
+    const hallucinating = !!(player?.Hallucination || player?.hallucinating);
     if (canUpdateVision) {
-        if (player?.Hallucination) {
+        if (hallucinating) {
             see_monsters(game.map);
             see_objects();
             see_traps();
@@ -1189,9 +1190,11 @@ async function _drainOccupation(game, coreOpts) {
         const step = await runOccupationStep(game);
         if (!step.ran) break;
 
-        // Occupation step took time — process monster moves + turn-end
-        await moveloop_core(game, coreOpts);
-        await display_sync();
+        // C ref: each occupation iteration returns through moveloop's
+        // once-per-player-input phase before the next occupation callback.
+        // Use the normal timed-turn wrapper here so hallucination/telepathy
+        // refresh ownership stays aligned with non-occupation command turns.
+        await advanceTimedTurn(game, coreOpts);
         if (step.prompt) break;
     }
 }
