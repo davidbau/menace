@@ -209,8 +209,15 @@ observed between iterations of the run.
 - **Root cause**: The game stops producing basic RNG at index 7421 not
   because of run batching, but because the game state diverged through
   missing composite RNG calls (fewer combat/spell operations in JS).
-- **Next step**: Find which composite calls are missing in JS. These
-  represent missing combat/enchantment code paths.
+- **ROOT CAUSE FOUND**: getpos.js doesn't handle '>' key (jump to downstairs).
+  C's getpos jumps cursor to downstairs when '>' is pressed during travel
+  target selection. JS treats '>' as unrecognized, so the travel target is
+  wrong. Player travels to the wrong position. The subsequent '>' (descend
+  stairs) fails because the player isn't standing on stairs. JS never
+  generates Dlvl:2/3, so 75% of C's game (combat, spawns, level generation)
+  never executes.
+- **Fix**: Add '>' (and '<') stair-jump handling to getpos_async in getpos.js,
+  matching C's getpos_menu stair target selection.
 
 ## Validation
 1. seed032 RNG should increase from 7421/29881
