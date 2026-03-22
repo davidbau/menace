@@ -68,12 +68,35 @@ def kill_tmux_session(session):
 # Use capture_screen_compressed from run_session.py
 capture_screen = capture_screen_compressed
 
+# Default player name for deterministic sessions (avoids leaking system username)
+DEFAULT_NAME = 'Wizard'
+
+
+def _make_session_home(name=DEFAULT_NAME, include_chargen_options=False):
+    """Create a temp HOME dir with a minimal .nethackrc.
+
+    The .nethackrc always includes !autopickup, suppress_alert, and
+    symset:DECgraphics.  If include_chargen_options is False (the default),
+    no role/race/gender/align options are written so that the interactive
+    chargen flow is exercised.  The name: option is always written to
+    avoid picking up the system username.
+    """
+    tmpdir = tempfile.mkdtemp(prefix='interface-session-')
+    rc_path = os.path.join(tmpdir, '.nethackrc')
+    with open(rc_path, 'w') as f:
+        f.write(f'OPTIONS=name:{name}\n')
+        f.write('OPTIONS=!autopickup\n')
+        f.write('OPTIONS=suppress_alert:3.4.3\n')
+        f.write('OPTIONS=symset:DECgraphics\n')
+    return tmpdir
+
 
 def capture_startup_sequence():
     """Capture the full startup sequence including tutorial prompt."""
     session = tmux_session_name()
     start_tmux_session(session)
     steps = []
+    tmpdir = _make_session_home()
 
     try:
         nethack_dir = os.path.dirname(NETHACK_BINARY)
@@ -86,6 +109,7 @@ def capture_startup_sequence():
         cmd = (
             f'{fixed_datetime_env()}'
             f'NETHACKDIR={nethack_dir} '
+            f'HOME={tmpdir} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY}'
         )
@@ -144,6 +168,7 @@ def capture_startup_sequence():
 
     finally:
         kill_tmux_session(session)
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
     return {
         'version': 3,
@@ -189,6 +214,7 @@ def capture_complete_chargen():
     session = tmux_session_name()
     start_tmux_session(session)
     steps = []
+    tmpdir = _make_session_home()
 
     try:
         nethack_dir = os.path.dirname(NETHACK_BINARY)
@@ -199,6 +225,7 @@ def capture_complete_chargen():
         cmd = (
             f'{fixed_datetime_env()}'
             f'NETHACKDIR={nethack_dir} '
+            f'HOME={tmpdir} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY}'
         )
@@ -290,6 +317,7 @@ def capture_complete_chargen():
 
     finally:
         kill_tmux_session(session)
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
     return {
         'version': 3,

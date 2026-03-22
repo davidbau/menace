@@ -1814,6 +1814,9 @@ async function containerMenu(game, container) {
             if (selected.has(selectKey)) selected.delete(selectKey);
             else selected.add(selectKey);
         }
+        // C ref: after closing the container menu, clear the prompt row (row 0)
+        // so "Take out what?" / "Put in what?" doesn't linger.
+        if (typeof display?.clearRow === 'function') display.clearRow(0);
         clearMenuOptionRows(lowestMenuPad);  // clear menu area, preserve map cells left
         return didTake;
     };

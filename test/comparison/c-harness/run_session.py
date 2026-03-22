@@ -641,9 +641,15 @@ def capture_screen_lines(session):
 
 
 def capture_screen_ansi_lines(session):
-    """Capture tmux screen with ANSI escapes preserved; return as 24 lines."""
+    """Capture tmux screen with ANSI escapes preserved; return as 24 lines.
+
+    Uses -e (escapes) but NOT -J (join), because -J implies -T which strips
+    trailing attributed-space cells on tmux 3.6a, losing inverse-video bar
+    information.  Trailing default-attr spaces are trimmed by tmux but our
+    normalizer pads them back to 80 cols with defaults.
+    """
     result = subprocess.run(
-        ['tmux', 'capture-pane', '-t', session, '-p', '-e', '-J', '-S', '0', '-E', '30'],
+        ['tmux', 'capture-pane', '-t', session, '-p', '-e', '-S', '0', '-E', '30'],
         capture_output=True, text=True, check=True
     )
     _raise_on_dump_error(result.stdout)
@@ -1193,6 +1199,328 @@ def load_seeds_config():
     config_path = os.path.join(PROJECT_ROOT, 'test', 'comparison', 'seeds.json')
     with open(config_path) as f:
         return json.load(f)
+
+
+# ---------------------------------------------------------------------------
+# Unified C session recorder (Gate 8)
+# ---------------------------------------------------------------------------
+
+def _send_char(session_name, ch):
+    """Send a single character to tmux, handling control chars properly."""
+    code = ord(ch)
+    if code in (10, 13):
+        tmux_send_special(session_name, 'Enter')
+    elif code == 27:
+        tmux_send_special(session_name, 'Escape')
+    elif code == 127:
+        tmux_send_special(session_name, 'BSpace')
+    elif code < 32:
+        tmux_send_special(session_name, f'C-{chr(code + 96)}')
+    else:
+        tmux_send(session_name, ch)
+
+
+def _parse_name_from_nethackrc(nethackrc):
+    """Extract player name from nethackrc OPTIONS=name:XXX."""
+    for line in nethackrc.split('\n'):
+        line = line.strip()
+        if line.upper().startswith('OPTIONS=') or line.upper().startswith('OPTIONS ='):
+            opts_str = line.split('=', 1)[1]
+            for opt in opts_str.split(','):
+                opt = opt.strip()
+                if opt.lower().startswith('name:'):
+                    return opt.split(':', 1)[1].strip()
+    return None
+
+
+def _has_wizard_directive(nethackrc):
+    """Check if nethackrc has a WIZARD=name directive."""
+    for line in nethackrc.split('\n'):
+        if line.strip().upper().startswith('WIZARD='):
+            return True
+    return False
+
+
+def _passthrough_env_vars():
+    """Collect NETHACK_* and WEBHACK_* vars from the host environment."""
+    result = {}
+    for key, value in os.environ.items():
+        if key.startswith('NETHACK_') or key.startswith('WEBHACK_'):
+            # Skip harness-specific vars that we set ourselves
+            if key in ('NETHACK_RNGLOG', 'NETHACK_DUMPMAP', 'NETHACK_DUMPSNAP',
+                        'NETHACK_MAPDUMP_DIR', 'NETHACK_SEED',
+                        'NETHACK_FIXED_DATETIME', 'NETHACK_NO_DELAY'):
+                continue
+            result[key] = value
+    return result
+
+
+def record_c_session(env, nethackrc, keys, output_path,
+                     key_delay_s=0.02, key_delay_overrides=None,
+                     final_capture_delay_s=0.0, regen_metadata=None,
+                     session_type=None, verbose=False):
+    """Record a C NetHack session.  Single unified recording path.
+
+    Parameters:
+        env: dict of env vars (NETHACK_SEED, NETHACK_FIXED_DATETIME, etc.)
+        nethackrc: string contents of .nethackrc
+        keys: list of single characters — the complete key sequence from launch
+              (including --More-- spaces, chargen selections, everything)
+        output_path: path to write the session JSON
+        key_delay_s: base delay after each key (default 0.02s)
+        key_delay_overrides: dict {step_num: delay_s} for per-step overrides
+        final_capture_delay_s: extra delay before final step capture
+        regen_metadata: dict of extra fields for the session's 'regen' block
+        session_type: optional session type string (e.g., 'gameplay', 'chargen')
+        verbose: print progress to stdout
+
+    The function captures step 0 (key=null) as the initial screen on launch,
+    then one step per key.  No auto-advance through chargen, no auto-clear of
+    --More-- prompts.  The nethackrc determines game startup behavior; the key
+    sequence is complete from game launch.
+    """
+    output_path = os.path.abspath(output_path)
+    key_delay_overrides = key_delay_overrides or {}
+
+    if not os.path.isfile(NETHACK_BINARY):
+        print(f"Error: nethack binary not found at {NETHACK_BINARY}")
+        sys.exit(1)
+
+    # --- 1. Create temp dir with .nethackrc and harness files ---
+    tmpdir = tempfile.mkdtemp(prefix='nh-record-')
+    rc_path = os.path.join(tmpdir, '.nethackrc')
+    rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
+    checkpoint_file = os.path.join(tmpdir, 'checkpoints.jsonl')
+    dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
+    mapdump_dir = os.path.join(tmpdir, 'mapdumps')
+    repaint_debug_file = os.path.join(tmpdir, 'repaint-debug.log')
+    os.makedirs(mapdump_dir, exist_ok=True)
+
+    with open(rc_path, 'w') as f:
+        # Strip WIZARD= lines — those are metadata for the JS side.
+        # The C binary uses -D flag + sysconf WIZARDS=* for wizard mode.
+        for line in nethackrc.split('\n'):
+            if not line.strip().upper().startswith('WIZARD='):
+                f.write(line + '\n')
+
+    # --- 2. Clean stale game state ---
+    ensure_install_sysconf()
+    import glob
+    save_dir = os.path.join(INSTALL_DIR, 'save')
+    if os.path.isdir(save_dir):
+        for f_path in glob.glob(os.path.join(save_dir, '*')):
+            try:
+                os.unlink(f_path)
+            except FileNotFoundError:
+                pass
+    # Clean lock/level files for any player name
+    player_name = _parse_name_from_nethackrc(nethackrc) or 'Wizard'
+    for pattern_prefix in (player_name.lower(), player_name):
+        for f_path in glob.glob(os.path.join(INSTALL_DIR, f'*{pattern_prefix}*')):
+            if not f_path.endswith('.lua'):
+                try:
+                    os.unlink(f_path)
+                except FileNotFoundError:
+                    pass
+    ensure_canonical_scorefiles()
+
+    # --- 3. Build launch command ---
+    # Start with harness-specific env vars
+    cmd_env = {
+        'NETHACKDIR': INSTALL_DIR,
+        'HOME': tmpdir,
+        'TERM': 'xterm-256color',
+        'NETHACK_RNGLOG': rng_log_file,
+        'NETHACK_DUMPMAP': dumpmap_file,
+        'NETHACK_DUMPSNAP': checkpoint_file,
+        'NETHACK_MAPDUMP_DIR': mapdump_dir,
+        'NETHACK_NO_DELAY': '1',
+    }
+    # Add passthrough env vars from host
+    cmd_env.update(_passthrough_env_vars())
+    # Add caller's env vars (these take priority)
+    cmd_env.update(env)
+
+    env_str = ' '.join(f'{k}={v}' for k, v in cmd_env.items())
+
+    # Build nethack binary invocation
+    binary_args = NETHACK_BINARY
+    if player_name:
+        binary_args += f' -u {player_name}'
+    if _has_wizard_directive(nethackrc):
+        binary_args += ' -D'
+
+    cmd = f'{env_str} {binary_args}; sleep 999'
+
+    # --- 4. Launch in tmux ---
+    session_name = f'nh-record-{os.getpid()}'
+    subprocess.run(
+        ['tmux', 'new-session', '-d', '-s', session_name, '-x', '80', '-y', '24', cmd],
+        check=True
+    )
+
+    session_data = {
+        'version': 4,
+        'env': {k: v for k, v in env.items()},
+        'nethackrc': nethackrc,
+        'seed': int(env.get('NETHACK_SEED', 0)),
+        'source': 'c',
+        'recorded_with': get_recorded_with(),
+        'steps': [],
+    }
+    if regen_metadata:
+        session_data['regen'] = regen_metadata
+    if session_type:
+        session_data['type'] = session_type
+
+    try:
+        # --- 5. Wait for initial screen ---
+        time.sleep(1.0)
+        for _ in range(100):  # up to 2 more seconds
+            content = tmux_capture(session_name)
+            if content.strip():
+                break
+            time.sleep(0.02)
+
+        # --- 6. Capture step 0 (initial screen, key=null) ---
+        screen = capture_screen_compressed(session_name)
+        rng_count, rng_lines = read_rng_log(rng_log_file)
+        cursor = capture_cursor(session_name)
+        rng_entries = parse_rng_lines(rng_lines)
+
+        session_data['steps'].append({
+            'key': None,
+            'rng': rng_entries,
+            'screen': screen,
+            'cursor': cursor,
+        })
+        prev_rng_count = rng_count
+        checkpoint_cursor = 0
+
+        if verbose:
+            startup_rng = len([e for e in rng_entries if isinstance(e, str) and not e.startswith('^')])
+            print(f'  [startup] rng={rng_count}')
+
+        # --- 7. Level-gen key detection ---
+        saw_ctrl_v = False
+
+        def is_level_gen_key(ch):
+            nonlocal saw_ctrl_v
+            result = False
+            if ch == '>' or ch == '<':
+                result = True
+            elif ch == '\n' and saw_ctrl_v:
+                result = True
+            if ch == '\x16':
+                saw_ctrl_v = True
+            elif ch == '\n' or ch == '\x1b':
+                saw_ctrl_v = False
+            return result
+
+        def wait_for_rng_settle():
+            prev, _ = read_rng_log(rng_log_file)
+            stable = 0
+            for _ in range(100):
+                time.sleep(0.02)
+                cur, _ = read_rng_log(rng_log_file)
+                if cur == prev:
+                    stable += 1
+                    if stable >= 3:
+                        return
+                else:
+                    stable = 0
+                    prev = cur
+
+        # --- 8. Replay each key ---
+        screen_lines_cache = screen_to_plain_lines(screen)
+        prev_depth_recorded = detect_depth(screen_lines_cache)
+
+        for idx, ch in enumerate(keys):
+            triggers_level_gen = is_level_gen_key(ch)
+
+            _send_char(session_name, ch)
+
+            step_num = idx + 1
+            step_delay = key_delay_overrides.get(step_num, key_delay_s)
+            time.sleep(max(0.0, step_delay))
+
+            if triggers_level_gen:
+                wait_for_rng_settle()
+
+            if idx == len(keys) - 1 and final_capture_delay_s > 0.0:
+                time.sleep(final_capture_delay_s)
+
+            # Capture state
+            screen = capture_screen_compressed(session_name)
+            screen_lines_cache = screen_to_plain_lines(screen)
+            rng_count, rng_lines = read_rng_log(rng_log_file)
+            step_cursor = capture_cursor(session_name)
+            delta_lines = rng_lines[prev_rng_count:rng_count]
+            step_rng = parse_rng_lines(delta_lines)
+
+            depth = detect_depth(screen_lines_cache)
+            delta = rng_count - prev_rng_count
+
+            step = {
+                'key': ch,
+                'rng': step_rng,
+                'screen': screen,
+                'cursor': step_cursor,
+            }
+
+            # Checkpoints
+            checkpoints, checkpoint_cursor = read_checkpoint_entries(
+                checkpoint_file, checkpoint_cursor)
+            if checkpoints:
+                for cp in checkpoints:
+                    for grid_key in ('typGrid', 'flagGrid', 'wallInfoGrid'):
+                        if grid_key in cp and isinstance(cp[grid_key], list):
+                            cp[grid_key] = encode_typgrid_rle(cp[grid_key])
+                step['checkpoints'] = checkpoints
+
+            if depth != prev_depth_recorded:
+                step['depth'] = depth
+                prev_depth_recorded = depth
+
+            session_data['steps'].append(step)
+            prev_rng_count = rng_count
+
+            if verbose:
+                key_repr = repr(ch)
+                desc = describe_key(ch)
+                print(f'  [{step_num:03d}] {key_repr:5s} ({desc:20s}) +{delta:4d} RNG calls (total {rng_count})')
+
+        # --- 9. Collect mapdump checkpoints ---
+        all_rng = []
+        for s in session_data['steps']:
+            all_rng.extend(s.get('rng', []))
+        mapdump_cps = collect_mapdump_checkpoints(mapdump_dir, all_rng)
+        if mapdump_cps:
+            session_data['checkpoints'] = mapdump_cps
+
+        # --- 10. Quit and write output ---
+        quit_game(session_name)
+
+    finally:
+        subprocess.run(['tmux', 'kill-session', '-t', session_name],
+                       capture_output=True, check=False)
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+    # Write session JSON
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, 'w') as f:
+        f.write(compact_session_json(session_data))
+
+    if verbose:
+        total_rng = sum(
+            len([e for e in s.get('rng', []) if not (isinstance(e, str) and e.startswith('^'))])
+            for s in session_data['steps']
+        )
+        print(f'\n=== DONE ===')
+        print(f'Session: {output_path}')
+        print(f'Steps: {len(session_data["steps"])}, Total RNG calls: {rng_count}')
+
+    return session_data
 
 
 def run_wizload_session(seed, output_json, level_name, move_str='', verbose=False):
@@ -2313,6 +2641,43 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             else:
                 tmux_send(session_name, ch)
 
+        saw_ctrl_v = False  # Ctrl-V = teleport command
+
+        def _is_level_gen_key(ch):
+            """Return True if this key triggers level generation."""
+            nonlocal saw_ctrl_v
+            result = False
+            if ch == '>' or ch == '<':
+                result = True
+            elif ch == '\n' and saw_ctrl_v:
+                result = True
+            # Track Ctrl-V state (teleport command)
+            if ch == '\x16':
+                saw_ctrl_v = True
+            elif ch == '\n' or ch == '\x1b':
+                saw_ctrl_v = False
+            return result
+
+        def _wait_for_rng_settle():
+            """Poll the RNG log until the count stops growing.
+
+            After a key that triggers level generation, the C binary may
+            still be computing.  Poll every 20ms; once the count is stable
+            for 50ms we know it has finished.
+            """
+            prev_count, _ = read_rng_log(rng_log_file)
+            stable_ticks = 0
+            for _ in range(100):   # up to 2s
+                time.sleep(0.02)
+                cur_count, _ = read_rng_log(rng_log_file)
+                if cur_count == prev_count:
+                    stable_ticks += 1
+                    if stable_ticks >= 3:   # stable for ~60ms
+                        return
+                else:
+                    stable_ticks = 0
+                    prev_count = cur_count
+
         print(f'\n=== MOVES ({len(replay_keys)} steps, key_delay={key_delay_s:.3f}s) ===')
         if key_delay_overrides:
             print(f'Per-turn key delay overrides: {len(key_delay_overrides)} steps')
@@ -2322,6 +2687,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             ch = replay_keys[idx]
             key = ch
             description = describe_key(ch)
+            triggers_level_gen = _is_level_gen_key(ch)
 
             # Send the character
             send_char(ch)
@@ -2329,6 +2695,11 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             step_num = idx + 1
             step_delay = key_delay_overrides.get(step_num, key_delay_s)
             time.sleep(max(0.0, step_delay))
+
+            # After level-gen keys (>, <, Enter-after-Ctrl-V), wait for
+            # the C binary to finish computing before capturing the screen.
+            if triggers_level_gen:
+                _wait_for_rng_settle()
 
             # Optional final-frame settle for the very last captured step.
             if idx == len(replay_keys) - 1 and final_capture_delay_s > 0.0:

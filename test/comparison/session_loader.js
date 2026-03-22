@@ -3,6 +3,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
+import { parseNethackrcFull } from '../../js/storage.js';
 
 const keylogMetaCache = new Map();
 
@@ -303,7 +304,25 @@ export function normalizeSession(raw, meta = {}) {
     const source = raw?.source || 'unknown';
     const seed = Number.isInteger(raw?.seed) ? raw.seed : 0;
     const type = deriveType(raw, file);
-    const options = { ...(raw?.options || {}) };
+    let options = { ...(raw?.options || {}) };
+    // V4: derive options from nethackrc when no options field is present
+    if (Object.keys(options).length === 0 && raw?.nethackrc) {
+        const { character, flags, wizard } = parseNethackrcFull(raw.nethackrc);
+        if (character.name) options.name = character.name;
+        if (character.role) options.role = character.role;
+        if (character.race) options.race = character.race;
+        if (character.gender) options.gender = character.gender;
+        if (character.align) options.align = character.align;
+        if (wizard) options.wizard = true;
+        if (flags.pickup === false) options.autopickup = false;
+        if (flags.verbose === false) options.verbose = false;
+        if (flags.tutorial === false) options.tutorial = false;
+        if (flags.DECgraphics) options.symset = 'DECgraphics';
+        if (flags.time === true) options.time = true;
+        if (flags.color === false) options.color = false;
+        if (flags.rest_on_space) options.rest_on_space = true;
+        if (raw?.env?.NETHACK_FIXED_DATETIME) options.datetime = raw.env.NETHACK_FIXED_DATETIME;
+    }
     const inferredDatetime = inferSessionDatetime(raw);
     if (!options.datetime && inferredDatetime) {
         options.datetime = inferredDatetime;
@@ -314,24 +333,55 @@ export function normalizeSession(raw, meta = {}) {
     }
 
     const sourceSteps = Array.isArray(raw?.steps) ? raw.steps : [];
-    const startupFromStep = sourceSteps.length > 0
-        && sourceSteps[0]?.key === null
-        ? sourceSteps[0]
-        : null;
-    const startupRaw = raw?.startup || startupFromStep;
+
+    // Find startup boundary: step 0 (key=null) plus any subsequent --More--
+    // or startup-prompt steps that precede actual gameplay.  The unified
+    // recorder (Gate 8) records everything from game launch, so startup
+    // may span multiple steps (lore --More--, welcome --More--, etc.).
+    // We fold all pre-gameplay steps into one "startup" object.
+    let startupEndIndex = 0;
+    if (sourceSteps.length > 0 && sourceSteps[0]?.key === null) {
+        startupEndIndex = 1;
+        // Skip additional startup steps: --More-- spaces and tutorial prompts
+        // that occur before the first "real" gameplay key.
+        while (startupEndIndex < sourceSteps.length) {
+            const step = sourceSteps[startupEndIndex];
+            const key = step?.key;
+            // A space key right after startup is a --More-- dismissal.
+            // 'n'/'y' right after could be tutorial or chargen prompts.
+            // But we can't just skip all spaces — the first gameplay key
+            // could be a space (e.g., rest_on_space).  Use screen heuristic:
+            // if the screen has --More-- or a prompt, it's startup.
+            const screen = typeof step?.screen === 'string' ? step.screen : '';
+            const cleanScreen = screen.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
+            if (cleanScreen.includes('--More--')
+                || cleanScreen.includes('Do you want a tutorial')
+                || cleanScreen.includes('Velkommen')
+                || cleanScreen.includes('welcome to NetHack')) {
+                startupEndIndex++;
+            } else {
+                break;
+            }
+        }
+    }
+
+    // Build startup by merging RNG from all startup steps
+    const startupSteps = sourceSteps.slice(0, startupEndIndex);
+    const startupRaw = raw?.startup || (startupSteps.length > 0 ? startupSteps[0] : null);
+    const startupMergedRng = startupSteps.flatMap(s => Array.isArray(s?.rng) ? s.rng : []);
 
     const startup = startupRaw
         ? {
-            rng: Array.isArray(startupRaw.rng) ? startupRaw.rng : [],
+            rng: startupMergedRng,
             rngCalls: Number.isInteger(startupRaw.rngCalls) ? startupRaw.rngCalls : null,
-            screen: getSessionScreenLines(startupRaw),
-            screenAnsi: getSessionScreenAnsiLines(startupRaw),
+            screen: getSessionScreenLines(startupSteps[startupSteps.length - 1] || startupRaw),
+            screenAnsi: getSessionScreenAnsiLines(startupSteps[startupSteps.length - 1] || startupRaw),
             typGrid: normalizeGrid(startupRaw.typGrid),
             checkpoints: normalizeCheckpoints(startupRaw.checkpoints),
         }
         : null;
 
-    const replaySteps = startupFromStep ? sourceSteps.slice(1) : sourceSteps;
+    const replaySteps = sourceSteps.slice(startupEndIndex);
     const steps = replaySteps.map((step, index) => normalizeStep(step, index));
 
     // Compact mapdump checkpoints: { id: "file contents", ... }
@@ -354,6 +404,11 @@ export function normalizeSession(raw, meta = {}) {
             regen: raw?.regen || null,
             screenMode: raw?.screenMode || null,
         },
+        // V4 fields: pass through for prepareReplayArgs
+        nethackrc: raw?.nethackrc || null,
+        env: raw?.env || null,
+        options: Object.keys(options).length > 0 ? options : null,
+        seed,
         startup,
         steps,
         levels: normalizeLevels(raw?.levels),
