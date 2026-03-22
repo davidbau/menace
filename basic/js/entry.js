@@ -37,6 +37,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const display = new LogoDisplay(document.getElementById('basic-container'));
   const canvas = document.getElementById('basic-canvas');
   const turtle = new Turtle(canvas);
+  turtle.hideturtle(); // No turtle visible until HGR
   const interp = new BasicInterpreter(null, null, null);
   interp.setTurtle(turtle);
   const repl = new BasicRepl(display, interp);

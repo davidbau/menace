@@ -20,6 +20,14 @@ export class BasicRepl {
       if (this._breakFlag) { this._breakFlag = false; return true; }
       return false;
     };
+
+    // Direct Ctrl-C listener — sets break flag even when program is running
+    // (the getch queue isn't read during execution, so we need this)
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() === 'c') {
+        this._breakFlag = true;
+      }
+    });
   }
 
   async start(getch) {
