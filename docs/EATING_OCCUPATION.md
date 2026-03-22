@@ -351,6 +351,51 @@ shows that JS is not merely mishandling a dismiss key; it is finishing the
 late eat action on the previous key and then treating the following key as an
 untimed outer-loop command.
 
+Direct occupation-drain evidence:
+
+- focused local tracing around the late corridor showed that the damaging
+  transition happens inside JS `finalizeTimedCommand() -> _drainOccupation()`,
+  not inside the raw floor-food prompt itself
+- representative late trace:
+  - `fresh.return`: `occ=true`, `veat=1`, `vreq=13`, `vused=1`
+  - `finalize.before_drain`: same state
+  - `finalize.after_drain`: `occ=false`, `veat=1`, `vused=5`,
+    top line now includes `"You stop eating corpse."`
+- this means JS is consuming four additional occupation bites and the monster
+  interruption inside the same keyed step
+- that is the first concrete mechanism found that explains why the late meal
+  becomes `veat=1, occ=0, msgMore=1` before the next key is processed
+
+Early-versus-late drain discriminator:
+
+- the same tracing on the earlier benign lichen-corpse corridor showed:
+  - `fresh.return`: `occ=true`, `veat=1`, `vreq=3`, `vused=1`
+  - `finalize.after_drain`: `occ=false`, `veat=0`, `vused=3`,
+    natural meal completion
+- so the problem is not merely that `_drainOccupation()` exists
+- the harmful case is:
+  - eager drain continues until a monster interruption stops the occupation
+  - while the meal remains live (`veat=1`)
+- the benign case is:
+  - eager drain reaches natural completion in the same keyed step
+
+Failed structural experiment:
+
+- a direct experiment removed eager occupation draining from
+  `finalizeTimedCommand()` and `repeatLoop()`
+- result:
+  - green control `t11_s755_w_covmax9_gp` remained PASS
+  - `seed031` regressed sharply to first RNG divergence step `78`
+- this lines up with older repository findings in
+  `docs/GAME_LOOP_GATE2_FINDINGS.md`:
+  - C's one-step-per-iteration model is correct in principle
+  - but JS replay-key ownership currently allows several no-new-key iterations
+    to belong to the same keyed step
+- conclusion:
+  - “remove `_drainOccupation()`” is directionally correct at the C-model
+    level but wrong at the current keyed-step ownership layer
+  - the remaining fix must be narrower than eliminating eager drain globally
+
 Targeted corpse-control-flow evidence:
 
 - a narrow experiment changed fresh-corpse handling to follow the shared
@@ -505,6 +550,9 @@ Concrete questions:
    lichen-corpse analogue?
 6. why does JS classify the late eat action as `tookTime=1` on the preceding
    key while C resumes timed work on the following key?
+7. why does JS allow `_drainOccupation()` to carry the long live meal to a
+   monster interruption in the late corridor while the benign short-meal case
+   completes naturally?
 
 Required evidence:
 
@@ -524,6 +572,10 @@ Required evidence:
   - `tookTime`
   - occupation present/absent
   - top-line state after `runOneCommandCycle`
+- one explicit early-versus-late `_drainOccupation()` comparison:
+  - entry `victual` state
+  - exit `victual` state
+  - whether occupation ended by natural completion or interruption
 
 Required tracked fields:
 
@@ -536,11 +588,18 @@ Required tracked fields:
   - prompt dismissal only
   - or command input
 - whether JS has already classified the previous key as `tookTime=1`
+- `victual.usedtime/reqtime` before and after `_drainOccupation()`
+- whether occupation ended by:
+  - natural completion (`veat -> 0`)
+  - or interruption (`veat stays 1`, `occupation -> 0`)
 
 Exit criterion:
 
 - one concrete, named owner mismatch plus one discriminating condition that
   separates the bad late case from the benign early analogue
+- and a decision on whether the missing rule belongs in:
+  - local eat/occupation handoff
+  - or keyed-step ownership around `_drainOccupation()`
 
 ### Stage 2. Patch the owner handoff, not the downstream symptom
 
@@ -593,6 +652,35 @@ Guardrail:
 - do not generalize from the C fresh-corpse control flow alone; the failed
   shared-path corpse patch showed that this is also too broad and regresses the
   benign early corpse corridor
+- do not remove `_drainOccupation()` globally at the current ownership layer;
+  the direct experiment regressed `seed031` to step `78`
+
+### Stage 2c. Narrow the `_drainOccupation()` discriminator
+
+Use this branch only after Stage 1 has confirmed that the deciding difference
+is not the raw prompt itself but the way long live meals are drained inside the
+same keyed step.
+
+Likely kinds of fix:
+
+- keep the existing keyed-step ownership model, but change the condition under
+  which eating occupations are allowed to keep draining
+- distinguish natural same-step completion from monster-interrupted live-meal
+  collapse
+- preserve the benign short-meal case while deferring the long interrupted case
+  to the owner that should handle the following key
+
+Guardrail:
+
+- this stage is not permission to remove `_drainOccupation()` wholesale
+- any rule here must explain both:
+  - why short benign meals may still complete in one keyed step
+  - and why the long interrupted late meal must not
+
+Exit criterion:
+
+- the late corridor no longer reaches `veat=1, occ=0` inside the earlier key
+- the early benign lichen corridor still matches
 
 Exit criterion:
 
