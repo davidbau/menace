@@ -6,6 +6,7 @@
 // Returns: void (output via shell.print/println), or a special action object.
 
 import { USERNAME, HOMEDIR, getSessionStart, checkPassword, setPassword } from './filesystem.js';
+import { Sh } from './sh/index.js';
 import {
     loadMailState, saveMailState, seedInboxIfNeeded, deliverPending,
     getMessages, getMessage, saveMessage, deleteSavedMessage,
@@ -326,9 +327,21 @@ async function who(_args, shell) {
     }
 }
 
-async function sh(_args, shell) {
-    shell.println(`$ echo "You are already in sh."`);
-    shell.println('You are already in sh.');
+async function sh(args, shell) {
+    const io = {
+        fs: shell.fs,
+        println: (t) => shell.println(t),
+        print:   (t) => shell.printPrompt(t),
+        getch:   () => shell.getch(),
+        shell,
+    };
+    const sh = new Sh(io);
+    if (args.length > 0) {
+        // sh script [args...]
+        return sh.runFile(shell.fs.resolve(args[0]), args.slice(1));
+    }
+    // Interactive subshell
+    return sh.interactive();
 }
 
 async function date(_args, shell) {

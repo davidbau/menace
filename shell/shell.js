@@ -4,6 +4,7 @@
 import { VirtualFS, USERNAME, HOMEDIR, loginBanner, loginHeader, lastLoginLine, initDefaultVfsFiles, checkPassword } from './filesystem.js';
 import { getBuiltinCommands } from './commands.js';
 import { ViEditor } from './vi.js';
+import { Sh } from './sh/index.js';
 import {
     CLR_GREEN, CLR_GRAY, CLR_WHITE, CLR_CYAN, CLR_YELLOW,
 } from '../js/render.js';
@@ -446,7 +447,19 @@ export class Shell {
                 if (game === 'dungeon') return { action: 'dungeon' };
                 return { action: 'launch', game };
             }
-            if (this.fs.getNode(cmdName)) {
+            // Try running as a shell script
+            const content = this.fs.cat(cmdName);
+            if (content !== null) {
+                const shIo = {
+                    fs: this.fs, println: (t) => this.println(t),
+                    print: (t) => this.printPrompt(t), getch: () => this.getch(),
+                    shell: this,
+                };
+                const sh = new Sh(shIo);
+                await sh.runFile(cmdName, args);
+                return;
+            }
+            if (this.fs.getNode && (() => { try { this.fs.getNode(cmdName); return true; } catch { return false; } })()) {
                 this.println(`${cmdName}: Permission denied`);
                 return;
             }
