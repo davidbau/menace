@@ -93,13 +93,19 @@ window.addEventListener('DOMContentLoaded', async () => {
         getDisplay: () => currentDisplay,
     });
 
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // &clearLocalStorage URL param — wipe all saved state before init
+    if (urlParams.has('clearLocalStorage')) {
+        Object.keys(localStorage).forEach(k => localStorage.removeItem(k));
+    }
+
     const display = new Display('game');
     const restart = () => window.location.reload();
     const promo = new Promo();
     registerMenuApis(display, promo, restart);
 
     // Legacy redirect: ?shell=1 links now go to /shell/
-    const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('shell') === '1') {
         window.location.replace('/shell/');
         return;
