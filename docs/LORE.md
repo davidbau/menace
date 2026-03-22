@@ -15833,3 +15833,49 @@ distinction is always conditional on being in Gehennom.
     - still green
   - `theme15_seed986_wiz_artifact-wish_gameplay.session.json`
     - still green
+
+## 2026-03-22 - `seed031`: branch-local level changes were reusing stale depth cache entries
+
+- After the pickup-sort fix, `seed031` stalled at gameplay step `1112` with:
+  - JS: `rn2(10)=9 @ changeLevel(do.js:1813)`
+  - C: `rn2(3)=2 @ getbones(bones.c:643)`
+- Investigation showed this was not a missing `getbones()` implementation.
+  JS really was calling [`getbones()`](js/bones.js), but only when first
+  generating:
+  - depth `2` at gameplay step `288`
+  - depth `3` at gameplay step `467`
+- The decisive trace at the live seam:
+  - step `467`: `from=0:2`, branch stair, destination `1:1`
+  - step `1113`: `from=1:1`, ordinary downstairs, `branch=0`
+  - no fresh depth-2 bones roll occurred at step `1113`
+- Root cause:
+  - [`changeLevel()`](js/do.js) still had a legacy depth-only cache fallback:
+    - `targetDnum === currentDnum && game.levels[depth]`
+  - `game.levels[depth]` is keyed only by branch-local `dlevel`
+  - after visiting DoD `0:2`, descending later from Mines `1:1` to Mines `1:2`
+    wrongly reused the stale cached DoD `0:2` map because both share `depth=2`
+  - C keys level identity by full `dnum:dlevel`, so it generated the unseen
+    Mines `1:2` level and consumed the expected `getbones()`/levelgen RNG there
+- Keepable JS fix:
+  - keep the existing `levelsByBranch[dnum:dlevel]` cache as the authoritative
+    branch-aware lookup
+  - only allow the legacy `game.levels[depth]` fallback when the cached map's
+    stamped identity matches the destination exactly:
+    - `_genDnum === targetDnum`
+    - `_genDlevel === depth`
+  - use a local `nextMap` selection path so a cache miss cannot accidentally
+    leave `game.map` pointing at the current level and suppress generation
+- Result:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved from `38721/51561` to `40593/51561`
+    - matched events held at `22572/28950`
+    - first RNG divergence moved from gameplay step `1112` to `1113`
+  - guardrails:
+    - `t11_s755_w_covmax9_gp.session.json` still green
+    - `theme15_seed986_wiz_artifact-wish_gameplay.session.json` still green
+- New active seam:
+  - after fixing the stale cross-branch cache reuse, `seed031` now diverges
+    deeper inside Mines level generation at step `1113`
+  - current first mismatch:
+    - JS: `rn2(100)=21 @ sp_amask_to_amask(sp_lev.js:6251)`
+    - C: `rn2(3)=0 @ induced_align(dungeon.c:2006)`

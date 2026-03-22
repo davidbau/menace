@@ -1742,22 +1742,30 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         ? opts.targetDnum
         : (Number.isInteger(game.dnum) ? game.dnum : currentDnum);
     const branchCacheKey = levelKey(targetDnum, depth);
+    let nextMap = null;
 
     // Use pre-generated map if provided, otherwise check cache or generate new.
     if (opts.map) {
-        game.map = opts.map;
+        nextMap = opts.map;
         game.levels[depth] = opts.map;
         game.levelsByBranch[branchCacheKey] = opts.map;
     } else if (game.levelsByBranch[branchCacheKey]) {
-        game.map = game.levelsByBranch[branchCacheKey];
+        nextMap = game.levelsByBranch[branchCacheKey];
     } else if (targetDnum === currentDnum && game.levels[depth]) {
-        game.map = game.levels[depth];
-    } else {
-        // C ref: do.c:1674-1699 goto_level() assigns u.uz = newlevel before mklev().
-        // Level-sensitive generation (for example makemon.c align_shift()) should
-        // consult the destination level through live u.uz semantics, not via an
-        // injected target-level override on the map being built.
-        const player = (game.u || game.u);
+        const cachedDepthMap = game.levels[depth];
+        const cachedDnum = Number.isInteger(cachedDepthMap?._genDnum)
+            ? cachedDepthMap._genDnum
+            : (Number.isInteger(cachedDepthMap?.uz?.dnum) ? cachedDepthMap.uz.dnum : null);
+        const cachedDlevel = Number.isInteger(cachedDepthMap?._genDlevel)
+            ? cachedDepthMap._genDlevel
+            : (Number.isInteger(cachedDepthMap?.uz?.dlevel) ? cachedDepthMap.uz.dlevel : null);
+        if (cachedDnum === targetDnum && cachedDlevel === depth) {
+            nextMap = cachedDepthMap;
+        }
+    }
+    if (!nextMap) {
+        // Fallback: generate or retrieve a destination level only after
+        // rejecting depth-cache collisions across branch-local dlevels.
         const prevDnum = game.dnum;
         const prevUseLiveUzForMklevAlign = game._useLiveUzForMklevAlign;
         const prevMklevAlignLevelRef = game._mklevAlignLevelRef;
@@ -1771,7 +1779,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
             game._alignShiftMoves = Number.NaN;
         }
         try {
-            game.map = opts.makeLevel ? await opts.makeLevel(depth) : await mklev(depth);
+            nextMap = opts.makeLevel ? await opts.makeLevel(depth) : await mklev(depth);
         } catch (err) {
             game.dnum = prevDnum;
             game._useLiveUzForMklevAlign = prevUseLiveUzForMklevAlign;
@@ -1780,9 +1788,10 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         }
         game._useLiveUzForMklevAlign = prevUseLiveUzForMklevAlign;
         game._mklevAlignLevelRef = prevMklevAlignLevelRef;
-        game.levels[depth] = (game.map || game.map);
-        game.levelsByBranch[branchCacheKey] = (game.map || game.map);
+        game.levels[depth] = nextMap;
+        game.levelsByBranch[branchCacheKey] = nextMap;
     }
+    game.map = nextMap;
 
     if (Number.isInteger((game.map || game.map)?._genDnum)) {
         game.dnum = (game.map || game.map)._genDnum;
