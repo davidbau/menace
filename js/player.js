@@ -550,6 +550,13 @@ export class Player {
         }
     }
 
+    // C ref: youprop.h — Fast = HFast || EFast
+    get fast() {
+        const entry = this.uprops[FAST];
+        if (!entry) return 0;
+        return entry.intrinsic || entry.extrinsic || 0;
+    }
+
     // C ref: youprop.h — Very_fast = (HFast & ~INTRINSIC) || EFast
     get veryFast() {
         const entry = this.uprops[FAST];
