@@ -19,8 +19,9 @@ Open the page, pick a role, descend.
 
 **Play it now: [mazesofmenace.net](https://mazesofmenace.net/)**
 
-Also playable: [Hack (1982)](https://mazesofmenace.net/hack/) and
-[Rogue (1980)](https://mazesofmenace.net/rogue/), the ancestors.
+Also playable: [Hack (1982)](https://mazesofmenace.net/hack/),
+[Rogue (1980)](https://mazesofmenace.net/rogue/), and
+[LOGO](https://mazesofmenace.net/logo/), the ancestors.
 
 ---
 

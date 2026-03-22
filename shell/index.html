@@ -649,6 +649,13 @@
         if (req) req.call(el).catch(function() {});
       }
     };
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        window._toggleFullscreen();
+      }
+    });
   })();
 
   /* Docs overlay — loads REFLECTIONS.md at #reflections */

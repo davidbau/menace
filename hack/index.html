@@ -870,6 +870,13 @@
         if (req) req.call(el).catch(function() {});
       }
     };
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        window._toggleFullscreen();
+      }
+    });
   })();
 
   /* Docs overlay — fetch HISTORY.md, render as HTML, minimap the game */
