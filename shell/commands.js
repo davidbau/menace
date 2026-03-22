@@ -416,7 +416,52 @@ async function launchDungeon(args, shell) {
     return { action: 'dungeon' };
 }
 
-async function help(_args, shell) {
+const HELP_DETAILS = {
+    ls:      'ls [-a] [-l] [dir]  — list directory contents\n  -a  show hidden files (dotfiles)\n  -l  long format (permissions, size, date)',
+    cat:     'cat file [file...]  — display file contents\n  Prints each file to the terminal.',
+    more:    'more file  — page through a file\n  Press space for next page, q to quit.',
+    cd:      'cd [dir]  — change directory\n  cd ..     go up one level\n  cd ~      go to home directory\n  cd        go to home directory',
+    pwd:     'pwd  — print the current working directory',
+    echo:    'echo [args...]  — print arguments to the terminal',
+    clear:   'clear  — clear the screen',
+    whoami:  'whoami  — print your login name',
+    date:    'date  — print the current date and time',
+    who:     'who  — list users currently logged in\n  Shows username, terminal, and login time.',
+    uname:   'uname [-a]  — print system information\n  -a  print all: system, hostname, release, version, machine',
+    man:     'man command  — display the manual page for a command\n  example: man nethack',
+    vi:      'vi file  — open file in the vi text editor\n  i        insert mode (type text)\n  ESC      return to command mode\n  :w       save\n  :q       quit\n  :wq      save and quit\n  dd       delete line\n  hjkl     move cursor',
+    finger:  'finger [user]  — show information about a user\n  Shows login name, real name, home directory, shell,\n  office, last login, mail status, and .plan file.',
+    mail:    'mail  — read and send mail\n  With no arguments, read your inbox.\n  At the & prompt:\n    type a number to read that message\n    r        reply to current message\n    d N      delete message N\n    q        quit mail\n  To send: mail username\n    Type your message, then . on a line by itself to send.',
+    talk:    'talk user  — real-time chat with another user\n  Opens a split-screen conversation.\n  Type to send messages. Ctrl-C to end.\n  The other user must be logged in (check with who).',
+    help:    'help [command]  — display help\n  With no arguments, list all commands.\n  With a command name, show detailed usage.',
+    exit:    'exit  — exit the shell (or: logout)',
+    logout:  'exit  — exit the shell (or: logout)',
+    nethack: 'nethack  — launch NetHack 3.7\n  Explore the Mazes of Menace. Retrieve the Amulet of Yendor.',
+    hack:    'hack  — launch Hack (1982)\n  The original dungeon crawler from Lincoln-Sudbury.',
+    rogue:   'rogue  — launch Rogue (1980)\n  The game that started the genre.',
+    dungeon: 'dungeon  — launch Dungeon (Zork)\n  The classic text adventure.',
+    logo:    'logo  — launch Logo (1982)\n  Turtle graphics programming language.\n  Type HELP at the ? prompt for Logo commands.',
+    su:      'su  — switch user to root\n  Requires the root password.',
+    finger:  'finger [user]  — show information about a user\n  Shows login, name, directory, shell, office, plan.',
+    passwd:  'passwd  — change your password\n  You will be prompted for the old and new passwords.',
+    rm:      'rm file  — remove a file\n  Only works for files you created.',
+    cp:      'cp src dst  — copy a file',
+    mv:      'mv src dst  — rename or move a file',
+    mkdir:   'mkdir dir  — create a directory',
+    chmod:   'chmod mode file  — change file permissions',
+    sh:      'sh  — start a new shell',
+};
+
+async function help(args, shell) {
+    if (args.length > 0) {
+        const cmd = args[0].toLowerCase();
+        if (HELP_DETAILS[cmd]) {
+            shell.println(HELP_DETAILS[cmd]);
+            return;
+        }
+        shell.println(`help: no help for '${cmd}'`);
+        return;
+    }
     const cmds = [
         ['ls',       'list directory contents'],
         ['cat',      'display file contents'],
@@ -436,13 +481,13 @@ async function help(_args, shell) {
         ['talk',     'real-time chat with another user'],
         ['help',     'display this help'],
         ['exit',     'exit shell'],
+        ['logo',     'launch Logo'],
         ['nethack',  'launch NetHack'],
         ['hack',     'launch Hack'],
         ['rogue',    'launch Rogue'],
         ['dungeon',  'launch Dungeon'],
-        ['logo',     'launch Logo'],
     ];
-    shell.println('Available commands:');
+    shell.println('Available commands (type help <command> for details):');
     for (const [name, desc] of cmds) {
         shell.println(`  ${name.padEnd(12)}${desc}`);
     }
