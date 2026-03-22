@@ -183,12 +183,13 @@ REPEAT 8 [SETPENCOLOR REPCOUNT REPEAT 4 [FORWARD 40 RIGHT 90] RIGHT 45]
 
 Logo is not just about turtles. It is a language for working with words and lists:
 
-```
-PRINT FIRST [RED GREEN BLUE]
-PRINT BUTFIRST [RED GREEN BLUE]
-PRINT COUNT [A B C D E]
-PRINT SENTENCE [HELLO] [WORLD]
-```
+`PRINT FIRST [RED GREEN BLUE]` — first element of a list
+
+`PRINT BUTFIRST [RED GREEN BLUE]` — all but first
+
+`PRINT COUNT [A B C D E]` — number of elements
+
+`PRINT SENTENCE [HELLO] [WORLD]` — combine lists
 
 ### Quick Reference
 
