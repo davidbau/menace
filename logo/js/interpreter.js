@@ -492,12 +492,15 @@ export class LogoInterpreter {
       lines.push('');
     }
     const text = lines.join('\n') + '\n';
+    const key = 'home/' + fullName.toLowerCase();
+    if (!this._memFs) this._memFs = {};
+    this._memFs[key] = text;
     try {
       const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
-      fs['home/' + fullName.toLowerCase()] = text;
+      fs[key] = text;
       localStorage.setItem('menace-fs', JSON.stringify(fs));
-      this._output(`SAVED ${fullName}\n`);
-    } catch (e) { this._output('SAVE FAILED\n'); }
+    } catch (e) { /* localStorage unavailable — memFs still works */ }
+    this._output(`SAVED ${fullName}\n`);
   }
 
   _handleLoad(stream, env) {
@@ -512,9 +515,13 @@ export class LogoInterpreter {
     }
     const ext = filename.includes('.') ? '' : '.LGO';
     const fullName = filename + ext;
+    const key = 'home/' + fullName.toLowerCase();
+    let text = (this._memFs && this._memFs[key]) || null;
     try {
-      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
-      const text = fs['home/' + fullName.toLowerCase()];
+      if (!text) {
+        const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
+        text = fs[key];
+      }
       if (!text) { this._output(`FILE NOT FOUND: ${fullName}\n`); return; }
       this._loadFromText(text);
       this._output(`LOADED ${fullName}\n`);

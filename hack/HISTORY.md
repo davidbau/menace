@@ -4,7 +4,7 @@
 
 In the summer of 1982, a high school junior from Sudbury, Massachusetts put his game on a USENIX conference tape and sent it out into the world. He included his home phone number and apologized in advance about his modem and his teenage sister. He called the game "my first semester programming project." He called it "my silly game."
 
-That game was Hack. Its direct descendant, NetHack, is still under active development. The dungeon turned out to go deeper than anyone expected.
+That game was Hack. Its direct descendant, [NetHack](/nethack/), is still under active development. The dungeon turned out to go deeper than anyone expected.
 
 ---
 
@@ -32,7 +32,7 @@ It was, by the standards of 1980, an extraordinary place. It was about to produc
 
 [Seymour Papert](https://en.wikipedia.org/wiki/Seymour_Papert) at MIT had built [Logo](/logo/#about) and the movement around it. Brian Harvey was a committed participant, connected with Logo communities around the country, including the SFSU Logo Workshop at San Francisco State University, where Lincoln-Sudbury students participated.
 
-It was through this SFSU connection that [Jay Fenlason](https://nethackwiki.com/wiki/Jay_Fenlason) first encountered [Rogue](https://en.wikipedia.org/wiki/Rogue_(video_game)).
+It was through this SFSU connection that [Jay Fenlason](https://nethackwiki.com/wiki/Jay_Fenlason) first encountered [Rogue](/rogue/#about).
 
 Rogue had been created in 1980 by [Michael Toy](https://en.wikipedia.org/wiki/Michael_Toy) and [Glenn Wichman](https://en.wikipedia.org/wiki/Glenn_Wichman) at UC Santa Cruz. It was a dungeon-crawling game where the computer generated a new dungeon each time you played, which meant even its creators could be surprised by it. Fenlason was a junior at Lincoln-Sudbury when he found it. He asked for the source code. The authors said no.
 
@@ -209,7 +209,7 @@ Less is known about the subsequent careers of Kenny Woodland and Mike Thome. The
 - [NetHack Wiki: Game history](https://nethackwiki.com/wiki/Game_history)
 - [Wikipedia: Hack (video game)](https://en.wikipedia.org/wiki/Hack_(video_game))
 - [Wikipedia: NetHack](https://en.wikipedia.org/wiki/NetHack)
-- [Wikipedia: Rogue (video game)](https://en.wikipedia.org/wiki/Rogue_(video_game))
+- [Rogue](/rogue/)
 - [Wikipedia: JOVE](https://en.wikipedia.org/wiki/JOVE)
 - [Wikipedia: Brian Harvey (lecturer)](https://en.wikipedia.org/wiki/Brian_Harvey_(lecturer))
 - [Wikipedia: Java (programming language)](https://en.wikipedia.org/wiki/Java_(programming_language))
