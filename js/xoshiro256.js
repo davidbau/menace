@@ -49,21 +49,42 @@ function rotl(x, k) {
  * @returns {number} - Random number in [0, 1)
  */
 export function xoshiroRandom() {
-    // xoshiro256** algorithm
-    const result = BigInt.asUintN(64, rotl(s1 * 5n, 7) * 9n);
-    const t = s1 << 17n;
-
-    s2 ^= s0;
-    s3 ^= s1;
-    s1 ^= s2;
-    s0 ^= s3;
-    s2 ^= t;
-    s3 = rotl(s3, 45);
-
+    const result = xoshiroNext();
     // Convert to double in [0, 1) range
     // Lua 5.4 uses the high 53 bits: (result >> 11) * (1.0 / (1 << 53))
     const shifted = result >> 11n;
     return Number(shifted) * (1.0 / 9007199254740992.0); // 2^53
+}
+
+/**
+ * Generate random integer in [low, high] matching Lua 5.4's math.random(low, high).
+ * C ref: lmathlib.c math_random() + project() — rejection sampling for unbiased range.
+ *
+ * @param {number} low - Lower bound (inclusive)
+ * @param {number} high - Upper bound (inclusive)
+ * @returns {number} - Random integer in [low, high]
+ */
+export function xoshiroRandomInt(low, high) {
+    const n = BigInt(high - low); // range = high - low
+    let ran = xoshiroNext();
+    // C ref: lmathlib.c project() — unbiased projection into [0, n]
+    if ((n & (n + 1n)) === 0n) {
+        // n+1 is power of 2 — no bias
+        ran = ran & n;
+    } else {
+        let lim = n;
+        lim |= (lim >> 1n);
+        lim |= (lim >> 2n);
+        lim |= (lim >> 4n);
+        lim |= (lim >> 8n);
+        lim |= (lim >> 16n);
+        lim |= (lim >> 32n);
+        while ((ran & lim) > n) {
+            ran = xoshiroNext();
+        }
+        ran = ran & lim;
+    }
+    return Number(ran) + low;
 }
 
 /**
@@ -85,29 +106,56 @@ export function getXoshiroState() {
  *
  * @param {number} seed - Main RNG seed (e.g., 163)
  */
+/**
+ * Seed xoshiro256** matching Lua 5.4's math.randomseed(seed) behavior.
+ * C ref: lmathlib.c setseed() — sets state[0]=n1, state[1]=0xff,
+ * state[2]=n2, state[3]=0, then advances 16 times to mix.
+ *
+ * When called as math.randomseed(seed) with one argument: n1=seed, n2=0.
+ *
+ * @param {number|bigint} seed - The game seed (same as NETHACK_SEED)
+ */
 export function seedFromMainRng(seed) {
     const DEBUG = envFlag('DEBUG_XOSHIRO');
+    const n1 = BigInt.asUintN(64, BigInt(seed));
+    const n2 = 0n;
 
-    if (DEBUG) {
-        console.log(`\n[xoshiro] Seeding from main RNG seed: ${seed}`);
-    }
+    // C ref: lmathlib.c setseed()
+    s0 = n1;
+    s1 = BigInt.asUintN(64, 0xffn);
+    s2 = n2;
+    s3 = 0n;
 
-    // Use SplitMix64 to generate 4 independent seeds from the main seed
-    const seeds = splitmix64(BigInt(seed));
-    seedXoshiro(seeds[0], seeds[1], seeds[2], seeds[3]);
-
-    // Warm up the generator - Lua might advance state during initialization
-    // Try different warmup counts to match C's behavior
-    const warmupCount = 0; // Adjust this if needed
-    for (let i = 0; i < warmupCount; i++) {
-        xoshiroRandom();
+    // Advance 16 times to spread seed (matches C's setseed warmup)
+    for (let i = 0; i < 16; i++) {
+        xoshiroNext();
     }
 
     if (DEBUG) {
-        console.log('[xoshiro] SplitMix seeds:', seeds.map(s => s.toString(16)));
-        console.log('[xoshiro] Warmup iterations:', warmupCount);
+        console.log(`[xoshiro] Seeded from game seed: ${seed}`);
         console.log('[xoshiro] State after warmup:', getXoshiroState());
     }
+}
+
+/**
+ * Raw xoshiro256** advance (returns the 64-bit result, doesn't convert to float).
+ * Used by setseed warmup and by xoshiroRandom.
+ */
+function xoshiroNext() {
+    const result = BigInt.asUintN(64, rotl(s1 * 5n, 7) * 9n);
+    const t = BigInt.asUintN(64, s1 << 17n);
+    s2 ^= s0;
+    s3 ^= s1;
+    s1 ^= s2;
+    s0 ^= s3;
+    s2 ^= t;
+    s3 = rotl(s3, 45);
+    // Keep all state values in 64-bit range
+    s0 = BigInt.asUintN(64, s0);
+    s1 = BigInt.asUintN(64, s1);
+    s2 = BigInt.asUintN(64, s2);
+    s3 = BigInt.asUintN(64, s3);
+    return result;
 }
 
 /**
