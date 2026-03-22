@@ -2196,6 +2196,14 @@ export class NetHackGame {
             await _maybeDoTutorial(this);
         }
 
+        // Ensure message line is clean before gameplay begins
+        // (chargen messages like "Shall I pick..." can linger on row 0)
+        if (this.display) {
+            this.display.topMessage = null;
+            this.display.messageNeedsMore = false;
+            this.display.toplin = 0;
+        }
+
         this._emitGameplayStart();
     }
 
