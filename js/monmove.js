@@ -117,7 +117,7 @@ import { stairway_at } from './stairs.js';
 import { mwelded } from './wield.js';
 import { extract_from_minvent } from './worn.js';
 import { eaten_stat } from './eat.js';
-import { mon_wield_item } from './weapon.js';
+import { mon_wield_item, autoreturn_weapon } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
 import { tele_restrict, rloc, enexto, rloc_to } from './teleport.js';
@@ -730,7 +730,6 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
                 if (costly && !obj?.no_charge) continue;
                 if (!mon_would_take_item_search(mon, obj, map, searchProfile)) continue;
                 if (can_carry(mon, obj) <= 0) continue;
-
                 minr = distmin(omx, omy, xx, yy);
                 ggx = xx;
                 ggy = yy;
@@ -2135,9 +2134,9 @@ export async function m_move(mon, map, player, display = null, fov = null) {
     let chosenIdx = -1;
     let mmoved = false;
     // C ref: monmove.c:1877 — preferred range for appr==-2 (throw-and-return weapons).
-    // Currently always 0 since autoreturn_weapon is not implemented.
-    const preferredRangeMin = 0;
-    const preferredRangeMax = 0;
+    const arw = autoreturn_weapon(mon.weapon || null);
+    const preferredRangeMin = (appr === -2 && arw) ? (2 * 2) : 0;
+    const preferredRangeMax = (appr === -2 && arw) ? Number(arw.range || 0) : 0;
     const jcnt = Math.min(MTSZ, cnt - 1);
     if (!mon_is_peaceful(mon)
         && map?.flags?.shortsighted
@@ -2589,6 +2588,12 @@ export function m_balks_at_approaching(oldappr, mon, player) {
             && dist2(mon.mx, mon.my, ux, uy) <= 5) {
             return -1;
         }
+    }
+
+    // C ref: monmove.c:1226-1231 — throw-and-return weapon users keep a
+    // preferred stand-off range rather than simply closing.
+    if (mwep && autoreturn_weapon(mwep)) {
+        return -2;
     }
 
     // C ref: monmove.c:1218-1221 — ranged attack with low HP or unused spec

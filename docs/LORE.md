@@ -15952,3 +15952,46 @@ distinction is always conditional on being in Gehennom.
 - New active seam after this batch is deeper in the same later pet/object
   corridor around gameplay step `1150`, not in the old gnome-candle setup or
   the hero-hit wand crash.
+
+## 2026-03-22 - `seed031`: aklys stand-off range unblocks current-square monster pickup
+
+- After the gnome-candle and hero-hit `mbhitm()` fixes, `seed031` stalled at
+  gameplay step `1150` in an apparent pet/object corridor.
+- Focused trace work narrowed the first-cause mismatch to monster `166`
+  (a gnome lord) immediately after the hero hit it with a dart:
+  - JS throw tracing showed the dart already landed correctly at `42,7`
+  - C then had the gnome lord pick up that same dart on its turn
+  - JS instead moved the gnome lord away and only diverged later in
+    downstream monster-turn RNG
+- The decisive JS state at the `getitems` gate was:
+  - `appr = 1`
+  - `inLine = 1`
+  - wielded weapon `otyp 80`, which is an `aklys`
+- C source of truth in `monmove.c` is that `m_balks_at_approaching()` has a
+  dedicated throw-and-return-weapon branch:
+  - `autoreturn_weapon(mwep) != 0` returns `appr = -2`
+  - it also sets a preferred stand-off range via `pdistmin/pdistmax`
+- JS had the downstream `appr === -2` movement logic in [`m_move()`](js/monmove.js)
+  already, but never produced `-2` because [`m_balks_at_approaching()`](js/monmove.js)
+  omitted the `autoreturn_weapon()` branch entirely.
+- The faithful JS fix is:
+  - import [`autoreturn_weapon()`](js/weapon.js) into [`monmove.js`](js/monmove.js)
+  - return `-2` from `m_balks_at_approaching()` when the monster wields an
+    autoreturn weapon like an aklys
+  - compute `preferredRangeMin = 4` and `preferredRangeMax = arw.range` in
+    `m_move()` when `appr === -2`
+- That makes JS match the C stand-off behavior for aklys users, which in this
+  corridor re-enables current-square item search/pickup instead of walking off
+  the freshly-landed dart.
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `43999 -> 44592`
+    - matched events improved `24403 -> 24783`
+    - first RNG divergence moved `1150 -> 1173`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- New active seam after this fix is later still, around gameplay step `1173`;
+  the earlier gnome-lord current-square dart pickup mismatch is no longer the
+  first-cause divergence.
