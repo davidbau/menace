@@ -15879,3 +15879,28 @@ distinction is always conditional on being in Gehennom.
   - current first mismatch:
     - JS: `rn2(100)=21 @ sp_amask_to_amask(sp_lev.js:6251)`
     - C: `rn2(3)=0 @ induced_align(dungeon.c:2006)`
+### `seed031`: `minefill` scripted monster alignment should be unaligned
+
+- After fixing the cross-branch level cache collision, `seed031_manual_direct`
+  re-exposed a later Mines level-generation seam at gameplay step `1113`:
+  - JS: `rn2(100)=21 @ sp_amask_to_amask(sp_lev.js)`
+  - C: `rn2(3)=0 @ induced_align(dungeon.c:2006)`
+- Focused JS tracing showed the active `sp_amask_to_amask('random')` calls were
+  inside protofile `minefill` generation:
+  - early branch-entry generation: `live=0:2 ctx=1:1`
+  - later Mines descent generation: `live=1:1 ctx=1:2`
+  - in the later seam JS was still deriving `dungeonAlign=A_LAWFUL` from Mines
+    branch context and therefore burning the `rn2(100)` gate.
+- The narrow C-faithful fix in `js/sp_lev.js` is:
+  - when `specialName === 'minefill'`, force `dungeonAlign = A_NONE` for
+    `sp_amask_to_amask('random')`
+  - keep other special-level alignment cases unchanged
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - first RNG divergence moved `1113 -> 1127`
+    - matched RNG `40593 -> 42621`
+    - matched events `22572 -> 23195`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+- New frontier after this fix is later pet/object handling around step `1127`,
+  not the old `sp_amask_to_amask()/induced_align()` seam.

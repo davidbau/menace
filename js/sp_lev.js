@@ -6243,7 +6243,9 @@ export function sp_amask_to_amask(amask = 'random') {
     const ctx = levelState.finalizeContext || {};
     const specialName = typeof ctx.specialName === 'string' ? ctx.specialName : '';
     const dnum = currentAlignmentDnum(ctx);
-    const dungeonAlign = (dnum !== undefined) ? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE) : A_NONE;
+    let dungeonAlign = (dnum !== undefined) ? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE) : A_NONE;
+    // Protofile fill levels such as minefill use unaligned scripted generation.
+    if (specialName === 'minefill') dungeonAlign = A_NONE;
     let specialAlign = A_NONE;
     if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;
     if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
