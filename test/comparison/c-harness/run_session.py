@@ -248,6 +248,11 @@ def exp_trace_env():
     v = os.environ.get('NETHACK_EXP_TRACE', '')
     return f'NETHACK_EXP_TRACE={v} ' if v else ''
 
+def screendump_env():
+    """Pass NETHACK_SCREENDUMP through to the C binary if set."""
+    v = os.environ.get('NETHACK_SCREENDUMP', '')
+    return f'NETHACK_SCREENDUMP={v} ' if v else ''
+
 def repaint_debug_env(log_path=None):
     """Pass repaint debug settings through to the C binary if enabled."""
     v = os.environ.get('NETHACK_REPAINT_DEBUG', '')
@@ -1227,6 +1232,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{dumpsnap_env()}'
             f'{rnglog_disp_env()}'
+            f'{screendump_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
@@ -1491,6 +1497,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
+            f'{screendump_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={RESULTS_DIR} '
@@ -1788,6 +1795,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
+            f'{screendump_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={RESULTS_DIR} '
@@ -2175,6 +2183,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
+            f'{screendump_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPSNAP={checkpoint_file} '
