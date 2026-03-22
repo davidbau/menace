@@ -57,7 +57,7 @@ import { sa_victual } from './decl.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
 import { costly_spot } from './shk.js';
-import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
+import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, obj_here } from './invent.js';
 import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
@@ -70,6 +70,7 @@ import { stop_occupation } from './allmain.js';
 import { pluslvl } from './exper.js';
 import { sgn, distu } from './hacklib.js';
 import { monflee } from './monmove.js';
+import { can_reach_floor } from './engrave.js';
 import { is_rider, is_giant, acidic, poisonous, flesh_petrifies,
          vegan, vegetarian, carnivorous, herbivorous,
          is_humanoid, is_undead, attacktype, dmgtype,
@@ -1959,6 +1960,28 @@ async function handleEat(player, display, game) {
 
     const item = selectedItem;
     const fromFloor = selectedFromFloor;
+    const victual = game?.svc?.context?.victual;
+
+    // C ref: eat.c doeat() resume-meal branch. If the selected food is the
+    // current victual, resume via start_eating() instead of re-running fresh
+    // corpse/food setup and its RNG.
+    if (item && victual && item === victual.piece) {
+        const oneBiteLeft = (victual.usedtime + 1 >= victual.reqtime);
+        if (player.uhs !== SATIATED) {
+            victual.canchoke = 0;
+        }
+        victual.o_id = 0;
+        const touched = touchfood(item, player);
+        if (touched) {
+            victual.piece = touched;
+            victual.o_id = touched.o_id;
+            await You(!oneBiteLeft ? "resume your meal." : "consume the last bite of your meal.");
+            await start_eating(touched, false, game, player);
+        } else {
+            do_reset_eat(game);
+        }
+        return { moved: false, tookTime: true };
+    }
 
         // cf. eat.c doesplit() path — splitobj() for stacked comestibles:
         // splitobj() creates a single-item object and consumes next_ident() (rnd(2)).
@@ -2292,13 +2315,20 @@ export async function eatfood(game, player) {
   if (food && !carried(food) && !obj_here(food, player.x, player.y)) food = 0;
   if (!food) { await do_reset_eat(); return 0; }
   if (!game.svc.context.victual.eating) return 0;
-  if (++game.svc.context.victual.usedtime <= game.svc.context.victual.reqtime) { if (await bite()) return 0; return 1; }
-  else { await done_eating(true); return 0; }
+  if (++game.svc.context.victual.usedtime <= game.svc.context.victual.reqtime) {
+    if (await bite(game, player)) return 0;
+    return 1;
+  } else {
+    await done_eating(true, game, player);
+    return 0;
+  }
 }
 
 // Autotranslated from eat.c:1697
 export async function opentin(game, player) {
-  if (!carried(game.svc.context.tin.tin) && (!obj_here(game.svc.context.tin.tin, player.x, player.y) || !can_reach_floor(true))) return 0;
+  if (!carried(game.svc.context.tin.tin)
+      && (!obj_here(game.svc.context.tin.tin, player.x, player.y, game?.map)
+          || !can_reach_floor(player, game?.map, true))) return 0;
   if (game.svc.context.tin.usedtime++ >= 50) { await You("give up your attempt to open the tin."); return 0; }
   if (game.svc.context.tin.usedtime < game.svc.context.tin.reqtime) return 1;
   await consume_tin("You succeed in opening the tin.");

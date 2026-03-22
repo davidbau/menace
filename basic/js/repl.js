@@ -1,71 +1,74 @@
-// Logo REPL — reads lines, evaluates, manages text display.
-// Runs in the LogoDisplay's 80×24 character grid.
+// BASIC REPL — immediate mode prompt, uppercase input, Ctrl-C break.
 
-import { LogoError } from './interpreter.js';
+import { BasicError, BreakError } from './interpreter.js';
 
-export class LogoRepl {
+export class BasicRepl {
   constructor(display, interpreter) {
     this._display = display;
     this._interp = interpreter;
-    this._row = 0;     // current output row
-    this._col = 0;     // current output column
+    this._row = 0;
+    this._col = 0;
     this._inputBuf = '';
     this._history = [];
     this._historyIdx = -1;
-    this._resolver = null; // for async line reads
-    this._running = false;
+    this._breakFlag = false;
 
-    // Wire interpreter's output to our display
+    // Wire interpreter I/O
     interpreter._output = (str) => this._write(str);
-    interpreter._clearText = () => this._clearText();
-    interpreter._readLine = (prompt) => this._promptRead(prompt);
+    interpreter._input = (prompt) => this._promptRead(prompt);
+    interpreter._checkBreak = () => {
+      if (this._breakFlag) { this._breakFlag = false; return true; }
+      return false;
+    };
+
+    // Direct Ctrl-C listener — sets break flag even when program is running
+    // (the getch queue isn't read during execution, so we need this)
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() === 'c') {
+        if (this._interp._running) {
+          this._breakFlag = true;
+          e.preventDefault();
+          e.stopImmediatePropagation(); // prevent getch from also queuing it
+        }
+      }
+    }, true); // capture phase — fires before getch's listener
   }
 
   async start(getch) {
     this._getch = getch;
-    this._running = true;
 
     // Startup banner
-    this._write('LOGO  VERSION 1.0  (1982)\n');
-    this._write('\n');
+    this._write('BASIC-PLUS  V1.5  (1979)\n');
+    this._write('READY.\n');
 
     // Main REPL loop
-    while (this._running) {
-      const prompt = this._interp.isPendingDefinition ? '> ' : '? ';
-      this._write(prompt);
+    while (true) {
+      this._write('\nREADY\n');
       const line = await this._readLine();
-      if (line === null) break; // Ctrl-C during startup or similar
+      if (line === null) continue;
 
-      if (this._interp.isPendingDefinition) {
-        // Collecting TO..END body
-        this._interp.addDefinitionLine(line);
-        continue;
-      }
-
-      if (line.trim() === '') continue;
-
-      // Add to history
       if (this._history.length === 0 || this._history[this._history.length - 1] !== line) {
-        this._history.push(line);
+        if (line.trim()) this._history.push(line);
         if (this._history.length > 50) this._history.shift();
       }
       this._historyIdx = -1;
 
       try {
-        await this._interp.run(line);
+        await this._interp.execImmediate(line);
       } catch (e) {
-        if (e instanceof LogoError) {
-          this._write(e.message + '\n');
-        } else if (e && e.name === 'LogoError') {
-          this._write(e.message + '\n');
+        if (e instanceof BasicError) {
+          let msg = e.message;
+          if (e.lineNum) msg += ` IN ${e.lineNum}`;
+          this._write(msg + '\n');
+        } else if (e instanceof BreakError) {
+          this._write('\nBREAK\n');
         } else {
-          this._write('ERROR: ' + (e.message || e) + '\n');
+          this._write('?ERROR: ' + (e.message || e) + '\n');
         }
       }
     }
   }
 
-  // Write a string to the display at current position
   _write(str) {
     for (const ch of str) {
       if (ch === '\n') {
@@ -91,68 +94,55 @@ export class LogoRepl {
     this._display.setCursor(this._col, this._row);
   }
 
-  _clearText() {
-    this._display.clearScreen();
-    this._row = 0;
-    this._col = 0;
-  }
-
-  // Read a line with editing (Backspace, Enter, Up/Down history)
   async _readLine() {
     this._inputBuf = '';
     const startCol = this._col;
-    const startRow = this._row;
 
     while (true) {
       this._display.setCursor(startCol + this._inputBuf.length, this._row);
       const code = await this._getch();
 
       if (code === 13 || code === 10) {
-        // Enter
         this._write('\n');
         return this._inputBuf;
       }
 
       if (code === 8 || code === 127) {
-        // Backspace
         if (this._inputBuf.length > 0) {
           this._inputBuf = this._inputBuf.slice(0, -1);
-          this._redrawInput(startCol, startRow);
+          this._redrawInput(startCol);
         }
         continue;
       }
 
       if (code === 3) {
-        // Ctrl-C — quit Logo, return to shell as logged-in rodney
-        this._write('^C\n');
-        this._running = false;
-        if (typeof window !== 'undefined') {
-          var rows = window._logoDisplay ? window._logoDisplay.getRows() : [];
-          try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: rows })); } catch(e) {}
-          window.location.href = '/shell/';
-        }
-        return null;
-      }
-
-      if (code === 12) {
-        // Ctrl-L — clear screen
-        this._clearText();
-        return '';
-      }
-
-      if (code === 16) {
-        // Up arrow (mapped as Ctrl-P)
-        if (this._historyIdx < 0) this._historyIdx = this._history.length;
-        if (this._historyIdx > 0) {
-          this._historyIdx--;
-          this._inputBuf = this._history[this._historyIdx];
-          this._redrawInput(startCol, startRow);
+        // Ctrl-C — break running program or quit if at prompt
+        if (this._interp._running) {
+          this._breakFlag = true;
+        } else {
+          // At the prompt, Ctrl-C exits to shell
+          this._write('^C\n');
+          if (typeof window !== 'undefined') {
+            var rows = window._basicDisplay ? window._basicDisplay.getRows() : [];
+            try { localStorage.setItem('shell_context', JSON.stringify({ app: 'basic', user: 'rodney', rows: rows })); } catch(e) {}
+            window.location.href = '/shell/';
+          }
+          return null;
         }
         continue;
       }
 
-      if (code === 14) {
-        // Down arrow (mapped as Ctrl-N)
+      if (code === 16) { // Up arrow
+        if (this._historyIdx < 0) this._historyIdx = this._history.length;
+        if (this._historyIdx > 0) {
+          this._historyIdx--;
+          this._inputBuf = this._history[this._historyIdx];
+          this._redrawInput(startCol);
+        }
+        continue;
+      }
+
+      if (code === 14) { // Down arrow
         if (this._historyIdx >= 0 && this._historyIdx < this._history.length - 1) {
           this._historyIdx++;
           this._inputBuf = this._history[this._historyIdx];
@@ -160,11 +150,11 @@ export class LogoRepl {
           this._historyIdx = -1;
           this._inputBuf = '';
         }
-        this._redrawInput(startCol, startRow);
+        this._redrawInput(startCol);
         continue;
       }
 
-      // Printable character — uppercase (1982 Logo convention)
+      // Printable — uppercase
       if (code >= 32 && code < 127) {
         const ch = String.fromCharCode(code).toUpperCase();
         this._inputBuf += ch;
@@ -174,19 +164,16 @@ export class LogoRepl {
     }
   }
 
-  _redrawInput(startCol, startRow) {
-    // Clear from startCol to end of line
+  _redrawInput(startCol) {
     for (let c = startCol; c < this._display.COLS; c++) {
-      this._display.putChar(c, startRow, ' ');
+      this._display.putChar(c, this._row, ' ');
     }
-    // Redraw input buffer
     for (let i = 0; i < this._inputBuf.length; i++) {
-      this._display.putChar(startCol + i, startRow, this._inputBuf[i]);
+      this._display.putChar(startCol + i, this._row, this._inputBuf[i]);
     }
-    this._display.setCursor(startCol + this._inputBuf.length, startRow);
+    this._display.setCursor(startCol + this._inputBuf.length, this._row);
   }
 
-  // For READLIST — prompt and read
   async _promptRead(prompt) {
     if (prompt) this._write(prompt);
     return this._readLine();

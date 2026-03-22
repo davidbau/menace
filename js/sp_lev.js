@@ -4265,6 +4265,21 @@ export async function object(name_or_opts, x, y) {
                 obj.blessed = false;
             }
         }
+        // C ref: sp_lev.c:2277-2289 — locked/broken/trapped/greased
+        if (objOpts) {
+            if (objOpts.locked === 0 || objOpts.locked === 1) {
+                obj.olocked = objOpts.locked;
+            } else if (objOpts.broken) {
+                obj.obroken = 1;
+                obj.olocked = 0; // obj generation may set
+            }
+            if (objOpts.trapped === 0 || objOpts.trapped === 1) {
+                obj.otrapped = objOpts.trapped;
+            }
+            if (objOpts.greased) {
+                obj.greased = 1;
+            }
+        }
         spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=created call=${getRngCallCount()} otyp=${obj.otyp ?? -1} oclass=${obj.oclass ?? -1} spe=${obj.spe ?? -999} quan=${obj.quan ?? -1}`);
         if (obj.corpsenm !== undefined && obj.corpsenm !== null && obj.corpsenm !== -1) {
             spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=corpsenm call=${getRngCallCount()} got=${obj.corpsenm} otyp=${obj.otyp ?? -1}`);
@@ -6243,7 +6258,9 @@ export function sp_amask_to_amask(amask = 'random') {
     const ctx = levelState.finalizeContext || {};
     const specialName = typeof ctx.specialName === 'string' ? ctx.specialName : '';
     const dnum = currentAlignmentDnum(ctx);
-    const dungeonAlign = (dnum !== undefined) ? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE) : A_NONE;
+    let dungeonAlign = (dnum !== undefined) ? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE) : A_NONE;
+    // Protofile fill levels such as minefill use unaligned scripted generation.
+    if (specialName === 'minefill') dungeonAlign = A_NONE;
     let specialAlign = A_NONE;
     if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;
     if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;

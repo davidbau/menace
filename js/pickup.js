@@ -4,7 +4,10 @@ import { THRONE, SINK, GRAVE, FOUNTAIN, STAIRS, ALTAR, IS_DOOR, D_ISOPEN,
          IS_POOL, IS_LAVA, isok, SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER,
          EXT_ENCUMBER, A_WIS, STONE, MM_ADJACENTOK, MM_NOMSG,
          AUTOUNLOCK_UNTRAP, AUTOUNLOCK_APPLY_KEY } from './const.js';
-import { objectData, COIN_CLASS, CORPSE, ICE_BOX, CHEST,
+import { objectData, COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS,
+         FOOD_CLASS, SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS,
+         WAND_CLASS, TOOL_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
+         CORPSE, ICE_BOX, CHEST,
          BAG_OF_HOLDING, BAG_OF_TRICKS, WAN_CANCELLATION, LOADSTONE,
          BOULDER, STATUE, AMULET_OF_YENDOR, CANDELABRUM_OF_INVOCATION,
          BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD, LEASH, SCR_SCARE_MONSTER,
@@ -1806,8 +1809,8 @@ async function containerMenu(game, container) {
     };
 
     // Helper: put items into container (the 'i' flow).
-    // cf. pickup.c traditional_loot(TRUE) / menu_loot(TRUE).
-    // Returns true if any items were put in (tookTime).
+    // cf. pickup.c menu_loot(0, TRUE) — uses query_category + query_objlist
+    // with count support and splitobj for partial stacks.
     const doPutIn = async () => {
         const inv = (player.inventory || []).filter(
             (o) => o && o.invlet && o !== container);
@@ -1816,50 +1819,7 @@ async function containerMenu(game, container) {
                 "You don't have anything" + (player.inventory?.length ? ' else' : '') + ' to put in.');
             return false;
         }
-        const seenClasses = new Set();
-        for (const o of inv) {
-            const sym = CLASS_SYMBOLS[o.oclass];
-            if (sym) seenClasses.add(sym);
-        }
-        const classStr = [...seenClasses].join('');
-        let selectedClasses = null;
-        let oneByOne = false;
-        if (seenClasses.size > 1) {
-            const prompt = `What kinds of things do you want to put in? [${classStr} a A]`;
-            const userInput = await getlin(prompt, display);
-            if (userInput === null || userInput.trim() === '\x1b') return false; // ESC
-            const trimmed = userInput.trim();
-            if (trimmed === '' || trimmed.includes('a')) {
-                selectedClasses = null;
-            } else if (trimmed.includes('A')) {
-                selectedClasses = null;
-                oneByOne = true;
-            } else {
-                selectedClasses = new Set(trimmed.split('').filter((ch) => seenClasses.has(ch)));
-                if (selectedClasses.size === 0) return false;
-            }
-        }
-        const candidates = inv.filter((o) => {
-            if (selectedClasses === null) return true;
-            return selectedClasses.has(CLASS_SYMBOLS[o.oclass]);
-        });
-        const cname = xname(container);
-        let didPut = false;
-        for (const item of candidates) {
-            if (oneByOne) {
-                const ans = await ynFunction(
-                    `Put in ${doname(item, player)}?`, 'ynaq', 'y'.charCodeAt(0), display);
-                const ansC = String.fromCharCode(ans);
-                if (ansC === 'q') break;
-                if (ansC === 'n') continue;
-            }
-            const res = await in_container(item, player);
-            if (res < 0) break; // abort (mbag explosion or fatal corpse)
-            if (res > 0) didPut = true;
-            // Check if container was destroyed (mbag explosion)
-            if (!current_container) break;
-        }
-        return didPut;
+        return (await menu_loot(0, true, player, game)) > 0;
     };
 
     try {
@@ -2461,10 +2421,14 @@ async function query_category(qstr, olist, qflags, how, player, game) {
     const ofilter = do_worn ? is_worn : null;
 
     // count categories
+    // C ref: options.c:136 def_inv_order — uses class number constants, not display symbols.
+    // JS inv_order may be display symbols; use the numeric class order instead.
     let ccount = 0;
-    const inv_order = game?.flags?.inv_order || 'aefgkmopqrstuvw!?"+=([*/(';
-    for (let ci = 0; ci < inv_order.length; ci++) {
-        const pack = inv_order.charCodeAt(ci);
+    const class_order = [COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS,
+        SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS, WAND_CLASS,
+        TOOL_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS];
+    for (let ci = 0; ci < class_order.length; ci++) {
+        const pack = class_order[ci];
         let found = false;
         for (let c = olist; c; c = FOLLOW(c, qflags)) {
             if (c.oclass === pack) {
@@ -2474,9 +2438,14 @@ async function query_category(qstr, olist, qflags, how, player, game) {
         }
     }
 
-    // single category optimization
-    const num_buc_types = countBucTypes(olist);
-    if (ccount === 1 && num_buc_types <= 1) {
+    // single category optimization — collect items into array for BUC counting
+    const olistArr = [];
+    for (let c = olist; c; c = FOLLOW(c, qflags)) olistArr.push(c);
+    const num_buc_types = countBucTypes(olistArr);
+    // C ref: pickup.c:1289 — skip optimization when CHOOSE_ALL is set
+    // (user should see the full menu with 'A' option) or when JUSTPICKED
+    // items exist (the 'P' category makes the menu non-trivial).
+    if (ccount === 1 && num_buc_types <= 1 && !(qflags & CHOOSE_ALL)) {
         for (let c = olist; c; c = FOLLOW(c, qflags)) {
             if (ofilter && !ofilter(c)) continue;
             return { count: 1, pick_list: [{ item_int: c.oclass, count: -1 }] };
@@ -2505,8 +2474,8 @@ async function query_category(qstr, olist, qflags, how, player, game) {
         invlet++;
     }
 
-    for (let ci = 0; ci < inv_order.length; ci++) {
-        const pack = inv_order.charCodeAt(ci);
+    for (let ci = 0; ci < class_order.length; ci++) {
+        const pack = class_order[ci];
         let found = false;
         for (let c = olist; c; c = FOLLOW(c, qflags)) {
             if (c.oclass === pack) {
@@ -2522,6 +2491,37 @@ async function query_category(qstr, olist, qflags, how, player, game) {
         }
     }
 
+    // C ref: pickup.c:1357-1401 — BUC types and JUSTPICKED entries
+    if (num_buc_types > 0) {
+        add_menu(win, null, null, 0, 0, ATR_NONE, 0, "", 0); // blank separator
+        const bucLabels = [
+            ['B', 'Items known to be Blessed'],
+            ['U', 'Items known to be Uncursed'],
+            ['C', 'Items known to be Cursed'],
+            ['X', 'Items of unknown Bless/Curse status'],
+        ];
+        for (const [letter, label] of bucLabels) {
+            const hasBuc = (letter === 'B' && olistArr.some(o => o?.bknown && o?.blessed))
+                || (letter === 'U' && olistArr.some(o => o?.bknown && !o?.blessed && !o?.cursed))
+                || (letter === 'C' && olistArr.some(o => o?.bknown && o?.cursed))
+                || (letter === 'X' && olistArr.some(o => !o?.bknown));
+            if (hasBuc) {
+                add_menu(win, null, { a_int: letter.charCodeAt(0) }, letter.charCodeAt(0), 0, ATR_NONE, 0,
+                    label, 0);
+            }
+        }
+    }
+    // C ref: pickup.c:1402-1413 — JUSTPICKED entry
+    const num_justpicked = count_justpicked(olistArr);
+    if (num_justpicked > 0) {
+        const jpItem = find_justpicked(olistArr);
+        const jpDesc = jpItem ? doname(jpItem) : 'recently picked items';
+        add_menu(win, null, { a_int: 'P'.charCodeAt(0) }, 'P'.charCodeAt(0), 0, ATR_NONE, 0,
+            num_justpicked === 1
+                ? `Just picked up: ${jpDesc}`
+                : `Just picked up: ${num_justpicked} items`, 0);
+    }
+
     end_menu(win, qstr);
     const result = await select_menu(win, how);
     destroy_nhwindow(win);
@@ -2529,7 +2529,7 @@ async function query_category(qstr, olist, qflags, how, player, game) {
     if (!result || result.length === 0) return { count: 0, pick_list: [] };
     return {
         count: result.length,
-        pick_list: result.map(r => ({ item_int: r.item?.a_int || r.a_int || 0, count: r.count || -1 })),
+        pick_list: result.map(r => ({ item_int: r.identifier?.a_int ?? r.item?.a_int ?? r.a_int ?? 0, count: r.count ?? -1 })),
     };
 }
 
@@ -2566,7 +2566,8 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
 
     for (let curr = olist; curr; curr = FOLLOW(curr)) {
         if (allow_fn(curr)) {
-            add_menu(win, null, { a_obj: curr }, curr.invlet || 0, 0, ATR_NONE, 0,
+            const itemCh = typeof curr.invlet === 'string' ? curr.invlet.charCodeAt(0) : (curr.invlet || 0);
+            add_menu(win, null, { a_obj: curr }, itemCh, 0, ATR_NONE, 0,
                 doname(curr, player), 0);
         }
     }
@@ -2580,9 +2581,9 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
         return { count: esc, pick_list: [] };
     }
 
-    // fix up counts
+    // fix up counts — select_menu returns { identifier, count }
     const items = result.map(r => {
-        const obj = r.item?.a_obj || r.a_obj;
+        const obj = r.identifier?.a_obj || r.item?.a_obj || r.a_obj;
         let cnt = r.count;
         if (cnt === -1 || cnt > (obj?.quan || 1)) cnt = obj?.quan || 1;
         return { obj, count: cnt };
@@ -2614,6 +2615,8 @@ async function menu_loot(retry, put_in, player, game) {
     let all_categories = true;
     let loot_everything = false;
     let _autopick = false;
+    let loot_justpicked = false;
+    let justpicked_count = 0;
     const action = put_in ? "Put in" : "Take out";
 
     pickup_encumbrance = 0;
@@ -2625,18 +2628,44 @@ async function menu_loot(retry, put_in, player, game) {
         all_categories = false;
         const qstr = `${action} what type of objects?`;
         const src = put_in ? player.inventory : getContainerContents(current_container);
-        // Build linked-list-like traversal for query_category
-        const catResult = await query_category(qstr, src?.[0] || null, 0, PICK_ANY, player, game);
+        // Build nobj-linked list from array for query_category traversal
+        const srcItems = (src || []).filter(o => o && o !== current_container);
+        let catListHead = null;
+        for (let i = srcItems.length - 1; i >= 0; i--) {
+            srcItems[i].nobj = catListHead;
+            catListHead = srcItems[i];
+        }
+        // C ref: pickup.c:3264-3265 — ALL_TYPES | UNPAID_TYPES | BUCX_TYPES | CHOOSE_ALL | JUSTPICKED
+        const catResult = await query_category(qstr, catListHead, CHOOSE_ALL, PICK_ANY, player, game);
         if (catResult.count === 0) return 0;
         for (const pick of catResult.pick_list) {
             if (pick.item_int === 'A'.charCodeAt(0)) {
                 loot_everything = _autopick = true;
+            } else if (pick.item_int === 'P'.charCodeAt(0)) {
+                // C ref: pickup.c:3279-3282 — 'P' = recently picked up items
+                loot_justpicked = true;
+                justpicked_count = Math.max(0, pick.count);
+                add_valid_menu_class(pick.item_int);
+                loot_everything = false;
             } else if (pick.item_int === -2) { // ALL_TYPES_SELECTED
                 all_categories = true;
             } else {
                 add_valid_menu_class(pick.item_int);
                 loot_everything = false;
             }
+        }
+    }
+
+    // C ref: pickup.c:3322-3332 — loot_justpicked fast path
+    if (put_in && loot_justpicked && count_justpicked(player.inventory || []) === 1) {
+        const otmpOrig = find_justpicked(player.inventory || []);
+        if (otmpOrig) {
+            let otmp = otmpOrig;
+            if (justpicked_count > 0 && justpicked_count < (otmp.quan || 1)) {
+                otmp = splitobj(otmp, justpicked_count);
+            }
+            await in_container(otmp, player);
+            return 1;
         }
     }
 
@@ -2655,18 +2684,38 @@ async function menu_loot(retry, put_in, player, game) {
             }
         }
     } else {
-        // Use query_objlist to select items
-        const src = put_in ? player.inventory : getContainerContents(current_container);
+        // C ref: pickup.c:3333-3371 — query_objlist for individual item selection
+        // with count support and splitobj for partial stacks.
+        if (!put_in && current_container) current_container.cknown = 1;
         const qstr = `${action} what?`;
-        // For array-based inventory, filter through the allow function
-        const items = (src || []).filter(o => o && (all_categories || allow_category(o, player)));
-        for (const otmp of items) {
-            if (!current_container) break;
-            const res = put_in
-                ? await in_container(otmp, player)
-                : await out_container(otmp, player, game?.map);
-            if (res < 0) break;
-            if (res > 0) n_looted++;
+        const src = put_in ? player.inventory : getContainerContents(current_container);
+        // Build nobj-linked list head from array for query_objlist
+        let olistHead = null;
+        const items = (src || []).filter(o => o && o !== current_container);
+        for (let i = items.length - 1; i >= 0; i--) {
+            items[i].nobj = olistHead;
+            olistHead = items[i];
+        }
+        const allow_fn = all_categories ? (() => true) : ((o) => allow_category(o, player));
+        const objResult = await query_objlist(qstr, olistHead,
+            0, PICK_ANY, allow_fn, player, game);
+        if (objResult.count > 0) {
+            n_looted = objResult.count;
+            for (const pick of objResult.pick_list) {
+                let otmp = pick.obj;
+                if (!otmp || !current_container) break;
+                const count = pick.count || -1;
+                if (count > 0 && count < (otmp.quan || 1)) {
+                    otmp = splitobj(otmp, count);
+                }
+                const res = put_in
+                    ? await in_container(otmp, player)
+                    : await out_container(otmp, player, game?.map);
+                if (res <= 0) {
+                    if (!current_container) break;
+                    if (res < 0) break;
+                }
+            }
         }
     }
     return n_looted;

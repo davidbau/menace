@@ -15833,3 +15833,309 @@ distinction is always conditional on being in Gehennom.
     - still green
   - `theme15_seed986_wiz_artifact-wish_gameplay.session.json`
     - still green
+
+## 2026-03-22 - `seed031`: branch-local level changes were reusing stale depth cache entries
+
+- After the pickup-sort fix, `seed031` stalled at gameplay step `1112` with:
+  - JS: `rn2(10)=9 @ changeLevel(do.js:1813)`
+  - C: `rn2(3)=2 @ getbones(bones.c:643)`
+- Investigation showed this was not a missing `getbones()` implementation.
+  JS really was calling [`getbones()`](js/bones.js), but only when first
+  generating:
+  - depth `2` at gameplay step `288`
+  - depth `3` at gameplay step `467`
+- The decisive trace at the live seam:
+  - step `467`: `from=0:2`, branch stair, destination `1:1`
+  - step `1113`: `from=1:1`, ordinary downstairs, `branch=0`
+  - no fresh depth-2 bones roll occurred at step `1113`
+- Root cause:
+  - [`changeLevel()`](js/do.js) still had a legacy depth-only cache fallback:
+    - `targetDnum === currentDnum && game.levels[depth]`
+  - `game.levels[depth]` is keyed only by branch-local `dlevel`
+  - after visiting DoD `0:2`, descending later from Mines `1:1` to Mines `1:2`
+    wrongly reused the stale cached DoD `0:2` map because both share `depth=2`
+  - C keys level identity by full `dnum:dlevel`, so it generated the unseen
+    Mines `1:2` level and consumed the expected `getbones()`/levelgen RNG there
+- Keepable JS fix:
+  - keep the existing `levelsByBranch[dnum:dlevel]` cache as the authoritative
+    branch-aware lookup
+  - only allow the legacy `game.levels[depth]` fallback when the cached map's
+    stamped identity matches the destination exactly:
+    - `_genDnum === targetDnum`
+    - `_genDlevel === depth`
+  - use a local `nextMap` selection path so a cache miss cannot accidentally
+    leave `game.map` pointing at the current level and suppress generation
+- Result:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved from `38721/51561` to `40593/51561`
+    - matched events held at `22572/28950`
+    - first RNG divergence moved from gameplay step `1112` to `1113`
+  - guardrails:
+    - `t11_s755_w_covmax9_gp.session.json` still green
+    - `theme15_seed986_wiz_artifact-wish_gameplay.session.json` still green
+- New active seam:
+  - after fixing the stale cross-branch cache reuse, `seed031` now diverges
+    deeper inside Mines level generation at step `1113`
+  - current first mismatch:
+    - JS: `rn2(100)=21 @ sp_amask_to_amask(sp_lev.js:6251)`
+    - C: `rn2(3)=0 @ induced_align(dungeon.c:2006)`
+### `seed031`: `minefill` scripted monster alignment should be unaligned
+
+- After fixing the cross-branch level cache collision, `seed031_manual_direct`
+  re-exposed a later Mines level-generation seam at gameplay step `1113`:
+  - JS: `rn2(100)=21 @ sp_amask_to_amask(sp_lev.js)`
+  - C: `rn2(3)=0 @ induced_align(dungeon.c:2006)`
+- Focused JS tracing showed the active `sp_amask_to_amask('random')` calls were
+  inside protofile `minefill` generation:
+  - early branch-entry generation: `live=0:2 ctx=1:1`
+  - later Mines descent generation: `live=1:1 ctx=1:2`
+  - in the later seam JS was still deriving `dungeonAlign=A_LAWFUL` from Mines
+    branch context and therefore burning the `rn2(100)` gate.
+- The narrow C-faithful fix in `js/sp_lev.js` is:
+  - when `specialName === 'minefill'`, force `dungeonAlign = A_NONE` for
+    `sp_amask_to_amask('random')`
+  - keep other special-level alignment cases unchanged
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - first RNG divergence moved `1113 -> 1127`
+    - matched RNG `40593 -> 42621`
+    - matched events `22572 -> 23195`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+- New frontier after this fix is later pet/object handling around step `1127`,
+  not the old `sp_amask_to_amask()/induced_align()` seam.
+
+## 2026-03-22 - `seed031`: gnome candle quantity and hero-hit `mbhitm()` reveal path
+
+- After the `minefill` alignment fix, `seed031` stalled in the later pet/object
+  corridor at gameplay step `1127`.
+- Focused event and mapdump work showed the apparent pet divergence was
+  downstream of an earlier object-state mismatch:
+  - JS created a dying gnome's wax candle as quantity `4`
+  - C had that same gnome carrying a single candle
+  - by the live seam this changed the floor pile and pet `dog_goal()` scan
+- The decisive JS trace was that candle object `oid=329` entered play from
+  [`m_initinv()`](js/makemon.js) during gnome generation, not from floor
+  merging or pet pickup:
+  - `mongets()` created the gnome candle stack
+  - when the gnome died, JS dropped `wax candle x4`
+  - C's recorded session dropped a single candle there
+- C source of truth in `makemon.c` is explicit:
+  - for gnome candles it does `mksobj(...)`
+  - then forces `otmp->quan = 1`
+  - then recomputes `otmp->owt = weight(otmp)`
+- The narrow keepable JS fix in [`m_initinv()`](js/makemon.js) is therefore:
+  - keep the existing `mongets()` ownership path intact
+  - immediately normalize the returned candle object to:
+    - `quan = 1`
+    - `owt = weight(otmp)`
+- While validating that fix, JS exposed a separate latent bug in
+  [`mbhitm()`](js/muse.js):
+  - when a monster wand beam hit the hero, JS still ran the post-hit
+    `reveal_invis` / `canspotmon(...)` path
+  - C passes `&youmonst` there, but JS was passing the raw player object
+  - that player object has `x/y`, not `mx/my`, and JS crashed in
+    `canspotmon()` / `cansee()`
+- The narrow fix in [`mbhitm()`](js/muse.js) is:
+  - gate the invisible-target postlude with `!hits_you`
+  - this matches the effective C behavior for the hero-hit path and avoids
+    treating the hero as a malformed monster object
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `42621 -> 43999`
+    - matched events improved `23195 -> 24403`
+    - first RNG divergence moved `1127 -> 1150`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- New active seam after this batch is deeper in the same later pet/object
+  corridor around gameplay step `1150`, not in the old gnome-candle setup or
+  the hero-hit wand crash.
+
+## 2026-03-22 - `seed031`: aklys stand-off range unblocks current-square monster pickup
+
+- After the gnome-candle and hero-hit `mbhitm()` fixes, `seed031` stalled at
+  gameplay step `1150` in an apparent pet/object corridor.
+- Focused trace work narrowed the first-cause mismatch to monster `166`
+  (a gnome lord) immediately after the hero hit it with a dart:
+  - JS throw tracing showed the dart already landed correctly at `42,7`
+  - C then had the gnome lord pick up that same dart on its turn
+  - JS instead moved the gnome lord away and only diverged later in
+    downstream monster-turn RNG
+- The decisive JS state at the `getitems` gate was:
+  - `appr = 1`
+  - `inLine = 1`
+  - wielded weapon `otyp 80`, which is an `aklys`
+- C source of truth in `monmove.c` is that `m_balks_at_approaching()` has a
+  dedicated throw-and-return-weapon branch:
+  - `autoreturn_weapon(mwep) != 0` returns `appr = -2`
+  - it also sets a preferred stand-off range via `pdistmin/pdistmax`
+- JS had the downstream `appr === -2` movement logic in [`m_move()`](js/monmove.js)
+  already, but never produced `-2` because [`m_balks_at_approaching()`](js/monmove.js)
+  omitted the `autoreturn_weapon()` branch entirely.
+- The faithful JS fix is:
+  - import [`autoreturn_weapon()`](js/weapon.js) into [`monmove.js`](js/monmove.js)
+  - return `-2` from `m_balks_at_approaching()` when the monster wields an
+    autoreturn weapon like an aklys
+  - compute `preferredRangeMin = 4` and `preferredRangeMax = arw.range` in
+    `m_move()` when `appr === -2`
+- That makes JS match the C stand-off behavior for aklys users, which in this
+  corridor re-enables current-square item search/pickup instead of walking off
+  the freshly-landed dart.
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `43999 -> 44592`
+    - matched events improved `24403 -> 24783`
+    - first RNG divergence moved `1150 -> 1173`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- New active seam after this fix is later still, around gameplay step `1173`;
+  the earlier gnome-lord current-square dart pickup mismatch is no longer the
+  first-cause divergence.
+
+## 2026-03-22 - `seed031`: await monster wand-hit death path before continuing beam travel
+
+- After the aklys stand-off fix, `seed031` next diverged at gameplay step
+  `1173` in a monster offensive-item corridor.
+- C ground truth there was:
+  - monster `165` dies from a monster-fired striking wand hit
+  - `corpse_chance()` immediately consumes `rn2(3)`
+  - `make_corpse()` emits `^corpse[165,41,5]`
+- JS had two coupled problems in [`mbhit()` / `mbhitm()`](js/muse.js):
+  - `mbhit()` invoked async `fhitm(...)` without awaiting it, so the beam could
+    keep consuming later RNG before the struck monster's death path finished
+  - `mbhitm()`'s `WAN_STRIKING` monster-hit branch subtracted lethal damage but
+    did not run the non-hero monster-death path afterward
+- The faithful fix in [`js/muse.js`](js/muse.js) is:
+  - await `fhitm(...)` inside `mbhit()` for both hero and monster hits
+  - when striking-wand damage kills a monster, route through
+    `monkilled(mtmp, '', 0, map, player)` so `mondied() -> corpse_chance() ->
+    make_corpse()` happens in-order before beam traversal proceeds
+- A focused trace on monster `165` confirmed the repaired sequence:
+  - `monkilled-enter`
+  - `mondied-enter`
+  - `mondied-after-corpse-chance makeCorpse=1`
+  - `mondied-make-corpse` at `41,5`
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `44592 -> 44709`
+    - matched events improved `24783 -> 24808`
+    - first RNG divergence moved `1173 -> 1175`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+- New active seam after this batch is later monster/object handling around
+  gameplay step `1175`, not the old striking-wand corpse-generation gap.
+
+## 2026-03-22 - `seed031`: restore monster-wand floor-object hits via `bhito`
+
+- After the monster wand-hit death fix, `seed031` next diverged at gameplay
+  step `1175` immediately after `^corpse[165,41,5]`.
+- C ground truth there showed one extra floor-object interaction before beam
+  damage continued:
+  - `rn2(100)=86 @ obj_resists(zap.c:1467)`
+  - then the later `mbhitm()` damage rolls
+- The root cause was in [`js/muse.js`](js/muse.js):
+  - C passes `bhito` into `mbhit()` for monster
+    `WAN_TELEPORTATION` / `WAN_UNDEAD_TURNING` / `WAN_STRIKING`
+  - JS was still passing `null`, so monster-fired wand traversal never hit
+    floor objects at all
+  - JS `fhito_loc()` was also synchronous, so it could not call async floor
+    object handlers faithfully
+- The faithful fix is:
+  - import [`bhito`](js/zap.js) into [`js/muse.js`](js/muse.js)
+  - pass `bhito` into `mbhit()` for those monster wand paths
+  - make `fhito_loc()` async and await `fhito(otmp, obj, map)`
+- This restores the missing C object-resistance / floor-object side effects in
+  monster-fired wand beams without changing comparator or replay behavior.
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `44709 -> 45313`
+    - matched events improved `24808 -> 25141`
+    - first RNG divergence moved `1175 -> 1199`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- New active seam after this batch is later still, in a monster throw corridor
+  around gameplay step `1199`:
+  - JS first RNG: `rn2(5)=3 @ dochug(monmove.js:847)`
+  - C first RNG: `rn2(6)=3 @ thrwmu(mthrowu.c:1231)`
+
+## 2026-03-22 - `seed031`: don't reset `ux0/uy0` in generic command parsing
+
+- After the monster-wand floor-object fix, `seed031` next diverged in a dwarf
+  throw corridor around gameplay step `1199`.
+- C ground truth there showed the throw should be suppressed by the
+  `thrwmu()` retreat gate:
+  - `rn2(6)=3 @ thrwmu(mthrowu.c:1231)`
+  - non-zero result means return early, so no dagger throw that turn
+- JS was incorrectly admitting the throw because [`js/cmd.js`](js/cmd.js)
+  unconditionally reset `game.ux0/game.uy0` for every parsed key.
+- That comment was wrong. C does **not** refresh `u.ux0/u.uy0` in generic
+  `cmd.c` parsing; the real writes happen in movement/relocation paths like:
+  - [`hack.c`](nethack-c/patched/src/hack.c): `u.ux0 = u.ux; u.uy0 = u.uy;`
+  - plus teleport/trap/hurtle special movement sites
+- Because JS reset `ux0/uy0` too broadly, a `--More--`/prompt-owned corridor
+  left the dwarf seeing:
+  - current hero position == prior hero position
+  - `retreating = 0`
+  - so JS threw a dagger when C still returned early
+- The faithful fix is:
+  - remove the unconditional `game.ux0/game.uy0` reset from
+    [`js/cmd.js`](js/cmd.js)
+  - keep `ux0/uy0` owned by actual movement/relocation sites such as
+    [`js/hack.js`](js/hack.js) and teleport handling
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `45313 -> 47204`
+    - matched events improved `25141 -> 26054`
+    - first RNG divergence moved `1199 -> 1237`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- New active seam after this batch is later still, in an occupation/eat
+  ownership corridor around gameplay step `1237`:
+  - JS first RNG: `rn2(20)=7 @ handleEat(eat.js:1986)`
+  - C first RNG: `rn2(40)=7 @ dochug(monmove.c:758)`
+
+## 2026-03-22 - `seed031`: resume existing meals through `start_eating()`
+
+- After the `ux0/uy0` retreat-state fix, `seed031` next diverged in an
+  eat/occupation corridor around gameplay step `1237`.
+- Raw comparison showed JS consuming corpse RNG inline in
+  [`handleEat()`](js/eat.js) after turn-end:
+  - JS: `rn2(20)=7 @ handleEat(eat.js)`
+  - C: only `>set_occupation` / `<set_occupation`, then monster turns begin
+- A gated trace on [`handleEat()`](js/eat.js) showed the concrete mismatch:
+  - repeated `e` commands were selecting the same in-progress corpse meal
+  - JS re-ran `eatcorpse()` on each resume
+  - C `doeat()` has a dedicated `otmp == victual.piece` branch which resumes
+    through `start_eating()` and does **not** re-run fresh-corpse setup
+- The faithful fix in [`js/eat.js`](js/eat.js):
+  - add the missing resume-meal branch before fresh food setup
+  - if the selected item is `game.svc.context.victual.piece`, preserve the
+    existing victual timing state and call `start_eating(...)`
+  - do not call `eatcorpse()` again for resumed meals
+  - repair the previously dormant `eatfood()` helper so the now-used
+    resume path passes its real `game/player` arguments and floor checks
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `47204 -> 47441`
+    - matched events improved `26054 -> 26377`
+    - first RNG divergence moved `1237 -> 1241`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- `node scripts/test-unit-core.mjs` still reports two existing pickup-area
+  failures caused by the unrelated dirty [`js/pickup.js`](js/pickup.js) probe:
+  - `command_loot_meta.test.js`
+  - `pickup_compare_discovery_message.test.js`
+- New active seam after this batch is later still, in post-eat monster logic
+  around gameplay step `1241`:
+  - JS first RNG: `rn2(3)=0 @ dochug(monmove.js:847)`
+  - C first RNG: `rn2(5)=0 @ distfleeck(monmove.c:539)`

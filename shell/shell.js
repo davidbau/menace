@@ -47,7 +47,10 @@ export class Shell {
             this._addLine('', OUTPUT_COLOR);
         } else if (options.rows !== undefined) {
             // Pre-captured rows from localStorage context (coming from another page)
-            for (const row of (options.rows || [])) this.scrollBuffer.push(row);
+            for (const row of (options.rows || [])) {
+                if (typeof row === 'string') this.scrollBuffer.push({ text: row, color: OUTPUT_COLOR });
+                else this.scrollBuffer.push(row);
+            }
             if (options.rows && options.rows.length > 0) {
                 this._addLine('^C', PROMPT_COLOR);
                 this._addLine('Interrupt', OUTPUT_COLOR);
@@ -107,7 +110,13 @@ export class Shell {
             const echoColors = Array.from(echoText, (_, i) => i < promptStr.length ? PROMPT_COLOR : OUTPUT_COLOR);
             this._addLine(echoText, PROMPT_COLOR, echoColors);
 
-            const result = await this._execute(line.trim());
+            let result;
+            try {
+                result = await this._execute(line.trim());
+            } catch (e) {
+                this._addLine(`sh: internal error: ${e.message || e}`, OUTPUT_COLOR);
+                continue;
+            }
             if (result) {
                 this.result = result;
                 this.running = false;
@@ -572,7 +581,7 @@ export class Shell {
                         }
                         continue;
                     }
-                    if (ch === 3) return ''; // Ctrl-C
+                    if (ch === 3 || ch === 4) throw new Error('quit'); // Ctrl-C / Ctrl-D
                     if (ch >= 32 && ch < 127) {
                         this.inputLine = this.inputLine.slice(0, this.cursorPos) +
                             String.fromCharCode(ch) + this.inputLine.slice(this.cursorPos);
@@ -586,9 +595,10 @@ export class Shell {
             // strip it for cleaner display.
             const pendingLines = [];
             const output = (text) => {
-                for (const line of (text || '').split('\n')) {
-                    const stripped = line.startsWith(' ') ? line.slice(1) : line;
-                    pendingLines.push(stripped);
+                for (let line of (text || '').split('\n')) {
+                    if (line.startsWith(' ')) line = line.slice(1);
+                    line = line.replace('Welcome to Dungeon.', 'Welcome to the Mazes of Menace!');
+                    pendingLines.push(line);
                 }
             };
 
@@ -725,6 +735,8 @@ export async function runLoginLoop(display, getch, lifecycle) {
                     window.location.href = '/hack/';
                 } else if (game === 'rogue') {
                     window.location.href = '/rogue/';
+                } else if (game === 'basic') {
+                    window.location.href = '/basic/';
                 } else if (game === 'logo') {
                     window.location.href = '/logo/';
                 }
@@ -760,6 +772,8 @@ export async function runShell(display, getch, lifecycle, options = {}) {
             window.location.href = '/hack/';
         } else if (game === 'rogue') {
             window.location.href = '/rogue/';
+        } else if (game === 'basic') {
+            window.location.href = '/basic/';
         } else if (game === 'logo') {
             window.location.href = '/logo/';
         }

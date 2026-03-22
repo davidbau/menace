@@ -77,6 +77,7 @@ import { linedUpToPlayer, m_throw_timed } from './mthrowu.js';
 import {
     buzz, ZT_WAND, ZT_BREATH,
     ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP, ZT_DEATH, ZT_LIGHTNING,
+    bhito,
 } from './zap.js';
 import { resist, unturn_dead } from './zap.js';
 import { arti_reflects } from './artifact.js';
@@ -1027,7 +1028,7 @@ export async function use_defensive(mon, map, player) {
         zap_oseen = oseen;
         await mzapwand(mon, otmp, false, map, player);
         m_using = true;
-        await mbhit(mon, rn1(8, 6), mbhitm, null, otmp, map, player);
+        await mbhit(mon, rn1(8, 6), mbhitm, bhito, otmp, map, player);
         if (noteleport_level(mon, map))
             mon_learns_traps(mon, TELEP_TRAP);
         m_using = false;
@@ -1087,7 +1088,7 @@ export async function use_defensive(mon, map, player) {
         zap_oseen = oseen;
         await mzapwand(mon, otmp, false, map, player);
         m_using = true;
-        await mbhit(mon, rn1(8, 6), mbhitm, null, otmp, map, player);
+        await mbhit(mon, rn1(8, 6), mbhitm, bhito, otmp, map, player);
         m_using = false;
         return 2;
 
@@ -1562,6 +1563,9 @@ async function mbhitm(mtmp, otmp, map, player) {
                     tmp = Math.floor((tmp + 1) / 2);
                 }
                 mtmp.mhp -= tmp;
+                if (mtmp.mhp <= 0) {
+                    await monkilled(mtmp, '', 0, map, player);
+                }
                 learnit = true;
             }
         }
@@ -1602,7 +1606,7 @@ async function mbhitm(mtmp, otmp, map, player) {
         break;
     }
 
-    if (reveal_invis && !DEADMONSTER(mtmp)
+    if (!hits_you && reveal_invis && !DEADMONSTER(mtmp)
         && cansee(map, player, null, bhitpos.x, bhitpos.y)
         && !canspotmon(mtmp, player, null, map))
         map_invisible(map, bhitpos.x, bhitpos.y, player);
@@ -1613,14 +1617,14 @@ async function mbhitm(mtmp, otmp, map, player) {
 // ========================================================================
 // fhito_loc — C ref: muse.c:1704
 // ========================================================================
-function fhito_loc(obj, tx, ty, fhito, map) {
+async function fhito_loc(obj, tx, ty, fhito, map) {
     if (!fhito) return false;
     const objects = map.objectsAt ? map.objectsAt(tx, ty) : [];
     if (!objects || objects.length === 0) return false;
 
     let hitanything = 0;
     for (const otmp of [...objects]) {
-        hitanything += fhito(otmp, obj);
+        hitanything += await fhito(otmp, obj, map);
     }
     return hitanything > 0;
 }
@@ -1654,7 +1658,7 @@ async function mbhit(mon, range, fhitm, fhito, obj, map, player) {
             await nh_delay_output();
 
             if (u_at(player, bhitpos.x, bhitpos.y)) {
-                if (fhitm) fhitm(player, obj, map, player);
+                if (fhitm) await fhitm(player, obj, map, player);
                 range -= 3;
             } else {
                 const mtmp = m_at(bhitpos.x, bhitpos.y, map);
@@ -1662,12 +1666,12 @@ async function mbhit(mon, range, fhitm, fhito, obj, map, player) {
                     if (cansee(map, player, null, bhitpos.x, bhitpos.y)
                         && !canspotmon(mtmp, player, null, map))
                         map_invisible(map, bhitpos.x, bhitpos.y, player);
-                    if (fhitm) fhitm(mtmp, obj, map, player);
+                    if (fhitm) await fhitm(mtmp, obj, map, player);
                     range -= 3;
                 }
             }
 
-            if (fhito && fhito_loc(obj, bhitpos.x, bhitpos.y, fhito, map))
+            if (fhito && await fhito_loc(obj, bhitpos.x, bhitpos.y, fhito, map))
                 range--;
 
             const loc = map.at(bhitpos.x, bhitpos.y);
@@ -1741,7 +1745,7 @@ export async function use_offensive(mtmp, map, player) {
         zap_oseen = oseen;
         await mzapwand(mtmp, otmp, false, map, player);
         m_using = true;
-        await mbhit(mtmp, rn1(8, 6), mbhitm, null, otmp, map, player);
+        await mbhit(mtmp, rn1(8, 6), mbhitm, bhito, otmp, map, player);
         m_using = false;
         return 2;
 

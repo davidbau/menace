@@ -406,6 +406,8 @@ export async function select_menu(win, how, opts = null) {
 
     if (how === PICK_ANY) {
         const selected = new Set();
+        const counts = new Map(); // C ref: item-specific counts from digit prefix
+        let countPrefix = 0;     // Accumulates digit prefix for next item selection
         // C ref: tty_select_menu — pre-selected items start toggled on
         for (const item of w.mlist) {
             if (item.ch && (item.itemflags & MENU_ITEMFLAGS_SELECTED)) {
@@ -440,7 +442,8 @@ export async function select_menu(win, how, opts = null) {
                 const result = [];
                 for (const item of w.mlist) {
                     if (item.ch && selected.has(item.ch)) {
-                        result.push({ identifier: item.id, count: -1 });
+                        const cnt = counts.has(item.ch) ? counts.get(item.ch) : -1;
+                        result.push({ identifier: item.id, count: cnt });
                     }
                 }
                 return result.length ? result : null;
@@ -464,11 +467,17 @@ export async function select_menu(win, how, opts = null) {
                         const result = [];
                         for (const item of w.mlist) {
                             if (item.ch && selected.has(item.ch)) {
-                                result.push({ identifier: item.id, count: -1 });
+                                const cnt = counts.has(item.ch) ? counts.get(item.ch) : -1;
+                                result.push({ identifier: item.id, count: cnt });
                             }
                         }
                         return result.length ? result : null;
                     }
+                } else if (ch >= 48 && ch <= 57) {
+                    // C ref: wintty.c — digit keys accumulate count prefix
+                    countPrefix = countPrefix * 10 + (ch - 48);
+                    if (countPrefix > 999999) countPrefix = 999999;
+                    continue; // don't reset countPrefix or re-render
                 } else {
                     // C ref: wintty.c — item letters only match items on the
                     // CURRENT page. Items on other pages are silently rejected.
@@ -478,9 +487,17 @@ export async function select_menu(win, how, opts = null) {
                         if (w.mlist[idx].ch === ch) { matched = w.mlist[idx]; break; }
                     }
                     if (matched && matched.ch) {
-                        if (selected.has(matched.ch)) selected.delete(matched.ch);
-                        else selected.add(matched.ch);
+                        if (selected.has(matched.ch)) {
+                            selected.delete(matched.ch);
+                            counts.delete(matched.ch);
+                        } else {
+                            selected.add(matched.ch);
+                            if (countPrefix > 0) {
+                                counts.set(matched.ch, countPrefix);
+                            }
+                        }
                     }
+                    countPrefix = 0;
                 }
             }
             paged = renderMenu(selected, currentPage);

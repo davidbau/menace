@@ -1580,7 +1580,11 @@ function m_initinv(mon, mndx, depth, m_lev, map) {
         const genLev = _currentMonsterGenerationLevel(map) || map || null;
         const candleRoll = (genLev && _getInMklev() && In_mines(genLev)) ? 20 : 60;
         if (!rn2(candleRoll)) {
-            mongets(mon,rn2(4) ? TALLOW_CANDLE : WAX_CANDLE);
+            const otmp = mongets(mon, rn2(4) ? TALLOW_CANDLE : WAX_CANDLE);
+            if (otmp) {
+                otmp.quan = 1;
+                otmp.owt = weight(otmp);
+            }
         }
         break;
 

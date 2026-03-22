@@ -168,6 +168,7 @@ export function getBuiltinCommands() {
         nethack: launchGame('nethack'),
         hack: launchGame('hack'),
         rogue: launchGame('rogue'),
+        basic: launchGame('basic'),
         logo: launchGame('logo'),
         dungeon: launchDungeon,
         zork: launchZork,
@@ -361,6 +362,22 @@ const MAN_PAGES = {
     rogue: 'ROGUE(6)\n\nNAME\n     rogue - Exploring The Dungeons of Doom\n\nSYNOPSIS\n     rogue\n\nDESCRIPTION\n     Rogue is a computer fantasy game with a new strstrtwist. It is CRT\n     oriented and the strstrchief strstrexperience is of dodging and fighting\n     monsters in a dangerous world.'.replace(/strstr/g, ''),
     hack: 'HACK(6)\n\nNAME\n     hack - Exploring The Dungeons of Doom\n\nSYNOPSIS\n     hack\n\nDESCRIPTION\n     Hack is a Strstrcheerful strstrversion of rogue with strstrmore strstrmonsters.\n     Good luck.'.replace(/[Ss]trstr/g, ''),
     dungeon: 'DUNGEON(6)\n\nNAME\n     dungeon - the game of Dungeon\n\nSYNOPSIS\n     dungeon\n\nDESCRIPTION\n     The game of Dungeon is a computer fanstrtasy game running\n     in a PDP environment. In it, you expstrlore an ancient\n     dungeon, seeking the Twenty Treasures of Zork.'.replace(/str/g, ''),
+    basic: 'BASIC(6)\n\nNAME\n     basic - Applesoft BASIC interpreter\n\nSYNOPSIS\n     basic\n\nDESCRIPTION\n     Applesoft BASIC is a line-numbered programming language.\n     Type program lines with numbers, then RUN to execute.\n     Type HELP at the ] prompt for a command reference.',
+    logo: 'LOGO(6)\n\nNAME\n     logo - Logo programming language\n\nSYNOPSIS\n     logo\n\nDESCRIPTION\n     Logo is a programming language designed for learning.\n     It features turtle graphics: type FORWARD 100 and the\n     turtle draws a line. Type HELP at the ? prompt for\n     a list of commands.',
+    more: 'MORE(1)\n\nNAME\n     more - file perusal filter\n\nSYNOPSIS\n     more file\n\nDESCRIPTION\n     More is a filter for paging through text one screenful\n     at a time. Press space for the next page, q to quit.',
+    cd: 'CD(1)\n\nNAME\n     cd - change working directory\n\nSYNOPSIS\n     cd [directory]\n\nDESCRIPTION\n     Change the current directory to directory. If no directory\n     is given, change to the home directory.',
+    pwd: 'PWD(1)\n\nNAME\n     pwd - print working directory name\n\nSYNOPSIS\n     pwd\n\nDESCRIPTION\n     Pwd prints the pathname of the current working directory.',
+    echo: 'ECHO(1)\n\nNAME\n     echo - echo arguments\n\nSYNOPSIS\n     echo [arg ...]\n\nDESCRIPTION\n     Echo writes its arguments to standard output, followed\n     by a newline.',
+    who: 'WHO(1)\n\nNAME\n     who - display who is on the system\n\nSYNOPSIS\n     who\n\nDESCRIPTION\n     Who displays a list of users currently logged in,\n     showing username, terminal, and login time.',
+    finger: 'FINGER(1)\n\nNAME\n     finger - user information lookup program\n\nSYNOPSIS\n     finger [user]\n\nDESCRIPTION\n     Finger displays information about system users including\n     login name, full name, terminal, idle time, login time,\n     office location, and the contents of their .plan file.',
+    mail: 'MAIL(1)\n\nNAME\n     mail - send and receive mail\n\nSYNOPSIS\n     mail [user]\n\nDESCRIPTION\n     With no arguments, mail prints the user\'s mailbox.\n     At the & prompt, type a message number to read it,\n     r to reply, d to delete, q to quit.\n\n     With an argument, mail sends a message to that user.\n     Type the message, then a period on a line by itself.',
+    talk: 'TALK(1)\n\nNAME\n     talk - talk to another user\n\nSYNOPSIS\n     talk user\n\nDESCRIPTION\n     Talk is a visual communication program which copies lines\n     from your terminal to that of another user. The screen is\n     split into two windows. Type Ctrl-C to end.',
+    uname: 'UNAME(1)\n\nNAME\n     uname - print system information\n\nSYNOPSIS\n     uname [-a]\n\nDESCRIPTION\n     Uname prints the name of the current system.\n     -a prints all information: system name, hostname,\n     release, version, and machine type.',
+    date: 'DATE(1)\n\nNAME\n     date - print date and time\n\nSYNOPSIS\n     date\n\nDESCRIPTION\n     Date prints the current date and time.',
+    whoami: 'WHOAMI(1)\n\nNAME\n     whoami - print effective user name\n\nSYNOPSIS\n     whoami\n\nDESCRIPTION\n     Whoami prints the user name associated with the current\n     effective user id.',
+    clear: 'CLEAR(1)\n\nNAME\n     clear - clear terminal screen\n\nSYNOPSIS\n     clear\n\nDESCRIPTION\n     Clear clears the terminal screen.',
+    help: 'HELP(1)\n\nNAME\n     help - display command help\n\nSYNOPSIS\n     help [command]\n\nDESCRIPTION\n     With no arguments, list available commands.\n     With a command name, display detailed usage information.',
+    man: 'MAN(1)\n\nNAME\n     man - display reference manual pages\n\nSYNOPSIS\n     man command\n\nDESCRIPTION\n     Man formats and displays the on-line manual pages for\n     the specified command. If no manual page is found, an\n     error message is printed.',
 };
 
 async function man(args, shell) {
@@ -416,35 +433,88 @@ async function launchDungeon(args, shell) {
     return { action: 'dungeon' };
 }
 
-async function help(_args, shell) {
+const HELP_DETAILS = {
+    ls:      'ls [-a] [-l] [dir]  — list directory contents\n  -a  show hidden files (dotfiles)\n  -l  long format (permissions, size, date)',
+    cat:     'cat file [file...]  — display file contents\n  Prints each file to the terminal.',
+    more:    'more file  — page through a file\n  Press space for next page, q to quit.',
+    cd:      'cd [dir]  — change directory\n  cd ..     go up one level\n  cd ~      go to home directory\n  cd        go to home directory',
+    pwd:     'pwd  — print the current working directory',
+    echo:    'echo [args...]  — print arguments to the terminal',
+    clear:   'clear  — clear the screen',
+    whoami:  'whoami  — print your login name',
+    date:    'date  — print the current date and time',
+    who:     'who  — list users currently logged in\n  Shows username, terminal, and login time.',
+    uname:   'uname [-a]  — print system information\n  -a  print all: system, hostname, release, version, machine',
+    man:     'man command  — display the manual page for a command\n  example: man nethack',
+    vi:      'vi file  — open file in the vi text editor\n  i        insert mode (type text)\n  ESC      return to command mode\n  :w       save\n  :q       quit\n  :wq      save and quit\n  dd       delete line\n  hjkl     move cursor',
+    finger:  'finger [user]  — show information about a user\n  Shows login name, real name, home directory, shell,\n  office, last login, mail status, and .plan file.',
+    mail:    'mail  — read and send mail\n  With no arguments, read your inbox.\n  At the & prompt:\n    type a number to read that message\n    r        reply to current message\n    d N      delete message N\n    q        quit mail\n  To send: mail username\n    Type your message, then . on a line by itself to send.',
+    talk:    'talk user  — real-time chat with another user\n  Opens a split-screen conversation.\n  Type to send messages. Ctrl-C to end.\n  The other user must be logged in (check with who).',
+    help:    'help [command]  — display help\n  With no arguments, list all commands.\n  With a command name, show detailed usage.',
+    exit:    'exit  — exit the shell (or: logout)',
+    logout:  'exit  — exit the shell (or: logout)',
+    nethack: 'nethack  — launch NetHack 3.7\n  Explore the Mazes of Menace. Retrieve the Amulet of Yendor.',
+    hack:    'hack  — launch Hack (1982)\n  The original dungeon crawler from Lincoln-Sudbury.',
+    rogue:   'rogue  — launch Rogue (1980)\n  The game that started the genre.',
+    dungeon: 'dungeon  — launch Dungeon (Zork)\n  The classic text adventure.',
+    basic:   'basic  — launch Applesoft BASIC (1982)\n  Line-numbered BASIC interpreter.\n  Type HELP at the ] prompt for commands.',
+    logo:    'logo  — launch Logo (1982)\n  Turtle graphics programming language.\n  Type HELP at the ? prompt for Logo commands.',
+    su:      'su  — switch user to root\n  Requires the root password.',
+    finger:  'finger [user]  — show information about a user\n  Shows login, name, directory, shell, office, plan.',
+    passwd:  'passwd  — change your password\n  You will be prompted for the old and new passwords.',
+    rm:      'rm file  — remove a file\n  Only works for files you created.',
+    cp:      'cp src dst  — copy a file',
+    mv:      'mv src dst  — rename or move a file',
+    mkdir:   'mkdir dir  — create a directory',
+    chmod:   'chmod mode file  — change file permissions',
+    sh:      'sh  — start a new shell',
+};
+
+async function help(args, shell) {
+    if (args.length > 0) {
+        const cmd = args[0].toLowerCase();
+        if (HELP_DETAILS[cmd]) {
+            shell.println(HELP_DETAILS[cmd]);
+            return;
+        }
+        shell.println(`help: no help for '${cmd}'`);
+        return;
+    }
     const cmds = [
-        ['ls',       'list directory contents'],
-        ['cat',      'display file contents'],
-        ['more',     'page through files'],
-        ['cd',       'change directory'],
-        ['pwd',      'print working directory'],
-        ['echo',     'echo arguments'],
+        ['ls',       'list files'],
+        ['cat',      'show file'],
+        ['more',     'page file'],
+        ['cd',       'change dir'],
+        ['pwd',      'print dir'],
+        ['echo',     'echo text'],
         ['clear',    'clear screen'],
-        ['whoami',   'print login name'],
-        ['date',     'print date and time'],
-        ['who',      'list logged-in users'],
-        ['uname',    'print system information'],
-        ['man',      'display manual pages'],
+        ['whoami',   'login name'],
+        ['date',     'date/time'],
+        ['who',      'logged-in users'],
+        ['uname',    'system info'],
+        ['man',      'manual page'],
         ['vi',       'text editor'],
-        ['finger',   'show user info'],
-        ['mail',     'read and send mail'],
-        ['talk',     'real-time chat with another user'],
-        ['help',     'display this help'],
+        ['finger',   'user info'],
+        ['mail',     'read/send mail'],
+        ['talk',     'real-time chat'],
+        ['help',     'this help'],
         ['exit',     'exit shell'],
-        ['nethack',  'launch NetHack'],
-        ['hack',     'launch Hack'],
-        ['rogue',    'launch Rogue'],
-        ['dungeon',  'launch Dungeon'],
-        ['logo',     'launch Logo'],
+        ['basic',    'BASIC'],
+        ['logo',     'Logo'],
+        ['nethack',  'NetHack'],
+        ['hack',     'Hack (1982)'],
+        ['rogue',    'Rogue (1980)'],
+        ['dungeon',  'Dungeon'],
     ];
-    shell.println('Available commands:');
-    for (const [name, desc] of cmds) {
-        shell.println(`  ${name.padEnd(12)}${desc}`);
+    shell.println('Commands (type help <command> for details):');
+    // Two columns
+    const half = Math.ceil(cmds.length / 2);
+    for (let i = 0; i < half; i++) {
+        const left = cmds[i];
+        const right = cmds[i + half];
+        let line = `  ${left[0].padEnd(10)}${left[1].padEnd(18)}`;
+        if (right) line += `  ${right[0].padEnd(10)}${right[1]}`;
+        shell.println(line);
     }
 }
 

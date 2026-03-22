@@ -30,7 +30,7 @@ It was, by the standards of 1980, an extraordinary place. It was about to produc
 
 ## The Game
 
-[Seymour Papert](https://en.wikipedia.org/wiki/Seymour_Papert) at MIT had built [Logo](https://en.wikipedia.org/wiki/Logo_(programming_language)) and the movement around it. Brian Harvey was a committed participant, connected with Logo communities around the country, including the SFSU Logo Workshop at San Francisco State University, where Lincoln-Sudbury students participated.
+[Seymour Papert](https://en.wikipedia.org/wiki/Seymour_Papert) at MIT had built [Logo](/logo/#about) and the movement around it. Brian Harvey was a committed participant, connected with Logo communities around the country, including the SFSU Logo Workshop at San Francisco State University, where Lincoln-Sudbury students participated.
 
 It was through this SFSU connection that [Jay Fenlason](https://nethackwiki.com/wiki/Jay_Fenlason) first encountered [Rogue](https://en.wikipedia.org/wiki/Rogue_(video_game)).
 

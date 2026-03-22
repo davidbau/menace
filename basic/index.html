@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logo 1982 -- Mazes of Menace</title>
+  <title>BASIC 1982 -- Mazes of Menace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
@@ -110,7 +110,7 @@
       order: 0;
     }
 
-    #logo-container {
+    #basic-container {
       background: var(--color-terminal-bg);
       border: 3px solid var(--color-terminal-border);
       padding: 6px;
@@ -125,14 +125,14 @@
       position: relative;
     }
 
-    #logo-container:focus-within {
+    #basic-container:focus-within {
       border-color: var(--color-accent);
       box-shadow: 0 4px 12px var(--color-shadow), 0 0 0 2px rgba(107,44,44,0.2);
     }
 
-    #logo-container * { user-select: none; -webkit-user-select: none; }
+    #basic-container * { user-select: none; -webkit-user-select: none; }
 
-    #logo-canvas {
+    #basic-canvas {
       position: absolute;
       top: 0;
       left: 0;
@@ -234,7 +234,7 @@
     body.fullscreen-mode #nav,
     body.fullscreen-mode #nav-spacer,
     body.fullscreen-mode #controls { display: none; }
-    body.fullscreen-mode #logo-container {
+    body.fullscreen-mode #basic-container {
       border: none;
       border-radius: 0;
       box-shadow: none;
@@ -314,11 +314,11 @@
 <body>
   <div id="page">
     <nav id="nav" role="navigation">
-      <a href="#about" id="about-link">About Logo</a>
+      <a href="#about" id="about-link">About BASIC</a>
     </nav>
     <main id="main">
-      <div id="logo-container">
-        <canvas id="logo-canvas" width="320" height="200"></canvas>
+      <div id="basic-container">
+        <canvas id="basic-canvas" width="320" height="200"></canvas>
       </div>
     </main>
     <div id="controls">
@@ -336,14 +336,14 @@
     </div>
     <div id="nav-spacer">
       <div id="help-bar">
-        <a class="help-link" data-cmd="FD"><span class="help-key">FD</span> forward</a><span class="sep">&middot;</span>
-        <a class="help-link" data-cmd="BK"><span class="help-key">BK</span> back</a><span class="sep">&middot;</span>
-        <a class="help-link" data-cmd="RT"><span class="help-key">RT</span> right</a><span class="sep">&middot;</span>
-        <a class="help-link" data-cmd="LT"><span class="help-key">LT</span> left</a><span class="sep">&middot;</span>
-        <a class="help-link" data-cmd="PU"><span class="help-key">PU</span> pen up</a><span class="sep">&middot;</span>
-        <a class="help-link" data-cmd="PD"><span class="help-key">PD</span> pen down</a><span class="sep">&middot;</span>
-        <a class="help-link" data-cmd="CS"><span class="help-key">CS</span> clear</a><span class="sep">&middot;</span>
-        <a class="help-link" data-cmd="REPEAT"><span class="help-key">REPEAT</span></a><span class="sep">&middot;</span>
+        <span class="help-key">PRINT</span><span class="sep">&middot;</span>
+        <span class="help-key">INPUT</span><span class="sep">&middot;</span>
+        <span class="help-key">GOTO</span><span class="sep">&middot;</span>
+        <span class="help-key">IF/THEN</span><span class="sep">&middot;</span>
+        <span class="help-key">FOR/NEXT</span><span class="sep">&middot;</span>
+        <span class="help-key">GOSUB</span><span class="sep">&middot;</span>
+        <span class="help-key">RUN</span><span class="sep">&middot;</span>
+        <span class="help-key">LIST</span><span class="sep">&middot;</span>
         <a class="help-link" data-cmd="HELP"><span class="help-key">HELP</span></a><span class="sep">&middot;</span>
         <a class="help-link" data-cmd="BYE"><span class="help-key">BYE</span> quit</a>
       </div>
@@ -402,7 +402,7 @@
       if (window._applyLineHeight) window._applyLineHeight();
       // Re-fit canvas to the new terminal size after layout reflows
       requestAnimationFrame(function() {
-        if (window._sizeLogoCanvas) window._sizeLogoCanvas();
+        if (window._sizeBasicCanvas) window._sizeBasicCanvas();
       });
     }
     function currentSize() {
@@ -539,7 +539,7 @@
       el.addEventListener('click', function(e) {
         e.preventDefault();
         var cmd = el.getAttribute('data-cmd');
-        var text = 'HELP "' + cmd;
+        var text = cmd;
         for (var i = 0; i < text.length; i++) {
           document.dispatchEvent(new KeyboardEvent('keydown', { key: text[i] }));
         }
