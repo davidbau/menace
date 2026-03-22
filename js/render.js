@@ -507,15 +507,6 @@ export function formatStatusLine2(player) {
         parts.push(`Xp:${level}`);
     }
     if (player.showTime) parts.push(`T:${player.turns}`);
-    // C ref: botl.c:167-208 — status conditions in exact C order.
-    // Fatal conditions first, then hunger/encumbrance, then sensory, then movement.
-    if (player.stoned) parts.push('Stone');
-    if (player.slimed) parts.push('Slime');
-    if (player.strangled) parts.push('Strngl');
-    if (player.sick || player.Sick) {
-        if ((player.usick_type || 0) & 0x01) parts.push('FoodPois');  // SICK_VOMITABLE
-        if ((player.usick_type || 0) & 0x02) parts.push('TermIll');   // SICK_NONVOMITABLE
-    }
     if (player.hunger > 1000) parts.push('Satiated');
     else if (player.hunger <= 50) parts.push('Fainting');
     else if (player.hunger <= 150) parts.push('Weak');
@@ -535,13 +526,22 @@ export function formatStatusLine2(player) {
         const idx = Math.max(0, Math.min(encNames.length - 1, enc - 1));
         parts.push(encNames[idx]);
     }
+    // C tty windowport path does not use the simple legacy do_statusline2()
+    // append order here. It renders BL_CONDITION via botl.c conditions[]
+    // sorted by ranking and then useroption name; the session fixtures come
+    // from that path, so mirror its visible default-condition order.
+    if (player.strangled) parts.push('Strngl');
+    if ((player.sick || player.Sick) && ((player.usick_type || 0) & 0x01)) parts.push('FoodPois');
+    if (player.slimed) parts.push('Slime');
+    if (player.stoned) parts.push('Stone');
+    if ((player.sick || player.Sick) && ((player.usick_type || 0) & 0x02)) parts.push('TermIll');
     if (player.blind) parts.push('Blind');
+    if (player.confused || player.Confusion) parts.push('Conf');
     if (player.Deaf || player.deaf) parts.push('Deaf');
-    if (player.stunned || player.Stunned) parts.push('Stun');
-    if (player.confused) parts.push('Conf');
-    if (player.hallucinating) parts.push('Hallu');
-    if (player.Levitation) parts.push('Lev');
     if (player.flying) parts.push('Fly');
+    if (player.hallucinating || player.Hallucination) parts.push('Hallu');
+    if (player.Levitation) parts.push('Lev');
     if (player.usteed) parts.push('Ride');
+    if (player.stunned || player.Stunned) parts.push('Stun');
     return parts.join(' ');
 }

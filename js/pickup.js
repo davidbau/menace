@@ -17,6 +17,7 @@ import { more, nhgetch, getlin, ynFunction } from './input.js';
 import { doname, xname, Is_container, weight, splitobj, unbless, set_bknown,
          set_corpsenm, start_corpse_timeout, add_to_container, add_to_minv,
          obj_extract_self } from './mkobj.js';
+import { the, The } from './objnam.js';
 import { observeObject } from './o_init.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, dropx } from './do.js';
 import { mons, PM_HOUSECAT, PM_ICE_TROLL } from './monsters.js';
@@ -1809,7 +1810,6 @@ async function containerMenu(game, container) {
             if (selected.has(selectKey)) selected.delete(selectKey);
             else selected.add(selectKey);
         }
-        if (typeof display?.clearRow === 'function') display.clearRow(0);
         clearMenuOptionRows(lowestMenuPad);  // clear menu area, preserve map cells left
         return didTake;
     };
@@ -2019,9 +2019,9 @@ async function handleLoot(game) {
         for (const container of floorContainers) {
             if (container.olocked && !container.obroken) {
                 if (container.lknown) {
-                    await pline(`${doname(container)} is locked.`);
+                    await pline(`${The(xname(container))} is locked.`);
                 } else {
-                    await pline(`Hmmm, ${xname(container)} turns out to be locked.`);
+                    await pline(`Hmmm, ${the(xname(container))} turns out to be locked.`);
                 }
                 container.lknown = true;
 

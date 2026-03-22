@@ -38,6 +38,7 @@ import { pline, pline_The, You, You_cant, You_hear, There,
 import { acurr, acurrstr } from './attrib.js';
 import { obj_resists } from './objdata.js';
 import { newsym } from './display.js';
+import { yname } from './objnam.js';
 import { block_point, unblock_point, recalc_block_point, cansee } from './vision.js';
 import { wake_nearto, wake_nearby } from './mon.js';
 import { useup, delobj_core, carried, stackobj } from './invent.js';
@@ -579,7 +580,7 @@ export async function pick_lock(game, pick, rx, ry, container) {
             } else {
                 // autounlock — simplified: proceed directly
                 if (!pick) return PICKLOCK_DID_NOTHING;
-                const qbuf = `Unlock it with ${doname(pick)}?`;
+                const qbuf = `Unlock it with ${yname(pick)}?`;
                 const ansCode = await ynFunction(qbuf, 'ynq', 'q'.charCodeAt(0), display);
                 if (String.fromCharCode(ansCode) !== 'y') return PICKLOCK_DID_NOTHING;
             }
@@ -661,7 +662,7 @@ export async function pick_lock(game, pick, rx, ry, container) {
 
             const lockStr = (loc.flags & D_LOCKED) ? 'Unlock' : 'Lock';
             const qbuf = autounlock
-                ? `${lockStr} it with ${doname(pick)}?`
+                ? `${lockStr} it with ${yname(pick)}?`
                 : `${lockStr} it?`;
             const ansCode = await ynFunction(qbuf, 'ynq', 'q'.charCodeAt(0), display);
             if (String.fromCharCode(ansCode) !== 'y') {

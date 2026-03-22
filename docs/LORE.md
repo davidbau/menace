@@ -16575,3 +16575,35 @@ distinction is always conditional on being in Gehennom.
 - Practical rule:
   - when C uses `depth(&u.uz)`, JS must not substitute branch-local
     `dungeonLevel`; Mines/Quest/other branch levels will drift exactly this way
+
+## 2026-03-22 - remaining `seed031` screen seams are tty/windowport details, not gameplay
+
+- After the late eating/pet/bones fixes, `seed031_manual_direct.session.json`
+  was gameplay-green (`RNG 51561/51561`, `events 28950/28950`) but still had
+  early screen-only seams.
+- Three concrete tty-facing fixes moved the first screen divergence from step
+  `41 -> 56 -> 137 -> 141 -> 144` without touching gameplay parity:
+  - `js/pickup.js`
+    - do not clear row 0 at the end of the chest take-out selector; C leaves
+      the pickup summary (`"m - a cyan spellbook.  n - 2 swirly potions."`)
+      visible after the submenu closes
+    - locked-container loot messages need C article helpers:
+      - `The(xname(container)) is locked.`
+      - `Hmmm, the(xname(container)) turns out to be locked.`
+  - `js/lock.js`
+    - autounlock prompts must use `yname(pick)`, not `doname(pick)`, so tty
+      asks `"Unlock it with your credit card?"` rather than naming beatitude
+      or article details
+  - `js/render.js`
+    - the C tty harness is using the windowport `BL_CONDITION` path, not the
+      simple legacy `do_statusline2()` append order
+    - that path renders conditions from `botl.c conditions[]` sorted by
+      `ranking` then `useroption`, so visible defaults like `Hallu` and `Stun`
+      must follow tty order, not the hand-written legacy order
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - screens improved `1288/1351 -> 1322/1351`
+    - colors improved `11285/11688 -> 11319/11688`
+    - first screen divergence moved to step `144`
+  - green control stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
