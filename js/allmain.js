@@ -905,7 +905,11 @@ async function runMovementRepeatSlice(game, {
     game.advanceRunTurn = async () => {
         await advanceTimedTurn(game, coreOpts);
     };
-    const moveResult = await domove([0, 0], _p, _map, _display, game);
+    // C ref: moveloop_core calls domove() which reads direction from u.dx, u.dy.
+    // For running continuation, use the saved direction. For travel, domove
+    // internally calls findtravelpath to determine direction.
+    const runDir = ctx.travel ? [0, 0] : [_p.dx || 0, _p.dy || 0];
+    const moveResult = await domove(runDir, _p, _map, _display, game);
     game.advanceRunTurn = null;
     if (!moveResult || !moveResult.tookTime) {
         // C ref: allmain.c moveloop — when travel ends via path exhaustion,
