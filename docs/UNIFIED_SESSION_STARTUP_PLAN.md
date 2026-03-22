@@ -251,6 +251,41 @@ and `nethackrc` instead of the current `options` dictionary.
    **Mitigation:** Gate 3 ensures backward compatibility. V3 sessions continue
    to work. V4 is opt-in until Gate 6.
 
+### Gate 8: Cleanup — Remove All Backward Compatibility Shims
+
+**This is the most important gate.** The entire goal is to reduce complexity.
+Every shim added during Gates 2-7 must be removed. The final state must be
+simpler than the starting state.
+
+Specifically, remove:
+
+1. **V3 `options` field from session files** — V4 sessions should only have
+   `env` + `nethackrc` + `regen` + `steps`. No more `options.role`, `options.wizard`, etc.
+
+2. **`_v4OptionsApplied` shim in prepareReplayArgs** — V4 is the only format.
+   No on-the-fly conversion needed.
+
+3. **`parseSessionCharacter` complexity** — Character info comes from `nethackrc`.
+   No more parsing status lines to infer role from rank titles.
+
+4. **`buildGameplayReplayFlags` in session_recorder.js** — Flags come from
+   `nethackrc` via `parseNethackrcFull`. One code path.
+
+5. **Multiple init option formats** — `initOptions.character` with roleIndex/
+   numeric constants should be replaced by a `.nethackrc` string that gets
+   parsed at init time. One parsing path for C, headless, and browser.
+
+6. **Session version branching** — No `if (session.version === 3)` checks.
+   All sessions are V4.
+
+**Measurable:** The total line count of session loading/parsing code should
+decrease. `parseSessionCharacter` (50+ lines of status-line role inference)
+should be deleted. `buildGameplayReplayFlags` should be replaced by
+`parseNethackrcFull`. The session file format section of SESSION_FORMAT docs
+should be shorter.
+
+**Test:** All 562 passing sessions still pass. No V3-specific code paths remain.
+
 ## Non-Goals (for this PR)
 
 - Changing the step/keystroke format
