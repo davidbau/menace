@@ -1,8 +1,13 @@
 # Does Computer Science Still Exist?
 
-I have always seen the computer as a tool that gives us new ways to think. Does it still? As I write this, [Hack](https://mazesofmenace.net/hack/), the text-based dungeon crawler from my childhood, has just been fully ported to JavaScript by an AI agent. I handed the agent the old PDP code and told it to go. When I checked after a couple hours to ask why it was taking so long, it replied: it was working, and that thirteen of twenty-three test sessions were already passing parity. It continued its coding process without interruption all night, and eventually expanded its work to 202 passing tests, achieving near 100% coverage with verified parity to the original.
+I have always seen the computer as a tool that gives us new ways to think. Does it still?
+
+As I write this, [Hack](https://mazesofmenace.net/hack/), the text-based dungeon crawler from my childhood, has just been fully ported to JavaScript by an AI agent. I handed the agent the old PDP code and told it to go. When I checked after a couple hours to ask why it was taking so long, it replied: it was working, and that thirteen of twenty-three test sessions were already passing parity. It continued its coding process without interruption all night, and eventually expanded its work to 202 passing tests, achieving near 100% coverage with verified parity to the original.
 
 While I slept it was doing real work: debugging, reasoning, fixing genuine bugs. Not instant. Yet almost entirely on its own.
+
+![Brian Harvey's Computer Club students in 1982, when they created Hack](images/ls-computer-club-1982.jpg)
+*Brian Harvey's Computer Club students in 1982, when they created Hack*
 
 I grew up in Wayland, the next town over from Sudbury, Massachusetts, where a group of kids at Lincoln-Sudbury Regional High School wrote this game called [Hack](https://mazesofmenace.net/hack/) in 1982. They had [Atari 800s](https://en.wikipedia.org/wiki/Atari_8-bit_family) and [LOGO](https://en.wikipedia.org/wiki/Logo_%28programming_language%29) and an obsession with a Unix game called [Rogue](https://mazesofmenace.net/rogue/) that most of them had only heard about. I had the same computers and the same obsession. I never saw Rogue either, but I remember a dungeon exploration game called [Zork](https://mazesofmenace.net/dungeon/): the white house, the mailbox, the underground empire. If you look at the Hack source code, there is a little bit of Zork in it. On those machines, you could press ctrl-C in the middle of a game and find yourself staring at the code that made it run. Every file, every line, right there. It is hard to recapture that sense of wonder today.
 
@@ -26,7 +31,12 @@ Let me tell you about the [Mazes of Menace](https://mazesofmenace.net/) project.
 
 The methodology for the small games is simple and satisfying. Build a reference harness around the original C code. Record gameplay sessions: every screen, every random number, every event. Port the code to JavaScript. Then replay the sessions until the JS output matches the C output exactly. No human-written code. The agent does the porting, the testing, the debugging.
 
-Rogue: 85 minutes for the port, then about six more hours of autonomous follow-up sessions to push test coverage to near 100%. Hack: about eight hours for the core port, then another fifteen hours of follow-up sessions to reach near-complete coverage, all driven by a handful of steering prompts.
+Rogue: 85 minutes for the port, then about six more hours of autonomous follow-up sessions to push test coverage to near 100%.
+
+![Codex and Claude porting NetHack autonomously, no end in sight](images/hive-swarm.jpg)
+*Codex and Claude porting NetHack autonomously, no end in sight*
+
+Hack: about eight hours for the core port, then another fifteen hours of follow-up sessions to reach near-complete coverage, all driven by a handful of steering prompts.
 
 I feel like I am watching my profession dissolve. The work of porting old C to modern JavaScript, understanding the control flow, handling the edge cases: this is *my* kind of work. This is the work I have spent decades learning to do. And here it is, happening faster than I can follow, directed by a few sentences of guidance from me.
 
@@ -74,7 +84,12 @@ The first viewpoint sees a singularity: AI is a unique and permanent change to t
 
 The second viewpoint sees an industrial revolution: AI is a technological step change, but just a big step, and not the end of all steps. Many things that have always been difficult are now suddenly easy, creating huge changes in our perspective on what can and should be done in the world. Yet this view does not spell the end of human agency. It expands the circle of possibilities.
 
-I live in the Back Bay neighborhood of Boston. It is an interesting place to think about industrial step changes, because the neighborhood itself would not exist without one. Before the 1850s, the area behind Boston was a swampy tidal flat. Steam shovels made it possible, for the first time, to move earth at an industrial scale, and locomotives carried it in to fill the bay. Bostonians chose to use this new capability to create a neighborhood where there had been mud. The project took thirty years and development another fifty. Today this wonder of "modern" 19th century industry is a historic Victorian neighborhood. Boston's swamps are gone, the city is transformed, but the projects are not done; the city simply has different ambitions now.
+I live in the Back Bay neighborhood of Boston. It is an interesting place to think about industrial step changes, because the neighborhood itself would not exist without one. Before the 1850s, the area behind Boston was a swampy tidal flat. Steam shovels made it possible, for the first time, to move earth at an industrial scale, and locomotives carried it in to fill the bay. Bostonians chose to use this new capability to create a neighborhood where there had been mud.
+
+![In 1857 steam shovels were used to tear up Needham Hills to fill in Boston Back Bay](images/needham-steamshovel.jpg)
+*In 1857 steam shovels were used to tear up Needham Hills to fill in Boston Back Bay*
+
+The project took thirty years and development another fifty. Today this wonder of "modern" 19th century industry is a historic Victorian neighborhood. Boston's swamps are gone, the city is transformed, but the projects are not done; the city simply has different ambitions now.
 
 The steam shovel was an enormous force multiplier. It did not make civil engineering irrelevant. It changed what civil engineers could decide to do. It expanded the category of decisions that were worth making.
 
