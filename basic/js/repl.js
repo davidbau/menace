@@ -25,9 +25,13 @@ export class BasicRepl {
     // (the getch queue isn't read during execution, so we need this)
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() === 'c') {
-        this._breakFlag = true;
+        if (this._interp._running) {
+          this._breakFlag = true;
+          e.preventDefault();
+          e.stopImmediatePropagation(); // prevent getch from also queuing it
+        }
       }
-    });
+    }, true); // capture phase — fires before getch's listener
   }
 
   async start(getch) {
