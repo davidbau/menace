@@ -16268,3 +16268,24 @@ distinction is always conditional on being in Gehennom.
     2. the temporary capture session carries inferred chargen metadata
     3. the capture phase is a post-step `auto_step_*` boundary rather than
        an `auto_inp_*` key-read boundary
+
+## 2026-03-22 - `dbgmapdump`: report prompt-owned steps that have no post-step C boundary
+
+- After fixing manual-direct C capture, early `seed031` bisects still looked
+  erratic because many gameplay-step numbers are not completed command
+  boundaries on the C side.
+- Example:
+  - `dbgmapdump --c-side --steps 44` expected `auto_step_43`
+  - C only reached `auto_inp_46_key_104_getlin_0_moveloop_1`
+  - that means the requested gameplay step is prompt-owned or intra-command;
+    there is no `fresh_cmd` checkpoint to compare against yet
+- Fix in [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js):
+  - classify C capture failures by phase kind
+  - explicitly report when an expected `auto_step_*` fell through to an
+    `auto_inp_*` checkpoint
+  - print a note that the step appears prompt-owned / intra-command
+- Practical rule:
+  - for early `seed031` mapdump bisects, first choose steps that actually have
+    a post-step `auto_step_*` boundary
+  - if `dbgmapdump` reports `no post-step auto_step boundary before next
+    input`, do not treat that step as a valid post-step state checkpoint

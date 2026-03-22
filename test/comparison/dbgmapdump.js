@@ -661,6 +661,26 @@ function parsePhaseKeyCode(phase) {
     return m ? Number(m[1]) : null;
 }
 
+function classifyCapturePhase(expectedPhase, actualPhase) {
+    const expected = String(expectedPhase || '');
+    const actual = String(actualPhase || '');
+    const expectedKind = expected.startsWith('auto_step_')
+        ? 'auto_step'
+        : (expected.startsWith('auto_inp_') ? 'auto_inp' : 'other');
+    const actualKind = actual.startsWith('auto_step_')
+        ? 'auto_step'
+        : (actual.startsWith('auto_inp_') ? 'auto_inp' : 'other');
+    const promptLike = expectedKind === 'auto_step' && actualKind === 'auto_inp';
+    return {
+        expectedKind,
+        actualKind,
+        promptLike,
+        reason: promptLike
+            ? 'no post-step auto_step boundary before next input'
+            : 'checkpoint phase mismatch',
+    };
+}
+
 function sessionStepKeyCode(sessionStepObj) {
     const key = sessionStepObj?.key;
     if (typeof key !== 'string' || key.length === 0) return null;
@@ -988,9 +1008,10 @@ async function main() {
                 && Number.isInteger(c.cExpectedKeyCode)
                 && c.cPhaseKeyCode !== c.cExpectedKeyCode;
             if (!c.cCheckpointMatchedPhase) {
+                c.cCapturePhaseInfo = classifyCapturePhase(capture?.phaseTag, c.cCheckpointPhase);
                 // Avoid comparing stale checkpoints (typically startup after_map)
                 // when #dumpsnap failed to run at the requested replay phase.
-                c.cCaptureError = `phase-mismatch expected=${capture?.phaseTag || 'n/a'} got=${c.cCheckpointPhase || 'none'}`;
+                c.cCaptureError = `${c.cCapturePhaseInfo.reason} expected=${capture?.phaseTag || 'n/a'} got=${c.cCheckpointPhase || 'none'}`;
                 continue;
             }
             const cPayloadFull = buildCompactMapdumpFromCSnapshot(capture, sectionSet);
@@ -1097,6 +1118,9 @@ async function main() {
         for (const c of captures) {
             if (c.cCaptureError) {
                 console.log(`  step ${c.sessionStep}: C capture unavailable (${c.cCaptureError})`);
+                if (c.cCapturePhaseInfo?.promptLike) {
+                    console.log(`    note: step ${c.sessionStep} appears prompt-owned or intra-command on the C side`);
+                }
                 continue;
             }
             if (c.cPhaseKeyMismatch) {
