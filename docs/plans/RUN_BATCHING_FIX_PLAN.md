@@ -250,8 +250,27 @@ darts were created during level generation with identical RNG, but the
 physical dart assigned to invlet 'r' differs. Needs further investigation
 of the level generation object placement order.
 
+### Fog Cloud Gas Creation Mystery (seed032 step 279, index 18620)
+JS fog clouds call `create_gas_cloud(x,y,1,0)` from `m_everyturn_effect`,
+consuming `rn2(3)` for gas TTL. C's session produces ZERO gas cloud RNG
+despite having identical source code (verified in patched source + binary
+symbols: `create_gas_cloud` and `m_everyturn_effect` present).
+
+Fog clouds at (46,5), (46,6), (47,4), (48,6) — all ROOM tiles (typ=25).
+No pre-existing regions. `closed_door` returns false. Disabling in JS
+causes 3 regressions in other sessions (other sessions DO produce gas).
+
+**C-side diagnostic needed**: add `event_log` in `m_everyturn_effect` to
+trace whether the function runs for fog clouds and what conditions return:
+```c
+// In monmove.c m_everyturn_effect(), inside the PM_FOG_CLOUD block:
+event_log("fog_everyturn[%d@%d,%d cd=%d vr=%d]",
+          monsndx(mtmp->data), x, y,
+          closed_door(x, y), visible_region_at(x, y) ? 1 : 0);
+```
+
 ## Validation
-1. seed032 RNG increased from 7421 to 12789/29881 ✓
+1. seed032 RNG increased from 7421 to 21425/31707 (68%) ✓
 2. Full suite 565/568 did not regress ✓
 3. Verify `lookaround()` handles all run-stop conditions (doors, engravings,
    monsters, corridor branches)
