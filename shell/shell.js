@@ -554,7 +554,7 @@ export class Shell {
                 this.cursorPos = 0;
                 while (true) {
                     this.display.clearRow(promptRow);
-                    this.display.putstr(0, promptRow, '> ' + this.inputLine, OUTPUT_COLOR);
+                    this.display.putstr(0, promptRow, '> ' + this.inputLine, CLR_YELLOW);
                     if (typeof this.display.setCursor === 'function') {
                         this.display.setCursor(Math.min(promptLen + this.cursorPos, COLS - 1), promptRow);
                     }
@@ -562,7 +562,7 @@ export class Shell {
                     if (ch === 13 || ch === 10) {
                         const line = this.inputLine;
                         // Echo "> input" to scrollBuffer
-                        this.scrollBuffer.push({ text: '> ' + line, color: OUTPUT_COLOR });
+                        this.scrollBuffer.push({ text: '> ' + line, color: CLR_YELLOW });
                         return line;
                     }
                     if (ch === 8 || ch === 127) {
