@@ -16835,3 +16835,37 @@ source is elsewhere in the moveloop phase ordering.
     already-drawn underlay or truly performing a fresh redraw;
   - do not assume that a visually harmless per-key `renderMap()` is neutral
     once hallucination/display-RNG is active.
+
+## 2026-03-22 - frozen-overlay snapshots must handle both browser and headless cell shapes
+
+- The next `seed031` screen seam after the frozen-underlay work was not a menu
+  timing bug; it was a snapshot representation bug in `js/pickup.js`.
+- Root cause:
+  - `captureOverlayRows()` assumed `display.grid[row][col]` was always a cell
+    object `{ ch, color, attr }`, which is true for the browser display;
+  - but replay/session tests use the headless display, where:
+    - `display.grid[row][col]` is just the character,
+    - color lives in `display.colors[row][col]`,
+    - attributes live in `display.attrs[row][col]`.
+- Effect:
+  - the frozen overlay snapshot for the hallucinating nested take-out submenu
+    captured mostly blank cells in replay,
+  - so restoring the submenu underlay wrote spaces instead of the saved map,
+    even though the visible screen underlay was correct in C.
+- Faithful fix:
+  - make `captureOverlayRows()` normalize both display representations into the
+    same `{ ch, color, attr }` snapshot format before restoration;
+  - preserve the earlier row-`0` message rule by skipping row `0` restore when
+    a real take-out summary replaced the prompt.
+- Validated impact:
+  - `seed031_manual_direct.session.json`
+    - gameplay remains fully green: `51561/51561` RNG, `28950/28950` events
+    - first screen divergence moves later from step `145` to step `409`
+  - nearby gameplay controls remain unchanged:
+    - `seed032_manual_direct.session.json` still first diverges at RNG step `279`
+    - `seed033_manual_direct.session.json` still first diverges at RNG step `338`
+- Practical rule:
+  - any replay-only snapshot/restore helper that reads terminal cells must be
+    aware of both display backends;
+  - browser `Display` and headless `HeadlessDisplay` are not structurally
+    interchangeable even when they render the same final screen.
