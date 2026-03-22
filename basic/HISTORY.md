@@ -2,7 +2,7 @@
 
 At four in the morning on May 1, 1964, a Dartmouth College student typed RUN on a teletype connected to a General Electric GE-225 computer, and a program executed. It was the first BASIC program ever run. The language had been designed by two Dartmouth mathematicians, [John Kemeny](https://en.wikipedia.org/wiki/John_G._Kemeny) and [Thomas Kurtz](https://en.wikipedia.org/wiki/Thomas_E._Kurtz), with a radical idea: that computing should be accessible to everyone, not just specialists.
 
-Kemeny was a Hungarian immigrant who had worked on the Manhattan Project and served as Albert Einstein's mathematical assistant at Princeton. Kurtz was a statistician who believed that every student at Dartmouth — English majors, history majors, everyone — should be able to use a computer. Together they created BASIC: Beginner's All-purpose Symbolic Instruction Code. The language was deliberately simple. You typed a line number, a command, and pressed RETURN. The computer did what you said.
+Kemeny was a Hungarian immigrant who had worked on the Manhattan Project and served as Albert Einstein's mathematical assistant at Princeton. Kurtz was a statistician who believed that every student at Dartmouth, English majors and history majors included, should be able to use a computer. Together they created BASIC: Beginner's All-purpose Symbolic Instruction Code. The language was deliberately simple. You typed a line number, a command, and pressed RETURN. The computer did what you said.
 
 ```
 10 PRINT "HELLO, WORLD!"
@@ -15,7 +15,7 @@ BASIC spread fast. GE licensed it for its commercial timesharing systems. Other 
 
 Then came the microcomputer revolution. In 1975, a young [Bill Gates](https://en.wikipedia.org/wiki/Bill_Gates) and [Paul Allen](https://en.wikipedia.org/wiki/Paul_Allen) wrote [Altair BASIC](https://en.wikipedia.org/wiki/Altair_BASIC) for the MITS Altair 8800, the first personal computer. It was Microsoft's first product. Gates and Allen understood what Kemeny and Kurtz had understood a decade earlier: that the first thing people want to do with a computer is make it do something, and BASIC was the fastest path from zero to something.
 
-By 1982, BASIC was everywhere. Every personal computer shipped with it: [Applesoft BASIC](https://en.wikipedia.org/wiki/Applesoft_BASIC) on the Apple II, [Atari BASIC](https://en.wikipedia.org/wiki/Atari_BASIC) on the Atari 800, [Commodore BASIC](https://en.wikipedia.org/wiki/Commodore_BASIC) on the VIC-20 and C64, [GW-BASIC](https://en.wikipedia.org/wiki/GW-BASIC) on the IBM PC. You turned on the machine and BASIC was there, waiting. The blinking cursor was an invitation: type something. The entire generation of programmers who built the software industry — the generation that created Unix, that wrote games, that founded startups — learned to program by typing line numbers into BASIC.
+By 1982, BASIC was everywhere. Every personal computer shipped with it: [Applesoft BASIC](https://en.wikipedia.org/wiki/Applesoft_BASIC) on the Apple II, [Atari BASIC](https://en.wikipedia.org/wiki/Atari_BASIC) on the Atari 800, [Commodore BASIC](https://en.wikipedia.org/wiki/Commodore_BASIC) on the VIC-20 and C64, [GW-BASIC](https://en.wikipedia.org/wiki/GW-BASIC) on the IBM PC. You turned on the machine and BASIC was there, waiting. The blinking cursor was an invitation: type something. The entire generation of programmers who built the software industry learned to program by typing line numbers into BASIC.
 
 ## How to Program in BASIC
 
@@ -75,7 +75,7 @@ Use `STEP` for counting by a different amount:
 50 END
 ```
 
-Notice the `\` backslash — in BASIC-PLUS, it separates multiple statements on one line.
+Notice the `\` backslash: in BASIC-PLUS, it separates multiple statements on one line.
 
 ### GOTO and GOSUB
 
@@ -212,8 +212,8 @@ Type `HELP` at the prompt for a full list of commands. `SAVE` saves your program
 
 ## The Impact of BASIC
 
-An entire generation learned to program by typing BASIC into their home computers. BASIC taught them that programming was not something that happened in a lab — it was something you did at your kitchen table, on a Saturday, because you wanted to make the computer do something new. The line numbers, the GOTO statements, the blinking cursor: these were the raw materials of a generation's introduction to computational thinking.
+An entire generation learned to program by typing BASIC into their home computers. BASIC taught them that programming was not something that happened in a lab. It was something you did at your kitchen table, on a Saturday, because you wanted to make the computer do something new. The line numbers, the GOTO statements, the blinking cursor: these were the raw materials of a generation's introduction to computational thinking.
 
-BASIC's influence is hard to overstate. It was the first programming language for millions of people. It ran on every platform. It was free, it was immediate, it was forgiving. Professional programmers sometimes looked down on it — Edsger Dijkstra [famously wrote](https://en.wikiquote.org/wiki/Edsger_W._Dijkstra) that "it is practically impossible to teach good programming to students that have had a prior exposure to BASIC." But Dijkstra was wrong about what mattered. What mattered was that BASIC got people started. From BASIC they went to Pascal, C, Lisp, whatever they needed. The important thing was that they had started.
+BASIC's influence is hard to overstate. It was the first programming language for millions of people. It ran on every platform. It was free, it was immediate, it was forgiving. Professional programmers sometimes looked down on it. Edsger Dijkstra [famously wrote](https://en.wikiquote.org/wiki/Edsger_W._Dijkstra) that "it is practically impossible to teach good programming to students that have had a prior exposure to BASIC." But Dijkstra was wrong about what mattered. What mattered was that BASIC got people started. From BASIC they went to Pascal, C, Lisp, whatever they needed. The important thing was that they had started.
 
-Kemeny died in 1992. Kurtz, as of this writing, is still alive at 96. BASIC in its original form is rarely taught anymore — but you can learn it and try it here. The idea at its core endures: that the first thing a programming language should do is let you type something and see what happens.
+Kemeny died in 1992. Kurtz, as of this writing, is still alive at 96. BASIC in its original form is rarely taught anymore, but you can learn it and try it here. The idea at its core endures: that the first thing a programming language should do is let you type something and see what happens.
