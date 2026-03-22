@@ -417,17 +417,23 @@ export function prepareReplayArgs(seed, session, opts = {}) {
     // Ctrl-W) are consumed by the prompt rather than routed to the game handler.
     if (chargenKeys.length === 0) {
         const step0Screen = String(session.steps?.[0]?.screen || '');
-        // Only detect lore/welcome when step 0 is the "game ready" screen
-        // (old recording format where startup was auto-advanced).  In the
-        // unified format (Gate 8), startup steps (lore --More--, welcome)
-        // are recorded as separate steps with key !== null, so they're
-        // sliced off by normalizeSession.  The remaining step 0 is the
-        // first gameplay key — no lore detection needed.
-        const step0IsGameReady = !session.steps?.[0]?.key
-            || !/It is written|welcome to NetHack|--More--/.test(step0Screen);
-        if (!step0IsGameReady && /It is written in the Book of/.test(step0Screen)) {
+        // Detect whether lore/welcome should be shown during init.
+        //
+        // Unified format (Gate 8): session.steps[0] has key=null (initial
+        // screen showing lore), steps[1+] start with space keys for --More--
+        // dismissal.  The lore is IN the step data, so init must render it
+        // and set a pendingPrompt for the replay loop to drive.
+        //
+        // Old format: step 0 is "game ready" (auto-advanced past lore).
+        // We detect the old format by checking if step 0 screen has lore
+        // text — if it does, init should show it.
+        //
+        // In both cases, if lore/welcome text is present at step 0,
+        // we enable showLoreAndWelcome so init renders the lore screen
+        // as a pendingPrompt that the key sequence drives.
+        if (/It is written in the Book of/.test(step0Screen)) {
             initOpts.showLoreAndWelcome = true;
-        } else if (!step0IsGameReady && /welcome to NetHack/.test(step0Screen) && /--More--/.test(step0Screen)) {
+        } else if (/welcome to NetHack/.test(step0Screen) && /--More--/.test(step0Screen)) {
             // Lore was auto-dismissed by record_more_spaces but the welcome
             // --More-- is still active.  Show the welcome prompt only so JS
             // consumes keys the same way C's xwaitforspace does.
