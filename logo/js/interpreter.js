@@ -224,6 +224,8 @@ export class LogoInterpreter {
       stream.pos++;
 
       // Special forms
+      if (name === 'SAVE') return this._handleSave(stream, env);
+      if (name === 'LOAD') return this._handleLoad(stream, env);
       if (name === 'HELP') return this._handleHelp(stream, env);
       if (name === 'TO') return this._handleTo(stream, env);
       if (name === 'IF') return this._handleIf(stream, env);
@@ -457,6 +459,89 @@ export class LogoInterpreter {
     } catch (e) {
       if (e instanceof OutputSignal || e instanceof StopSignal) throw e;
       throw e;
+    }
+  }
+
+  // ---- SAVE/LOAD — writes to virtual filesystem (menace-fs in localStorage) ----
+
+  _handleSave(stream, env) {
+    // SAVE or SAVE "filename
+    let filename = 'PROCEDURES';
+    if (stream.pos < stream.items.length) {
+      const next = stream.items[stream.pos];
+      if (next.type === 'QUOTED' || next.type === 'WORD') {
+        filename = (next.value || next).toString().toUpperCase();
+        stream.pos++;
+      }
+    }
+    const ext = filename.includes('.') ? '' : '.LGO';
+    const fullName = filename + ext;
+    // Build text: TO/END blocks for each procedure
+    const lines = [];
+    for (const [name, proc] of Object.entries(this._procs)) {
+      const params = proc.params.map(p => ':' + p).join(' ');
+      lines.push(`TO ${name}${params ? ' ' + params : ''}`);
+      // Reconstruct body from tokens/values
+      for (const item of proc.body) {
+        if (Array.isArray(item)) lines.push('  [' + item.join(' ') + ']');
+        else if (item && item.type === 'WORD') lines.push('  ' + item.value);
+        else if (item && item.value !== undefined) lines.push('  ' + item.value);
+        else lines.push('  ' + String(item));
+      }
+      lines.push('END');
+      lines.push('');
+    }
+    const text = lines.join('\n') + '\n';
+    try {
+      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
+      fs['home/' + fullName.toLowerCase()] = text;
+      localStorage.setItem('menace-fs', JSON.stringify(fs));
+      this._output(`SAVED ${fullName}\n`);
+    } catch (e) { this._output('SAVE FAILED\n'); }
+  }
+
+  _handleLoad(stream, env) {
+    // LOAD or LOAD "filename
+    let filename = 'PROCEDURES';
+    if (stream.pos < stream.items.length) {
+      const next = stream.items[stream.pos];
+      if (next.type === 'QUOTED' || next.type === 'WORD') {
+        filename = (next.value || next).toString().toUpperCase();
+        stream.pos++;
+      }
+    }
+    const ext = filename.includes('.') ? '' : '.LGO';
+    const fullName = filename + ext;
+    try {
+      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
+      const text = fs['home/' + fullName.toLowerCase()];
+      if (!text) { this._output(`FILE NOT FOUND: ${fullName}\n`); return; }
+      this._loadFromText(text);
+      this._output(`LOADED ${fullName}\n`);
+    } catch (e) { this._output('LOAD FAILED\n'); }
+  }
+
+  // Load procedures from text (TO/END format)
+  _loadFromText(text) {
+    let currentDef = null;
+    for (const line of text.split('\n')) {
+      const trimmed = line.trim();
+      const upper = trimmed.toUpperCase();
+      if (upper.startsWith('TO ')) {
+        // Parse: TO NAME :PARAM1 :PARAM2
+        const parts = trimmed.slice(3).trim().split(/\s+/);
+        const name = parts[0].toUpperCase();
+        const params = parts.slice(1).filter(p => p.startsWith(':')).map(p => p.slice(1).toUpperCase());
+        currentDef = { name, params, bodyLines: [] };
+      } else if (upper === 'END' && currentDef) {
+        const bodySource = currentDef.bodyLines.join('\n');
+        const tokens = tokenize(bodySource);
+        const body = parseTokens(tokens);
+        this._procs[currentDef.name] = { name: currentDef.name, params: currentDef.params, body };
+        currentDef = null;
+      } else if (currentDef) {
+        currentDef.bodyLines.push(trimmed);
+      }
     }
   }
 
@@ -814,27 +899,9 @@ export class LogoInterpreter {
       out('END\n');
       out('SPIRAL 1 91\n');
     });
-    def('SAVE', 0, () => {
-      try {
-        const data = {};
-        for (const [name, proc] of Object.entries(this._procs)) {
-          data[name] = { params: proc.params, bodyLines: proc.body };
-        }
-        localStorage.setItem('logo-procs', JSON.stringify(data));
-        out('SAVED\n');
-      } catch (e) { out('SAVE FAILED\n'); }
-    });
-    def('LOAD', 0, () => {
-      try {
-        const raw = localStorage.getItem('logo-procs');
-        if (!raw) { out('NOTHING SAVED\n'); return; }
-        const data = JSON.parse(raw);
-        for (const [name, def] of Object.entries(data)) {
-          this._procs[name] = { name, params: def.params, body: def.bodyLines };
-        }
-        out('LOADED: ' + Object.keys(data).join(' ') + '\n');
-      } catch (e) { out('LOAD FAILED\n'); }
-    });
+    // SAVE/LOAD handled as special forms (see _handleSave/_handleLoad)
+    def('SAVE', 0, () => {});
+    def('LOAD', 0, () => {});
     def('ERALL', 0, () => {
       this._procs = {};
       out('ALL PROCEDURES ERASED\n');

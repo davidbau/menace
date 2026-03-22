@@ -53,8 +53,8 @@ export class BasicInterpreter {
     if (upper === 'RUN') return this.run();
     if (upper === 'NEW') { this._program = {}; this._vars = {}; this._arrays = {}; this._fnDefs = {}; return; }
     if (upper === 'LIST' || upper.startsWith('LIST ')) return this._list(upper);
-    if (upper === 'SAVE') return this._save();
-    if (upper === 'LOAD') return this._load();
+    if (upper.startsWith('SAVE')) return this._save(line.slice(4).trim());
+    if (upper.startsWith('LOAD')) return this._load(line.slice(4).trim());
     if (upper === 'BYE' || upper === 'QUIT' || upper === 'SYSTEM') {
       if (typeof window !== 'undefined') {
         var rows = window._basicDisplay ? window._basicDisplay.getRows() : [];
@@ -931,21 +931,42 @@ export class BasicInterpreter {
     }
   }
 
-  // ---- SAVE / LOAD ----
-  _save() {
+  // ---- SAVE / LOAD — writes to virtual filesystem (menace-fs in localStorage) ----
+  _save(nameArg) {
+    const filename = (nameArg || '').replace(/^"/, '').replace(/"$/, '').toUpperCase() || 'PROGRAM';
+    const ext = filename.includes('.') ? '' : '.BAS';
+    const fullName = filename + ext;
+    // Build listing as plain text
+    const lines = this._sortedLines();
+    const text = lines.map(ln => `${ln} ${this._program[ln]}`).join('\n') + '\n';
     try {
-      localStorage.setItem('basic-program', JSON.stringify(this._program));
-      this._output('SAVED\n');
+      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
+      fs['home/' + fullName.toLowerCase()] = text;
+      localStorage.setItem('menace-fs', JSON.stringify(fs));
+      this._output(`SAVED ${fullName}\n`);
     } catch (e) { this._output('SAVE FAILED\n'); }
   }
 
-  _load() {
+  _load(nameArg) {
+    const filename = (nameArg || '').replace(/^"/, '').replace(/"$/, '').toUpperCase() || 'PROGRAM';
+    const ext = filename.includes('.') ? '' : '.BAS';
+    const fullName = filename + ext;
     try {
-      const raw = localStorage.getItem('basic-program');
-      if (!raw) { this._output('NO PROGRAM SAVED\n'); return; }
-      this._program = JSON.parse(raw);
-      this._output('LOADED\n');
+      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
+      const text = fs['home/' + fullName.toLowerCase()];
+      if (!text) { this._output(`FILE NOT FOUND: ${fullName}\n`); return; }
+      this._loadFromText(text);
+      this._output(`LOADED ${fullName}\n`);
     } catch (e) { this._output('LOAD FAILED\n'); }
+  }
+
+  // Load program from text (listing format: "10 PRINT ...\n20 GOTO ...\n")
+  _loadFromText(text) {
+    this._program = {};
+    for (const line of text.split('\n')) {
+      const m = line.match(/^(\d+)\s+(.*)/);
+      if (m) this._program[parseInt(m[1])] = m[2];
+    }
   }
 
   // ---- HELP ----

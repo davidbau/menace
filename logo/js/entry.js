@@ -67,5 +67,17 @@ window.addEventListener('DOMContentLoaded', () => {
   // Expose display for exit-to-shell screen capture
   window._logoDisplay = display;
 
+  // Load file from ?file= URL parameter
+  const params = new URLSearchParams(window.location.search);
+  const file = params.get('file');
+  if (file) {
+    try {
+      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
+      const key = 'home/' + file.toLowerCase();
+      const text = fs[key];
+      if (text) interp._loadFromText(text);
+    } catch (e) { /* ignore */ }
+  }
+
   repl.start(getch);
 });
