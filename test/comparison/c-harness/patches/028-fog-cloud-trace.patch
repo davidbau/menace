@@ -1,0 +1,15 @@
+diff --git a/src/monmove.c b/src/monmove.c
+--- a/src/monmove.c
++++ b/src/monmove.c
+@@ -669,6 +669,10 @@
+     if (mtmp->data == &mons[PM_FOG_CLOUD]) {
+         /* don't leave a vapor cloud if some other gas cloud is already
+            present, or when flowing under closed doors so that visibility
+            changes aren't mixed with messages about doing such */
++        /* 028-fog-cloud-trace: log conditions to diagnose JS/C gas divergence */
++        event_log("fog_everyturn[%d@%d,%d cd=%d vr=%d]",
++                  monsndx(mtmp->data), x, y,
++                  closed_door(x, y), visible_region_at(x, y) ? 1 : 0);
+         if (!closed_door(x, y) && !visible_region_at(x, y))
+             create_gas_cloud(x, y, 1, 0); /* harmless vapor */
+     }

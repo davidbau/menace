@@ -1,0 +1,17 @@
+diff --git a/src/allmain.c b/src/allmain.c
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -155,6 +155,13 @@
+     }
+
+     u.umovement += moveamt;
++    /* Log hero movement allocation for parity comparison (027-moveamt-event).
++     * Includes encumbrance level, movement amount, accumulated movement,
++     * carried weight vs capacity, and hero position.
++     * gw.wc was set by the preceding near_capacity() → inv_weight() call. */
++    event_log("moveamt[wtcap=%d moveamt=%d umovement=%d wt=%d wc=%d pos=%d,%d]",
++              wtcap, moveamt, u.umovement,
++              inv_weight(), gw.wc, u.ux, u.uy);
+     if (u.umovement < 0)
+         u.umovement = 0;
+ }
