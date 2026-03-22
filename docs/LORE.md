@@ -16537,3 +16537,41 @@ distinction is always conditional on being in Gehennom.
     - `t04_s993_w_eatground_gp.session.json`
   - nearby regression check stayed stable:
     - `seed032_manual_direct.session.json` still first diverges at step `144`
+
+## 2026-03-22 - bones timing belongs in `really_done()`, and bones depth is branch-adjusted
+
+- After the late eating and pet-food fixes, `seed031` still had one final RNG
+  mismatch at the death boundary:
+  - JS had an extra earlier bones-side effect because `js/allmain.js` called
+    `savebones(game)` from the moveloop death check
+  - C does not do bones work there; `end.c:really_done()` computes
+    `bones_ok = (how < GENOCIDED) && can_make_bones()` after death handling has
+    reached final endgame cleanup
+- Faithful fix 1:
+  - remove the moveloop `savebones(game)` call from `js/allmain.js`
+  - compute `game.bonesOk = (how < GENOCIDED) && can_make_bones(game)` in
+    `js/end.js:really_done()`
+- That exposed the last actual logic mismatch:
+  - JS `can_make_bones()` was using branch-local `player.dungeonLevel`
+  - C `can_make_bones()` uses `depth(&u.uz)`, which is branch-adjusted
+  - in the fatal `seed031` death step, JS saw level `2` and rolled `rn2(1)`,
+    while C saw depth `4` and rolled `rn2(2)`
+- Faithful fix 2:
+  - in `js/bones.js`, compute current depth from `depth(player.uz || map.uz)`
+    instead of `player.dungeonLevel`
+- Validated impact:
+  - `seed031_manual_direct.session.json`
+    - RNG improved from `51560/51561` to `51561/51561`
+    - events remain `28950/28950`
+    - the old late gameplay seam is gone; the remaining failure is screen-only
+      and much earlier:
+      - first screen divergence step `41`
+  - controls stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+  - nearby regression check stayed stable:
+    - `seed032_manual_direct.session.json` still first diverges at step `144`
+- Practical rule:
+  - when C uses `depth(&u.uz)`, JS must not substitute branch-local
+    `dungeonLevel`; Mines/Quest/other branch levels will drift exactly this way

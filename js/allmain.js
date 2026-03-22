@@ -16,7 +16,6 @@
 //   welcome(): display character description at game start or restore.
 
 import { movemon, settrack, mon_regen } from './monmove.js';
-import { savebones } from './bones.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { nh_timeout, do_storms, fall_asleep } from './timeout.js';
@@ -274,14 +273,12 @@ export async function moveloop_core(game, opts = {}) {
         game.seerTurn = movesForSeer + rn1(31, 15);
     }
 
-    // C ref: allmain.c end of moveloop_core — check for player death
+    // C ref: allmain.c end of moveloop_core — check for player death.
+    // Bones handling belongs to end.c/really_done(), not the moveloop.
     const awaitingEndPrompt = !!(game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function');
     if ((player.isDead || player.uhp <= 0) && game.gameOver && !awaitingEndPrompt) {
         if (!player.deathCause) {
             player.deathCause = 'died';
-        }
-        if (typeof savebones === 'function') {
-            savebones(game);
         }
     }
 }

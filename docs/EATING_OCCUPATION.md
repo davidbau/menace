@@ -926,12 +926,10 @@ The best current summary is:
 - `victual` stores meal progress; it does not decide who owns the next key
 - the JS port should preserve the same single-owner semantics despite async
   implementation details
-- the active `seed031` failure is now narrower than the earlier prompt theory:
-  two concrete floor-object bugs have been removed, but the late resumed-meal /
-  pet-food corridor still diverges
-- the next correct fix should start from the remaining object/corpse set seen
-  by `dog_goal()` and nearby late-step eating state, not from generic topline
-  or `--More--` handling
+- the late resumed-meal / pet-food corridor described in this note is now
+  resolved by the validated floor-object, pet-`oeaten`, and bones-depth fixes
+- the remaining `seed031` failure is no longer gameplay RNG/event drift in the
+  eating lane; it is an earlier screen-only seam outside this document's scope
 
 ## 9. Active seam after the meal fixes
 
@@ -964,4 +962,29 @@ Useful late-step JS state collected during that pass:
 
 That seam is now resolved by the validated `oeaten` fix above.
 
-The live `seed031` seam is now later than this document's original eating lane.
+The live `seed031` seam moved out of the eating lane entirely.
+
+## 10. Resolution Status
+
+This document's main gameplay lane is now resolved.
+
+Validated end state:
+
+- `seed031_manual_direct.session.json`
+  - RNG full: `51561/51561`
+  - events full: `28950/28950`
+  - remaining first divergence is screen-only at step `41`
+- controls stayed green:
+  - `t11_s755_w_covmax9_gp.session.json`
+  - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+  - `t04_s993_w_eatground_gp.session.json`
+
+Final lesson from the tail of this campaign:
+
+- after the eating and pet-food fixes, the last late RNG mismatch was not in
+  meal control flow at all
+- it was a bones-depth mistake:
+  - JS used branch-local `dungeonLevel`
+  - C used branch-adjusted `depth(&u.uz)`
+- that distinction matters on branch levels such as the Mines and can produce
+  exactly one late RNG mismatch even after gameplay state is otherwise aligned

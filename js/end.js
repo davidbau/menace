@@ -39,6 +39,7 @@ import { d } from './rng.js';
 import { roles } from './player.js';
 import { freedynamicdata } from './save.js';
 import { ynFunction } from './input.js';
+import { can_make_bones } from './bones.js';
 
 // cf. end.c:47 — death descriptions (indexed by game_end_types)
 const deaths = [
@@ -544,6 +545,10 @@ async function really_done(how, game) {
     // Set the game-over flags
     game.gameOver = true;
     game.gameOverReason = deaths[how] || 'died';
+
+    // C ref: end.c really_done() computes bones_ok here, after the game-over
+    // state is established and before disclosure/prompt flow continues.
+    game.bonesOk = (how < GENOCIDED) && can_make_bones(game);
 
     const installedPrompt = await maybeInstallPossessionsPrompt(how, game);
     if (!installedPrompt && game.display) {
