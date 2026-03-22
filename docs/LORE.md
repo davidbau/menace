@@ -16607,3 +16607,43 @@ distinction is always conditional on being in Gehennom.
     - first screen divergence moved to step `144`
   - green control stayed green:
     - `t11_s755_w_covmax9_gp.session.json`
+
+## 2026-03-22 - `seed031` late screen seam is a hallucination display-stream mismatch, not gameplay
+
+- After the gameplay lane went fully green, the remaining `seed031` failure was
+  a screen-only hallucination seam around the chest-gas corridor:
+  - current committed baseline before further fixes:
+    - `seed031_manual_direct.session.json`
+    - RNG `51561/51561`
+    - events `28950/28950`
+    - first screen divergence at step `144`
+    - JS row `17`: `####▒·@g···│` (and later `@&` in a diagnostic experiment)
+    - C/session row `17`: `####▒·@u···│`
+- A C rerecord with display-stream logging was useful:
+  - `NETHACK_RNGLOG_DISP=1 python3 test/comparison/c-harness/rerecord.py /tmp/seed031_dispdiag.session.json`
+  - in the aligned chest-trap corridor, C consumed:
+    - at the first hallucination-on step: `1` monster display roll, then `2`
+      object display rolls
+    - later in `moveloop_core`: `1` monster display roll, then `2` object
+      display rolls
+- JS tracing established the corresponding local shape:
+  - step `141` first writes the wrong glyph, not step `144`
+  - owner order on the bad cell:
+    - `make_hallucinated()` writes one hallucinated monster glyph
+    - `apply_dochug_postmove()` rewrites the same cell twice
+    - a later full sync/render rewrites it again
+  - temporary full-render cache bypass changed the wrong glyph (`g -> &`) but
+    did not move the first screen divergence step; keep that as evidence that
+    redraw ownership matters, not as a fix
+- Important negative result:
+  - the missing C object-stream calls are not explained by visible floor-object
+    redraws during `see_objects()`
+  - step-local tracing showed `see_objects()` visits nine object cells, but at
+    the hallucination step only one of them is currently visible, and that one
+    is the hero square
+  - so the missing object-stream calls are coming from some other tty/display
+    path, not from ordinary visible floor-object map redraw
+- Practical constraint for future work:
+  - do not keep speculative render-cache or map-redraw tweaks here
+  - the next productive question is which tty-facing hallucination display path
+    in C is consuming those `random_object` calls when JS is not
