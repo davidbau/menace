@@ -14,6 +14,7 @@ import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          GETOBJ_ALLOWCNT, GETOBJ_PROMPT, GETOBJ_NOFLAGS,
          ECMD_OK,
          SORTLOOT_PACK, SORTLOOT_INVLET, SORTLOOT_LOOT, SORTLOOT_INUSE,
+         P_DAGGER, P_KNIFE, P_POLEARMS, P_SPEAR, P_LANCE, P_BOW, P_CROSSBOW,
          LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_WOUNDEDLEG_REDUCT } from './const.js';
 import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
@@ -1119,8 +1120,12 @@ export function loot_classify(sort_item, obj) {
         break;
     }
     case WEAPON_CLASS: {
-        const skill = od.skill || 0;
-        k = (skill < 0) ? 3 : 5;
+        const skill = od.oc_skill ?? od.oc_subtyp ?? 0;
+        k = (skill < 0)
+            ? ((skill >= -P_CROSSBOW && skill <= -P_BOW) ? 1 : 3)
+            : ((skill >= P_BOW && skill <= P_CROSSBOW) ? 2
+                : ((skill === P_SPEAR || skill === P_DAGGER || skill === P_KNIFE) ? 4
+                    : ((skill === P_POLEARMS || skill === P_LANCE) ? 6 : 5)));
         break;
     }
     case TOOL_CLASS:
