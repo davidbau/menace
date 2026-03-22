@@ -16327,3 +16327,43 @@ distinction is always conditional on being in Gehennom.
   - when late parity drift looks like prompt/occupation confusion, expose
     structured context state first; compact object refs can hide exactly the
     field that differentiates JS from C
+
+## 2026-03-22 - `dbgmapdump`: add debug-only monster movement/flee state to `N` rows
+
+- Late `seed031` work around the giant-ant seam needed more than the old
+  compact `N` row provided.
+- The previous `N` format only carried:
+  - id, position, monster index, hp, hpmax/tame-like placeholders, sleeping,
+    frozen/trapped-like placeholders, disguise fields, inventory count
+- That was not enough to diagnose the live seam at step `1241`, because the
+  branch depends on:
+  - current movement points
+  - `mflee`
+  - `mfleetim`
+  - apparent target (`mux`,`muy`)
+  - sight/blind state
+- Fix:
+  - [`js/dungeon.js`](js/dungeon.js) now emits a debug-only expanded `N` row
+    for `buildDebugMapdumpPayload()` while leaving ordinary harness/session
+    mapdump payloads unchanged
+  - [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js) now uses
+    the same expanded field layout for C-side compact mapdumps
+- Expanded debug-only `N` row layout:
+  - `id,x,y,mnum,mhp,movement,mflee,mfleetim,mpeaceful,mcanmove,mcansee_or_canseemon,mblinded,mux,muy,minvcount`
+- Concrete `seed031` result at late checkpoint `step1243`:
+  - JS ant `374`:
+    - `374,47,14,0,4,24,1,11,0,1,0,0,42,7,0`
+  - C ant `374`:
+    - `374,48,14,0,4,12,1,7,0,1,0,0,42,7,0`
+- Interpretation:
+  - by `step1243`, JS and C already disagree on:
+    - position
+    - movement bank
+    - flee timer
+  - but still agree on:
+    - `mflee=1`
+    - apparent target `mux,muy = 42,7`
+- Practical rule:
+  - when a late `dochug()` seam looks like an extra `set_apparxy()` or
+    `distfleeck()` RNG call, first compare debug-only `N` rows; movement and
+    flee-duration drift can be the real root cause even when `mux/muy` match

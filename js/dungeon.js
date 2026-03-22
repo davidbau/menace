@@ -517,6 +517,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     lines.push(`M${monParts.join(';')}`);
 
     const monDetailParts = [];
+    const expandedMonsterDetails = !!options.expandedMonsterDetails;
     for (const mon of (Array.isArray(map?.monsters) ? map.monsters : [])) {
         const mx = Number(mon?.mx);
         const my = Number(mon?.my);
@@ -524,19 +525,34 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const id = Number.isFinite(mon?.m_id) ? Math.trunc(mon.m_id) : 0;
         const mndx = Number.isFinite(mon?.mndx) ? Math.trunc(mon.mndx) : 0;
         const mhp = Number.isFinite(mon?.mhp) ? Math.trunc(mon.mhp) : 0;
-        const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
-        const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
-        const peaceful = mon?.mpeaceful ? 1 : 0;
-        const sleeping = mon?.msleeping ? 1 : 0;
-        const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
-        const canmove = mon?.mcanmove === false ? 0 : 1;
-        const trapped = mon?.mtrapped ? 1 : 0;
-        const mappearanceType = Number.isFinite(mon?.m_ap_type) ? Math.trunc(mon.m_ap_type) : 0;
-        const mappearance = Number.isFinite(mon?.mappearance) ? Math.trunc(mon.mappearance) : 0;
         const minventCount = Array.isArray(mon?.minvent) ? mon.minvent.length : 0;
-        monDetailParts.push(
-            `${id},${mx},${my},${mndx},${mhp},${mhpmax},${mtame},${peaceful},${sleeping},${frozen},${canmove},${trapped},${mappearanceType},${mappearance},${minventCount}`
-        );
+        if (expandedMonsterDetails) {
+            const movement = Number.isFinite(mon?.movement) ? Math.trunc(mon.movement) : 0;
+            const mflee = mon?.mflee ? 1 : 0;
+            const mfleetim = Number.isFinite(mon?.mfleetim) ? Math.trunc(mon.mfleetim) : 0;
+            const peaceful = mon?.mpeaceful ? 1 : 0;
+            const canmove = mon?.mcanmove === false ? 0 : 1;
+            const cansee = mon?.mcansee === false || mon?.mcansee === 0 ? 0 : 1;
+            const blinded = Number.isFinite(mon?.mblinded) ? Math.trunc(mon.mblinded) : 0;
+            const mux = Number.isFinite(mon?.mux) ? Math.trunc(mon.mux) : 0;
+            const muy = Number.isFinite(mon?.muy) ? Math.trunc(mon.muy) : 0;
+            monDetailParts.push(
+                `${id},${mx},${my},${mndx},${mhp},${movement},${mflee},${mfleetim},${peaceful},${canmove},${cansee},${blinded},${mux},${muy},${minventCount}`
+            );
+        } else {
+            const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
+            const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
+            const peaceful = mon?.mpeaceful ? 1 : 0;
+            const sleeping = mon?.msleeping ? 1 : 0;
+            const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
+            const canmove = mon?.mcanmove === false ? 0 : 1;
+            const trapped = mon?.mtrapped ? 1 : 0;
+            const mappearanceType = Number.isFinite(mon?.m_ap_type) ? Math.trunc(mon.m_ap_type) : 0;
+            const mappearance = Number.isFinite(mon?.mappearance) ? Math.trunc(mon.mappearance) : 0;
+            monDetailParts.push(
+                `${id},${mx},${my},${mndx},${mhp},${mhpmax},${mtame},${peaceful},${sleeping},${frozen},${canmove},${trapped},${mappearanceType},${mappearance},${minventCount}`
+            );
+        }
     }
     monDetailParts.sort();
     lines.push(`N${monDetailParts.join(';')}`);
@@ -596,7 +612,10 @@ function buildHarnessMapdumpPayload(map, options = {}) {
 // Debug helper used by comparison tooling to snapshot current map state
 // in the same compact mapdump format emitted by harness checkpoints.
 export function buildDebugMapdumpPayload(map, options = {}) {
-    return buildHarnessMapdumpPayload(map, options);
+    return buildHarnessMapdumpPayload(map, {
+        ...options,
+        expandedMonsterDetails: true,
+    });
 }
 
 function emitHarnessMapdumpEvent(map, depth, dnum, dlevel) {

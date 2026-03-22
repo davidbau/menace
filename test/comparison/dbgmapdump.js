@@ -550,14 +550,17 @@ function buildCompactMapdumpFromCSnapshot(capture, sectionSet) {
             const y = m.y | 0;
             const mnum = m.mnum | 0;
             const mhp = m.mhp | 0;
-            const mtame = m.mtame | 0;
+            const movement = m.movement | 0;
+            const mflee = m.mflee ? 1 : 0;
+            const mfleetim = m.mfleetim | 0;
             const peaceful = m.mpeaceful ? 1 : 0;
-            const sleeping = m.msleeping ? 1 : 0;
             const canmove = m.mcanmove ? 1 : 0;
-            const apType = m.m_ap_type | 0;
-            const appearance = m.mappearance | 0;
+            const cansee = (m.mcansee ?? m.canseemon) ? 1 : 0;
+            const blinded = m.mblinded | 0;
+            const mux = m.mux | 0;
+            const muy = m.muy | 0;
             const minvcount = m.minvcount | 0;
-            return `${id},${x},${y},${mnum},${mhp},${mhp},${mtame},${peaceful},${sleeping},0,${canmove},0,${apType},${appearance},${minvcount}`;
+            return `${id},${x},${y},${mnum},${mhp},${movement},${mflee},${mfleetim},${peaceful},${canmove},${cansee},${blinded},${mux},${muy},${minvcount}`;
         }).sort();
         lines.push(`N${toSparse(rows)}`);
     }
