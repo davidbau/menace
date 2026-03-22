@@ -16101,3 +16101,41 @@ distinction is always conditional on being in Gehennom.
   ownership corridor around gameplay step `1237`:
   - JS first RNG: `rn2(20)=7 @ handleEat(eat.js:1986)`
   - C first RNG: `rn2(40)=7 @ dochug(monmove.c:758)`
+
+## 2026-03-22 - `seed031`: resume existing meals through `start_eating()`
+
+- After the `ux0/uy0` retreat-state fix, `seed031` next diverged in an
+  eat/occupation corridor around gameplay step `1237`.
+- Raw comparison showed JS consuming corpse RNG inline in
+  [`handleEat()`](js/eat.js) after turn-end:
+  - JS: `rn2(20)=7 @ handleEat(eat.js)`
+  - C: only `>set_occupation` / `<set_occupation`, then monster turns begin
+- A gated trace on [`handleEat()`](js/eat.js) showed the concrete mismatch:
+  - repeated `e` commands were selecting the same in-progress corpse meal
+  - JS re-ran `eatcorpse()` on each resume
+  - C `doeat()` has a dedicated `otmp == victual.piece` branch which resumes
+    through `start_eating()` and does **not** re-run fresh-corpse setup
+- The faithful fix in [`js/eat.js`](js/eat.js):
+  - add the missing resume-meal branch before fresh food setup
+  - if the selected item is `game.svc.context.victual.piece`, preserve the
+    existing victual timing state and call `start_eating(...)`
+  - do not call `eatcorpse()` again for resumed meals
+  - repair the previously dormant `eatfood()` helper so the now-used
+    resume path passes its real `game/player` arguments and floor checks
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `47204 -> 47441`
+    - matched events improved `26054 -> 26377`
+    - first RNG divergence moved `1237 -> 1241`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- `node scripts/test-unit-core.mjs` still reports two existing pickup-area
+  failures caused by the unrelated dirty [`js/pickup.js`](js/pickup.js) probe:
+  - `command_loot_meta.test.js`
+  - `pickup_compare_discovery_message.test.js`
+- New active seam after this batch is later still, in post-eat monster logic
+  around gameplay step `1241`:
+  - JS first RNG: `rn2(3)=0 @ dochug(monmove.js:847)`
+  - C first RNG: `rn2(5)=0 @ distfleeck(monmove.c:539)`
