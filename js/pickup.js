@@ -2442,7 +2442,10 @@ async function query_category(qstr, olist, qflags, how, player, game) {
     const olistArr = [];
     for (let c = olist; c; c = FOLLOW(c, qflags)) olistArr.push(c);
     const num_buc_types = countBucTypes(olistArr);
-    if (ccount === 1 && num_buc_types <= 1) {
+    // C ref: pickup.c:1289 — skip optimization when CHOOSE_ALL is set
+    // (user should see the full menu with 'A' option) or when JUSTPICKED
+    // items exist (the 'P' category makes the menu non-trivial).
+    if (ccount === 1 && num_buc_types <= 1 && !(qflags & CHOOSE_ALL)) {
         for (let c = olist; c; c = FOLLOW(c, qflags)) {
             if (ofilter && !ofilter(c)) continue;
             return { count: 1, pick_list: [{ item_int: c.oclass, count: -1 }] };
