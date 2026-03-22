@@ -4243,9 +4243,12 @@ export async function object(name_or_opts, x, y) {
         }
         if (objOpts && Number.isFinite(objOpts.quantity)) {
             obj.quan = Math.max(1, Math.trunc(objOpts.quantity));
+            // C ref: sp_lev.c:2293 — recalculate weight after quantity change
+            obj.owt = weight(obj);
         }
         if (objOpts && Number.isFinite(objOpts.quan)) {
             obj.quan = Math.max(1, Math.trunc(objOpts.quan));
+            obj.owt = weight(obj);
         }
         if (objOpts && Object.prototype.hasOwnProperty.call(objOpts, 'buc')) {
             const buc = get_table_buc(objOpts);
