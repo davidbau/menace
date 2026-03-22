@@ -206,3 +206,7 @@ The connection is not a coincidence. Logo was the soil. It taught a generation o
 Logo's influence extends far beyond its own syntax. [Scratch](https://scratch.mit.edu/), created by [Mitchel Resnick](https://web.media.mit.edu/~mres/) (a former student of Papert's) at the [MIT Media Lab](https://www.media.mit.edu/), is a direct descendant. So is [LEGO Mindstorms](https://en.wikipedia.org/wiki/Lego_Mindstorms), which grew from the "programmable brick" project at the Media Lab and took its name from Papert's book. [Snap!](https://snap.berkeley.edu/), co-developed by [Brian Harvey](https://people.eecs.berkeley.edu/~bh/) himself, carries the Logo philosophy into visual programming. Every "learn to code" initiative that puts creative expression ahead of vocational training is, whether it knows it or not, working in the tradition that Papert started.
 
 Papert suffered a serious injury in 2006 and died in 2016. Logo, in its original form, is rarely taught anymore — but you can learn it and try it here. The idea at its core is as alive as ever: that the purpose of a programming language is not to instruct a machine, but to give a human being a new way to think.
+
+---
+
+Part of the [Mazes of Menace](../#readme) project.

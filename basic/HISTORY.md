@@ -217,3 +217,7 @@ An entire generation learned to program by typing BASIC into their home computer
 BASIC's influence is hard to overstate. It was the first programming language for millions of people. It ran on every platform. It was free, it was immediate, it was forgiving. Professional programmers sometimes looked down on it. Edsger Dijkstra [famously wrote](https://en.wikiquote.org/wiki/Edsger_W._Dijkstra) that "it is practically impossible to teach good programming to students that have had a prior exposure to BASIC." But Dijkstra was wrong about what mattered. What mattered was that BASIC got people started. From BASIC they went to Pascal, C, Lisp, whatever they needed. The important thing was that they had started.
 
 It has been a long time since BASIC was taught in college. The language has fallen out of favor, replaced by Python and JavaScript and languages that do not require line numbers. But the simplicity that made it revolutionary has not gone anywhere. As soon as you type something, the computer does it. You can try it here.
+
+---
+
+Part of the [Mazes of Menace](../#readme) project.
