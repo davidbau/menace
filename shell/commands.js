@@ -375,6 +375,7 @@ const MAN_PAGES = {
     whoami: 'WHOAMI(1)\n\nNAME\n     whoami - print effective user name\n\nSYNOPSIS\n     whoami\n\nDESCRIPTION\n     Whoami prints the user name associated with the current\n     effective user id.',
     clear: 'CLEAR(1)\n\nNAME\n     clear - clear terminal screen\n\nSYNOPSIS\n     clear\n\nDESCRIPTION\n     Clear clears the terminal screen.',
     help: 'HELP(1)\n\nNAME\n     help - display command help\n\nSYNOPSIS\n     help [command]\n\nDESCRIPTION\n     With no arguments, list available commands.\n     With a command name, display detailed usage information.',
+    man: 'MAN(1)\n\nNAME\n     man - display reference manual pages\n\nSYNOPSIS\n     man command\n\nDESCRIPTION\n     Man formats and displays the on-line manual pages for\n     the specified command. If no manual page is found, an\n     error message is printed.',
 };
 
 async function man(args, shell) {
