@@ -351,6 +351,24 @@ shows that JS is not merely mishandling a dismiss key; it is finishing the
 late eat action on the previous key and then treating the following key as an
 untimed outer-loop command.
 
+Targeted corpse-control-flow evidence:
+
+- a narrow experiment changed fresh-corpse handling to follow the shared
+  C-shaped `victual -> eatcorpse() -> start_eating()` path and to honor the
+  corpse `dont_start` branch instead of always taking the first bite inside
+  `handleEat()`
+- this was a plausible fix because the current JS custom corpse path performs
+  first-bite/setup work unconditionally after `eatcorpse()`, while C has an
+  explicit `dont_start` contract
+- result:
+  - `seed031` regressed sharply from first RNG divergence `1241` to `78`
+  - green control `t11_s755_w_covmax9_gp` stayed green
+- conclusion:
+  - the late seam is **not** solved by routing all fresh corpses through the
+    shared path
+  - the missing discriminator is narrower than “fresh corpse versus resumed
+    corpse” or “shared path versus custom path”
+
 Early comparison evidence:
 
 - benign early analogue:
@@ -389,6 +407,11 @@ The current evidence supports these claims:
    earlier than C.
    - the following key is then treated as untimed outer-loop input in JS
    - C still resumes timed work there
+6. The late bug is not explained by a simple fresh-corpse control-flow swap.
+   - a targeted C-shaped corpse-path patch regressed the earlier lichen-corpse
+     corridor at step `78`
+   - therefore the real fix must discriminate between the benign early corpse
+     path and the bad late gnome-lord path more narrowly
 
 The evidence does **not** yet prove these stronger claims:
 
@@ -567,6 +590,9 @@ Guardrail:
 - do not generalize from `resume=done owner=none ack=1 msgMore=1` alone; the
   failed local `handleEat()` patches showed that this broad pattern also occurs
   in benign early food corridors
+- do not generalize from the C fresh-corpse control flow alone; the failed
+  shared-path corpse patch showed that this is also too broad and regresses the
+  benign early corpse corridor
 
 Exit criterion:
 
