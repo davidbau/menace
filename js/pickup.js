@@ -2566,7 +2566,8 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
 
     for (let curr = olist; curr; curr = FOLLOW(curr)) {
         if (allow_fn(curr)) {
-            add_menu(win, null, { a_obj: curr }, curr.invlet || 0, 0, ATR_NONE, 0,
+            const itemCh = typeof curr.invlet === 'string' ? curr.invlet.charCodeAt(0) : (curr.invlet || 0);
+            add_menu(win, null, { a_obj: curr }, itemCh, 0, ATR_NONE, 0,
                 doname(curr, player), 0);
         }
     }
@@ -2627,10 +2628,15 @@ async function menu_loot(retry, put_in, player, game) {
         all_categories = false;
         const qstr = `${action} what type of objects?`;
         const src = put_in ? player.inventory : getContainerContents(current_container);
-        // Build linked-list-like traversal for query_category
+        // Build nobj-linked list from array for query_category traversal
+        const srcItems = (src || []).filter(o => o && o !== current_container);
+        let catListHead = null;
+        for (let i = srcItems.length - 1; i >= 0; i--) {
+            srcItems[i].nobj = catListHead;
+            catListHead = srcItems[i];
+        }
         // C ref: pickup.c:3264-3265 — ALL_TYPES | UNPAID_TYPES | BUCX_TYPES | CHOOSE_ALL | JUSTPICKED
-        // JS query_category currently supports CHOOSE_ALL for the 'A' auto-select option.
-        const catResult = await query_category(qstr, src?.[0] || null, CHOOSE_ALL, PICK_ANY, player, game);
+        const catResult = await query_category(qstr, catListHead, CHOOSE_ALL, PICK_ANY, player, game);
         if (catResult.count === 0) return 0;
         for (const pick of catResult.pick_list) {
             if (pick.item_int === 'A'.charCodeAt(0)) {
