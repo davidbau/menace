@@ -145,23 +145,43 @@ window.addEventListener('DOMContentLoaded', async () => {
         try {
             const resp = await nhfetch(sessionParam);
             const session = await resp.json();
-            const sessOpts = session.options || {};
-            initOpts.seed = session.seed;
-            initOpts.wizard = sessOpts.wizard || false;
-            initOpts.datetime = session.datetime || '20000110090000';
-            initOpts.character = {
-                role: sessOpts.role || 'Valkyrie',
-                name: sessOpts.name || 'Player',
-                race: sessOpts.race || undefined,
-                gender: sessOpts.gender || undefined,
-                align: sessOpts.align || undefined,
-            };
-            initOpts.tutorial = false;
-            initOpts.flags = {
-                tutorial: false,
-                symset: sessOpts.symset || undefined,
-                autopickup: sessOpts.autopickup !== undefined ? sessOpts.autopickup : undefined,
-            };
+            // V4: use env + nethackrc if available; fall back to V3 options
+            const sessEnv = session.env || {};
+            initOpts.seed = parseInt(sessEnv.NETHACK_SEED || session.seed) || session.seed;
+            initOpts.datetime = sessEnv.NETHACK_FIXED_DATETIME || session.datetime || '20000110090000';
+
+            if (session.nethackrc) {
+                // V4 path: parse .nethackrc for character + flags + wizard
+                const { parseNethackrcFull } = await import('./storage.js');
+                const { character, flags, wizard } = parseNethackrcFull(session.nethackrc);
+                initOpts.wizard = wizard;
+                initOpts.character = {
+                    role: character.role || 'Valkyrie',
+                    name: character.name || 'Player',
+                    race: character.race || undefined,
+                    gender: character.gender || undefined,
+                    align: character.align || undefined,
+                };
+                initOpts.tutorial = false;
+                initOpts.flags = { tutorial: false, ...flags };
+            } else {
+                // V3 fallback
+                const sessOpts = session.options || {};
+                initOpts.wizard = sessOpts.wizard || false;
+                initOpts.character = {
+                    role: sessOpts.role || 'Valkyrie',
+                    name: sessOpts.name || 'Player',
+                    race: sessOpts.race || undefined,
+                    gender: sessOpts.gender || undefined,
+                    align: sessOpts.align || undefined,
+                };
+                initOpts.tutorial = false;
+                initOpts.flags = {
+                    tutorial: false,
+                    symset: sessOpts.symset || undefined,
+                    autopickup: sessOpts.autopickup !== undefined ? sessOpts.autopickup : undefined,
+                };
+            }
             // Collect gameplay keys
             const gameKeys = [];
             for (const step of (session.steps || [])) {
