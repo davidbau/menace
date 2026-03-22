@@ -1072,9 +1072,11 @@ export async function domove_core(dir, player, map, display, game) {
             && !player.fumbling);
 
         if (!canAutoOpen) {
-            // C ref: hack.c test_move() — when running, stop silently without message.
-            // "That door is closed." is only shown for non-running orthogonal movement.
-            if (!ctx.run && (nx === player.x || ny === player.y)) {
+            // C ref: hack.c test_move() lines 1093-1113 — "That door is closed."
+            // is shown for orthogonal movement regardless of running state.
+            // When running, the run is stopped (nomul(0) for bump case,
+            // or caller stops on test_move returning false).
+            if (nx === player.x || ny === player.y) {
                 if (player.blind || player.stunned || acurr(player, A_DEX) < 10 || player.fumbling) {
                     await display.putstr_message("Ouch!  You bump into a door.");
                     await exercise(player, A_DEX, false);
