@@ -16063,3 +16063,41 @@ distinction is always conditional on being in Gehennom.
   around gameplay step `1199`:
   - JS first RNG: `rn2(5)=3 @ dochug(monmove.js:847)`
   - C first RNG: `rn2(6)=3 @ thrwmu(mthrowu.c:1231)`
+
+## 2026-03-22 - `seed031`: don't reset `ux0/uy0` in generic command parsing
+
+- After the monster-wand floor-object fix, `seed031` next diverged in a dwarf
+  throw corridor around gameplay step `1199`.
+- C ground truth there showed the throw should be suppressed by the
+  `thrwmu()` retreat gate:
+  - `rn2(6)=3 @ thrwmu(mthrowu.c:1231)`
+  - non-zero result means return early, so no dagger throw that turn
+- JS was incorrectly admitting the throw because [`js/cmd.js`](js/cmd.js)
+  unconditionally reset `game.ux0/game.uy0` for every parsed key.
+- That comment was wrong. C does **not** refresh `u.ux0/u.uy0` in generic
+  `cmd.c` parsing; the real writes happen in movement/relocation paths like:
+  - [`hack.c`](nethack-c/patched/src/hack.c): `u.ux0 = u.ux; u.uy0 = u.uy;`
+  - plus teleport/trap/hurtle special movement sites
+- Because JS reset `ux0/uy0` too broadly, a `--More--`/prompt-owned corridor
+  left the dwarf seeing:
+  - current hero position == prior hero position
+  - `retreating = 0`
+  - so JS threw a dagger when C still returned early
+- The faithful fix is:
+  - remove the unconditional `game.ux0/game.uy0` reset from
+    [`js/cmd.js`](js/cmd.js)
+  - keep `ux0/uy0` owned by actual movement/relocation sites such as
+    [`js/hack.js`](js/hack.js) and teleport handling
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `45313 -> 47204`
+    - matched events improved `25141 -> 26054`
+    - first RNG divergence moved `1199 -> 1237`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- New active seam after this batch is later still, in an occupation/eat
+  ownership corridor around gameplay step `1237`:
+  - JS first RNG: `rn2(20)=7 @ handleEat(eat.js:1986)`
+  - C first RNG: `rn2(40)=7 @ dochug(monmove.c:758)`

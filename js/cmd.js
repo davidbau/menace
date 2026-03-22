@@ -165,10 +165,6 @@ export async function rhack(ch, game) {
     const c = String.fromCharCode(ch);
     const isMetaKey = ch >= 128 && ch <= 255;
     const metaBaseChar = isMetaKey ? String.fromCharCode(ch & 0x7f).toLowerCase() : '';
-    // C ref: you.h u.ux0/u.uy0 are the hero's pre-command position.
-    // Monster throw logic (mthrowu.c URETREATING) compares against these.
-    game.ux0 = player.x;
-    game.uy0 = player.y;
     if (ch !== 16) {
         display.prevMessageCycleIndex = null;
     }
