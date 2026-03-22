@@ -193,6 +193,13 @@ export function dmgval(otmp, mon) {
         tmp += bonus;
     }
 
+    // C ref: weapon.c:344-353 — erosion penalty
+    if (tmp > 0) {
+        const erosion = Math.max(otmp.oeroded || 0, otmp.oeroded2 || 0);
+        tmp -= erosion;
+        if (tmp < 1) tmp = 1;
+    }
+
     return Math.max(tmp, 0);
 }
 
