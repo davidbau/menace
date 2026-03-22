@@ -1,5 +1,10 @@
 {
-  "version": 3,
+  "version": 4,
+  "env": {
+    "NETHACK_SEED": "690",
+    "NETHACK_FIXED_DATETIME": "20000110090000"
+  },
+  "nethackrc": "OPTIONS=name:Wizard,role:Wizard,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nWIZARD=Wizard\n",
   "seed": 690,
   "source": "c",
   "recorded_with": {
