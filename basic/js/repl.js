@@ -26,7 +26,7 @@ export class BasicRepl {
     this._getch = getch;
 
     // Startup banner
-    this._write('BASIC  1.0  (1982)\n');
+    this._write('BASIC-PLUS  V1.5  (1979)\n');
     this._write('READY.\n');
 
     // Main REPL loop
