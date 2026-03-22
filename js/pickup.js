@@ -1636,17 +1636,26 @@ async function containerMenu(game, container) {
         for (let r = startRow; r <= endRow; r++) {
             const savedRow = [];
             for (let c = startCol; c < cols; c++) {
-                const cell = display.grid?.[r]?.[c];
-                savedRow.push(cell ? { ...cell } : null);
+                const rawCell = display.grid?.[r]?.[c];
+                if (rawCell && typeof rawCell === 'object') {
+                    savedRow.push({ ...rawCell });
+                } else {
+                    savedRow.push({
+                        ch: rawCell || ' ',
+                        color: display?.colors?.[r]?.[c] ?? CLR_GRAY,
+                        attr: display?.attrs?.[r]?.[c] ?? 0,
+                    });
+                }
             }
             rows.push(savedRow);
         }
         return { startCol, startRow, endRow, rows };
     };
-    const restoreOverlayRows = (snapshot, endRow = null) => {
+    const restoreOverlayRows = (snapshot, endRow = null, startRow = null) => {
         if (!snapshot || !display?.setCell) return;
+        const firstRow = Number.isInteger(startRow) ? Math.max(startRow, snapshot.startRow) : snapshot.startRow;
         const limit = Number.isInteger(endRow) ? Math.min(endRow, snapshot.endRow) : snapshot.endRow;
-        for (let r = snapshot.startRow; r <= limit; r++) {
+        for (let r = firstRow; r <= limit; r++) {
             const savedRow = snapshot.rows[r - snapshot.startRow] || [];
             for (let c = snapshot.startCol; c < (display?.cols || 80); c++) {
                 const cell = savedRow[c - snapshot.startCol];
@@ -1655,11 +1664,7 @@ async function containerMenu(game, container) {
             }
         }
     };
-    const baseOverlaySnapshot = captureOverlayRows(
-        0,
-        2,
-        Math.max(2, (display?.rows || 24) - 1)
-    );
+    let baseOverlaySnapshot = null;
     const drawMenuOptionLine = (col, row, text) => {
         if (typeof display?.putstr !== 'function') return;
         display.putstr(col, row, text);
@@ -1690,13 +1695,13 @@ async function containerMenu(game, container) {
 
     const doTakeOut = async () => {
         let lowestMenuPad = _containerMenuPad || 0;
+        const currentContents = getContainerContents(container);
         let overlaySnapshot = null;
         let overlayEndRow = 10;
         const hallucinating = !!(player?.Hallucination || player?.hallucinating);
         if (hallucinating) {
             overlaySnapshot = baseOverlaySnapshot;
         }
-        const currentContents = getContainerContents(container);
         if (!currentContents.length) {
             await display.putstr_message('It is empty.');
             container.cknown = true;
@@ -1881,7 +1886,9 @@ async function containerMenu(game, container) {
         // Only clear the prompt row when no removal message replaced it.
         // C's menu window teardown leaves pickup_prinv()/pline output visible.
         if ((didTake === false) && typeof display?.clearRow === 'function') display.clearRow(0);
-        if (hallucinating) restoreOverlayRows(overlaySnapshot, overlayEndRow);
+        if (hallucinating) {
+            restoreOverlayRows(overlaySnapshot, overlayEndRow, didTake ? 1 : null);
+        }
         else clearMenuOptionRows(lowestMenuPad);
         return didTake;
     };
@@ -1913,6 +1920,17 @@ async function containerMenu(game, container) {
             : `The ${cname} is empty.  Do what with it?`;
         const pad = centeredPad(prompt, 38);
         _containerMenuPad = pad;
+        if (player?.Hallucination || player?.hallucinating) {
+            // C hides the larger outer menu, restores the saved tty underlay,
+            // then draws the smaller nested menu on top. Capture that underlay
+            // immediately before drawing the outer menu so nested restores use
+            // the same already-rendered map state the player actually sees.
+            baseOverlaySnapshot = captureOverlayRows(
+                0,
+                0,
+                Math.max(12, (display?.rows || 24) - 1)
+            );
+        }
         clearMenuOptionRows(pad);
         await putMenuPrompt(prompt, pad);
         if (outmaybe) {
