@@ -868,22 +868,11 @@ async function runAcceptedTravelCommandLoop(game, {
     coreOpts,
     bumpHeroSeqN,
 }) {
+    // C ref: travel continuation runs one move per rhack() call in moveloop.
+    // Do NOT loop here — process only the first travel move. Subsequent moves
+    // are handled by _gameLoopStep's hasPositiveMoveContinuation path, which
+    // yields between moves so the replay can assign each move to a separate step.
     await advanceTimedTurn(game, coreOpts);
-    while (game.multi > 0 && game.context?.mv && !game?.playerDied) {
-        if (hasPendingCommandBoundaryDismiss(game)) {
-            await more(game.display, {
-                forceVisual: true,
-                clearAfter: true,
-                readKey: () => nhgetch(),
-            });
-            continue;
-        }
-        const continued = await runMovementRepeatSlice(game, {
-            coreOpts,
-            bumpHeroSeqN,
-        });
-        if (!continued) break;
-    }
 }
 
 // Current JS positive-multi movement/travel slice.
