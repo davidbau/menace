@@ -36,7 +36,7 @@ export class ShEnv {
     if (ch === '-') return [...this._opts].join('');
     if (ch === '#') return String(this._pos.length);
     if (ch === '0') return this._pos0;
-    if (ch === '@') return this._pos.join('\x02'); // split in expand
+    if (ch === '@') return this._pos.join(' '); // unquoted $@ splits like $*
     if (ch === '*') return this._pos.join((this.get('IFS') || ' ')[0] || ' ');
     const n = parseInt(ch);
     if (!isNaN(n)) return this._pos[n - 1] || '';
@@ -190,8 +190,14 @@ export class Interpreter {
     let status = 0;
     try {
       if (cmdWords.length === 0) {
-        // Pure assignment
-        for (const a of assignments) this._assign(a, env);
+        // Pure assignment — expand RHS (backtick, $VAR, etc.)
+        for (const a of assignments) {
+          const eq = a.indexOf('=');
+          const k = a.slice(0, eq);
+          const rawVal = a.slice(eq + 1);
+          const val = stripQuotes(await expandWord(rawVal, env, effIo, this._captureRun.bind(this)));
+          env.set(k, val);
+        }
         return 0;
       }
 
@@ -428,7 +434,13 @@ export class Interpreter {
     let status = 0;
     try {
       const execEnv = node.subshell ? env.child() : env;
-      status = await this._exec(node.body, execEnv, effIo);
+      if (node.subshell) {
+        const savedCwd = io.fs.cwd;
+        try { status = await this._exec(node.body, execEnv, effIo); }
+        finally { io.fs.cwd = savedCwd; }
+      } else {
+        status = await this._exec(node.body, execEnv, effIo);
+      }
     } finally {
       cleanup();
     }

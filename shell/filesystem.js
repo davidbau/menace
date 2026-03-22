@@ -98,7 +98,7 @@ wizard:*:4442:0:99999:7:::
 gridbug:!:4442:::::::
 `.trim();
 
-const MOTD = `                      Welcome to the dungeon!
+const MOTD = `                 Welcome to the Mazes of Menace!
 
   Several games live in /usr/games.
   Type 'ls /usr/games' to see what's installed.

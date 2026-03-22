@@ -66,8 +66,13 @@ export async function expandWord(raw, env, io, runFn, inDouble = false) {
 
     // Backslash escape
     if (ch === '\\' && i + 1 < len) {
-      out += raw[i + 1]; // escaped char is literal
-      i += 2;
+      const next = raw[i + 1];
+      // In DQ context only \\ \" \$ \` are escape sequences; others keep the backslash
+      if (!inDouble || next === '\\' || next === '"' || next === '$' || next === '`') {
+        out += next; i += 2;
+      } else {
+        out += ch; i++;
+      }
       continue;
     }
 

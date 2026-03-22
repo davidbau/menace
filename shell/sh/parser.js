@@ -54,6 +54,8 @@ export class Parser {
 
     while (true) {
       if (this._at(T.SEMI, T.NEWLINE)) {
+        // Stop before ;; (case terminator) without consuming it
+        if (this._at(T.SEMI) && this.tokens[this.pos + 1]?.type === T.SEMI) break;
         this._eat();
         this._skipNewlines();
         ops.push('next');
@@ -74,7 +76,7 @@ export class Parser {
       }
     }
 
-    if (cmds.length === 1 && ops.length === 0) return cmds[0];
+    if (cmds.length === 1) return cmds[0];
     return { type: 'List', cmds, ops };
   }
 
@@ -259,9 +261,9 @@ export class Parser {
       this._eat(T.IN);
       words = [];
       while (this._at(T.WORD)) words.push(this._eat(T.WORD).value);
-      // consume separator
-      if (this._at(T.SEMI)) this._eat(T.SEMI);
     }
+    // consume separator (';' or newline) before 'do'
+    if (this._at(T.SEMI)) this._eat(T.SEMI);
     this._skipNewlines();
     this._eat(T.DO);
     this._skipNewlines();

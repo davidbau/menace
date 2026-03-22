@@ -137,6 +137,8 @@ export class Lexer {
           }
           const body = bodyLines.join('\n') + (bodyLines.length > 0 ? '\n' : '');
           this.tokens.push({ type: T.REDIR_HERE, value: body, raw: quoted });
+          // The newline that introduced the heredoc acts as a statement separator
+          this.tokens.push({ type: T.NEWLINE, value: '\n' });
         } else { this.tokens.push({ type: T.REDIR_IN, value: '<' }); i++; }
         continue;
       }
@@ -215,6 +217,22 @@ export class Lexer {
         unquoted = false;
         if (src[i + 1] === '\n') { i += 2; continue; } // line continuation
         raw += '\\' + src[i + 1]; i += 2;
+        continue;
+      }
+
+      // Backtick: read entire `...` region without breaking on spaces
+      if (ch === '`') {
+        unquoted = false;
+        raw += '`'; i++;
+        while (i < len && src[i] !== '`') {
+          if (src[i] === '\\' && i + 1 < len &&
+              (src[i+1] === '`' || src[i+1] === '\\' || src[i+1] === '$')) {
+            raw += '\\' + src[i + 1]; i += 2;
+          } else {
+            raw += src[i++];
+          }
+        }
+        if (i < len) { raw += '`'; i++; } // consume closing backtick
         continue;
       }
 

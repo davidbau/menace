@@ -157,8 +157,9 @@ async function builtinExpr(args, env, io) {
 
 async function builtinRead(args, env, io) {
   let line = '';
-  if (io.stdin) {
+  if (io.stdin !== undefined && io.stdin !== null) {
     // Reading from redirected stdin buffer
+    if (io.stdin === '') return 1; // EOF
     const nl = io.stdin.indexOf('\n');
     if (nl === -1) { line = io.stdin; io.stdin = ''; }
     else { line = io.stdin.slice(0, nl); io.stdin = io.stdin.slice(nl + 1); }
@@ -190,6 +191,31 @@ async function builtinRead(args, env, io) {
     const parts = line.split(new RegExp(`[${ifs.replace(/[-[\]]/g, '\\$&')}]+`));
     for (let i = 0; i < names.length; i++) {
       env.set(names[i], i < parts.length - 1 ? parts[i] : (i === names.length - 1 ? parts.slice(i).join(' ') : ''));
+    }
+  }
+  return 0;
+}
+
+// --- cat -----------------------------------------------------------------
+
+async function builtinCat(args, env, io) {
+  if (args.length === 0) {
+    const text = (io.stdin !== undefined && io.stdin !== null) ? io.stdin : '';
+    if (io.stdin !== undefined) io.stdin = '';
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (i < lines.length - 1) io.println(lines[i]);
+      else if (lines[i]) io.print(lines[i]);
+    }
+    return 0;
+  }
+  for (const arg of args) {
+    const content = io.fs.cat(io.fs.resolve(arg));
+    if (content === null) { io.println(`cat: ${arg}: No such file or directory`); return 1; }
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (i < lines.length - 1) io.println(lines[i]);
+      else if (lines[i]) io.print(lines[i]);
     }
   }
   return 0;
@@ -317,6 +343,7 @@ async function builtinPrintf(args, env, io) {
 
 export const BUILTINS = {
   ':':       builtinColon,
+  cat:       builtinCat,
   true:      builtinTrue,
   false:     builtinFalse,
   wait:      builtinWait,
