@@ -1,6 +1,6 @@
 # Does Computer Science Still Exist?
 
-Since I was a child, I have always seen the computer as a tool that gives us new ways to think. But as I write this, [Hack](https://mazesofmenace.net/hack/), the text-based dungeon crawler from my childhood, has just been fully ported to JavaScript by an AI agent. I handed it the old PDP code and told it to go. I checked in once to ask why it was taking so long. It replied: it was working, and that thirteen of twenty-three test sessions were already passing parity. It continued its coding process without interruption all night, and eventually expanded its work to 202 passing tests, achieving near 100% coverage with verified parity to the original.
+I have always seen the computer as a tool that gives us new ways to think. Does it still? As I write this, [Hack](https://mazesofmenace.net/hack/), the text-based dungeon crawler from my childhood, has just been fully ported to JavaScript by an AI agent. I handed the agent the old PDP code and told it to go. When I checked after a couple hours to ask why it was taking so long, it replied: it was working, and that thirteen of twenty-three test sessions were already passing parity. It continued its coding process without interruption all night, and eventually expanded its work to 202 passing tests, achieving near 100% coverage with verified parity to the original.
 
 While I slept it was doing real work: debugging, reasoning, fixing genuine bugs. Not instant. Yet almost entirely on its own.
 
@@ -12,7 +12,7 @@ The computer revolution is a continuous thread from the 1940s to today. I was bo
 
 This project has sharpened my sense of our long journey in computer science. I asked an AI coding agent to rebuild [Rogue](https://mazesofmenace.net/rogue/), the game I never saw as a child. The original 1980 game, 8,400 lines of C. The agent did it in 85 minutes, with about three decisions from me. Then I pointed it at [Hack](https://mazesofmenace.net/hack/): the game from my neighborhood, 6,200 lines. The core port took about eight hours of agent time, reaching initial parity by midnight. Hack has no testing mode, so achieving full coverage was a bit harder than Rogue, but an agent cracked the problem and finished it in a few more autonomous hours.
 
-And separately, on a server in my office, a swarm of agents has been grinding through NetHack for over a month.
+And separately, on a server in my office, a swarm of agents has been grinding through [NetHack](https://mazesofmenace.net/) for over a month.
 
 NetHack is 420,000 lines of C. Although it is superficially similar to the game those Sudbury kids built, four decades of work by a [DevTeam](https://nethackwiki.com/wiki/DevTeam) of skilled coders has made it orders of magnitude larger. And this extra complexity has meant that the same approach AI agents used to breeze through Rogue and Hack is sending them over a cliff for NetHack: not a gradual slope, but a sudden drop into rough, tangled terrain where the work does not stop but changes character completely.
 
@@ -96,7 +96,7 @@ We are all likely to have an interesting life. Graduate school, a career in soft
 
 That is what I want my students to understand. Not that the machines are coming for their jobs: the machines are already here, and the jobs are already different. What I want them to understand is that the hard part has always been hard, and will still be hard. Complexity does not yield to speed. Judgment remains essential. The work of deciding what matters, of seeing what is hidden, of knowing when your own metrics are lying to you: this is the work that remains, and it is the work worth learning.
 
-This project — reconstructing old software — has sharpened my sense of what AI assistance can and cannot do. I plan to finish the NetHack project and gather the technical details to share at some point in the future. There will be something to learn from what AI-assisted coding on a 420,000-line codebase actually looks like, the tools, the failures, and the specific lessons. Here is what I think: the revolution is real. But it has been continuous, an adventure I have seen evolving since I was eleven years old. I do not know exactly what computer science is becoming. But, from what I can see: computer science is far from over.
+This project — reconstructing old software — has sharpened my sense of what AI assistance can and cannot do. I plan to finish the NetHack project and gather the technical details to share at some point in the future. There will be something to learn from what AI-assisted coding on a 420,000-line codebase actually looks like, the tools, the failures, and the specific lessons. The revolution is real. But it has been continuous, an adventure I have witnessed since I was eleven years old. I do not know exactly what computer science is becoming. But, from what I can see: it is far from over.
 
 ---
 
