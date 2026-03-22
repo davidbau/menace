@@ -875,6 +875,10 @@ function stringify(v) {
     // Clean up floating point display
     return Number.isInteger(v) ? String(v) : String(Math.round(v * 1e6) / 1e6);
   }
+  // Handle any token objects that leaked through (safety net)
+  if (v && typeof v === 'object' && v.type && v.value !== undefined) {
+    return String(v.value);
+  }
   return String(v);
 }
 
