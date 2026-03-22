@@ -47,7 +47,10 @@ export class Shell {
             this._addLine('', OUTPUT_COLOR);
         } else if (options.rows !== undefined) {
             // Pre-captured rows from localStorage context (coming from another page)
-            for (const row of (options.rows || [])) this.scrollBuffer.push(row);
+            for (const row of (options.rows || [])) {
+                if (typeof row === 'string') this.scrollBuffer.push({ text: row, color: OUTPUT_COLOR });
+                else this.scrollBuffer.push(row);
+            }
             if (options.rows && options.rows.length > 0) {
                 this._addLine('^C', PROMPT_COLOR);
                 this._addLine('Interrupt', OUTPUT_COLOR);
