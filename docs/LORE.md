@@ -15904,3 +15904,51 @@ distinction is always conditional on being in Gehennom.
   - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
 - New frontier after this fix is later pet/object handling around step `1127`,
   not the old `sp_amask_to_amask()/induced_align()` seam.
+
+## 2026-03-22 - `seed031`: gnome candle quantity and hero-hit `mbhitm()` reveal path
+
+- After the `minefill` alignment fix, `seed031` stalled in the later pet/object
+  corridor at gameplay step `1127`.
+- Focused event and mapdump work showed the apparent pet divergence was
+  downstream of an earlier object-state mismatch:
+  - JS created a dying gnome's wax candle as quantity `4`
+  - C had that same gnome carrying a single candle
+  - by the live seam this changed the floor pile and pet `dog_goal()` scan
+- The decisive JS trace was that candle object `oid=329` entered play from
+  [`m_initinv()`](js/makemon.js) during gnome generation, not from floor
+  merging or pet pickup:
+  - `mongets()` created the gnome candle stack
+  - when the gnome died, JS dropped `wax candle x4`
+  - C's recorded session dropped a single candle there
+- C source of truth in `makemon.c` is explicit:
+  - for gnome candles it does `mksobj(...)`
+  - then forces `otmp->quan = 1`
+  - then recomputes `otmp->owt = weight(otmp)`
+- The narrow keepable JS fix in [`m_initinv()`](js/makemon.js) is therefore:
+  - keep the existing `mongets()` ownership path intact
+  - immediately normalize the returned candle object to:
+    - `quan = 1`
+    - `owt = weight(otmp)`
+- While validating that fix, JS exposed a separate latent bug in
+  [`mbhitm()`](js/muse.js):
+  - when a monster wand beam hit the hero, JS still ran the post-hit
+    `reveal_invis` / `canspotmon(...)` path
+  - C passes `&youmonst` there, but JS was passing the raw player object
+  - that player object has `x/y`, not `mx/my`, and JS crashed in
+    `canspotmon()` / `cansee()`
+- The narrow fix in [`mbhitm()`](js/muse.js) is:
+  - gate the invisible-target postlude with `!hits_you`
+  - this matches the effective C behavior for the hero-hit path and avoids
+    treating the hero as a malformed monster object
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `42621 -> 43999`
+    - matched events improved `23195 -> 24403`
+    - first RNG divergence moved `1127 -> 1150`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+  - `coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json`: PASS
+- New active seam after this batch is deeper in the same later pet/object
+  corridor around gameplay step `1150`, not in the old gnome-candle setup or
+  the hero-hit wand crash.

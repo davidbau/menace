@@ -1602,7 +1602,7 @@ async function mbhitm(mtmp, otmp, map, player) {
         break;
     }
 
-    if (reveal_invis && !DEADMONSTER(mtmp)
+    if (!hits_you && reveal_invis && !DEADMONSTER(mtmp)
         && cansee(map, player, null, bhitpos.x, bhitpos.y)
         && !canspotmon(mtmp, player, null, map))
         map_invisible(map, bhitpos.x, bhitpos.y, player);
