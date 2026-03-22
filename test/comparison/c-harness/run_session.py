@@ -1281,7 +1281,15 @@ def load_seeds_config():
 # ---------------------------------------------------------------------------
 
 def _send_char(session_name, ch):
-    """Send a single character to tmux, handling control chars properly."""
+    """Send character(s) to tmux, handling control chars properly.
+
+    If ch is a multi-character string (e.g., 'wizloaddes' from a step key
+    recorded as one step in old format), each character is sent individually.
+    """
+    if len(ch) > 1:
+        for c in ch:
+            _send_char(session_name, c)
+        return
     code = ord(ch)
     if code in (10, 13):
         tmux_send_special(session_name, 'Enter')
