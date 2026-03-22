@@ -39,8 +39,8 @@ export class LogoDisplay {
     ) || 1.1875;
     pre.style.cssText = [
       'font-family: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace',
-      `font-size: ${fontSize}px`,
-      `line-height: ${lineHeight}`,
+      'font-size: inherit',
+      'line-height: var(--game-line-height, 1.1875)',
       'background: transparent',
       'color: #fff',
       'margin: 0',

@@ -56,5 +56,8 @@ window.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', sizeCanvas);
   });
 
+  // Expose so font-size buttons can trigger a re-fit
+  window._sizeLogoCanvas = sizeCanvas;
+
   repl.start(getch);
 });

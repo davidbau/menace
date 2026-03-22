@@ -389,6 +389,10 @@
       if (container) container.style.fontSize = sz + 'px';
       try { localStorage.setItem('menace-font-size', String(sz)); } catch(e) {}
       if (window._applyLineHeight) window._applyLineHeight();
+      // Re-fit canvas to the new terminal size after layout reflows
+      requestAnimationFrame(function() {
+        if (window._sizeLogoCanvas) window._sizeLogoCanvas();
+      });
     }
     function currentSize() {
       try { return parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) { return 16; }
