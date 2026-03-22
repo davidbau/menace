@@ -770,12 +770,30 @@
         content.innerHTML = renderMarkdown(md);
         docsLoaded = true;
         // Make code blocks clickable — type into Logo REPL
+        // Make inline code clickable too (single commands like `FORWARD 100`)
+        content.querySelectorAll('code').forEach(function(codeEl) {
+          if (codeEl.closest('pre')) return; // skip code inside pre blocks
+          var text = codeEl.textContent.trim();
+          // Only make it clickable if it looks like a Logo command
+          if (text.match(/^[A-Z]/)) {
+            codeEl.style.cursor = 'pointer';
+            codeEl.addEventListener('click', function(e) {
+              e.stopPropagation();
+              for (var i = 0; i < text.length; i++) {
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: text[i] }));
+              }
+              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            });
+          }
+        });
         content.querySelectorAll('pre').forEach(function(pre) {
           pre.addEventListener('click', function() {
             var code = pre.textContent.trim();
-            var lines = code.split('\n').filter(function(l) {
-              var t = l.trim();
-              return t && !t.match(/^[A-Z]+\s+\d+\s{2,}/) && !t.match(/^;/);
+            var lines = code.split('\n').map(function(l) {
+              // Strip trailing comments (2+ spaces then description)
+              return l.replace(/\s{2,}\S.*$/, '').trim();
+            }).filter(function(t) {
+              return t && !t.match(/^;/) && !t.match(/^$/);
             });
             if (lines.length === 0) return;
             lines.forEach(function(line) {

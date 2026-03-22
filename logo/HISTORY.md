@@ -24,16 +24,21 @@ Logo is a language you learn by doing. You type a command, the turtle moves, and
 
 The turtle is a small arrow in the center of the screen. It has a position, a heading (the direction it faces), and a pen. When the pen is down, the turtle draws a line wherever it goes. When the pen is up, it moves without drawing.
 
-```
-FORWARD 100        Move forward 100 steps
-BACK 50            Move backward 50 steps
-RIGHT 90           Turn right 90 degrees
-LEFT 45            Turn left 45 degrees
-PENUP              Lift the pen (stop drawing)
-PENDOWN             Put the pen down (start drawing)
-HOME               Go back to the center
-CLEARSCREEN        Clear the screen and go home
-```
+`FORWARD 100` — move forward 100 steps
+
+`BACK 50` — move backward 50 steps
+
+`RIGHT 90` — turn right 90 degrees
+
+`LEFT 45` — turn left 45 degrees
+
+`PENUP` — lift the pen (stop drawing)
+
+`PENDOWN` — put the pen down (start drawing)
+
+`HOME` — go back to the center
+
+`CLEARSCREEN` — clear the screen and go home
 
 ### Drawing Shapes
 
@@ -152,16 +157,21 @@ TREE 50
 
 The turtle can draw in different colors:
 
-```
-SETPENCOLOR 0      Black
-SETPENCOLOR 1      White
-SETPENCOLOR 2      Green
-SETPENCOLOR 3      Violet
-SETPENCOLOR 4      Orange
-SETPENCOLOR 5      Blue
-SETPENCOLOR 6      Cyan
-SETPENCOLOR 7      Yellow
-```
+`SETPENCOLOR 0` — Black
+
+`SETPENCOLOR 1` — White
+
+`SETPENCOLOR 2` — Green
+
+`SETPENCOLOR 3` — Violet
+
+`SETPENCOLOR 4` — Orange
+
+`SETPENCOLOR 5` — Blue
+
+`SETPENCOLOR 6` — Cyan
+
+`SETPENCOLOR 7` — Yellow
 
 Try a colorful design:
 
