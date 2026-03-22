@@ -790,8 +790,8 @@
           pre.addEventListener('click', function() {
             var code = pre.textContent.trim();
             var lines = code.split('\n').map(function(l) {
-              // Strip trailing comments (2+ spaces then description)
-              return l.replace(/\s{2,}\S.*$/, '').trim();
+              // Strip trailing comments: non-space content, then 2+ spaces, then words
+              return l.trim().replace(/(\S)\s{2,}[A-Za-z].*$/, '$1');
             }).filter(function(t) {
               return t && !t.match(/^;/) && !t.match(/^$/);
             });
