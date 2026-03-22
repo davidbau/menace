@@ -687,6 +687,70 @@ Exit criterion:
 - a broader invariant is directly supported by trace evidence, not inferred from
   one late meal seam
 
+### Stage 2d. Concrete resumed-floor-food bug found
+
+One concrete bug is now proven in the resumed meal path.
+
+C `eatfood()` does all of the following synchronously:
+
+- load `svc.context.victual.piece`
+- if the food is not carried, verify it is still on the hero square with
+  `obj_here(food, u.ux, u.uy)`
+- only then continue the bite / completion logic
+
+JS had the same intended check in `eatfood()`, but it called:
+
+- `obj_here(food, player.x, player.y)`
+
+without passing `game.map`.
+
+That matters because JS `obj_here()` requires the map argument in order to walk
+the floor chain at `(x, y)`. Without it, resumed floor-food meals falsely took
+the `!food` path and ran `do_reset_eat()`.
+
+This was not theoretical. Targeted late traces showed the exact failure:
+
+- resumed late `eatfood()` entered with `victual.piece` present
+- the food was still on the hero square
+- the missing-map `obj_here()` call still forced the `no_food` branch
+
+That bug explains why resumed floor-food occupations could disappear even while
+the meal was still live.
+
+The faithful JS fix is:
+
+- `obj_here(food, player.x, player.y, game?.map)`
+
+This is narrow and directly C-shaped. It does not change replay policy, command
+ownership rules, or comparator behavior.
+
+Measured effect:
+
+- `seed031_manual_direct.session.json`
+  - baseline: first RNG divergence at step `1241`, `rng=47441/51561`,
+    `events=26377/28950`
+  - with the map-aware `obj_here()` fix: first RNG divergence still at step
+    `1241`, but matched prefix improves to `rng=47502/51561`,
+    `events=26421/28950`
+  - first bad RNG shifts deeper within the same step from
+    `rn2(3)=0 @ dochug(monmove.js:847)` vs
+    `rn2(5)=0 @ distfleeck(monmove.c:539)`
+    to
+    `rn2(100)=70 @ dochug(monmove.js:847)` vs
+    `rn2(8)=2 @ dog_goal(dogmove.c:582)`
+- targeted non-regression checks:
+  - `t11_s755_w_covmax9_gp.session.json`: still PASS
+  - `theme04_seed680_wiz_eat-food_gameplay.session.json`: still PASS
+  - `t04_s993_w_eatground_gp.session.json`: still PASS
+
+What this means for the remaining plan:
+
+- this bug was real and worth fixing
+- but it is not the whole late seam, because `seed031` still first diverges at
+  gameplay step `1241`
+- the next remaining owner is later in the resumed-meal / pet-turn corridor,
+  not the missing floor-object lookup itself
+
 ### Stage 3. Validate narrowly, then widen
 
 Minimum validation:

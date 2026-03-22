@@ -16367,3 +16367,38 @@ distinction is always conditional on being in Gehennom.
   - when a late `dochug()` seam looks like an extra `set_apparxy()` or
     `distfleeck()` RNG call, first compare debug-only `N` rows; movement and
     flee-duration drift can be the real root cause even when `mux/muy` match
+
+## 2026-03-22 - resumed `eatfood()` floor-object checks must pass `game.map`
+
+- The late `seed031` eating seam included a resumed-meal failure mode where JS
+  `eatfood()` was dropping into `do_reset_eat()` even though the active food
+  object still existed on the hero square.
+- C `eatfood()` explicitly checks floor presence with:
+  - `if (food && !carried(food) && !obj_here(food, u.ux, u.uy)) food = 0;`
+- JS had the same intended check, but it called:
+  - `obj_here(food, player.x, player.y)`
+  without passing `game.map`.
+- In JS, `obj_here()` needs the map argument to inspect the floor object chain,
+  so resumed floor-food meals could falsely hit the `!food` branch and run
+  `do_reset_eat()`.
+- Faithful fix in [`js/eat.js`](js/eat.js):
+  - change to `obj_here(food, player.x, player.y, game?.map)`
+- Validated effect:
+  - `seed031_manual_direct.session.json`
+    - baseline: `rng=47441/51561`, `events=26377/28950`,
+      first RNG divergence at step `1241`
+    - after fix: `rng=47502/51561`, `events=26421/28950`,
+      first RNG divergence still at step `1241`
+    - first bad RNG shifts later within the same gameplay step:
+      - before: `rn2(3)=0 @ dochug(monmove.js:847)` vs
+        `rn2(5)=0 @ distfleeck(monmove.c:539)`
+      - after: `rn2(100)=70 @ dochug(monmove.js:847)` vs
+        `rn2(8)=2 @ dog_goal(dogmove.c:582)`
+  - targeted checks remained green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+- Practical rule:
+  - for resumed floor-object occupations, always pass `game.map` into
+    `obj_here()`; otherwise the C-faithful “food still here?” check silently
+    collapses into a false reset

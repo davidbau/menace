@@ -1290,6 +1290,7 @@ async function eatcorpse(player, otmp) {
         const punct = (yummy || !palatable) ? '!' : '.';
         const prefix = type_is_pname(mons[mnum]) ? '' : 'This ';
         await pline(`${prefix}${foodword(otmp)} ${verb} ${tasteWord}${punct}`);
+        return { retcode, reqtime };
     }
 
     return { retcode, reqtime };
@@ -2312,7 +2313,7 @@ export function leather_cover(otmp) {
 // Autotranslated from eat.c:518
 export async function eatfood(game, player) {
   let food = game.svc.context.victual.piece;
-  if (food && !carried(food) && !obj_here(food, player.x, player.y)) food = 0;
+  if (food && !carried(food) && !obj_here(food, player.x, player.y, game?.map)) food = 0;
   if (!food) { await do_reset_eat(); return 0; }
   if (!game.svc.context.victual.eating) return 0;
   if (++game.svc.context.victual.usedtime <= game.svc.context.victual.reqtime) {
