@@ -1806,8 +1806,8 @@ async function containerMenu(game, container) {
     };
 
     // Helper: put items into container (the 'i' flow).
-    // cf. pickup.c traditional_loot(TRUE) / menu_loot(TRUE).
-    // Returns true if any items were put in (tookTime).
+    // cf. pickup.c menu_loot(0, TRUE) — uses query_category + query_objlist
+    // with count support and splitobj for partial stacks.
     const doPutIn = async () => {
         const inv = (player.inventory || []).filter(
             (o) => o && o.invlet && o !== container);
@@ -1816,50 +1816,7 @@ async function containerMenu(game, container) {
                 "You don't have anything" + (player.inventory?.length ? ' else' : '') + ' to put in.');
             return false;
         }
-        const seenClasses = new Set();
-        for (const o of inv) {
-            const sym = CLASS_SYMBOLS[o.oclass];
-            if (sym) seenClasses.add(sym);
-        }
-        const classStr = [...seenClasses].join('');
-        let selectedClasses = null;
-        let oneByOne = false;
-        if (seenClasses.size > 1) {
-            const prompt = `What kinds of things do you want to put in? [${classStr} a A]`;
-            const userInput = await getlin(prompt, display);
-            if (userInput === null || userInput.trim() === '\x1b') return false; // ESC
-            const trimmed = userInput.trim();
-            if (trimmed === '' || trimmed.includes('a')) {
-                selectedClasses = null;
-            } else if (trimmed.includes('A')) {
-                selectedClasses = null;
-                oneByOne = true;
-            } else {
-                selectedClasses = new Set(trimmed.split('').filter((ch) => seenClasses.has(ch)));
-                if (selectedClasses.size === 0) return false;
-            }
-        }
-        const candidates = inv.filter((o) => {
-            if (selectedClasses === null) return true;
-            return selectedClasses.has(CLASS_SYMBOLS[o.oclass]);
-        });
-        const cname = xname(container);
-        let didPut = false;
-        for (const item of candidates) {
-            if (oneByOne) {
-                const ans = await ynFunction(
-                    `Put in ${doname(item, player)}?`, 'ynaq', 'y'.charCodeAt(0), display);
-                const ansC = String.fromCharCode(ans);
-                if (ansC === 'q') break;
-                if (ansC === 'n') continue;
-            }
-            const res = await in_container(item, player);
-            if (res < 0) break; // abort (mbag explosion or fatal corpse)
-            if (res > 0) didPut = true;
-            // Check if container was destroyed (mbag explosion)
-            if (!current_container) break;
-        }
-        return didPut;
+        return (await menu_loot(0, true, player, game)) > 0;
     };
 
     try {
@@ -2474,8 +2431,10 @@ async function query_category(qstr, olist, qflags, how, player, game) {
         }
     }
 
-    // single category optimization
-    const num_buc_types = countBucTypes(olist);
+    // single category optimization — collect items into array for BUC counting
+    const olistArr = [];
+    for (let c = olist; c; c = FOLLOW(c, qflags)) olistArr.push(c);
+    const num_buc_types = countBucTypes(olistArr);
     if (ccount === 1 && num_buc_types <= 1) {
         for (let c = olist; c; c = FOLLOW(c, qflags)) {
             if (ofilter && !ofilter(c)) continue;
@@ -2655,18 +2614,38 @@ async function menu_loot(retry, put_in, player, game) {
             }
         }
     } else {
-        // Use query_objlist to select items
-        const src = put_in ? player.inventory : getContainerContents(current_container);
+        // C ref: pickup.c:3333-3371 — query_objlist for individual item selection
+        // with count support and splitobj for partial stacks.
+        if (!put_in && current_container) current_container.cknown = 1;
         const qstr = `${action} what?`;
-        // For array-based inventory, filter through the allow function
-        const items = (src || []).filter(o => o && (all_categories || allow_category(o, player)));
-        for (const otmp of items) {
-            if (!current_container) break;
-            const res = put_in
-                ? await in_container(otmp, player)
-                : await out_container(otmp, player, game?.map);
-            if (res < 0) break;
-            if (res > 0) n_looted++;
+        const src = put_in ? player.inventory : getContainerContents(current_container);
+        // Build nobj-linked list head from array for query_objlist
+        let olistHead = null;
+        const items = (src || []).filter(o => o && o !== current_container);
+        for (let i = items.length - 1; i >= 0; i--) {
+            items[i].nobj = olistHead;
+            olistHead = items[i];
+        }
+        const allow_fn = all_categories ? (() => true) : ((o) => allow_category(o, player));
+        const objResult = await query_objlist(qstr, olistHead,
+            0, PICK_ANY, allow_fn, player, game);
+        if (objResult.count > 0) {
+            n_looted = objResult.count;
+            for (const pick of objResult.pick_list) {
+                let otmp = pick.obj;
+                if (!otmp || !current_container) break;
+                const count = pick.count || -1;
+                if (count > 0 && count < (otmp.quan || 1)) {
+                    otmp = splitobj(otmp, count);
+                }
+                const res = put_in
+                    ? await in_container(otmp, player)
+                    : await out_container(otmp, player, game?.map);
+                if (res <= 0) {
+                    if (!current_container) break;
+                    if (res < 0) break;
+                }
+            }
         }
     }
     return n_looted;
