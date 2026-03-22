@@ -1085,7 +1085,11 @@ function clearSpellMenuOverlay(display, map, player) {
     if (map && typeof display.renderMap === 'function') {
         const fov = display?._lastMapState?.fov || null;
         const flags = display?.flags || {};
-        display.renderMap(map, player, fov, flags);
+        // Guard against null FOV (can happen when spell menu is reached
+        // via run continuation before FOV state is established)
+        if (fov && typeof fov.canSee === 'function') {
+            display.renderMap(map, player, fov, flags);
+        }
     }
     if (typeof display.clearRow === 'function') display.clearRow(0);
     display.topMessage = null;

@@ -497,7 +497,7 @@ async function getpos_menu(display, map, gloc, ctx) {
 }
 
 function findNextMatchingMapChar(display, map, cx, cy, needle) {
-    if (!display || !needle) return null;
+    if (!needle) return null;
     for (let pass = 0; pass <= 1; pass++) {
         const yStart = pass === 0 ? cy : 0;
         const yEnd = pass === 0 ? (ROWNO - 1) : cy;
@@ -507,17 +507,46 @@ function findNextMatchingMapChar(display, map, cx, cy, needle) {
             for (let x = xStart; x <= xEnd; x++) {
                 if (!isok(x, y)) continue;
                 if (!gloc_filter_allows(map, x, y)) continue;
-                const { col, row } = screenPosForMap(display, x, y);
-                const cell = getCell(display, col, row);
-                if (cell.ch === needle) return { x, y };
+                // C ref: getpos.c scans levl[][] terrain, not the display.
+                // Use map data (loc.mem_bg via defsyms) so symbols match even
+                // when the display grid hasn't been rendered at this cell.
+                if (cellMatchesSymbol(display, map, x, y, needle)) return { x, y };
             }
         }
     }
     return null;
 }
 
+// Check if a map cell matches a symbol character.
+// Prefers map-data check (explored terrain type → defsym), falls back to display.
+function cellMatchesSymbol(display, map, x, y, needle) {
+    // Check map terrain if explored
+    const loc = map?.at?.(x, y);
+    if (loc && loc.seenv) {
+        // Check terrain symbol via defsyms
+        for (let sidx = 0; sidx < defsyms.length; sidx++) {
+            if (defsyms[sidx]?.ch === needle) {
+                // Does this map cell have this terrain type?
+                if (loc.mem_bg === sidx) return true;
+                // Also check typ-based matching for stairs
+                if (typeof loc.typ === 'number') {
+                    const typSym = defsyms[loc.typ]?.ch;
+                    if (typSym === needle) return true;
+                }
+            }
+        }
+    }
+    // Fallback: check display grid
+    if (display) {
+        const { col, row } = screenPosForMap(display, x, y);
+        const cell = getCell(display, col, row);
+        if (cell.ch === needle) return true;
+    }
+    return false;
+}
+
 function findPrevMatchingMapChar(display, map, cx, cy, needle) {
-    if (!display || !needle) return null;
+    if (!needle) return null;
     for (let pass = 0; pass <= 1; pass++) {
         const yStart = pass === 0 ? cy : (ROWNO - 1);
         const yEnd = pass === 0 ? 0 : cy;
@@ -527,9 +556,7 @@ function findPrevMatchingMapChar(display, map, cx, cy, needle) {
             for (let x = xStart; x >= xEnd; x--) {
                 if (!isok(x, y)) continue;
                 if (!gloc_filter_allows(map, x, y)) continue;
-                const { col, row } = screenPosForMap(display, x, y);
-                const cell = getCell(display, col, row);
-                if (cell.ch === needle) return { x, y };
+                if (cellMatchesSymbol(display, map, x, y, needle)) return { x, y };
             }
         }
     }

@@ -517,6 +517,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     lines.push(`M${monParts.join(';')}`);
 
     const monDetailParts = [];
+    const expandedMonsterDetails = !!options.expandedMonsterDetails;
     for (const mon of (Array.isArray(map?.monsters) ? map.monsters : [])) {
         const mx = Number(mon?.mx);
         const my = Number(mon?.my);
@@ -524,19 +525,34 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const id = Number.isFinite(mon?.m_id) ? Math.trunc(mon.m_id) : 0;
         const mndx = Number.isFinite(mon?.mndx) ? Math.trunc(mon.mndx) : 0;
         const mhp = Number.isFinite(mon?.mhp) ? Math.trunc(mon.mhp) : 0;
-        const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
-        const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
-        const peaceful = mon?.mpeaceful ? 1 : 0;
-        const sleeping = mon?.msleeping ? 1 : 0;
-        const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
-        const canmove = mon?.mcanmove === false ? 0 : 1;
-        const trapped = mon?.mtrapped ? 1 : 0;
-        const mappearanceType = Number.isFinite(mon?.m_ap_type) ? Math.trunc(mon.m_ap_type) : 0;
-        const mappearance = Number.isFinite(mon?.mappearance) ? Math.trunc(mon.mappearance) : 0;
         const minventCount = Array.isArray(mon?.minvent) ? mon.minvent.length : 0;
-        monDetailParts.push(
-            `${id},${mx},${my},${mndx},${mhp},${mhpmax},${mtame},${peaceful},${sleeping},${frozen},${canmove},${trapped},${mappearanceType},${mappearance},${minventCount}`
-        );
+        if (expandedMonsterDetails) {
+            const movement = Number.isFinite(mon?.movement) ? Math.trunc(mon.movement) : 0;
+            const mflee = mon?.mflee ? 1 : 0;
+            const mfleetim = Number.isFinite(mon?.mfleetim) ? Math.trunc(mon.mfleetim) : 0;
+            const peaceful = mon?.mpeaceful ? 1 : 0;
+            const canmove = mon?.mcanmove === false ? 0 : 1;
+            const cansee = mon?.mcansee === false || mon?.mcansee === 0 ? 0 : 1;
+            const blinded = Number.isFinite(mon?.mblinded) ? Math.trunc(mon.mblinded) : 0;
+            const mux = Number.isFinite(mon?.mux) ? Math.trunc(mon.mux) : 0;
+            const muy = Number.isFinite(mon?.muy) ? Math.trunc(mon.muy) : 0;
+            monDetailParts.push(
+                `${id},${mx},${my},${mndx},${mhp},${movement},${mflee},${mfleetim},${peaceful},${canmove},${cansee},${blinded},${mux},${muy},${minventCount}`
+            );
+        } else {
+            const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
+            const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
+            const peaceful = mon?.mpeaceful ? 1 : 0;
+            const sleeping = mon?.msleeping ? 1 : 0;
+            const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
+            const canmove = mon?.mcanmove === false ? 0 : 1;
+            const trapped = mon?.mtrapped ? 1 : 0;
+            const mappearanceType = Number.isFinite(mon?.m_ap_type) ? Math.trunc(mon.m_ap_type) : 0;
+            const mappearance = Number.isFinite(mon?.mappearance) ? Math.trunc(mon.mappearance) : 0;
+            monDetailParts.push(
+                `${id},${mx},${my},${mndx},${mhp},${mhpmax},${mtame},${peaceful},${sleeping},${frozen},${canmove},${trapped},${mappearanceType},${mappearance},${minventCount}`
+            );
+        }
     }
     monDetailParts.sort();
     lines.push(`N${monDetailParts.join(';')}`);
@@ -596,7 +612,10 @@ function buildHarnessMapdumpPayload(map, options = {}) {
 // Debug helper used by comparison tooling to snapshot current map state
 // in the same compact mapdump format emitted by harness checkpoints.
 export function buildDebugMapdumpPayload(map, options = {}) {
-    return buildHarnessMapdumpPayload(map, options);
+    return buildHarnessMapdumpPayload(map, {
+        ...options,
+        expandedMonsterDetails: true,
+    });
 }
 
 function emitHarnessMapdumpEvent(map, depth, dnum, dlevel) {
@@ -4747,9 +4766,13 @@ export function mineralize(map, depth, opts = null) {
     let eligible_count = 0;
     let rng_calls = 0;
     const startRng = DEBUG ? getRngCallCount() : 0;
+    // C ref: mklev.c:1523 uses dunlev(&u.uz) — branch-local level number.
+    // map._genDlevel is set during level_init; for special levels that skip
+    // level_init (e.g. oracle), fall back to finalizeContext.dlevel or depth.
+    const fcDlevel = getLevelState()?.finalizeContext?.dlevel;
     const branchDlevel = Number.isInteger(map?._genDlevel) && map._genDlevel > 0
         ? map._genDlevel
-        : 1;
+        : (Number.isInteger(fcDlevel) && fcDlevel > 0 ? fcDlevel : depth);
 
     // C ref: mklev.c:1454-1457 — Place kelp in water (except plane of water)
     // Skip for wizard tower (not in endgame)
@@ -4779,7 +4802,12 @@ export function mineralize(map, depth, opts = null) {
         const isRogue = !!(map.flags && map.flags.is_rogue);
         const isArboreal = !!(map.flags && map.flags.arboreal);
         const sp = (dnum >= 0 && dlevel >= 0) ? runtimeSpecialLevelFor(dnum, dlevel) : null;
-        const isOracle = !!(map.flags && map.flags.is_oracle_level);
+        // C ref: Is_oracle_level(&u.uz) checks dungeon topology (dnum/dlevel
+        // match oracle_level), not a map flag. During level generation, the
+        // is_oracle_level flag isn't set yet, so also check topology directly.
+        const oLevel = getOracleLevel();
+        const isOracle = !!(map.flags && map.flags.is_oracle_level)
+            || (dnum === oLevel.dnum && dlevel === oLevel.dlevel);
         const isMines = (dnum === GNOMISH_MINES);
         // C: sp->flags.town — stored in runtime special level map from dungeon.lua
         const isTown = !!(sp && sp.town);

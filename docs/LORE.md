@@ -3374,6 +3374,28 @@ hard-won wisdom:
   - `node --test test/unit/session_datetime.test.js test/unit/session_recorder_datetime.test.js`
   - `node scripts/test-unit-core.mjs --runInBand`
 
+### Browser keylogs now preserve deterministic datetime (2026-03-22)
+
+- Problem:
+  - The HTML/browser keylog path recorded `seed` plus a wall-clock metadata
+    timestamp, but replay only restored `seed` and option flags.
+  - That was insufficient for deterministic repro of time-sensitive behavior
+    such as `phase_of_the_moon()`, `friday_13th()`, and other `getnow()`
+    consumers.
+- Fix:
+  - `js/storage.js` now parses and clears `?datetime=YYYYMMDDhhmmss`
+  - `js/calendar.js` supports a browser-side fixed datetime override
+  - `js/allmain.js` freezes a per-session browser datetime at init and starts
+    keylog recording with it
+  - `js/keylog.js` records top-level `datetime` and restores it on replay
+- Result:
+  - browser-recorded keylogs now preserve both PRNG seed and deterministic
+    datetime
+  - wall-clock audit time remains available separately as
+    `metadata.recordedAt`
+- Validation:
+  - `node --test test/unit/storage.test.js test/unit/keylog_datetime.test.js`
+
 ### m_move parity: restore missing Tengu early-teleport branch (2026-03-06)
 
 - Root cause:
@@ -16139,3 +16161,417 @@ distinction is always conditional on being in Gehennom.
   around gameplay step `1241`:
   - JS first RNG: `rn2(3)=0 @ dochug(monmove.js:847)`
   - C first RNG: `rn2(5)=0 @ distfleeck(monmove.c:539)`
+
+## 2026-03-22 - `seed031`: chest take-out submenu was erasing map rows under the menu
+
+- While chasing the long-running `seed031` gameplay seam, the earliest
+  authoritative comparable visible divergence was much earlier than the RNG
+  split: gameplay screen step `39` inside a `#loot` chest take-out submenu.
+- The actual compared gameplay steps there are container prompts, not startup
+  or engraving prompts:
+  - step `35`: `Do what with the chest?`
+  - step `36`: `Take out what type of objects?`
+  - step `38/39`: `Take out what?`
+- JS was clearing too much of the underlying map when transitioning from the
+  class submenu to the item submenu in [`containerMenu()`](js/pickup.js):
+  - `clearMenuOptionRows()` always blanked rows `2..10`
+  - then the `Take out what?` submenu only redrew rows `2..6`
+  - this left rows `7..10` either blank or stale class-menu text while C had
+    already restored the map behind the menu
+- Narrow faithful fix in [`js/pickup.js`](js/pickup.js):
+  - let `clearMenuOptionRows()` accept an explicit row range
+  - before drawing the `Take out what?` submenu, rerender the underlying
+    map/status/cursor
+  - clear only the rows actually occupied by that submenu
+- Result:
+  - `seed031` first screen divergence moved later from step `39` to step `41`
+  - screen matches improved `1281 -> 1285`
+  - color matches improved `11234 -> 11244`
+  - cursor matches improved `411/415 -> 415/419`
+  - RNG/events were unchanged; the live gameplay seam remains at step `1241`
+- Targeted validation:
+  - `seed031_manual_direct.session.json`: improved screen/color/cursor, same RNG/events
+  - `coverage/locks-containers-pickup/t02_s714_w_cardbox_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+
+## 2026-03-22 - `dbgmapdump`: C-side manual-direct captures must use normalized replay keys
+
+- While bisecting `seed031`, early `dbgmapdump --c-side` checkpoints looked
+  impossible:
+  - compared gameplay step `20` in JS had the hero near `(63,10)`
+  - C-side `dbgmapdump` was reporting the hero around `(42,11)`
+  - that contradicted the main session comparator, which does not diverge on
+    screen until much later
+- Root cause was in [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js):
+  - JS capture used [`prepareReplayArgs()`](js/replay_compare.js), which
+    normalizes manual-direct sessions by folding chargen/startup keys out of
+    gameplay
+  - C capture still let
+    [`capture_step_snapshot.py`](test/comparison/c-harness/capture_step_snapshot.py)
+    extract raw session keys directly
+  - for manual-direct sessions, that made early C `--c-side` snapshots replay a
+    different key stream than the JS side
+- Fix:
+  - `dbgmapdump` now writes the exact normalized replay key stream to
+    `replay_keys.json`
+  - C-side capture is invoked with `--keys-json <that file>`
+  - this keeps JS and C mapdump capture on the same gameplay-step key stream
+- Validation:
+  - rerunning `dbgmapdump --c-side` for `seed031` step `20` now produces a
+    sensible aligned C checkpoint (`u_ux=62`, `u_uy=10`) instead of the bogus
+    pre-normalization checkpoint
+  - the output directory now contains the emitted `replay_keys.json`, which is
+    the exact key stream used for both sides
+- Practical rule:
+  - for manual-direct parity work, trust `dbgmapdump --c-side` only when the
+    C capture is driven by the same normalized replay keys as JS
+
+## 2026-03-22 - `dbgmapdump`: manual-direct C snapshots need replay chargen metadata and post-step capture phases
+
+- A second `seed031` `dbgmapdump` problem remained after normalizing replay
+  keys:
+  - C-side `capture_step_snapshot.py` switches to preset-chargen mode whenever
+    `--keys-json` is used
+  - raw manual-direct sessions like `seed031` store `options.name/role/race/
+    gender/align = null`
+  - that meant C-side mapdump capture was still starting the wrong character
+    even though the key stream itself was now normalized
+- Fix in [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js):
+  - emit a temporary `capture_session.json`
+  - for `regen.mode === "manual-direct-live"`, fill its `options.*` chargen
+    fields from `prepareReplayArgs(...).opts.initOpts.character`
+  - invoke C capture on that temporary session, not the raw fixture
+- A separate boundary bug was also present in
+  [`test/comparison/c-harness/capture_step_snapshot.py`](test/comparison/c-harness/capture_step_snapshot.py):
+  - JS mapdumps are post-step snapshots
+  - C capture was targeting `auto_inp_*`, which fires when a key is read,
+    before that command has finished mutating state
+  - for post-step parity snapshots, the right boundary is `auto_step_*` on the
+    next `fresh_cmd`
+- Fix in `capture_step_snapshot.py`:
+  - prefer `auto_step_<expected>` as the primary checkpoint phase for mapdump
+    capture
+  - keep `auto_inp` bookkeeping as diagnostic metadata only
+- Validation:
+  - `dbgmapdump --c-side` for `seed031` gameplay step `20` now lands on the
+    real Tourist/manual-direct state
+  - JS and C now agree on the meaningful state at that checkpoint:
+    - hero position `(63,10)`
+    - pet at `(62,10)`
+    - monster `70` at `(19,8)`
+    - monster `158` at `(44,4)`
+  - remaining strict `U/C/G` vector differences are snapshot-format noise, not
+    the old bogus chargen/key-stream mismatch
+- Practical rule:
+  - for manual-direct mapdump bisects, do not trust early C snapshots unless:
+    1. the normalized replay keys are passed through `--keys-json`
+    2. the temporary capture session carries inferred chargen metadata
+    3. the capture phase is a post-step `auto_step_*` boundary rather than
+       an `auto_inp_*` key-read boundary
+
+## 2026-03-22 - `dbgmapdump`: report prompt-owned steps that have no post-step C boundary
+
+- After fixing manual-direct C capture, early `seed031` bisects still looked
+  erratic because many gameplay-step numbers are not completed command
+  boundaries on the C side.
+- Example:
+  - `dbgmapdump --c-side --steps 44` expected `auto_step_43`
+  - C only reached `auto_inp_46_key_104_getlin_0_moveloop_1`
+  - that means the requested gameplay step is prompt-owned or intra-command;
+    there is no `fresh_cmd` checkpoint to compare against yet
+- Fix in [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js):
+  - classify C capture failures by phase kind
+  - explicitly report when an expected `auto_step_*` fell through to an
+    `auto_inp_*` checkpoint
+  - print a note that the step appears prompt-owned / intra-command
+- Practical rule:
+  - for early `seed031` mapdump bisects, first choose steps that actually have
+    a post-step `auto_step_*` boundary
+  - if `dbgmapdump` reports `no post-step auto_step boundary before next
+    input`, do not treat that step as a valid post-step state checkpoint
+
+## 2026-03-22 - `dbgmapdump`: expand JS `victual` state instead of collapsing it to an object ref
+
+- Late `seed031` analysis around the live seam needed apples-to-apples meal
+  state, but JS mapdumps were flattening `svc.context.victual` into a compact
+  stable object ref like `{"ref":"obj","o_id":379}`.
+- That hid the fields that C snapshot JSON already exposes:
+  - `piece_o_id`
+  - `o_id`
+  - `usedtime`
+  - `reqtime`
+  - `nmod`
+  - `canchoke`
+  - `fullwarn`
+  - `eating`
+  - `doreset`
+- Fix in [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js):
+  - normalize JS `victual` into scalar fields matching the C snapshot shape
+  - exempt the top-level `victual` context object from generic stable-ref
+    collapsing, so those fields survive flattening into the `C...` row
+- Result:
+  - JS late mapdumps now show full meal state directly in the compact context
+    line, for example:
+    - `victual.eating=true`
+    - `victual.o_id=379`
+    - `victual.usedtime=8`
+    - `victual.reqtime=13`
+- Concrete `seed031` evidence from this tool improvement:
+  - JS late checkpoint still carries live meal state:
+    - `step1243.mapdump` has `victual.eating=true`,
+      `victual.o_id=379`, `victual.usedtime=8`, `victual.reqtime=13`
+  - corresponding C late checkpoint has fully cleared meal state:
+    - `piece_o_id=0`, `o_id=0`, `usedtime=0`, `reqtime=0`,
+      `nmod=0`, `canchoke=0`, `fullwarn=0`, `eating=0`, `doreset=0`
+- Practical rule:
+  - when late parity drift looks like prompt/occupation confusion, expose
+    structured context state first; compact object refs can hide exactly the
+    field that differentiates JS from C
+
+## 2026-03-22 - `dbgmapdump`: add debug-only monster movement/flee state to `N` rows
+
+- Late `seed031` work around the giant-ant seam needed more than the old
+  compact `N` row provided.
+- The previous `N` format only carried:
+  - id, position, monster index, hp, hpmax/tame-like placeholders, sleeping,
+    frozen/trapped-like placeholders, disguise fields, inventory count
+- That was not enough to diagnose the live seam at step `1241`, because the
+  branch depends on:
+  - current movement points
+  - `mflee`
+  - `mfleetim`
+  - apparent target (`mux`,`muy`)
+  - sight/blind state
+- Fix:
+  - [`js/dungeon.js`](js/dungeon.js) now emits a debug-only expanded `N` row
+    for `buildDebugMapdumpPayload()` while leaving ordinary harness/session
+    mapdump payloads unchanged
+  - [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js) now uses
+    the same expanded field layout for C-side compact mapdumps
+- Expanded debug-only `N` row layout:
+  - `id,x,y,mnum,mhp,movement,mflee,mfleetim,mpeaceful,mcanmove,mcansee_or_canseemon,mblinded,mux,muy,minvcount`
+- Concrete `seed031` result at late checkpoint `step1243`:
+  - JS ant `374`:
+    - `374,47,14,0,4,24,1,11,0,1,0,0,42,7,0`
+  - C ant `374`:
+    - `374,48,14,0,4,12,1,7,0,1,0,0,42,7,0`
+- Interpretation:
+  - by `step1243`, JS and C already disagree on:
+    - position
+    - movement bank
+    - flee timer
+  - but still agree on:
+    - `mflee=1`
+    - apparent target `mux,muy = 42,7`
+- Practical rule:
+  - when a late `dochug()` seam looks like an extra `set_apparxy()` or
+    `distfleeck()` RNG call, first compare debug-only `N` rows; movement and
+    flee-duration drift can be the real root cause even when `mux/muy` match
+
+## 2026-03-22 - resumed `eatfood()` floor-object checks must pass `game.map`
+
+- The late `seed031` eating seam included a resumed-meal failure mode where JS
+  `eatfood()` was dropping into `do_reset_eat()` even though the active food
+  object still existed on the hero square.
+- C `eatfood()` explicitly checks floor presence with:
+  - `if (food && !carried(food) && !obj_here(food, u.ux, u.uy)) food = 0;`
+- JS had the same intended check, but it called:
+  - `obj_here(food, player.x, player.y)`
+  without passing `game.map`.
+- In JS, `obj_here()` needs the map argument to inspect the floor object chain,
+  so resumed floor-food meals could falsely hit the `!food` branch and run
+  `do_reset_eat()`.
+- Faithful fix in [`js/eat.js`](js/eat.js):
+  - change to `obj_here(food, player.x, player.y, game?.map)`
+- Validated effect:
+  - `seed031_manual_direct.session.json`
+    - baseline: `rng=47441/51561`, `events=26377/28950`,
+      first RNG divergence at step `1241`
+    - after fix: `rng=47502/51561`, `events=26421/28950`,
+      first RNG divergence still at step `1241`
+    - first bad RNG shifts later within the same gameplay step:
+      - before: `rn2(3)=0 @ dochug(monmove.js:847)` vs
+        `rn2(5)=0 @ distfleeck(monmove.c:539)`
+      - after: `rn2(100)=70 @ dochug(monmove.js:847)` vs
+        `rn2(8)=2 @ dog_goal(dogmove.c:582)`
+  - targeted checks remained green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+- Practical rule:
+  - for resumed floor-object occupations, always pass `game.map` into
+    `obj_here()`; otherwise the C-faithful “food still here?” check silently
+    collapses into a false reset
+
+## 2026-03-22 - `delobj()` must honor floor map context
+
+- The next late `seed031` eat seam turned out not to be another prompt bug.
+- Object-id tracing showed JS calling `done_eating()` for corpse `379` at the
+  late seam, but then selecting that same corpse again from the floor two steps
+  later.
+- That cannot happen in C:
+  - `done_eating()` ends with `useupf(piece, 1L)` for floor food
+  - `useupf()` calls `delobj(otmp)` and removes the floor object
+- In JS, [`js/invent.js`](js/invent.js) had a broken wrapper:
+  - `delobj(obj)` ignored the optional `map` argument that many callers passed
+  - it called `delobj_core(obj, false)`, so floor deletions without an explicit
+    global map fallback could leave the object behind in `map.objects`
+- Faithful fix:
+  - change `delobj()` to accept optional `(obj, map = null, force = false)`
+  - resolve `map || _gstate?.lev || _gstate?.map`
+  - pass that to `delobj_core()`
+- Validated effect:
+  - `seed031_manual_direct.session.json`
+    - before: `rng=47502/51561`, `events=26421/28950`,
+      first RNG divergence step `1241`
+    - after: `rng=47522/51561`, `events=26451/28950`,
+      first RNG divergence still step `1241`
+    - the late seam moved deeper into the same step:
+      - JS still first diverges in `dog_goal()`-adjacent late pet logic
+      - but with 20 more matched RNG calls and 30 more matched events overall
+  - control sessions stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+  - nearby manual-direct regression check stayed unchanged:
+    - `seed032_manual_direct.session.json` still first diverges at step `144`
+- Practical rule:
+  - any JS wrapper around `delobj()` must preserve floor map ownership; if the
+    map context is dropped, floor objects can survive semantic deletion and
+    create downstream parity drift that looks like prompt or AI logic
+
+## 2026-03-22 - `floorfood()` / `objectsAt()` must agree on top-of-pile order
+
+- After the `obj_here(map)` and `delobj(map)` fixes, the remaining late
+  `seed031` seam still looked like a pet/object mismatch, but the decisive
+  state error was earlier: the hero resumed the wrong floor corpse.
+- C `floorfood()` chooses the top floor-chain object at the hero square.
+  NetHack floor chains are newest-first.
+- JS `map.objectsAt()` is oldest-first, but [`js/eat.js`](js/eat.js)
+  `handleEat()` was taking:
+  - `const floorItem = floorFoods[0]`
+- On the late `(42,7)` pile in `seed031`, that bound JS `victual.piece` to the
+  older corpse `379` instead of the newer corpse `394`.
+- Concrete evidence:
+  - JS debug mapdump at step `1240`:
+    - `victual.piece_o_id=379`
+    - two corpses still present on `(42,7)`
+  - JS debug mapdump at step `1241`:
+    - `victual` cleared
+    - one corpse removed from `(42,7)`
+    - corpse `394` still present
+  - C event logs in the same corridor showed the decisive `^remove[263,42,7]`
+    before the later pet `dog_goal()` scan that no longer treated `394` as
+    available food
+- Faithful fix:
+  - choose the newest floor food:
+    - `const floorItem = floorFoods[floorFoods.length - 1]`
+- Validated impact:
+  - `seed031_manual_direct.session.json`
+    - improved from first RNG divergence step `1241` to `1333`
+    - matched RNG calls improved `47522/51561 -> 51560/51732`
+    - matched events improved `26451/28950 -> 28950/28952`
+  - controls stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+  - nearby regression check stayed stable:
+    - `seed032_manual_direct.session.json` still first diverges at step `144`
+- Practical rule:
+  - any JS floor-item default selection built on `objectsAt()` must explicitly
+    translate oldest-first array order back into C floor-chain order before
+    choosing the top/default item
+
+## 2026-03-22 - after the floor-meal fixes, the live `seed031` seam moved into tame-pet `dog_invent()`
+
+- After the validated floor-meal fixes, the active `seed031` seam is no longer
+  best described as an eating-occupation identity bug.
+- Current authoritative baseline on `main`:
+  - `test/comparison/sessions/seed031_manual_direct.session.json`
+  - first RNG divergence at gameplay step `1313`
+  - JS: `rn2(5)=2 @ dochug(monmove.js:847)`
+  - C: `rn2(9)=6 @ dog_invent(dogmove.c:416)`
+  - first event divergence at gameplay step `1315`
+  - JS: `^distfleeck[33@42,9 in=1 near=0 scare=0 brave=0 saw=0 light=0 sanct=0]`
+  - C: `^dog_invent_decision[33@42,9 ud=8 act=0 otyp=-1 carry=0 rv=0]`
+- Authoritative comparison-window evidence around `1310..1315`:
+  - C-heavy at `1311`, `1312`, `1314`, `1315`
+  - large JS payback spike at `1313`
+- Late JS debug state at step `1315` still shows the housecat as a real tame
+  pet with live `edog` state:
+  - pet row: `37,42,9,33,17,22,0,0,1,1,1,0,44,11,1`
+  - additional local inspection during this pass confirmed:
+    - `mtame=20`
+    - `edog.apport=1`
+    - `minventCount=1`
+    - carried item is an unworn, uncursed `dwarvish cloak`
+- That narrows the remaining fault:
+  - the live seam is now in tame-pet `dog_invent()` / `droppables()` /
+    nearby pet-control branch selection
+  - not in the already-fixed floor-meal object identity path
+
+## 2026-03-22 - pet `oeaten` timing must shorten `meating`
+
+- C `dog_nutrition()` applies `eaten_stat()` to both `mtmp->meating` and the
+  awarded nutrition when `obj->oeaten` is non-zero.
+- JS `dog_nutrition()` was still using full-food timing for partially eaten pet
+  food.
+- In the late `seed031` corridor, live JS tracing showed the housecat still in
+  the eating lane across the authoritative pet seam:
+  - step `1313`: `meating=6`
+  - step `1315`: `meating=4`
+  - step `1317`: `meating=3`
+- That was the reason JS skipped the C-side `dog_move() -> dog_invent()` lane
+  on the matching late turns.
+- Faithful fix:
+  - in `js/dogmove.js`, when `obj.oeaten` is set, reduce both `mon.meating`
+    and `nutrit` with `eaten_stat()` exactly as C does
+- Validated impact:
+  - `seed031_manual_direct.session.json`
+    - first RNG divergence improved `1313 -> 1333`
+    - matched RNG calls improved `50883/51561 -> 51560/51732`
+    - matched events improved `28348/28950 -> 28950/28952`
+  - controls stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+  - nearby regression check stayed stable:
+    - `seed032_manual_direct.session.json` still first diverges at step `144`
+
+## 2026-03-22 - bones timing belongs in `really_done()`, and bones depth is branch-adjusted
+
+- After the late eating and pet-food fixes, `seed031` still had one final RNG
+  mismatch at the death boundary:
+  - JS had an extra earlier bones-side effect because `js/allmain.js` called
+    `savebones(game)` from the moveloop death check
+  - C does not do bones work there; `end.c:really_done()` computes
+    `bones_ok = (how < GENOCIDED) && can_make_bones()` after death handling has
+    reached final endgame cleanup
+- Faithful fix 1:
+  - remove the moveloop `savebones(game)` call from `js/allmain.js`
+  - compute `game.bonesOk = (how < GENOCIDED) && can_make_bones(game)` in
+    `js/end.js:really_done()`
+- That exposed the last actual logic mismatch:
+  - JS `can_make_bones()` was using branch-local `player.dungeonLevel`
+  - C `can_make_bones()` uses `depth(&u.uz)`, which is branch-adjusted
+  - in the fatal `seed031` death step, JS saw level `2` and rolled `rn2(1)`,
+    while C saw depth `4` and rolled `rn2(2)`
+- Faithful fix 2:
+  - in `js/bones.js`, compute current depth from `depth(player.uz || map.uz)`
+    instead of `player.dungeonLevel`
+- Validated impact:
+  - `seed031_manual_direct.session.json`
+    - RNG improved from `51560/51561` to `51561/51561`
+    - events remain `28950/28950`
+    - the old late gameplay seam is gone; the remaining failure is screen-only
+      and much earlier:
+      - first screen divergence step `41`
+  - controls stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+  - nearby regression check stayed stable:
+    - `seed032_manual_direct.session.json` still first diverges at step `144`
+- Practical rule:
+  - when C uses `depth(&u.uz)`, JS must not substitute branch-local
+    `dungeonLevel`; Mines/Quest/other branch levels will drift exactly this way

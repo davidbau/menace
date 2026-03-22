@@ -93,13 +93,19 @@ window.addEventListener('DOMContentLoaded', async () => {
         getDisplay: () => currentDisplay,
     });
 
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // &clearLocalStorage URL param — wipe all saved state before init
+    if (urlParams.has('clearLocalStorage')) {
+        Object.keys(localStorage).forEach(k => localStorage.removeItem(k));
+    }
+
     const display = new Display('game');
     const restart = () => window.location.reload();
     const promo = new Promo();
     registerMenuApis(display, promo, restart);
 
     // Legacy redirect: ?shell=1 links now go to /shell/
-    const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('shell') === '1') {
         window.location.replace('/shell/');
         return;
@@ -127,10 +133,114 @@ window.addEventListener('DOMContentLoaded', async () => {
         },
     });
 
-    await game.init({
+    const initOpts = {
         seed: opts.seed,
         wizard: opts.wizard,
         reset: opts.reset,
-    });
+    };
+    // URL params role/race/gender/align → skip chargen
+    // Session replay: ?session=path loads a session file for step-by-step replay
+    const sessionParam = urlParams.get('session');
+    if (sessionParam) {
+        try {
+            const resp = await nhfetch(sessionParam);
+            const session = await resp.json();
+            // V4: use env + nethackrc if available; fall back to V3 options
+            const sessEnv = session.env || {};
+            initOpts.seed = parseInt(sessEnv.NETHACK_SEED || session.seed) || session.seed;
+            initOpts.datetime = sessEnv.NETHACK_FIXED_DATETIME || session.datetime || '20000110090000';
+
+            if (session.nethackrc) {
+                // V4 path: parse .nethackrc for character + flags + wizard
+                const { parseNethackrcFull } = await import('./storage.js');
+                const { character, flags, wizard } = parseNethackrcFull(session.nethackrc);
+                initOpts.wizard = wizard;
+                initOpts.character = {
+                    role: character.role || 'Valkyrie',
+                    name: character.name || 'Player',
+                    race: character.race || undefined,
+                    gender: character.gender || undefined,
+                    align: character.align || undefined,
+                };
+                initOpts.tutorial = false;
+                initOpts.flags = { tutorial: false, ...flags };
+            } else {
+                // V3 fallback
+                const sessOpts = session.options || {};
+                initOpts.wizard = sessOpts.wizard || false;
+                initOpts.character = {
+                    role: sessOpts.role || 'Valkyrie',
+                    name: sessOpts.name || 'Player',
+                    race: sessOpts.race || undefined,
+                    gender: sessOpts.gender || undefined,
+                    align: sessOpts.align || undefined,
+                };
+                initOpts.tutorial = false;
+                initOpts.flags = {
+                    tutorial: false,
+                    symset: sessOpts.symset || undefined,
+                    autopickup: sessOpts.autopickup !== undefined ? sessOpts.autopickup : undefined,
+                };
+            }
+            // Collect gameplay keys
+            const gameKeys = [];
+            for (const step of (session.steps || [])) {
+                const k = step.key;
+                if (k == null) { gameKeys.push(null); continue; }
+                if (k.length === 1) gameKeys.push(k.charCodeAt(0));
+                else if (k === 'escape') gameKeys.push(27);
+                else if (k === 'space') gameKeys.push(32);
+                else if (k === 'return' || k === 'enter') gameKeys.push(13);
+                else gameKeys.push(null);
+            }
+            // Set up step-by-step replay after game starts
+            const origOnGameplayStart = initOpts.hooks?.onGameplayStart;
+            if (!initOpts.hooks) initOpts.hooks = {};
+            // Expose step functions on window after a short delay
+            setTimeout(() => {
+                let idx = 0;
+                window._sessionKeys = gameKeys;
+                window._sessionIdx = 0;
+                window.step = function() {
+                    while (window._sessionIdx < gameKeys.length) {
+                        const k = gameKeys[window._sessionIdx++];
+                        if (k == null) continue;
+                        input.pushInput(k);
+                        const ch = k >= 32 && k < 127 ? String.fromCharCode(k) : (k === 13 ? 'Enter' : (k === 27 ? 'Esc' : (k < 32 ? '^' + String.fromCharCode(k+64) : '?')));
+                        return 'step ' + (window._sessionIdx-1) + '/' + gameKeys.length + ': ' + ch + ' (' + k + ')';
+                    }
+                    return 'done';
+                };
+                window.stepN = async function(n, delay) {
+                    delay = delay || 300;
+                    for (let i = 0; i < n; i++) {
+                        const r = window.step();
+                        if (r === 'done') return r;
+                        console.log(r);
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+                    return 'at ' + window._sessionIdx + '/' + gameKeys.length;
+                };
+                window.stepAll = function(delay) { return window.stepN(gameKeys.length, delay || 300); };
+                console.log('Session replay ready: ' + gameKeys.filter(k=>k!=null).length + ' keys. Use step(), stepN(n), or stepAll(delay).');
+            }, 500);
+        } catch (e) {
+            console.error('Failed to load session:', e);
+        }
+    }
+    if (opts.role) {
+        const urlParams = new URLSearchParams(window.location.search);
+        initOpts.character = {
+            role: opts.role,
+            name: urlParams.get('name') || 'Player',
+            race: urlParams.get('race') || undefined,
+            gender: urlParams.get('gender') || undefined,
+            align: urlParams.get('align') || undefined,
+        };
+        initOpts.tutorial = false;
+        initOpts.flags = { tutorial: false };
+        if (urlParams.has('wizard')) initOpts.wizard = true;
+    }
+    await game.init(initOpts);
     await game.gameLoop();
 });

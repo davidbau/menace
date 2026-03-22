@@ -16,7 +16,6 @@
 //   welcome(): display character description at game start or restore.
 
 import { movemon, settrack, mon_regen } from './monmove.js';
-import { savebones } from './bones.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { nh_timeout, do_storms, fall_asleep } from './timeout.js';
@@ -34,14 +33,14 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE, TER_DETECT,
          TELEPORT, POLYMORPH, Upolyd } from './const.js';
 import { ageSpells } from './spell.js';
-import { wipe_engr_at } from './engrave.js';
+import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
+import { monsterNearby, nomul, unmul, near_capacity, inv_weight, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -61,7 +60,7 @@ import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
     hasActiveTextPopupWindow, redrawActiveTextPopupWindows,
 } from './windows.js';
-import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
+import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, IS_DOOR } from './const.js';
 import { initFirstLevel } from './u_init.js';
 import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
          playerSelection as _playerSelection, maybeDoTutorial as _maybeDoTutorial,
@@ -70,7 +69,7 @@ import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { encumber_msg } from './pickup.js';
 import { nhimport, nhload, display_sync } from './origin_awaits.js';
-import { phase_of_the_moon, friday_13th, night } from './calendar.js';
+import { phase_of_the_moon, friday_13th, night, setFixedDatetime, yyyymmddhhmmss } from './calendar.js';
 import { change_luck, acurr } from './attrib.js';
 import { invault } from './vault.js';
 import { amulet } from './wizard.js';
@@ -274,14 +273,12 @@ export async function moveloop_core(game, opts = {}) {
         game.seerTurn = movesForSeer + rn1(31, 15);
     }
 
-    // C ref: allmain.c end of moveloop_core — check for player death
+    // C ref: allmain.c end of moveloop_core — check for player death.
+    // Bones handling belongs to end.c/really_done(), not the moveloop.
     const awaitingEndPrompt = !!(game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function');
     if ((player.isDead || player.uhp <= 0) && game.gameOver && !awaitingEndPrompt) {
         if (!player.deathCause) {
             player.deathCause = 'died';
-        }
-        if (typeof savebones === 'function') {
-            savebones(game);
         }
     }
 }
@@ -424,7 +421,7 @@ export async function moveloop_turnend(game) {
     }
 
     // C ref: allmain.c:304 — regen_pw(mvl_wtcap)
-    regen_pw_turnend(game);
+    await regen_pw_turnend(game);
 
     // C ref: allmain.c:306-338 — Teleportation/Polymorph/Lycanthropy checks
     {
@@ -457,10 +454,14 @@ export async function moveloop_turnend(game) {
         }
     }
 
-    // C ref: allmain.c:341-343 — autosearch for players with Searching
+    // C ref: allmain.c:346-348 — autosearch for players with Searching
     // intrinsic (Archeologists/Rangers at level 1, Rogues at 10, etc.)
-    if ((game.u || game.u).searching && game.multi >= 0) {
-        await dosearch0((game.u || game.u), (game.map || game.map), game.display, game, 1);
+    // C also checks !svl.level.flags.noautosearch.
+    {
+        const mapFlags = (game.map || game.map)?.flags || {};
+        if ((game.u || game.u).searching && !mapFlags.noautosearch && game.multi >= 0) {
+            await dosearch0((game.u || game.u), (game.map || game.map), game.display, game, 1);
+        }
     }
 
     // C ref: allmain.c:351 dosounds() — ambient sounds
@@ -488,11 +489,13 @@ export async function moveloop_turnend(game) {
         await amulet((game.map || game.map), (game.u || game.u), game.display);
     }
 
-    // C ref: allmain.c:359 — engrave wipe check (ACURR(A_DEX))
+    // C ref: allmain.c:364 — engrave wipe check (ACURR(A_DEX))
     const dex = acurr((game.u || game.u), A_DEX);
     if (!rn2(40 + dex * 3)) {
-        // C ref: allmain.c:359-360 u_wipe_engr(rnd(3))
-        await wipe_engr_at((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y, rnd(3), false);
+        // C ref: engrave.c u_wipe_engr() — only wipe if can reach floor
+        if (can_reach_floor((game.u || game.u), (game.map || game.map), true)) {
+            await wipe_engr_at((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y, rnd(3), false);
+        }
     }
 
     // C ref: allmain.c:374 — water/air planes update moving bubbles/clouds each turn.
@@ -595,6 +598,11 @@ function u_calc_moveamt(player) {
         moveamt -= Math.floor((moveamt * 7) / 8);
     }
     player.umovement = Math.max(0, (player.umovement || 0) + moveamt);
+    // C ref: event_log for hero movement amount — matches C ^moveamt event.
+    // player._wc was set by near_capacity→inv_weight above; reuse it.
+    // Recompute wt cheaply: inv_weight sets player._wc and returns wt-wc.
+    const _iw = inv_weight(player);
+    pushRngLogEntry(`^moveamt[wtcap=${wtcap} moveamt=${moveamt} umovement=${player.umovement} wt=${_iw} wc=${player._wc} pos=${player.x},${player.y}]`);
 }
 
 // C ref: sounds.c:202-339 dosounds() — ambient level sounds
@@ -857,22 +865,11 @@ async function runAcceptedTravelCommandLoop(game, {
     coreOpts,
     bumpHeroSeqN,
 }) {
+    // C ref: travel continuation runs one move per rhack() call in moveloop.
+    // Do NOT loop here — process only the first travel move. Subsequent moves
+    // are handled by _gameLoopStep's hasPositiveMoveContinuation path, which
+    // yields between moves so the replay can assign each move to a separate step.
     await advanceTimedTurn(game, coreOpts);
-    while (game.multi > 0 && game.context?.mv && !game?.playerDied) {
-        if (hasPendingCommandBoundaryDismiss(game)) {
-            await more(game.display, {
-                forceVisual: true,
-                clearAfter: true,
-                readKey: () => nhgetch(),
-            });
-            continue;
-        }
-        const continued = await runMovementRepeatSlice(game, {
-            coreOpts,
-            bumpHeroSeqN,
-        });
-        if (!continued) break;
-    }
 }
 
 // Current JS positive-multi movement/travel slice.
@@ -886,41 +883,59 @@ async function runMovementRepeatSlice(game, {
     emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
     // C ref: allmain.c:527-530 — movement/travel multi repeat.
     // lookaround() can abort running by clearing multi.
+    // Restructured to match do_run's operation ordering:
+    //   domove → turn-end → stop-checks → lookaround
+    // This order produces matching RNG with C's recorded sessions.
     const _p = game.u || game.u;
     const _map = game.map;
     const _fov = FOV;
     const _display = game.display;
-    await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
-    if (game.multi <= 0) {
-        ctx.move = 0;
-        return false;
-    }
-    // C ref: hack.c domove() can call end_running() internally
-    // (e.g. when findtravelpath exhausts the path), which clears
-    // ctx.run. Save run mode before domove to detect travel-end.
+
+    // Save run mode before domove (domove may call end_running internally)
     const savedRun = ctx.run;
-    if (game.multi < COLNO && !--game.multi) {
-        end_running(true, game);
-    }
-    game.advanceRunTurn = async () => {
+
+    // Step 1: domove — use saved direction for running, [0,0] for travel
+    const runDir = ctx.travel ? [0, 0] : [_p.dx || 0, _p.dy || 0];
+    ctx._runAtMoveStart = Number(ctx.run || 0);
+    const moveResult = await domove(runDir, _p, _map, _display, game);
+    ctx._runAtMoveStart = 0;
+
+    // Step 2: turn-end (if move took time)
+    if (moveResult && moveResult.tookTime) {
+        bumpHeroSeqN();
         await advanceTimedTurn(game, coreOpts);
-    };
-    const moveResult = await domove([0, 0], _p, _map, _display, game);
-    game.advanceRunTurn = null;
-    if (!moveResult || !moveResult.tookTime) {
-        // C ref: allmain.c moveloop — when travel ends via path exhaustion,
-        // run one more monster turn before exiting.
+    } else {
+        // Move didn't take time — travel path exhaustion gets one more turn
         if (savedRun === 8 && moveResult?.stopReason === 'travel_path_exhausted') {
             await advanceTimedTurn(game, coreOpts);
         }
         return false;
     }
-    if (!moveResult.moved) {
+
+    // Step 3: stop checks (matching do_run's post-move checks)
+    if (Number(ctx.run || 0) === 0) return false;  // nomul cleared run
+    if (!moveResult.moved) return false;
+
+    // Decrement multi (C: moveloop_core line 528)
+    if (game.multi < COLNO && !--game.multi) {
+        end_running(true, game);
         return false;
     }
-    bumpHeroSeqN();
-    await advanceTimedTurn(game, coreOpts);
-    await _drainOccupation(game, coreOpts);
+
+    // Door and engraving stops (matching do_run lines 1599-1605)
+    const curLoc = _map?.at?.(_p.x, _p.y);
+    if (curLoc && IS_DOOR(curLoc.typ)) return false;
+    if (engr_at(_map, _p.x, _p.y)) return false;
+
+    // Step 4: vision + lookaround (matching do_run lines 1609-1622)
+    vision_recalc();
+    const look = await lookaround(_map, _p, _fov, runDir, 'run', _display, game);
+    if (look?.stopReason) return false;
+
+    // Update display during run
+    _display.renderMap(_map, _p, _fov);
+    _display.renderStatus(_p);
+
     return true;
 }
 
@@ -1211,12 +1226,16 @@ async function regen_hp(game) {
     const player = (game.u || game.u);
     const wtcap = near_capacity(player);
     const encumbrance_ok = (wtcap < MOD_ENCUMBER || !player.umoved);
-    // C ref: U_CAN_REGEN() macro; Sleepy/asleep refinement can be added later.
-    const can_regen = !!player.regeneration;
+    // C ref: allmain.c:622 U_CAN_REGEN() = Regeneration || (Sleepy && u.usleep)
+    const sleepyRegen = !!(player.sleepy && player.usleep);
+    const can_regen = !!player.regeneration || sleepyRegen;
     let heal = 0;
     let reached_full = false;
     if (Upolyd(player)) {
-        if ((player.mh || 0) < (player.mhmax || 0)) {
+        if ((player.mh || 0) < 1) {
+            // C ref: allmain.c:633-634 — shouldn't happen; rehumanize
+            // rehumanize() not fully ported; skip for now
+        } else if ((player.mh || 0) < (player.mhmax || 0)) {
             const moves = Number.isFinite(game.turnCount) ? game.turnCount : 0;
             if (can_regen || (encumbrance_ok && !(moves % 20))) {
                 heal = 1;
@@ -1230,6 +1249,8 @@ async function regen_hp(game) {
     } else if ((player.uhp || 0) < (player.uhpmax || 0) && (encumbrance_ok || can_regen)) {
         heal = ((player.ulevel || 1) + acurr(player, A_CON)) > rn2(100) ? 1 : 0;
         if (can_regen) heal += 1;
+        // C ref: allmain.c:664-665 — extra heal when Sleepy and asleep
+        if (sleepyRegen) heal++;
         if (heal) {
             player.uhp = (player.uhp || 0) + heal;
             if ((player.uhp || 0) > (player.uhpmax || 0)) player.uhp = player.uhpmax || 0;
@@ -1262,7 +1283,7 @@ async function overexert_hp(game) {
 
 // C ref: allmain.c:598 — regen_pw(wtcap): regenerate power (mana) each turn
 // Fires every ((MAXULEV+8-ulevel) * (wizard?3:4) / 6) turns when unencumbered.
-function regen_pw_turnend(game) {
+async function regen_pw_turnend(game) {
     const player = (game.u || game.u);
     const moves = game.turnCount + 1; // svm.moves equivalent
     if (player.uen == null || player.uenmax == null) return; // pw not initialized
@@ -1279,6 +1300,10 @@ function regen_pw_turnend(game) {
             player.uen += rn1(upper, 1);
             if (player.uen > player.uenmax)
                 player.uen = player.uenmax;
+            // C ref: allmain.c:617-618 — interrupt multi when mana full
+            if (player.uen === player.uenmax) {
+                await interrupt_multi('You feel full of energy.', game);
+            }
         }
     }
 }
@@ -1900,8 +1925,14 @@ export class NetHackGame {
         initRng(seed);
         setGameSeed(seed);
 
+        const sessionDatetime = (typeof urlOpts.datetime === 'string' && urlOpts.datetime.length === 14)
+            ? urlOpts.datetime
+            : yyyymmddhhmmss();
+        this.fixedDatetime = sessionDatetime;
+        setFixedDatetime(sessionDatetime);
+
         // Start keystroke recording for reproducibility
-        startRecording(seed, this.flags);
+        startRecording(seed, this.flags, sessionDatetime);
         this._emitRuntimeBindings();
 
         // C does not display a welcome banner before chargen; keep parity.
@@ -2699,8 +2730,11 @@ export class NetHackGame {
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
             this.renderAndAutosave({ commandResult, autosave: true });
+            // C ref: moveloop loops for: negative multi, occupation,
+            // AND positive-multi movement (run/travel continuation).
             if (!(this.context?.move && this.multi < 0 && !(this?.playerDied))
-                && !(this.multi >= 0 && this.occupation)) {
+                && !(this.multi >= 0 && this.occupation)
+                && !(this.multi > 0 && this.context?.mv && !(this?.playerDied))) {
                 return;
             }
         }

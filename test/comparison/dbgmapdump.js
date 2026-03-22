@@ -189,7 +189,8 @@ function flattenContext(prefix, value, out, maxStringLen = 80, seen = new Set(),
         out.push([key, encodeContextValue(value, maxStringLen)]);
         return;
     }
-    const ref = stableRefObject(value);
+    const allowStableRef = key !== 'victual';
+    const ref = allowStableRef ? stableRefObject(value) : null;
     if (ref) {
         out.push([key, encodeContextValue(JSON.stringify(ref), maxStringLen)]);
         return;
@@ -232,6 +233,7 @@ function encodeContextSection(contextObj, maxStringLen = 80) {
 function buildJsContextSnapshot(game) {
     const ctx = game?.svc?.context || game?.context || {};
     const g = game || {};
+    const victual = ctx.victual || {};
     return {
         ident: Number(ctx.ident) || 0,
         no_of_wizards: Number(ctx.no_of_wizards) || 0,
@@ -264,7 +266,17 @@ function buildJsContextSnapshot(game) {
         umoved: !!(g?.u || g?.player)?.umoved,
         jingle: encodeContextValue(ctx.jingle, 48),
         digging: ctx.digging || {},
-        victual: ctx.victual || {},
+        victual: {
+            piece_o_id: Number(victual?.piece?.o_id) || 0,
+            o_id: Number(victual.o_id) || 0,
+            usedtime: Number(victual.usedtime) || 0,
+            reqtime: Number(victual.reqtime) || 0,
+            nmod: Number(victual.nmod) || 0,
+            canchoke: !!victual.canchoke,
+            fullwarn: !!victual.fullwarn,
+            eating: !!victual.eating,
+            doreset: !!victual.doreset,
+        },
         engraving: ctx.engraving || {},
         tin: ctx.tin || {},
         spbook: ctx.spbook || {},
@@ -538,14 +550,17 @@ function buildCompactMapdumpFromCSnapshot(capture, sectionSet) {
             const y = m.y | 0;
             const mnum = m.mnum | 0;
             const mhp = m.mhp | 0;
-            const mtame = m.mtame | 0;
+            const movement = m.movement | 0;
+            const mflee = m.mflee ? 1 : 0;
+            const mfleetim = m.mfleetim | 0;
             const peaceful = m.mpeaceful ? 1 : 0;
-            const sleeping = m.msleeping ? 1 : 0;
             const canmove = m.mcanmove ? 1 : 0;
-            const apType = m.m_ap_type | 0;
-            const appearance = m.mappearance | 0;
+            const cansee = (m.mcansee ?? m.canseemon) ? 1 : 0;
+            const blinded = m.mblinded | 0;
+            const mux = m.mux | 0;
+            const muy = m.muy | 0;
             const minvcount = m.minvcount | 0;
-            return `${id},${x},${y},${mnum},${mhp},${mhp},${mtame},${peaceful},${sleeping},0,${canmove},0,${apType},${appearance},${minvcount}`;
+            return `${id},${x},${y},${mnum},${mhp},${movement},${mflee},${mfleetim},${peaceful},${canmove},${cansee},${blinded},${mux},${muy},${minvcount}`;
         }).sort();
         lines.push(`N${toSparse(rows)}`);
     }
@@ -661,6 +676,26 @@ function parsePhaseKeyCode(phase) {
     return m ? Number(m[1]) : null;
 }
 
+function classifyCapturePhase(expectedPhase, actualPhase) {
+    const expected = String(expectedPhase || '');
+    const actual = String(actualPhase || '');
+    const expectedKind = expected.startsWith('auto_step_')
+        ? 'auto_step'
+        : (expected.startsWith('auto_inp_') ? 'auto_inp' : 'other');
+    const actualKind = actual.startsWith('auto_step_')
+        ? 'auto_step'
+        : (actual.startsWith('auto_inp_') ? 'auto_inp' : 'other');
+    const promptLike = expectedKind === 'auto_step' && actualKind === 'auto_inp';
+    return {
+        expectedKind,
+        actualKind,
+        promptLike,
+        reason: promptLike
+            ? 'no post-step auto_step boundary before next input'
+            : 'checkpoint phase mismatch',
+    };
+}
+
 function sessionStepKeyCode(sessionStepObj) {
     const key = sessionStepObj?.key;
     if (typeof key !== 'string' || key.length === 0) return null;
@@ -718,6 +753,24 @@ function runCStepCapture(sessionPath, stepIndex, outJson, fixedDatetime = null, 
         const msg = (res.stderr || res.stdout || '').trim();
         throw new Error(`C snapshot failed at step index ${stepIndex}: ${msg}`);
     }
+}
+
+function buildManualDirectCaptureSession(rawSession, replayArgs) {
+    const initChar = replayArgs?.opts?.initOpts?.character || null;
+    if (rawSession?.regen?.mode !== 'manual-direct-live' || !initChar) {
+        return rawSession;
+    }
+    return {
+        ...rawSession,
+        options: {
+            ...(rawSession.options || {}),
+            name: initChar.name ?? rawSession.options?.name ?? null,
+            role: initChar.role ?? rawSession.options?.role ?? null,
+            race: initChar.race ?? rawSession.options?.race ?? null,
+            gender: initChar.gender ?? rawSession.options?.gender ?? null,
+            align: initChar.align ?? rawSession.options?.align ?? null,
+        },
+    };
 }
 
 function sessionHasTestMove(rawSession) {
@@ -825,6 +878,14 @@ async function main() {
     const cDir = join(outDir, 'c');
     mkdirSync(jsDir, { recursive: true });
     if (args.cSide) mkdirSync(cDir, { recursive: true });
+    const replayKeysPath = join(outDir, 'replay_keys.json');
+    writeFileSync(replayKeysPath, JSON.stringify(Array.from(replayArgs.keys || ''), null, 2) + '\n', 'utf8');
+    const captureSessionPath = join(outDir, 'capture_session.json');
+    writeFileSync(
+        captureSessionPath,
+        JSON.stringify(buildManualDirectCaptureSession(session.raw, replayArgs), null, 2) + '\n',
+        'utf8'
+    );
 
     const stepToRawEnd = buildStepToRawEnd(replayArgs.stepBoundaries);
     const rawTargets = new Map();
@@ -944,10 +1005,13 @@ async function main() {
     if (args.cSide) {
         for (const c of captures) {
             const outJson = join(cDir, `step${String(c.sessionStep).padStart(4, '0')}.snapshot.json`);
-            // capture_step_snapshot.py uses extract_keys which returns all keys
-            // from step 1 onward. step_index is 0-based: session step N = keys[N-1].
+            // Use the exact normalized replay key stream that JS replaySession used.
+            // This keeps manual-direct sessions aligned: prepareReplayArgs() folds
+            // chargen/startup keys out of gameplay, while raw C extract_keys()
+            // otherwise replays the unnormalized session key stream.
+            // step_index remains 0-based within the normalized gameplay-step view.
             const cRequestedStep = c.sessionStep - 1;
-            runCStepCapture(sessionPath, cRequestedStep, outJson, fixedDatetime);
+            runCStepCapture(captureSessionPath, cRequestedStep, outJson, fixedDatetime, replayKeysPath);
             const capture = JSON.parse(readFileSync(outJson, 'utf8'));
             c.cSnapshotPath = outJson;
             c.cRequestedStep = cRequestedStep;
@@ -959,9 +1023,10 @@ async function main() {
                 && Number.isInteger(c.cExpectedKeyCode)
                 && c.cPhaseKeyCode !== c.cExpectedKeyCode;
             if (!c.cCheckpointMatchedPhase) {
+                c.cCapturePhaseInfo = classifyCapturePhase(capture?.phaseTag, c.cCheckpointPhase);
                 // Avoid comparing stale checkpoints (typically startup after_map)
                 // when #dumpsnap failed to run at the requested replay phase.
-                c.cCaptureError = `phase-mismatch expected=${capture?.phaseTag || 'n/a'} got=${c.cCheckpointPhase || 'none'}`;
+                c.cCaptureError = `${c.cCapturePhaseInfo.reason} expected=${capture?.phaseTag || 'n/a'} got=${c.cCheckpointPhase || 'none'}`;
                 continue;
             }
             const cPayloadFull = buildCompactMapdumpFromCSnapshot(capture, sectionSet);
@@ -1068,6 +1133,9 @@ async function main() {
         for (const c of captures) {
             if (c.cCaptureError) {
                 console.log(`  step ${c.sessionStep}: C capture unavailable (${c.cCaptureError})`);
+                if (c.cCapturePhaseInfo?.promptLike) {
+                    console.log(`    note: step ${c.sessionStep} appears prompt-owned or intra-command on the C side`);
+                }
                 continue;
             }
             if (c.cPhaseKeyMismatch) {

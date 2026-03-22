@@ -1665,8 +1665,9 @@ export function delallobj(x, y, map) {
 
 // C ref: invent.c delobj() — delete a single object
 // Autotranslated from invent.c:1429
-export function delobj(obj) {
-  delobj_core(obj, false);
+export function delobj(obj, map = null, force = false) {
+  const mapRef = map || _gstate?.lev || _gstate?.map || null;
+  delobj_core(obj, mapRef, force);
 }
 
 // C ref: invent.c delobj_core() — core object deletion

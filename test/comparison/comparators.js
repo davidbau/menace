@@ -207,7 +207,8 @@ export function compareRng(jsRng = [], expectedRng = [], options = {}) {
     let firstDivergence = null;
 
     for (let i = 0; i < total; i++) {
-        if (actual[i] === expected[i]) {
+        // Guard against undefined === undefined matching when arrays differ in length
+        if (i < actual.length && i < expected.length && actual[i] === expected[i]) {
             matched++;
             continue;
         }
@@ -228,14 +229,11 @@ export function compareRng(jsRng = [], expectedRng = [], options = {}) {
         }
     }
 
-    // When one side has extra entries beyond the other's length but all of the
-    // shorter side's entries match, report matched=total. The extra entries
-    // come from the post-last-key monster turn: JS may process it (JS extras)
-    // or C may record it (C extras), depending on replay boundary timing.
-    const allExpectedMatched = matched === expected.length && actual.length > expected.length;
-    const allActualMatched = matched === actual.length && expected.length > actual.length;
-    const trailingOnly = allExpectedMatched || allActualMatched;
-    const effectiveMatched = trailingOnly ? total : matched;
+    // Symmetric trailing tolerance: when JS has a few MORE entries than C
+    // (extra monster turn at end), treat as full match. But when JS has FEWER
+    // entries than C, that's a real gameplay gap — do NOT mask it.
+    const jsHasTrailingExtras = matched === expected.length && actual.length > expected.length;
+    const effectiveMatched = jsHasTrailingExtras ? total : matched;
 
     return {
         matched: effectiveMatched,
@@ -243,7 +241,7 @@ export function compareRng(jsRng = [], expectedRng = [], options = {}) {
         index: firstDivergence ? firstDivergence.index : -1,
         js: firstDivergence ? firstDivergence.js : null,
         session: firstDivergence ? firstDivergence.session : null,
-        firstDivergence: trailingOnly ? null : firstDivergence,
+        firstDivergence: jsHasTrailingExtras ? null : firstDivergence,
     };
 }
 
@@ -573,12 +571,16 @@ export function isIgnorableEventEntry(entry) {
     //   events consume no RNG and are unreliable for cross-implementation parity.
     // `repaint[...]` is a diagnostic-only midlevel display channel; compare it
     //   separately without polluting gameplay event parity.
+    // `moveamt[...]` is hero movement/encumbrance diagnostic — C sessions
+    //   recorded before the ^moveamt patch don't have it. Compare separately
+    //   once C is recompiled with the event.
     return typeof entry === 'string'
         && (entry.startsWith('^trick[') || entry.startsWith('^mapdump[')
             || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_')
             || entry.startsWith('^runstep[')
             || entry.startsWith('^place[') || entry.startsWith('^remove[')
-            || entry.startsWith('^repaint[') || entry.startsWith('^more['));
+            || entry.startsWith('^repaint[') || entry.startsWith('^more[')
+            || entry.startsWith('^moveamt['));
 }
 
 function isTestMoveEvent(entry) {

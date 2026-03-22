@@ -40,7 +40,7 @@ import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, n
 import { x_monnam, y_monnam, YMonnam, Monnam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
+import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
@@ -1072,9 +1072,11 @@ export async function domove_core(dir, player, map, display, game) {
             && !player.fumbling);
 
         if (!canAutoOpen) {
-            // C ref: hack.c test_move() — when running, stop silently without message.
-            // "That door is closed." is only shown for non-running orthogonal movement.
-            if (!ctx.run && (nx === player.x || ny === player.y)) {
+            // C ref: hack.c test_move() lines 1093-1113 — "That door is closed."
+            // is shown for orthogonal movement regardless of running state.
+            // When running, the run is stopped (nomul(0) for bump case,
+            // or caller stops on test_move returning false).
+            if (nx === player.x || ny === player.y) {
                 if (player.blind || player.stunned || acurr(player, A_DEX) < 10 || player.fumbling) {
                     await display.putstr_message("Ouch!  You bump into a door.");
                     await exercise(player, A_DEX, false);
@@ -2481,12 +2483,15 @@ export function inv_weight(player) {
     let wt = 0;
     let hasCoinObject = false;
     const inv = player.inventory || [];
+    // C ref: hack.c inv_weight() — boulders don't count for throws_rocks() forms
+    const heroData = hero_data(player);
+    const canThrowRocks = !!(heroData && throws_rocks(heroData));
     for (const obj of inv) {
         if (!obj) continue;
         if (obj.oclass === COIN_CLASS) {
             hasCoinObject = true;
             wt += Math.floor(((obj.quan || 0) + 50) / 100);
-        } else {
+        } else if (obj.otyp !== BOULDER || !canThrowRocks) {
             wt += obj.owt || 0;
         }
     }
@@ -2635,7 +2640,11 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
             if (mode !== TEST_TRAV && mode !== TEST_TRAP) return testMoveResult(false);
         }
         // Diagonal into intact doorway
-        if (dx && dy && !doorless_door(x, y, map)) {
+        // C ref: hack.c:1121-1131 — !Passes_walls guard + block_door() check
+        const heroData = player?.data || player?.type || null;
+        const playerPassesWalls = !!(heroData && passes_walls(heroData));
+        if (dx && dy && !playerPassesWalls
+            && (!doorless_door(x, y, map) || await block_door(x, y, map, player))) {
             if (mode === DO_MOVE) {
                 if (flags.mention_walls) {
                     if (display) await display.putstr_message("You can't move diagonally into an intact doorway.");
@@ -2681,9 +2690,12 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
     if (mode === TEST_TRAP) return testMoveResult(false);
 
     // Diagonal out of intact doorway
+    // C ref: hack.c:1189-1195 — !Passes_walls guard + block_entry() check
     const fromLoc = map.at(ux, uy);
-    if (dx && dy && fromLoc && IS_DOOR(fromLoc.typ)
-        && !doorless_door(ux, uy, map)) {
+    const heroData2 = player?.data || player?.type || null;
+    const passesWalls2 = !!(heroData2 && passes_walls(heroData2));
+    if (dx && dy && !passesWalls2 && fromLoc && IS_DOOR(fromLoc.typ)
+        && (!doorless_door(ux, uy, map) || await block_entry(x, y, map, player))) {
         if (mode === DO_MOVE && flags.mention_walls) {
             if (display) await display.putstr_message("You can't move diagonally out of an intact doorway.");
         }

@@ -899,12 +899,28 @@ describe('Flags (localStorage)', () => {
         }
     });
 
+    it('getUrlParams parses fixed datetime control param', () => {
+        const prevWindow = globalThis.window;
+        globalThis.window = {
+            location: {
+                search: '?seed=42&datetime=20000110090000',
+            },
+        };
+        try {
+            const url = getUrlParams();
+            assert.equal(url.seed, 42);
+            assert.equal(url.datetime, '20000110090000');
+        } finally {
+            globalThis.window = prevWindow;
+        }
+    });
+
     it('clearGameUrlParams removes game-related params but keeps unrelated ones', () => {
         const prevWindow = globalThis.window;
         const replaced = [];
         globalThis.window = {
             location: {
-                href: 'https://example.test/?NETHACKOPTIONS=name:Blue,!pickup&name=Mindy&pickup=1&wizard=1&seed=42&foo=bar#frag',
+                href: 'https://example.test/?NETHACKOPTIONS=name:Blue,!pickup&name=Mindy&pickup=1&wizard=1&seed=42&datetime=20000110090000&foo=bar#frag',
             },
             history: {
                 replaceState: (_s, _t, next) => replaced.push(next),

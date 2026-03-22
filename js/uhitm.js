@@ -6,7 +6,7 @@ import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, adjalign } from './attrib.js';
 import { corpse_chance, mon_to_stone } from './mon.js';
-import { munstone, munslime } from './muse.js';
+import { munstone, munslime, MON_WEP } from './muse.js';
 import { grow_up, runtimeApplyNewchamDirect, set_malign } from './makemon.js';
 import { m_move } from './monmove.js';
 import {
@@ -70,7 +70,7 @@ import { envFlag, getEnv } from './runtime_env.js';
 import { applyMonflee, erode_armor_on_player } from './mhitu.js';
 import { fall_asleep } from './timeout.js';
 import { killed, mondead, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
-import { newsym, canspotmon, map_invisible } from './display.js';
+import { newsym, canspotmon, map_invisible, canseemon } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
 import { possibly_unwield } from './weapon.js';
@@ -1001,7 +1001,12 @@ function steal_it(mdef, mattk) {
 // m-vs-m branch: uhitm.c:4106-4177
 export function mhitm_ad_phys(magr, mattk, mdef, mhm) {
     const pd = mdef.data || mdef.type || {};
-    if (mattk.aatyp === AT_KICK && thick_skinned(pd)) {
+    // C ref: uhitm.c:4111-4115 — shade_miss for m-vs-m physical damage
+    const mwep = (mattk.aatyp === AT_WEAP || mattk.aatyp === AT_CLAW)
+        ? MON_WEP(magr) : null;
+    if (shade_miss(magr, mdef, mwep, false, canseemon(mdef))) {
+        mhm.damage = 0;
+    } else if (mattk.aatyp === AT_KICK && thick_skinned(pd)) {
         mhm.damage = 0;
     }
     // C ref: uhitm.c:4065 — exercise A_STR when being crushed (AT_HUGS)
@@ -2370,7 +2375,8 @@ export async function handleMonsterKilled(player, monster, display, map) {
     // C ref: mon.c LEVEL_SPECIFIC_NOCORPSE() + xkilled() gate.
     // This pre-check suppresses both treasure drops and corpse creation.
     const isRogueLevel = !!map?.flags?.is_rogue_level;
-    const deathdropsDisabled = map?.flags?.deathdrops === false;
+    // C ref: !svl.level.flags.deathdrops — falsy check (0 or false, not undefined)
+    const deathdropsDisabled = (map?.flags?.deathdrops != null && !map.flags.deathdrops);
     let graveyardUndeadNoCorpse = false;
     if (!isRogueLevel && !deathdropsDisabled && map?.flags?.graveyard && is_undead(mdat)) {
         // C macro term: (graveyard && is_undead(mdat) && rn2(3))

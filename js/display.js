@@ -337,6 +337,11 @@ export class Display {
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
         this.messageCursorRow = 0;
+        // C ref: gt.toplines — shared buffer tracking row-0 content including
+        // getlin/getobj prompts. Persists across key reads (unlike messageNeedsMore
+        // which is cleared by nhgetch_raw). Used for overflow length checks.
+        this.toplines = '';
+        this.noConcatenateMessages = false;
 
         // Game flags (updated by game, used for display options)
         this.flags = {};
@@ -459,6 +464,8 @@ span.nh-cursor {
         for (let c = 0; c < this.cols; c++) {
             this.setCell(c, row, ' ', CLR_GRAY);
         }
+        // C ref: clearing row 0 clears the toplines buffer
+        if (row === 0) this.toplines = '';
     }
 
     // Write a string at position (col, row) with optional attributes
@@ -541,8 +548,14 @@ span.nh-cursor {
 
         // C ref: win/tty/topl.c:262-267 — Concatenate messages if they fit.
         // C reserves space for " --More--" (9 chars) when deciding whether to concatenate.
-        if (this.topMessage && this.messageNeedsMore) {
-            const combined = this.topMessage + '  ' + msg;
+        // C uses gt.toplines (shared buffer) for the length check, which includes
+        // getlin/getobj prompt text even after nhgetch clears toplin state.
+        const toplinesRef = (this.topMessage && this.messageNeedsMore)
+            ? this.topMessage
+            : (this.toplines || '');
+        if (!this.noConcatenateMessages && toplinesRef.length > 0
+            && (this.messageNeedsMore || this.toplines.length > 0)) {
+            const combined = toplinesRef + '  ' + msg;
             // C ref: win/tty/topl.c update_topl() uses strict '<' for fit check.
             if (combined.length + 9 < this.cols) {
                 this.clearRow(MESSAGE_ROW);
@@ -714,23 +727,14 @@ span.nh-cursor {
     // Render message window (last 3 messages)
     // C ref: win/tty/topl.c prevmsg_window == 'f' (full)
     renderMessageWindow() {
-        const MSG_WINDOW_ROWS = 3;
-        // Clear message window area
-        for (let r = 0; r < MSG_WINDOW_ROWS; r++) {
-            this.clearRow(r);
-        }
+        // C ref: tty docrt() after menu close — clear row 0 and show current
+        // topMessage only.  Historical messages are NOT re-shown; the map
+        // redraws clean except for whatever message is currently pending.
+        // Rows 1-2 are map rows in C tty, not a multi-line message buffer.
+        this.clearRow(0);
 
-        // Show last 3 messages (most recent at bottom)
-        const recentMessages = this.messages.slice(-MSG_WINDOW_ROWS);
-        for (let i = 0; i < recentMessages.length; i++) {
-            const msg = recentMessages[i];
-            const row = MSG_WINDOW_ROWS - recentMessages.length + i;
-            if (msg.length <= this.cols) {
-                this.putstr(0, row, msg.substring(0, this.cols), CLR_GRAY);
-            } else {
-                // Truncate long messages
-                this.putstr(0, row, msg.substring(0, this.cols - 3) + '...', CLR_GRAY);
-            }
+        if (this.topMessage) {
+            this.putstr(0, 0, this.topMessage.substring(0, this.cols), CLR_GRAY);
         }
     }
 

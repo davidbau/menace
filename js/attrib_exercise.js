@@ -75,7 +75,8 @@ export async function exercise(player, attr, increase) {
         player.aexercise[attr] = cur - rn2(2);
     }
     // C ref: attrib.c:513-514 — encumber_msg after STR/CON exercise
-    if (attr === A_STR || attr === A_CON) {
+    // C checks svm.moves > 0 to skip during initialization
+    if ((_gstate?.moves || 0) > 0 && (attr === A_STR || attr === A_CON)) {
         await encumber_msg(player);
     }
 }

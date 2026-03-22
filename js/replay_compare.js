@@ -11,6 +11,7 @@ import { mon_arrive } from './dog.js';
 import { Player, roles } from './player.js';
 import { RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from './const.js';
 import { initrack } from './monmove.js';
+import { parseNethackrcFull } from './storage.js';
 
 // ---------------------------------------------------------------------------
 // Screen normalization
@@ -349,6 +350,31 @@ export function hasStartupBurstInFirstStep(session) {
 
 // Build (seed, opts, keys) args for replaySession from a session object.
 export function prepareReplayArgs(seed, session, opts = {}) {
+    // V4 support: if session has nethackrc but no options dict at all,
+    // derive options from the nethackrc. When options exists (even sparse),
+    // trust it — sessions like manual-direct-live intentionally have sparse
+    // options and adding fields from nethackrc would change replay behavior.
+    if (session.nethackrc && !session.options && !session._v4OptionsApplied) {
+        const { character, flags, wizard } = parseNethackrcFull(session.nethackrc);
+        session.options = {};
+        if (character.name) session.options.name = character.name;
+        if (character.role) session.options.role = character.role;
+        if (character.race) session.options.race = character.race;
+        if (character.gender) session.options.gender = character.gender;
+        if (character.align) session.options.align = character.align;
+        if (wizard) session.options.wizard = true;
+        if (flags.pickup === false) session.options.autopickup = false;
+        if (flags.verbose === false) session.options.verbose = false;
+        if (flags.tutorial === false) session.options.tutorial = false;
+        if (flags.DECgraphics) session.options.symset = 'DECgraphics';
+        if (flags.time === true) session.options.time = true;
+        if (flags.color === false) session.options.color = false;
+        if (flags.rest_on_space) session.options.rest_on_space = true;
+        if (session.env?.NETHACK_FIXED_DATETIME) {
+            session.options.datetime = session.env.NETHACK_FIXED_DATETIME;
+        }
+        session._v4OptionsApplied = true;
+    }
     const chargenKeys = getChargenKeys(session);
     const sessionChar = parseSessionCharacter(session);
     const tutorialFlag = typeof opts.tutorial === 'boolean'

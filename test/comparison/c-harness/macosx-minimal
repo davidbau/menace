@@ -10,7 +10,10 @@ SHELLDIR=$(PREFIX)/games
 INSTDIR=$(HACKDIR)
 VARDIR=$(HACKDIR)
 
-CFLAGS=-g -I../include -DNOTPARMDECL
+# NO_TIMED_DELAY: suppress macOS auto-enable of TIMED_DELAY in unixconf.h.
+# timed_delay is irrelevant for HTML (we use JS timers) and its presence
+# in the options menu breaks session parity with Linux builds.
+CFLAGS=-g -I../include -DNOTPARMDECL -DNO_TIMED_DELAY
 
 # when building liblua.a, avoid warning that use of tmpnam() should be
 # replaced by mkstemp(); the lua code doesn't use nethack's config.h so

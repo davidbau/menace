@@ -547,7 +547,6 @@ export function ini_inv(player, table) {
         // C ref: u_init.c ini_inv_adjust_obj()
         if (trop.oclass === COIN_CLASS) {
             obj.quan = player.umoney0 || 0;
-            obj.owt = weight(obj);
         } else {
             // C ref: u_init.c ini_inv_adjust_obj() + mkobj.c mksobj_init() interplay:
             // startup inventory ends up with obj->known=1 for non-coin items.
@@ -604,7 +603,12 @@ export function ini_inv(player, table) {
                 obj.oerodeproof = true;
                 obj.rknown = true;
             }
+
         }
+
+        // C ref: u_init.c:1244 — recalculate owt after all adjustments
+        // (quan, spe, bless, etc.) but before addinv
+        obj.owt = weight(obj);
 
         // Add to player inventory
         player.addToInventory(obj);

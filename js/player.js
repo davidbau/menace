@@ -7,7 +7,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          FEMALE, MALE,
          CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES, SICK, FAST,
          TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE,
-         DEAF, INVIS, SEE_INVIS, TELEPAT, STEALTH, REGENERATION,
+         DEAF, INVIS, SEE_INVIS, TELEPAT, STEALTH, REGENERATION, SEARCHING,
          TELEPORT, TELEPORT_CONTROL, PROTECTION, FUMBLING,
          SLEEP_RES, ANTIMAGIC, LEVITATION, FLYING,
          HALF_PHDAM, HALF_SPDAM, CONFLICT,
@@ -550,11 +550,33 @@ export class Player {
         }
     }
 
+    // C ref: youprop.h — Fast = HFast || EFast
+    get fast() {
+        const entry = this.uprops[FAST];
+        if (!entry) return 0;
+        return entry.intrinsic || entry.extrinsic || 0;
+    }
+
     // C ref: youprop.h — Very_fast = (HFast & ~INTRINSIC) || EFast
     get veryFast() {
         const entry = this.uprops[FAST];
         if (!entry) return 0;
         return (entry.intrinsic & ~INTRINSIC) || entry.extrinsic || 0;
+    }
+
+    // C ref: youprop.h — Searching = HSearching || ESearching
+    get searching() {
+        const entry = this.uprops[SEARCHING];
+        if (!entry) return 0;
+        return entry.intrinsic || entry.extrinsic || 0;
+    }
+    set searching(val) {
+        const entry = this.ensureUProp(SEARCHING);
+        if (val === true) {
+            entry.intrinsic = entry.intrinsic | INTRINSIC;
+        } else if (val === false || val === 0) {
+            entry.intrinsic = 0;
+        }
     }
 
     // --- C macro aliases (youprop.h) ---

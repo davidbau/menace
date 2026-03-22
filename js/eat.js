@@ -1290,6 +1290,7 @@ async function eatcorpse(player, otmp) {
         const punct = (yummy || !palatable) ? '!' : '.';
         const prefix = type_is_pname(mons[mnum]) ? '' : 'This ';
         await pline(`${prefix}${foodword(otmp)} ${verb} ${tasteWord}${punct}`);
+        return { retcode, reqtime };
     }
 
     return { retcode, reqtime };
@@ -1863,7 +1864,9 @@ async function handleEat(player, display, game) {
     // cf. eat.c floorfood() (partial) — if edible food is at hero square,
     // ask before opening inventory selector.
     if (floorFoods.length > 0) {
-        const floorItem = floorFoods[0];
+        // C floor chains are newest-first; JS objectsAt() yields oldest-first.
+        // Match floorfood() by prompting for the top/newest floor comestible.
+        const floorItem = floorFoods[floorFoods.length - 1];
         const floorDescribed = doname(floorItem, null);
         const floorName = floorDescribed.replace(/^(?:an?|the)\s+/i, '');
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
@@ -2312,7 +2315,7 @@ export function leather_cover(otmp) {
 // Autotranslated from eat.c:518
 export async function eatfood(game, player) {
   let food = game.svc.context.victual.piece;
-  if (food && !carried(food) && !obj_here(food, player.x, player.y)) food = 0;
+  if (food && !carried(food) && !obj_here(food, player.x, player.y, game?.map)) food = 0;
   if (!food) { await do_reset_eat(); return 0; }
   if (!game.svc.context.victual.eating) return 0;
   if (++game.svc.context.victual.usedtime <= game.svc.context.victual.reqtime) {

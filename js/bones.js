@@ -32,6 +32,7 @@ import {
     saveLev, restLev, saveObjChn,
     saveBones, loadBones, deleteBones,
 } from './storage.js';
+import { depth } from './dungeon.js';
 
 // ========================================================================
 // can_make_bones — C ref: bones.c can_make_bones()
@@ -40,12 +41,16 @@ import {
 // Check if bones can be saved at this depth.
 // C ref: bones.c:61 — depth check + rn2(1+(depth>>2)) ghost probability
 export function can_make_bones(game) {
-    const depth = (game.u || game.u).dungeonLevel;
-    // C ref: bones.c:70 — can't make bones on level 1
-    if (depth <= 1) return false;
-    // C ref: bones.c:88 — ghost probability: rn2(1 + (depth >> 2))
-    // Returns true if ghost should appear (0 = yes)
-    if (rn2(1 + (depth >> 2)) !== 0) return false;
+    const player = (game.u || game.u);
+    const level = player?.uz || game?.map?.uz || null;
+    const currentDepth = level ? Number(depth(level)) : Number(player?.dungeonLevel || 0);
+    if (game?.flags?.bones === false) return false;
+    if (currentDepth <= 1) return false;
+    if (player?.uswallow) return false;
+    // C ref: bones.c:375-378 — low-depth probability gate. A zero roll means
+    // no bones this time unless in wizard mode.
+    if (!game?.wizard && rn2(1 + (currentDepth >> 2)) === 0) return false;
+    if (game?.discover) return false;
     return true;
 }
 
