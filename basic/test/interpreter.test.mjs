@@ -439,4 +439,157 @@ describe('BASIC interpreter', () => {
     const vals = output.join('').trim().split(/\s+/).map(Number);
     assert.deepStrictEqual(vals, [1, 1, 1]);
   });
+
+  // ---- HISTORY.md examples ----
+  // Every code example in the About page should run without error.
+
+  test('HISTORY: hello world', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 PRINT "HELLO, WORLD!"');
+    await interp.execImmediate('RUN');
+    assert.strictEqual(output.join(''), 'HELLO, WORLD!\n');
+  });
+
+  test('HISTORY: input and greet', async () => {
+    const { interp, output, inputQueue } = makeInterp();
+    inputQueue.push('ALICE');
+    await interp.execImmediate('10 INPUT "WHAT IS YOUR NAME"; N$');
+    await interp.execImmediate('20 PRINT "HELLO, "; N$; "!"');
+    await interp.execImmediate('RUN');
+    const text = output.join('');
+    assert.ok(text.includes('HELLO,'));
+    assert.ok(text.includes('ALICE'));
+  });
+
+  test('HISTORY: FOR loop squares', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 FOR I = 1 TO 10');
+    await interp.execImmediate('20 PRINT I * I');
+    await interp.execImmediate('30 NEXT I');
+    await interp.execImmediate('RUN');
+    const nums = output.join('').trim().split(/\s+/).map(Number);
+    assert.deepStrictEqual(nums, [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]);
+  });
+
+  test('HISTORY: countdown with STEP', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 FOR I = 10 TO 1 STEP -1');
+    await interp.execImmediate('20 PRINT I');
+    await interp.execImmediate('30 NEXT I');
+    await interp.execImmediate('40 PRINT "BLASTOFF!"');
+    await interp.execImmediate('RUN');
+    const text = output.join('');
+    assert.ok(text.includes('10'));
+    assert.ok(text.includes('1'));
+    assert.ok(text.includes('BLASTOFF!'));
+  });
+
+  test('HISTORY: IF THEN with backslash', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 G = 7');
+    await interp.execImmediate('20 IF G = 7 THEN PRINT "YOU GOT IT!" \\ GOTO 50');
+    await interp.execImmediate('30 IF G < 7 THEN PRINT "TOO LOW"');
+    await interp.execImmediate('40 IF G > 7 THEN PRINT "TOO HIGH"');
+    await interp.execImmediate('50 END');
+    await interp.execImmediate('RUN');
+    assert.ok(output.join('').includes('YOU GOT IT!'));
+  });
+
+  test('HISTORY: GOSUB/RETURN', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 PRINT "MAIN PROGRAM"');
+    await interp.execImmediate('20 GOSUB 100');
+    await interp.execImmediate('30 PRINT "BACK IN MAIN"');
+    await interp.execImmediate('40 END');
+    await interp.execImmediate('100 PRINT "IN SUBROUTINE"');
+    await interp.execImmediate('110 RETURN');
+    await interp.execImmediate('RUN');
+    const text = output.join('');
+    assert.ok(text.includes('MAIN PROGRAM'));
+    assert.ok(text.includes('IN SUBROUTINE'));
+    assert.ok(text.includes('BACK IN MAIN'));
+  });
+
+  test('HISTORY: DATA/READ', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 FOR I = 1 TO 4');
+    await interp.execImmediate('20 READ N$');
+    await interp.execImmediate('30 PRINT N$');
+    await interp.execImmediate('40 NEXT I');
+    await interp.execImmediate('50 DATA "SPRING", "SUMMER", "FALL", "WINTER"');
+    await interp.execImmediate('RUN');
+    const text = output.join('');
+    assert.ok(text.includes('SPRING'));
+    assert.ok(text.includes('WINTER'));
+  });
+
+  test('HISTORY: PRINT USING PI', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 PRINT USING "THE ANSWER IS ##.##", PI');
+    await interp.execImmediate('RUN');
+    const text = output.join('');
+    assert.ok(text.includes('3.14'));
+  });
+
+  test('HISTORY: random maze one-liner (runs without error)', async () => {
+    const { interp, output } = makeInterp();
+    // Run just a few iterations, not infinite
+    await interp.execImmediate('10 FOR J = 1 TO 5');
+    await interp.execImmediate('20 PRINT CHR$(47 + INT(RND(1) * 2) * 45);');
+    await interp.execImmediate('30 NEXT J');
+    await interp.execImmediate('RUN');
+    const text = output.join('');
+    // Should contain / or \ characters
+    assert.ok(text.length >= 5);
+    for (const ch of text) {
+      assert.ok(ch === '/' || ch === '\\', `Expected / or \\, got ${ch}`);
+    }
+  });
+
+  test('HISTORY: DIM and MAT CON', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 DIM A(3,3)');
+    await interp.execImmediate('20 MAT A = CON');
+    await interp.execImmediate('30 MAT PRINT A');
+    await interp.execImmediate('RUN');
+    const text = output.join('').trim();
+    assert.ok(text.length > 0);
+    // All values should be 1
+    const nums = text.split(/\s+/).map(Number);
+    assert.ok(nums.every(n => n === 1));
+  });
+
+  test('HISTORY: SLEEP countdown', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 FOR I = 3 TO 1 STEP -1');
+    await interp.execImmediate('20 PRINT I; "..."');
+    await interp.execImmediate('30 SLEEP 0.01');  // fast for testing
+    await interp.execImmediate('40 NEXT I');
+    await interp.execImmediate('50 PRINT "GO!"');
+    await interp.execImmediate('RUN');
+    const text = output.join('');
+    assert.ok(text.includes('3'));
+    assert.ok(text.includes('GO!'));
+  });
+
+  test('HISTORY: file I/O roundtrip', async () => {
+    const { interp, output } = makeInterp();
+    // Write
+    await interp.execImmediate('10 OPEN "TESTFILE" FOR OUTPUT AS #1');
+    await interp.execImmediate('20 PRINT #1, "HELLO"');
+    await interp.execImmediate('30 PRINT #1, 42');
+    await interp.execImmediate('40 CLOSE #1');
+    await interp.execImmediate('RUN');
+    // Read back
+    await interp.execImmediate('NEW');
+    await interp.execImmediate('10 OPEN "TESTFILE" FOR INPUT AS #1');
+    await interp.execImmediate('20 INPUT #1, A$');
+    await interp.execImmediate('30 INPUT #1, N');
+    await interp.execImmediate('40 CLOSE #1');
+    await interp.execImmediate('50 PRINT A$; " "; N');
+    await interp.execImmediate('RUN');
+    const text = output.join('');
+    assert.ok(text.includes('HELLO'));
+    assert.ok(text.includes('42'));
+  });
 });

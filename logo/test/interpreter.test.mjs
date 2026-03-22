@@ -361,4 +361,140 @@ describe('Logo interpreter', () => {
     assert.ok(text.includes('FORWARD'));
     assert.ok(text.includes('try:'));
   });
+
+  // ---- HISTORY.md examples ----
+  // Every code example in the About page should run without error.
+
+  test('HISTORY: FORWARD 50', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('FORWARD 50');
+    assert.deepStrictEqual(turtle.log[0], ['forward', 50]);
+  });
+
+  test('HISTORY: square', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('REPEAT 4 [FORWARD 50 RIGHT 90]');
+    assert.strictEqual(turtle.log.length, 8);
+  });
+
+  test('HISTORY: triangle', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('REPEAT 3 [FORWARD 80 RIGHT 120]');
+    assert.strictEqual(turtle.log.length, 6);
+  });
+
+  test('HISTORY: circle', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('REPEAT 36 [FORWARD 5 RIGHT 10]');
+    assert.strictEqual(turtle.log.length, 72);
+  });
+
+  test('HISTORY: star', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('REPEAT 5 [FORWARD 80 RIGHT 144]');
+    assert.strictEqual(turtle.log.length, 10);
+  });
+
+  test('HISTORY: starburst', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('REPEAT 36 [FORWARD 50 RIGHT 170]');
+    assert.strictEqual(turtle.log.length, 72);
+  });
+
+  test('HISTORY: define and use SQUARE procedure', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('TO SQUARE :SIZE');
+    interp.addDefinitionLine('REPEAT 4 [FORWARD :SIZE RIGHT 90]');
+    interp.addDefinitionLine('END');
+    await interp.run('SQUARE 50');
+    assert.strictEqual(turtle.log.length, 8);
+  });
+
+  test('HISTORY: SQUARE pattern', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('TO SQUARE :SIZE');
+    interp.addDefinitionLine('REPEAT 4 [FORWARD :SIZE RIGHT 90]');
+    interp.addDefinitionLine('END');
+    await interp.run('REPEAT 36 [SQUARE 50 RIGHT 10]');
+    assert.strictEqual(turtle.log.length, 36 * 9); // 36 * (8 FD/RT + 1 RT)
+  });
+
+  test('HISTORY: MAKE and FORWARD variable', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('MAKE "SIDE 60');
+    await interp.run('FORWARD :SIDE');
+    assert.deepStrictEqual(turtle.log[0], ['forward', 60]);
+  });
+
+  test('HISTORY: PRINT 3 + 4', async () => {
+    const { interp, output } = makeInterp();
+    await interp.run('PRINT 3 + 4');
+    assert.deepStrictEqual(output, ['7\n']);
+  });
+
+  test('HISTORY: PRINT :SIDE * 2', async () => {
+    const { interp, output } = makeInterp();
+    await interp.run('MAKE "SIDE 60');
+    await interp.run('PRINT :SIDE * 2');
+    assert.deepStrictEqual(output, ['120\n']);
+  });
+
+  test('HISTORY: SPIRAL procedure', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('TO SPIRAL :SIZE :ANGLE');
+    interp.addDefinitionLine('IF :SIZE > 100 [STOP]');
+    interp.addDefinitionLine('FORWARD :SIZE');
+    interp.addDefinitionLine('RIGHT :ANGLE');
+    interp.addDefinitionLine('SPIRAL :SIZE + 2 :ANGLE');
+    interp.addDefinitionLine('END');
+    await interp.run('SPIRAL 1 91');
+    assert.ok(turtle.log.length > 50); // should do many iterations
+  });
+
+  test('HISTORY: TREE procedure', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('TO TREE :SIZE');
+    interp.addDefinitionLine('IF :SIZE < 5 [STOP]');
+    interp.addDefinitionLine('FORWARD :SIZE');
+    interp.addDefinitionLine('LEFT 30');
+    interp.addDefinitionLine('TREE :SIZE * 0.7');
+    interp.addDefinitionLine('RIGHT 60');
+    interp.addDefinitionLine('TREE :SIZE * 0.7');
+    interp.addDefinitionLine('LEFT 30');
+    interp.addDefinitionLine('BACK :SIZE');
+    interp.addDefinitionLine('END');
+    await interp.run('TREE 50');
+    assert.ok(turtle.log.length > 20);
+  });
+
+  test('HISTORY: colorful squares', async () => {
+    const { interp, turtle } = makeInterp();
+    await interp.run('REPEAT 8 [SETPENCOLOR REPCOUNT REPEAT 4 [FORWARD 40 RIGHT 90] RIGHT 45]');
+    // 8 iterations * (SETPC + 4*(FD+RT) + RT) = 8 * 10 = 80
+    assert.ok(turtle.log.length >= 72);
+  });
+
+  test('HISTORY: PRINT FIRST [RED GREEN BLUE]', async () => {
+    const { interp, output } = makeInterp();
+    await interp.run('PRINT FIRST [RED GREEN BLUE]');
+    assert.deepStrictEqual(output, ['RED\n']);
+  });
+
+  test('HISTORY: PRINT BUTFIRST [RED GREEN BLUE]', async () => {
+    const { interp, output } = makeInterp();
+    await interp.run('PRINT BUTFIRST [RED GREEN BLUE]');
+    assert.deepStrictEqual(output, ['GREEN BLUE\n']);
+  });
+
+  test('HISTORY: PRINT COUNT [A B C D E]', async () => {
+    const { interp, output } = makeInterp();
+    await interp.run('PRINT COUNT [A B C D E]');
+    assert.deepStrictEqual(output, ['5\n']);
+  });
+
+  test('HISTORY: PRINT SENTENCE [HELLO] [WORLD]', async () => {
+    const { interp, output } = makeInterp();
+    await interp.run('PRINT SENTENCE [HELLO] [WORLD]');
+    assert.deepStrictEqual(output, ['HELLO WORLD\n']);
+  });
 });

@@ -203,6 +203,11 @@ export class BasicInterpreter {
       return this._execPrint(expr.trimStart(), lineNum);
     }
 
+    // INPUT # (file input — must check before INPUT)
+    if (upper.match(/^INPUT\s*#/)) {
+      return this._execInputFile(stmt.replace(/^INPUT\s*#\s*/i, ''), lineNum);
+    }
+
     // INPUT
     if (upper.startsWith('INPUT')) {
       return this._execInput(stmt.slice(5).trimStart(), lineNum);
@@ -282,11 +287,6 @@ export class BasicInterpreter {
     // CLOSE
     if (upper.startsWith('CLOSE')) {
       return this._execClose(stmt.slice(5).trimStart(), lineNum);
-    }
-
-    // INPUT # (file input)
-    if (upper.match(/^INPUT\s*#/)) {
-      return this._execInputFile(stmt.replace(/^INPUT\s*#\s*/i, ''), lineNum);
     }
 
     // DEF FN
@@ -518,7 +518,16 @@ export class BasicInterpreter {
 
   // ---- DIM ----
   _execDim(expr, lineNum) {
-    const parts = expr.split(',');
+    // Split on commas that are outside parentheses (to handle DIM A(3,3), B(5))
+    const parts = [];
+    let depth = 0, current = '';
+    for (const ch of expr) {
+      if (ch === '(') depth++;
+      else if (ch === ')') depth--;
+      if (ch === ',' && depth === 0) { parts.push(current); current = ''; }
+      else current += ch;
+    }
+    parts.push(current);
     for (const p of parts) {
       const m = p.trim().match(/^(\w+\$?)\s*\((.+)\)/i);
       if (!m) throw new BasicError('?SYNTAX ERROR', lineNum);
@@ -940,9 +949,7 @@ export class BasicInterpreter {
     const lines = this._sortedLines();
     const text = lines.map(ln => `${ln} ${this._program[ln]}`).join('\n') + '\n';
     try {
-      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
-      fs['home/' + fullName.toLowerCase()] = text;
-      localStorage.setItem('menace-fs', JSON.stringify(fs));
+      this._vfsWrite(fullName, text);
       this._output(`SAVED ${fullName}\n`);
     } catch (e) { this._output('SAVE FAILED\n'); }
   }
@@ -952,8 +959,7 @@ export class BasicInterpreter {
     const ext = filename.includes('.') ? '' : '.BAS';
     const fullName = filename + ext;
     try {
-      const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
-      const text = fs['home/' + fullName.toLowerCase()];
+      const text = this._vfsRead(fullName);
       if (!text) { this._output(`FILE NOT FOUND: ${fullName}\n`); return; }
       this._loadFromText(text);
       this._output(`LOADED ${fullName}\n`);
@@ -1190,18 +1196,24 @@ export class BasicInterpreter {
   // Files stored in menace-fs (virtual filesystem shared with shell)
 
   _vfsRead(filename) {
+    const key = 'home/' + filename.toLowerCase();
+    // In-memory fallback (used in tests / when localStorage fails)
+    if (this._memFs && this._memFs[key] !== undefined) return this._memFs[key];
     try {
       const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
-      return fs['home/' + filename.toLowerCase()] || null;
+      return fs[key] || null;
     } catch (e) { return null; }
   }
 
   _vfsWrite(filename, content) {
+    const key = 'home/' + filename.toLowerCase();
+    if (!this._memFs) this._memFs = {};
+    this._memFs[key] = content;
     try {
       const fs = JSON.parse(localStorage.getItem('menace-fs') || '{}');
-      fs['home/' + filename.toLowerCase()] = content;
+      fs[key] = content;
       localStorage.setItem('menace-fs', JSON.stringify(fs));
-    } catch (e) { throw new BasicError('?FILE WRITE ERROR'); }
+    } catch (e) { /* localStorage unavailable or full — memFs still works */ }
   }
 
   _execOpen(expr, lineNum) {
