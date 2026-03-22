@@ -3374,6 +3374,28 @@ hard-won wisdom:
   - `node --test test/unit/session_datetime.test.js test/unit/session_recorder_datetime.test.js`
   - `node scripts/test-unit-core.mjs --runInBand`
 
+### Browser keylogs now preserve deterministic datetime (2026-03-22)
+
+- Problem:
+  - The HTML/browser keylog path recorded `seed` plus a wall-clock metadata
+    timestamp, but replay only restored `seed` and option flags.
+  - That was insufficient for deterministic repro of time-sensitive behavior
+    such as `phase_of_the_moon()`, `friday_13th()`, and other `getnow()`
+    consumers.
+- Fix:
+  - `js/storage.js` now parses and clears `?datetime=YYYYMMDDhhmmss`
+  - `js/calendar.js` supports a browser-side fixed datetime override
+  - `js/allmain.js` freezes a per-session browser datetime at init and starts
+    keylog recording with it
+  - `js/keylog.js` records top-level `datetime` and restores it on replay
+- Result:
+  - browser-recorded keylogs now preserve both PRNG seed and deterministic
+    datetime
+  - wall-clock audit time remains available separately as
+    `metadata.recordedAt`
+- Validation:
+  - `node --test test/unit/storage.test.js test/unit/keylog_datetime.test.js`
+
 ### m_move parity: restore missing Tengu early-teleport branch (2026-03-06)
 
 - Root cause:

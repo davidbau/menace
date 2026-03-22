@@ -3,12 +3,14 @@
 // The resulting keylog JSON can replay the game identically in JS or drive C NetHack.
 
 import { DEFAULT_FLAGS } from './storage.js';
+import { getFixedDatetime, yyyymmddhhmmss } from './calendar.js';
 
 // --- Recording state ---
 let recording = false;
 let keys = [];
 let gameSeed = 0;
 let optionsDiff = {};
+let gameDatetime = null;
 
 // --- Replay state ---
 let replayMode = false;
@@ -27,9 +29,12 @@ function computeOptionsDiff(flags) {
 }
 
 // Start recording keystrokes for a new game
-export function startRecording(seed, flags) {
+export function startRecording(seed, flags, datetime = null) {
     gameSeed = seed;
     optionsDiff = computeOptionsDiff(flags);
+    gameDatetime = (typeof datetime === 'string' && datetime.length === 14)
+        ? datetime
+        : (getFixedDatetime() || yyyymmddhhmmss());
     keys = [];
     recording = true;
 }
@@ -46,10 +51,12 @@ export function getKeylog() {
     const keylog = {
         version: 1,
         seed: gameSeed,
+        datetime: gameDatetime,
         options: { ...optionsDiff },
         keys: [...keys],
         metadata: {
             date: new Date().toISOString(),
+            recordedAt: new Date().toISOString(),
             source: 'menace-js',
         },
     };
@@ -86,6 +93,9 @@ export function startReplay(data) {
         url.searchParams.delete(key);
     }
     url.searchParams.set('seed', data.seed);
+    if (typeof data.datetime === 'string' && /^\d{14}$/.test(data.datetime)) {
+        url.searchParams.set('datetime', data.datetime);
+    }
     if (data.options) {
         for (const [key, value] of Object.entries(data.options)) {
             url.searchParams.set(key, value);

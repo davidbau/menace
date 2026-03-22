@@ -70,7 +70,7 @@ import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { encumber_msg } from './pickup.js';
 import { nhimport, nhload, display_sync } from './origin_awaits.js';
-import { phase_of_the_moon, friday_13th, night } from './calendar.js';
+import { phase_of_the_moon, friday_13th, night, setFixedDatetime, yyyymmddhhmmss } from './calendar.js';
 import { change_luck, acurr } from './attrib.js';
 import { invault } from './vault.js';
 import { amulet } from './wizard.js';
@@ -1905,8 +1905,14 @@ export class NetHackGame {
         initRng(seed);
         setGameSeed(seed);
 
+        const sessionDatetime = (typeof urlOpts.datetime === 'string' && urlOpts.datetime.length === 14)
+            ? urlOpts.datetime
+            : yyyymmddhhmmss();
+        this.fixedDatetime = sessionDatetime;
+        setFixedDatetime(sessionDatetime);
+
         // Start keystroke recording for reproducibility
-        startRecording(seed, this.flags);
+        startRecording(seed, this.flags, sessionDatetime);
         this._emitRuntimeBindings();
 
         // C does not display a welcome banner before chargen; keep parity.

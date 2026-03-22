@@ -10,9 +10,23 @@
 
 import { getEnv } from './runtime_env.js';
 
+let browserFixedDatetime = null;
+
+export function setFixedDatetime(datetime) {
+    browserFixedDatetime = (typeof datetime === 'string' && datetime.length === 14)
+        ? datetime
+        : null;
+}
+
+export function getFixedDatetime() {
+    const fixed_dt = getEnv('NETHACK_FIXED_DATETIME');
+    if (fixed_dt) return fixed_dt;
+    return browserFixedDatetime;
+}
+
 // cf. calendar.c:32
 export function getnow() {
-    const fixed_dt = getEnv('NETHACK_FIXED_DATETIME');
+    const fixed_dt = getFixedDatetime();
     if (fixed_dt) {
         const parsed = time_from_yyyymmddhhmmss(fixed_dt);
         if (parsed !== 0) return parsed;

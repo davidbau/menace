@@ -1085,6 +1085,10 @@ function parseUrlConfig() {
             if (Number.isFinite(parsed)) control.seed = parsed;
             continue;
         }
+        if (keyLower === 'datetime') {
+            if (/^\d{14}$/.test(value)) control.datetime = value;
+            continue;
+        }
         if (keyLower === 'role') {
             control.role = value;
             continue;
@@ -1110,6 +1114,7 @@ export function clearGameUrlParams() {
             || keyLower === 'wizard'
             || keyLower === 'reset'
             || keyLower === 'seed'
+            || keyLower === 'datetime'
             || keyLower === 'role'
             || normalizeOptionKey(rawKey)) {
             url.searchParams.delete(rawKey);
@@ -1125,6 +1130,7 @@ export function getUrlParams() {
     return {
         wizard: control.wizard || false,
         seed: Number.isFinite(control.seed) ? control.seed : null,
+        datetime: control.datetime || null,
         role: control.role || null,
         reset: control.reset || false,
     };
