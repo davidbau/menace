@@ -2679,14 +2679,12 @@ function is_soko_prize(obj) { return false; }
 
 // Autotranslated from monmove.c:424
 export function gelcube_digests(mtmp) {
-  let otmp = mtmp.minvent;
-  if (mtmp.meating || !mtmp.minvent) return -1;
-  while (otmp) {
-    if (is_organic(otmp) && !otmp.oartifact && !is_mines_prize(otmp) && !is_soko_prize(otmp)) {
-      break;
-    }
-    otmp = otmp.nobj;
-  }
+  // C ref: monmove.c:1125-1145 — gelcube_digests()
+  // JS minvent may be an array or nobj-linked list; use objChainItems
+  // to iterate safely in both formats.
+  const items = objChainItems(mtmp.minvent);
+  if (mtmp.meating || items.length === 0) return -1;
+  const otmp = items.find(o => is_organic(o) && !o.oartifact && !is_mines_prize(o) && !is_soko_prize(o));
   if (!otmp) return -1;
   mtmp.meating = eaten_stat(mtmp.meating, otmp);
   extract_from_minvent(mtmp, otmp, true, true);
