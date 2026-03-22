@@ -315,7 +315,10 @@
     #docs-content a:hover { text-decoration: underline; }
     #docs-content blockquote { border-left: 3px solid var(--color-accent); margin: 1em 0; padding: 0.5em 1em; color: var(--color-text-muted); font-style: italic; }
     #docs-content pre, #docs-content code { font-family: var(--font-mono); font-size: 0.82em; }
-    #docs-content pre { background: #f0ede6; padding: 1em; border-radius: 4px; overflow-x: auto; line-height: 1.4; margin: 1em 0; }
+    #docs-content pre { background: #f0ede6; padding: 1em; border-radius: 4px; overflow-x: auto; line-height: 1.4; margin: 1em 0; position: relative; }
+    #docs-content pre[title]::after { content: '▶ click to run'; position: absolute; top: 4px; right: 8px; font-size: 11px; color: var(--color-accent); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+    #docs-content pre[title]:hover::after { opacity: 1; }
+    #docs-content pre[title]:hover { background: #e8e4d8; }
     #docs-content code { background: #f0ede6; padding: 0.15em 0.4em; border-radius: 3px; }
     #docs-content pre code { background: none; padding: 0; }
     #docs-content hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
@@ -357,6 +360,7 @@
 <body>
   <div id="page">
     <nav id="nav" role="navigation">
+      <a href="#about" id="about-link">About the Unix Shell</a>
       <a href="#reflections" id="reflections-link">Reflections on 1982</a>
     </nav>
     <main id="main">
@@ -664,6 +668,7 @@
     var content = document.getElementById('docs-content');
     var dismissBtn = document.getElementById('minimap-dismiss');
     var reflLink = document.getElementById('reflections-link');
+    var aboutLink = document.getElementById('about-link');
     var page = document.getElementById('page');
     var loadedDocs = {};
     var currentDoc = null;
@@ -901,19 +906,54 @@
       dismissBtn.style.top = (rect.top + 4) + 'px';
     }
 
+    // Make shell/HISTORY.md code blocks click-to-run.
+    // Dispatches keyboard events to document so the shell's getch() picks them up.
+    function attachClickToRun() {
+      content.querySelectorAll('pre').forEach(function(pre) {
+        pre.title = 'Click to run in shell';
+        pre.style.cursor = 'pointer';
+        pre.addEventListener('click', function() {
+          var code = pre.textContent.trim();
+          var lines = code.split('\n').map(function(l) { return l.trimEnd(); })
+                         .filter(function(l) { return l !== '' && !l.match(/^#/); });
+          if (lines.length === 0) return;
+          // Close the overlay so the user can see the shell
+          closeDocs();
+          setTimeout(function() {
+            lines.forEach(function(line) {
+              for (var i = 0; i < line.length; i++) {
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: line[i], bubbles: true }));
+              }
+              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+            });
+          }, 350); // wait for close animation
+        });
+      });
+    }
+
     function openDocs(animate, docFile, hash) {
       docFile = docFile || 'REFLECTIONS.md';
       hash = hash || '#reflections';
+      var isShellDoc = docFile === 'shell/HISTORY.md';
       if (!loadedDocs[docFile]) {
         content.innerHTML = '<p style="color:#888;">Loading...</p>';
         fetch('../' + docFile)
           .then(function(r) { return r.text(); })
-          .then(function(md) { content.innerHTML = renderMarkdown(md); loadedDocs[docFile] = true; currentDoc = docFile; })
+          .then(function(md) {
+            content.innerHTML = renderMarkdown(md);
+            loadedDocs[docFile] = true;
+            currentDoc = docFile;
+            if (isShellDoc) attachClickToRun();
+          })
           .catch(function() { content.innerHTML = '<p>Could not load document. <a href="../' + docFile + '">View directly</a>.</p>'; });
       } else if (currentDoc !== docFile) {
         fetch('../' + docFile)
           .then(function(r) { return r.text(); })
-          .then(function(md) { content.innerHTML = renderMarkdown(md); currentDoc = docFile; });
+          .then(function(md) {
+            content.innerHTML = renderMarkdown(md);
+            currentDoc = docFile;
+            if (isShellDoc) attachClickToRun();
+          });
       }
       currentDoc = docFile;
       document.body.classList.remove('docs-standalone');
@@ -996,6 +1036,15 @@
       document.body.classList.remove('minimap-hover');
     });
 
+    if (aboutLink) {
+      aboutLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (docsOpen && currentDoc === 'shell/HISTORY.md') closeDocs();
+        else openDocs(true, 'shell/HISTORY.md', '#about');
+      });
+    }
+
     if (reflLink) {
       reflLink.addEventListener('click', function(e) {
         e.preventDefault();
@@ -1021,7 +1070,9 @@
       }
     });
 
-    if (window.location.hash === '#reflections') {
+    if (window.location.hash === '#about') {
+      setTimeout(function() { openDocs(false, 'shell/HISTORY.md', '#about'); }, 100);
+    } else if (window.location.hash === '#reflections') {
       setTimeout(function() { openDocs(false, 'REFLECTIONS.md', '#reflections'); }, 100);
     }
   })();
