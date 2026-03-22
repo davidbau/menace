@@ -2491,6 +2491,37 @@ async function query_category(qstr, olist, qflags, how, player, game) {
         }
     }
 
+    // C ref: pickup.c:1357-1401 — BUC types and JUSTPICKED entries
+    if (num_buc_types > 0) {
+        add_menu(win, null, null, 0, 0, ATR_NONE, 0, "", 0); // blank separator
+        const bucLabels = [
+            ['B', 'Items known to be Blessed'],
+            ['U', 'Items known to be Uncursed'],
+            ['C', 'Items known to be Cursed'],
+            ['X', 'Items of unknown Bless/Curse status'],
+        ];
+        for (const [letter, label] of bucLabels) {
+            const hasBuc = (letter === 'B' && olistArr.some(o => o?.bknown && o?.blessed))
+                || (letter === 'U' && olistArr.some(o => o?.bknown && !o?.blessed && !o?.cursed))
+                || (letter === 'C' && olistArr.some(o => o?.bknown && o?.cursed))
+                || (letter === 'X' && olistArr.some(o => !o?.bknown));
+            if (hasBuc) {
+                add_menu(win, null, { a_int: letter.charCodeAt(0) }, letter.charCodeAt(0), 0, ATR_NONE, 0,
+                    label, 0);
+            }
+        }
+    }
+    // C ref: pickup.c:1402-1413 — JUSTPICKED entry
+    const num_justpicked = count_justpicked(olistArr);
+    if (num_justpicked > 0) {
+        const jpItem = find_justpicked(olistArr);
+        const jpDesc = jpItem ? doname(jpItem) : 'recently picked items';
+        add_menu(win, null, { a_int: 'P'.charCodeAt(0) }, 'P'.charCodeAt(0), 0, ATR_NONE, 0,
+            num_justpicked === 1
+                ? `Just picked up: ${jpDesc}`
+                : `Just picked up: ${num_justpicked} items`, 0);
+    }
+
     end_menu(win, qstr);
     const result = await select_menu(win, how);
     destroy_nhwindow(win);
@@ -2498,7 +2529,7 @@ async function query_category(qstr, olist, qflags, how, player, game) {
     if (!result || result.length === 0) return { count: 0, pick_list: [] };
     return {
         count: result.length,
-        pick_list: result.map(r => ({ item_int: r.item?.a_int || r.a_int || 0, count: r.count || -1 })),
+        pick_list: result.map(r => ({ item_int: r.identifier?.a_int ?? r.item?.a_int ?? r.a_int ?? 0, count: r.count ?? -1 })),
     };
 }
 
@@ -2583,6 +2614,8 @@ async function menu_loot(retry, put_in, player, game) {
     let all_categories = true;
     let loot_everything = false;
     let _autopick = false;
+    let loot_justpicked = false;
+    let justpicked_count = 0;
     const action = put_in ? "Put in" : "Take out";
 
     pickup_encumbrance = 0;
@@ -2602,12 +2635,31 @@ async function menu_loot(retry, put_in, player, game) {
         for (const pick of catResult.pick_list) {
             if (pick.item_int === 'A'.charCodeAt(0)) {
                 loot_everything = _autopick = true;
+            } else if (pick.item_int === 'P'.charCodeAt(0)) {
+                // C ref: pickup.c:3279-3282 — 'P' = recently picked up items
+                loot_justpicked = true;
+                justpicked_count = Math.max(0, pick.count);
+                add_valid_menu_class(pick.item_int);
+                loot_everything = false;
             } else if (pick.item_int === -2) { // ALL_TYPES_SELECTED
                 all_categories = true;
             } else {
                 add_valid_menu_class(pick.item_int);
                 loot_everything = false;
             }
+        }
+    }
+
+    // C ref: pickup.c:3322-3332 — loot_justpicked fast path
+    if (put_in && loot_justpicked && count_justpicked(player.inventory || []) === 1) {
+        const otmpOrig = find_justpicked(player.inventory || []);
+        if (otmpOrig) {
+            let otmp = otmpOrig;
+            if (justpicked_count > 0 && justpicked_count < (otmp.quan || 1)) {
+                otmp = splitobj(otmp, justpicked_count);
+            }
+            await in_container(otmp, player);
+            return 1;
         }
     }
 
