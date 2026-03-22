@@ -517,6 +517,16 @@ export class LogoInterpreter {
       EQUALP:     'EQUALP a b (EQUAL?) — TRUE if equal\n  try: PRINT EQUALP 3 3',
       'EQUAL?':   'EQUALP a b (EQUAL?) — TRUE if equal',
       LOCAL:      'LOCAL "name — declare a local variable in current procedure',
+      '+':        '+ (infix) — addition\n  try: PRINT 3 + 4',
+      '-':        '- (infix) — subtraction, or unary minus\n  try: PRINT 10 - 3\n  try: PRINT - 5',
+      '*':        '* (infix) — multiplication\n  try: PRINT 6 * 7',
+      '/':        '/ (infix) — division\n  try: PRINT 22 / 7',
+      '=':        '= (infix) — equality test, returns TRUE or FALSE\n  try: PRINT 3 = 3\n  try: PRINT 3 = 4',
+      '<':        '< (infix) — less than\n  try: PRINT 3 < 5',
+      '>':        '> (infix) — greater than\n  try: PRINT 5 > 3',
+      '<=':       '<= (infix) — less than or equal',
+      '>=':       '>= (infix) — greater than or equal',
+      '<>':       '<> (infix) — not equal\n  try: PRINT 3 <> 4',
     };
     // Optionally consume one argument (topic)
     let topic = '';
@@ -524,6 +534,7 @@ export class LogoInterpreter {
       const next = stream.items[stream.pos];
       if (next.type === 'QUOTED') { topic = next.value.toUpperCase(); stream.pos++; }
       else if (next.type === 'WORD') { topic = next.value; stream.pos++; }
+      else if (next.type === 'OP') { topic = next.value; stream.pos++; }
     }
     if (topic && TOPICS[topic]) {
       this._output(TOPICS[topic] + '\n');
