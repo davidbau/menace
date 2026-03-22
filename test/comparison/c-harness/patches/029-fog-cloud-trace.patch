@@ -6,10 +6,24 @@ diff --git a/src/monmove.c b/src/monmove.c
          /* don't leave a vapor cloud if some other gas cloud is already
             present, or when flowing under closed doors so that visibility
             changes aren't mixed with messages about doing such */
-+        /* 028-fog-cloud-trace: log conditions to diagnose JS/C gas divergence */
++        /* 029-fog-cloud-trace: log conditions to diagnose JS/C gas divergence */
 +        event_log("fog_everyturn[%d@%d,%d cd=%d vr=%d]",
 +                  monsndx(mtmp->data), x, y,
 +                  closed_door(x, y), visible_region_at(x, y) ? 1 : 0);
          if (!closed_door(x, y) && !visible_region_at(x, y))
              create_gas_cloud(x, y, 1, 0); /* harmless vapor */
      }
+diff --git a/src/region.c b/src/region.c
+--- a/src/region.c
++++ b/src/region.c
+@@ -300,6 +300,12 @@
+     gr.regions[svn.n_regions] = reg;
+     svn.n_regions++;
++    /* 029-fog-cloud-trace: log every region addition to find where
++       mystery fog cloud gas regions come from */
++    event_log("add_region[n=%d vis=%d ttl=%ld glyph=%d lx=%d ly=%d hx=%d hy=%d]",
++              svn.n_regions, reg->visible, (long)reg->ttl, reg->glyph,
++              reg->bounding_box.lx, reg->bounding_box.ly,
++              reg->bounding_box.hx, reg->bounding_box.hy);
+     /* Check for monsters inside the region */
+     for (i = reg->bounding_box.lx; i <= reg->bounding_box.hx; i++)
