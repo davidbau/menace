@@ -1245,7 +1245,11 @@ async function handlePickup(player, map, display, game = null) {
             const bn = String(cxname_singular(b) || '');
             const byName = an.localeCompare(bn);
             if (byName !== 0) return byName;
-            return Number(a?.o_id || 0) - Number(b?.o_id || 0);
+            // C ref: sortloot uses stable sort; equal items preserve floor
+            // chain order (LIFO = newest first).  Match by sorting higher
+            // o_id first (higher o_id = created later = placed later =
+            // first in C's LIFO chain).
+            return Number(b?.o_id || 0) - Number(a?.o_id || 0);
         });
         const win = create_nhwindow(NHW_MENU);
         start_menu(win, MENU_BEHAVE_STANDARD);
