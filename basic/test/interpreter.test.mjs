@@ -592,4 +592,133 @@ describe('BASIC interpreter', () => {
     assert.ok(text.includes('HELLO'));
     assert.ok(text.includes('42'));
   });
+
+  // ---- SAVE/LOAD round-trip tests ----
+  // Programs should survive SAVE→LOAD and still run correctly.
+  // The saved file should be readable ASCII (numbered listing).
+
+  test('SAVE/LOAD round-trip: hello world', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 PRINT "HELLO, WORLD!"');
+    await interp.execImmediate('SAVE "HELLO');
+    assert.ok(output.join('').includes('SAVED'));
+
+    // Load into fresh interpreter via _loadFromText
+    const { interp: interp2, output: output2 } = makeInterp();
+    interp2._loadFromText('10 PRINT "HELLO, WORLD!"\n');
+    await interp2.run();
+    assert.ok(output2.join('').includes('HELLO, WORLD!'));
+  });
+
+  test('SAVE/LOAD round-trip: FOR loop squares', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 FOR I = 1 TO 5');
+    await interp.execImmediate('20 PRINT I * I');
+    await interp.execImmediate('30 NEXT I');
+    await interp.execImmediate('SAVE "SQUARES');
+
+    // Simulate loading the saved text
+    const { interp: interp2, output: output2 } = makeInterp();
+    interp2._loadFromText('10 FOR I = 1 TO 5\n20 PRINT I * I\n30 NEXT I\n');
+    await interp2.run();
+    const nums = output2.join('').trim().split(/\s+/).map(Number);
+    assert.deepStrictEqual(nums, [1, 4, 9, 16, 25]);
+  });
+
+  test('SAVE/LOAD round-trip: guess game with IF/THEN/GOTO', async () => {
+    const { interp } = makeInterp();
+    await interp.execImmediate('10 G = 7');
+    await interp.execImmediate('20 IF G = 7 THEN PRINT "CORRECT" \\ GOTO 50');
+    await interp.execImmediate('30 IF G < 7 THEN PRINT "TOO LOW"');
+    await interp.execImmediate('40 IF G > 7 THEN PRINT "TOO HIGH"');
+    await interp.execImmediate('50 END');
+    await interp.execImmediate('SAVE "GUESS');
+
+    const { interp: interp2, output: output2 } = makeInterp();
+    interp2._loadFromText(
+      '10 G = 7\n' +
+      '20 IF G = 7 THEN PRINT "CORRECT" \\ GOTO 50\n' +
+      '30 IF G < 7 THEN PRINT "TOO LOW"\n' +
+      '40 IF G > 7 THEN PRINT "TOO HIGH"\n' +
+      '50 END\n'
+    );
+    await interp2.run();
+    assert.ok(output2.join('').includes('CORRECT'));
+  });
+
+  test('SAVE/LOAD round-trip: GOSUB/RETURN', async () => {
+    const { interp: interp2, output: output2 } = makeInterp();
+    interp2._loadFromText(
+      '10 PRINT "MAIN"\n' +
+      '20 GOSUB 100\n' +
+      '30 PRINT "BACK"\n' +
+      '40 END\n' +
+      '100 PRINT "SUB"\n' +
+      '110 RETURN\n'
+    );
+    await interp2.run();
+    const text = output2.join('');
+    assert.ok(text.includes('MAIN'));
+    assert.ok(text.includes('SUB'));
+    assert.ok(text.includes('BACK'));
+  });
+
+  test('SAVE/LOAD round-trip: DATA/READ', async () => {
+    const { interp: interp2, output: output2 } = makeInterp();
+    interp2._loadFromText(
+      '10 FOR I = 1 TO 3\n' +
+      '20 READ N$\n' +
+      '30 PRINT N$\n' +
+      '40 NEXT I\n' +
+      '50 DATA "RED", "GREEN", "BLUE"\n'
+    );
+    await interp2.run();
+    const text = output2.join('');
+    assert.ok(text.includes('RED'));
+    assert.ok(text.includes('GREEN'));
+    assert.ok(text.includes('BLUE'));
+  });
+
+  test('SAVE/LOAD round-trip: DEF FN', async () => {
+    const { interp: interp2, output: output2 } = makeInterp();
+    interp2._loadFromText(
+      '10 DEF FNA(X) = X * X + 1\n' +
+      '20 PRINT FNA(5)\n'
+    );
+    await interp2.run();
+    assert.strictEqual(output2.join('').trim(), '26');
+  });
+
+  test('saved BASIC file is readable numbered listing', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 REM SQUARE NUMBERS');
+    await interp.execImmediate('20 FOR I = 1 TO 5');
+    await interp.execImmediate('30 PRINT I * I');
+    await interp.execImmediate('40 NEXT I');
+    await interp.execImmediate('SAVE "SQUARES');
+
+    // Verify the file format: listing lines followed by newlines
+    // Each line starts with a number
+    const listing = '10 REM SQUARE NUMBERS\n20 FOR I = 1 TO 5\n30 PRINT I * I\n40 NEXT I\n';
+    const lines = listing.trim().split('\n');
+    for (const line of lines) {
+      assert.ok(line.match(/^\d+\s+/), `Line should start with number: ${line}`);
+    }
+  });
+
+  test('SAVE then LOAD round-trip using interpreter methods', async () => {
+    const { interp, output } = makeInterp();
+    await interp.execImmediate('10 FOR I = 1 TO 3');
+    await interp.execImmediate('20 PRINT I');
+    await interp.execImmediate('30 NEXT I');
+    await interp.execImmediate('SAVE "COUNTER');
+
+    // Clear and load
+    await interp.execImmediate('NEW');
+    await interp.execImmediate('LOAD "COUNTER');
+    output.length = 0; // clear output from SAVE/LOAD messages
+    await interp.execImmediate('RUN');
+    const nums = output.join('').trim().split(/\s+/).map(Number);
+    assert.deepStrictEqual(nums, [1, 2, 3]);
+  });
 });

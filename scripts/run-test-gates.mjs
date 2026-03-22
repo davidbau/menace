@@ -155,7 +155,14 @@ async function runUnitTests() {
     };
 
     const { globSync } = await import('node:fs');
-    const unitFiles = globSync('test/unit/*.test.js', { cwd: projectRoot });
+    const unitFiles = [
+        ...globSync('test/unit/*.test.js', { cwd: projectRoot }),
+        ...globSync('logo/test/*.test.{js,mjs}', { cwd: projectRoot }),
+        ...globSync('basic/test/*.test.{js,mjs}', { cwd: projectRoot }),
+        ...globSync('hack/test/*.test.{js,mjs}', { cwd: projectRoot }),
+        ...globSync('rogue/test/*.test.{js,mjs}', { cwd: projectRoot }),
+        ...globSync('dungeon/test/*.test.{js,mjs}', { cwd: projectRoot }),
+    ];
     const unitEstimate = unitFiles.length * 20; // rough estimate: ~20 tests per file
     globalTotal += unitEstimate;
 
