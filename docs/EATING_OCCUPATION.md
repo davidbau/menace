@@ -329,6 +329,28 @@ This is the sharpest structural clue so far:
 
 That is exactly the sort of overlap that can cause key-ownership drift.
 
+More specific late evidence:
+
+- bad late case:
+  - `step=1235 key="e" mode=start-gameloop start=waiting ...`
+  - `step=1236 key="y" mode=resume ...`
+  - `step=1236 resume=done owner=none waiting=0 ack=1 pending=0 promptType=none msgMore=1 top="This gnome lord corpse t..."`
+  - `step=1237 key=" " mode=start-gameloop start=done owner=none waiting=0 ack=1 pending=0 promptType=none msgMore=1 top="Unknown command ' '."`
+
+This is the strongest concrete late owner leak currently known.
+
+Early comparison evidence:
+
+- benign early analogue:
+  - `step=77 key="e" mode=start-gameloop start=waiting ...`
+  - `step=78 key="y" mode=resume ...`
+  - `step=78 resume=done owner=none waiting=0 ack=1 pending=0 promptType=none msgMore=1 top="This lichen corpse taste..."`
+  - `step=79 key="y" mode=start-gameloop start=done owner=none waiting=0 ack=0 pending=0 promptType=none msgMore=0 top=""`
+
+This comparison matters because it proves that the broad pattern
+`resume=done + owner=none + ack=1 + msgMore=1` is not enough by itself to
+identify the bad late case.
+
 #### Tier 4: suggestive only
 
 Late fallback mapdumps and isolated monster-state comparisons are useful for
@@ -346,6 +368,11 @@ The current evidence supports these claims:
 3. The problem is likely near eating/prompt/input boundaries.
    - replay-owner traces show JS waiting in `handleEat()` while message
      boundary state is still set.
+4. The missing fix rule is more selective than message state alone.
+   - broad local fixes based only on `msgMore/toplin` or
+     `resume=done owner=none ack=1` regress much earlier
+   - therefore the real discriminator must include additional local state or
+     key-class context
 
 The evidence does **not** yet prove these stronger claims:
 
@@ -435,6 +462,8 @@ Concrete questions:
 2. which code is supposed to clear that state?
 3. on the corresponding C path, which synchronous caller owns the next key?
 4. which JS caller actually owns that same key?
+5. what distinguishes the bad late gnome-lord case from the earlier benign
+   lichen-corpse analogue?
 
 Required evidence:
 
@@ -446,6 +475,9 @@ Required evidence:
   - raw answer consumption
   - `resume=done` return to owner `none`
   - the immediately following command loop
+- one side-by-side comparison between:
+  - the bad late gnome-lord corridor
+  - the benign early lichen-corpse corridor
 
 Required tracked fields:
 
@@ -454,10 +486,14 @@ Required tracked fields:
 - `messageNeedsMore`
 - `moreMarkerActive`
 - input owner
+- the immediately following replay key and whether it is treated as:
+  - prompt dismissal only
+  - or command input
 
 Exit criterion:
 
-- one concrete, named owner mismatch
+- one concrete, named owner mismatch plus one discriminating condition that
+  separates the bad late case from the benign early analogue
 
 ### Stage 2. Patch the owner handoff, not the downstream symptom
 
@@ -483,12 +519,15 @@ Likely kinds of fix:
 - correcting when `handleEat()` may begin a raw `nhgetch()` wait
 - correcting which local path clears or preserves message-boundary state before
   returning to owner `none`
+- correcting how the first replay key after `resume=done` is classified when a
+  fresh post-prompt message is still pending
 
 Exit criterion:
 
 - the local `handleEat()` corridor no longer leaves a stale owner/state overlap
 - the per-step redistribution in `1236..1246` shrinks
 - first authoritative divergence moves later than `1241`
+- and the same rule does not regress the early benign lichen-corpse corridor
 
 ### Stage 2b. Only widen to command-boundary policy with proof
 
@@ -499,6 +538,9 @@ Guardrail:
 
 - do not generalize from `toplin==1` or `messageNeedsMore` alone; the failed
   global boundary patch showed that such a rule breaks unrelated sessions early
+- do not generalize from `resume=done owner=none ack=1 msgMore=1` alone; the
+  failed local `handleEat()` patches showed that this broad pattern also occurs
+  in benign early food corridors
 
 Exit criterion:
 
