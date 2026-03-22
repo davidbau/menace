@@ -572,7 +572,7 @@ export class Shell {
                         }
                         continue;
                     }
-                    if (ch === 3) return ''; // Ctrl-C
+                    if (ch === 3 || ch === 4) throw new Error('quit'); // Ctrl-C / Ctrl-D
                     if (ch >= 32 && ch < 127) {
                         this.inputLine = this.inputLine.slice(0, this.cursorPos) +
                             String.fromCharCode(ch) + this.inputLine.slice(this.cursorPos);
@@ -586,9 +586,10 @@ export class Shell {
             // strip it for cleaner display.
             const pendingLines = [];
             const output = (text) => {
-                for (const line of (text || '').split('\n')) {
-                    const stripped = line.startsWith(' ') ? line.slice(1) : line;
-                    pendingLines.push(stripped);
+                for (let line of (text || '').split('\n')) {
+                    if (line.startsWith(' ')) line = line.slice(1);
+                    line = line.replace('Welcome to Dungeon.', 'Welcome to the Mazes of Menace!');
+                    pendingLines.push(line);
                 }
             };
 
