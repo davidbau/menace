@@ -16439,3 +16439,45 @@ distinction is always conditional on being in Gehennom.
   - any JS wrapper around `delobj()` must preserve floor map ownership; if the
     map context is dropped, floor objects can survive semantic deletion and
     create downstream parity drift that looks like prompt or AI logic
+
+## 2026-03-22 - `floorfood()` / `objectsAt()` must agree on top-of-pile order
+
+- After the `obj_here(map)` and `delobj(map)` fixes, the remaining late
+  `seed031` seam still looked like a pet/object mismatch, but the decisive
+  state error was earlier: the hero resumed the wrong floor corpse.
+- C `floorfood()` chooses the top floor-chain object at the hero square.
+  NetHack floor chains are newest-first.
+- JS `map.objectsAt()` is oldest-first, but [`js/eat.js`](js/eat.js)
+  `handleEat()` was taking:
+  - `const floorItem = floorFoods[0]`
+- On the late `(42,7)` pile in `seed031`, that bound JS `victual.piece` to the
+  older corpse `379` instead of the newer corpse `394`.
+- Concrete evidence:
+  - JS debug mapdump at step `1240`:
+    - `victual.piece_o_id=379`
+    - two corpses still present on `(42,7)`
+  - JS debug mapdump at step `1241`:
+    - `victual` cleared
+    - one corpse removed from `(42,7)`
+    - corpse `394` still present
+  - C event logs in the same corridor showed the decisive `^remove[263,42,7]`
+    before the later pet `dog_goal()` scan that no longer treated `394` as
+    available food
+- Faithful fix:
+  - choose the newest floor food:
+    - `const floorItem = floorFoods[floorFoods.length - 1]`
+- Validated impact:
+  - `seed031_manual_direct.session.json`
+    - improved from first RNG divergence step `1241` to `1333`
+    - matched RNG calls improved `47522/51561 -> 51560/51732`
+    - matched events improved `26451/28950 -> 28950/28952`
+  - controls stayed green:
+    - `t11_s755_w_covmax9_gp.session.json`
+    - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+    - `t04_s993_w_eatground_gp.session.json`
+  - nearby regression check stayed stable:
+    - `seed032_manual_direct.session.json` still first diverges at step `144`
+- Practical rule:
+  - any JS floor-item default selection built on `objectsAt()` must explicitly
+    translate oldest-first array order back into C floor-chain order before
+    choosing the top/default item

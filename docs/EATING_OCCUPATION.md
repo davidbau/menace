@@ -816,6 +816,61 @@ Those unknowns are acceptable. What is not acceptable is returning to broad
 prompt-boundary speculation now that two concrete floor-object bugs have been
 proven and fixed.
 
+## 8. Newest floor-object selection is part of C-faithful meal identity
+
+A later validated `seed031` fix narrowed the remaining meal seam further.
+
+Key fact:
+
+- C `floorfood()` chooses the top floor-chain object on the hero square
+- NetHack floor chains are newest-first
+- JS `map.objectsAt()` yields oldest-first
+
+That meant JS `handleEat()` was wrong when it did:
+
+- `const floorItem = floorFoods[0]`
+
+On the late `seed031` pile at `(42,7)`, that attached `victual.piece` to the
+older corpse `379`, while the C event stream only made sense if the hero was
+continuing the newer corpse `394`.
+
+Concrete evidence:
+
+- JS debug mapdump at step `1240` showed:
+  - `victual.piece_o_id = 379`
+  - two corpses still present on `(42,7)`
+- JS debug mapdump at step `1241` showed:
+  - `victual` cleared
+  - one corpse removed from `(42,7)`
+  - but corpse `394` still present
+- C event logs in the same corridor showed the decisive floor-corpse remove
+  happening before the later pet `dog_goal()` scan that no longer treated
+  `394` as available food
+
+Faithful fix:
+
+- in [`js/eat.js`](/share/u/davidbau/git/mazesofmenace/game/js/eat.js),
+  choose `floorFoods[floorFoods.length - 1]` instead of `floorFoods[0]`
+
+Validated impact:
+
+- `seed031_manual_direct.session.json`
+  - first RNG divergence improved from step `1241` to `1333`
+  - matched RNG calls improved from `47522/51561` to `51560/51732`
+  - matched events improved from `26451/28950` to `28950/28952`
+- controls stayed green:
+  - `t11_s755_w_covmax9_gp.session.json`
+  - `theme04_seed680_wiz_eat-food_gameplay.session.json`
+  - `t04_s993_w_eatground_gp.session.json`
+- nearby regression check stayed stable:
+  - `seed032_manual_direct.session.json` still first diverges at step `144`
+
+Practical rule:
+
+- any JS floor-food selection path that uses `objectsAt()` must explicitly
+  convert oldest-first array order back into C floor-chain order before
+  choosing the default/top floor object
+
 ## 6. Practical Summary
 
 The best current summary is:

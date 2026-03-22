@@ -1864,7 +1864,9 @@ async function handleEat(player, display, game) {
     // cf. eat.c floorfood() (partial) — if edible food is at hero square,
     // ask before opening inventory selector.
     if (floorFoods.length > 0) {
-        const floorItem = floorFoods[0];
+        // C floor chains are newest-first; JS objectsAt() yields oldest-first.
+        // Match floorfood() by prompting for the top/newest floor comestible.
+        const floorItem = floorFoods[floorFoods.length - 1];
         const floorDescribed = doname(floorItem, null);
         const floorName = floorDescribed.replace(/^(?:an?|the)\s+/i, '');
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
