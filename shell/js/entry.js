@@ -66,6 +66,7 @@ function navigateToGame(game) {
     if (game === 'nethack') window.location.href = '/';
     else if (game === 'hack')  window.location.href = '/hack/';
     else if (game === 'rogue') window.location.href = '/rogue/';
+    else if (game === 'basic') window.location.href = '/basic/';
     else if (game === 'logo')  window.location.href = '/logo/';
 }
 

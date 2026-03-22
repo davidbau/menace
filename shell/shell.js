@@ -726,6 +726,8 @@ export async function runLoginLoop(display, getch, lifecycle) {
                     window.location.href = '/hack/';
                 } else if (game === 'rogue') {
                     window.location.href = '/rogue/';
+                } else if (game === 'basic') {
+                    window.location.href = '/basic/';
                 } else if (game === 'logo') {
                     window.location.href = '/logo/';
                 }
@@ -761,6 +763,8 @@ export async function runShell(display, getch, lifecycle, options = {}) {
             window.location.href = '/hack/';
         } else if (game === 'rogue') {
             window.location.href = '/rogue/';
+        } else if (game === 'basic') {
+            window.location.href = '/basic/';
         } else if (game === 'logo') {
             window.location.href = '/logo/';
         }
