@@ -85,7 +85,13 @@ function parseTokens(tokens) {
       const t = tokens[i];
       if (t.type === 'RBRACKET') { i++; return items; }
       if (t.type === 'LBRACKET') { i++; items.push(parseList()); continue; }
-      items.push(t);
+      // In list literals, extract values from tokens
+      if (t.type === 'NUMBER') items.push(t.value);
+      else if (t.type === 'WORD') items.push(t.value);
+      else if (t.type === 'QUOTED') items.push(t.value);
+      else if (t.type === 'VAR') items.push(':' + t.value);
+      else if (t.type === 'OP') items.push(t.value);
+      else items.push(t);
       i++;
     }
     throw new LogoError("MISSING ]");
@@ -127,6 +133,7 @@ export class LogoInterpreter {
     this._readLine = null;  // set by REPL: async function(prompt) => string
     this._env = {};         // global variables
     this._procs = {};       // user-defined procedures
+    this._repcount = 0;     // current REPEAT iteration (for REPCOUNT reporter)
     this._defineBuiltins();
   }
 
@@ -403,18 +410,21 @@ export class LogoInterpreter {
     const body = await this._evalExpr(stream, env);
     if (!Array.isArray(body)) throw new LogoError("REPEAT NEEDS A LIST AS SECOND INPUT");
     const n = Math.floor(num(count));
+    const savedRepcount = this._repcount;
     for (let i = 0; i < n; i++) {
       // Yield to event loop periodically
       if (i > 0 && i % 100 === 0) await yieldTick();
+      this._repcount = i + 1;
       const localEnv = Object.create(env);
       localEnv['REPCOUNT'] = i + 1;
       try {
         await this._runList([...body], localEnv);
       } catch (e) {
-        if (e instanceof StopSignal) return;
+        if (e instanceof StopSignal) { this._repcount = savedRepcount; return; }
         throw e;
       }
     }
+    this._repcount = savedRepcount;
   }
 
   async _handleIf(stream, env) {
@@ -830,10 +840,7 @@ export class LogoInterpreter {
       if (!(key in this._env)) throw new LogoError(`${key} HAS NO VALUE`);
       return this._env[key];
     });
-    def(['REPCOUNT', '#'], 0, function() {
-      // Accessed via :REPCOUNT in the environment
-      return undefined;
-    });
+    def(['REPCOUNT', '#'], 0, () => this._repcount);
     def('WAIT', 1, async (n) => {
       await new Promise(r => setTimeout(r, num(n) * 100 / 6)); // tenths of seconds
     });
@@ -867,6 +874,10 @@ function stringify(v) {
   if (typeof v === 'number') {
     // Clean up floating point display
     return Number.isInteger(v) ? String(v) : String(Math.round(v * 1e6) / 1e6);
+  }
+  // Handle any token objects that leaked through (safety net)
+  if (v && typeof v === 'object' && v.type && v.value !== undefined) {
+    return String(v.value);
   }
   return String(v);
 }

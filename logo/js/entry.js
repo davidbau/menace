@@ -42,19 +42,28 @@ window.addEventListener('DOMContentLoaded', () => {
   const repl = new LogoRepl(display, interp);
   const getch = makeGetch();
 
-  // Size the canvas to exactly match the terminal <pre> element
+  // Size and position the canvas to exactly match the terminal <pre> element
   function sizeCanvas() {
     const pre = display.getPreElement();
     if (!pre) return;
-    // Canvas fills the same space as the <pre> within the wrapper
-    canvas.style.width = pre.offsetWidth + 'px';
-    canvas.style.height = pre.offsetHeight + 'px';
+    const container = pre.parentElement;
+    if (!container) return;
+    // Position canvas relative to container, aligned with the <pre>
+    const preRect = pre.getBoundingClientRect();
+    const contRect = container.getBoundingClientRect();
+    canvas.style.left = (preRect.left - contRect.left) + 'px';
+    canvas.style.top = (preRect.top - contRect.top) + 'px';
+    canvas.style.width = preRect.width + 'px';
+    canvas.style.height = preRect.height + 'px';
   }
   // Size after a frame so layout is computed
   requestAnimationFrame(() => {
     sizeCanvas();
     window.addEventListener('resize', sizeCanvas);
   });
+
+  // Expose so font-size buttons can trigger a re-fit
+  window._sizeLogoCanvas = sizeCanvas;
 
   repl.start(getch);
 });

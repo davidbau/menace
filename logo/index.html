@@ -134,8 +134,8 @@
 
     #logo-canvas {
       position: absolute;
-      top: 6px;
-      left: 6px;
+      top: 0;
+      left: 0;
       z-index: 0;
       image-rendering: pixelated;
       image-rendering: -moz-crisp-edges;
@@ -227,6 +227,22 @@
     body.dark-mode #hamburger-menu .hm-item:hover:not(:disabled) { background: #444; color: #ccc; }
     body.dark-mode .hm-divider { border-top-color: #444; }
 
+    body.fullscreen-mode {
+      background: #000;
+      overflow: hidden;
+    }
+    body.fullscreen-mode #nav,
+    body.fullscreen-mode #nav-spacer,
+    body.fullscreen-mode #controls { display: none; }
+    body.fullscreen-mode #logo-container {
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 0;
+      min-width: 0;
+      min-height: 0;
+    }
+
     /* Docs overlay */
     #docs-overlay {
       position: fixed;
@@ -304,12 +320,11 @@
       <button id="font-larger" title="Increase font size" tabindex="-1"><span class="mono-char">A</span>+</button>
       <button id="panel-toggle" title="Game menu" tabindex="-1">&#x2630;</button>
       <div id="hamburger-menu">
-        <button class="hm-item" id="hm-shell"><span class="hm-check"></span>Back to Shell</button>
-        <div class="hm-divider"></div>
         <button class="hm-item" id="hm-nethack"><span class="hm-check"></span>Play NetHack</button>
         <button class="hm-item" id="hm-hack"><span class="hm-check"></span>Play Hack (1982)</button>
         <button class="hm-item" id="hm-rogue"><span class="hm-check"></span>Play Rogue (1980)</button>
         <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-fullscreen"><span class="hm-check"></span>Fullscreen</button>
         <button class="hm-item" id="hm-darkmode"><span class="hm-check"></span>Dark mode</button>
       </div>
     </div>
@@ -367,6 +382,7 @@
     document.documentElement.style.setProperty('--game-font-size', sz + 'px');
     var container = document.getElementById('logo-container');
     if (container) container.style.fontSize = sz + 'px';
+    if (window._applyLineHeight) window._applyLineHeight();
   })();
 
   /* Font size buttons */
@@ -378,25 +394,65 @@
       if (container) container.style.fontSize = sz + 'px';
       try { localStorage.setItem('menace-font-size', String(sz)); } catch(e) {}
       if (window._applyLineHeight) window._applyLineHeight();
+      // Re-fit canvas to the new terminal size after layout reflows
+      requestAnimationFrame(function() {
+        if (window._sizeLogoCanvas) window._sizeLogoCanvas();
+      });
     }
     function currentSize() {
       try { return parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) { return 16; }
     }
+    window._applyFontSize = setFontSize;
     document.getElementById('font-smaller').addEventListener('click', function() { setFontSize(currentSize() - 1); });
     document.getElementById('font-larger').addEventListener('click', function() { setFontSize(currentSize() + 1); });
 
     /* Hamburger menu */
     var toggle = document.getElementById('panel-toggle');
     var menu = document.getElementById('hamburger-menu');
+    var menuBackdrop = null;
+
+    function isOpen() { return menu.classList.contains('open'); }
+
+    function closeMenu() {
+      if (menuBackdrop) {
+        document.body.removeChild(menuBackdrop);
+        menuBackdrop = null;
+      }
+      menu.classList.remove('open');
+      toggle.classList.remove('menu-open');
+    }
+
+    function openMenu() {
+      document.querySelector('#hm-darkmode .hm-check').textContent =
+        document.body.classList.contains('dark-mode') ? '\u2713' : '';
+      document.querySelector('#hm-fullscreen .hm-check').textContent =
+        (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) ? '\u2713' : '';
+      if (!menuBackdrop) {
+        menuBackdrop = document.createElement('div');
+        menuBackdrop.style.cssText = 'position:fixed;inset:0;z-index:9;';
+        menuBackdrop.addEventListener('mousedown', closeMenu);
+        document.body.appendChild(menuBackdrop);
+      }
+      menu.classList.add('open');
+      toggle.classList.add('menu-open');
+    }
+
     toggle.addEventListener('click', function() {
-      menu.classList.toggle('open');
-      toggle.classList.toggle('menu-open');
+      if (isOpen()) closeMenu();
+      else openMenu();
     });
-    document.getElementById('hm-shell').addEventListener('click', function() { window.location.href = '/shell/'; });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isOpen()) closeMenu();
+    });
     document.getElementById('hm-nethack').addEventListener('click', function() { window.location.href = '/'; });
     document.getElementById('hm-hack').addEventListener('click', function() { window.location.href = '/hack/'; });
     document.getElementById('hm-rogue').addEventListener('click', function() { window.location.href = '/rogue/'; });
+    document.getElementById('hm-fullscreen').addEventListener('click', function() {
+      closeMenu();
+      if (window._toggleFullscreen) window._toggleFullscreen();
+    });
     document.getElementById('hm-darkmode').addEventListener('click', function() {
+      closeMenu();
       document.body.classList.toggle('dark-mode');
       try {
         localStorage.setItem('menace-dark-mode', document.body.classList.contains('dark-mode') ? '1' : '0');
@@ -407,6 +463,70 @@
     try {
       if (localStorage.getItem('menace-dark-mode') === '1') document.body.classList.add('dark-mode');
     } catch(e) {}
+
+    /* Fullscreen */
+    var preFontSize = null;
+
+    function computeFullscreenFontSize() {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var ref = 100;
+      var testEl = document.createElement('span');
+      testEl.style.cssText = 'position:fixed;visibility:hidden;' +
+        'font-family:"DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono",monospace;' +
+        'font-size:' + ref + 'px;line-height:1;';
+      testEl.textContent = '0';
+      document.body.appendChild(testEl);
+      var chWidth = testEl.offsetWidth;
+      document.body.removeChild(testEl);
+      var fromW = Math.floor(vw * ref / (80 * chWidth));
+      var lineH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--game-line-height')) || 1.1875;
+      var fromH = Math.floor(vh / (24 * lineH));
+      return Math.max(8, Math.min(fromW, fromH));
+    }
+
+    var supportsKeyboardLock = ('keyboard' in navigator) && ('lock' in navigator.keyboard);
+
+    function onFullscreenChange() {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      if (fsEl) {
+        document.body.classList.add('fullscreen-mode');
+        if (supportsKeyboardLock) navigator.keyboard.lock(['Escape']).catch(function() {});
+        if (window._applyFontSize) window._applyFontSize(computeFullscreenFontSize());
+      } else {
+        document.body.classList.remove('fullscreen-mode');
+        if (supportsKeyboardLock) navigator.keyboard.unlock();
+        if (window._applyFontSize && preFontSize) window._applyFontSize(preFontSize);
+        preFontSize = null;
+      }
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    window.addEventListener('resize', function() {
+      if (document.body.classList.contains('fullscreen-mode') && window._applyFontSize) {
+        window._applyFontSize(computeFullscreenFontSize());
+      }
+    });
+
+    window._toggleFullscreen = function() {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      if (fsEl) {
+        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
+      } else {
+        preFontSize = currentSize();
+        var el = document.documentElement;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+        if (req) req.call(el).catch(function() {});
+      }
+    };
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        window._toggleFullscreen();
+      }
+    });
 
     /* Help bar: click a command to inject HELP "CMD into the REPL */
     document.querySelectorAll('#help-bar .help-link[data-cmd]').forEach(function(el) {
@@ -520,7 +640,7 @@
                 }
                 document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
               });
-              closeDocs();
+              // Stay in docs mode — commands run in the mini terminal
             });
           });
         });
@@ -537,8 +657,10 @@
       history.replaceState(null, '', window.location.pathname);
     }
 
-    if (aboutLink) aboutLink.addEventListener('click', function(e) { e.preventDefault(); openDocs(); });
+    if (aboutLink) aboutLink.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); openDocs(); });
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDocs(); });
+    // Click the mini terminal to zoom back in
+    page.addEventListener('click', function(e) { if (docsOpen) { e.stopPropagation(); closeDocs(); } });
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && docsOpen) closeDocs(); });
 
     // Open on #about hash
