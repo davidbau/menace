@@ -1,6 +1,6 @@
 # About Logo
 
-In 1966, Seymour Papert had an idea that would change what computers were for.
+In 1966, [Seymour Papert](https://en.wikipedia.org/wiki/Seymour_Papert) had an idea that would change what computers were for.
 
 Papert was a mathematician who had spent five years studying with [Jean Piaget](https://en.wikipedia.org/wiki/Jean_Piaget) in Geneva before joining [Marvin Minsky](https://en.wikipedia.org/wiki/Marvin_Minsky) at the [MIT Artificial Intelligence Laboratory](https://en.wikipedia.org/wiki/MIT_Computer_Science_and_Artificial_Intelligence_Laboratory). He knew how children learn: not by being told, but by building. And he believed that computers, which at the time were reserved for scientists and engineers, could give children something genuinely new to build with.
 
@@ -183,12 +183,13 @@ REPEAT 8 [SETPENCOLOR REPCOUNT REPEAT 4 [FORWARD 40 RIGHT 90] RIGHT 45]
 
 Logo is not just about turtles. It is a language for working with words and lists:
 
-```
-PRINT FIRST [RED GREEN BLUE]
-PRINT BUTFIRST [RED GREEN BLUE]
-PRINT COUNT [A B C D E]
-PRINT SENTENCE [HELLO] [WORLD]
-```
+`PRINT FIRST [RED GREEN BLUE]` — first element of a list
+
+`PRINT BUTFIRST [RED GREEN BLUE]` — all but first
+
+`PRINT COUNT [A B C D E]` — number of elements
+
+`PRINT SENTENCE [HELLO] [WORLD]` — combine lists
 
 ### Quick Reference
 
@@ -204,4 +205,4 @@ The connection is not a coincidence. Logo was the soil. It taught a generation o
 
 Logo's influence extends far beyond its own syntax. [Scratch](https://scratch.mit.edu/), created by [Mitchel Resnick](https://web.media.mit.edu/~mres/) (a former student of Papert's) at the [MIT Media Lab](https://www.media.mit.edu/), is a direct descendant. So is [LEGO Mindstorms](https://en.wikipedia.org/wiki/Lego_Mindstorms), which grew from the "programmable brick" project at the Media Lab and took its name from Papert's book. [Snap!](https://snap.berkeley.edu/), co-developed by [Brian Harvey](https://people.eecs.berkeley.edu/~bh/) himself, carries the Logo philosophy into visual programming. Every "learn to code" initiative that puts creative expression ahead of vocational training is, whether it knows it or not, working in the tradition that Papert started.
 
-Papert suffered a serious injury in 2006 and died in 2016. Logo, in its original form, is rarely taught anymore. But the idea at its core is as alive as ever: that the purpose of a programming language is not to instruct a machine, but to give a human being a new way to think.
+Papert suffered a serious injury in 2006 and died in 2016. Logo, in its original form, is rarely taught anymore — but you can learn it and try it here. The idea at its core is as alive as ever: that the purpose of a programming language is not to instruct a machine, but to give a human being a new way to think.
