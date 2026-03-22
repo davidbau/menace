@@ -1,7 +1,7 @@
 // potion.js -- Potion mechanics
 // cf. potion.c — dodrink, peffects, healup, potionhit, dodip, status effects
 
-import { rn2, rn1, rnd, d, c_d } from './rng.js';
+import { rn2, rn1, rnd, d, c_d, cosmic_display_push_owner, cosmic_display_pop_owner } from './rng.js';
 import { obj_resists } from './objdata.js';
 import { more, nhgetch, ynFunction } from './input.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useup, useupall, compactInvletPromptChars } from './invent.js';
@@ -384,9 +384,11 @@ async function make_hallucinated(player, xtime, talk, mask) {
             await swallowed(0, player);
         } else {
             // C ref: refresh visual overlays before announcing message.
+            cosmic_display_push_owner('make_hallucinated');
             see_monsters(activeMap());
             see_objects();
             see_traps();
+            cosmic_display_pop_owner('make_hallucinated');
         }
         update_inventory(player);
         // C ref: potion.c:433 — disp.botl = TRUE is set BEFORE pline().

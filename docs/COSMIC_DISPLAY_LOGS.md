@@ -661,6 +661,26 @@ Success criteria:
 - one diagnostic replay (`seed031`) can be read as a single chronological
   owner/branch/roll stream
 
+Current status:
+
+- implemented in the C harness working tree for the initial narrow batch:
+  - `make_hallucinated()`
+  - `see_monsters()`
+  - `see_objects()`
+  - `see_traps()`
+  - `docrt_flags()`
+  - `newsym()`
+  - `_map_location()`
+  - contextualized `random_monster` / `random_object` display rolls
+- validated with a short C trace after exporting
+  `NETHACK_RNGLOG_DISP=1` and `NETHACK_COSMIC_DISPLAY_LOGS=1` into the tmux
+  server environment
+- resulting C stream already shows the intended inline structure:
+  - `^disp_owner_begin[...]`
+  - `^disp_newsym[...]`
+  - `^disp_maploc[...]`
+  - `~drn2_disp[...]`
+
 ### Milestone 2: JS structural logs
 
 Success criteria:
@@ -669,6 +689,20 @@ Success criteria:
 - JS emits the same branch enums
 - JS emits contextualized display-RNG logs
 - C and JS streams are diffable without ad hoc category translation
+
+Current status:
+
+- implemented in JS for the matching initial batch:
+  - `make_hallucinated`
+  - `see_monsters`
+  - `see_objects`
+  - `see_traps`
+  - `docrt_flags`
+  - `newsym`
+  - visible map-location resolution (`obj` / `trap` / `engr` / `terrain`)
+  - contextualized `~drn2_disp[...]` logs from `display_rng.js`
+- validated with a direct module-level smoke test that emits the same inline
+  schema as C
 
 ### Milestone 3: First structural mismatch
 
@@ -742,6 +776,18 @@ This ordering is intentionally actionable:
 - it does not require instrumenting every display function before the first
   result,
 - and every stage has an observable output shape.
+
+
+## Operational Caveats
+
+- tmux environment caveat:
+  - custom `NETHACK_*` variables are not reliably present inside an already
+    running tmux server unless they are:
+    - embedded directly into the command string, or
+    - exported with `tmux set-environment -g ...`
+  - this matters for short harness traces such as `run_trace.py`
+  - without that export, a trace can misleadingly show ordinary RNG logs while
+    silently omitting `NETHACK_RNGLOG_DISP` / `NETHACK_COSMIC_DISPLAY_LOGS`
 
 
 ## Expected Payoff

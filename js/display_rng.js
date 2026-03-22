@@ -1,7 +1,7 @@
 // display_rng.js -- Display-only RNG glyph helpers.
 // C ref: display.h random_monster/random_object + what_mon/what_obj macros.
 
-import { rn2_on_display_rng } from './rng.js';
+import { rn2_on_display_rng, cosmic_display_prepare_rng_kind } from './rng.js';
 import { mons } from './monsters.js';
 import {
     objectData, CORPSE, STATUE,
@@ -14,6 +14,7 @@ function randomMonsterGlyph() {
     if (!Array.isArray(mons) || mons.length === 0) {
         return { ch: '?', color: 7 };
     }
+    cosmic_display_prepare_rng_kind('mon');
     const idx = rn2_on_display_rng(mons.length);
     const mon = mons[idx] || {};
     const symIdx = Number.isInteger(mon.mlet) ? mon.mlet : 0;
@@ -27,6 +28,7 @@ function randomObjectGlyph() {
     const firstObject = 1;
     const count = Math.max(0, (objectData?.length || 0) - firstObject);
     if (count <= 0) return { ch: '?', color: 7 };
+    cosmic_display_prepare_rng_kind('obj');
     const idx = rn2_on_display_rng(count) + firstObject;
     const obj = objectData[idx] || {};
     const ch = obj.symbol || '?';
