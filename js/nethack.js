@@ -127,10 +127,94 @@ window.addEventListener('DOMContentLoaded', async () => {
         },
     });
 
-    await game.init({
+    const initOpts = {
         seed: opts.seed,
         wizard: opts.wizard,
         reset: opts.reset,
-    });
+    };
+    // URL params role/race/gender/align → skip chargen
+    // Session replay: ?session=path loads a session file for step-by-step replay
+    const sessionParam = urlParams.get('session');
+    if (sessionParam) {
+        try {
+            const resp = await nhfetch(sessionParam);
+            const session = await resp.json();
+            const sessOpts = session.options || {};
+            initOpts.seed = session.seed;
+            initOpts.wizard = sessOpts.wizard || false;
+            initOpts.datetime = session.datetime || '20000110090000';
+            initOpts.character = {
+                role: sessOpts.role || 'Valkyrie',
+                name: sessOpts.name || 'Player',
+                race: sessOpts.race || undefined,
+                gender: sessOpts.gender || undefined,
+                align: sessOpts.align || undefined,
+            };
+            initOpts.tutorial = false;
+            initOpts.flags = {
+                tutorial: false,
+                symset: sessOpts.symset || undefined,
+                autopickup: sessOpts.autopickup !== undefined ? sessOpts.autopickup : undefined,
+            };
+            // Collect gameplay keys
+            const gameKeys = [];
+            for (const step of (session.steps || [])) {
+                const k = step.key;
+                if (k == null) { gameKeys.push(null); continue; }
+                if (k.length === 1) gameKeys.push(k.charCodeAt(0));
+                else if (k === 'escape') gameKeys.push(27);
+                else if (k === 'space') gameKeys.push(32);
+                else if (k === 'return' || k === 'enter') gameKeys.push(13);
+                else gameKeys.push(null);
+            }
+            // Set up step-by-step replay after game starts
+            const origOnGameplayStart = initOpts.hooks?.onGameplayStart;
+            if (!initOpts.hooks) initOpts.hooks = {};
+            // Expose step functions on window after a short delay
+            setTimeout(() => {
+                let idx = 0;
+                window._sessionKeys = gameKeys;
+                window._sessionIdx = 0;
+                window.step = function() {
+                    while (window._sessionIdx < gameKeys.length) {
+                        const k = gameKeys[window._sessionIdx++];
+                        if (k == null) continue;
+                        input.pushInput(k);
+                        const ch = k >= 32 && k < 127 ? String.fromCharCode(k) : (k === 13 ? 'Enter' : (k === 27 ? 'Esc' : (k < 32 ? '^' + String.fromCharCode(k+64) : '?')));
+                        return 'step ' + (window._sessionIdx-1) + '/' + gameKeys.length + ': ' + ch + ' (' + k + ')';
+                    }
+                    return 'done';
+                };
+                window.stepN = async function(n, delay) {
+                    delay = delay || 300;
+                    for (let i = 0; i < n; i++) {
+                        const r = window.step();
+                        if (r === 'done') return r;
+                        console.log(r);
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+                    return 'at ' + window._sessionIdx + '/' + gameKeys.length;
+                };
+                window.stepAll = function(delay) { return window.stepN(gameKeys.length, delay || 300); };
+                console.log('Session replay ready: ' + gameKeys.filter(k=>k!=null).length + ' keys. Use step(), stepN(n), or stepAll(delay).');
+            }, 500);
+        } catch (e) {
+            console.error('Failed to load session:', e);
+        }
+    }
+    if (opts.role) {
+        const urlParams = new URLSearchParams(window.location.search);
+        initOpts.character = {
+            role: opts.role,
+            name: urlParams.get('name') || 'Player',
+            race: urlParams.get('race') || undefined,
+            gender: urlParams.get('gender') || undefined,
+            align: urlParams.get('align') || undefined,
+        };
+        initOpts.tutorial = false;
+        initOpts.flags = { tutorial: false };
+        if (urlParams.has('wizard')) initOpts.wizard = true;
+    }
+    await game.init(initOpts);
     await game.gameLoop();
 });
