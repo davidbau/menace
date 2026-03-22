@@ -4747,9 +4747,13 @@ export function mineralize(map, depth, opts = null) {
     let eligible_count = 0;
     let rng_calls = 0;
     const startRng = DEBUG ? getRngCallCount() : 0;
+    // C ref: mklev.c:1523 uses dunlev(&u.uz) — branch-local level number.
+    // map._genDlevel is set during level_init; for special levels that skip
+    // level_init (e.g. oracle), fall back to finalizeContext.dlevel or depth.
+    const fcDlevel = getLevelState()?.finalizeContext?.dlevel;
     const branchDlevel = Number.isInteger(map?._genDlevel) && map._genDlevel > 0
         ? map._genDlevel
-        : 1;
+        : (Number.isInteger(fcDlevel) && fcDlevel > 0 ? fcDlevel : depth);
 
     // C ref: mklev.c:1454-1457 — Place kelp in water (except plane of water)
     // Skip for wizard tower (not in endgame)
@@ -4779,7 +4783,12 @@ export function mineralize(map, depth, opts = null) {
         const isRogue = !!(map.flags && map.flags.is_rogue);
         const isArboreal = !!(map.flags && map.flags.arboreal);
         const sp = (dnum >= 0 && dlevel >= 0) ? runtimeSpecialLevelFor(dnum, dlevel) : null;
-        const isOracle = !!(map.flags && map.flags.is_oracle_level);
+        // C ref: Is_oracle_level(&u.uz) checks dungeon topology (dnum/dlevel
+        // match oracle_level), not a map flag. During level generation, the
+        // is_oracle_level flag isn't set yet, so also check topology directly.
+        const oLevel = getOracleLevel();
+        const isOracle = !!(map.flags && map.flags.is_oracle_level)
+            || (dnum === oLevel.dnum && dlevel === oLevel.dlevel);
         const isMines = (dnum === GNOMISH_MINES);
         // C: sp->flags.town — stored in runtime special level map from dungeon.lua
         const isTown = !!(sp && sp.town);

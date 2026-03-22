@@ -3107,6 +3107,17 @@ function wallification(map) {
 export async function build_room(opts = {}) {
     if (!levelState.map) {
         levelState.map = new GameMap();
+        // Propagate dnum/dlevel from finalize context for special levels
+        // that call des.room() without des.level_init() (e.g. oracle).
+        const ctx = levelState.finalizeContext || {};
+        if (Number.isFinite(ctx.dnum)) {
+            levelState.map._dnum = ctx.dnum;
+            levelState.map._genDnum = ctx.dnum;
+        }
+        if (Number.isFinite(ctx.dlevel)) {
+            levelState.map._dlevel = ctx.dlevel;
+            levelState.map._genDlevel = ctx.dlevel;
+        }
     }
 
     // Parse alignment strings - C ref: sp_lev.c defines LEFT=1, CENTER=2, RIGHT=3, TOP=1, BOTTOM=3
