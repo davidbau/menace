@@ -14,8 +14,6 @@ By the mid-1970s the turtle had migrated from the floor to the screen, and from 
 
 *[Mindstorms](https://en.wikipedia.org/wiki/Mindstorms_(book))* argued that children should not use computers to be taught. They should use computers to *think*. The computer was not a delivery system for curriculum. It was a "Mathland": an environment where mathematical ideas could be encountered naturally, the way a child in France encounters French. The turtle was the entry point, but Logo was a real programming language with recursion, variables, and procedures. A child who started by drawing squares could end up reasoning about geometry, debugging logical errors, and building programs of genuine complexity. The word "debugging" itself, Papert observed, was a more honest and less punishing way to talk about learning from mistakes than anything the schools had come up with.
 
-## The Impact of Logo
-
 The timing was electric. Personal computers were flooding into schools, and teachers were desperate for something to do with them. Logo spread fast: Apple Logo, TI Logo, Atari Logo, Commodore Logo. By 1982, [BYTE magazine](https://archive.org/details/byte-magazine-1982-08) devoted an entire issue to Logo. Terrapin Software produced commercial turtle robots. Schools across the United States and the United Kingdom adopted Logo as a staple of computer education. In England it became part of the national curriculum.
 
 ## How to Program in Logo
@@ -186,7 +184,7 @@ PRINT SENTENCE [HELLO] [WORLD]
 
 Type `HELP` at the prompt for a list of all commands, or `PROCEDURES` to see your defined procedures. `SAVE` saves your procedures, `LOAD` restores them. `BYE` or Ctrl-C exits to the shell.
 
----
+## The Impact of Logo
 
 At Lincoln-Sudbury Regional High School in Sudbury, Massachusetts, a teacher named Brian Harvey built a computer center in 1980 where courses were not graded and students had keys to the room. Harvey was a Logo person: he had studied at MIT and Stanford, and would later create UCBLogo at Berkeley and write the three-volume *Computer Science Logo Style*. His students learned Logo. They also learned C, and Unix, and they learned by doing whatever they were curious enough to attempt.
 
