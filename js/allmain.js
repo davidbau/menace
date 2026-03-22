@@ -2637,7 +2637,12 @@ export class NetHackGame {
 
             // Travel continuation fallback. Keep this behind the positive-move
             // lane so armed move-continuation uses the same no-input owner.
+            // Guard on context.travel: when travel terminates (nomul(0) →
+            // end_running(true)), context.travel is cleared.  Without this
+            // guard a stale travelPath from the just-completed travel would
+            // re-trigger dotravel_target, consuming the next replay key.
             if (!hasPositiveMoveContinuation
+                && this.context?.travel
                 && this.travelPath && this.travelStep < this.travelPath.length) {
                 const result = await dotravel_target(this);
                 if (result.tookTime) {
@@ -2687,7 +2692,11 @@ export class NetHackGame {
                     bumpHeroSeqN,
                 });
                 this.renderAndAutosave({ autosave: true });
-                return;
+                // C ref: moveloop_core loops without reading a new key for
+                // both run and travel continuation. Use `continue` to batch
+                // all continuation steps within this _gameLoopStep call,
+                // preventing the replay from consuming keys between steps.
+                continue;
             }
 
             // C ref: tty_clearmsg() — dismiss pending --More-- before command.

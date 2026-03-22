@@ -875,6 +875,12 @@ export async function domove_core(dir, player, map, display, game) {
     game.uy0 = oldY;
     let moveDir = dir;
     if (ctx.travel) {
+        // Clear stale path before requesting a fresh one.  C uses u.dx/u.dy
+        // directly (no persistent array), so there's no stale-path risk there.
+        // In JS, a previous step's travelPath would survive a failed
+        // findtravelpath and cause an overshoot.
+        game.travelPath = null;
+        game.travelStep = 0;
         const _tOk = await findtravelpath(TRAVP_TRAVEL, game);
         if (!_tOk) {
             await findtravelpath(TRAVP_GUESS, game);
