@@ -4,7 +4,10 @@ import { THRONE, SINK, GRAVE, FOUNTAIN, STAIRS, ALTAR, IS_DOOR, D_ISOPEN,
          IS_POOL, IS_LAVA, isok, SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER,
          EXT_ENCUMBER, A_WIS, STONE, MM_ADJACENTOK, MM_NOMSG,
          AUTOUNLOCK_UNTRAP, AUTOUNLOCK_APPLY_KEY } from './const.js';
-import { objectData, COIN_CLASS, CORPSE, ICE_BOX, CHEST,
+import { objectData, COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS,
+         FOOD_CLASS, SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS,
+         WAND_CLASS, TOOL_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
+         CORPSE, ICE_BOX, CHEST,
          BAG_OF_HOLDING, BAG_OF_TRICKS, WAN_CANCELLATION, LOADSTONE,
          BOULDER, STATUE, AMULET_OF_YENDOR, CANDELABRUM_OF_INVOCATION,
          BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD, LEASH, SCR_SCARE_MONSTER,
@@ -2418,10 +2421,14 @@ async function query_category(qstr, olist, qflags, how, player, game) {
     const ofilter = do_worn ? is_worn : null;
 
     // count categories
+    // C ref: options.c:136 def_inv_order — uses class number constants, not display symbols.
+    // JS inv_order may be display symbols; use the numeric class order instead.
     let ccount = 0;
-    const inv_order = game?.flags?.inv_order || 'aefgkmopqrstuvw!?"+=([*/(';
-    for (let ci = 0; ci < inv_order.length; ci++) {
-        const pack = inv_order.charCodeAt(ci);
+    const class_order = [COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS,
+        SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS, WAND_CLASS,
+        TOOL_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS];
+    for (let ci = 0; ci < class_order.length; ci++) {
+        const pack = class_order[ci];
         let found = false;
         for (let c = olist; c; c = FOLLOW(c, qflags)) {
             if (c.oclass === pack) {
@@ -2464,8 +2471,8 @@ async function query_category(qstr, olist, qflags, how, player, game) {
         invlet++;
     }
 
-    for (let ci = 0; ci < inv_order.length; ci++) {
-        const pack = inv_order.charCodeAt(ci);
+    for (let ci = 0; ci < class_order.length; ci++) {
+        const pack = class_order[ci];
         let found = false;
         for (let c = olist; c; c = FOLLOW(c, qflags)) {
             if (c.oclass === pack) {
@@ -2585,7 +2592,9 @@ async function menu_loot(retry, put_in, player, game) {
         const qstr = `${action} what type of objects?`;
         const src = put_in ? player.inventory : getContainerContents(current_container);
         // Build linked-list-like traversal for query_category
-        const catResult = await query_category(qstr, src?.[0] || null, 0, PICK_ANY, player, game);
+        // C ref: pickup.c:3264-3265 — ALL_TYPES | UNPAID_TYPES | BUCX_TYPES | CHOOSE_ALL | JUSTPICKED
+        // JS query_category currently supports CHOOSE_ALL for the 'A' auto-select option.
+        const catResult = await query_category(qstr, src?.[0] || null, CHOOSE_ALL, PICK_ANY, player, game);
         if (catResult.count === 0) return 0;
         for (const pick of catResult.pick_list) {
             if (pick.item_int === 'A'.charCodeAt(0)) {
