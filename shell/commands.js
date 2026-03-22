@@ -474,7 +474,6 @@ async function help(args, shell) {
         ['date',     'print date and time'],
         ['who',      'list logged-in users'],
         ['uname',    'print system information'],
-        ['man',      'display manual pages'],
         ['vi',       'text editor'],
         ['finger',   'show user info'],
         ['mail',     'read and send mail'],
