@@ -16675,3 +16675,103 @@ distinction is always conditional on being in Gehennom.
       - events `28950/28950`
       - remaining divergence unchanged in the preexisting screen/cursor lane
         at step `41`
+
+---
+
+## 2026-03-22 — Session 30: seed032 travel termination, pickup sort LIFO, eating ordering
+
+### Travel termination overshoot and ghost continuation
+
+When travel reached its target, three bugs conspired to make the player
+overshoot and waste subsequent replay keys:
+
+1. **Stale `travelPath`**: `domove_core` didn't clear `travelPath` before
+   calling `findtravelpath`. When `findtravelpath` returned false (player at
+   target), the old path was reused, causing an extra move.
+2. **Ghost travel continuation**: `_gameLoopStep`'s travel fallback checked
+   `travelPath` without checking `context.travel`. After `nomul(0)` →
+   `end_running(true)` cleared `context.travel`, the stale `travelPath`
+   re-triggered `dotravel_target`, consuming replay keys.
+3. **Run/travel batching**: `_gameLoopStep` used `return` after
+   `runMovementRepeatSlice`, causing the replay to advance keys between
+   continuation steps. C's `moveloop_core` loops without reading keys.
+   Changed to `continue`.
+
+**Impact**: seed032 RNG 25% → 43%.
+
+### Pickup menu sort LIFO tiebreaker
+
+C's `place_object()` prepends to the floor chain (LIFO). C's deterministic
+qsort (patch 006) is stable — equal elements preserve their original index
+order. Combined: when sortloot or pickup menus sort objects with identical
+names/properties, the LIFO chain order determines which appears first
+(newest object first).
+
+JS's pickup menu sort used `a.o_id - b.o_id` as tiebreaker (oldest first) —
+exactly backwards from C. This caused two poisoned darts with different BUC
+to swap invlet assignments: JS assigned the cursed dart to invlet 'r' while C
+assigned the non-cursed one. The player then threw the cursed dart, triggering
+the fumble check `rn2(7)` that C didn't call, diverging the RNG stream.
+
+**Fix**: Reverse tiebreaker to `b.o_id - a.o_id` (newest first = LIFO).
+
+**Impact**: seed032 RNG 43% → 56%.
+
+**Lesson**: Any sort comparator for floor objects must produce newest-first
+ordering for equal keys. The C harness patches `qsort` for stability (patch
+006), and JS's `Array.prototype.sort` is stable per ES2019. The tiebreaker
+must match C's LIFO chain order.
+
+### xname poisoned weapon prefix
+
+C's `xname()` adds "poisoned " prefix for weapons with `opoisoned` set.
+JS only had this in `doname()`. This meant `cxname_singular()` (used by sort
+comparators) returned "dart" instead of "poisoned dart", potentially affecting
+menu ordering and display.
+
+**Fix**: Move "poisoned " prefix from `doname` to `xname_for_doname`.
+
+### Eating effect ordering — cpostfx/fpostfx before item removal
+
+C's `done_eating()` calls `cpostfx()`/`fpostfx()` (eating effects like
+`eye_of_newt_buzz`) BEFORE `food_disappears()` (item removal via
+`obj_resists`). JS had the reverse order in both multi-turn and single-turn
+eating paths: `consumeInventoryItem()` first, then effects.
+
+This caused RNG divergence because `obj_resists` calls `rn2(100)` while
+`eye_of_newt_buzz` calls `rn2(3)`, and the call order matters.
+
+**Impact**: seed032 RNG 56% → 68%.
+
+### Fog cloud gas regions — C has them, JS doesn't
+
+seed032's next divergence (step 279, index 18620) is caused by JS's fog
+cloud monsters calling `create_gas_cloud()` (consuming `rn2(3)`) while C's
+fog clouds skip it because `visible_region_at()` returns true.
+
+C-side diagnostic patch (029-fog-cloud-trace) confirmed: all four fog clouds
+at positions (46,5), (46,6), (47,4), (48,6) have `cd=0 vr=1` — gas regions
+already exist at their positions BEFORE `m_everyturn_effect` runs. These
+regions were created during level generation by a mechanism JS doesn't
+reproduce.
+
+**Status**: Open. Need to find what creates gas regions during Dlvl:3 level
+generation in C.
+
+### seed033 encumbrance correction
+
+Prior analysis was WRONG: the hero is NOT persistently SLT_ENCUMBER from game
+start. C's `^moveamt` events (patch 028) confirm: hero is UNENCUMBERED
+(wtcap=0) through step 208, becomes SLT_ENCUMBER at step 209 (picking up
+rocks at pos 17,8), peaks at HVY_ENCUMBER at step 220, then returns to
+UNENCUMBERED at step 380. JS has identical encumbrance transitions at the
+same steps.
+
+The divergence at step 338 (index 4358: JS `rn2(5)@dochug` vs C
+`rn2(19)@exercise`) is a turn-boundary issue where JS and C are in different
+phases of `moveloop_core` at the same RNG index. Root cause is NOT
+encumbrance — it's a subtle difference in the hero/monster turn interleaving
+within the moveloop.
+
+**Status**: Open. Both have identical moveamt/wtcap transitions. The drift
+source is elsewhere in the moveloop phase ordering.
