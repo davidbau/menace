@@ -339,6 +339,18 @@ More specific late evidence:
 
 This is the strongest concrete late owner leak currently known.
 
+Additional late classification evidence:
+
+- local loop tracing showed that JS classifies the late eat action as timed one
+  key too early:
+  - `step=1236 key="e" tookTime=1 occ=0 multi=0 top="This gnome lord corpse tastes terrible!  You stop eating corpse." msgMore=1`
+  - `step=1237 key=" " tookTime=0 occ=0 multi=0 top="Unknown command ' '." msgMore=1`
+
+This is a stronger statement than the earlier raw-space symptom alone. It
+shows that JS is not merely mishandling a dismiss key; it is finishing the
+late eat action on the previous key and then treating the following key as an
+untimed outer-loop command.
+
 Early comparison evidence:
 
 - benign early analogue:
@@ -373,6 +385,10 @@ The current evidence supports these claims:
      `resume=done owner=none ack=1` regress much earlier
    - therefore the real discriminator must include additional local state or
      key-class context
+5. In the bad late corridor, JS appears to finish the timed eat action one key
+   earlier than C.
+   - the following key is then treated as untimed outer-loop input in JS
+   - C still resumes timed work there
 
 The evidence does **not** yet prove these stronger claims:
 
@@ -464,6 +480,8 @@ Concrete questions:
 4. which JS caller actually owns that same key?
 5. what distinguishes the bad late gnome-lord case from the earlier benign
    lichen-corpse analogue?
+6. why does JS classify the late eat action as `tookTime=1` on the preceding
+   key while C resumes timed work on the following key?
 
 Required evidence:
 
@@ -478,6 +496,11 @@ Required evidence:
 - one side-by-side comparison between:
   - the bad late gnome-lord corridor
   - the benign early lichen-corpse corridor
+- one explicit command-result classification capture for the late corridor:
+  - key
+  - `tookTime`
+  - occupation present/absent
+  - top-line state after `runOneCommandCycle`
 
 Required tracked fields:
 
@@ -489,6 +512,7 @@ Required tracked fields:
 - the immediately following replay key and whether it is treated as:
   - prompt dismissal only
   - or command input
+- whether JS has already classified the previous key as `tookTime=1`
 
 Exit criterion:
 
@@ -521,6 +545,8 @@ Likely kinds of fix:
   returning to owner `none`
 - correcting how the first replay key after `resume=done` is classified when a
   fresh post-prompt message is still pending
+- correcting whether the late eat action completes on the `y` answer key or
+  remains semantically open until the following dismiss/continuation key
 
 Exit criterion:
 
