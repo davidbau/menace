@@ -631,7 +631,7 @@
                 }
                 document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
               });
-              closeDocs();
+              // Stay in docs mode — commands run in the mini terminal
             });
           });
         });
