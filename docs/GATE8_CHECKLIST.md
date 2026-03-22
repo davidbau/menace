@@ -9,64 +9,85 @@
 - [ ] Verify `pes-report.mjs` still works
 
 ### 8A.2 Remove `_v4OptionsApplied` shim in `prepareReplayArgs`
-- [ ] Delete the V4-to-options derivation block (replay_compare.js ~lines 357-376)
-- [ ] Make `prepareReplayArgs` read character/flags from `nethackrc` directly
+- [ ] Delete the V4-to-options derivation block (`replay_compare.js` ~lines 357-377)
+- [ ] Delete `_v4OptionsApplied` flag usage
+- [ ] `prepareReplayArgs` reads character/flags from `nethackrc` directly via `parseNethackrcFull`
 - [ ] Run full test suite
 
-### 8A.3 Remove `parseSessionCharacter` complexity
-- [ ] Delete `parseSessionCharacter()` (replay_compare.js ~lines 596-670)
-- [ ] Character info comes from `parseNethackrcFull(session.nethackrc)` only
+### 8A.3 Remove `parseSessionCharacter`
+- [ ] Delete `parseSessionCharacter()` (`replay_compare.js` ~lines 596-670)
 - [ ] Delete rank-title-to-role inference code
+- [ ] Character info comes from `parseNethackrcFull(session.nethackrc)` only
 - [ ] Run full test suite
 
 ### 8A.4 Replace `buildGameplayReplayFlags`
-- [ ] Identify all callers of `buildGameplayReplayFlags` in session_recorder.js
-- [ ] Replace with `parseNethackrcFull` — one parsing path
+- [ ] Delete `buildGameplayReplayFlags()` (`session_recorder.js` lines 35-50)
+- [ ] Replace all callers with `parseNethackrcFull` — one parsing path
 - [ ] Run full test suite
 
-### 8A.5 Remove multiple init option formats
+### 8A.5 Remove `getManualDirectChargenInfo` and `applyManualDirectChargenView`
+- [ ] Delete `getManualDirectChargenInfo()` (`replay_compare.js` ~lines 242-275)
+- [ ] Delete `applyManualDirectChargenView()` (`replay_compare.js` ~lines 319-344)
+- [ ] Delete `getChargenKeys()` — no separate chargen detection
+- [ ] Manual-direct sessions record chargen as normal key-driven steps
+- [ ] Run full test suite
+
+### 8A.6 Remove multiple init option formats
 - [ ] Remove `initOptions.character` with roleIndex/numeric constants
 - [ ] Game init takes a `.nethackrc` string, parses it at init time
 - [ ] One code path for C, headless, and browser init
 - [ ] Run full test suite
 
-### 8A.6 Remove session version branching
+### 8A.7 Remove session version branching
 - [ ] Search for `version === 3`, `version < 4`, `version >= 4` in all JS
 - [ ] Delete all V3-specific code paths
+- [ ] Delete `convertV3toV4()` and `scripts/convert_session_v4.mjs`
 - [ ] All sessions are V4 — no fallback conversion
+- [ ] Run full test suite
+
+### 8A.8 Remove V4 options derivation in `normalizeSession`
+- [ ] Delete the V4-to-options derivation block in `session_loader.js`
+  (the block that calls `parseNethackrcFull` to populate `options` when absent)
+- [ ] `normalizeSession` no longer needs to derive options — they come from nethackrc
+- [ ] Run full test suite
+
+### 8A.9 Delete legacy `session_helpers.js` facade
+- [ ] Delete `replayGameplaySession()` bridge function (`session_helpers.js` lines 58-88)
+- [ ] Delete V3 re-export shims (`session_helpers.js` lines 1-19)
+- [ ] Inline any needed functionality into callers
 - [ ] Run full test suite
 
 ---
 
 ## 8B. Unified C Recording Path
 
-### 8B.1 Design `record_c_session()` function
-- [ ] Single function: `record_c_session(env, nethackrc, keys, output_path)`
-- [ ] Writes nethackrc to temp HOME
-- [ ] Sets env vars
-- [ ] Launches nethack in tmux (no `-D`, no `-u`; everything via nethackrc)
-- [ ] For each key: send, wait for RNG settle, capture screen/RNG/cursor
-- [ ] Outputs session JSON with version 4 fields
-- [ ] Unit test: record seed42 gameplay, verify matches existing session
+### 8B.1 Build `record_c_session()` function ✅
+- [x] Single function: `record_c_session(env, nethackrc, keys, output_path)`
+- [x] Writes nethackrc to temp HOME (strips WIZARD= lines for C)
+- [x] Sets env vars, passes through NETHACK_*/WEBHACK_* from host
+- [x] Launches nethack in tmux with `-u name -D` derived from nethackrc
+- [x] For each key: send, wait for RNG settle, capture screen/RNG/cursor
+- [x] Outputs session JSON with version 4 fields
+- [x] Tested: seed42 gameplay matches original on all channels
 
-### 8B.2 Convert startup to be key-driven (no auto-advance)
-- [ ] Record the startup --More-- screens and space keys as steps
-- [ ] No `wait_for_game_ready()` — chargen is either skipped by nethackrc
-      or driven by keys in the sequence
-- [ ] No `clear_more_prompts()` — --More-- dismissals are keys in the sequence
-- [ ] Test: re-record seed42 with full startup keys, compare to original
+### 8B.2 Key-driven startup (no auto-advance) ✅
+- [x] Step 0 captures initial screen (lore + --More--)
+- [x] --More-- spaces are steps in the key sequence
+- [x] No `wait_for_game_ready()` in the unified path
+- [x] No `clear_more_prompts()` in the unified path
+- [x] `probe_startup_keys()` discovers startup key count per session
+- [x] Tested: seed42 with 1 startup space produces identical gameplay
 
-### 8B.3 Extend session key sequences to include startup
-- [ ] For each of the 6 session types, determine what startup keys are needed:
-  - gameplay (with full chargen in nethackrc): just --More-- spaces
-  - chargen: role/race/gender/align selection keys
-  - interface: --More-- spaces + UI keys
-  - option_test: --More-- spaces + gameplay keys
-  - wizload: --More-- spaces + #wizloaddes keys
-  - manual-direct-live: already has all keys from keylog
-- [ ] Write a migration tool to prepend startup keys to existing sessions
-- [ ] OR: re-record all sessions with unified recorder (captures everything)
-- [ ] Test: re-recorded sessions match originals on all channels
+### 8B.3 Re-record all sessions with unified recorder
+- [ ] Add `!tutorial` to nethackrc for all sessions that had auto-advance
+- [ ] Re-record all gameplay sessions (prepend startup keys)
+- [ ] Re-record all interface sessions
+- [ ] Re-record all option_test sessions
+- [ ] Re-record all wizload sessions
+- [ ] Fix chargen sessions: nethackrc should omit role/race/gender/align
+- [ ] Re-record chargen sessions with chargen keys in sequence
+- [ ] Re-record manual-direct-live sessions (already have complete keys)
+- [ ] Validate: all re-recorded sessions match originals on PRNG/screen/cursor/events
 
 ### 8B.4 Simplify gen_* scripts to thin wrappers
 - [ ] `gen_interface_sessions.py` → calls `record_c_session()` with UI keys
@@ -76,57 +97,83 @@
 - [ ] Test: regenerated sessions match originals
 
 ### 8B.5 Simplify `rerecord.py` dispatch
-- [ ] Remove all `_build_*` functions (gameplay, chargen, wizload, interface, option_test)
+- [ ] Delete all `_build_*` functions (gameplay, chargen, wizload, interface, option_test)
+- [ ] Delete `_build_from_steps()` and `_build_keylog()`
 - [ ] Single path: read session → extract env + nethackrc + keys → `record_c_session()`
 - [ ] `regen` field only needed for compact move notation expansion
 - [ ] Test: `rerecord.py --all` produces same results as before
 
-### 8B.6 Delete auto-advance code
-- [ ] Delete `wait_for_game_ready()` from run_session.py
-- [ ] Delete `clear_more_prompts()` from run_session.py
-- [ ] Delete all `_wait_for_text()` usage in gen_interface_sessions.py
+### 8B.6 Delete auto-advance code from `run_session.py`
+- [ ] Delete `wait_for_game_ready()` (~lines 921-995)
+- [ ] Delete `clear_more_prompts()` (~lines 866-919)
 - [ ] Delete chargen auto-selection code (role='v', race='h', etc.)
-- [ ] Verify no remaining callers
+- [ ] Delete `run_session()` old gameplay recorder (~line 2140+)
+- [ ] Delete `run_chargen_session()` (~line 1450)
+- [ ] Delete `run_interface_session()` (~line 1772)
+- [ ] Delete `run_wizload_session()` (~line 1204)
+- [ ] Delete `setup_home()` (~line 391) — replaced by `record_c_session` temp dir
+- [ ] Delete `execute_wizload()` (~line 733) — wizload is just keys
+- [ ] Verify no remaining callers of deleted functions
 - [ ] Run full test suite
 
 ### 8B.7 Delete or merge redundant scripts
-- [ ] `keylog_to_session.py` → thin wrapper calling `record_c_session()`
-      with keys extracted from keylog JSONL
-- [ ] Evaluate whether `keylog_to_session.py` can be fully absorbed into
-      `rerecord.py` or `record_c_session()`
-- [ ] Delete duplicate CHARACTER_PRESETS definitions (in multiple files)
-- [ ] Delete duplicate tmux setup code
-- [ ] Verify line count reduction: run_session.py + gen_*.py + keylog_to_session.py
-      + rerecord.py total should decrease significantly
+- [ ] `keylog_to_session.py` → thin wrapper or absorbed into `rerecord.py`
+- [ ] Delete duplicate `CHARACTER_PRESETS` definitions (in run_session.py, keylog_to_session.py)
+- [ ] Delete duplicate tmux setup code across scripts
+- [ ] Delete all `*_env()` helper functions (fixed_datetime_env, diag_events_env, etc.)
+  — replaced by `_passthrough_env_vars()` in `record_c_session`
+- [ ] Delete `build_v4_fields()` — unified recorder builds fields directly
+- [ ] Verify line count reduction
 
 ---
 
 ## 8C. Unified JS Replay Path
 
-### 8C.1 Simplify session loading
-- [ ] `normalizeSession()` no longer needs V3 detection
-- [ ] Remove startup extraction heuristics (steps[0] key===null detection)
-- [ ] Session steps include ALL steps from game launch (including startup)
-- [ ] Test: all sessions load correctly
+### 8C.1 Make JS game.init() key-driven at startup
+- [ ] `game.init()` renders lore text + --More-- and WAITS (sets pendingPrompt)
+- [ ] Space key dismisses --More--, reveals welcome + --More--
+- [ ] Second space dismisses welcome, reveals game map
+- [ ] Tutorial prompt (if enabled) is a pendingPrompt, dismissed by key
+- [ ] No special init options needed — the key sequence drives everything
+- [ ] Test: JS replay of unified-format session produces matching screens
 
-### 8C.2 Simplify `prepareReplayArgs`
-- [ ] Single path: parse nethackrc → init game → feed keys
-- [ ] Delete `getManualDirectChargenInfo()` — chargen is just keys
-- [ ] Delete `applyManualDirectChargenView()` — no special folding
-- [ ] Delete `getChargenKeys()` — no separate chargen detection
-- [ ] Test: all sessions replay correctly
+### 8C.2 Delete JS startup hacks from `allmain.js`
+- [ ] Delete `showLoreAndWelcome` init option and code block (~line 2099-2138)
+- [ ] Delete `showWelcomeMore` init option and code block (~line 2140-2163)
+- [ ] Delete `showTutorialMenu` init option and code block (~line 2165-2193)
+- [ ] Delete `replayTutorialStartupPrompts` init option and code block (~line 2194-2207)
+- [ ] Delete `tutorialStartupEnterAfterPromptCount` init option (~line 2199-2201)
+- [ ] Delete `tutorialDirectStart` init option (~line 2208-2210)
+- [ ] Delete `buildStartupLorePromptFlow()` helper function
+- [ ] Delete `buildWelcomeMorePrompt()` helper function
+- [ ] Delete `buildTutorialMenuPrompt()` helper function
+- [ ] Delete `buildReplayTutorialPromptFlow()` helper function
+- [ ] Run full test suite
 
-### 8C.3 Browser replay via URL params
+### 8C.3 Delete startup hacks from comparison framework
+- [ ] Delete lore detection in `prepareReplayArgs` (`replay_compare.js` ~lines 418-428)
+- [ ] Delete welcome --More-- detection (`replay_compare.js` ~lines 430-434)
+- [ ] Delete tutorial menu detection (`replay_compare.js` ~lines 441-466)
+- [ ] Delete `replayTutorialStartupPrompts` passthrough (`replay_compare.js` ~lines 404-405)
+- [ ] Delete `tutorialStartupEnterAfterPromptCount` passthrough (~lines 406-407)
+- [ ] Delete `tutorialDirectStart` passthrough (~line 408)
+- [ ] Delete `replayTutorialStartupPrompts` reading in `session_recorder.js` (~lines 99-114)
+- [ ] Run full test suite
+
+### 8C.4 Simplify `normalizeSession()` in session_loader.js
+- [ ] Delete startup-boundary detection (scanning for --More--, Velkommen, etc.)
+- [ ] Step 0 is always `key: null` (initial screen from launch)
+- [ ] Steps 1+ are the key sequence including startup --More-- spaces
+- [ ] No special startup folding — comparison is step-by-step
+- [ ] Delete `applyManualDirectChargenView()` usage in test runner
+- [ ] Run full test suite
+
+### 8C.5 Browser replay via URL params
 - [ ] `?session=path&clearLocalStorage` handler reads session JSON
 - [ ] Passes env as URL params: `&NETHACK_SEED=...&NETHACK_DATETIME=...`
 - [ ] Passes nethackrc as URL param: `&NETHACKOPTIONS=...`
 - [ ] Same init logic as headless — only display backend differs
 - [ ] Test: replay hi07_seed1060 in browser, verify screen matches C
-
-### 8C.4 Delete legacy session_helpers.js facade
-- [ ] Inline or delete `replayGameplaySession()` bridge function
-- [ ] Remove V3 re-export shims
-- [ ] Test: test_result_format.js still works
 
 ---
 
@@ -154,16 +201,17 @@
 After each section (8A, 8B, 8C, 8D), run:
 - [ ] `node --test test/comparison/test_result_format.js` — all sessions pass
 - [ ] `node --test test/unit/nethackrc_parse.test.js` — parser tests pass
-- [ ] `node scripts/pes-report.mjs` — PES report matches baseline
+- [ ] `node scripts/pes-report.mjs` — PES report matches baseline (433/442 or better)
 - [ ] Re-record one session of each type via `rerecord.py` — matches original
 - [ ] Browser replay of at least one session works
 
 ## Order of Operations
 
-Recommended execution order:
-1. **8B.1-8B.2**: Build unified `record_c_session()` with key-driven startup
-2. **8B.3**: Extend key sequences (or re-record all sessions)
-3. **8B.4-8B.7**: Simplify/delete gen_* scripts, rerecord.py, auto-advance
-4. **8A.1-8A.6**: Strip V3 shims from JS
-5. **8C.1-8C.4**: Simplify JS replay path
+Recommended execution order (dependencies flow downward):
+
+1. **8C.1**: Make JS game.init() key-driven — this is the prerequisite for everything
+2. **8B.3**: Re-record all sessions with unified recorder (startup as steps)
+3. **8C.2-8C.4**: Delete JS startup hacks + simplify comparison framework
+4. **8A.1-8A.9**: Strip V3 shims from JS (options field, version branching, etc.)
+5. **8B.4-8B.7**: Simplify/delete C recording scripts, auto-advance code
 6. **8D.1-8D.2**: Finalize format docs and validation
