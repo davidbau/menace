@@ -15779,3 +15779,57 @@ distinction is always conditional on being in Gehennom.
     `main` is gameplay step `1082`
   - raw evidence there shows a later `dog_move()` candidate-choice mismatch,
     not the old monster-pickup pile-collapse seam
+
+## 2026-03-21 - `seed031`: pickup menu weapon subclass ordering was still non-C-faithful
+
+- In the `seed031` floor-pickup corridor around gameplay steps `1068..1075`,
+  JS and C agreed on the visible multi-pickup control flow shape, but the
+  actual `Pick up what?` letter assignment still differed inside the weapon
+  section.
+- Concrete JS bad menu before the fix at step `1070`:
+  - `a` crude dagger
+  - `b` crossbow
+  - `c` crossbow bolts
+  - `d` dart
+  - `f` iron skull cap
+  - `g` gem
+- C-grounded target for the same corridor:
+  - `c/f/g` must select `dart / iron skull cap / gem`
+- Root cause:
+  - [`loot_classify()`](js/invent.js) was not matching C's weapon subclass
+    buckets from [`invent.c`](nethack-c/patched/src/invent.c):
+    - ammo/bolts
+    - launchers
+    - missiles like darts
+    - stackables like daggers/knives/spears
+    - other weapons
+    - polearms/lances
+  - JS had collapsed all weapons into a single fallback subclass because it:
+    1. used a reduced non-C weapon bucketing rule
+    2. read `od.skill`, but object data actually exposes `oc_skill/oc_subtyp`
+- Keepable JS fix:
+  - update [`loot_classify()`](js/invent.js) to read `oc_skill/oc_subtyp`
+  - implement the C weapon subclass split exactly enough for pickup sorting:
+    - `[-P_CROSSBOW..-P_BOW] -> 1`
+    - `[P_BOW..P_CROSSBOW] -> 2`
+    - other negative missile skills -> `3`
+    - `P_SPEAR/P_DAGGER/P_KNIFE -> 4`
+    - `P_POLEARMS/P_LANCE -> 6`
+    - otherwise `5`
+- Resulting live JS menu at step `1070` after the fix:
+  - `a` crossbow bolts
+  - `b` crossbow
+  - `c` dart
+  - `d` darts
+  - `e` crude dagger
+  - `f` iron skull cap
+  - `g` gem
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved from `37850/51561` to `38721/51561`
+    - matched events improved from `21756/28950` to `22572/28950`
+    - first RNG divergence moved from gameplay step `1082` to `1112`
+  - `t11_s755_w_covmax9_gp.session.json`
+    - still green
+  - `theme15_seed986_wiz_artifact-wish_gameplay.session.json`
+    - still green
