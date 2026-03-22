@@ -271,24 +271,23 @@ infrastructure must be consolidated into a single path per runtime.
 
 #### 8A. Remove V3 Backward Compatibility Shims
 
-1. **V3 `options` field from session files** — V4 sessions should only have
-   `env` + `nethackrc` + `regen` + `steps`. No more `options.role`, `options.wizard`, etc.
+**Explicit deletion list — every item must be removed, not just deprecated:**
 
-2. **`_v4OptionsApplied` shim in prepareReplayArgs** — V4 is the only format.
-   No on-the-fly conversion needed.
-
-3. **`parseSessionCharacter` complexity** — Character info comes from `nethackrc`.
-   No more parsing status lines to infer role from rank titles.
-
-4. **`buildGameplayReplayFlags` in session_recorder.js** — Flags come from
-   `nethackrc` via `parseNethackrcFull`. One code path.
-
-5. **Multiple init option formats** — `initOptions.character` with roleIndex/
-   numeric constants should be replaced by a `.nethackrc` string that gets
-   parsed at init time. One parsing path for C, headless, and browser.
-
-6. **Session version branching** — No `if (session.version === 3)` checks.
-   All sessions are V4.
+| # | What to delete | File | Lines | Why it exists |
+|---|---------------|------|-------|---------------|
+| 1 | `options` field from all 506 session JSON files | `sessions/*.json` | — | V3 format; replaced by `env` + `nethackrc` |
+| 2 | `_v4OptionsApplied` flag and V4-to-options derivation block | `replay_compare.js` | 357-377 | Shim to derive V3 `options` from V4 `nethackrc` |
+| 3 | `parseSessionCharacter()` | `replay_compare.js` | 596-670 | Infers character from status line rank titles |
+| 4 | `buildGameplayReplayFlags()` | `session_recorder.js` | 35-50 | Builds flags from `meta.options`; replaced by `parseNethackrcFull` |
+| 5 | `getManualDirectChargenInfo()` | `replay_compare.js` | 242-275 | Detects chargen RNG bursts for manual-direct sessions |
+| 6 | `applyManualDirectChargenView()` | `replay_compare.js` | 319-344 | Folds chargen steps into startup for manual-direct |
+| 7 | `getChargenKeys()` | `replay_compare.js` | — | Detects chargen key sequences from session data |
+| 8 | `normalizeSession()` startup heuristics | `session_loader.js` | 317-365 | Scans step 0 for `key===null`, folds --More-- steps |
+| 9 | V4 options derivation in `normalizeSession()` | `session_loader.js` | — | Derives `options` from `nethackrc` when absent |
+| 10 | `replayGameplaySession()` bridge | `session_helpers.js` | 58-88 | V3-compatible wrapper; groups per-key results |
+| 11 | `initOptions.character` with `roleIndex`/numeric constants | `role.js`, `allmain.js` | — | Replaced by `.nethackrc` string parsed at init |
+| 12 | Session version branching (`version === 3`, `version < 4`) | all JS files | — | All sessions are V4 |
+| 13 | `convertV3toV4()` and conversion script | `scripts/convert_session_v4.mjs` | — | One-time migration; no longer needed |
 
 #### 8B. Unified C Recording Path
 
@@ -361,12 +360,17 @@ that store a compact move notation rather than the full key list.
 
 #### 8C. Unified JS Replay Path
 
+**Goal:** JS game.init() stops at the first --More-- prompt and lets
+the key sequence drive startup, exactly like C does.  No special init
+options that pre-configure startup behavior.
+
 Two JS paths (headless and browser) should share the same core:
 
 1. Parse `nethackrc` → flags + character options
 2. Apply `env` (seed, datetime)
-3. Initialize the game
-4. Feed keys one at a time, capture state after each
+3. Initialize the game — init renders lore text + --More-- and WAITS
+4. Feed keys one at a time: space dismisses --More--, etc.
+5. Capture screen/RNG/cursor after each key
 
 The headless test runner and the browser `?session=` handler should
 both call the same initialization code.  The only difference is the
@@ -380,6 +384,67 @@ be passed via URL parameters rather than localStorage — e.g.,
 browser init code reads these URL params and applies them the same way
 the headless path applies `env` + `nethackrc`.  The mechanism differs
 (URL params vs function args) but the logic is identical.
+
+**JS startup hack inventory — all must be deleted:**
+
+The current JS init in `allmain.js` lines 2095-2217 has accumulated
+a set of hacks that pre-configure startup prompt behavior based on
+session metadata analysis.  These exist because JS auto-advances
+through startup, while C records each prompt as a step.  In the
+unified format, JS stops at each prompt and the key sequence drives
+it, making ALL of these unnecessary.
+
+| Hack | Location | What it does | Why it exists |
+|------|----------|-------------|---------------|
+| `showLoreAndWelcome` | `allmain.js:2099` | Renders lore text + welcome as init prompt flow | Session step 0 had lore — JS needed to match C's screen |
+| `showWelcomeMore` | `allmain.js:2140` | Renders welcome --More-- only (lore auto-dismissed) | Some sessions had lore auto-cleared but welcome visible |
+| `showTutorialMenu` | `allmain.js:2165` | Renders "Do you want a tutorial?" as PICK_ONE overlay | Tutorial menu needed to consume keys during init |
+| `replayTutorialStartupPrompts` | `allmain.js:2195` | Pre-feeds startup prompt-dismiss keys to init flow | Replay needed specific key sequence through tutorial |
+| `tutorialStartupEnterAfterPromptCount` | `allmain.js:2199` | Controls how many prompts get Enter after them | Fine-grained tutorial prompt replay control |
+| `tutorialDirectStart` | `allmain.js:2208` | Skips tutorial menu, enters tutorial directly | Headless override for tutorial-mode sessions |
+| `buildStartupLorePromptFlow()` | `allmain.js` | Creates multi-step prompt for lore+welcome | Orchestrates the lore display sequence |
+| `buildWelcomeMorePrompt()` | `allmain.js` | Creates --More-- prompt for welcome text | Single welcome --More-- display |
+| `buildTutorialMenuPrompt()` | `allmain.js` | Creates tutorial menu + welcome prompt | Tutorial menu display during init |
+| `buildReplayTutorialPromptFlow()` | `allmain.js` | Creates replay-specific tutorial flow | Consumes recorded tutorial keys during init |
+
+These hacks also propagate through the comparison framework:
+
+| Hack | Location | What it does |
+|------|----------|-------------|
+| Lore detection in `prepareReplayArgs` | `replay_compare.js:418-428` | Scans `session.raw.steps[0]` for lore text to set `showLoreAndWelcome` |
+| Welcome --More-- detection | `replay_compare.js:430-434` | Scans step 0 for welcome text to set `showWelcomeMore` |
+| Tutorial menu detection | `replay_compare.js:441-466` | Scans early steps for tutorial prompt to set `showTutorialMenu` |
+| `replayTutorialStartupPrompts` passthrough | `replay_compare.js:404-405` | Pipes tutorial prompt keys from opts to initOpts |
+| `tutorialStartupEnterAfterPromptCount` | `replay_compare.js:406-407` | Pipes tutorial Enter count to initOpts |
+| `tutorialDirectStart` | `replay_compare.js:408` | Pipes tutorial direct-start flag to initOpts |
+| `replayTutorialStartupPrompts` in recorder | `session_recorder.js:99-114` | Reads tutorial replay keys from session raw data |
+
+**After Gate 8C, the JS init path is simply:**
+
+```javascript
+// game.init() renders lore + --More-- and sets pendingPrompt
+// The replay loop feeds keys:
+//   space → dismisses --More--, reveals welcome + --More--
+//   space → dismisses welcome --More--, reveals game map
+//   gameplay keys follow
+```
+
+No detection of what step 0 looks like.  No special init options.
+No prompt flow builders.  The game behaves the same way in replay
+as it does in live play.
+
+**`session_loader.js` startup detection also deleted:**
+
+The `normalizeSession()` startup-boundary detection (scanning for
+`--More--`, `Velkommen`, `welcome to NetHack` in early steps) becomes
+unnecessary.  In the unified format, step 0 is always `key: null`
+(initial screen from launch).  Steps 1+ are the key sequence
+including startup --More-- spaces.  The JS replay produces the same
+step sequence, so comparison is step-by-step with no special handling.
+
+The `applyManualDirectChargenView()` hack (which folds chargen RNG
+into startup for manual-direct-live sessions) is also deleted — those
+sessions now record chargen as normal key-driven steps.
 
 #### 8D. Session Key Sequences Must Be Complete
 
