@@ -17,10 +17,10 @@ index fc52eac41..f03dfa731 100644
  /*
   * what_obj()
 diff --git a/include/extern.h b/include/extern.h
-index 5268c5b2c..d2e27d2ef 100644
+index 5268c5b2c..340f8aa19 100644
 --- a/include/extern.h
 +++ b/include/extern.h
-@@ -2735,6 +2735,18 @@ extern void rng_log_init(void);
+@@ -2735,6 +2735,25 @@ extern void rng_log_init(void);
  extern boolean rng_log_enabled(void);
  extern void rng_log_set_caller(const char *, int, const char *);
  extern int rng_log_get_call_count(void);
@@ -36,6 +36,13 @@ index 5268c5b2c..d2e27d2ef 100644
 +extern void cosmic_display_prepare_rng_kind(const char *);
 +extern void cosmic_display_log_newsym(coordxy, coordxy, const char *, int);
 +extern void cosmic_display_log_maploc(coordxy, coordxy, const char *, int);
++extern void cosmic_display_log_tty_menu_show(int, const char *, int, int,
++                                             long, long, int, int, int);
++extern void cosmic_display_log_tty_menu_draw(int, const char *, int, int,
++                                             long, int, int, const char *);
++extern void cosmic_display_log_tty_menu_hide(int, const char *, int, int);
++extern void cosmic_display_log_tty_menu_erase(int, const char *, int, int,
++                                              int, int, int, int);
  /* Deterministic qsort wrapper (006-deterministic-qsort patch) */
  extern void nh_deterministic_qsort(void *, size_t, size_t,
                                     int (QSORTCALLBACK *)(const void *,
@@ -300,7 +307,7 @@ index fa05f7834..1adbc321c 100644
  }
  
 diff --git a/src/rnd.c b/src/rnd.c
-index a09ee62c4..32b92584d 100644
+index a09ee62c4..b6f3bc2b4 100644
 --- a/src/rnd.c
 +++ b/src/rnd.c
 @@ -38,6 +38,19 @@ static boolean exp_trace_enabled = FALSE;
@@ -339,7 +346,7 @@ index a09ee62c4..32b92584d 100644
  }
  
  boolean
-@@ -84,6 +99,137 @@ rng_log_get_call_count(void)
+@@ -84,6 +99,190 @@ rng_log_get_call_count(void)
      return rng_call_count;
  }
  
@@ -474,10 +481,63 @@ index a09ee62c4..32b92584d 100644
 +                        x, y, show, branch ? branch : "?");
 +}
 +
++void
++cosmic_display_log_tty_menu_show(
++    int window, const char *type, int offx, int offy,
++    long maxrow, long maxcol, int overlay, int fullscreen, int blocking)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_logf(
++        "^tty_menu_show[owner=%s win=%d type=%s offx=%d offy=%d maxrow=%ld maxcol=%ld overlay=%d fullscreen=%d blocking=%d]\n",
++        cosmic_display_current_owner() ? cosmic_display_current_owner() : "?",
++        window, type ? type : "?", offx, offy, maxrow, maxcol, overlay,
++        fullscreen, blocking);
++}
++
++void
++cosmic_display_log_tty_menu_draw(
++    int window, const char *type, int row0, int rowN,
++    long page_lines, int npages, int curr_page, const char *morestr)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_logf(
++        "^tty_menu_draw[owner=%s win=%d type=%s row0=%d rowN=%d page_lines=%ld page=%d npages=%d%s%s]\n",
++        cosmic_display_current_owner() ? cosmic_display_current_owner() : "?",
++        window, type ? type : "?", row0, rowN, page_lines, curr_page, npages,
++        morestr ? " more=" : "", morestr ? morestr : "");
++}
++
++void
++cosmic_display_log_tty_menu_hide(int window, const char *type, int active,
++                                 int clearscreen)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_logf(
++        "^tty_menu_hide[owner=%s win=%d type=%s active=%d clearscreen=%d]\n",
++        cosmic_display_current_owner() ? cosmic_display_current_owner() : "?",
++        window, type ? type : "?", active, clearscreen);
++}
++
++void
++cosmic_display_log_tty_menu_erase(
++    int window, const char *type, int x0, int y0, int x1, int y1,
++    int clear, int restore)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_logf(
++        "^tty_menu_erase[owner=%s win=%d type=%s x0=%d y0=%d x1=%d y1=%d clear=%d restore=%d]\n",
++        cosmic_display_current_owner() ? cosmic_display_current_owner() : "?",
++        window, type ? type : "?", x0, y0, x1, y1, clear, restore);
++}
++
  static void
  rng_log_write(const char *func, const char *args, int result)
  {
-@@ -325,18 +471,43 @@ rn2_on_display_rng(int x)
+@@ -325,18 +524,43 @@ rn2_on_display_rng(int x)
          char buf[32];
          snprintf(buf, sizeof buf, "%d", x);
          rng_call_count++;
@@ -530,3 +590,105 @@ index a09ee62c4..32b92584d 100644
      return result;
  }
  
+diff --git a/win/tty/wintty.c b/win/tty/wintty.c
+index 710ed7237..9c6ef674d 100644
+--- a/win/tty/wintty.c
++++ b/win/tty/wintty.c
+@@ -1068,17 +1068,35 @@ erase_menu_or_text(
+     struct WinDesc *cw,
+     boolean clear)
+ {
++    const char *wtype = (cw->type == NHW_TEXT) ? "NHW_TEXT"
++                        : (cw->type == NHW_MENU) ? "NHW_MENU"
++                                                 : "NHW_OTHER";
+     if (cw->offx == 0) {
+         if (cw->offy) {
++            cosmic_display_log_tty_menu_erase(window, wtype, 0, 0,
++                                              ttyDisplay->cols - 1,
++                                              ttyDisplay->rows - 1,
++                                              clear ? 1 : 0, 0);
+             tty_curs(window, 1, 0);
+             cl_eos();
+         } else if (clear) {
++            cosmic_display_log_tty_menu_erase(window, wtype, 0, 0,
++                                              ttyDisplay->cols - 1,
++                                              ttyDisplay->rows - 1,
++                                              1, 0);
+             term_clear_screen();
+         } else {
++            cosmic_display_log_tty_menu_erase(window, wtype, 0, 0,
++                                              ttyDisplay->cols - 1,
++                                              ttyDisplay->rows - 1,
++                                              0, 1);
+             docrt();
+             flush_screen(1);
+         }
+     } else {
++        cosmic_display_log_tty_menu_erase(window, wtype, cw->offx, 0,
++                                          ttyDisplay->cols - 1,
++                                          cw->maxrow + 1, clear ? 1 : 0, 1);
+         docorner((int) cw->offx, cw->maxrow + 1, 0);
+     }
+ }
+@@ -1642,6 +1660,10 @@ process_menu_window(winid window, struct WinDesc *cw)
+             else
+                 Strcpy(cw->morestr, defmorestr);
+ 
++            cosmic_display_log_tty_menu_draw(
++                window, "NHW_MENU", 0, page_lines, page_lines,
++                cw->npages, curr_page, cw->morestr);
++
+             tty_curs(window, 1, page_lines);
+             cl_end();
+             dmore(cw, resp);
+@@ -1958,6 +1980,7 @@ tty_display_nhwindow(
+ {
+     struct WinDesc *cw = 0;
+     short s_maxcol;
++    int fullscreen_menu;
+ 
+     HUPSKIP();
+     if (window == WIN_ERR || (cw = wins[window]) == (struct WinDesc *) 0)
+@@ -2021,11 +2044,13 @@ tty_display_nhwindow(
+         if (ttyDisplay->toplin == TOPLINE_NEED_MORE)
+             tty_display_nhwindow(WIN_MESSAGE, TRUE);
+ #ifdef H2344_BROKEN
+-        if (cw->maxrow >= (int) ttyDisplay->rows
+-            || !iflags.menu_overlay)
++        fullscreen_menu = (cw->maxrow >= (int) ttyDisplay->rows
++                           || !iflags.menu_overlay);
++        if (fullscreen_menu)
+ #else
+-        if (cw->offx == 10 || cw->maxrow >= (int) ttyDisplay->rows
+-            || !iflags.menu_overlay)
++        fullscreen_menu = (cw->offx == 10 || cw->maxrow >= (int) ttyDisplay->rows
++                           || !iflags.menu_overlay);
++        if (fullscreen_menu)
+ #endif
+         {
+             cw->offx = 0;
+@@ -2040,6 +2065,11 @@ tty_display_nhwindow(
+                 tty_clear_nhwindow(WIN_MESSAGE);
+         }
+ 
++        cosmic_display_log_tty_menu_show(
++            window, (cw->type == NHW_TEXT) ? "NHW_TEXT" : "NHW_MENU",
++            cw->offx, cw->offy, cw->maxrow, cw->maxcol,
++            iflags.menu_overlay ? 1 : 0, fullscreen_menu, blocking ? 1 : 0);
++
+         if (cw->data || !cw->maxrow)
+             process_text_window(window, cw);
+         else
+@@ -2096,6 +2126,12 @@ tty_dismiss_nhwindow(winid window)
+                 if (program_state.in_role_selection)
+                     clearscreen = TRUE;
+ 
++                cosmic_display_log_tty_menu_hide(
++                    window,
++                    (cw->type == NHW_TEXT) ? "NHW_TEXT"
++                    : (cw->type == NHW_MENU) ? "NHW_MENU"
++                    : "NHW_PERMINVENT",
++                    1, clearscreen ? 1 : 0);
+                 erase_menu_or_text(window, cw, clearscreen);
+             }
+             cw->active = 0;
