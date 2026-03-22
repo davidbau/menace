@@ -134,8 +134,8 @@
 
     #logo-canvas {
       position: absolute;
-      top: 6px;
-      left: 6px;
+      top: 0;
+      left: 0;
       z-index: 0;
       image-rendering: pixelated;
       image-rendering: -moz-crisp-edges;
@@ -228,14 +228,19 @@
     body.dark-mode .hm-divider { border-top-color: #444; }
 
     body.fullscreen-mode {
+      background: #000;
       overflow: hidden;
     }
     body.fullscreen-mode #nav,
     body.fullscreen-mode #nav-spacer,
     body.fullscreen-mode #controls { display: none; }
     body.fullscreen-mode #logo-container {
+      border: none;
       border-radius: 0;
       box-shadow: none;
+      padding: 0;
+      min-width: 0;
+      min-height: 0;
     }
 
     /* Docs overlay */
