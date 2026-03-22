@@ -19,7 +19,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, BALL_CLASS, CHAIN_CLAS
          DART, FLINT, ROCK, LOADSTONE, LUCKSTONE,
          GLAIVE, BEC_DE_CORBIN, FAUCHARD, LANCE, GRAPPLING_HOOK,
          BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW,
-         SILVER,
+         SILVER, HEAVY_IRON_BALL,
        } from './objects.js';
 import { rnd, d, c_d, rn2 } from './rng.js';
 import { mon_hates_blessings, mon_hates_silver, mon_hates_light,
@@ -31,7 +31,7 @@ import { MZ_LARGE, S_EEL, S_SNAKE, S_XORN, S_DRAGON, S_JABBERWOCK,
          S_NAGA, S_WORM_TAIL, S_KOP, S_GIANT,
          PM_BALROG, AT_WEAP,
        } from './monsters.js';
-import { mons, PM_MONK, PM_SAMURAI, PM_HEALER, PM_CLERIC, PM_WIZARD } from './monsters.js';
+import { mons, PM_MONK, PM_SAMURAI, PM_HEALER, PM_CLERIC, PM_WIZARD, PM_SHADE } from './monsters.js';
 import {
     W_ARMS, W_ARMG, W_WEP,
     P_NONE, P_DAGGER, P_KNIFE, P_AXE, P_PICK_AXE, P_SHORT_SWORD, P_BROAD_SWORD,
@@ -46,10 +46,10 @@ import {
     P_ISRESTRICTED, P_UNSKILLED, P_BASIC, P_SKILLED, P_EXPERT, P_MASTER,
     P_GRAND_MASTER, NO_WEAPON_WANTED, NEED_WEAPON, NEED_RANGED_WEAPON,
     NEED_HTH_WEAPON, NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE,
-    BOLT_LIM, AKLYS_LIM, HAND,
+    BOLT_LIM, AKLYS_LIM, HAND, WT_IRON_BALL_INCR,
 } from './const.js';
 import { which_armor } from './worn.js';
-import { spec_abon, artifact_light } from './artifact.js';
+import { spec_abon, artifact_light, shade_glare } from './artifact.js';
 import { dist2, s_suffix } from './hacklib.js';
 import { couldsee } from './vision.js';
 import { game as _gstate } from './gstate.js';
@@ -162,6 +162,21 @@ export function dmgval(otmp, mon) {
     if (info.oc_material !== undefined && info.oc_material <= LEATHER
         && thick_skinned(ptr))
         tmp = 0;
+    // C ref: weapon.c:307-308 — Shades take no damage from non-shade-glare weapons
+    if (mon && (mon.mndx ?? (ptr?.id ?? -1)) === PM_SHADE && !shade_glare(otmp))
+        tmp = 0;
+
+    // C ref: weapon.c:311-320 — "very heavy iron ball" weight bonus
+    if (otyp === HEAVY_IRON_BALL && tmp > 0) {
+        const baseWt = objectData[HEAVY_IRON_BALL].oc_wt || 480;
+        if ((otmp.owt || 0) > baseWt) {
+            const wt = Math.floor(((otmp.owt || 0) - baseWt) / WT_IRON_BALL_INCR);
+            if (wt > 0) {
+                tmp += rnd(4 * wt);
+                if (tmp > 25) tmp = 25;
+            }
+        }
+    }
 
     if (Is_weapon || info.oc_class === GEM_CLASS || info.oc_class === BALL_CLASS
         || info.oc_class === CHAIN_CLASS) {
