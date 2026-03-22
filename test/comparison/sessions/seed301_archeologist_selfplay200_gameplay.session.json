@@ -4,7 +4,7 @@
     "NETHACK_SEED": "301",
     "NETHACK_FIXED_DATETIME": "20000119090000"
   },
-  "nethackrc": "OPTIONS=name:Agent,role:Archeologist,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\n",
+  "nethackrc": "OPTIONS=name:Agent,role:Archeologist,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\n",
   "seed": 301,
   "source": "c",
   "recorded_with": {

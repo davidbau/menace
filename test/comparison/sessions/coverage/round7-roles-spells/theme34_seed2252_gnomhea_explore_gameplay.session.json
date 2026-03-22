@@ -4,7 +4,7 @@
     "NETHACK_SEED": "2252",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:GnomHea,role:Healer,race:gnome,gender:male,align:neutral\nOPTIONS=!autopickup\nWIZARD=GnomHea\n",
+  "nethackrc": "OPTIONS=name:GnomHea,role:Healer,race:gnome,gender:male,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=GnomHea\n",
   "seed": 2252,
   "source": "c",
   "recorded_with": {

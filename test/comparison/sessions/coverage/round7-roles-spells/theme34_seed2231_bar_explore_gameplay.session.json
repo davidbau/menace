@@ -4,7 +4,7 @@
     "NETHACK_SEED": "2231",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Barbarian,role:Barbarian,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nWIZARD=Barbarian\n",
+  "nethackrc": "OPTIONS=name:Barbarian,role:Barbarian,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Barbarian\n",
   "seed": 2231,
   "source": "c",
   "recorded_with": {

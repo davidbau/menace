@@ -4,7 +4,7 @@
     "NETHACK_SEED": "2238",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Tourist,role:Tourist,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nWIZARD=Tourist\n",
+  "nethackrc": "OPTIONS=name:Tourist,role:Tourist,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Tourist\n",
   "seed": 2238,
   "source": "c",
   "recorded_with": {

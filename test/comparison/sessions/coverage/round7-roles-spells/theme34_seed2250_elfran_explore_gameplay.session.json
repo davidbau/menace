@@ -4,7 +4,7 @@
     "NETHACK_SEED": "2250",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:ElfRan,role:Ranger,race:elf,gender:female,align:chaotic\nOPTIONS=!autopickup\nWIZARD=ElfRan\n",
+  "nethackrc": "OPTIONS=name:ElfRan,role:Ranger,race:elf,gender:female,align:chaotic\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=ElfRan\n",
   "seed": 2250,
   "source": "c",
   "recorded_with": {

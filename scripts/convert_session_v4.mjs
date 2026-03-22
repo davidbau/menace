@@ -56,8 +56,24 @@ function convertSession(session) {
 
     const wizard = opts.wizard === true;
 
-    // Build .nethackrc
-    const nethackrc = buildNethackrc({ character, flags, wizard });
+    // Build .nethackrc — must match what C harness setup_home() writes.
+    // The C harness always writes !autopickup, suppress_alert, symset:DECgraphics.
+    // We generate the nethackrc to match, not from JS buildNethackrc (which
+    // only writes flags differing from JS defaults).
+    const rcLines = [];
+    const charParts = [];
+    if (character.name) charParts.push(`name:${character.name}`);
+    if (character.role) charParts.push(`role:${character.role}`);
+    if (character.race) charParts.push(`race:${character.race}`);
+    if (character.gender) charParts.push(`gender:${character.gender}`);
+    if (character.align) charParts.push(`align:${character.align}`);
+    if (charParts.length > 0) rcLines.push(`OPTIONS=${charParts.join(',')}`);
+    rcLines.push('OPTIONS=!autopickup');
+    rcLines.push('OPTIONS=suppress_alert:3.4.3');
+    rcLines.push('OPTIONS=symset:DECgraphics');
+    if (wizard) rcLines.push(`WIZARD=${character.name || 'Wizard'}`);
+    rcLines.push('');
+    const nethackrc = rcLines.join('\n');
 
     // Build env
     const datetime = opts.datetime || DEFAULT_DATETIME;

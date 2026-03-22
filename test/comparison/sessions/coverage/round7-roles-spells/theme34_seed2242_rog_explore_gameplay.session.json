@@ -4,7 +4,7 @@
     "NETHACK_SEED": "2242",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Rogue,role:Rogue,race:human,gender:male,align:chaotic\nOPTIONS=!autopickup\nWIZARD=Rogue\n",
+  "nethackrc": "OPTIONS=name:Rogue,role:Rogue,race:human,gender:male,align:chaotic\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Rogue\n",
   "seed": 2242,
   "source": "c",
   "recorded_with": {

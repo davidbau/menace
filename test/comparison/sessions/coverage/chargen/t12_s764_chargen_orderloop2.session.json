@@ -4,7 +4,7 @@
     "NETHACK_SEED": "764",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Wizard,role:Knight,race:human,gender:male,align:lawful\nOPTIONS=!autopickup\nWIZARD=Wizard\n",
+  "nethackrc": "OPTIONS=name:Wizard,role:Knight,race:human,gender:male,align:lawful\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Wizard\n",
   "seed": 764,
   "source": "c",
   "recorded_with": {

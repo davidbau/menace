@@ -4,7 +4,7 @@
     "NETHACK_SEED": "0",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "",
+  "nethackrc": "OPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\n",
   "seed": 0,
   "source": "c",
   "type": "interface",

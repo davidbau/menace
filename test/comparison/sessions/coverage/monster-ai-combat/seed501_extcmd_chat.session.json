@@ -4,7 +4,7 @@
     "NETHACK_SEED": "501",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Tutes,role:Wizard,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nWIZARD=Tutes\n",
+  "nethackrc": "OPTIONS=name:Tutes,role:Wizard,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Tutes\n",
   "seed": 501,
   "source": "c",
   "recorded_with": {

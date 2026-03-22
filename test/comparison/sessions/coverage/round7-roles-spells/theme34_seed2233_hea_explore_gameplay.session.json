@@ -4,7 +4,7 @@
     "NETHACK_SEED": "2233",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Healer,role:Healer,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nWIZARD=Healer\n",
+  "nethackrc": "OPTIONS=name:Healer,role:Healer,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Healer\n",
   "seed": 2233,
   "source": "c",
   "recorded_with": {

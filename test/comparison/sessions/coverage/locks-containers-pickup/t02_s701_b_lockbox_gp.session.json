@@ -4,7 +4,7 @@
     "NETHACK_SEED": "701",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:brak,role:Barbarian,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nWIZARD=brak\n",
+  "nethackrc": "OPTIONS=name:brak,role:Barbarian,race:human,gender:male,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=brak\n",
   "seed": 701,
   "source": "c",
   "recorded_with": {

@@ -4,7 +4,7 @@
     "NETHACK_SEED": "2221",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Samurai,role:Samurai,race:human,gender:male,align:lawful\nOPTIONS=!autopickup\nWIZARD=Samurai\n",
+  "nethackrc": "OPTIONS=name:Samurai,role:Samurai,race:human,gender:male,align:lawful\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Samurai\n",
   "seed": 2221,
   "source": "c",
   "recorded_with": {

@@ -4,7 +4,7 @@
     "NETHACK_SEED": "2253",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:OrcBar,role:Barbarian,race:orc,gender:male,align:chaotic\nOPTIONS=!autopickup\nWIZARD=OrcBar\n",
+  "nethackrc": "OPTIONS=name:OrcBar,role:Barbarian,race:orc,gender:male,align:chaotic\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=OrcBar\n",
   "seed": 2253,
   "source": "c",
   "recorded_with": {

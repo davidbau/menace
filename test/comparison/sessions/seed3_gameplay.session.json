@@ -4,7 +4,7 @@
     "NETHACK_SEED": "3",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:clara,role:Priest,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nWIZARD=clara\n",
+  "nethackrc": "OPTIONS=name:clara,role:Priest,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=clara\n",
   "seed": 3,
   "source": "c",
   "recorded_with": {

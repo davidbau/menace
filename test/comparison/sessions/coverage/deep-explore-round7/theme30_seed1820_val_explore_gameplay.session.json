@@ -4,7 +4,7 @@
     "NETHACK_SEED": "1820",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Valkyrie,role:Valkyrie,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nWIZARD=Valkyrie\n",
+  "nethackrc": "OPTIONS=name:Valkyrie,role:Valkyrie,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Valkyrie\n",
   "seed": 1820,
   "source": "c",
   "recorded_with": {

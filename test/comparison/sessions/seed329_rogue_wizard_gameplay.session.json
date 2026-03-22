@@ -4,7 +4,7 @@
     "NETHACK_SEED": "329",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Recorder,role:Rogue,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nWIZARD=Recorder\n",
+  "nethackrc": "OPTIONS=name:Recorder,role:Rogue,race:human,gender:female,align:neutral\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Recorder\n",
   "seed": 329,
   "source": "c",
   "recorded_with": {

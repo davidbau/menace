@@ -4,7 +4,7 @@
     "NETHACK_SEED": "3120",
     "NETHACK_FIXED_DATETIME": "20000110090000"
   },
-  "nethackrc": "OPTIONS=name:Monk,role:Monk,race:human,gender:male,align:chaotic\nOPTIONS=!autopickup\nWIZARD=Monk\n",
+  "nethackrc": "OPTIONS=name:Monk,role:Monk,race:human,gender:male,align:chaotic\nOPTIONS=!autopickup\nOPTIONS=suppress_alert:3.4.3\nOPTIONS=symset:DECgraphics\nWIZARD=Monk\n",
   "seed": 3120,
   "source": "c",
   "recorded_with": {
