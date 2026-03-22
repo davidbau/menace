@@ -1258,11 +1258,14 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         else base = `wand of ${od.oc_name}`;
         break;
     case WEAPON_CLASS:
+        // C ref: objnam.c xname() WEAPON_CLASS — poison prefix before name.
+        if (obj.opoisoned) base = 'poisoned ';
+        else base = '';
         // C ref: objnam.c xname() WEAPON_CLASS falls through to TOOL_CLASS.
         // Unidentified weapons show appearance (desc) instead of actual name.
-        if (!dknown) base = od.oc_descr || od.oc_name;
-        else if (nameKnown) base = od.oc_name;
-        else base = od.oc_descr || od.oc_name;
+        if (!dknown) base += od.oc_descr || od.oc_name;
+        else if (nameKnown) base += od.oc_name;
+        else base += od.oc_descr || od.oc_name;
         break;
     case TOOL_CLASS:
         // C ref: objnam.c xname() — lenses get "pair of "; figurines include monster type.
@@ -1466,10 +1469,8 @@ export function doname(obj, player) {
         }
     }
 
-    // C ref: objnam.c doname_base() weapon poison marker
-    if (obj.oclass === WEAPON_CLASS && obj.opoisoned) {
-        prefix += 'poisoned ';
-    }
+    // C ref: objnam.c xname() handles "poisoned" prefix for weapons;
+    // doname does NOT duplicate it.
 
     let baseName = xname_for_doname(obj, dknown, known, bknown);
     // C ref: objnam.c doname_base() CORPSE path routes through corpse_xname(),
