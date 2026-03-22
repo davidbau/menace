@@ -13,12 +13,13 @@ The NetHack C model is single-threaded and synchronous:
 - no async continuation objects
 - prompts block and return to the same caller
 
-The eating system is built from two layers:
+The eating system is organized around two layers:
 
-1. progression control flow
-2. explicit saved eating state
+1. synchronous progression control flow
+2. explicit saved meal state
 
-Those two layers work together, but the progression model is primary.
+The control flow is primary. The saved state exists to let later synchronous
+calls continue the same meal without reconstructing it from scratch.
 
 ### 1.1 Progression Control Flow in C
 
@@ -27,45 +28,65 @@ Relevant files:
 - `nethack-c/patched/src/eat.c`
 - `nethack-c/patched/src/allmain.c`
 
-The progression is:
+The normal `#eat` progression is:
 
-1. `doeat()` starts or resumes the meal.
-2. If resuming the same `victual.piece`, `doeat()` refreshes the object and
-   calls `start_eating()`.
-3. If starting a fresh meal, `doeat()` computes the eating parameters and then
-   calls `start_eating()`.
-4. `start_eating()`:
-   - resets the meal flags,
-   - runs corpse pre-effects if needed,
-   - applies the first bite immediately via `bite()`,
-   - either finishes immediately via `done_eating()`,
-   - or installs the long-running occupation via `set_occupation(eatfood, ...)`.
-5. Later main-loop iterations invoke `go.occupation` once per occupation step.
-6. `eatfood()` advances one more bite:
-   - if still busy, returns `1`
-   - if done, calls `done_eating()` and returns `0`
-7. `done_eating()`:
-   - clears `go.occupation` early,
-   - updates hunger state,
-   - emits completion messaging,
-   - dispatches post-effects,
-   - consumes the object,
+1. `doeat()` selects the target object.
+   - `floorfood("eat", 0)` may synchronously ask floor questions via
+     `yn_function()`.
+   - If the answer is no or quit, `doeat()` returns immediately.
+2. `doeat()` validates the object and decides whether this is:
+   - a resume of `svc.context.victual.piece`,
+   - a fresh food item,
+   - a tin or non-food special case,
+   - or an immediate failure/abort.
+3. For a fresh meal, `doeat()` initializes `svc.context.victual`:
+   - `piece`
+   - `o_id`
+   - `usedtime = 0`
+   - `reqtime`
+   - `nmod`
+   - `canchoke`
+   - any corpse/rotting/pre-effect state
+4. For a resumed meal, `doeat()` refreshes the object via `touchfood()`,
+   repairs `piece/o_id`, prints the resume message, and calls
+   `start_eating()` again.
+5. `start_eating()` runs synchronously inside the `doeat()` call.
+   - sets `victual.fullwarn = 0`
+   - sets `victual.doreset = 0`
+   - sets `victual.eating = 1`
+   - runs corpse pre-effects via `cprefx()` when needed
+   - applies the first bite immediately via `bite()`
+   - either finishes immediately via `done_eating(...)`
+   - or installs the long-running occupation with
+     `set_occupation(eatfood, ...)`
+6. Later moveloop iterations in `allmain.c` run the occupation branch:
+   - if `gm.multi >= 0 && go.occupation`, call `(*go.occupation)()` once
+   - if it returns `0`, clear `go.occupation`
+   - then check `monster_nearby()` and, if interrupted, call both
+     `stop_occupation()` and `reset_eat()`
+   - then return from that moveloop iteration
+7. `eatfood()` advances one more bite.
+   - if the food vanished, it calls `do_reset_eat()` and returns `0`
+   - if `victual.eating` is already false, it returns `0`
+   - otherwise it increments `usedtime`
+   - if still in progress, it calls `bite()` and returns `1`
+   - if finished, it calls `done_eating(TRUE)` and returns `0`
+8. `done_eating()` performs completion synchronously.
+   - marks the piece `in_use`
+   - clears `go.occupation` early so hunger code knows the meal is done
+   - calls `newuhs(FALSE)`
+   - emits final completion messaging when appropriate
+   - runs `cpostfx()` or `fpostfx()`
+   - consumes the object with `useup()` or `useupf()`
    - zeroes `svc.context.victual`
 
-Important C excerpts that define the model:
+Important consequence:
 
-- `eat.c: start_eating()`
-- `eat.c: eatfood()`
-- `eat.c: done_eating()`
-- `allmain.c: if (gm.multi >= 0 && go.occupation) { ... }`
+- there is never an ambiguous “next key owner” in C
+- if a prompt is needed, it blocks in-place
+- after the prompt returns, the same semantic caller continues
 
-The key invariant is:
-
-- C always knows exactly which synchronous caller owns the next key.
-- If a prompt is needed, that prompt blocks in-place.
-- After the prompt returns, control resumes in the same eating path.
-
-### 1.2 The Saved Eating State in C
+### 1.2 Saved State in C
 
 The eating state lives primarily in:
 
@@ -93,201 +114,313 @@ Operational meaning:
 - `nmod`
   - how nutrition is distributed across bites
 - `eating`
-  - whether the current flow is an active meal
+  - whether the meal is actively in progress
 - `fullwarn`
   - whether the near-choking warning already fired
 - `doreset`
-  - deferred request to abort/reset the meal
+  - deferred request to stop/reset the meal
 - `canchoke`
-  - whether choking logic still applies to this meal
+  - whether this meal may still trigger choking logic
 
-These fields are not an async scheduling system. They are ordinary saved state
-used by the synchronous eating control flow described above.
+These fields are not a scheduler. They are durable state used by the
+synchronous control flow above.
 
-### 1.3 Related C Behaviors That Matter for Parity
+### 1.3 Important C Edge Cases
 
-`lesshungry()` is especially important:
+These details matter because the JS port can easily get them wrong.
 
-- it can emit:
-  - `"You're having a hard time getting all of it down."`
-- while eating, it can also ask:
-  - `"Continue eating?"`
+#### `reset_eat()` versus `do_reset_eat()`
 
-But even here, C remains synchronous:
+C splits interruption into two phases:
 
-- `lesshungry()` calls the prompt directly
-- the prompt returns to `lesshungry()`
-- control returns to the meal path
+- `reset_eat()` only sets `victual.doreset = 1`
+- `do_reset_eat()` performs the actual reset work later
 
-Likewise, the occupation branch in `allmain.c` is synchronous:
+`do_reset_eat()`:
 
-- call the occupation callback once
-- clear it if it returned `0`
-- then run interruption checks like `monster_nearby()`
-- then return to the loop
+- refreshes/drops/touches the current food object as needed
+- clears `fullwarn`, `eating`, and `doreset`
+- deliberately does **not** clear `canchoke`
+- calls `stop_occupation()`
+- calls `newuhs(FALSE)`
 
-There is no separate continuation object deciding later who owns the next key.
+This is an important structural point. C does not immediately tear down all
+meal state at every interruption site.
 
-## 2. How This Should Map to JS
+#### `start_eating()` can complete the meal before any occupation exists
 
-The JS port should preserve the C ownership model even though the code is async.
+`start_eating()` applies the first bite synchronously. That means:
 
-That means:
+- single-bite foods can finish immediately
+- resumed meals with one bite left can finish immediately
+- corpse pre-effects can abort the meal before occupation is installed
+- `done_eating()` may run before `set_occupation(eatfood, ...)`
 
-1. exactly one input owner at a time
-2. prompts must return to the same semantic caller that asked them
-3. eating progression should be modeled by the same logical stages as C:
-   - `doeat`/selection
-   - `start_eating`
-   - `eatfood`
-   - `done_eating`
-4. `victual` should remain state, not become a substitute scheduler
-5. message / `--More--` / prompt boundaries must not leak across owners
+So the true meal model is not “set occupation, then loop until done.” The first
+bite is part of the initial command path.
 
-Why this is the right mapping:
+#### `lesshungry()` only prompts in a narrow case
 
-- it matches the C source directly
-- it keeps replay ownership deterministic
-- it prevents the same gameplay work from sliding across replay keys
-- it avoids "fixes" that merely hide drift by inventing JS-only scheduling rules
+`lesshungry()` matters, but the doc should not overstate it.
 
-The discipline should be:
+While eating, `lesshungry()` may print:
 
-- let state describe the meal
-- let control flow own the next input
-- never let message-boundary state and raw in-command input both believe they
-  own the same next key
+- `"You're having a hard time getting all of it down."`
 
-## 3. Gap Between Ideal JS Structure and Current JS Behavior
+It only asks whether to continue when all of the following are true:
 
-The current problem exposed by
-`test/comparison/sessions/seed031_manual_direct.session.json`
-is not best described as a corpse-effect mismatch or a monster-AI formula bug.
+- hero is approaching full (`u.uhunger >= 1500`)
+- the meal is active
+- `fullwarn` has not already fired
+- `canchoke` is true
+- more than one bite remains
 
-It is better described as:
+The prompt is still synchronous. It happens inside `lesshungry()`, which then
+returns to the same eating path.
+
+#### Floor-food prompting is part of the same synchronous path
+
+`floorfood()` asks questions with `yn_function()` before `doeat()` commits to a
+meal. That prompt is not a detached boundary manager. It is part of the
+command's synchronous control flow.
+
+#### `allmain.c` occupation order is specific
+
+The moveloop occupation branch is not generic “run occupation sometime later.”
+It is specifically:
+
+1. call the occupation callback once
+2. clear it if the callback returned `0`
+3. then run interruption logic like `monster_nearby()`
+4. if interrupted, call `stop_occupation()` and `reset_eat()`
+5. return from that moveloop iteration
+
+That ordering is part of the C contract the JS port needs to preserve.
+
+## 2. What the JS Structure Should Look Like
+
+The JS port should preserve the same semantic model even though the runtime is
+async.
+
+### 2.1 Structural Goal
+
+The right JS structure is:
+
+- one active input owner at a time
+- one semantic continuation of the meal at a time
+- `victual` stores meal state
+- control flow, not ambient display state, decides who owns the next key
+
+In practice that means JS should mirror the same logical stages as C:
+
+1. object selection / floor prompt
+2. meal initialization or resume in `doeat`-equivalent code
+3. synchronous first-bite work in `start_eating`-equivalent code
+4. later occupation ticks in `eatfood`-equivalent code
+5. synchronous completion in `done_eating`-equivalent code
+
+### 2.2 Why This Is the Right Mapping
+
+This is the right design for JS because it:
+
+- matches the C source directly
+- preserves deterministic replay ownership
+- prevents timed work from sliding across replay keys
+- keeps `victual` as state instead of turning it into a scheduler
+- avoids JS-only continuation machinery that has no C counterpart
+
+The core discipline should be:
+
+- let meal state describe the meal
+- let one caller own the next input
+- never let command-boundary acknowledgement and in-command raw input both
+  believe they own the same next key
+
+### 2.3 What This Implies for Async JS
+
+Async JS is not the problem by itself. The problem is allowing async structure
+to blur ownership.
+
+The correct emulation is:
+
+- async boundaries may exist internally
+- but the code must still behave as though prompts block in-place
+- when a prompt returns, control must resume in the same semantic caller
+- message-boundary state must not linger in a way that competes with raw
+  command input ownership
+
+So the ideal JS structure is not “make it look synchronous.” It is “preserve
+C's single-owner semantics despite async implementation details.”
+
+## 3. Gap Between Ideal JS Structure and Current Behavior
+
+The current `seed031` problem is not best described as a corpse-effect formula
+bug or a monster-AI formula bug.
+
+The stronger interpretation is:
 
 - JS and C disagree about which replay key owns the next chunk of timed work
-  during a late meal corridor
+  in a late meal corridor
 - C performs timed-turn work earlier
-- JS delays that work to later keys
-- the later shift eventually appears as the first authoritative RNG seam at
-  gameplay step `1241`
+- JS delays that same work to later replay keys
+- the shifted ownership eventually surfaces as the authoritative first RNG seam
+  at gameplay step `1241`
 
 Current authoritative divergence:
 
-- session: `seed031_manual_direct.session.json`
-- first RNG divergence: step `1241`
+- session: `test/comparison/sessions/seed031_manual_direct.session.json`
+- first RNG divergence: gameplay step `1241`
 - JS: `rn2(3)=0 @ dochug(monmove.js:847)`
 - C: `rn2(5)=0 @ distfleeck(monmove.c:539)`
 
-### 3.1 Empirical Evidence
+### 3.1 Evidence, Ranked by Reliability
 
-Step-summary evidence:
+The evidence gathered so far is not all equally strong. The fix plan should be
+based primarily on the highest-grade evidence.
 
-- `comparison-window --step-summary 1236..1246`
-  - C-heavy at `1236..1242`
-  - JS-heavy payback at `1243` and `1246`
+#### Tier 1: authoritative replay evidence
 
-This means the systems are not simply "doing different work". They are
-assigning real work to different replay keys.
+These are the strongest signals:
 
-Microscope evidence:
+- `session_test_runner.js --verbose`
+- `comparison-window --step-summary`
+
+Current authoritative result:
+
+- in the late corridor `1236..1246`, C is heavier on `1236..1242`
+- JS pays that work back later on `1243` and `1246`
+
+That means the core issue is cross-step ownership drift.
+
+#### Tier 2: microscope evidence
+
+`rng_step_diff --step N` is useful but isolated-step replay is not itself the
+source of truth.
+
+Still, the pattern is informative:
 
 - `rng_step_diff --step 1238`
   - JS: `(end)`
-  - C: `gethungry()` -> hero attack -> monster turn
+  - C: `gethungry()` then hero attack then monster turn
 - `rng_step_diff --step 1243`
   - JS: full monster turn
   - C: `(end)`
 
-So the direct failure mode is:
+This is strong support for the same ownership-drift interpretation, but should
+be treated as microscope evidence, not as canonical per-step state.
 
-- JS delays a chunk of timed-turn work by several gameplay keys.
+#### Tier 3: replay-owner trace evidence
 
-Replay ownership evidence:
+Replay boundary diagnostics showed that the late raw window is not stuck in a
+simple `pendingPrompt` state.
 
-- replay boundary diagnostics show that in the late raw window, JS is not stuck
-  in `pendingPrompt`
-- instead, it is blocked inside `handleEat()` on raw input, with message
-  boundary state still live
-
-Representative late trace shape:
+Representative shape:
 
 - owner: `input`
-- pending prompt: `none`
+- prompt type: `none`
 - `ack=1`
 - `msgMore=1`
 - waiting inside `handleEat()`
 
-That is the sharpest current clue.
+This is the sharpest structural clue so far:
 
-### 3.2 What This Means Structurally
+- JS appears to be waiting for raw in-command input while message-boundary
+  state is still live
 
-The gap between the ideal JS structure and the current one is:
+That is exactly the sort of overlap that can cause key-ownership drift.
 
-- C keeps one clear synchronous owner for each next key
-- JS currently has evidence that raw in-command input waits can coexist with
-  still-live message-boundary state
+#### Tier 4: suggestive only
 
-That is exactly the situation that can cause replay-key ownership drift:
+Late fallback mapdumps and isolated monster-state comparisons are useful for
+ideas, but they are not yet strong enough to anchor the fix plan unless they
+come from trustworthy matched checkpoints.
 
-- one subsystem thinks the next key is for acknowledging a boundary
-- another subsystem thinks the next key is for continuing the command
+### 3.2 What the Evidence Actually Proves
 
-Once that happens, timed work can slide forward by one or more keys even if the
-underlying gameplay state variables look similar.
+The current evidence supports these claims:
 
-## 4. What Has Been Resolved and What Remains Unknown
+1. The bug is late and real.
+   - `seed031` still diverges first at step `1241`.
+2. The bug is a cross-step ownership problem.
+   - C does earlier timed work; JS defers it.
+3. The problem is likely near eating/prompt/input boundaries.
+   - replay-owner traces show JS waiting in `handleEat()` while message
+     boundary state is still set.
 
-### Resolved / ruled out
+The evidence does **not** yet prove these stronger claims:
 
-These ideas were tested and are not the keepable fix:
+- that `lesshungry()` is the exact failing prompt
+- that floor-food prompting is the exact failing prompt
+- that `victual` bookkeeping alone is the root cause
+- that the first-cause bug is inside `monmove.js`
 
-- collapsing fresh meals onto the shared `start_eating()/eatfood()/done_eating()`
-  path
-  - this caused a large regression and was reverted
-- tagging `start_eating()` occupations with `isEating`
-  - neutral on `seed031`
-- changing the `_gameLoopStep()` occupation branch order
-  - neutral on this replay path
-- replacing the floor-food prompt with `ynFunction()`
-  - real mismatch, but neutral on `seed031`
-- normalizing local `handleEat()` prompt-boundary clears
-  - neutral on `seed031`
+Those are hypotheses, not established facts.
 
-So the problem is narrower than:
+## 4. Critique of the Previous Version of This Note
 
-- "victual bookkeeping is wrong"
-- "monster AI is wrong"
-- "all eating prompts are wrong"
+The previous version was directionally useful, but it had weaknesses.
 
-### Still unknown
+### 4.1 Accuracy Issues
 
-The main unresolved question is:
+The previous version was broadly correct about the C model, but it compressed
+some details too aggressively:
 
-- exactly where the wrong owner handoff happens between
-  - command-boundary message dismissal,
-  - raw input waiting inside `handleEat()`,
-  - and resumption of timed-turn work
+- it understated the importance of the exact `allmain.c` occupation ordering
+- it did not emphasize enough that `start_eating()` may finish the meal before
+  any occupation is installed
+- it described `lesshungry()` as especially important without making clear that
+  its `Continue eating?` prompt is conditional and relatively narrow
+- it did not distinguish clearly enough between `reset_eat()` and
+  `do_reset_eat()`
 
-More concretely:
+Those are meaningful omissions because they change how a faithful JS structure
+should be designed.
 
-- does `handleEat()` enter a raw input wait too early?
-- is `toplin/messageNeedsMore` being kept live too long?
-- is replay-key admission happening under the wrong owner once that overlap
-  exists?
+### 4.2 Evidence-Framing Issues
 
-## 5. Plan for Fixing the Problem
+The previous version mixed evidence classes too freely.
 
-The plan should stay narrow and evidence-driven.
+That made it too easy to slide from:
 
-### Step 1. Prove the exact owner of each late key
+- authoritative replay evidence
+
+to:
+
+- microscope evidence
+
+to:
+
+- suggestive late-state comparisons
+
+without clearly labeling confidence. That was not rigorous enough.
+
+### 4.3 Design-Insight Issues
+
+The previous version correctly said JS should mirror the C ownership model, but
+it did not push the insight far enough.
+
+The deeper design lesson is:
+
+- the JS port should not merely copy C state fields
+- it must preserve C's single-owner semantics for the next key
+
+That is the real constraint. If JS preserves the state but allows overlapping
+ownership between message acknowledgement and raw command input, parity will
+still drift.
+
+## 5. Updated Fix Plan
+
+The plan should be stage-gated. We should stop accepting neutral `eat.js`
+patches as progress.
+
+### Stage 1. Reconstruct the exact late owner handoff
 
 Goal:
 
-- determine who owns keys in the `1236..1246` corridor
+- identify the exact transition where JS admits a replay key under the wrong
+  owner in the late meal corridor
 
-Focus:
+Primary files:
 
 - `js/eat.js`
 - `js/input.js`
@@ -295,59 +428,101 @@ Focus:
 - `js/display.js`
 - `js/headless.js`
 
-Measure of progress:
+Concrete questions:
 
-- identify one concrete owner mismatch, not just another downstream symptom
+1. when `handleEat()` waits for raw input, what display/message state is still
+   live?
+2. which code is supposed to clear that state?
+3. on the corresponding C path, which synchronous caller owns the next key?
+4. which JS caller actually owns that same key?
 
-### Step 2. Fix the owner handoff, not the downstream monster seam
+Required evidence:
+
+- `session_test_runner.js --verbose`
+- `comparison-window --step-summary 1236..1246`
+- focused replay-owner traces around the same raw keys
+
+Exit criterion:
+
+- one concrete, named owner mismatch
+
+### Stage 2. Patch the owner handoff, not the downstream symptom
 
 Goal:
 
-- make the next key belong to the same logical owner in JS that it belongs to
-  in C
+- make JS admit the next key under the same logical owner that C uses
 
 Constraints:
 
-- do not patch comparator/harness behavior to hide the bug
-- do not keep speculative `eat.js` changes that do not move `seed031`
-- do not start with monster-AI math changes
+- do not patch comparator or replay compensation logic
+- do not start with monster-AI math
+- do not keep `eat.js` changes that do not move the authoritative seam
+- do not broaden the patch beyond the proven owner boundary
 
-Measure of progress:
+Likely kinds of fix:
 
-- C-heavy deficits in `1236..1242` shrink
-- JS-heavy payback at `1243` / `1246` shrinks
-- first divergence moves later than `1241`
+- clearing message-boundary state at the correct point before raw input wait
+- preventing raw in-command input from starting while boundary ack state still
+  owns the next key
+- moving a prompt/ack path so it resumes in the same semantic caller that
+  requested it
 
-### Step 3. Validate against control sessions
+Exit criterion:
 
-At minimum:
+- the per-step redistribution in `1236..1246` shrinks
+- first authoritative divergence moves later than `1241`
 
-- `seed031_manual_direct.session.json`
-- `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`
+### Stage 3. Validate narrowly, then widen
 
-Measure of progress:
+Minimum validation:
 
-- `seed031` improves
-- green control remains green
+- `test/comparison/sessions/seed031_manual_direct.session.json`
+- `test/comparison/sessions/coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`
 
-### Step 4. Re-anchor on coverage/promotion
+If improved, then also run:
 
-Once the seam moves or clears:
+- at least one additional nearby gameplay session or relevant pending session
+  touching eat/prompt/topline boundaries
 
-- identify which pending or coverage session benefits
-- record the learning in `docs/LORE.md`
-- avoid getting stuck in local first-divergence chasing without reconnecting to
-  the coverage pipeline
+Exit criterion:
+
+- `seed031` improves without regressing the green control
+
+### Stage 4. Reconnect to the Phase 3 coverage mission
+
+A local first-divergence improvement is not the end goal.
+
+After a validated fix:
+
+1. update `docs/LORE.md`
+2. identify which pending or coverage session is now closer to promotion
+3. choose the next highest-yield coverage/promotion action
+
+### Stage 5. Track what remains unknown
+
+Even after the current evidence review, these questions remain open:
+
+- is the exact wrong owner handoff in `handleEat()` itself, or in the display /
+  input boundary state that surrounds it?
+- is the failing key one of the explicit eat answers, or an earlier boundary key
+  that leaves stale message state behind?
+- is there one owner bug, or a pair of small owner bugs that only line up in
+  this meal corridor?
+
+Those unknowns are acceptable. What is not acceptable is continuing to patch
+`eat.js` speculatively without first proving the owner boundary.
 
 ## 6. Practical Summary
 
 The best current summary is:
 
-- C uses synchronous control flow plus compact saved meal state
-- JS should emulate that same single-owner progression model
-- the active `seed031` failure is a late ownership drift problem, not a simple
-  corpse or monster formula bug
-- the strongest current clue is raw input ownership inside `handleEat()` while
-  message-boundary state is still live
-- the next successful fix should move timed-turn ownership earlier in the
-  `1236..1246` corridor, not just alter the downstream monster seam at `1241`
+- C manages eating with synchronous control flow plus compact saved meal state
+- `victual` stores meal progress; it does not decide who owns the next key
+- the JS port should preserve the same single-owner semantics despite async
+  implementation details
+- the active `seed031` failure is best understood as cross-step ownership drift
+  in a late meal corridor
+- the strongest current clue is JS waiting for raw input inside `handleEat()`
+  while message-boundary state is still live
+- the next correct fix is the one that restores the right owner handoff, not
+  the one that merely changes downstream monster behavior
