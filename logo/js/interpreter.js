@@ -88,7 +88,7 @@ function parseTokens(tokens) {
       // In list literals, extract values from tokens
       if (t.type === 'NUMBER') items.push(t.value);
       else if (t.type === 'WORD') items.push(t.value);
-      else if (t.type === 'QUOTED') items.push(t.value);
+      else if (t.type === 'QUOTED') items.push('"' + t.value);
       else if (t.type === 'VAR') items.push(':' + t.value);
       else if (t.type === 'OP') items.push(t.value);
       else items.push(t);
@@ -644,7 +644,7 @@ export class LogoInterpreter {
       return;
     }
     // General help
-    const out = (...args) => this._output(args.join(''));
+    const out = (...args) => { this._output(args.join('')); };
     out('TURTLE:  FD BK RT LT  PU PD  HOME CS  ST HT\n');
     out('         SETPOS SETH SETPC SETPENSIZE ARC\n');
     out('CONTROL: REPEAT IF IFELSE TO/END OUTPUT STOP\n');
@@ -701,7 +701,7 @@ export class LogoInterpreter {
   _defineBuiltins() {
     const b = {};
     const t = this._turtle;
-    const out = (...args) => this._output(args.join(''));
+    const out = (...args) => { this._output(args.join('')); };
 
     // Helper to define a builtin
     const def = (names, argc, fn) => {
@@ -746,10 +746,10 @@ export class LogoInterpreter {
     def('ARC', 2, (angle, radius) => t.arc(num(angle), num(radius)));
 
     // -- I/O --
-    def(['PRINT', 'PR'], 1, (v) => out(stringify(v), '\n'));
-    def('TYPE', 1, (v) => out(stringify(v)));
-    def('SHOW', 1, (v) => out(stringifyShow(v), '\n'));
-    def(['CLEARTEXT', 'CT'], 0, () => { this._clearText && this._clearText(); });
+    def(['PRINT', 'PR'], 1, (v) => { out(stringify(v), '\n'); });
+    def('TYPE', 1, (v) => { out(stringify(v)); });
+    def('SHOW', 1, (v) => { out(stringifyShow(v), '\n'); });
+    def(['CLEARTEXT', 'CT'], 0, () => { if (this._clearText) this._clearText(); });
     def('READLIST', 0, async () => {
       if (!this._readLine) throw new LogoError('READLIST NOT AVAILABLE');
       const line = await this._readLine('');
@@ -979,6 +979,7 @@ function toToken(item) {
   if (Array.isArray(item)) return item; // nested list stays as array
   if (typeof item === 'number') return { type: 'NUMBER', value: item };
   if (typeof item === 'string') {
+    if (item.startsWith('"')) return { type: 'QUOTED', value: item.slice(1) };
     if (item.startsWith(':')) return { type: 'VAR', value: item.slice(1) };
     if ('+-*/=<>'.includes(item[0]) && item.length <= 2) return { type: 'OP', value: item };
     return { type: 'WORD', value: item };

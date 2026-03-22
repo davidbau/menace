@@ -187,6 +187,16 @@ export class BasicInterpreter {
     // REM — comment
     if (upper.startsWith('REM')) return null;
 
+    // PRINT USING (must check before PRINT)
+    if (upper.startsWith('PRINT USING') || upper.startsWith('PRINT  USING')) {
+      return this._execPrintUsing(stmt.replace(/^PRINT\s+USING\s*/i, ''), lineNum);
+    }
+
+    // PRINT # (file output — must check before PRINT)
+    if (upper.match(/^PRINT\s*#/)) {
+      return this._execPrintFile(stmt.replace(/^PRINT\s*#\s*/i, ''), lineNum);
+    }
+
     // PRINT
     if (upper.startsWith('PRINT') || upper.startsWith('?')) {
       const expr = upper.startsWith('?') ? stmt.slice(1) : stmt.slice(5);
@@ -264,11 +274,6 @@ export class BasicInterpreter {
       return this._execMat(stmt.slice(3).trimStart(), lineNum);
     }
 
-    // PRINT USING
-    if (upper.startsWith('PRINT USING') || upper.startsWith('PRINT  USING')) {
-      return this._execPrintUsing(stmt.replace(/^PRINT\s+USING\s*/i, ''), lineNum);
-    }
-
     // OPEN
     if (upper.startsWith('OPEN')) {
       return this._execOpen(stmt.slice(4).trimStart(), lineNum);
@@ -277,11 +282,6 @@ export class BasicInterpreter {
     // CLOSE
     if (upper.startsWith('CLOSE')) {
       return this._execClose(stmt.slice(5).trimStart(), lineNum);
-    }
-
-    // PRINT # (file output)
-    if (upper.match(/^PRINT\s*#/)) {
-      return this._execPrintFile(stmt.replace(/^PRINT\s*#\s*/i, ''), lineNum);
     }
 
     // INPUT # (file input)
