@@ -92,6 +92,12 @@ A correct implementation lets us compare C and JS in this order:
 If any earlier layer differs, downstream display-RNG drift is expected and not
 yet actionable.
 
+The resulting logs must be emitted as one chronological stream when enabled.
+`COSMIC_DISPLAY_LOGS` is most useful when owner logs, branch logs, and
+display-RNG logs are interleaved inline in the order they actually occur.
+Separate sideband files lose the local causality that this mode is meant to
+recover.
+
 
 ## Why Regular Display PRNG Logs Are Not Enough
 
@@ -110,6 +116,17 @@ They do not tell us:
 - or whether one side performed an extra redraw pass.
 
 That missing middle layer is exactly what `COSMIC_DISPLAY_LOGS` adds.
+
+When enabled, cosmic logs should not replace display-RNG logs. They should sit
+next to them in the same ordered stream so that one can read:
+
+1. owner begin,
+2. `newsym()` branch,
+3. map-location branch,
+4. display-RNG roll,
+5. owner end,
+
+without reconstructing order across multiple files.
 
 
 ## Current Motivating Example: `seed031`
@@ -254,6 +271,9 @@ Example:
 ```text
 ^disp_owner_begin[step=156 owner=make_hallucinated]
 ^disp_owner_begin[step=156 owner=see_objects parent=make_hallucinated]
+^disp_newsym[step=156 owner=see_objects x=49 y=16 cansee=1 uat=0 mon=0 branch=visible-map-location]
+^disp_maploc[step=156 owner=see_objects x=49 y=16 branch=obj]
+~drn2_disp[step=156 owner=see_objects newsym=visible-map-location maploc=obj kind=obj n=460 idx=200 x=49 y=16]
 ^disp_owner_end[step=156 owner=see_objects]
 ^disp_owner_end[step=156 owner=make_hallucinated]
 ```
@@ -266,6 +286,8 @@ Required fields:
 - optional nesting depth
 
 These must be explicit, not inferred from stack strings.
+
+These records should be emitted inline in the same log stream as PRNG entries.
 
 
 ### Layer B: `newsym()` Branch Logs
@@ -360,6 +382,37 @@ These logs should be emitted where display RNG is actually consumed, not where
 the owner begins.
 
 
+## Interleaving Rule
+
+When `COSMIC_DISPLAY_LOGS` is enabled, cosmic records should be emitted inline
+with PRNG logs in one time-ordered stream.
+
+Good:
+
+```text
+^disp_owner_begin[step=156 owner=make_hallucinated]
+^disp_owner_begin[step=156 owner=see_monsters parent=make_hallucinated]
+^disp_newsym[step=156 owner=see_monsters x=50 y=16 cansee=1 uat=0 mon=1 branch=visible-mon]
+~drn2_disp[step=156 owner=see_monsters kind=mon n=383 idx=76 x=50 y=16]
+^disp_owner_end[step=156 owner=see_monsters]
+^disp_owner_begin[step=156 owner=see_objects parent=make_hallucinated]
+^disp_newsym[step=156 owner=see_objects x=49 y=16 cansee=1 uat=0 mon=0 branch=visible-map-location]
+^disp_maploc[step=156 owner=see_objects x=49 y=16 branch=obj]
+~drn2_disp[step=156 owner=see_objects kind=obj n=460 idx=200 x=49 y=16]
+^disp_owner_end[step=156 owner=see_objects]
+^disp_owner_end[step=156 owner=make_hallucinated]
+```
+
+Bad:
+
+- owner logs in one file,
+- branch logs in another file,
+- display-RNG logs in a third file,
+- with ordering reconstructed after the fact.
+
+The whole point of this mode is preserving exact local causality.
+
+
 ## C Instrumentation Plan
 
 ### 1. Owner stack
@@ -387,6 +440,20 @@ Top priority:
 - moveloop redraw/sync owner
 - `dog_move()` redraw sub-lane
 - `update_inventory()` if it emits glyph-bearing display work
+
+Implementation note:
+
+- start with the owners already implicated by `seed031`
+- do not instrument every redraw function in the tree before the first
+  diagnostic run
+- the minimal useful first batch is:
+  - `make_hallucinated()`
+  - `see_monsters()`
+  - `see_objects()`
+  - `docrt_flags()`
+  - `newsym()`
+  - `_map_location()`
+  - contextualized display-RNG calls
 
 ### 3. Instrument `newsym()`
 
@@ -466,6 +533,13 @@ Emit `kind=obj|mon` logs carrying:
 - current branch context
 - coordinates if known
 
+Implementation note:
+
+- JS should share the same owner names and branch enums as C from the start
+- do not rely on temporary stack-string heuristics for the final format
+- if stack strings are used during bring-up, they should be explicitly marked
+  exploratory and removed once owner-stack instrumentation exists
+
 
 ## JS Design Requirements
 
@@ -519,6 +593,13 @@ However, debugging experience from `seed031` says:
 - it should not be assumed to explain every missing object roll,
 - and inventory item count alone is not a sufficient explanation.
 
+For `seed031`, current evidence says:
+
+- `update_inventory()` remains a candidate owner because C calls it in the
+  relevant redraw lanes,
+- but it has not yet been proven to be the source of the missing object rolls,
+- so it must be instrumented, not guessed at.
+
 The correct approach is to instrument it with the same owner/branch framework,
 then compare its actual emitted redraws.
 
@@ -554,6 +635,59 @@ These should be independent of ordinary gameplay RNG logging.
 4. Fix the earliest structural mismatch.
 5. Repeat until the display stream aligns or the mismatch is narrowed to a
    non-RNG repaint/cursor issue.
+
+Recommended stop points:
+
+1. Stop after C owner + `newsym` + map-location logs exist and verify that one
+   diagnostic session produces readable structured output.
+2. Stop after matching JS logs exist and verify that categories line up.
+3. Stop after the first owner-by-owner comparison identifies a concrete
+   mismatch.
+4. Only then patch gameplay/display code.
+
+This keeps the rollout incremental and measurable.
+
+
+## Measurable Milestones
+
+### Milestone 1: C structural logs
+
+Success criteria:
+
+- C emits inline owner logs
+- C emits inline `newsym` branch logs
+- C emits inline map-location branch logs
+- C emits contextualized display-RNG logs
+- one diagnostic replay (`seed031`) can be read as a single chronological
+  owner/branch/roll stream
+
+### Milestone 2: JS structural logs
+
+Success criteria:
+
+- JS emits the same owner names
+- JS emits the same branch enums
+- JS emits contextualized display-RNG logs
+- C and JS streams are diffable without ad hoc category translation
+
+### Milestone 3: First structural mismatch
+
+Success criteria:
+
+- one concrete mismatch is identified in the earliest bad owner lane:
+  - missing owner
+  - extra owner
+  - different `newsym` branch
+  - different map-location branch
+  - or different display-RNG count inside a matched branch
+
+### Milestone 4: First validated fix
+
+Success criteria:
+
+- target session screen divergence moves later or disappears
+- gameplay RNG/events remain non-regressed
+- targeted controls stay green
 
 
 ## Success Criteria
@@ -601,6 +735,14 @@ Recommended implementation order:
 9. fix the earliest proven structural mismatch
 10. reuse the same tooling for later `seed032` / `seed033` display seams
 
+This ordering is intentionally actionable:
+
+- it starts with the highest-yield C owners already implicated by real
+  debugging,
+- it does not require instrumenting every display function before the first
+  result,
+- and every stage has an observable output shape.
+
 
 ## Expected Payoff
 
@@ -618,3 +760,64 @@ The central rule is simple:
 - compare display-RNG rolls third.
 
 Without that structure, display-RNG parity work degenerates into guesswork.
+
+
+## Plan Review
+
+### Is it actionable?
+
+Yes, with the staged rollout above.
+
+The plan is actionable because:
+
+- it names concrete C and JS files/functions,
+- it narrows the first implementation batch to the owners already implicated by
+  `seed031`,
+- it defines a log schema instead of just a wish list,
+- and it provides explicit stop points after each stage.
+
+The main execution risk would be trying to instrument everything at once.
+That is why the rollout must start with the narrow first batch.
+
+### Is it likely to succeed?
+
+Yes.
+
+Reason:
+
+- the remaining hard seams are ownership and branch-selection problems,
+- the current debugging already proved that low-level PRNG logs alone are not
+  enough,
+- and the C code structure is explicit enough that owner/branch instrumentation
+  can be attached without changing semantics.
+
+The plan does not depend on speculative gameplay edits. It depends on better
+attribution, which is exactly the missing information.
+
+### Is it measurable?
+
+Yes.
+
+It is measurable at two levels:
+
+1. instrumentation completeness
+   - do the owners/branches/rolls appear in one ordered stream?
+2. parity payoff
+   - does the first screen divergence move later after the earliest proven
+     mismatch is fixed?
+
+That makes it suitable for incremental commits rather than one large logging
+dump.
+
+### Is it well motivated?
+
+Yes.
+
+It is directly motivated by actual debugging failures:
+
+- raw display-RNG logs were informative but insufficient
+- screen diffs were too late
+- stack-trace probes were useful but not comparable to C
+- repeated speculative display fixes did not move the seam reliably
+
+This plan addresses the exact missing layer revealed by that experience.
