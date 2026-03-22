@@ -1,6 +1,6 @@
 # About Logo
 
-In 1966, Seymour Papert had an idea that would change what computers were for.
+In 1966, [Seymour Papert](https://en.wikipedia.org/wiki/Seymour_Papert) had an idea that would change what computers were for.
 
 Papert was a mathematician who had spent five years studying with [Jean Piaget](https://en.wikipedia.org/wiki/Jean_Piaget) in Geneva before joining [Marvin Minsky](https://en.wikipedia.org/wiki/Marvin_Minsky) at the [MIT Artificial Intelligence Laboratory](https://en.wikipedia.org/wiki/MIT_Computer_Science_and_Artificial_Intelligence_Laboratory). He knew how children learn: not by being told, but by building. And he believed that computers, which at the time were reserved for scientists and engineers, could give children something genuinely new to build with.
 
