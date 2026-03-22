@@ -648,6 +648,8 @@ export function rspsb2(G, a, b, c) {
       currentSub = nextSub;
       nextSub = '';
     }
+    // Fix anachronistic date in welcome message
+    line = line.replace(/created \d+-\w+-\d+/, 'created 2-Dec-81');
     G.output(' ' + line);
   }
 }
