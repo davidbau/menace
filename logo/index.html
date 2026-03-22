@@ -657,7 +657,7 @@
       history.replaceState(null, '', window.location.pathname);
     }
 
-    if (aboutLink) aboutLink.addEventListener('click', function(e) { e.preventDefault(); openDocs(); });
+    if (aboutLink) aboutLink.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); openDocs(); });
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDocs(); });
     // Click the mini terminal to zoom back in
     page.addEventListener('click', function(e) { if (docsOpen) { e.stopPropagation(); closeDocs(); } });
