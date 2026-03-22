@@ -631,6 +631,19 @@ export function getComparableEventStreams(jsRng = [], sessionRng = []) {
         js = js.filter((entry) => !isTestMoveEvent(entry));
         session = session.filter((entry) => !isTestMoveEvent(entry));
     }
+    // Backward compatibility: C patches 028/029 add ^moveamt, ^fog_everyturn,
+    // and ^add_region events.  Sessions recorded without these patches won't
+    // have them.  If either side lacks an event type entirely, filter it from
+    // both sides so old sessions remain comparable without rerecording.
+    const optionalPrefixes = ['^moveamt[', '^fog_everyturn[', '^add_region['];
+    for (const prefix of optionalPrefixes) {
+        const jsHas = js.some((e) => typeof e === 'string' && e.startsWith(prefix));
+        const sessionHas = session.some((e) => typeof e === 'string' && e.startsWith(prefix));
+        if (jsHas !== sessionHas) {
+            js = js.filter((e) => !(typeof e === 'string' && e.startsWith(prefix)));
+            session = session.filter((e) => !(typeof e === 'string' && e.startsWith(prefix)));
+        }
+    }
     return { js, session };
 }
 
