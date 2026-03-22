@@ -32,6 +32,27 @@ function convertSession(session) {
 
     const opts = session.options || {};
     const seed = session.seed;
+    const regenMode = (session.regen || session.meta?.regen || {}).mode;
+
+    // manual-direct-live sessions: nethackrc should be empty because all
+    // options come from interactive keystrokes (including chargen).
+    if (regenMode === 'manual-direct-live') {
+        const datetime = opts.datetime || DEFAULT_DATETIME;
+        const env = buildSessionEnv(seed, datetime);
+        return {
+            version: 4,
+            env,
+            nethackrc: '',
+            seed: session.seed,
+            source: session.source,
+            recorded_with: session.recorded_with,
+            type: session.type,
+            regen: session.regen,
+            options: session.options,
+            meta: session.meta,
+            steps: session.steps,
+        };
+    }
 
     // Build character object from options
     const character = {};
