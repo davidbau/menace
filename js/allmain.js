@@ -34,7 +34,7 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE, TER_DETECT,
          TELEPORT, POLYMORPH, Upolyd } from './const.js';
 import { ageSpells } from './spell.js';
-import { wipe_engr_at, can_reach_floor } from './engrave.js';
+import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
 import { exerchk } from './attrib_exercise.js';
@@ -61,7 +61,7 @@ import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
     hasActiveTextPopupWindow, redrawActiveTextPopupWindows,
 } from './windows.js';
-import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
+import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, IS_DOOR } from './const.js';
 import { initFirstLevel } from './u_init.js';
 import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
          playerSelection as _playerSelection, maybeDoTutorial as _maybeDoTutorial,
@@ -886,45 +886,59 @@ async function runMovementRepeatSlice(game, {
     emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
     // C ref: allmain.c:527-530 — movement/travel multi repeat.
     // lookaround() can abort running by clearing multi.
+    // Restructured to match do_run's operation ordering:
+    //   domove → turn-end → stop-checks → lookaround
+    // This order produces matching RNG with C's recorded sessions.
     const _p = game.u || game.u;
     const _map = game.map;
     const _fov = FOV;
     const _display = game.display;
-    await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
-    if (game.multi <= 0) {
-        ctx.move = 0;
-        return false;
-    }
-    // C ref: hack.c domove() can call end_running() internally
-    // (e.g. when findtravelpath exhausts the path), which clears
-    // ctx.run. Save run mode before domove to detect travel-end.
+
+    // Save run mode before domove (domove may call end_running internally)
     const savedRun = ctx.run;
-    if (game.multi < COLNO && !--game.multi) {
-        end_running(true, game);
-    }
-    game.advanceRunTurn = async () => {
-        await advanceTimedTurn(game, coreOpts);
-    };
-    // C ref: moveloop_core calls domove() which reads direction from u.dx, u.dy.
-    // For running continuation, use the saved direction. For travel, domove
-    // internally calls findtravelpath to determine direction.
+
+    // Step 1: domove — use saved direction for running, [0,0] for travel
     const runDir = ctx.travel ? [0, 0] : [_p.dx || 0, _p.dy || 0];
+    ctx._runAtMoveStart = Number(ctx.run || 0);
     const moveResult = await domove(runDir, _p, _map, _display, game);
-    game.advanceRunTurn = null;
-    if (!moveResult || !moveResult.tookTime) {
-        // C ref: allmain.c moveloop — when travel ends via path exhaustion,
-        // run one more monster turn before exiting.
+    ctx._runAtMoveStart = 0;
+
+    // Step 2: turn-end (if move took time)
+    if (moveResult && moveResult.tookTime) {
+        bumpHeroSeqN();
+        await advanceTimedTurn(game, coreOpts);
+    } else {
+        // Move didn't take time — travel path exhaustion gets one more turn
         if (savedRun === 8 && moveResult?.stopReason === 'travel_path_exhausted') {
             await advanceTimedTurn(game, coreOpts);
         }
         return false;
     }
-    if (!moveResult.moved) {
+
+    // Step 3: stop checks (matching do_run's post-move checks)
+    if (Number(ctx.run || 0) === 0) return false;  // nomul cleared run
+    if (!moveResult.moved) return false;
+
+    // Decrement multi (C: moveloop_core line 528)
+    if (game.multi < COLNO && !--game.multi) {
+        end_running(true, game);
         return false;
     }
-    bumpHeroSeqN();
-    await advanceTimedTurn(game, coreOpts);
-    await _drainOccupation(game, coreOpts);
+
+    // Door and engraving stops (matching do_run lines 1599-1605)
+    const curLoc = _map?.at?.(_p.x, _p.y);
+    if (curLoc && IS_DOOR(curLoc.typ)) return false;
+    if (engr_at(_map, _p.x, _p.y)) return false;
+
+    // Step 4: vision + lookaround (matching do_run lines 1609-1622)
+    vision_recalc();
+    const look = await lookaround(_map, _p, _fov, runDir, 'run', _display, game);
+    if (look?.stopReason) return false;
+
+    // Update display during run
+    _display.renderMap(_map, _p, _fov);
+    _display.renderStatus(_p);
+
     return true;
 }
 
@@ -2719,8 +2733,11 @@ export class NetHackGame {
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
             this.renderAndAutosave({ commandResult, autosave: true });
+            // C ref: moveloop loops for: negative multi, occupation,
+            // AND positive-multi movement (run/travel continuation).
             if (!(this.context?.move && this.multi < 0 && !(this?.playerDied))
-                && !(this.multi >= 0 && this.occupation)) {
+                && !(this.multi >= 0 && this.occupation)
+                && !(this.multi > 0 && this.context?.mv && !(this?.playerDied))) {
                 return;
             }
         }
