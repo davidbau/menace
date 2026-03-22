@@ -1562,6 +1562,9 @@ async function mbhitm(mtmp, otmp, map, player) {
                     tmp = Math.floor((tmp + 1) / 2);
                 }
                 mtmp.mhp -= tmp;
+                if (mtmp.mhp <= 0) {
+                    await monkilled(mtmp, '', 0, map, player);
+                }
                 learnit = true;
             }
         }
@@ -1654,7 +1657,7 @@ async function mbhit(mon, range, fhitm, fhito, obj, map, player) {
             await nh_delay_output();
 
             if (u_at(player, bhitpos.x, bhitpos.y)) {
-                if (fhitm) fhitm(player, obj, map, player);
+                if (fhitm) await fhitm(player, obj, map, player);
                 range -= 3;
             } else {
                 const mtmp = m_at(bhitpos.x, bhitpos.y, map);
@@ -1662,7 +1665,7 @@ async function mbhit(mon, range, fhitm, fhito, obj, map, player) {
                     if (cansee(map, player, null, bhitpos.x, bhitpos.y)
                         && !canspotmon(mtmp, player, null, map))
                         map_invisible(map, bhitpos.x, bhitpos.y, player);
-                    if (fhitm) fhitm(mtmp, obj, map, player);
+                    if (fhitm) await fhitm(mtmp, obj, map, player);
                     range -= 3;
                 }
             }

@@ -15995,3 +15995,36 @@ distinction is always conditional on being in Gehennom.
 - New active seam after this fix is later still, around gameplay step `1173`;
   the earlier gnome-lord current-square dart pickup mismatch is no longer the
   first-cause divergence.
+
+## 2026-03-22 - `seed031`: await monster wand-hit death path before continuing beam travel
+
+- After the aklys stand-off fix, `seed031` next diverged at gameplay step
+  `1173` in a monster offensive-item corridor.
+- C ground truth there was:
+  - monster `165` dies from a monster-fired striking wand hit
+  - `corpse_chance()` immediately consumes `rn2(3)`
+  - `make_corpse()` emits `^corpse[165,41,5]`
+- JS had two coupled problems in [`mbhit()` / `mbhitm()`](js/muse.js):
+  - `mbhit()` invoked async `fhitm(...)` without awaiting it, so the beam could
+    keep consuming later RNG before the struck monster's death path finished
+  - `mbhitm()`'s `WAN_STRIKING` monster-hit branch subtracted lethal damage but
+    did not run the non-hero monster-death path afterward
+- The faithful fix in [`js/muse.js`](js/muse.js) is:
+  - await `fhitm(...)` inside `mbhit()` for both hero and monster hits
+  - when striking-wand damage kills a monster, route through
+    `monkilled(mtmp, '', 0, map, player)` so `mondied() -> corpse_chance() ->
+    make_corpse()` happens in-order before beam traversal proceeds
+- A focused trace on monster `165` confirmed the repaired sequence:
+  - `monkilled-enter`
+  - `mondied-enter`
+  - `mondied-after-corpse-chance makeCorpse=1`
+  - `mondied-make-corpse` at `41,5`
+- Validation:
+  - `seed031_manual_direct.session.json`
+    - matched RNG improved `44592 -> 44709`
+    - matched events improved `24783 -> 24808`
+    - first RNG divergence moved `1173 -> 1175`
+  - `t04_s705_w_minefill_gp.session.json`: PASS
+  - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+- New active seam after this batch is later monster/object handling around
+  gameplay step `1175`, not the old striking-wand corpse-generation gap.
