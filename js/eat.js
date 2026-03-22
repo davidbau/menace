@@ -2166,7 +2166,6 @@ async function handleEat(player, display, game) {
             }
         } else {
             // Single-turn food — eat instantly
-            consumeInventoryItem();
             await display.putstr_message(`This ${eatenItem.name} is delicious!`);
             // cf. eat.c garlic_breath() — scare nearby olfaction monsters (partial).
             if (eatenItem.otyp === CLOVE_OF_GARLIC && map) {
@@ -2187,12 +2186,14 @@ async function handleEat(player, display, game) {
                     }
                 }
             }
-            // cf. eat.c done_eating():562-565 — dispatch to cpostfx/fpostfx
+            // C ref: eat.c done_eating() — cpostfx/fpostfx runs BEFORE
+            // food_disappears (item removal).
             if (isCorpse) {
                 await cpostfx(player, cnum, display);
             } else {
                 await fpostfx(player, eatenItem);
             }
+            consumeInventoryItem();
         }
         return { moved: false, tookTime: true };
 }
