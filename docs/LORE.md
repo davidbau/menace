@@ -16193,3 +16193,35 @@ distinction is always conditional on being in Gehennom.
   - `seed031_manual_direct.session.json`: improved screen/color/cursor, same RNG/events
   - `coverage/locks-containers-pickup/t02_s714_w_cardbox_gp.session.json`: PASS
   - `coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`: PASS
+
+## 2026-03-22 - `dbgmapdump`: C-side manual-direct captures must use normalized replay keys
+
+- While bisecting `seed031`, early `dbgmapdump --c-side` checkpoints looked
+  impossible:
+  - compared gameplay step `20` in JS had the hero near `(63,10)`
+  - C-side `dbgmapdump` was reporting the hero around `(42,11)`
+  - that contradicted the main session comparator, which does not diverge on
+    screen until much later
+- Root cause was in [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js):
+  - JS capture used [`prepareReplayArgs()`](js/replay_compare.js), which
+    normalizes manual-direct sessions by folding chargen/startup keys out of
+    gameplay
+  - C capture still let
+    [`capture_step_snapshot.py`](test/comparison/c-harness/capture_step_snapshot.py)
+    extract raw session keys directly
+  - for manual-direct sessions, that made early C `--c-side` snapshots replay a
+    different key stream than the JS side
+- Fix:
+  - `dbgmapdump` now writes the exact normalized replay key stream to
+    `replay_keys.json`
+  - C-side capture is invoked with `--keys-json <that file>`
+  - this keeps JS and C mapdump capture on the same gameplay-step key stream
+- Validation:
+  - rerunning `dbgmapdump --c-side` for `seed031` step `20` now produces a
+    sensible aligned C checkpoint (`u_ux=62`, `u_uy=10`) instead of the bogus
+    pre-normalization checkpoint
+  - the output directory now contains the emitted `replay_keys.json`, which is
+    the exact key stream used for both sides
+- Practical rule:
+  - for manual-direct parity work, trust `dbgmapdump --c-side` only when the
+    C capture is driven by the same normalized replay keys as JS

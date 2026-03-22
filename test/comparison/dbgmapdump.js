@@ -825,6 +825,8 @@ async function main() {
     const cDir = join(outDir, 'c');
     mkdirSync(jsDir, { recursive: true });
     if (args.cSide) mkdirSync(cDir, { recursive: true });
+    const replayKeysPath = join(outDir, 'replay_keys.json');
+    writeFileSync(replayKeysPath, JSON.stringify(Array.from(replayArgs.keys || ''), null, 2) + '\n', 'utf8');
 
     const stepToRawEnd = buildStepToRawEnd(replayArgs.stepBoundaries);
     const rawTargets = new Map();
@@ -944,10 +946,13 @@ async function main() {
     if (args.cSide) {
         for (const c of captures) {
             const outJson = join(cDir, `step${String(c.sessionStep).padStart(4, '0')}.snapshot.json`);
-            // capture_step_snapshot.py uses extract_keys which returns all keys
-            // from step 1 onward. step_index is 0-based: session step N = keys[N-1].
+            // Use the exact normalized replay key stream that JS replaySession used.
+            // This keeps manual-direct sessions aligned: prepareReplayArgs() folds
+            // chargen/startup keys out of gameplay, while raw C extract_keys()
+            // otherwise replays the unnormalized session key stream.
+            // step_index remains 0-based within the normalized gameplay-step view.
             const cRequestedStep = c.sessionStep - 1;
-            runCStepCapture(sessionPath, cRequestedStep, outJson, fixedDatetime);
+            runCStepCapture(sessionPath, cRequestedStep, outJson, fixedDatetime, replayKeysPath);
             const capture = JSON.parse(readFileSync(outJson, 'utf8'));
             c.cSnapshotPath = outJson;
             c.cRequestedStep = cRequestedStep;
