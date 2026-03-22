@@ -4,7 +4,7 @@
  */
 
 import { game } from './gstate.js';
-import { clear, draw, mvwaddstr } from './curses.js';
+import { clear, wclear, draw, mvwaddstr } from './curses.js';
 import { wait_for } from './io.js';
 import { addScore, scoreLines, storeGameover } from './score.js';
 import {
@@ -61,6 +61,8 @@ export async function death(monst) {
   g.purse -= Math.floor(g.purse / 10);
 
   clear();
+  wclear(g.mw);
+  wclear(g.cw);
   const startRow = 8;
   for (let i = 0; i < RIP_ART.length; i++) {
     mvwaddstr(g.stdscr, startRow + i, 0, RIP_ART[i]);
@@ -103,6 +105,8 @@ export async function total_winner() {
   const g = game();
 
   clear();
+  wclear(g.mw);
+  wclear(g.cw);
 
   // "YOU MADE IT" banner
   mvwaddstr(g.stdscr, 0,  0, '                                                               ');
@@ -125,6 +129,8 @@ export async function total_winner() {
 
   // Tally inventory
   clear();
+  wclear(g.mw);
+  wclear(g.cw);
   mvwaddstr(g.stdscr, 0, 0, '   Worth  Item');
   let row = 1;
   let totalWorth = g.purse;
