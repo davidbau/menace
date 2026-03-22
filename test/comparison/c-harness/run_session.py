@@ -1285,7 +1285,10 @@ def _send_char(session_name, ch):
 
     If ch is a multi-character string (e.g., 'wizloaddes' from a step key
     recorded as one step in old format), each character is sent individually.
+    Empty strings are silently ignored.
     """
+    if not ch:
+        return
     if len(ch) > 1:
         for c in ch:
             _send_char(session_name, c)
