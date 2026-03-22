@@ -16289,3 +16289,41 @@ distinction is always conditional on being in Gehennom.
     a post-step `auto_step_*` boundary
   - if `dbgmapdump` reports `no post-step auto_step boundary before next
     input`, do not treat that step as a valid post-step state checkpoint
+
+## 2026-03-22 - `dbgmapdump`: expand JS `victual` state instead of collapsing it to an object ref
+
+- Late `seed031` analysis around the live seam needed apples-to-apples meal
+  state, but JS mapdumps were flattening `svc.context.victual` into a compact
+  stable object ref like `{"ref":"obj","o_id":379}`.
+- That hid the fields that C snapshot JSON already exposes:
+  - `piece_o_id`
+  - `o_id`
+  - `usedtime`
+  - `reqtime`
+  - `nmod`
+  - `canchoke`
+  - `fullwarn`
+  - `eating`
+  - `doreset`
+- Fix in [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js):
+  - normalize JS `victual` into scalar fields matching the C snapshot shape
+  - exempt the top-level `victual` context object from generic stable-ref
+    collapsing, so those fields survive flattening into the `C...` row
+- Result:
+  - JS late mapdumps now show full meal state directly in the compact context
+    line, for example:
+    - `victual.eating=true`
+    - `victual.o_id=379`
+    - `victual.usedtime=8`
+    - `victual.reqtime=13`
+- Concrete `seed031` evidence from this tool improvement:
+  - JS late checkpoint still carries live meal state:
+    - `step1243.mapdump` has `victual.eating=true`,
+      `victual.o_id=379`, `victual.usedtime=8`, `victual.reqtime=13`
+  - corresponding C late checkpoint has fully cleared meal state:
+    - `piece_o_id=0`, `o_id=0`, `usedtime=0`, `reqtime=0`,
+      `nmod=0`, `canchoke=0`, `fullwarn=0`, `eating=0`, `doreset=0`
+- Practical rule:
+  - when late parity drift looks like prompt/occupation confusion, expose
+    structured context state first; compact object refs can hide exactly the
+    field that differentiates JS from C

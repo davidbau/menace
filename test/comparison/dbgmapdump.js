@@ -189,7 +189,8 @@ function flattenContext(prefix, value, out, maxStringLen = 80, seen = new Set(),
         out.push([key, encodeContextValue(value, maxStringLen)]);
         return;
     }
-    const ref = stableRefObject(value);
+    const allowStableRef = key !== 'victual';
+    const ref = allowStableRef ? stableRefObject(value) : null;
     if (ref) {
         out.push([key, encodeContextValue(JSON.stringify(ref), maxStringLen)]);
         return;
@@ -232,6 +233,7 @@ function encodeContextSection(contextObj, maxStringLen = 80) {
 function buildJsContextSnapshot(game) {
     const ctx = game?.svc?.context || game?.context || {};
     const g = game || {};
+    const victual = ctx.victual || {};
     return {
         ident: Number(ctx.ident) || 0,
         no_of_wizards: Number(ctx.no_of_wizards) || 0,
@@ -264,7 +266,17 @@ function buildJsContextSnapshot(game) {
         umoved: !!(g?.u || g?.player)?.umoved,
         jingle: encodeContextValue(ctx.jingle, 48),
         digging: ctx.digging || {},
-        victual: ctx.victual || {},
+        victual: {
+            piece_o_id: Number(victual?.piece?.o_id) || 0,
+            o_id: Number(victual.o_id) || 0,
+            usedtime: Number(victual.usedtime) || 0,
+            reqtime: Number(victual.reqtime) || 0,
+            nmod: Number(victual.nmod) || 0,
+            canchoke: !!victual.canchoke,
+            fullwarn: !!victual.fullwarn,
+            eating: !!victual.eating,
+            doreset: !!victual.doreset,
+        },
         engraving: ctx.engraving || {},
         tin: ctx.tin || {},
         spbook: ctx.spbook || {},
