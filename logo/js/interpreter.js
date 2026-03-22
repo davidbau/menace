@@ -144,9 +144,12 @@ export class LogoInterpreter {
     await this._runList(parsed, this._env);
   }
 
-  // Run a parsed list of tokens/values in an environment
+  // Run a parsed list of tokens/values in an environment.
+  // List items can be token objects ({type, value}) or plain values
+  // (strings, numbers, arrays) from parsed [list literals].
   async _runList(list, env) {
-    const stream = { items: list, pos: 0 };
+    const items = list.map(toToken);
+    const stream = { items, pos: 0 };
     while (stream.pos < stream.items.length) {
       const result = await this._evalExpr(stream, env);
       if (result !== undefined) {
@@ -899,6 +902,20 @@ function listVal(list, i) {
   if (item.type === 'WORD') return Number(item.value) || 0;
   if (item.type === 'QUOTED') return Number(item.value) || 0;
   return 0;
+}
+
+// Convert a plain value to a token object for evaluation.
+// Lists from [...] contain plain strings/numbers; _runList needs token objects.
+function toToken(item) {
+  if (item && typeof item === 'object' && item.type) return item; // already a token
+  if (Array.isArray(item)) return item; // nested list stays as array
+  if (typeof item === 'number') return { type: 'NUMBER', value: item };
+  if (typeof item === 'string') {
+    if (item.startsWith(':')) return { type: 'VAR', value: item.slice(1) };
+    if ('+-*/=<>'.includes(item[0]) && item.length <= 2) return { type: 'OP', value: item };
+    return { type: 'WORD', value: item };
+  }
+  return { type: 'WORD', value: String(item) };
 }
 
 function yieldTick() {
