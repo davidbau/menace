@@ -212,11 +212,7 @@ Type `HELP` at the prompt for a full list of commands. `SAVE` saves your program
 
 ## The Impact of BASIC
 
-At Lincoln-Sudbury Regional High School in Sudbury, Massachusetts, a teacher named [Brian Harvey](https://people.eecs.berkeley.edu/~bh/) built a computer lab in 1980 where students had keys to the room and courses were not graded. The lab had a PDP-11 running Unix, and the students learned whatever they were curious enough to attempt. They learned BASIC, and Logo, and C. They learned by doing.
-
-In 1982, some of those students, led by Jay Fenlason, wrote a game called Hack. They had heard about a Unix dungeon game called Rogue that was popular on college campuses but unavailable to high schoolers. So they built their own version. Hack would later be rewritten by Andries Brouwer and eventually forked into NetHack, which is still under active development four decades later.
-
-The students who wrote Hack had grown up typing BASIC into their home computers. BASIC taught them that programming was not something that happened in a lab — it was something you did at your kitchen table, on a Saturday, because you wanted to make the computer do something new. The line numbers, the GOTO statements, the blinking cursor: these were the raw materials of a generation's introduction to computational thinking.
+An entire generation learned to program by typing BASIC into their home computers. BASIC taught them that programming was not something that happened in a lab — it was something you did at your kitchen table, on a Saturday, because you wanted to make the computer do something new. The line numbers, the GOTO statements, the blinking cursor: these were the raw materials of a generation's introduction to computational thinking.
 
 BASIC's influence is hard to overstate. It was the first programming language for millions of people. It ran on every platform. It was free, it was immediate, it was forgiving. Professional programmers sometimes looked down on it — Edsger Dijkstra [famously wrote](https://en.wikiquote.org/wiki/Edsger_W._Dijkstra) that "it is practically impossible to teach good programming to students that have had a prior exposure to BASIC." But Dijkstra was wrong about what mattered. What mattered was that BASIC got people started. From BASIC they went to Pascal, C, Lisp, whatever they needed. The important thing was that they had started.
 
