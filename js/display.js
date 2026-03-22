@@ -1929,19 +1929,23 @@ export function map_location(x, y, show = 0, ctxOrMap = null) {
   const covered = coversObjectsAt(loc, ctx?.player);
   const objs = (!covered && typeof map.objectsAt === 'function') ? map.objectsAt(x, y) : [];
   if (objs && objs.length > 0) {
+    cosmic_display_log_maploc(x, y, 'obj', !!show);
     map_object(objs[objs.length - 1], show, ctx);
     return;
   }
   const trap = (typeof map.trapAt === 'function') ? map.trapAt(x, y) : null;
   if (trapShownOnMap(trap, ctx?.player) && !covered) {
+    cosmic_display_log_maploc(x, y, 'trap', !!show);
     map_trap(trap, show, ctx);
     return;
   }
   const engr = (typeof map.engravingAt === 'function') ? map.engravingAt(x, y) : null;
   if (spotShowsEngravings(loc) && engr && engr.erevealed && !covered) {
+    cosmic_display_log_maploc(x, y, 'engr', !!show);
     map_engraving(engr, show, ctx);
     return;
   }
+  cosmic_display_log_maploc(x, y, 'terrain', !!show);
   map_background(x, y, show, ctx);
 }
 
@@ -2579,6 +2583,11 @@ export function newsym(x, y, ctxOrMap = null) {
     // When mounted, C shows the steed glyph on hero square instead.
     if (player && x === player.x && y === player.y && !player.usteed) {
         cosmic_display_log_newsym(x, y, 'hero-visible', true);
+        // C newsym() still runs _map_location(x, y, !see_self) on the hero
+        // square before overlaying the hero glyph. With canspotself()==true,
+        // that means show=0 but underlying hallucinated object glyph
+        // selection still consumes display RNG.
+        map_location(x, y, 0, ctx);
         const heroGlyph = playerMapGlyph(player);
         display.setCell(col, row, heroGlyph.ch, heroGlyph.color);
         cosmic_display_clear_newsym_branch();

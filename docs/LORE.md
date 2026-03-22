@@ -16810,3 +16810,28 @@ source is elsewhere in the moveloop phase ordering.
   - when a JS submenu emits a real topline message during teardown, do not
     blindly clear row `0`; match the C tty ownership of the surviving prompt
     vs message line
+
+## 2026-03-22 - hallucinating menu overlays need a frozen underlay
+
+- Continuing the late `seed031` screen-only work exposed a second container-menu
+  repaint rule, distinct from the earlier topline teardown bug.
+- The important discriminator is hallucination:
+  - ordinary submenu redraws can repaint the menu/map band per key without
+    changing parity-critical state;
+  - hallucinating submenu redraws cannot, because each fresh redraw can consume
+    monster/object display-RNG and change fake glyphs even though gameplay
+    state is unchanged.
+- Practical model:
+  - when hallucination is active, treat the submenu as an overlay on top of a
+    frozen underlay;
+  - preserve or restore that underlay while the submenu selection changes,
+    rather than regenerating the visible map on every key.
+- Why this matters:
+  - in the late `seed031` chest-gas corridor, gameplay was already fully green
+    (`51561/51561` RNG and `28950/28950` events);
+  - the remaining divergence came from submenu-time repaint ownership only.
+- Debugging rule:
+  - for screen-only hallucination seams, ask first whether C is revealing an
+    already-drawn underlay or truly performing a fresh redraw;
+  - do not assume that a visually harmless per-key `renderMap()` is neutral
+    once hallucination/display-RNG is active.

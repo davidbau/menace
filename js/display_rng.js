@@ -6,6 +6,7 @@ import { mons } from './monsters.js';
 import {
     objectData, CORPSE, STATUE,
     POTION_CLASS, FIRST_REAL_GEM, LAST_GLASS_GEM, FIRST_SPELL, LAST_SPELL,
+    FIRST_OBJECT, NUM_OBJECTS,
 } from './objects.js';
 import { observeObject } from './o_init.js';
 import { def_monsyms } from './symbols.js';
@@ -24,9 +25,10 @@ function randomMonsterGlyph() {
 }
 
 function randomObjectGlyph() {
-    // C random_object() skips the "strange object" slot.
-    const firstObject = 1;
-    const count = Math.max(0, (objectData?.length || 0) - firstObject);
+    // C random_object() skips STRANGE_OBJECT and the generic object-class
+    // entries before FIRST_OBJECT.
+    const firstObject = FIRST_OBJECT;
+    const count = Math.max(0, NUM_OBJECTS - firstObject);
     if (count <= 0) return { ch: '?', color: 7 };
     cosmic_display_prepare_rng_kind('obj');
     const idx = rn2_on_display_rng(count) + firstObject;
