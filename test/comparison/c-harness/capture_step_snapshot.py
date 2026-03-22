@@ -406,12 +406,13 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         pre_snapshot_screen = tmux_capture(session_name)
         expected_auto_step = baseline_auto_step + replayed_steps
         expected_auto_inp = baseline_auto_inp + replayed_chars
+        target_auto_step = int(expected_auto_step)
         target_auto_inp_by_step = int(step_index)
-        # Prefer the absolute auto_inp index derived from replayed key chars.
-        # Using session step index directly can select stale checkpoints when
-        # input and gameplay-step numbering diverge.
         target_auto_inp = int(expected_auto_inp)
-        tag = phase_tag or f"auto_inp_{target_auto_inp}"
+        # JS mapdumps are post-step snapshots. auto_step_N is emitted on the
+        # fresh_cmd boundary after step N has completed, while auto_inp_N is
+        # emitted when key N is read before its command mutates the world.
+        tag = phase_tag or f"auto_step_{target_auto_step}"
 
         matched_checkpoint, checkpoint_count = wait_for_checkpoint_phase_prefix(
             checkpoint_file, tag, baseline_count, timeout_s=6.0
@@ -461,6 +462,7 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             "baselineCheckpointCount": baseline_count,
             "expectedAutoStep": expected_auto_step,
             "expectedAutoInp": expected_auto_inp,
+            "targetAutoStep": target_auto_step,
             "targetAutoInp": target_auto_inp,
             "targetAutoInpByStep": target_auto_inp_by_step,
             "replayedChars": replayed_chars,

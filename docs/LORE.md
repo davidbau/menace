@@ -16225,3 +16225,46 @@ distinction is always conditional on being in Gehennom.
 - Practical rule:
   - for manual-direct parity work, trust `dbgmapdump --c-side` only when the
     C capture is driven by the same normalized replay keys as JS
+
+## 2026-03-22 - `dbgmapdump`: manual-direct C snapshots need replay chargen metadata and post-step capture phases
+
+- A second `seed031` `dbgmapdump` problem remained after normalizing replay
+  keys:
+  - C-side `capture_step_snapshot.py` switches to preset-chargen mode whenever
+    `--keys-json` is used
+  - raw manual-direct sessions like `seed031` store `options.name/role/race/
+    gender/align = null`
+  - that meant C-side mapdump capture was still starting the wrong character
+    even though the key stream itself was now normalized
+- Fix in [`test/comparison/dbgmapdump.js`](test/comparison/dbgmapdump.js):
+  - emit a temporary `capture_session.json`
+  - for `regen.mode === "manual-direct-live"`, fill its `options.*` chargen
+    fields from `prepareReplayArgs(...).opts.initOpts.character`
+  - invoke C capture on that temporary session, not the raw fixture
+- A separate boundary bug was also present in
+  [`test/comparison/c-harness/capture_step_snapshot.py`](test/comparison/c-harness/capture_step_snapshot.py):
+  - JS mapdumps are post-step snapshots
+  - C capture was targeting `auto_inp_*`, which fires when a key is read,
+    before that command has finished mutating state
+  - for post-step parity snapshots, the right boundary is `auto_step_*` on the
+    next `fresh_cmd`
+- Fix in `capture_step_snapshot.py`:
+  - prefer `auto_step_<expected>` as the primary checkpoint phase for mapdump
+    capture
+  - keep `auto_inp` bookkeeping as diagnostic metadata only
+- Validation:
+  - `dbgmapdump --c-side` for `seed031` gameplay step `20` now lands on the
+    real Tourist/manual-direct state
+  - JS and C now agree on the meaningful state at that checkpoint:
+    - hero position `(63,10)`
+    - pet at `(62,10)`
+    - monster `70` at `(19,8)`
+    - monster `158` at `(44,4)`
+  - remaining strict `U/C/G` vector differences are snapshot-format noise, not
+    the old bogus chargen/key-stream mismatch
+- Practical rule:
+  - for manual-direct mapdump bisects, do not trust early C snapshots unless:
+    1. the normalized replay keys are passed through `--keys-json`
+    2. the temporary capture session carries inferred chargen metadata
+    3. the capture phase is a post-step `auto_step_*` boundary rather than
+       an `auto_inp_*` key-read boundary

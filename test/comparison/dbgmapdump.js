@@ -720,6 +720,24 @@ function runCStepCapture(sessionPath, stepIndex, outJson, fixedDatetime = null, 
     }
 }
 
+function buildManualDirectCaptureSession(rawSession, replayArgs) {
+    const initChar = replayArgs?.opts?.initOpts?.character || null;
+    if (rawSession?.regen?.mode !== 'manual-direct-live' || !initChar) {
+        return rawSession;
+    }
+    return {
+        ...rawSession,
+        options: {
+            ...(rawSession.options || {}),
+            name: initChar.name ?? rawSession.options?.name ?? null,
+            role: initChar.role ?? rawSession.options?.role ?? null,
+            race: initChar.race ?? rawSession.options?.race ?? null,
+            gender: initChar.gender ?? rawSession.options?.gender ?? null,
+            align: initChar.align ?? rawSession.options?.align ?? null,
+        },
+    };
+}
+
 function sessionHasTestMove(rawSession) {
     const steps = Array.isArray(rawSession?.steps) ? rawSession.steps : [];
     for (const step of steps) {
@@ -827,6 +845,12 @@ async function main() {
     if (args.cSide) mkdirSync(cDir, { recursive: true });
     const replayKeysPath = join(outDir, 'replay_keys.json');
     writeFileSync(replayKeysPath, JSON.stringify(Array.from(replayArgs.keys || ''), null, 2) + '\n', 'utf8');
+    const captureSessionPath = join(outDir, 'capture_session.json');
+    writeFileSync(
+        captureSessionPath,
+        JSON.stringify(buildManualDirectCaptureSession(session.raw, replayArgs), null, 2) + '\n',
+        'utf8'
+    );
 
     const stepToRawEnd = buildStepToRawEnd(replayArgs.stepBoundaries);
     const rawTargets = new Map();
@@ -952,7 +976,7 @@ async function main() {
             // otherwise replays the unnormalized session key stream.
             // step_index remains 0-based within the normalized gameplay-step view.
             const cRequestedStep = c.sessionStep - 1;
-            runCStepCapture(sessionPath, cRequestedStep, outJson, fixedDatetime, replayKeysPath);
+            runCStepCapture(captureSessionPath, cRequestedStep, outJson, fixedDatetime, replayKeysPath);
             const capture = JSON.parse(readFileSync(outJson, 'utf8'));
             c.cSnapshotPath = outJson;
             c.cRequestedStep = cRequestedStep;
