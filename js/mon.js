@@ -1076,7 +1076,10 @@ export async function xkilled(mon, xkill_flags, map, player) {
         levelFlags.is_rogue_level
         || (levelFlags.deathdrops != null && !levelFlags.deathdrops)
         || (levelFlags.graveyard && is_undead(mdat) && rn2(3));
-    if (!levelSpecificNocorpse) {
+    // C ref: mon.c:3576 — accessible(x,y) || is_pool(x,y) gates treasure+corpse
+    const loc = map?.at(x, y);
+    const tileAccessible = loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ));
+    if (!levelSpecificNocorpse && tileAccessible) {
         if (map && !rn2(6)
             && !(game?.mvitals?.[mndx]?.mvflags & G_NOCORPSE)
             && (x !== (player?.x || 0) || y !== (player?.y || 0))
