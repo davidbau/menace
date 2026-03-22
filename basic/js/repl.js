@@ -31,7 +31,7 @@ export class BasicRepl {
 
     // Main REPL loop
     while (true) {
-      this._write(']');
+      this._write('\nREADY\n');
       const line = await this._readLine();
       if (line === null) continue;
 

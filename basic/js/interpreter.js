@@ -153,9 +153,8 @@ export class BasicInterpreter {
     }
   }
 
-  // Execute one line (may contain : separated statements)
+  // Execute one line (may contain \ separated statements — BASIC-PLUS style)
   async _execLine(src, lineNum) {
-    // Split on : for multi-statement lines, but not inside strings
     const stmts = this._splitStatements(src);
     for (const stmt of stmts) {
       const result = await this._execStatement(stmt.trim(), lineNum);
@@ -170,7 +169,7 @@ export class BasicInterpreter {
     let inStr = false;
     for (let i = 0; i < src.length; i++) {
       if (src[i] === '"') inStr = !inStr;
-      if (src[i] === ':' && !inStr) {
+      if ((src[i] === '\\' || src[i] === ':') && !inStr) {
         parts.push(current);
         current = '';
       } else {
@@ -247,6 +246,48 @@ export class BasicInterpreter {
 
     // RESTORE
     if (upper === 'RESTORE') { this._dataPtr = 0; return null; }
+
+    // SLEEP
+    if (upper.startsWith('SLEEP')) {
+      const secs = this._evalExpr(stmt.slice(5).trim(), lineNum);
+      await new Promise(r => setTimeout(r, Math.max(0, secs) * 1000));
+      return null;
+    }
+
+    // CHANGE
+    if (upper.startsWith('CHANGE')) {
+      return this._execChange(stmt.slice(6).trimStart(), lineNum);
+    }
+
+    // MAT
+    if (upper.startsWith('MAT')) {
+      return this._execMat(stmt.slice(3).trimStart(), lineNum);
+    }
+
+    // PRINT USING
+    if (upper.startsWith('PRINT USING') || upper.startsWith('PRINT  USING')) {
+      return this._execPrintUsing(stmt.replace(/^PRINT\s+USING\s*/i, ''), lineNum);
+    }
+
+    // OPEN
+    if (upper.startsWith('OPEN')) {
+      return this._execOpen(stmt.slice(4).trimStart(), lineNum);
+    }
+
+    // CLOSE
+    if (upper.startsWith('CLOSE')) {
+      return this._execClose(stmt.slice(5).trimStart(), lineNum);
+    }
+
+    // PRINT # (file output)
+    if (upper.match(/^PRINT\s*#/)) {
+      return this._execPrintFile(stmt.replace(/^PRINT\s*#\s*/i, ''), lineNum);
+    }
+
+    // INPUT # (file input)
+    if (upper.match(/^INPUT\s*#/)) {
+      return this._execInputFile(stmt.replace(/^INPUT\s*#\s*/i, ''), lineNum);
+    }
 
     // DEF FN
     if (upper.startsWith('DEF')) {
@@ -753,6 +794,9 @@ export class BasicInterpreter {
         return { value: this._getArray(name, t, ln) };
       }
 
+      // Built-in constants
+      if (name === 'PI') return { value: Math.PI };
+
       // Variable
       if (name in this._vars) return { value: this._vars[name] };
       // Default: 0 for numeric, "" for string
@@ -908,17 +952,282 @@ export class BasicInterpreter {
   _help() {
     const o = this._output;
     o('STATEMENTS: PRINT INPUT LET IF/THEN/ELSE GOTO GOSUB\n');
-    o('  RETURN FOR/NEXT DIM READ DATA RESTORE DEF REM END\n');
+    o('  RETURN FOR/NEXT DIM READ/DATA DEF ON REM END\n');
+    o('  PRINT USING  CHANGE  SLEEP  MAT\n');
+    o('FILE I/O:   OPEN FOR INPUT/OUTPUT AS #N  CLOSE #N\n');
+    o('  PRINT #N,  INPUT #N,\n');
     o('COMMANDS:   RUN LIST NEW SAVE LOAD BYE HELP\n');
     o('GRAPHICS:   HGR HCOLOR= HPLOT [TO] TEXT\n');
     o('FUNCTIONS:  ABS INT SGN SQR SIN COS TAN ATN LOG EXP\n');
-    o('  RND LEN VAL ASC CHR$ STR$ LEFT$ RIGHT$ MID$ TAB\n');
+    o('  RND LEN VAL ASC CHR$ STR$ LEFT$ RIGHT$ MID$ TAB PI\n');
     o('OPERATORS:  + - * / ^ = < > <= >= <> AND OR NOT\n');
+    o('SEPARATOR:  \\  (backslash separates statements)\n');
     o('\n');
     o('TRY:  10 FOR I = 1 TO 10\n');
     o('      20 PRINT I * I\n');
     o('      30 NEXT I\n');
     o('      RUN\n');
+  }
+
+  // ---- PRINT USING ----
+  _execPrintUsing(expr, lineNum) {
+    // PRINT USING "format", val, val, ...
+    const fmtEnd = expr.indexOf(',');
+    if (fmtEnd < 0) throw new BasicError('?SYNTAX ERROR', lineNum);
+    const fmt = String(this._evalExpr(expr.slice(0, fmtEnd), lineNum));
+    const rest = expr.slice(fmtEnd + 1);
+    const vals = rest.split(',').map(s => this._evalExpr(s.trim(), lineNum));
+    let out = '', vi = 0;
+    let i = 0;
+    while (i < fmt.length) {
+      if (fmt[i] === '#' || (fmt[i] === '-' && i + 1 < fmt.length && fmt[i + 1] === '#')) {
+        // Numeric field: count # signs and optional .
+        let fieldLen = 0, decPlaces = -1, neg = false;
+        if (fmt[i] === '-') { neg = true; i++; }
+        let start = i;
+        while (i < fmt.length && fmt[i] === '#') { fieldLen++; i++; }
+        if (i < fmt.length && fmt[i] === '.') { i++; decPlaces = 0; while (i < fmt.length && fmt[i] === '#') { decPlaces++; i++; } }
+        const val = vi < vals.length ? Number(vals[vi++]) || 0 : 0;
+        let s = decPlaces >= 0 ? val.toFixed(decPlaces) : String(Math.round(val));
+        const totalWidth = fieldLen + (decPlaces >= 0 ? 1 + decPlaces : 0) + (neg ? 1 : 0);
+        out += s.padStart(totalWidth);
+      } else if (fmt[i] === '!') {
+        // Single character from string
+        const val = vi < vals.length ? String(vals[vi++]) : '';
+        out += val.charAt(0) || ' ';
+        i++;
+      } else if (fmt[i] === '\\') {
+        // Fixed-width string field: count chars between backslashes
+        let width = 2;
+        i++;
+        while (i < fmt.length && fmt[i] !== '\\') { width++; i++; }
+        if (i < fmt.length) i++; // skip closing backslash
+        const val = vi < vals.length ? String(vals[vi++]) : '';
+        out += val.padEnd(width).slice(0, width);
+      } else {
+        out += fmt[i++];
+      }
+    }
+    this._output(out + '\n');
+    return null;
+  }
+
+  // ---- CHANGE ----
+  _execChange(expr, lineNum) {
+    const m = expr.match(/^(.+?)\s+TO\s+(.+)$/i);
+    if (!m) throw new BasicError('?SYNTAX ERROR', lineNum);
+    const fromName = m[1].trim().toUpperCase();
+    const toName = m[2].trim().toUpperCase();
+    if (fromName.endsWith('$')) {
+      // String to numeric array: CHANGE A$ TO A
+      const str = String(this._vars[fromName] || '');
+      const arrName = toName.endsWith('%') ? toName : toName;
+      const data = [str.length];
+      for (let i = 0; i < str.length; i++) data.push(str.charCodeAt(i));
+      this._arrays[arrName] = { dims: [data.length], data };
+    } else if (toName.endsWith('$')) {
+      // Numeric array to string: CHANGE A TO A$
+      const arr = this._arrays[fromName];
+      if (!arr) throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+      const len = arr.data[0] || 0;
+      let str = '';
+      for (let i = 1; i <= len && i < arr.data.length; i++) {
+        str += String.fromCharCode(arr.data[i]);
+      }
+      this._vars[toName] = str;
+    } else {
+      throw new BasicError('?SYNTAX ERROR', lineNum);
+    }
+    return null;
+  }
+
+  // ---- MAT operations ----
+  _execMat(expr, lineNum) {
+    const upper = expr.toUpperCase().trim();
+
+    // MAT PRINT A
+    const mp = upper.match(/^PRINT\s+(\w+)/);
+    if (mp) {
+      const name = mp[1];
+      const arr = this._arrays[name];
+      if (!arr) throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+      if (arr.dims.length === 1) {
+        for (let i = 0; i < arr.dims[0]; i++) this._output(` ${arr.data[i]}\n`);
+      } else if (arr.dims.length === 2) {
+        for (let r = 0; r < arr.dims[0]; r++) {
+          let row = '';
+          for (let c = 0; c < arr.dims[1]; c++) {
+            row += String(arr.data[r * arr.dims[1] + c]).padStart(8);
+          }
+          this._output(row + '\n');
+        }
+      }
+      return null;
+    }
+
+    // MAT READ A
+    const mr = upper.match(/^READ\s+(\w+)/);
+    if (mr) {
+      const name = mr[1];
+      const arr = this._arrays[name];
+      if (!arr) throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+      for (let i = 0; i < arr.data.length; i++) {
+        if (this._dataPtr >= this._dataList.length) throw new BasicError('?OUT OF DATA ERROR', lineNum);
+        arr.data[i] = Number(this._dataList[this._dataPtr++]) || 0;
+      }
+      return null;
+    }
+
+    // MAT A = ZER / CON / IDN / TRN(B) / INV(B) / (expr)
+    const ma = upper.match(/^(\w+)\s*=\s*(.*)/);
+    if (ma) {
+      const name = ma[1];
+      const rhs = ma[2].trim();
+
+      if (rhs === 'ZER') {
+        const arr = this._arrays[name];
+        if (!arr) throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+        arr.data.fill(0);
+        return null;
+      }
+      if (rhs === 'CON') {
+        const arr = this._arrays[name];
+        if (!arr) throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+        arr.data.fill(1);
+        return null;
+      }
+      if (rhs === 'IDN') {
+        const arr = this._arrays[name];
+        if (!arr || arr.dims.length !== 2 || arr.dims[0] !== arr.dims[1])
+          throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+        arr.data.fill(0);
+        for (let i = 0; i < arr.dims[0]; i++) arr.data[i * arr.dims[1] + i] = 1;
+        return null;
+      }
+
+      // MAT C = A + B or MAT C = A - B
+      const addm = rhs.match(/^(\w+)\s*([+-])\s*(\w+)$/);
+      if (addm) {
+        const a = this._arrays[addm[1]], b = this._arrays[addm[3]];
+        if (!a || !b) throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+        if (a.data.length !== b.data.length) throw new BasicError('?DIMENSION ERROR', lineNum);
+        if (!this._arrays[name]) this._arrays[name] = { dims: [...a.dims], data: new Array(a.data.length).fill(0) };
+        const c = this._arrays[name];
+        const op = addm[2] === '+' ? (x, y) => x + y : (x, y) => x - y;
+        for (let i = 0; i < a.data.length; i++) c.data[i] = op(a.data[i], b.data[i]);
+        return null;
+      }
+
+      // MAT C = A * B (matrix multiply)
+      const mulm = rhs.match(/^(\w+)\s*\*\s*(\w+)$/);
+      if (mulm) {
+        const a = this._arrays[mulm[1]], b = this._arrays[mulm[2]];
+        if (!a || !b || a.dims.length !== 2 || b.dims.length !== 2)
+          throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+        if (a.dims[1] !== b.dims[0]) throw new BasicError('?DIMENSION ERROR', lineNum);
+        const rows = a.dims[0], inner = a.dims[1], cols = b.dims[1];
+        const data = new Array(rows * cols).fill(0);
+        for (let r = 0; r < rows; r++)
+          for (let c = 0; c < cols; c++)
+            for (let k = 0; k < inner; k++)
+              data[r * cols + c] += a.data[r * inner + k] * b.data[k * cols + c];
+        this._arrays[name] = { dims: [rows, cols], data };
+        return null;
+      }
+
+      // MAT C = TRN(A)
+      const trn = rhs.match(/^TRN\s*\(\s*(\w+)\s*\)$/);
+      if (trn) {
+        const a = this._arrays[trn[1]];
+        if (!a || a.dims.length !== 2) throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+        const rows = a.dims[0], cols = a.dims[1];
+        const data = new Array(rows * cols).fill(0);
+        for (let r = 0; r < rows; r++)
+          for (let c = 0; c < cols; c++)
+            data[c * rows + r] = a.data[r * cols + c];
+        this._arrays[name] = { dims: [cols, rows], data };
+        return null;
+      }
+
+      // MAT C = (scalar) * A
+      const scalm = rhs.match(/^\((.+?)\)\s*\*\s*(\w+)$/);
+      if (scalm) {
+        const scalar = this._evalExpr(scalm[1], lineNum);
+        const a = this._arrays[scalm[2]];
+        if (!a) throw new BasicError('?BAD SUBSCRIPT ERROR', lineNum);
+        if (!this._arrays[name]) this._arrays[name] = { dims: [...a.dims], data: new Array(a.data.length).fill(0) };
+        const c = this._arrays[name];
+        for (let i = 0; i < a.data.length; i++) c.data[i] = scalar * a.data[i];
+        return null;
+      }
+    }
+
+    throw new BasicError('?SYNTAX ERROR', lineNum);
+  }
+
+  // ---- File I/O ----
+  // Files are stored in localStorage as basic-file-<name>
+  _execOpen(expr, lineNum) {
+    // OPEN "filename" FOR INPUT AS FILE #n  or  OPEN "filename" FOR OUTPUT AS FILE #n
+    // Simplified: OPEN "filename" AS #n  or  OPEN "filename" FOR INPUT AS #n
+    const m = expr.match(/^"([^"]+)"\s+(?:FOR\s+(\w+)\s+)?AS\s+#?(\d+)/i) ||
+              expr.match(/^(.+?)\s+(?:FOR\s+(\w+)\s+)?AS\s+#?(\d+)/i);
+    if (!m) throw new BasicError('?SYNTAX ERROR', lineNum);
+    const filename = m[1].replace(/^"/, '').replace(/"$/, '');
+    const mode = (m[2] || 'INPUT').toUpperCase();
+    const fileNum = parseInt(m[3]);
+    if (!this._files) this._files = {};
+    const key = 'basic-file-' + filename.toUpperCase();
+    if (mode === 'OUTPUT') {
+      this._files[fileNum] = { key, mode: 'output', lines: [], filename };
+    } else {
+      const raw = localStorage.getItem(key) || '';
+      this._files[fileNum] = { key, mode: 'input', lines: raw.split('\n'), pos: 0, filename };
+    }
+    return null;
+  }
+
+  _execClose(expr, lineNum) {
+    const fileNum = parseInt(expr.replace(/^#/, '').trim());
+    if (this._files && this._files[fileNum]) {
+      const f = this._files[fileNum];
+      if (f.mode === 'output') {
+        try { localStorage.setItem(f.key, f.lines.join('\n')); } catch (e) {}
+      }
+      delete this._files[fileNum];
+    }
+    return null;
+  }
+
+  _execPrintFile(expr, lineNum) {
+    // PRINT #n, expr [; expr]
+    const m = expr.match(/^(\d+)\s*,\s*(.*)/);
+    if (!m) throw new BasicError('?SYNTAX ERROR', lineNum);
+    const fileNum = parseInt(m[1]);
+    if (!this._files || !this._files[fileNum]) throw new BasicError('?FILE NOT OPEN', lineNum);
+    const f = this._files[fileNum];
+    if (f.mode !== 'output') throw new BasicError('?FILE NOT OPEN FOR OUTPUT', lineNum);
+    const val = this._evalExpr(m[2].trim(), lineNum);
+    f.lines.push(String(typeof val === 'number' ? val : val));
+    return null;
+  }
+
+  async _execInputFile(expr, lineNum) {
+    // INPUT #n, var [, var]
+    const m = expr.match(/^(\d+)\s*,\s*(.*)/);
+    if (!m) throw new BasicError('?SYNTAX ERROR', lineNum);
+    const fileNum = parseInt(m[1]);
+    if (!this._files || !this._files[fileNum]) throw new BasicError('?FILE NOT OPEN', lineNum);
+    const f = this._files[fileNum];
+    if (f.mode !== 'input') throw new BasicError('?FILE NOT OPEN FOR INPUT', lineNum);
+    const vars = m[2].split(',').map(v => v.trim());
+    for (const v of vars) {
+      if (f.pos >= f.lines.length) throw new BasicError('?END OF FILE', lineNum);
+      const raw = f.lines[f.pos++];
+      const name = v.toUpperCase();
+      this._vars[name] = name.endsWith('$') ? raw : (Number(raw) || 0);
+    }
+    return null;
   }
 
   // Wire up turtle for HGR/HPLOT
