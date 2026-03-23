@@ -36,6 +36,7 @@ import { ageSpells } from './spell.js';
 import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
+import { u_entered_shop as _u_entered_shop } from './shk.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
@@ -2069,9 +2070,13 @@ export class NetHackGame {
         this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
-        // C ref: do.c:1966 check_special_room(FALSE) — called from
-        // deferred_goto (do.js) after changeLevel returns.  u_entered_shop
-        // runs inside check_special_room and shows the greeting there.
+        // C ref: do.c:1966 check_special_room(FALSE) — shop greeting after docrt.
+        // Room tracking (move_update + check_special_room) ran in changeLevelCore
+        // but u_entered_shop was deferred because docrt hadn't run yet.
+        // Now run the deferred greeting (zero RNG, just display message).
+        if (this.u.ushops_entered) {
+            await _u_entered_shop(this.u.ushops_entered, this.map, this.u, this.display);
+        }
         // If a message is pending (shop greeting, follower "still eating/trapped"),
         // resolve it before teleport arrival feedback so key consumption stays C-aligned.
         if (this.display?.messageNeedsMore) {
