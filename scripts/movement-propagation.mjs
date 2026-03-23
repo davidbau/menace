@@ -15,8 +15,6 @@ import { normalizeSession } from '../test/comparison/session_loader.js';
 import {
     prepareReplayArgs,
     getSessionGameplaySteps,
-    applyManualDirectChargenView,
-    getGameplayRawStepBase,
 } from '../js/replay_compare.js';
 import { replaySession } from '../js/replay_core.js';
 
@@ -248,11 +246,10 @@ async function main() {
     if (normalized.meta.type !== 'gameplay') {
         throw new Error(`Only gameplay sessions are supported (got type=${normalized.meta.type}).`);
     }
-    const sessionForCmp = applyManualDirectChargenView(normalized);
-
-    const cGameplaySteps = getSessionGameplaySteps(sessionForCmp);
+    const cGameplaySteps = getSessionGameplaySteps(normalized);
     const replayArgs = prepareReplayArgs(normalized.meta.seed, normalized.raw, {});
-    const cRawBase = getGameplayRawStepBase(normalized.raw);
+    // V4: step 0 is key=null, gameplay starts at raw step index 1
+    const cRawBase = (normalized.raw?.steps?.[0]?.key === null) ? 1 : 0;
     const cRawRanges = buildGameplayRawRanges(cGameplaySteps, cRawBase);
 
     const prevEnv = {

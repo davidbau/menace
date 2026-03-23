@@ -16869,3 +16869,19 @@ source is elsewhere in the moveloop phase ordering.
     aware of both display backends;
   - browser `Display` and headless `HeadlessDisplay` are not structurally
     interchangeable even when they render the same final screen.
+- 2026-03-22: manual/keylog rerecord timing probes must plumb per-step delay
+  overrides through the keylog replay path, not just `run_session.py`
+  gameplay replay. `test/comparison/c-harness/rerecord.py` already honored
+  `regen.key_delays_s` for step-based gameplay sessions, but the
+  `manual-direct-live` / keylog path rebuilt sessions via
+  `keylog_to_session.py` without forwarding those overrides. That made targeted
+  rerecord timing probes for screen-only seams invalid on live-recorded
+  sessions like `seed031_manual_direct`. The harness fix is:
+  - `_build_keylog(...)` in `rerecord.py` must forward `regen.key_delays_s`
+    and `steps[i].capture.key_delay_s` as `NETHACK_KEY_DELAYS_S`
+  - `keylog_to_session.py` must parse that env var, apply per-step delays
+    during replay, and persist the effective override metadata back into the
+    regenerated session's `regen` block
+  This is observability/infrastructure only; it does not itself resolve the
+  remaining `seed031` screen seam, but it makes the intended timing probe
+  mechanically possible and auditable.

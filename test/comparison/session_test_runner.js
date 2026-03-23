@@ -7,7 +7,7 @@ import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 
 import { replaySession } from '../../js/replay_core.js';
-import { prepareReplayArgs, applyManualDirectChargenView } from '../../js/replay_compare.js';
+import { prepareReplayArgs } from '../../js/replay_compare.js';
 import { NetHackGame } from '../../js/allmain.js';
 import {
     createHeadlessInput,
@@ -575,12 +575,7 @@ async function runGameplayResult(session) {
     const start = Date.now();
 
     try {
-        // For manual-direct-live sessions, fold embedded chargen/lore steps into startup
-        // and provide the correct character + gameplay-only steps for comparison.
-        // Must be applied BEFORE recordGameplaySessionFromInputs so the recorder uses
-        // the transformed session (correct character detection, correct gameplay step range).
-        const sessionForCmp = applyManualDirectChargenView(session);
-        const replay = await recordGameplaySessionFromInputs(sessionForCmp);
+        const replay = await recordGameplaySessionFromInputs(session);
         if (!replay || replay.error) {
             markFailed(result, replay?.error || 'Replay failed');
             setDuration(result, Date.now() - start);
@@ -589,7 +584,7 @@ async function runGameplayResult(session) {
         if (replay.synclockDiagnostics && typeof replay.synclockDiagnostics === 'object') {
             result.synclockDiagnostics = replay.synclockDiagnostics;
         }
-        const cmp = compareRecordedGameplaySession(sessionForCmp, replay);
+        const cmp = compareRecordedGameplaySession(session, replay);
 
         if (cmp.rng.total > 0) {
             recordRng(result, cmp.rng.matched, cmp.rng.total, cmp.rng.firstDivergence);

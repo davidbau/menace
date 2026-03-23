@@ -239,121 +239,27 @@ export function getSessionCharacter(session) {
     return parseSessionCharacter(session);
 }
 
-// For 'manual-direct-live' sessions, find all large-RNG bursts (level gen, tutorial gen)
-// and compute the boundary index in raw.steps after which gameplay begins.
-// Returns { boundary, hasTutorial, firstBurst, lastBurst } or null.
-// Takes the raw session (raw.steps has the null-key startup at index 0).
-function getManualDirectChargenInfo(rawSession) {
-    const steps = rawSession?.steps || [];
-    let firstBurst = -1;
-    let lastBurst = -1;
-    for (let i = 1; i < steps.length; i++) {
-        if ((steps[i].rng || []).length > 100) {
-            if (firstBurst < 0) firstBurst = i;
-            lastBurst = i;
-        }
-        // Stop scanning after 10 steps past first burst — all setup bursts are nearby
-        if (firstBurst >= 0 && i > firstBurst + 10) break;
-    }
-    if (firstBurst < 0) return null;
-    // hasTutorial: a secondary burst (tutorial level gen) follows the primary (dungeon level gen)
-    const hasTutorial = lastBurst > firstBurst;
-    // Scan forward from the last large burst: include steps with ≤ 3 raw RNG entries.
-    // Non-tutorial: preamble (2 RNG) + welcome dismiss (0) + tutorial-answer-"n" (0).
-    // Tutorial: tutorial level gen burst + starting engraving dismissals (0 RNG each).
-    // The first actual gameplay step has 4+ RNG entries.
-    let boundary = lastBurst;
-    for (let j = lastBurst + 1; j < steps.length && j <= lastBurst + 10; j++) {
-        if ((steps[j].rng || []).length > 3) break;
-        boundary = j;
-    }
-    return { boundary, hasTutorial, firstBurst, lastBurst };
-}
-
-function getManualDirectChargenBoundary(rawSession) {
-    return getManualDirectChargenInfo(rawSession)?.boundary ?? -1;
-}
-
-export function getGameplayRawStepBase(session) {
-    if (!session?.steps?.length) return 1;
-    if (session.regen?.mode === 'manual-direct-live') {
-        const boundary = getManualDirectChargenBoundary(session);
-        if (boundary >= 0) return boundary + 2;
-    }
-    if (session.steps[0]?.key === null) return 2;
-    return 1;
-}
-
+// V4 key-driven: all steps after step 0 (key=null) are gameplay steps,
+// including --More-- dismissals, chargen keys, and tutorial prompts.
 export function getSessionGameplaySteps(session) {
     if (!session?.steps) return [];
     if (session.steps.length > 0 && session.steps[0].key === null) {
-        // For manual-direct-live, skip all embedded chargen+lore steps.
-        // The boundary points to the last pre-gameplay step; gameplay starts at boundary+1.
-        if (session.regen?.mode === 'manual-direct-live') {
-            const boundary = getManualDirectChargenBoundary(session);
-            if (boundary >= 0) return session.steps.slice(boundary + 1);
-        }
         return session.steps.slice(1);
     }
     return session.steps;
 }
 
-export function getChargenKeys(session) {
-    if (session.type !== 'chargen') return [];
-    const keys = [];
-    for (const step of (session.steps || [])) {
-        if (step.key === null) break;
-        if (typeof step.key === 'string' && step.key.length > 0) {
-            keys.push(step.key);
-        }
-    }
-    return keys;
-}
-
-// For manual-direct-live sessions, build a comparison-ready session view that:
-//  1. Folds ALL pre-gameplay RNG (chargen + level-gen + moveloop_preamble + lore dismiss)
-//     into startup.rng, so the flat JS startup RNG can match it.
-//  2. Slices session.steps to only include gameplay steps (so screen indices align).
-//  3. Sets startup.screen from the first gameplay step (so parseSessionCharacter works).
-// This is called in the test runner before passing to compareRecordedGameplaySession.
-export function applyManualDirectChargenView(session) {
-    if (session.raw?.regen?.mode !== 'manual-direct-live') return session;
-    // session.steps = raw.steps.slice(1) — null-key startup was extracted to session.startup.
-    // getManualDirectChargenBoundary returns a raw.steps index (extended by +2 for lore steps).
-    // sessionBoundary = rawBoundary - 1 (converts raw index to session.steps index).
-    const rawBoundary = getManualDirectChargenBoundary(session.raw);
-    if (rawBoundary < 0) return session;
-    const sessionBoundary = rawBoundary - 1; // index in session.steps
-    const chargenSteps = session.steps.slice(0, sessionBoundary + 1);
-    const chargenRng = chargenSteps.flatMap((s) => s.rng || []);
-    const hasPickAlign = chargenSteps.some((s) =>
-        (s.rng || []).some((r) => typeof r === 'string' && r.includes('pick_align'))
-    );
-    // Use first gameplay step's screen so parseSessionCharacter can detect the character.
-    const firstGameplayStep = session.steps[sessionBoundary + 1];
-    return {
-        ...session,
-        startup: {
-            ...(session.startup || {}),
-            rng: [...(session.startup?.rng || []), ...chargenRng],
-            screen: firstGameplayStep?.screen ?? (session.startup?.screen ?? []),
-        },
-        steps: session.steps.slice(sessionBoundary + 1),
-        _manualDirectChargen: { hasPickAlign },
-    };
-}
-
+// Legacy compat — always true for V4 sessions.
 export function hasStartupBurstInFirstStep(session) {
     if (!session) return false;
     return session.steps?.[0]?.key === null;
 }
 
 // Build (seed, opts, keys) args for replaySession from a session object.
+// V4 key-driven: all sessions use env + nethackrc. Step 0 is the initial
+// screen (lore + --More--), and all subsequent keys drive the game.
 export function prepareReplayArgs(seed, session, opts = {}) {
-    // V4 support: if session has nethackrc but no options dict at all,
-    // derive options from the nethackrc. When options exists (even sparse),
-    // trust it — sessions like manual-direct-live intentionally have sparse
-    // options and adding fields from nethackrc would change replay behavior.
+    // Derive options from nethackrc if not already present.
     if (session.nethackrc && !session.options && !session._v4OptionsApplied) {
         const { character, flags, wizard } = parseNethackrcFull(session.nethackrc);
         session.options = {};
@@ -375,122 +281,24 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         }
         session._v4OptionsApplied = true;
     }
-    const chargenKeys = getChargenKeys(session);
     const sessionChar = parseSessionCharacter(session);
-    const tutorialFlag = typeof opts.tutorial === 'boolean'
-        ? opts.tutorial
-        : undefined;
     const replayFlags = typeof opts.flags === 'object' && opts.flags !== null
         ? { ...opts.flags }
         : {};
-    if (typeof tutorialFlag === 'boolean') {
-        replayFlags.tutorial = tutorialFlag;
-    }
-    const initOpts = chargenKeys.length > 0
-        ? { flags: { name: sessionChar.name || '' } }
-        : {
-            wizard: session.options?.wizard ?? true,
-            character: {
-                role: sessionChar.role,
-                name: sessionChar.name,
-                gender: sessionChar.gender,
-                race: sessionChar.race,
-                align: sessionChar.align,
-            },
-            startDnum: Number.isInteger(opts.startDnum) ? opts.startDnum : undefined,
-            startDlevel: Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1,
-            dungeonAlignOverride: Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined,
-            flags: replayFlags,
-            replayTutorialStartupPrompts: Array.isArray(opts.replayTutorialStartupPrompts)
-                ? opts.replayTutorialStartupPrompts : [],
-            tutorialStartupEnterAfterPromptCount: Number.isInteger(opts.tutorialStartupEnterAfterPromptCount)
-                ? opts.tutorialStartupEnterAfterPromptCount : undefined,
-            tutorialDirectStart: opts.tutorialDirectStart === true,
-        };
-    // Detect whether the C session recorded lore/welcome screens (step 0 has
-    // lore text).  When present, enable lore/welcome rendering in JS init so
-    // both sides match.  Sessions recorded with clear_more_prompts won't have
-    // lore at step 0, so JS skips it to stay compatible.
-    // Also detect when record_more_spaces auto-dismissed the lore text but the
-    // welcome --More-- is still visible at step 0.  In that case, JS must still
-    // show lore+welcome so that keys arriving while --More-- is active (e.g.
-    // Ctrl-W) are consumed by the prompt rather than routed to the game handler.
-    if (chargenKeys.length === 0) {
-        const step0Screen = String(session.steps?.[0]?.screen || '');
-        // Detect whether lore/welcome should be shown during init.
-        //
-        // Unified format (Gate 8): session.steps[0] has key=null (initial
-        // screen showing lore), steps[1+] start with space keys for --More--
-        // dismissal.  The lore is IN the step data, so init must render it
-        // and set a pendingPrompt for the replay loop to drive.
-        //
-        // Old format: step 0 is "game ready" (auto-advanced past lore).
-        // We detect the old format by checking if step 0 screen has lore
-        // text — if it does, init should show it.
-        //
-        // In both cases, if lore/welcome text is present at step 0,
-        // we enable showLoreAndWelcome so init renders the lore screen
-        // as a pendingPrompt that the key sequence drives.
-        if (/It is written in the Book of/.test(step0Screen)) {
-            initOpts.showLoreAndWelcome = true;
-        } else if (/welcome to NetHack/.test(step0Screen) && /--More--/.test(step0Screen)) {
-            // Lore was auto-dismissed by record_more_spaces but the welcome
-            // --More-- is still active.  Show the welcome prompt only so JS
-            // consumes keys the same way C's xwaitforspace does.
-            initOpts.showWelcomeMore = true;
-        }
-    }
-    // Detect tutorial menu: C's "Do you want a tutorial?" PICK_ONE overlay.
-    // When present, pre-push the keys consumed during init (welcome --More--
-    // dismiss + tutorial menu selection) so maybeDoTutorial can run to
-    // completion inside game.init() without deadlocking on nhgetch.
-    if (chargenKeys.length === 0 && initOpts.showWelcomeMore) {
-        const allSteps = Array.isArray(session.steps) ? session.steps : [];
-        let tutorialMenuEndIdx = -1;
-        for (let si = 1; si < Math.min(allSteps.length, 15); si++) {
-            const scr = String(allSteps[si]?.screen || '');
-            if (/Do you want a tutorial\?/.test(scr)) {
-                // Find the step where the menu is dismissed (next step without
-                // the tutorial menu text).
-                for (let di = si; di < Math.min(allSteps.length, si + 10); di++) {
-                    const nextScr = String(allSteps[di + 1]?.screen || '');
-                    if (!/Do you want a tutorial\?/.test(nextScr)) {
-                        tutorialMenuEndIdx = di;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-        if (tutorialMenuEndIdx >= 1) {
-            // Collect all keys from step 1 through the tutorial menu dismiss.
-            // These are consumed during init (welcome --More-- + select_menu).
-            let tutorialMenuKeys = '';
-            for (let si = 1; si <= tutorialMenuEndIdx; si++) {
-                const k = allSteps[si]?.key;
-                if (typeof k === 'string') tutorialMenuKeys += k;
-            }
-            if (tutorialMenuKeys.length > 0) {
-                initOpts.showTutorialMenu = true;
-                // Keep tutorial=true so init uses the tutorial menu prompt
-                initOpts.tutorial = true;
-            }
-        }
-    }
-
-    // For manual-direct-live sessions, add RNG simulation so the JS startup matches
-    // the combined C startup (chargen + level-gen + moveloop_preamble steps folded in).
-    if (session.regen?.mode === 'manual-direct-live') {
-        const info = getManualDirectChargenInfo(session);
-        if (info) {
-            // Search steps before level gen (steps 1..firstBurst-1) for pick_align RNG entries.
-            const chargenOnlySteps = (session.steps || []).slice(1, info.firstBurst);
-            const hasPickAlign = chargenOnlySteps.some((s) =>
-                (s.rng || []).some((r) => typeof r === 'string' && r.includes('pick_align'))
-            );
-            initOpts.simulateManualDirectChargen = { hasPickAlign, hasTutorial: info.hasTutorial };
-        }
-    }
+    const initOpts = {
+        wizard: session.options?.wizard ?? true,
+        character: {
+            role: sessionChar.role,
+            name: sessionChar.name,
+            gender: sessionChar.gender,
+            race: sessionChar.race,
+            align: sessionChar.align,
+        },
+        startDnum: Number.isInteger(opts.startDnum) ? opts.startDnum : undefined,
+        startDlevel: Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1,
+        dungeonAlignOverride: Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined,
+        flags: replayFlags,
+    };
 
     const hasCheckpointEvents = (Array.isArray(session?.steps) ? session.steps : []).some((step) =>
         Array.isArray(step?.rng) && step.rng.some((entry) => typeof entry === 'string' && entry.startsWith('^ckpt['))
@@ -499,7 +307,7 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         initOpts.captureSpecialLevelCheckpoints = true;
     }
 
-    // Flatten all gameplay step keys into a single string.
+    // Flatten all step keys (including startup --More-- spaces) into a single string.
     const steps = getSessionGameplaySteps(session);
     let maxKeys = opts.maxSteps;
     let keys = '';
@@ -520,7 +328,6 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         seed,
         opts: {
             initOpts,
-            chargenKeys: chargenKeys.length > 0 ? chargenKeys : undefined,
             displayFlags,
             captureScreens: opts.captureScreens,
             onKey: opts.onKey,
@@ -612,15 +419,7 @@ function parseSessionCharacter(session) {
     let startupName = null;
     let startupRank = null;
     // Find character name from startup status line.
-    // For manual-direct-live sessions, the startup screen is blank (chargen menus);
-    // use the first gameplay step's screen instead.
-    let startup;
-    if (session.regen?.mode === 'manual-direct-live') {
-        const info = getManualDirectChargenInfo(session);
-        startup = info ? (session.steps || [])[info.boundary + 1] : null;
-    } else {
-        startup = session?.steps?.[0]?.key === null ? session.steps[0] : session?.startup;
-    }
+    const startup = session?.steps?.[0]?.key === null ? session.steps[0] : session?.startup;
     const startupLines = getSessionScreenLines(startup || {});
     for (const line of startupLines) {
         if (!line || !line.includes('St:')) continue;
@@ -648,38 +447,12 @@ function parseSessionCharacter(session) {
         if (matches.length === 1) roleFromStartup = matches[0];
     }
 
-    // For manual-direct-live sessions, parse race/gender/align from the welcome message.
-    // The welcome message (step after level gen) reads: "You are a(n)? {align} [gender] {race_adj} {role}."
-    // session.options.race/gender/align are placeholder defaults and cannot be trusted.
-    let alignFromWelcome = null, genderFromWelcome = null, raceFromWelcome = null, roleFromWelcome = null;
-    if (session.regen?.mode === 'manual-direct-live') {
-        const info = getManualDirectChargenInfo(session);
-        if (info) {
-            const welcomeStep = (session.steps || [])[info.firstBurst + 1];
-            const welcomeLines = getSessionScreenLines(welcomeStep || {});
-            const raceAdjMap = { human: 'human', elven: 'elf', dwarven: 'dwarf', gnomish: 'gnome', orcish: 'orc' };
-            for (const line of welcomeLines) {
-                if (!line?.includes('You are a')) continue;
-                // Format: "You are a(n)? {align} [male|female] {race_adj} {role}."
-                const m = line.match(/You are an?\s+(chaotic|neutral|lawful)\s+(?:(male|female)\s+)?(\w+)\s+(\w+)/);
-                if (m) {
-                    alignFromWelcome = m[1];
-                    genderFromWelcome = m[2] || 'male';
-                    raceFromWelcome = raceAdjMap[m[3]] || m[3];
-                    const roleMatch = roles.find((r) => r.name === m[4]);
-                    if (roleMatch) roleFromWelcome = roleMatch.name;
-                    break;
-                }
-            }
-        }
-    }
-
     return {
         name: startupName || session.options.name,
-        role: roleFromStartup || roleFromWelcome || session.options.role,
-        race: raceFromWelcome || session.options.race,
-        gender: genderFromWelcome || session.options.gender,
-        align: alignFromWelcome || session.options.align,
+        role: roleFromStartup || session.options.role,
+        race: session.options.race,
+        gender: session.options.gender,
+        align: session.options.align,
     };
 }
 

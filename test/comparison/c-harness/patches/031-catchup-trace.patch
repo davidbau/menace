@@ -1,0 +1,15 @@
+diff --git a/src/dog.c b/src/dog.c
+--- a/src/dog.c
++++ b/src/dog.c
+@@ -642,6 +642,11 @@
+     else
+         imv = (int) nmv;
+
++    /* 031-catchup-trace: log monster state for parity debugging */
++    event_log("catchup[%d@%d,%d elapsed=%d trapped=%d conf=%d stun=%d tame=%d eat=%d spec=%d]",
++              monsndx(mtmp->data), mtmp->mx, mtmp->my, imv,
++              mtmp->mtrapped, mtmp->mconf, mtmp->mstun, mtmp->mtame,
++              mtmp->meating, mtmp->mspec_used);
+     /* might stop being afraid, blind or frozen */
+     /* set to 1 and allow final decrement in movemon() */
+     if (mtmp->mblinded) {

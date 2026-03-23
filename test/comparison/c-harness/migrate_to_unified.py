@@ -110,6 +110,12 @@ def migrate_session(info, dry_run=False, probe_only=False):
     env = info['env']
     nethackrc = info['nethackrc']
 
+    # Skip already-migrated sessions (step 0 has lore or chargen text)
+    session = info['session']
+    step0_screen = (session.get('steps', [{}])[0].get('screen', '') or '').replace('\x1b', '')
+    if 'It is written' in step0_screen or 'Shall I pick' in step0_screen:
+        return None  # already unified
+
     # --- Determine the full key sequence ---
 
     if stype in ('gameplay', 'wizload', 'interface', 'option_test'):
@@ -199,6 +205,46 @@ def migrate_session(info, dry_run=False, probe_only=False):
         )
         return result
 
+    elif stype in ('special', 'map'):
+        # Special/map sessions: re-record using #wizloaddes keys.
+        session = info['session']
+        level_name = (session.get('regen', {}).get('level', '')
+                      or (session.get('levels', [{}])[0].get('levelName', '')))
+        if not level_name:
+            print(f'  SKIP {name}: no level name found')
+            return None
+
+        nethackrc = ('OPTIONS=name:Wizard,role:Valkyrie,race:human,gender:female,align:neutral\n'
+                     'OPTIONS=!autopickup,!tutorial\n'
+                     'OPTIONS=suppress_alert:3.4.3\n'
+                     'OPTIONS=symset:DECgraphics\n'
+                     'WIZARD=Wizard\n')
+        session_env = env if env else {
+            'NETHACK_SEED': str(session.get('seed', 42)),
+            'NETHACK_FIXED_DATETIME': '20000110090000',
+        }
+
+        startup_keys = probe_startup_keys(session_env, nethackrc)
+        wizload_keys = list(f'#wizloaddes\n{level_name}\n')
+        full_keys = startup_keys + wizload_keys
+
+        if probe_only:
+            print(f'  {name}: {len(startup_keys)} startup + {len(wizload_keys)} wizload keys, level={level_name}')
+            return None
+        if dry_run:
+            print(f'  {name} ({stype}): level={level_name}, {len(full_keys)} total keys')
+            return None
+
+        regen = {'mode': 'wizload', 'level': level_name}
+        result = record_c_session(
+            session_env, nethackrc, full_keys, info['path'],
+            key_delay_s=0.15,
+            regen_metadata=regen,
+            session_type=stype,
+            verbose=True,
+        )
+        return result
+
     elif stype in ('manual-direct-live', 'keylog'):
         print(f'  SKIP {name}: manual/keylog sessions need separate handling')
         return None
@@ -217,11 +263,16 @@ def main():
     args = [a for a in args if not a.startswith('--')]
 
     if do_all:
-        session_files = sorted([
-            os.path.join(SESSIONS_DIR, f)
-            for f in os.listdir(SESSIONS_DIR)
-            if f.endswith('.session.json')
-        ])
+        # Find all session files recursively, including coverage/ and maps/
+        import glob
+        search_dirs = [
+            os.path.join(SESSIONS_DIR, '**', '*.session.json'),
+            os.path.join(PROJECT_ROOT, 'test', 'comparison', 'maps', '*.session.json'),
+        ]
+        session_files = sorted(set(
+            f for pattern in search_dirs
+            for f in glob.glob(pattern, recursive=True)
+        ))
     else:
         session_files = [os.path.abspath(a) for a in args]
 

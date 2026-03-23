@@ -491,6 +491,7 @@ def _build_keylog(session_path, output, regen, data):
         return None, f'keylog file missing: {regen.get("keylog", "(none)")}'
 
     cmd = ['python3', KEYLOG_TO_SESSION, '--in', keylog_path, '--out', output]
+    env_prefix = []
 
     # Seed override
     seed = data.get('seed')
@@ -551,6 +552,32 @@ def _build_keylog(session_path, output, regen, data):
         drop = regen.get('drop_leading_spaces', 0)
     if drop:
         cmd += ['--drop-leading-spaces', str(drop)]
+
+    key_delay_ms = regen.get('keyDelayMs')
+    if key_delay_ms is None:
+        key_delay_ms = regen.get('key_delay_ms')
+    if key_delay_ms is not None:
+        cmd += ['--key-delay-ms', str(key_delay_ms)]
+
+    key_delays_s = regen.get('key_delays_s')
+    if key_delays_s is None:
+        key_delays_s = regen.get('keyDelaysS')
+    normalized_regen_overrides = _normalize_key_delay_overrides(key_delays_s)
+    step_overrides = _extract_step_key_delay_overrides(data.get('steps'))
+    merged_overrides = dict(normalized_regen_overrides)
+    merged_overrides.update(step_overrides)
+    if merged_overrides:
+        env_prefix.append(f'NETHACK_KEY_DELAYS_S={json.dumps(merged_overrides, separators=(",", ":"))}')
+
+    final_capture_delay_s = regen.get('final_capture_delay_s')
+    if final_capture_delay_s is None:
+        final_capture_delay_s = regen.get('finalCaptureDelayS')
+    if final_capture_delay_s is not None:
+        env_prefix.append(f'NETHACK_FINAL_CAPTURE_DELAY_S={final_capture_delay_s}')
+
+    env_prefix.extend(_normalize_regen_env(regen))
+    if env_prefix:
+        cmd = ['env', *env_prefix] + cmd
 
     source = 'fallback' if used_fallback else 'regen'
     return cmd, f'keylog[{source}] keylog={keylog_path}'

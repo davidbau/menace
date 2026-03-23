@@ -181,20 +181,8 @@ function emitStartupRunstepIfEnabled(game) {
     );
 }
 
-async function settleStartupInputBoundaries(game) {
-    const maxIterations = 32;
-    for (let i = 0; i < maxIterations; i++) {
-        // Handle replay-startup tutorial prompt leftovers so the first replay
-        // key reaches gameplay. Do not auto-answer arbitrary prompt boundaries.
-        const replayStartupPrompt = !!(game?.pendingPrompt?.isReplayStartupPrompt);
-        if (replayStartupPrompt && game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
-            await Promise.resolve(game.pendingPrompt.onKey('n'.charCodeAt(0), game));
-            continue;
-        }
-
-        break;
-    }
-}
+// No-op: legacy startup prompt settlement removed (V4 key-driven startup).
+async function settleStartupInputBoundaries(_game) {}
 
 // ---------------------------------------------------------------------------
 // replaySession(seed, opts, keys)
