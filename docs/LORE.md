@@ -17003,3 +17003,37 @@ source is elsewhere in the moveloop phase ordering.
   could call `showGameOver()` more than once. Making `NetHackGame.showGameOver()`
   idempotent fixed the duplicate invocation and moved `seed031` to full screen
   parity (`1365/1365` screens) while keeping gameplay channels green.
+
+## 2026-03-23 — wizard-mode welcome, AUTOCOMPLETE, and remaining 14 failures
+
+### Wizard-mode lore+welcome fix (+7 sessions)
+- C's `welcome(TRUE)` shows lore + welcome for ALL new games including wizard mode.
+  JS was gating both behind `if (!this.wizard)`. Removing the gate AND making the
+  welcome single-key (no --More-- for the pline welcome) fixed 7 sessions: 3 interface
+  + 4 artifact/combat (theme15×2, theme35×2).
+- Key insight: C's `pline("welcome...")` doesn't trigger --More-- because the message
+  line was just cleared after lore dismiss. JS's `putstr_message` showed the welcome
+  as part of a multi-step prompt flow that consumed an extra key. Fix: after lore
+  dismiss, show welcome via `putstr_message`, run `set_wear()`, clear pendingPrompt
+  — all in the same key handler. No second key consumed.
+
+### AUTOCOMPLETE flag matching (+1 session)
+- C's `ext_func_tab` marks 52 commands with AUTOCOMPLETE. Only these show completed
+  names during typing. JS was auto-completing ALL unique matches. Commands without
+  the flag (wizloaddes, kick, twoweapon) should echo only typed characters.
+  Fixed seed42_castle which types `#wizloaddes` character by character.
+
+### Map session --More-- investigation
+- Map sessions (seed163, seed72, seed331_map, seed16_map) diverge because ^V level
+  teleport to levels with shops produces --More-- prompts that consume subsequent
+  ^V command keys. C handles --More-- dismiss inline; JS spreads it across replay
+  steps, preventing later levels from being generated.
+- This is the same step-boundary timing class documented in earlier lore entries.
+
+### Remaining 14 failure categories
+- **100% RNG, display-only (3)**: seed031 (27 color attrs from inverse), seed331_tourist
+  (endgame disclosure prompt shown 1 step early), theme25 (lore overlay persistence)
+- **Level-gen (4)**: map sessions blocked by --More-- during ^V teleport
+- **Game-state (5)**: luck divergences (seed301 kick_door), monster movement (seed332),
+  medusa_fixup (seed321/328), zoo filling (seed325)
+- **Deep (2)**: seed032 (level-restore mon_catchup missing), seed033 (tutorial encumbrance)
