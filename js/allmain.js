@@ -36,6 +36,7 @@ import { ageSpells } from './spell.js';
 import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
+import { maybeHandleShopEntryMessage } from './shk.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
@@ -2021,6 +2022,11 @@ export class NetHackGame {
         if (this.display?.messageNeedsMore) {
             await more(this.display, { forceVisual: true });
         }
+        // C ref: do.c:1966 check_special_room(FALSE) — shop/room entry messages.
+        // TODO: port full check_special_room() for shopkeeper greeting parity.
+        // Current gap: ^V level-teleport into a shop doesn't show shopkeeper
+        // greeting because maybeHandleShopEntryMessage would consume different
+        // RNG than C's u_entered_shop() (which does bill/customer setup too).
         // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
         // and before later arrival messages. This can consume dfr_post_msg
         // early so deferred_goto() won't print it again.
