@@ -1133,15 +1133,17 @@ function knownExtendedCommands(game) {
 // echo only the typed characters.
 const DISPLAY_AUTOCOMPLETE = new Set([
     'adjust', 'annotate', 'chat', 'chronicle', 'conduct', 'dip',
-    'enhance', 'force', 'invoke', 'jump', 'loot', 'monster', 'name',
-    'offer', 'polyself', 'pray', 'quit', 'ride', 'rub', 'sit',
-    'tip', 'turn', 'untrap', 'wipe',
+    'enhance', 'force', 'genocided', 'herecmdmenu', 'invoke', 'jump',
+    'loot', 'migratemons', 'monster', 'name', 'offer', 'overview',
+    'polyself', 'pray', 'quit', 'ride', 'rub', 'sit', 'terrain',
+    'therecmdmenu', 'tip', 'turn', 'untrap', 'vanquished', 'version',
+    'wipe',
     // Wizard-mode commands with AUTOCOMPLETE
     'dumpmap', 'dumpobj', 'dumpsnap', 'levelchange', 'lightsources',
-    'panic', 'stats', 'telekinesis', 'timeout', 'vision',
+    'panic', 'stats', 'timeout', 'vision',
     'wizbury', 'wizdispmacros', 'wizintrinsic', 'wizkill',
     'wizmondiff', 'wizrumorcheck', 'wizseenv', 'wizsmell',
-    'wizwhere', 'wmode',
+    'wiztelekinesis', 'wizwhere', 'wmode',
 ]);
 
 function displayCompletedExtcmd(typed, game) {

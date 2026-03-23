@@ -35,13 +35,13 @@ import { x_monnam, pmname } from './do_name.js';
 import { find_mac } from './worn.js';
 import { pline, getGameLog } from './pline.js';
 import { showPager, showMoreTextPages } from './pager.js';
-import { is_pool_or_lava } from './dbridge.js';
+import { is_pool_or_lava, is_pool, is_lava } from './dbridge.js';
 import { makeplural, an } from './objnam.js';
 import { races } from './role.js';
 import { rank_of } from './botl.js';
 import { newuexp } from './exper.js';
 import { align_gname } from './pray.js';
-import { magic_negation } from './mondata.js';
+import { magic_negation, digests } from './mondata.js';
 import { inv_weight, near_capacity } from './hack.js';
 import { weapon_type, skill_name, P_SKILL } from './weapon.js';
 import { depth, dnum_to_dname } from './dungeon.js';
@@ -709,7 +709,7 @@ function basics_enlightenment(mode, final, game) {
 // cf. insight.c:804 [static] — characteristics_enlightenment(mode, final, game)
 export function characteristics_enlightenment(mode, final, game) {
     enlght_out('');
-    enlght_out(` ${!final ? '' : 'Final '}Characteristics:`);
+    enlght_out(`${final ? 'Final ' : ''}Characteristics:`);
 
     one_characteristic(mode, final, A_STR, game);
     one_characteristic(mode, final, A_DEX, game);
@@ -774,7 +774,7 @@ function status_enlightenment(mode, final, game) {
     const map = (game.map || game.map);
 
     enlght_out('');
-    enlght_out(final ? ' Final Status:' : ' Status:');
+    enlght_out(final ? 'Final Status:' : 'Status:');
 
     // Polymorph
     if (player.upolyd || player.polymorphed) {
@@ -794,7 +794,10 @@ function status_enlightenment(mode, final, game) {
     } else if (player.uinwater) {
         you_are(final, player.swimming ? 'swimming' : 'in water', '');
     } else if (walking_on_water(player, map)) {
-        you_are(final, 'walking on water', '');
+        // C ref: insight.c:973-977 — detect water vs lava
+        const surface = is_pool(player.x, player.y, map) ? 'water'
+            : is_lava(player.x, player.y, map) ? 'lava' : 'water';
+        you_are(final, `walking on ${surface}`, '');
     }
 
     // Internal troubles
@@ -841,10 +844,14 @@ function status_enlightenment(mode, final, game) {
         you_are(final, predicament, '');
     }
     if (player.ustuck) {
-        if (player.uswallow)
-            you_are(final, `swallowed by ${x_monnam(player.ustuck)}`, '');
-        else
+        // C ref: insight.c:1084-1100 — swallowed vs engulfed vs held
+        const stuckData = player.ustuck.data || player.ustuck.type;
+        if (player.uswallow) {
+            const verb = (stuckData && digests(stuckData)) ? 'swallowed' : 'engulfed';
+            you_are(final, `${verb} by ${x_monnam(player.ustuck)}`, '');
+        } else {
             you_are(final, `held by ${x_monnam(player.ustuck)}`, '');
+        }
     }
 
     // Hunger — cf. insight.c:1172-1187
@@ -960,7 +967,7 @@ export function real_attributes_enlightenment(mode, final, game) {
     const player = (game.u || game.u);
 
     enlght_out('');
-    enlght_out(final ? ' Final Attributes:' : ' Attributes:');
+    enlght_out(final ? 'Final Attributes:' : 'Attributes:');
 
     // Piousness — cf. insight.c:1486-1490
     const piousBuf = piousness(true, 'aligned', player);
