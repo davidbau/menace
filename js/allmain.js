@@ -36,12 +36,11 @@ import { ageSpells } from './spell.js';
 import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
-import { u_entered_shop as _u_entered_shop } from './shk.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity, inv_weight, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
+import { monsterNearby, nomul, unmul, near_capacity, inv_weight, domove, lookaround, end_running, dotravel_target, runmode_delay_output, check_special_room } from './hack.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -2126,13 +2125,11 @@ export class NetHackGame {
         this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
-        // C ref: do.c:1966 check_special_room(FALSE) — shop greeting after docrt.
-        // Room tracking (move_update + check_special_room) ran in changeLevelCore
-        // but u_entered_shop was deferred because docrt hadn't run yet.
-        // Now run the deferred greeting (zero RNG, just display message).
-        if (this.u.ushops_entered) {
-            await _u_entered_shop(this.u.ushops_entered, this.map, this.u, this.display);
-        }
+        // C ref: do.c:1966 check_special_room(FALSE) — room entry messages
+        // after docrt(). move_update(TRUE) ran in changeLevelCore to reset
+        // room tracking; now detect which rooms the player is in and show
+        // entry messages (shop greeting, zoo welcome, etc.).
+        await check_special_room(false, this.u, this.map, this.display, this.fov);
         // If a message is pending (shop greeting, follower "still eating/trapped"),
         // resolve it before teleport arrival feedback so key consumption stays C-aligned.
         if (this.display?.messageNeedsMore) {
