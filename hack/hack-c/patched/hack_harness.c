@@ -316,7 +316,7 @@ int harness_fwrite(const void *ptr, int sz, int n, FILE *fp) {
 }
 
 /* ===== Screen capture ===== */
-#define MAX_STEPS 8192
+#define MAX_STEPS 65536
 
 static struct {
   char key;
