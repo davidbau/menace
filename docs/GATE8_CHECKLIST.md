@@ -196,7 +196,8 @@ After each section (8A, 8B, 8C, 8D), run:
 **Phase 2: JS replay migration** ✅
 - 8C.1-8C.4 complete: V4 key-driven startup, startup hacks deleted
 
-**Phase 3: Cleanup** ✅ (8A complete, 8B.4-8B.7 remaining)
+**Phase 3: Cleanup** (8A+8D complete, 8B.4-8B.7 remaining)
 - 8A.1-8A.9 complete: V3 shims removed, nethackrc is single source of truth
-- 8B.4-8B.7: C recording script simplification (remaining)
-- 8D.1-8D.2: Format docs and validation (remaining)
+- 8B.4-8B.7: C recording script simplification (remaining — utility scripts
+  still depend on old functions, needs coordinated update)
+- 8D.1-8D.2 complete: V4 format documented, 563/563 sessions validated
