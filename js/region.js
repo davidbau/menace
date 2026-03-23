@@ -892,6 +892,38 @@ export async function create_gas_cloud_selection(sel, damage, map, player, game)
 }
 
 // ========================================================================
+// Lightweight gas cloud region creation for level generation.
+// C ref: sp_lev.c lspo_gas_cloud → create_gas_cloud_selection → make_gas_cloud.
+// During mklev, C calls add_region which calls block_point/newsym, but these
+// are no-ops or safe in C.  In JS, newsym can trigger display RNG.  This
+// function creates the region data structure and adds it to the regions array
+// WITHOUT display side effects, matching C's net result during level gen.
+// ========================================================================
+export function create_gas_cloud_selection_mklev(sel, damage, map) {
+    const cloud = create_region(null, 0);
+
+    if (sel && sel.coords) {
+        for (const c of sel.coords) {
+            add_rect_to_reg(cloud, { lx: c.x, ly: c.y, hx: c.x, hy: c.y });
+        }
+    }
+
+    // C ref: make_gas_cloud() sets these fields
+    cloud.inside_f = INSIDE_GAS_CLOUD;
+    cloud.expire_f = EXPIRE_GAS_CLOUD;
+    cloud.arg = damage;
+    cloud.visible = true;
+    cloud.glyph = damage ? S_poisoncloud : S_cloud;
+
+    // Add directly to regions array — skip block_point/newsym/hero checks
+    // that add_region() performs, since during mklev these are either no-ops
+    // or produce unwanted display side effects in JS.
+    const regions = get_regions(map);
+    regions.push(cloud);
+    return cloud;
+}
+
+// ========================================================================
 // cf. region.c:1341 — region_danger(): is player in a dangerous region?
 // ========================================================================
 export function region_danger(map, player) {

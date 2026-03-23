@@ -43,6 +43,7 @@ import {
     noncorporeal,
     likes_fire,
 } from './mondata.js';
+import { create_gas_cloud_selection_mklev } from './region.js';
 import {
     makemon, makemon_appear, mkclass, def_char_to_monclass,
     rndmonnum, getMakemonRoleIndex
@@ -6042,18 +6043,16 @@ export function gas_cloud(opts = {}) {
     }
 
     if (useSelection) {
-        const coords = [];
+        // C ref: lspo_gas_cloud() → create_gas_cloud_selection() creates an
+        // actual NhRegion during level gen.  Use the mklev-safe version that
+        // skips display side effects (block_point/newsym) which can trigger
+        // RNG in JS but not in C.
+        create_gas_cloud_selection_mklev(sel, damage, levelState.map);
         for (const c of sel.coords) {
-            if (c.x < 0 || c.x >= COLNO || c.y < 0 || c.y >= ROWNO) continue;
-            coords.push({ x: c.x, y: c.y });
-            markSpLevTouched(c.x, c.y);
+            if (c.x >= 0 && c.x < COLNO && c.y >= 0 && c.y < ROWNO) {
+                markSpLevTouched(c.x, c.y);
+            }
         }
-        levelState.map.gasClouds.push({
-            kind: 'selection',
-            coords,
-            damage,
-            ...(ttl > -2 ? { ttl } : {})
-        });
         return;
     }
 
