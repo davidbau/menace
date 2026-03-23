@@ -1565,6 +1565,19 @@ function getTeleportArrivalPosition(map, opts = {}) {
     const isBadLocation = (x, y) => {
         if (withinBoundedArea(x, y, nlx, nly, nhx, nhy)) return true;
         if (!isValidTeleportArrivalCell(map, x, y)) return true;
+        // C ref: place_lregion() checks is_exclusion_zone(rtype, x, y).
+        // Exclusion zones are set by des.exclusion() during level scripts.
+        const ezones = map?.exclusionZones;
+        if (Array.isArray(ezones)) {
+            for (const ez of ezones) {
+                // C ref: LR_TELE matches both LR_DOWNTELE and LR_UPTELE.
+                const typeMatch = ez.type === 'teleport'
+                    || (opts.up ? ez.type === 'teleport-up' : ez.type === 'teleport-down');
+                if (typeMatch && withinBoundedArea(x, y, ez.lx, ez.ly, ez.hx, ez.hy)) {
+                    return true;
+                }
+            }
+        }
         return false;
     };
 
