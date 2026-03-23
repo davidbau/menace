@@ -36,7 +36,7 @@ import { find_mac } from './worn.js';
 import { pline, getGameLog } from './pline.js';
 import { showPager, showMoreTextPages } from './pager.js';
 import { is_pool_or_lava, is_pool, is_lava } from './dbridge.js';
-import { makeplural, an } from './objnam.js';
+import { makeplural, an, ansimpleoname } from './objnam.js';
 import { races } from './role.js';
 import { rank_of } from './botl.js';
 import { newuexp } from './exper.js';
@@ -837,7 +837,9 @@ function status_enlightenment(mode, final, game) {
 
     // External troubles
     if (player.punished) {
-        you_are(final, 'chained to an iron ball', '');
+        // C ref: insight.c:1055 — ansimpleoname(uball)
+        const ballName = player.uball ? ansimpleoname(player.uball) : 'an iron ball';
+        you_are(final, `chained to ${ballName}`, '');
     }
     if (player.utrap) {
         const predicament = trap_predicament(final, game.wizard, player);
