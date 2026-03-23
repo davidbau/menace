@@ -474,8 +474,10 @@ export function rndmonst_adj(minadj, maxadj, depth) {
     const traceCtx = trace ? getRndmonTraceCtx() : '?';
     const ownerStep = Number.isInteger(_gstate?.map?._replayStepIndex) ? _gstate.map._replayStepIndex + 1 : '?';
     const ulevel = getMakemonUlevel();
-    // C ref: level_difficulty() returns depth(&u.uz) for main dungeon
-    const zlevel = depth;
+    // C ref: level_difficulty() returns depth(&u.uz) for main dungeon.
+    // When depth is not passed, derive from game state (matching C's
+    // internal level_difficulty() call).
+    const zlevel = depth ?? _gstate?.u?.uz?.dlevel ?? _gstate?._levelDepth ?? 1;
     const minmlev = monmin_difficulty(zlevel) + minadj;
     const maxmlev = monmax_difficulty(zlevel, ulevel) + maxadj;
 
