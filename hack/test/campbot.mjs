@@ -142,19 +142,29 @@ input.getKey = async function () {
     const target = findMonster(targetMlet);
 
     if (!target) {
-      // Explore to find monster or reveal it
+      // Explore using BFS to find nearest unvisited reachable cell
       exploreVisited.add(`${u.ux},${u.uy}`);
-      // Use simple exploration: try unvisited neighbors
       const dirs = [['h',-1,0],['l',1,0],['k',0,-1],['j',0,1],['y',-1,-1],['u',1,-1],['b',-1,1],['n',1,1]];
       let exploreKey = null;
-      for (const [k, dx, dy] of dirs) {
-        const nx = u.ux+dx, ny = u.uy+dy;
-        const cell = game.levl[nx]?.[ny];
-        if (cell && cell.typ >= 3 && !exploreVisited.has(`${nx},${ny}`)) {
-          if (!dx || !dy || (cell.typ !== 3 && game.levl[u.ux]?.[u.uy]?.typ !== 3)) {
-            exploreKey = k; break;
-          }
+      const bfsQ = [{ x: u.ux, y: u.uy, firstKey: null }];
+      const bfsSeen = new Set([`${u.ux},${u.uy}`]);
+      while (bfsQ.length) {
+        const { x, y, firstKey } = bfsQ.shift();
+        const srcTyp = game.levl[x]?.[y]?.typ ?? 0;
+        for (const [k, dx, dy] of dirs) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || nx >= 80 || ny < 0 || ny >= 22) continue;
+          const cell = game.levl[nx]?.[ny];
+          if (!cell || cell.typ < 3) continue;
+          if (dx && dy && (cell.typ === 3 || srcTyp === 3)) continue;
+          const pk = `${nx},${ny}`;
+          if (bfsSeen.has(pk)) continue;
+          bfsSeen.add(pk);
+          const fk = firstKey || k;
+          if (!exploreVisited.has(pk)) { exploreKey = fk; break; }
+          bfsQ.push({ x: nx, y: ny, firstKey: fk });
         }
+        if (exploreKey) break;
       }
       key = exploreKey || 'hjkl'[stepCount%4];
     } else if (isAdjacentToTarget(target) && campCount < campTurns) {
