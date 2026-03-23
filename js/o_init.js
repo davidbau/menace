@@ -519,11 +519,6 @@ export function undiscoverObject(oindx) {
 // C ref: o_init.c observe_object()
 export function observeObject(obj) {
     if (!obj) return;
-    if (process?.env?.TRACE_DISCOVERY_GEMS === '1' && objectData[obj.otyp]?.oc_class === GEM_CLASS) {
-        const step = Number.isInteger(_gstate?.map?._replayStepIndex) ? (_gstate.map._replayStepIndex + 1) : -1;
-        const stack = new Error().stack?.split('\n').slice(1, 6).map((s) => s.trim()).join(' | ');
-        console.log(`[trace_gem_observe] step=${step} otyp=${obj.otyp} name=${obj_typename(obj.otyp)} pos=${obj.ox},${obj.oy} stack=${stack}`);
-    }
     obj.dknown = true;
     discoverObject(obj.otyp, false, true);
 }
