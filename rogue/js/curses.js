@@ -243,12 +243,24 @@ export function draw(win) {
     return;
   }
 
+  // stdscr is used by death/winner screens (clear+addstr+draw(stdscr)).
+  // In 1980 Berkeley curses, wrefresh(stdscr) copies stdscr directly to the
+  // terminal — no compositing with cw/mw overlays.
+  if (win === g.stdscr || win === 'stdscr') {
+    for (let r = 0; r < LINES; r++) {
+      for (let c = 0; c < COLS; c++) {
+        display.putChar(c + 1, r + 1, g.stdscr[r][c]);
+      }
+    }
+    display.moveCursor(_cwState.x + 1, _cwState.y + 1);
+    display.flush();
+    return;
+  }
+
+  // For cw: composite mw overlay + cw overlay over blank base.
+  // Matches Berkeley curses: wrefresh(cw) shows the player-visible layer only.
   for (let r = 0; r < LINES; r++) {
     for (let c = 0; c < COLS; c++) {
-      // Base: blank — only show what cw/mw have explicitly drawn.
-      // Matches real Berkeley curses: wrefresh(cw) shows cw, not stdscr.
-      // stdscr holds the full dungeon but is never refreshed; only cells
-      // explicitly written to cw (via light(), waddch, etc.) are visible.
       let ch = ' ';
       // Layer 1: mw overlay (monster positions)
       const mc = g.mw[r][c];

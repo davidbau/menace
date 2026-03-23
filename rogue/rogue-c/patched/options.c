@@ -160,6 +160,7 @@ WINDOW *win;
     }
     wmove(win, oy, ox);
     waddstr(win, *bp ? "True" : "False");
+    wclrtoeol(win);
     waddch(win, '\n');
     return NORM;
 }

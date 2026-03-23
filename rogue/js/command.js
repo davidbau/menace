@@ -250,7 +250,7 @@ async function dispatch(g, ch) {
     case 'P': if (_ring_on) await _ring_on(); break;
     case 'R': if (_ring_off) await _ring_off(); break;
     case 'o': if (_option) await _option(); break;
-    case 'c': g.after = false; await call_item(); break;
+    case 'c': await call_item(); break;
     case '>': g.after = false; if (_d_level) await _d_level(); break;
     case '<': g.after = false; if (_u_level) await _u_level(); break;
     case '?': g.after = false; if (_help) await _help(); break;

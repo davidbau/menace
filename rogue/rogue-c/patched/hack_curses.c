@@ -291,20 +291,25 @@ int wrefresh(WINDOW *win)
         return OK;
     }
 
-    /* For cw, stdscr, or curscr: composite the three layers:
-     *   Layer 1 (base):    stdscr._data  — dungeon map, status line (move/addch)
-     *   Layer 2 (overlay): mw._overlay   — monsters (mvwaddch to mw)
-     *   Layer 3 (overlay): cw._overlay   — player @ (wmove/waddch to cw)
+    if (win == stdscr || win == curscr) {
+        /* stdscr is used by death/winner screens (clear+addstr+draw(stdscr)).
+         * In 1980 Berkeley curses, wrefresh(stdscr) copies stdscr directly to
+         * the terminal — no compositing with cw/mw overlays. */
+        for (i = 0; i < LINES; i++)
+            memcpy(harness_display[i], stdscr->_data[i], COLS + 1);
+        return OK;
+    }
+
+    /* For cw: composite the two overlay layers:
+     *   Layer 1 (base):    blank  — only show what cw/mw have explicitly drawn.
+     *   Layer 2 (overlay): mw._overlay — monsters (mvwaddch to mw)
+     *   Layer 3 (overlay): cw._overlay — player @, explored map (wmove/waddch to cw)
      *
-     * This matches Berkeley curses behaviour: addch/move → stdscr;
-     * mvwaddch(mw,...) → mw; wmove(cw,...)/waddch(cw,...) → cw.
-     * wrefresh(cw) composites all three to the physical terminal.
+     * This matches Berkeley curses: wrefresh(cw) shows the player-visible layer.
+     * stdscr holds the full dungeon but is not composited here; it is only shown
+     * when wrefresh(stdscr) is called explicitly (death/winner screens).
      */
     for (i = 0; i < LINES; i++) {
-        /* Start with blank — only show what cw/mw have explicitly drawn.
-         * This matches real Berkeley curses: wrefresh(cw) shows cw, not stdscr.
-         * stdscr holds the full dungeon map but is never refreshed to the terminal
-         * in normal gameplay; only explored cells written to cw are visible. */
         memset(harness_display[i], ' ', COLS);
         harness_display[i][COLS] = '\0';
         /* Overlay mw non-null chars (monsters) */
