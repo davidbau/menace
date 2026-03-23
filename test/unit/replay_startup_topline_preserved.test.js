@@ -6,38 +6,36 @@ import { replayGameplaySession } from '../comparison/session_helpers.js';
 describe('replay startup topline preservation', () => {
     it('does not inject recorded startup topline into live replay state', async () => {
         const startupTopline = 'Map dumped to /tmp/webhack-session-test/dumpmap.txt.';
-        const liveWelcomeTopline = 'NetHack Royal Jelly -- Welcome to the Mazes of Menace! [WIZARD MODE] (seed:204)';
-        const statusLine1 = 'Wizard the Stripling      St:18 Dx:9 Co:18 In:8 Wi:7 Ch:11 Neutral';
-        const statusLine2 = 'Dlvl:1 $:0 HP:16(16) Pw:2(2) AC:6 Xp:1';
         const session = {
-            version: 3,
+            version: 4,
             seed: 204,
-            options: {
-                name: 'Wizard',
-                role: 'Valkyrie',
-                race: 'human',
-                gender: 'female',
-                align: 'neutral',
-                wizard: true,
-            },
+            env: { NETHACK_SEED: '204', NETHACK_FIXED_DATETIME: '20000110090000' },
+            nethackrc: 'OPTIONS=name:Wizard,role:Valkyrie,race:human,gender:female,align:neutral,!tutorial\nWIZARD=Wizard\n',
             steps: [
                 {
                     key: null,
                     action: 'startup',
                     rng: [],
-                    screen: [startupTopline, '', '', statusLine1, statusLine2],
+                    screen: [startupTopline, '', ''],
+                },
+                // First key dismisses lore --More-- and shows welcome
+                {
+                    key: ' ',
+                    action: 'lore-dismiss',
+                    rng: [],
+                    screen: [],
                 },
                 {
                     key: '1',
                     action: 'key-1',
                     rng: [],
-                    screen: [startupTopline, '', '', statusLine1, statusLine2],
+                    screen: [],
                 },
                 {
                     key: '5',
                     action: 'key-5',
                     rng: [],
-                    screen: ['Count: 15', '', '', statusLine1, statusLine2],
+                    screen: ['Count: 15'],
                 },
             ],
         };
@@ -47,10 +45,13 @@ describe('replay startup topline preservation', () => {
             startupBurstInFirstStep: false,
         });
 
-        assert.equal(replay.steps.length, 2);
+        // Lore dismiss + '1' + '5' = 3 gameplay steps
+        assert.equal(replay.steps.length, 3);
+        // First step: space dismisses lore, shows welcome (not recorded startup topline)
         const firstTopline = (replay.steps[0].screen || [])[0];
-        assert.ok(firstTopline === '' || firstTopline === liveWelcomeTopline);
-        assert.notEqual(firstTopline, startupTopline);
-        assert.equal((replay.steps[1].screen || [])[0], 'Count: 15');
+        assert.notEqual(firstTopline, startupTopline,
+            'Recorded startup topline should not leak into live replay');
+        // Last step: "Count: 15" from the count prefix
+        assert.equal((replay.steps[2].screen || [])[0], 'Count: 15');
     });
 });
