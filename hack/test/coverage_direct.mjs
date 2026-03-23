@@ -481,7 +481,7 @@ async function testVampireFight() {
     placeMonsterAdjacent(g, mdat, 200);
     g.u.ulevel = 5; // need level > 1 for losexp to work
     g.u.uhp = 200; g.u.uhpmax = 200;
-  }, 'lllll      ');
+  }, 'lllll' + ' '.repeat(30));
   console.log('testVampireFight: PASS (vampire/losexp covered)');
 }
 
@@ -4315,6 +4315,12 @@ testPanic();
 async function testDoupEscape() {
   const g = minimalGameState();
   g.dlevel = 1;
+  // done() shows end screen and waits for a space key before throwing GameOver
+  let keys = [' '];
+  g.input.getKey = async () => {
+    if (keys.length > 0) return keys.shift();
+    throw new SessionDone();
+  };
   let escaped = false;
   try { await doup(); } catch(e) {
     if (e instanceof GameOver) escaped = true;
