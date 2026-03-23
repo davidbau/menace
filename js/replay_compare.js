@@ -285,15 +285,19 @@ export function prepareReplayArgs(seed, session, opts = {}) {
     const replayFlags = typeof opts.flags === 'object' && opts.flags !== null
         ? { ...opts.flags }
         : {};
+    // Only set character when role is known (pre-selected character).
+    // When role is absent (e.g., manual-direct sessions with interactive
+    // chargen), leave character null so game.init() uses the key sequence.
+    const hasCharacter = !!(sessionChar.role);
     const initOpts = {
-        wizard: session.options?.wizard ?? true,
-        character: {
+        wizard: session.options?.wizard ?? false,
+        character: hasCharacter ? {
             role: sessionChar.role,
             name: sessionChar.name,
             gender: sessionChar.gender,
             race: sessionChar.race,
             align: sessionChar.align,
-        },
+        } : null,
         startDnum: Number.isInteger(opts.startDnum) ? opts.startDnum : undefined,
         startDlevel: Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1,
         dungeonAlignOverride: Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined,
