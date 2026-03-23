@@ -1230,6 +1230,36 @@ export class HeadlessDisplay {
         }
     }
 
+    renderTombstone(name, gold, deathLines, year) {
+        this.clearScreen();
+        const rip = [
+            '                       ----------',
+            '                      /          \\',
+            '                     /    REST    \\',
+            '                    /      IN      \\',
+            '                   /     PEACE      \\',
+            '                  /                  \\',
+        ];
+        const FACE_WIDTH = 16;
+        const centerOnStone = (text) => {
+            let t = String(text || '');
+            if (t.length > FACE_WIDTH) t = t.substring(0, FACE_WIDTH);
+            const pad = Math.floor((FACE_WIDTH - t.length) / 2);
+            const inner = ' '.repeat(pad) + t + ' '.repeat(FACE_WIDTH - pad - t.length);
+            return `                  | ${inner} |`;
+        };
+        rip.push(centerOnStone(name));
+        rip.push(centerOnStone(`${gold} Au`));
+        for (let i = 0; i < 4; i++) rip.push(centerOnStone(deathLines[i] || ''));
+        rip.push(centerOnStone(year));
+        rip.push('                 *|     *  *  *      | *');
+        rip.push('        _________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______');
+        const startRow = 1;
+        for (let i = 0; i < rip.length && startRow + i < this.rows; i++) {
+            this.putstr(0, startRow + i, rip[i], CLR_WHITE);
+        }
+    }
+
     // C ref: tty_display_nhwindow process_text_window / process_menu_window
     // Renders a text popup as a right-side overlay on the map.
     // Used by look_here() for "Things that are here:" and similar displays.

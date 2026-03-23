@@ -95,8 +95,28 @@ export function Mgender(mtmp) {
 // ========================================================================
 // Autotranslated from do_name.c:1302
 export function pmname(pm, mgender) {
-  // JS monsters have a single mname field rather than C's pmnames[] array per gender.
-  return pm?.mname || '';
+  // JS monsters usually have a single mname field rather than C's pmnames[]
+  // array, but a few species have distinct neutral titles in 3.7.0.
+  const base = pm?.mname || '';
+  const isNeutral = mgender === NEUTRAL || mgender === 'neutral';
+  if (!isNeutral) return base;
+  switch (base) {
+  case 'dwarf lord': return 'dwarf leader';
+  case 'dwarf king': return 'dwarf ruler';
+  case 'kobold lord': return 'kobold leader';
+  case 'gnome lord': return 'gnome leader';
+  case 'gnome king': return 'gnome ruler';
+  case 'ogre lord': return 'ogre leader';
+  case 'ogre king': return 'ogre tyrant';
+  case 'vampire lord': return 'vampire leader';
+  case 'elf-lord': return 'elf-noble';
+  case 'Elvenking': return 'elven monarch';
+  case 'priest': return 'cleric';
+  case 'high priest': return 'high cleric';
+  case 'incubus': return 'amorous demon';
+  case 'caveman': return 'cave dweller';
+  default: return base;
+  }
 }
 
 // ========================================================================

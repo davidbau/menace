@@ -62,6 +62,7 @@ export class Player {
         this.level = 1;  // experience level (C: u.ulevel)
         this.ulevelmax = 1; // max level attained (C: u.ulevelmax)
         this.exp = 0;    // experience points
+        this.urexp = 0;  // score / record points (C: u.urexp)
         this.score = 0;
 
         // Attributes [STR, INT, WIS, DEX, CON, CHA]

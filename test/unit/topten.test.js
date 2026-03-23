@@ -219,14 +219,14 @@ describe('Top ten: buildEntry', () => {
 // formatTopTenEntry / formatTopTenHeader
 // ========================================================================
 describe('Top ten: formatTopTenEntry', () => {
-    it('returns array of 3 lines', () => {
+    it('returns wrapped C-style lines', () => {
         const entry = {
             points: 5000, name: 'Hero', plrole: 'Wiz', plrace: 'Human',
             plgend: 'Mal', plalign: 'Neu', death: 'killed by a newt',
             deathlev: 3, maxlvl: 5, hp: 0, maxhp: 15, turns: 200,
         };
         const lines = formatTopTenEntry(entry, 1);
-        assert.equal(lines.length, 3);
+        assert.ok(lines.length >= 2);
     });
 
     it('first line contains rank, points, and name-role-race-gend-align', () => {
@@ -248,20 +248,19 @@ describe('Top ten: formatTopTenEntry', () => {
             deathlev: 10, maxlvl: 12, hp: -5, maxhp: 30, turns: 500,
         };
         const lines = formatTopTenEntry(entry, 42);
-        assert.ok(lines[1].includes('killed by a dragon'));
+        assert.ok(lines.join(' ').includes('Killed by a dragon'));
     });
 
-    it('third line contains dungeon level, max level, HP, and turns', () => {
+    it('final line contains dungeon level and hp column', () => {
         const entry = {
             points: 100, name: 'Foo', plrole: 'Bar', plrace: 'Orc',
             plgend: 'Mal', plalign: 'Cha', death: 'died',
             deathlev: 10, maxlvl: 12, hp: 0, maxhp: 30, turns: 500,
         };
         const lines = formatTopTenEntry(entry, 1);
-        assert.ok(lines[2].includes('dungeon level 10'));
-        assert.ok(lines[2].includes('max 12'));
-        assert.ok(lines[2].includes('30'));  // maxhp
-        assert.ok(lines[2].includes('T:500'));
+        assert.ok(lines.join(' ').includes('level 10'));
+        assert.ok(lines.join(' ').includes('[max 12]'));
+        assert.ok(lines[lines.length - 1].includes('[30]'));
     });
 
     it('shows dash for hp when hp is 0 or negative', () => {
@@ -271,7 +270,7 @@ describe('Top ten: formatTopTenEntry', () => {
             deathlev: 1, maxlvl: 1, hp: 0, maxhp: 10, turns: 1,
         };
         const lines = formatTopTenEntry(entry, 1);
-        assert.ok(lines[2].includes('HP: -'), 'HP 0 should show as dash');
+        assert.ok(lines[lines.length - 1].includes('-  [10]'), 'HP 0 should show as dash');
     });
 
     it('shows actual hp when positive', () => {
@@ -281,7 +280,7 @@ describe('Top ten: formatTopTenEntry', () => {
             deathlev: 1, maxlvl: 5, hp: 12, maxhp: 20, turns: 100,
         };
         const lines = formatTopTenEntry(entry, 1);
-        assert.ok(lines[2].includes('HP: 12'));
+        assert.ok(lines[lines.length - 1].includes('12  [20]'));
     });
 
     it('rank is right-padded with spaces', () => {

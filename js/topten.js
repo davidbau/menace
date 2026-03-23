@@ -1,6 +1,7 @@
 import { COLNO } from './const.js';
 import { rn2, rn1 } from './rng.js';
 import { canseemon } from './display.js';
+import { depth } from './dungeon.js';
 // topten.js -- High score list persistence and display
 // C ref: topten.c — struct toptenentry, topten(), outentry()
 //
@@ -79,17 +80,31 @@ function capitalize(s) {
 // Build a TopTenEntry object from game state.
 // C ref: topten.c topten() — populates struct toptenentry
 // Takes roles/races arrays to avoid circular import.
-export function buildEntry(player, gameOverReason, roles, races) {
+export function buildEntry(player, gameOverReason, roles, races, game = null) {
     const now = new Date();
     const dateNum = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
 
     const role = roles[player.roleIndex];
     const race = races[player.race];
+    const points = (Number.isInteger(player.urexp) && Number(player.urexp) !== 0)
+        ? player.urexp
+        : player.score;
+    const deathlev = game
+        ? (player?.uz ? depth(player.uz) : player.dungeonLevel)
+        : (Number.isInteger(player?.dungeonLevel)
+            ? player.dungeonLevel
+            : (player?.uz ? depth(player.uz) : player.dungeonLevel));
+    const turns = Number.isInteger(game?.moves)
+        ? game.moves
+        : player.turns;
+    const maxlvl = Math.max(Number(player.maxDungeonLevel || 0), Number(deathlev || 0));
 
     return {
-        points: player.score,
-        deathlev: player.dungeonLevel,
-        maxlvl: player.maxDungeonLevel,
+        points,
+        deathdnum: Number.isInteger(player?.uz?.dnum) ? player.uz.dnum : 0,
+        deathwhere: player?.deathwhere || null,
+        deathlev,
+        maxlvl,
         hp: player.uhp,
         maxhp: player.uhpmax,
         name: player.name,
@@ -100,7 +115,7 @@ export function buildEntry(player, gameOverReason, roles, races) {
         plalign: player.alignment > 0 ? 'Law' : player.alignment < 0 ? 'Cha' : 'Neu',
         deathdate: dateNum,
         birthdate: dateNum,
-        turns: player.turns,
+        turns,
     };
 }
 
@@ -109,16 +124,35 @@ export function buildEntry(player, gameOverReason, roles, races) {
 // Returns an array of lines (name line + death cause + stats).
 export function formatTopTenEntry(entry, rank) {
     const nameStr = `${entry.name}-${entry.plrole}-${entry.plrace}-${entry.plgend}-${entry.plalign}`;
+    const rankStr = rank ? String(rank).padStart(3) : '   ';
+    const pointsStr = String(entry.points || 0).padStart(10);
+    const where = entry.deathwhere || 'the dungeon';
+    const deathLead = entry.death && entry.death.startsWith('quit')
+        ? 'quit.'
+        : `died in ${where} on level ${entry.deathlev}${entry.deathlev !== entry.maxlvl ? ` [max ${entry.maxlvl}]` : ''}.  ${capitalize(entry.death)}.`;
+    const linePrefix = `${rankStr} ${pointsStr}  ${nameStr} `;
+    const hppos = COLNO - 7 - String(entry.hp > 0 ? entry.hp : '-').length;
+    const wrapWidth = Math.max(20, hppos - 1);
+    const lines = [];
+    let line = linePrefix + deathLead;
+    while (line.length >= wrapWidth) {
+        let split = line.lastIndexOf(' ', wrapWidth);
+        if (split < 15) split = wrapWidth;
+        lines.push(line.slice(0, split).padEnd(COLNO - 1, ' '));
+        line = `${' '.repeat(15)} ${line.slice(split).trimStart()}`;
+    }
     const hpStr = entry.hp > 0 ? String(entry.hp) : '-';
-    const line1 = `${String(rank).padStart(3)}  ${String(entry.points).padStart(9)}  ${nameStr}`;
-    const line2 = `                  ${entry.death}`;
-    const line3 = `                  on dungeon level ${entry.deathlev} [max ${entry.maxlvl}].  HP: ${hpStr} [${entry.maxhp}].  T:${entry.turns}`;
-    return [line1, line2, line3];
+    let finalLine = line;
+    if (finalLine.length <= hppos) {
+        finalLine = finalLine.padEnd(hppos, ' ') + hpStr + `  [${entry.maxhp}]`;
+    }
+    lines.push(finalLine.padEnd(COLNO - 1, ' '));
+    return lines;
 }
 
 // Format the header line for the topten display.
 export function formatTopTenHeader() {
-    return ` No       Points  Name`;
+    return ' No  Points     Name'.padEnd(COLNO - 9, ' ') + 'Hp [max]';
 }
 
 // Find where a new entry ranks among existing scores.
