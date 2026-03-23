@@ -71,7 +71,7 @@ init_player()
     pstats.s_lvl = 1;
     pstats.s_exp = 0L;
     max_hp = pstats.s_hpt = 12;
-/* DBM: Always generate characters with strength greater than 18.
+    /* Restore original 1% exceptional strength (reverts DBM change). */
     if (rnd(100) == 7)
     {
 	pstats.s_str.st_str = 18;
@@ -82,9 +82,6 @@ init_player()
 	pstats.s_str.st_str = 16;
 	pstats.s_str.st_add = 0;
     }
-*/
-    pstats.s_str.st_str =18;
-    pstats.s_str.st_add = rnd(100) + 1;
     pstats.s_dmg = "1d4";
     pstats.s_arm = 10;
     max_stats = pstats;
