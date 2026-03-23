@@ -60,12 +60,13 @@ export function init_things() {
  */
 export function init_colors() {
   const g = game();
+  // C ref: RRP 3.6 uses used[] array to prevent duplicate color assignments
+  const used = new Array(rainbow.length).fill(false);
   for (let i = 0; i < MAXPOTIONS; i++) {
-    // C: do { str = rainbow[rnd(NCOLORS)]; } until (isupper(*str));
-    // Since rainbow[] is never modified (strdup), always exits on first try.
-    const str = rainbow[rnd(rainbow.length)];
-    // C: str = strdup(str); *str = tolower(*str);
-    g.p_colors[i] = str[0].toLowerCase() + str.slice(1);
+    let j;
+    do { j = rnd(rainbow.length); } while (used[j]);
+    used[j] = true;
+    g.p_colors[i] = rainbow[j][0].toLowerCase() + rainbow[j].slice(1);
     g.p_know[i] = false;
     g.p_guess[i] = null;
     if (i > 0) {
@@ -108,9 +109,13 @@ export function init_names() {
  */
 export function init_stones() {
   const g = game();
+  // C ref: RRP 3.6 uses used[] array to prevent duplicate stone assignments
+  const used = new Array(stones.length).fill(false);
   for (let i = 0; i < MAXRINGS; i++) {
-    const str = stones[rnd(stones.length)];
-    g.r_stones[i] = str[0].toLowerCase() + str.slice(1);
+    let j;
+    do { j = rnd(stones.length); } while (used[j]);
+    used[j] = true;
+    g.r_stones[i] = stones[j][0].toLowerCase() + stones[j].slice(1);
     g.r_know[i] = false;
     g.r_guess[i] = null;
     if (i > 0) {
@@ -128,17 +133,30 @@ export function init_stones() {
  */
 export function init_materials() {
   const g = game();
+  // C ref: RRP 3.6 uses separate used[] arrays for metal and wood
+  const metused = new Array(metal.length).fill(false);
+  const woodused = new Array(wood.length).fill(false);
   for (let i = 0; i < MAXSTICKS; i++) {
-    let str;
-    let wsType;
-    // C: do { if (rnd(100)>50) { ... } else { ... } } until (isupper(*str));
-    // Since all entries start uppercase, always exits on first try.
-    if (rnd(100) > 50) {
-      str = metal[rnd(metal.length)];
-      wsType = "wand";
-    } else {
-      str = wood[rnd(wood.length)];
-      wsType = "staff";
+    let j, str, wsType;
+    // C: for(;;) { if (rnd(100) > 50) try metal else try wood; if (!used) break; }
+    for (;;) {
+      if (rnd(100) > 50) {
+        j = rnd(metal.length);
+        if (!metused[j]) {
+          metused[j] = true;
+          str = metal[j];
+          wsType = "wand";
+          break;
+        }
+      } else {
+        j = rnd(wood.length);
+        if (!woodused[j]) {
+          woodused[j] = true;
+          str = wood[j];
+          wsType = "staff";
+          break;
+        }
+      }
     }
     g.ws_made[i] = str[0].toLowerCase() + str.slice(1);
     g.ws_type[i] = wsType;
