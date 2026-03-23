@@ -1524,7 +1524,16 @@ def record_c_session(env, nethackrc, keys, output_path,
         for idx, ch in enumerate(keys):
             triggers_level_gen = is_level_gen_key(ch)
 
-            _send_char(session_name, ch)
+            # Send the key(s).  Multi-character step keys (e.g.,
+            # 'wizloaddes' from old format) are sent as a burst —
+            # each character individually but with only one screen
+            # capture at the end.
+            if len(ch) > 1:
+                for c in ch:
+                    _send_char(session_name, c)
+                    time.sleep(0.02)
+            else:
+                _send_char(session_name, ch)
 
             step_num = idx + 1
             step_delay = key_delay_overrides.get(step_num, key_delay_s)
@@ -1585,7 +1594,10 @@ def record_c_session(env, nethackrc, keys, output_path,
             session_data['checkpoints'] = mapdump_cps
 
         # --- 10. Quit and write output ---
-        quit_game(session_name)
+        try:
+            quit_game(session_name)
+        except Exception:
+            pass  # quit_game may fail if game is stuck; cleanup handles it
 
     finally:
         subprocess.run(['tmux', 'kill-session', '-t', session_name],
