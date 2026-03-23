@@ -250,18 +250,27 @@ darts were created during level generation with identical RNG, but the
 physical dart assigned to invlet 'r' differs. Needs further investigation
 of the level generation object placement order.
 
-### Fog Cloud Gas Creation Mystery (seed032 step 279, index 18620)
-JS fog clouds call `create_gas_cloud(x,y,1,0)` from `m_everyturn_effect`,
-consuming `rn2(3)` for gas TTL. C's session produces ZERO gas cloud RNG
-despite having identical source code (verified in patched source + binary
-symbols: `create_gas_cloud` and `m_everyturn_effect` present).
+### Fog Cloud Gas Regions — SOLVED (seed032 step 279 → step 280)
+**Root cause**: `themerms.lua` line 68 calls `des.gas_cloud({ selection = fog })`
+which creates a permanent visible gas region via `create_gas_cloud_selection()`.
+JS stored the data in `gasClouds[]` but never created the actual NhRegion.
 
-Fog clouds at (46,5), (46,6), (47,4), (48,6) — all ROOM tiles (typ=25).
-No pre-existing regions. `closed_door` returns false. Disabling in JS
-causes 3 regressions in other sessions (other sessions DO produce gas).
+**Fix**: Added `create_gas_cloud_selection_mklev()` — lightweight version that
+creates the region without display side effects (block_point/newsym) that would
+consume RNG during level gen. seed032 RNG 68% → 71%.
 
-**C-side diagnostic needed**: add `event_log` in `m_everyturn_effect` to
-trace whether the function runs for fog clouds and what conditions return:
+### Level Restore Monster Loop (seed032 step 280, index 18643)
+New divergence: JS `rn2(10) @ changeLevel` vs C `rnd(10) @ getlev(restore.c:1212)`.
+C's `getlev()` runs a monster restoration loop when returning to a previously
+visited level: `restore_cham()`, `hide_monst()` (gated by `rnd(10)` for elapsed
+time). JS doesn't have this loop — `restore_cham` and `hide_monst` exist in
+mon.js but are never called during level transitions.
+
+**Next step**: Implement the restore monster loop in JS's `changeLevel` (do.js),
+calling `restore_cham` and `hide_monst(rnd(10))` for each monster when restoring
+a saved level. This is the C ref at `restore.c:1196-1214`.
+
+Previously documented C-side diagnostic suggestion (now unnecessary):
 ```c
 // In monmove.c m_everyturn_effect(), inside the PM_FOG_CLOUD block:
 event_log("fog_everyturn[%d@%d,%d cd=%d vr=%d]",
