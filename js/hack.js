@@ -40,7 +40,7 @@ import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, n
 import { x_monnam, y_monnam, YMonnam, Monnam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
+import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_entered_shop, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
@@ -3211,7 +3211,10 @@ export async function check_special_room(newlev, player, map, display, fov) {
 
     if (!player.uentered && !player.ushops_entered) return;
 
-    // Shop entry handled by maybeHandleShopEntryMessage elsewhere
+    // C ref: hack.c:3543 — call u_entered_shop for any newly entered shops
+    if (player.ushops_entered) {
+        await u_entered_shop(player.ushops_entered, map, player, display);
+    }
 
     if (!player.uentered) return;
     if (!map || !map.rooms) return;
