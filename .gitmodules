@@ -7,3 +7,6 @@
 [submodule "hack/hack-c/upstream"]
 	path = hack/hack-c/upstream
 	url = https://github.com/Sustainable-Games/fenlason-hack
+[submodule "rogue/rogue-c/upstream"]
+	path = rogue/rogue-c/upstream
+	url = https://github.com/RoguelikeRestorationProject/rogue3.6.git
