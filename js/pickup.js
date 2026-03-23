@@ -524,10 +524,10 @@ async function lift_object(obj, container, cnt_p, telekinesis, player) {
 
 // cf. pickup.c:1897 — pick_obj(otmp)
 // Autotranslated from pickup.c:1896
-export async function pick_obj(otmp, player) {
+export async function pick_obj(otmp, player, map = null) {
   let result, ox = otmp.ox, oy = otmp.oy;
   let robshop = (!player.uswallow && otmp !== player.uball && costly_spot(ox, oy));
-  obj_extract_self(otmp);
+  obj_extract_self(otmp, map);
   newsym(ox, oy);
     if (robshop) {
         let saveushops, fakeshop;

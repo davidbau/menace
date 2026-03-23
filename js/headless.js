@@ -419,6 +419,24 @@ async function headlessFromSeed(seed, roleIndex = 11, opts = {}) {
     return game;
 }
 
+function finalizeHeadlessReadyState(game) {
+    if (game?.pendingPrompt?.source === 'startup_lore') {
+        // Public headless helpers should return a command-ready game rather
+        // than one still owning input with the startup lore overlay.
+        game.pendingPrompt = null;
+        if (game.display) {
+            game.display.toplin = 0;
+            game.display.topMessage = null;
+            game.display.messageNeedsMore = false;
+            game.display.messageNeedsMoreBoundary = false;
+        }
+        if (typeof game.docrt === 'function') {
+            game.docrt();
+        }
+    }
+    return game;
+}
+
 // Internal factory: equivalent to old HeadlessGame.start
 async function headlessStart(seed, options = {}) {
     const character = options.character || {};
@@ -428,7 +446,7 @@ async function headlessStart(seed, options = {}) {
     const alignment = normalizeAlignment(character.align ?? options.align ?? options.alignment);
     const race = normalizeRace(character.race ?? options.race, RACE_HUMAN);
     const name = character.name ?? options.name ?? (options.wizard ? 'Wizard' : 'Agent');
-    return await headlessFromSeed(seed, roleIndex, {
+    return finalizeHeadlessReadyState(await headlessFromSeed(seed, roleIndex, {
         ...options,
         name,
         gender,
@@ -442,7 +460,7 @@ async function headlessStart(seed, options = {}) {
             : options.dungeonAlignOverride,
         DECgraphics: options.symbolMode !== 'ascii' && options.DECgraphics !== false,
         hooks: options.hooks || {},
-    });
+    }));
 }
 
 export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
@@ -1750,7 +1768,7 @@ export class HeadlessDisplay {
 // Compat shims — keep old HeadlessGame API working
 // ============================================================================
 export async function createHeadlessGame(seed, roleIndex = 11, opts = {}) {
-    return headlessFromSeed(seed, roleIndex, opts);
+    return finalizeHeadlessReadyState(await headlessFromSeed(seed, roleIndex, opts));
 }
 
 // HeadlessGame is now an alias for NetHackGame with static factory methods attached.
