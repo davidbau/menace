@@ -17,6 +17,7 @@ import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARL
          WAX, PAPER, LEATHER, BONE, DRAGON_HIDE } from './objects.js';
 import { doname, next_ident, xname, weight, costly_alteration } from './mkobj.js';
 import { corpse_xname, singular, the, an, obj_is_pname, safe_qbuf } from './objnam.js';
+import { pmname } from './do_name.js';
 import { ART_ORB_OF_DETECTION } from './artifacts.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
          PM_ACID_BLOB, PM_COCKATRICE, PM_CHICKATRICE,
@@ -91,6 +92,7 @@ const WEAK = 3;
 const FAINTING = 4;
 const FAINTED = 5;
 const STARVED = 6;
+const NEUTRAL = 2;
 
 // Hunger state name table (cf. eat.c hu_stat[])
 const hu_stat = [
@@ -1098,19 +1100,20 @@ async function cpostfx(player, pm, display) {
 // Autotranslated from eat.c:575
 export async function eating_conducts(pd, player) {
   let ll_conduct = 0;
+  const pdName = pmname(pd, 'neutral') || pd?.mname || 'food';
   if (!player.uconduct.food++) {
-    livelog_printf(LL_CONDUCT, "ate for the first time - %s", pd.pmnames[NEUTRAL]);
+    livelog_printf(LL_CONDUCT, "ate for the first time - %s", pdName);
     ll_conduct++;
   }
   if (!vegan(pd)) {
     if (!player.uconduct.unvegan++ && !ll_conduct) {
-      livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time", pd.pmnames[NEUTRAL]);
+      livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time", pdName);
       ll_conduct++;
     }
   }
   if (!vegetarian(pd)) {
-    if (!player.uconduct.unvegetarian && !ll_conduct) livelog_printf(LL_CONDUCT, "tasted meat (%s) for the first time", pd.pmnames[NEUTRAL]);
-    await violated_vegetarian();
+    if (!player.uconduct.unvegetarian && !ll_conduct) livelog_printf(LL_CONDUCT, "tasted meat (%s) for the first time", pdName);
+    await violated_vegetarian(player);
   }
 }
 
@@ -1191,14 +1194,8 @@ async function eatcorpse(player, otmp) {
     const stoneable = flesh_petrifies(mons[mnum]);
     const slimeable = (mnum === PM_GREEN_SLIME && !slimeproof(mons[mnum]));
 
-    // Conduct tracking
-    if (!vegan(mons[mnum])) {
-        if (!player.uconduct) player.uconduct = {};
-        player.uconduct.unvegan = (player.uconduct.unvegan || 0) + 1;
-    }
-    if (!vegetarian(mons[mnum])) {
-        await violated_vegetarian(player);
-    }
+    // C ref: eat.c eatcorpse() funnels corpse conduct through eating_conducts().
+    await eating_conducts(mons[mnum], player);
 
     // C:3879-3887 — compute rotted value
     let rotted = 0;

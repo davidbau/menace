@@ -16960,7 +16960,7 @@ source is elsewhere in the moveloop phase ordering.
     naming (`jade stone`) for end-of-run inventory/disclosure parity
   - vanquished display needs C-style neutral monster titles (`gnome leader`,
     `dwarf leader`, etc.) and the boxed text-window path rather than the
-    generic pager
+  generic pager
 - These changes move the isolated `seed031` batch much later while keeping
   gameplay channels green:
   - RNG `51561/51561`
@@ -16981,3 +16981,25 @@ source is elsewhere in the moveloop phase ordering.
   save/restore against the headless backend restores `undefined` chars and
   blanks the saved map under the next prompt. The faithful pager fix is to
   snapshot and restore chars/colors/attrs from whichever backend is active.
+
+- 2026-03-23: the remaining late `seed031` conduct/disclosure seam turned out
+  to have two real JS root causes. First, JS was missing C gameplay producers
+  for final disclosure state:
+  - `Player` needed zero-initialized `uconduct`, `uroleplay`, `uachieved`,
+    `uhave`, and `uevent`
+  - `eatcorpse()` must route through `eating_conducts()` so corpse meals
+    increment `uconduct.food` like C
+  - `goto_level()` needs to record branch-entry achievements such as
+    `ACH_MINE`
+  - `pluslvl()` needs to record rank achievements via `achieve_rank()`
+  After those fixes, live replay at the final disclosure had the expected
+  `uachieved=[15,23]` (`entered the Gnomish Mines`, `attained the rank of
+  Sightseer`) and the false `You went without food.` line disappeared.
+- 2026-03-23: once the state was correct, the last `seed031` screen seam was
+  still an owner/control-flow bug. `show_conduct()` must use the C `NHW_MENU`
+  popup path rather than the generic pager; otherwise the conduct page renders
+  full-width instead of as a right-side overlay over the live map. After that,
+  JS still replayed the tombstone page twice because endgame prompt teardown
+  could call `showGameOver()` more than once. Making `NetHackGame.showGameOver()`
+  idempotent fixed the duplicate invocation and moved `seed031` to full screen
+  parity (`1365/1365` screens) while keeping gameplay channels green.

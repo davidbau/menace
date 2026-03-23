@@ -1303,12 +1303,20 @@ export async function show_conduct(final, game) {
         append_achievements_enlightenment(final, game);
     }
 
-    // Display the accumulated text
-    const text = _enl_lines.join('\n');
+    // Display the accumulated text through the tty menu/text window path.
+    // C ref: insight.c show_conduct() creates NHW_MENU, putstr()s each line,
+    // then display_nhwindow(..., TRUE), which renders a right-side popup over
+    // the live map/status underlay rather than a full-screen pager.
+    const lines = _enl_lines.slice();
     _enl_lines = [];
 
     if (game.display) {
-        await showPager(game.display, text, 'Conduct');
+        const win = create_nhwindow(NHW_MENU);
+        for (const line of lines) {
+            await putstr(win, ATR_NONE, line);
+        }
+        await display_nhwindow(win, true);
+        destroy_nhwindow(win);
     }
 }
 
@@ -1913,10 +1921,10 @@ export async function doborn(game) {
 }
 
 // cf. insight.c:2516 — achieve_rank
-export function achieve_rank(rank) {
+export function achieve_rank(rank, player = globalThis.gs?.player) {
     // rank is 1..8; returns signed achievement index (negative for female)
     let achidx = (rank - 1) + ACH_RNK1;
-    if (globalThis.gs?.player?.flags?.female) achidx = -achidx;
+    if (player?.flags?.female || player?.female) achidx = -achidx;
     return achidx;
 }
 

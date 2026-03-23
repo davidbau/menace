@@ -2416,6 +2416,10 @@ export class NetHackGame {
     // Show game-over screen (tombstone + score). Delegates to nethack.js showGameOver.
     // Also available as a standalone instance method for tests and external callers.
     async showGameOver() {
+        if (this._showGameOverDisplayed) {
+            return;
+        }
+        this._showGameOverDisplayed = true;
         await _showGameOver(this);
         this._emitGameOver();
     }
