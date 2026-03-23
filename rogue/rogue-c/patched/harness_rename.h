@@ -1,9 +1,15 @@
 /*
- * harness_rename.h — Rename main() to game_main() in main.c
+ * harness_rename.h — Rename game entry points for harness integration.
+ * Injected via -include during compilation of game source files.
  */
 
-/* Rename main to game_main so harness_main.c can provide main() */
+#ifndef HARNESS_RENAME_H
+#define HARNESS_RENAME_H
+
+/* Rename main() so harness_main.c can provide its own main() */
 #define main game_main
 
-/* getchar calls in save.c / init.c: redirect to harness_next_key */
-#define getchar harness_next_key
+/* Rename readchar() so harness can inject keystrokes */
+#define readchar readchar_original
+
+#endif /* HARNESS_RENAME_H */
