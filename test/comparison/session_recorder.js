@@ -86,22 +86,6 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
     let stepBoundaries;
     await withRecorderFixedDatetime(session, async () => {
         const flags = opts.flags || buildGameplayReplayFlags(session);
-        const hasExplicitTutorial = typeof opts.tutorial === 'boolean';
-        const tutorial = hasExplicitTutorial
-            ? opts.tutorial
-            : (
-                session?.meta?.regen?.tutorial === true
-                || session?.meta?.options?.tutorial === true
-                || session?.raw?.options?.tutorial === true
-            )
-                ? true
-                : undefined;
-        const replayTutorialStartupPrompts = Array.isArray(session?.raw?.replayTutorialStartupPrompts)
-            ? session.raw.replayTutorialStartupPrompts
-            : [];
-        const tutorialStartupEnterAfterPromptCount = Number.isInteger(session?.raw?.tutorialStartupEnterAfterPromptCount)
-            ? session.raw.tutorialStartupEnterAfterPromptCount
-            : undefined;
         const emitProgress = (typeof globalThis.__SESSION_PROGRESS_EMIT === 'function')
             ? globalThis.__SESSION_PROGRESS_EMIT
             : null;
@@ -109,9 +93,6 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
             session.meta.seed, session.raw, {
                 captureScreens: true,
                 flags,
-                tutorial,
-                replayTutorialStartupPrompts,
-                tutorialStartupEnterAfterPromptCount,
                 onKey: emitProgress ? ({ index, ch, game }) => {
                     let topline = '';
                     if (typeof game?.display?.getScreenLines === 'function') {

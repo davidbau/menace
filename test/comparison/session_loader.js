@@ -334,54 +334,26 @@ export function normalizeSession(raw, meta = {}) {
 
     const sourceSteps = Array.isArray(raw?.steps) ? raw.steps : [];
 
-    // Find startup boundary: step 0 (key=null) plus any subsequent --More--
-    // or startup-prompt steps that precede actual gameplay.  The unified
-    // recorder (Gate 8) records everything from game launch, so startup
-    // may span multiple steps (lore --More--, welcome --More--, etc.).
-    // We fold all pre-gameplay steps into one "startup" object.
-    let startupEndIndex = 0;
-    if (sourceSteps.length > 0 && sourceSteps[0]?.key === null) {
-        startupEndIndex = 1;
-        // Skip additional startup steps: --More-- spaces and tutorial prompts
-        // that occur before the first "real" gameplay key.
-        while (startupEndIndex < sourceSteps.length) {
-            const step = sourceSteps[startupEndIndex];
-            const key = step?.key;
-            // A space key right after startup is a --More-- dismissal.
-            // 'n'/'y' right after could be tutorial or chargen prompts.
-            // But we can't just skip all spaces — the first gameplay key
-            // could be a space (e.g., rest_on_space).  Use screen heuristic:
-            // if the screen has --More-- or a prompt, it's startup.
-            const screen = typeof step?.screen === 'string' ? step.screen : '';
-            const cleanScreen = screen.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
-            if (cleanScreen.includes('--More--')
-                || cleanScreen.includes('Do you want a tutorial')
-                || cleanScreen.includes('Velkommen')
-                || cleanScreen.includes('welcome to NetHack')) {
-                startupEndIndex++;
-            } else {
-                break;
-            }
-        }
-    }
-
-    // Build startup by merging RNG from all startup steps
-    const startupSteps = sourceSteps.slice(0, startupEndIndex);
-    const startupRaw = raw?.startup || (startupSteps.length > 0 ? startupSteps[0] : null);
-    const startupMergedRng = startupSteps.flatMap(s => Array.isArray(s?.rng) ? s.rng : []);
+    // V4 key-driven: step 0 (key=null) is the initial screen capture.
+    // All subsequent steps are key-driven, including --More-- dismissals.
+    // No startup folding — every step is preserved as-is.
+    const step0 = sourceSteps.length > 0 && sourceSteps[0]?.key === null
+        ? sourceSteps[0]
+        : null;
+    const startupRaw = step0 || raw?.startup || null;
 
     const startup = startupRaw
         ? {
-            rng: startupMergedRng,
+            rng: Array.isArray(startupRaw.rng) ? startupRaw.rng : [],
             rngCalls: Number.isInteger(startupRaw.rngCalls) ? startupRaw.rngCalls : null,
-            screen: getSessionScreenLines(startupSteps[startupSteps.length - 1] || startupRaw),
-            screenAnsi: getSessionScreenAnsiLines(startupSteps[startupSteps.length - 1] || startupRaw),
+            screen: getSessionScreenLines(startupRaw),
+            screenAnsi: getSessionScreenAnsiLines(startupRaw),
             typGrid: normalizeGrid(startupRaw.typGrid),
             checkpoints: normalizeCheckpoints(startupRaw.checkpoints),
         }
         : null;
 
-    const replaySteps = sourceSteps.slice(startupEndIndex);
+    const replaySteps = step0 ? sourceSteps.slice(1) : sourceSteps;
     const steps = replaySteps.map((step, index) => normalizeStep(step, index));
 
     // Compact mapdump checkpoints: { id: "file contents", ... }
