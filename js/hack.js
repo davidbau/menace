@@ -53,7 +53,10 @@ import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
-import { Invocation_lev, find_level, deltrap, u_on_newpos } from './dungeon.js';
+import { Invocation_lev, find_level, deltrap, room_discovered } from './dungeon.js';
+import { search_special } from './mkroom.js';
+import { midnight } from './calendar.js';
+import { u_on_newpos } from './dungeon.js';
 import { tmp_at, nh_delay_output, nh_delay_output_nowait } from './animation.js';
 import { DISP_ALL, DISP_END } from './const.js';
 import { getpos_async } from './getpos.js';
@@ -68,7 +71,7 @@ import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KI
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
 import { MZ_LARGE, MZ_HUMAN, PM_GRID_BUG, AT_WEAP,
-         PM_WIZARD, PM_VALKYRIE,
+         PM_WIZARD, PM_VALKYRIE, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN,
          S_NYMPH,
          M1_TUNNEL, M1_NEEDPICK, M1_WALLWALK } from './monsters.js';
 import { stackobj } from './invent.js';
@@ -3296,68 +3299,108 @@ export async function check_special_room(newlev, player, map, display, fov) {
         if (roomno < 0 || roomno >= map.rooms.length) continue;
         const rt = map.rooms[roomno].rtype || OROOM;
 
+        // C ref: hack.c:3548 — msg_given tracks whether to call room_discovered
+        let msg_given = true;
+        let rt_for_cleanup = rt; // C uses rt; TEMPLE/default set it to 0
+
         switch (rt) {
         case ZOO:
-            if (display) await display.putstr_message("Welcome to David's treasure zoo!");
+            await pline("Welcome to David's treasure zoo!");
             break;
-        case SWAMP:
-            if (display) await display.putstr_message('It looks rather muddy down here.');
+        case SWAMP: {
+            const blind = !!(player.Blind || player.blind);
+            await pline(`It ${blind ? 'feels' : 'looks'} rather ${blind ? 'humid' : 'muddy'} down here.`);
             break;
-        case COURT:
-            if (display) {
-                const hasThrone = furniture_present(THRONE, roomno, map);
-                await display.putstr_message(`You enter an opulent${hasThrone ? ' throne' : ''} room!`);
-            }
+        }
+        case COURT: {
+            const hasThrone = furniture_present(THRONE, roomno, map);
+            await pline(`You enter an opulent${hasThrone ? ' throne' : ''} room!`);
             break;
+        }
         case LEPREHALL:
-            if (display) await display.putstr_message('You enter a leprechaun hall!');
+            await pline('You enter a leprechaun hall!');
             break;
         case MORGUE:
-            if (display) await display.putstr_message('You have an uncanny feeling...');
+            // C ref: hack.c:3571 — midnight() variant
+            if (midnight()) {
+                await pline('Run away!  Run away!');
+            } else {
+                await pline('You have an uncanny feeling...');
+            }
             break;
         case BEEHIVE:
-            if (display) await display.putstr_message('You enter a giant beehive!');
+            await pline('You enter a giant beehive!');
             break;
         case COCKNEST:
-            if (display) await display.putstr_message('You enter a disgusting nest!');
+            await pline('You enter a disgusting nest!');
             break;
         case ANTHOLE:
-            if (display) await display.putstr_message('You enter an anthole!');
+            await pline('You enter an anthole!');
             break;
         case BARRACKS:
-            if (display) await display.putstr_message('You enter a military barracks!');
+            // C ref: hack.c:3588-3594 — check if military monsters present
+            if (monstinroom(PM_SOLDIER, roomno, map)
+                || monstinroom(PM_SERGEANT, roomno, map)
+                || monstinroom(PM_LIEUTENANT, roomno, map)
+                || monstinroom(PM_CAPTAIN, roomno, map)) {
+                await pline('You enter a military barracks!');
+            } else {
+                await pline('You enter an abandoned barracks.');
+            }
             break;
         case DELPHI:
-            // Oracle greeting handled separately
+            // TODO: Oracle greeting (C ref: hack.c:3596-3608)
+            msg_given = false;
             break;
         case TEMPLE:
             // C ref: hack.c:3610 — intemple(roomno + ROOMOFFSET)
             await intemple(roomno + ROOMOFFSET, map, player, display, fov);
+            // C: FALLTHROUGH to default — rt = 0
+            rt_for_cleanup = 0;
+            msg_given = (rt === TEMPLE || rt >= SHOPBASE);
             break;
         default:
+            msg_given = (rt === TEMPLE || rt >= SHOPBASE);
+            rt_for_cleanup = 0;
             break;
         }
 
-        // C hack.c:3649-3660: wake monsters in special rooms on entry
-        if (rt === COURT || rt === SWAMP || rt === MORGUE || rt === ZOO) {
-            const stealth = player.hasProp ? player.hasProp(STEALTH) : false;
-            for (const mtmp of (map.monsters || [])) {
-                if (mtmp.dead || mtmp.mhp <= 0) continue;
-                // Check monster is in this room
-                const mloc = map.at ? map.at(mtmp.mx, mtmp.my) : null;
-                if (!mloc || (mloc.roomno !== undefined
-                    ? mloc.roomno !== roomno
-                    : false)) continue;
-                if (!stealth && !rn2(3)) {
-                    mtmp.msleeping = 0;
+        if (msg_given) room_discovered(roomno, map);
+
+        // C ref: hack.c:3622-3661 — cleanup only when rt != 0
+        // (TEMPLE and default set rt_for_cleanup to 0, skipping cleanup)
+        if (rt_for_cleanup !== 0) {
+            map.rooms[roomno].rtype = OROOM;
+            if (!search_special(map, rt_for_cleanup)) {
+                // No more rooms of that type — clear level flag
+                // C ref: hack.c:3626-3648
+                const flags = map.levelFlags || map.flags || {};
+                switch (rt_for_cleanup) {
+                case COURT: flags.has_court = 0; break;
+                case SWAMP: flags.has_swamp = 0; break;
+                case MORGUE: flags.has_morgue = 0; break;
+                case ZOO: flags.has_zoo = 0; break;
+                case BARRACKS: flags.has_barracks = 0; break;
+                case TEMPLE: flags.has_temple = 0; break;
+                case BEEHIVE: flags.has_beehive = 0; break;
                 }
             }
-        }
 
-        // C ref: hack.c check_special_room() keeps vaults and temples typed.
-        // Other non-shop special rooms become OROOM after first discovery.
-        if (rt !== OROOM && rt !== TEMPLE && rt !== VAULT && rt < SHOPBASE) {
-            map.rooms[roomno].rtype = OROOM;
+            // C hack.c:3650-3661: wake monsters in special rooms on entry
+            if (rt_for_cleanup === COURT || rt_for_cleanup === SWAMP
+                || rt_for_cleanup === MORGUE || rt_for_cleanup === ZOO) {
+                const stealth = player.hasProp ? player.hasProp(STEALTH) : false;
+                for (const mtmp of (map.monsters || [])) {
+                    if (mtmp.dead || mtmp.mhp <= 0) continue;
+                    const mloc = map.at ? map.at(mtmp.mx, mtmp.my) : null;
+                    if (!mloc || (mloc.roomno !== undefined
+                        ? mloc.roomno !== roomno
+                        : false)) continue;
+                    if (!stealth && !rn2(3)) {
+                        mtmp.msleeping = 0;
+                    }
+                }
+            }
         }
     }
     return { suppressFloorFeedback };
