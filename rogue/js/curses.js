@@ -246,7 +246,9 @@ export function draw(win) {
   for (let r = 0; r < LINES; r++) {
     for (let c = 0; c < COLS; c++) {
       // Layer 1: stdscr base (dungeon map, all rooms)
+      // '&' (SECRETDOOR) in stdscr means unvisited secret door — show as space
       let ch = g.stdscr[r][c];
+      if (ch === '&') ch = ' ';
       // Layer 2: mw overlay (monster positions)
       const mc = g.mw[r][c];
       if (mc !== ' ') ch = mc;

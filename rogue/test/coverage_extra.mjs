@@ -157,10 +157,91 @@ async function testSaveLoad() {
   clearSave();
 }
 
+/**
+ * Test that SECRETDOOR ('&') never appears on the displayed screen.
+ * In original Rogue, secret doors look like wall characters (| or -).
+ * Our JS port uses '&' internally in stdscr but draw() must suppress it.
+ *
+ * Secret doors only appear at level 2+ (the C formula requires g.level >= 2),
+ * so we directly inject '&' into stdscr to test the draw() suppression logic,
+ * rather than relying on natural level generation to produce one.
+ */
+async function testSecretdoorDisplay() {
+  const { g, display } = await setupGame(42);
+  const { draw } = await import('../js/curses.js');
+
+  // Inject a secret door '&' into stdscr at a known position
+  const testRow = 5, testCol = 10;
+  g.stdscr[testRow][testCol] = '&';
+
+  // Redraw — draw() should suppress '&' (show as space since mw/cw are empty there)
+  draw(g.stdscr);
+
+  // Check that display shows space (not '&') at that position
+  // display.getChar is 1-based: col testCol+1, row testRow+1
+  const shown = display.getChar(testCol + 1, testRow + 1);
+  if (shown === '&') {
+    console.error(`testSecretdoorDisplay FAIL: '&' leaked to display at row ${testRow} col ${testCol}`);
+    process.exit(1);
+  }
+  console.log(`testSecretdoorDisplay: PASS (stdscr '&' suppressed in draw(), shows '${shown}' on screen)`);
+}
+
+/**
+ * Test that throwing an arrow north lands in a straight line (same column).
+ * Uses seed 42 where the player starts in a room with open floor to the north.
+ * Key sequence: t=throw, k=north direction, e=select arrows (inventory slot e),
+ * then \0 to advance past the "throw" prompt so the landing position is visible.
+ *
+ * Also verifies that '&' (SECRETDOOR) never appears on any displayed screen:
+ * in original Rogue, secret doors look like wall characters (| or -).
+ */
+async function testArrowStraightLine() {
+  // runSession captures the screen state at each keypress, so step[0].screen
+  // is the initial dungeon (rendered before 't' is processed).
+  const { runSession } = await import('./node_runner.mjs');
+  const steps = await runSession(42, 'tke\0');
+
+  // Verify no '&' (SECRETDOOR) appears on any screen at any step
+  for (let i = 0; i < steps.length; i++) {
+    for (let r = 0; r < steps[i].screen.length; r++) {
+      if ((steps[i].screen[r] || '').includes('&')) {
+        console.error(`testArrowStraightLine FAIL: '&' on screen step ${i} row ${r}: ${steps[i].screen[r]}`);
+        process.exit(1);
+      }
+    }
+  }
+
+  // Find player position in initial screen (step 0)
+  const initScreen = steps[0].screen;
+  let playerRow = -1, playerCol = -1;
+  for (let r = 0; r < initScreen.length - 1; r++) {  // skip status bar row 23
+    const c = (initScreen[r] || '').indexOf('@');
+    if (c >= 0) { playerRow = r; playerCol = c; break; }
+  }
+  if (playerRow < 0) { console.error('testArrowStraightLine FAIL: player @ not found'); process.exit(1); }
+
+  // After throw (last step), arrow ')' should be north of player in same column
+  const lastScreen = steps[steps.length - 1].screen;
+  let arrowRow = -1;
+  for (let r = 0; r < playerRow; r++) {
+    if ((lastScreen[r] || '')[playerCol] === ')') { arrowRow = r; break; }
+  }
+  if (arrowRow < 0) {
+    console.error(`testArrowStraightLine FAIL: arrow ) not found in col ${playerCol} above row ${playerRow}`);
+    console.error('Last screen:\n' + lastScreen.join('\n'));
+    process.exit(1);
+  }
+  console.log(`testArrowStraightLine: PASS (arrow at row ${arrowRow} col ${playerCol}, ` +
+              `player at row ${playerRow} — straight line north confirmed, no '&' on any screen)`);
+}
+
 // Run all coverage tests
 await testDeath();
 await testDeathArrow();
 await testWinner();
 await testSaveLoad();
+await testSecretdoorDisplay();
+await testArrowStraightLine();
 
 console.log('coverage_extra: all tests complete');
