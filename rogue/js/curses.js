@@ -245,14 +245,15 @@ export function draw(win) {
 
   for (let r = 0; r < LINES; r++) {
     for (let c = 0; c < COLS; c++) {
-      // Layer 1: stdscr base (dungeon map, all rooms)
-      // '&' (SECRETDOOR) in stdscr means unvisited secret door — show as space
-      let ch = g.stdscr[r][c];
-      if (ch === '&') ch = ' ';
-      // Layer 2: mw overlay (monster positions)
+      // Base: blank — only show what cw/mw have explicitly drawn.
+      // Matches real Berkeley curses: wrefresh(cw) shows cw, not stdscr.
+      // stdscr holds the full dungeon but is never refreshed; only cells
+      // explicitly written to cw (via light(), waddch, etc.) are visible.
+      let ch = ' ';
+      // Layer 1: mw overlay (monster positions)
       const mc = g.mw[r][c];
       if (mc !== ' ') ch = mc;
-      // Layer 3: cw overlay (player @, explicitly drawn items)
+      // Layer 2: cw overlay (player @, explicitly drawn items, explored map)
       const cc = g.cw[r][c];
       if (cc !== ' ') ch = cc;
       display.putChar(c + 1, r + 1, ch);

@@ -301,8 +301,12 @@ int wrefresh(WINDOW *win)
      * wrefresh(cw) composites all three to the physical terminal.
      */
     for (i = 0; i < LINES; i++) {
-        /* Start with stdscr (dungeon map + status line) */
-        memcpy(harness_display[i], stdscr->_data[i], COLS + 1);
+        /* Start with blank — only show what cw/mw have explicitly drawn.
+         * This matches real Berkeley curses: wrefresh(cw) shows cw, not stdscr.
+         * stdscr holds the full dungeon map but is never refreshed to the terminal
+         * in normal gameplay; only explored cells written to cw are visible. */
+        memset(harness_display[i], ' ', COLS);
+        harness_display[i][COLS] = '\0';
         /* Overlay mw non-null chars (monsters) */
         if (mw) {
             for (j = 0; j < COLS; j++) {
