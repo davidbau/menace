@@ -1,6 +1,8 @@
 # Does Computer Science Still Exist?
 
-I have always seen the computer as a tool that gives us new ways to think. Does it still?
+I have always seen the computer as a tool that gives us new ways to think.
+
+Does it still?
 
 As I write this, [Hack](https://mazesofmenace.net/hack/), the text-based dungeon crawler from my childhood, has just been fully ported to JavaScript by an AI agent. I handed the agent the old PDP code and told it to go. When I checked after a couple hours to ask why it was taking so long, it replied: it was working, and that thirteen of twenty-three test sessions were already passing parity. It continued its coding process without interruption all night, and eventually expanded its work to 202 passing tests, achieving near 100% coverage with verified parity to the original.
 
