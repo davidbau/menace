@@ -170,6 +170,8 @@ export async function do_blinding_ray(_obj, player = null, map = null) {
             x += dx;
             y += dy;
             if (!isok(x, y)) break;
+            const loc = map.at(x, y);
+            if (!loc || IS_OBSTRUCTED(loc.typ)) break;
             tmp_at(x, y);
             await nh_delay_output();
             const mon = map.monsterAt?.(x, y);
@@ -180,8 +182,6 @@ export async function do_blinding_ray(_obj, player = null, map = null) {
                 }
                 break;
             }
-            const loc = map.at(x, y);
-            if (!loc || IS_OBSTRUCTED(loc.typ)) break;
         }
     } finally {
         tmp_at(DISP_END, 0);
@@ -1294,7 +1294,11 @@ export async function handleApply(player, map, display, game) {
             }
             const showSet = new Set(showList);
             replacePromptMessage();
-            const menuLines = buildInventoryOverlayLines(player, (item) => showSet.has(item));
+            const menuLines = buildInventoryOverlayLines(
+                player,
+                (item) => showSet.has(item),
+                { includeSyntheticGold: false }
+            );
             const menuSelection = await renderOverlayMenuUntilDismiss(
                 display,
                 menuLines,

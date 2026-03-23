@@ -618,6 +618,7 @@ const DEC_TO_UNICODE = {
 // Now supports terminal attributes (inverse video, bold, underline).
 export class HeadlessDisplay {
     constructor() {
+        this.isHeadless = true;
         this.cols = TERMINAL_COLS;
         this.rows = TERMINAL_ROWS;
         this.grid = [];

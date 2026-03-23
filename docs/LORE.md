@@ -16935,3 +16935,14 @@ source is elsewhere in the moveloop phase ordering.
   shows conserved gameplay and adjacent raw steps split one `tmp_at` visual
   effect, fix the capture timing in the session regen metadata and rerecord the
   fixture instead of patching JS display logic.
+- 2026-03-23: `showMoreTextPages()` has two C-faithful pager rules that matter
+  for endgame disclosure parity. First, the final page still waits for a key
+  but does not display a bottom-row `--More--`; showing that marker on the last
+  page kept `seed031` one step early at the final-enlightenment boundary.
+  Second, terminal save/restore has to support both display backends:
+  browser-style displays store `{ ch, color, attr }` cells in `display.grid`,
+  but headless replay stores chars in `display.grid` and colors/attrs in the
+  parallel `display.colors` and `display.attrs` arrays. Reusing object-cell
+  save/restore against the headless backend restores `undefined` chars and
+  blanks the saved map under the next prompt. The faithful pager fix is to
+  snapshot and restore chars/colors/attrs from whichever backend is active.

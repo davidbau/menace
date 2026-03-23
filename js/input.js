@@ -640,12 +640,14 @@ export async function more(display, {
 
 // Get a line of input (async)
 // C ref: winprocs.h win_getlin
-export async function getlin(prompt, display) {
+export async function getlin(prompt, display, options = {}) {
     const runtimeDisplay = getRuntimeDisplay();
     const disp = display || runtimeDisplay;
     let line = '';
     let overflowCursor = 0;
     const maxLineLength = Math.max(0, (Number.isInteger(disp?.cols) ? disp.cols : 80) - 1);
+    const baseRow = Number.isInteger(options?.row) ? options.row : 0;
+    const overflowRow = baseRow + 1;
 
     // C-faithful boundary: if a message is pending acknowledgement, consume
     // that --More-- before replacing the topline with a getlin prompt.
@@ -687,9 +689,9 @@ export async function getlin(prompt, display) {
             const wrapWidth = Math.max(1, cols - 1);
             // Clear the message row and display prompt + current input.
             // Don't use putstr_message as it concatenates short messages.
-            disp.clearRow(0);
+            disp.clearRow(baseRow);
             const row0Text = promptLine.slice(0, wrapWidth);
-            await disp.putstr(0, 0, row0Text, CLR_GRAY);
+            await disp.putstr(0, baseRow, row0Text, CLR_GRAY);
             // C ref: gt.toplines tracks getlin prompt text so subsequent
             // pline calls can detect overflow against it.
             if (typeof disp.toplines === 'string') disp.toplines = row0Text;
@@ -698,24 +700,24 @@ export async function getlin(prompt, display) {
                 const overflow = promptLine.length > wrapWidth
                     ? promptLine.slice(wrapWidth)
                     : '';
-                disp.clearRow(1);
+                disp.clearRow(overflowRow);
                 if (overflow.length > 0) {
-                    await disp.putstr(0, 1, overflow, CLR_GRAY);
+                    await disp.putstr(0, overflowRow, overflow, CLR_GRAY);
                 }
                 disp._topMessageRow1 = overflow;
                 const baseOverflowCol = Math.min(overflow.length, wrapWidth);
                 const cursorCol = (overflowCursor > 0)
                     ? Math.min(baseOverflowCol + overflowCursor, wrapWidth)
                     : baseOverflowCol;
-                if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 1);
+                if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, overflowRow);
             } else {
                 // Clear row 1 if we previously overflowed but backspaced back
                 if (disp._topMessageRow1 !== undefined) {
-                    disp.clearRow(1);
+                    disp.clearRow(overflowRow);
                     disp._topMessageRow1 = undefined;
                 }
                 const cursorCol = Math.min(promptLine.length, cols - 1);
-                if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 0);
+                if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, baseRow);
             }
         }
     };
@@ -732,10 +734,11 @@ export async function getlin(prompt, display) {
             if (disp) {
                 disp.topMessage = null;
                 disp.messageNeedsMore = false;
+                if (typeof disp.toplines === 'string') disp.toplines = '';
                 if (typeof disp.clearRow === 'function') {
-                    disp.clearRow(0);
+                    disp.clearRow(baseRow);
                     if (disp._topMessageRow1 !== undefined) {
-                        disp.clearRow(1);
+                        disp.clearRow(overflowRow);
                         disp._topMessageRow1 = undefined;
                     }
                 }
@@ -747,10 +750,11 @@ export async function getlin(prompt, display) {
             if (disp) {
                 disp.topMessage = null;
                 disp.messageNeedsMore = false;
+                if (typeof disp.toplines === 'string') disp.toplines = '';
                 if (typeof disp.clearRow === 'function') {
-                    disp.clearRow(0);
+                    disp.clearRow(baseRow);
                     if (disp._topMessageRow1 !== undefined) {
-                        disp.clearRow(1);
+                        disp.clearRow(overflowRow);
                         disp._topMessageRow1 = undefined;
                     }
                 }

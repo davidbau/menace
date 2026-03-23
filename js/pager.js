@@ -612,13 +612,14 @@ async function _showPagerCore(display, text, title) {
     }
 }
 
-async function showMoreTextPages(display, text) {
+export async function showMoreTextPages(display, text) {
     const lines = String(text || '').split('\n');
     const pageRows = TERMINAL_ROWS - 1;
     const canSaveRestore = !!display?.grid;
     const saved = canSaveRestore ? saveTerminal(display) : null;
     let topLine = 0;
     while (true) {
+        const hasMore = (topLine + pageRows) < lines.length;
         for (let r = 0; r < TERMINAL_ROWS; r++) {
             if (typeof display.clearRow === 'function') display.clearRow(r);
         }
@@ -627,13 +628,15 @@ async function showMoreTextPages(display, text) {
             const line = idx < lines.length ? lines[idx] : '';
             if (line) await display.putstr(0, r, line.substring(0, TERMINAL_COLS), CLR_GRAY);
         }
-        await display.putstr(0, TERMINAL_ROWS - 1, '--More--', CLR_GRAY);
-        if (typeof display.setCursor === 'function') {
-            display.setCursor(8, TERMINAL_ROWS - 1);
+        if (hasMore) {
+            await display.putstr(0, TERMINAL_ROWS - 1, '--More--', CLR_GRAY);
+            if (typeof display.setCursor === 'function') {
+                display.setCursor(8, TERMINAL_ROWS - 1);
+            }
         }
         await nhgetch();
+        if (!hasMore) break;
         topLine += pageRows;
-        if (topLine >= lines.length) break;
     }
     if (saved) restoreTerminal(display, saved);
 }
@@ -661,7 +664,20 @@ function saveTerminal(display) {
     for (let r = 0; r < TERMINAL_ROWS; r++) {
         saved[r] = [];
         for (let c = 0; c < TERMINAL_COLS; c++) {
-            saved[r][c] = { ...display.grid[r][c] };
+            const rawCell = display.grid?.[r]?.[c];
+            if (rawCell && typeof rawCell === 'object') {
+                saved[r][c] = {
+                    ch: rawCell.ch ?? ' ',
+                    color: rawCell.color ?? CLR_GRAY,
+                    attr: rawCell.attr ?? 0,
+                };
+            } else {
+                saved[r][c] = {
+                    ch: rawCell ?? ' ',
+                    color: display.colors?.[r]?.[c] ?? CLR_GRAY,
+                    attr: display.attrs?.[r]?.[c] ?? 0,
+                };
+            }
         }
     }
     return saved;
@@ -672,7 +688,7 @@ function restoreTerminal(display, saved) {
     for (let r = 0; r < TERMINAL_ROWS; r++) {
         for (let c = 0; c < TERMINAL_COLS; c++) {
             const cell = saved[r][c];
-            display.setCell(c, r, cell.ch, cell.color);
+            display.setCell(c, r, cell.ch, cell.color, cell.attr || 0);
         }
     }
 }

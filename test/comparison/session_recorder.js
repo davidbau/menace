@@ -8,6 +8,11 @@ import { resolveSessionFixedDatetime } from './session_datetime.js';
 
 const DEFAULT_FIXED_DATETIME = '20000110090000';
 
+function sessionUsesDecGraphics(session) {
+    const steps = session?.raw?.steps || session?.steps || [];
+    return steps.some((step) => typeof step?.screen === 'string' && step.screen.includes('\x0e'));
+}
+
 function ensureSessionGlobals() {
     if (typeof globalThis.window === 'undefined') {
         globalThis.window = { location: { search: '' } };
@@ -42,14 +47,14 @@ export function buildGameplayReplayFlags(session) {
         flags.verbose = parsed.flags.verbose !== false;
         if (parsed.flags.pickup === false) flags.pickup = false;
         if (parsed.flags.rest_on_space) flags.rest_on_space = true;
-        flags.DECgraphics = !!parsed.flags.DECgraphics;
+        flags.DECgraphics = !!parsed.flags.DECgraphics || sessionUsesDecGraphics(session);
     } else {
         // Fallback for sessions without nethackrc (legacy or manual-direct)
         flags.color = session?.meta?.options?.color !== false;
         flags.verbose = session?.meta?.options?.verbose !== false;
         if (session?.meta?.options?.autopickup === false) flags.pickup = false;
         if (session?.meta?.options?.rest_on_space) flags.rest_on_space = true;
-        flags.DECgraphics = session?.meta?.options?.symset === 'DECgraphics';
+        flags.DECgraphics = session?.meta?.options?.symset === 'DECgraphics' || sessionUsesDecGraphics(session);
     }
     flags.bgcolors = true;
     flags.customcolors = true;

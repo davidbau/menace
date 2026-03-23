@@ -12,6 +12,7 @@ import {
 } from './comparators.js';
 import { getSessionScreenAnsiLines, stripAnsiSequences } from './session_loader.js';
 import { decodeDecSpecialChar, decodeSOSILine } from './symset_normalization.js';
+import { getGameplayRawStepBase } from '../../js/replay_compare.js';
 
 function normalizeGameplayScreenLines(lines) {
     return (Array.isArray(lines) ? lines : [])
@@ -57,6 +58,8 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     const sessionHasAnsi = Array.isArray(expectedAnsi) && expectedAnsi.length > 0;
     const comparableActual = resolveGameplayComparableLines(actualLines, sessionHasAnsi ? actualAnsi : null, session).slice();
     const comparableExpected = resolveGameplayComparableLines(expectedLines, expectedAnsi, session).slice();
+    const gameplayRawBase = getGameplayRawStepBase(session);
+    const pregameStep = Number.isInteger(gameplayRawBase) && gameplayRawBase > 1 && (stepIndex + 1) < gameplayRawBase;
     const highScore = isHighScoreScreen(comparableExpected) || isHighScoreScreen(comparableActual);
     const levelTransitionMismatch = isLevelTransitionMismatch(comparableActual, comparableExpected);
     if (levelTransitionMismatch) {
@@ -109,7 +112,10 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     }
     let hasPopupOverlay = false;
     for (let row = 0; row < Math.min(comparableActual.length, comparableExpected.length); row++) {
-        if (isStartupToplineAlias(comparableActual[row], comparableExpected[row])) {
+        if (pregameStep && isStartupHeaderAlias(comparableActual[row], comparableExpected[row])) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
+        } else if (isStartupToplineAlias(comparableActual[row], comparableExpected[row])) {
             comparableActual[row] = '';
             comparableExpected[row] = '';
         } else if (row === 0 && stepIndex === 0
@@ -194,10 +200,12 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     }
     const normalizedExpected = normalizeGameplayScreenLines(comparableExpected);
     const normalizedActual = normalizeGameplayScreenLines(comparableActual);
-    return compareScreenLines(normalizedActual, normalizedExpected);
+    const result = compareScreenLines(normalizedActual, normalizedExpected);
+    if (pregameStep) result.skipCursor = true;
+    return result;
 }
 
-function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex = -1 } = {}) {
+function compareGameplayColors(actualAnsiInput, expectedAnsiInput, session, { stepIndex = -1 } = {}) {
     // If session has no ANSI data there's nothing to compare for colors.
     if (!Array.isArray(expectedAnsiInput) || expectedAnsiInput.length === 0) {
         return { matched: 0, total: 0, match: true, diffs: [], firstDiff: null };
@@ -206,6 +214,8 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
     const actualAnsi = (Array.isArray(actualAnsiInput) ? actualAnsiInput : []).slice();
     const actualPlain = actualAnsi.map((line) => ansiCellsToPlainLine(line));
     const expectedPlain = expectedMasked.map((line) => ansiCellsToPlainLine(line));
+    const gameplayRawBase = getGameplayRawStepBase(session);
+    const pregameStep = Number.isInteger(gameplayRawBase) && gameplayRawBase > 1 && (stepIndex + 1) < gameplayRawBase;
     const highScore = isHighScoreScreen(expectedPlain) || isHighScoreScreen(actualPlain);
     const levelTransitionMismatch = isLevelTransitionMismatch(actualPlain, expectedPlain);
     if (levelTransitionMismatch) {
@@ -223,7 +233,10 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
     }
     let hasPopupOverlayColor = false;
     for (let row = 0; row < Math.min(actualPlain.length, expectedPlain.length); row++) {
-        if (isMapLoadPromptAlias(actualPlain[row]) && isMapLoadPromptAlias(expectedPlain[row])) {
+        if (pregameStep && isStartupHeaderAlias(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        } else if (isMapLoadPromptAlias(actualPlain[row]) && isMapLoadPromptAlias(expectedPlain[row])) {
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         } else if (isStartupToplineAlias(actualPlain[row], expectedPlain[row])) {
@@ -301,6 +314,18 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
         }
     }
     return compareScreenAnsi(actualAnsi, expectedMasked);
+}
+
+function isStartupHeaderLine(line) {
+    const text = String(line || '').replace(/ +$/, '').trimStart();
+    return /^NetHack, Copyright /.test(text)
+        || /^By Stichting Mathematisch Centrum and M\. Stephenson\./.test(text)
+        || /^Version 3\.7\.0/.test(text)
+        || /^See license for details\./.test(text);
+}
+
+function isStartupHeaderAlias(actualLine, expectedLine) {
+    return isStartupHeaderLine(actualLine) && isStartupHeaderLine(expectedLine);
 }
 
 function getStepFrames(actualStep) {
@@ -764,7 +789,7 @@ export function createGameplayComparatorPolicy(session, options = {}) {
             if (!expectedAnsi.length || !Array.isArray(actualStep?.screenAnsi)) {
                 return null;
             }
-            return compareGameplayColors(actualStep.screenAnsi, expectedAnsi, { stepIndex });
+            return compareGameplayColors(actualStep.screenAnsi, expectedAnsi, session, { stepIndex });
         },
         compareScreenWindowStep(actualStep, expectedStep, stepIndex) {
             if (!Array.isArray(expectedStep?.screen) || expectedStep.screen.length === 0) {

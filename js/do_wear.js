@@ -2361,8 +2361,13 @@ async function handleWear(player, display, game = null) {
     const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
     const showWearHelpList = async () => {
         resetTopline(display);
-        const lines = buildInventoryOverlayLines(player);
-        return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+        const suggestedSet = new Set(suggested);
+        const lines = buildInventoryOverlayLines(
+            player,
+            (obj) => suggestedSet.has(obj),
+            { includeSyntheticGold: false }
+        );
+        return await renderOverlayMenuUntilDismiss(display, lines, wearChoices);
     };
     resetTopline(display);
     await display.putstr_message(wearPrompt);
@@ -2445,8 +2450,13 @@ async function handlePutOn(player, display, game = null) {
     const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
     const showPutOnHelpList = async () => {
         resetTopline(display);
-        const lines = buildInventoryOverlayLines(player);
-        return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+        const suggestedSet = new Set(suggested);
+        const lines = buildInventoryOverlayLines(
+            player,
+            (obj) => suggestedSet.has(obj),
+            { includeSyntheticGold: false }
+        );
+        return await renderOverlayMenuUntilDismiss(display, lines, putOnChoices);
     };
     resetTopline(display);
     await display.putstr_message(putOnPrompt);
@@ -2518,8 +2528,14 @@ async function handleTakeOff(player, display, game = null) {
         const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
         const showTakeOffHelpList = async () => {
             resetTopline(display);
-            const lines = buildInventoryOverlayLines(player);
-            return await renderOverlayMenuUntilDismiss(display, lines, wornLetters);
+            const wornSet = new Set(wornAll);
+            const suggestedSet = suggested;
+            const lines = buildInventoryOverlayLines(
+                player,
+                (obj) => wornSet.has(obj) && suggestedSet.has(obj),
+                { includeSyntheticGold: false }
+            );
+            return await renderOverlayMenuUntilDismiss(display, lines, takeOffChoices);
         };
         resetTopline(display);
         await display.putstr_message(takeOffPrompt);
@@ -2584,8 +2600,14 @@ async function handleRemove(player, display, game = null) {
         const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
         const showRemoveHelpList = async () => {
             resetTopline(display);
-            const lines = buildInventoryOverlayLines(player);
-            return await renderOverlayMenuUntilDismiss(display, lines, wornLetters);
+            const wornSet = new Set(wornAll);
+            const suggestedSet = suggested;
+            const lines = buildInventoryOverlayLines(
+                player,
+                (obj) => wornSet.has(obj) && suggestedSet.has(obj),
+                { includeSyntheticGold: false }
+            );
+            return await renderOverlayMenuUntilDismiss(display, lines, removeChoices);
         };
         resetTopline(display);
         await display.putstr_message(removePrompt);

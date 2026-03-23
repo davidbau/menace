@@ -6,6 +6,7 @@ import { GOLD_PIECE, COIN_CLASS, ROCK_CLASS, AMULET_OF_YENDOR,
     FAKE_AMULET_OF_YENDOR, BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD,
     CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { newsym } from './display.js';
+import { maybeObserveObjectForMap } from './display_rng.js';
 import { addToMonsterInventory, stackobj } from './invent.js';
 import { place_object, weight } from './mkobj.js';
 import { extract_from_minvent, update_mon_extrinsics } from './worn.js';
@@ -22,6 +23,7 @@ import {
     LOST_THROWN, LOST_DROPPED, LOST_STOLEN, LOST_NONE,
 } from './const.js';
 import { S_NYMPH } from './monsters.js';
+import { game as _gstate } from './gstate.js';
 
 function isWornForSteal(obj, player) {
     if (!obj || !player) return false;
@@ -521,6 +523,9 @@ export function mdrop_obj(mon, obj, map) {
     // C ref: extract_from_minvent with do_extrinsics=FALSE, silently=TRUE
     const unwornmask = obj.owornmask || 0;
     extract_from_minvent(mon, obj, false, true);
+    // C ref: relobj()/map_object() can discover generic objects as each item
+    // becomes visible on the floor, before the next item is processed.
+    maybeObserveObjectForMap(obj, _gstate?.u, mon.mx, mon.my);
     obj.ox = mon.mx;
     obj.oy = mon.my;
     // C ref: steal.c:838-841 — place_object(); stackobj(); then event_log(EV_DROP)

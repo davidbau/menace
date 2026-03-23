@@ -58,11 +58,6 @@ export async function playerSelection(game) {
 }
 
 async function _playerSelectionImpl(game) {
-    // Phase 0: Prompt for player name
-    // C ref: role.c plnamesuffix() -> askname() — prompts "Who are you?"
-    // Name prompt happens BEFORE role/race/gender/alignment selection
-    await promptPlayerName(game);
-
     // Display copyright notice
     // C ref: allmain.c -- copyright screen displayed with autopick prompt
     game.display.clearScreen();
@@ -70,6 +65,11 @@ async function _playerSelectionImpl(game) {
     await game.display.putstr(0, 5, "         By Stichting Mathematisch Centrum and M. Stephenson.", CLR_GRAY);
     await game.display.putstr(0, 6, "         Version 3.7.0 Royal Jelly — vibe-coded by The Hive.", CLR_GRAY);
     await game.display.putstr(0, 7, "         See license for details.", CLR_GRAY);
+
+    // Phase 0: Prompt for player name with the copyright block already visible.
+    // C ref: role.c plnamesuffix() -> askname() — prompt rendered on the
+    // startup screen rather than the in-game command topline.
+    await promptPlayerName(game);
     if (game._namePromptEcho) {
         await game.display.putstr(0, 12, game._namePromptEcho, CLR_GRAY);
     }
@@ -112,7 +112,7 @@ export async function promptPlayerName(game) {
 
     // No saved name - prompt for it
     while (true) {
-        const name = await getlin('Who are you? ', game.display);
+        const name = await getlin('Who are you? ', game.display, { row: 12 });
 
         // C NetHack doesn't allow ESC to cancel - recursively prompts until valid
         if (name === null || name.trim() === '') {
@@ -244,7 +244,7 @@ export async function maybeDoTutorial(game) {
     add_menu(win, null, { ival: 'n' }, 'n'.charCodeAt(0), 0, ATR_NONE, 0, 'No, just start play', 0);
     // Browser-only: offer a "don't ask again" option that persists !tutorial.
     // Omitted in headless replay to keep C-parity for session tests.
-    const inBrowser = typeof window !== 'undefined';
+    const inBrowser = typeof window !== 'undefined' && !game?.display?.isHeadless;
     if (inBrowser) {
         add_menu(win, null, { ival: 'N' }, 'N'.charCodeAt(0), 0, ATR_NONE, 0, "No, and don't ask again", 0);
     } else {
@@ -738,7 +738,7 @@ export async function showAlignMenu(game, roleIdx, raceIdx, gender, isFirstMenu)
 }
 
 // Show confirmation screen
-// Returns true if confirmed, false if user wants to restart
+// Returns 'confirm', 'restart', or 'rename'
 export async function showConfirmation(game, roleIdx, raceIdx, gender, align) {
     const female = gender === FEMALE;
     const rName = roleNameForGender(roleIdx, female);
@@ -748,12 +748,13 @@ export async function showConfirmation(game, roleIdx, raceIdx, gender, align) {
     const confirmText = `${(game.u || game.u).name} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
 
     const lines = [];
-    lines.push('Is this ok? [ynq]');
+    lines.push('Is this ok? [ynaq]');
     lines.push('');
     lines.push(confirmText);
     lines.push('');
     lines.push('y * Yes; start game');
     lines.push('n - No; choose role again');
+    lines.push('a - Not yet; choose another name');
     lines.push('q - Quit');
     lines.push('(end)');
 
@@ -761,9 +762,11 @@ export async function showConfirmation(game, roleIdx, raceIdx, gender, align) {
     const ch = await nhgetch();
     const c = String.fromCharCode(ch);
 
-    if (c === 'q') { await game._runLifecycle('promo'); return false; }
+    if (c === 'q') { await game._runLifecycle('promo'); return 'restart'; }
+    if (c === 'a') return 'rename';
     // Both 'y' and '*' accept (as shown in menu: "y * Yes")
-    return c === 'y' || c === '*';
+    if (c === 'y' || c === '*') return 'confirm';
+    return 'restart';
 }
 
 // Show lore text and welcome message
@@ -1060,8 +1063,9 @@ async function autoPickAll(game, showConfirm) {
     (game.u || game.u).initRole(roleIdx);
     (game.u || game.u).alignment = align;
 
-    // Show lore and welcome
-    await showLoreAndWelcome(game, roleIdx, raceIdx, gender, align);
+    // Common startup presentation happens after first-level init so the
+    // lore/welcome overlays sit on top of the live map and status area.
+    return;
 }
 
 // Manual selection loop: role → race → gender → alignment
@@ -1221,16 +1225,19 @@ async function manualSelection(game) {
         }
 
         if (currentMenu === 'confirm') {
-            const confirmed = await showConfirmation(game, roleIdx, raceIdx, gender, align);
-            if (confirmed) {
+            const confirmation = await showConfirmation(game, roleIdx, raceIdx, gender, align);
+            if (confirmation === 'confirm') {
                 (game.u || game.u).roleIndex = roleIdx;
                 (game.u || game.u).race = raceIdx;
                 (game.u || game.u).gender = gender;
                 (game.u || game.u).alignment = align;
                 (game.u || game.u).initRole(roleIdx);
                 (game.u || game.u).alignment = align;
-                await showLoreAndWelcome(game, roleIdx, raceIdx, gender, align);
                 return;
+            } else if (confirmation === 'rename') {
+                await promptPlayerName(game);
+                currentMenu = 'confirm';
+                continue;
             } else {
                 roleIdx = -1;
                 raceIdx = -1;

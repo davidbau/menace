@@ -447,6 +447,19 @@ def run_from_keylog(
     repaint_debug = repaint_debug_env(repaint_debug_log_path)
     exp_env = exp_trace_env()
     rnglog_disp_env = f'NETHACK_RNGLOG_DISP={os.environ.get("NETHACK_RNGLOG_DISP", "")} ' if os.environ.get('NETHACK_RNGLOG_DISP', '') else ''
+    passthrough_env = ''
+    for key, value in os.environ.items():
+        if (key.startswith('NETHACK_') or key.startswith('WEBHACK_')) and value:
+            if key in {
+                'NETHACK_RNGLOG', 'NETHACK_DUMPMAP', 'NETHACK_DUMPSNAP',
+                'NETHACK_MAPDUMP_DIR', 'NETHACK_SEED',
+                'NETHACK_FIXED_DATETIME', 'NETHACK_NO_DELAY',
+                'NETHACK_EVENT_TEST_MOVE', 'NETHACK_EVENT_RUNSTEP',
+                'NETHACK_REPAINT_TRACE', 'NETHACK_REPAINT_DEBUG',
+                'NETHACK_EXP_TRACE', 'NETHACK_RNGLOG_DISP',
+            }:
+                continue
+            passthrough_env += f'{key}={value} '
 
     name_flag = "-u '' " if interactive else f'-u {character["name"]} '
     wiz_flag = '-D' if wizard_enabled else ''
@@ -462,6 +475,7 @@ def run_from_keylog(
             f'{repaint_debug}'
             f'{exp_env}'
             f'{rnglog_disp_env}'
+            f'{passthrough_env}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_MAPDUMP_DIR={mapdump_dir} '
