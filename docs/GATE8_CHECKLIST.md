@@ -81,10 +81,9 @@
 - [ ] 3 manual-direct sessions need keylog-based re-recording for full parity
 
 ### 8B.4 Simplify gen_* scripts to thin wrappers
-- [ ] `gen_interface_sessions.py` → calls `record_c_session()` with UI keys
-- [ ] `gen_option_sessions.py` → calls `record_c_session()` with option in nethackrc
-- [ ] `gen_discoveries_session.py` → calls `record_c_session()` with `\` key
-- [ ] Each script is < 30 lines (just data + function call)
+- [x] `gen_discoveries_session.py` → calls `record_c_session()` (65 lines)
+- [x] `gen_option_sessions.py` → calls `record_c_session()` (130 lines, down from 355)
+- [ ] `gen_interface_sessions.py` → complex (4 capture modes with custom key sequences)
 - [ ] Test: regenerated sessions match originals
 
 ### 8B.5 Simplify `rerecord.py` dispatch
