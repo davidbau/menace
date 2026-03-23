@@ -159,6 +159,10 @@ static unsigned int rng_seed = 0;
 static unsigned int seed_override = 42;
 static int has_seed_override = 0;
 
+/* Forward declarations for mklev state (defined in the mklev section below) */
+static int mklev_running;
+extern char dlevel;
+
 /* Per-step RNG accumulation buffer */
 #define MAX_RNG_PER_STEP 2048
 static int current_rng_buf[MAX_RNG_PER_STEP];
@@ -189,7 +193,13 @@ void harness_log_event(const char *fmt, ...) {
 }
 
 void harness_srand(unsigned int seed) {
-  rng_seed = has_seed_override ? seed_override : seed;
+  /* When inside mklev, add (dlevel-1) to seed_override so each floor gets a
+     different layout (matching JS lev.js: rngSeed = initialSeed + dlevel - 1).
+     Level 1 uses the original seed unchanged; level 2 adds 1, etc. */
+  if (has_seed_override && mklev_running)
+    rng_seed = seed_override + (unsigned int)(unsigned char)dlevel - 1U;
+  else
+    rng_seed = has_seed_override ? seed_override : seed;
 }
 
 int harness_rand(void) {
@@ -426,7 +436,7 @@ void harness_debug_fmt(const char *fmt, ...) {
 /* These globals are defined in hack.main.c */
 extern char lock[];
 extern char buf[];
-extern char dlevel;
+/* dlevel declared above near seed_override (needed by harness_srand) */
 
 /* mklev_main() is mklev.c's main(), renamed via mklev_names.h */
 extern int mklev_main(int argc, char **argv);
@@ -436,7 +446,7 @@ void harness_exit(int code);
 
 /* longjmp target for mklev's exit() — mklev calls exit(0) after savelev() */
 static jmp_buf mklev_jmpbuf;
-static int mklev_running = 0;
+/* mklev_running declared above near seed_override (needed by harness_srand) */
 
 /* Called instead of harness_exit() when inside mklev_main */
 void harness_mklev_exit(int code) {
