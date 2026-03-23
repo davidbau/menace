@@ -1210,6 +1210,18 @@ def probe_startup_keys(env, nethackrc, max_keys=20):
     ensure_install_sysconf()
     ensure_canonical_scorefiles()
 
+    # Clean stale save/lock files
+    import glob as _glob
+    save_dir = os.path.join(INSTALL_DIR, 'save')
+    if os.path.isdir(save_dir):
+        for fp in _glob.glob(os.path.join(save_dir, '*')):
+            try: os.unlink(fp)
+            except FileNotFoundError: pass
+    for fp in _glob.glob(os.path.join(INSTALL_DIR, '*wizard*')) + _glob.glob(os.path.join(INSTALL_DIR, '*Wizard*')):
+        if not fp.endswith('.lua'):
+            try: os.unlink(fp)
+            except FileNotFoundError: pass
+
     player_name = _parse_name_from_nethackrc(nethackrc) or 'Wizard'
     cmd_env = {
         'NETHACKDIR': INSTALL_DIR,
@@ -1259,6 +1271,10 @@ def probe_startup_keys(env, nethackrc, max_keys=20):
                 tmux_send(session_name, 'y')
                 startup_keys.append('y')
                 time.sleep(0.3)
+            elif 'Destroy old game' in content:
+                tmux_send(session_name, 'y')
+                # Don't add to startup_keys — this is cleanup, not game startup
+                time.sleep(0.5)
             else:
                 time.sleep(0.2)
     finally:
