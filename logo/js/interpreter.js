@@ -241,7 +241,7 @@ export class LogoInterpreter {
       if (name === 'BYE') {
         if (typeof window !== 'undefined') {
           var rows = window._logoDisplay ? window._logoDisplay.getRows() : [];
-          try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: rows })); } catch(e) {}
+          try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: rows, bye: true })); } catch(e) {}
           window.location.href = '/shell/';
         }
         return;
