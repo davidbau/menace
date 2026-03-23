@@ -5890,11 +5890,30 @@ export function lev_by_name(name = '') {
   return null;
 }
 
-// C ref: dungeon.c:2021
+// C ref: dungeon.c:2021 — level_difficulty()
+// Returns a difficulty level for monster/object generation.
+// Accounts for builds-up branches (Mines, Sokoban), endgame, and amulet.
 export function level_difficulty(lev = null, game = null) {
   const g = game || _gstate;
   const useLev = lev?.dnum !== undefined ? lev : (g?.map?.uz || g?.uz || { dnum: DUNGEONS_OF_DOOM, dlevel: 1 });
-  return Math.max(1, depth(useLev));
+  // C ref: dungeon.c:2025 — endgame: depth(sanctum) + ulevel/2
+  if (In_endgame(useLev)) {
+      const player = g?.u;
+      const ulevel = Number.isFinite(player?.ulevel) ? player.ulevel : 1;
+      // sanctum_level is deep Gehennom; approximate with depth(useLev)
+      return depth(useLev) + Math.floor(ulevel / 2);
+  }
+  // C ref: dungeon.c:2027 — amulet of Yendor
+  if (g?.u?.uhave_amulet) {
+      return deepest_lev_reached();
+  }
+  let res = depth(useLev);
+  // C ref: dungeon.c:2036 — builds-up branch correction (Mines, Sokoban)
+  if (builds_up(useLev)) {
+      const entry = _dungeonEntryLevelByDnum.get(useLev.dnum) || 1;
+      res += 2 * (entry - useLev.dlevel + 1);
+  }
+  return Math.max(1, res);
 }
 
 // C ref: dungeon.c:2169
