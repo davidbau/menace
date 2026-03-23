@@ -505,7 +505,7 @@ for (let i = 0; i < roles.length; i++) ROLE_INDEX[roles[i].name] = i;
 
 // Local session character parser (avoids circular dependency with replay_core).
 function parseSessionCharacter(session) {
-    if (!session?.options) return {};
+    if (!session?.options && !session?.nethackrc && !session?.raw?.nethackrc) return {};
     if (session?.raw?.regen?.mode === 'manual-direct-live') {
         const rawSteps = Array.isArray(session.raw?.steps) ? session.raw.steps : [];
         const rawBoundary = getManualDirectChargenBoundary(session.raw);
@@ -550,12 +550,18 @@ function parseSessionCharacter(session) {
         if (matches.length === 1) roleFromStartup = matches[0];
     }
 
+    // Fall back to options, then nethackrc for character fields.
+    const opts = session?.options || {};
+    const rawSession = session?.raw || session;
+    const rc = rawSession?.nethackrc || session?.nethackrc || '';
+    const rcChar = rc ? parseNethackrcFull(rc).character : {};
+
     return {
-        name: startupName || session.options.name,
-        role: roleFromStartup || session.options.role,
-        race: session.options.race,
-        gender: session.options.gender,
-        align: session.options.align,
+        name: startupName || opts.name || rcChar.name || null,
+        role: roleFromStartup || opts.role || rcChar.role || null,
+        race: opts.race || rcChar.race || null,
+        gender: opts.gender || rcChar.gender || null,
+        align: opts.align || rcChar.align || null,
     };
 }
 
