@@ -2796,13 +2796,6 @@ export function newsym(x, y, ctxOrMap = null) {
         cosmic_display_log_newsym(x, y, 'visible-map-location', true);
         cosmic_display_log_maploc(x, y, 'obj', true);
         const topObj = objs[objs.length - 1];
-        if (process?.env?.TRACE_NEWSYM_OBJECT_STACK === '1'
-            && Number.isInteger(map?._replayStepIndex)
-            && map._replayStepIndex === 548
-            && x === 61 && y === 14) {
-            const stack = objs.map((obj) => `${obj.otyp}:${obj_typename(obj.otyp)}`).join(' | ');
-            console.log(`[trace_newsym_stack] step=${map._replayStepIndex + 1} x=${x} y=${y} top=${topObj.otyp}:${obj_typename(topObj.otyp)} stack=${stack}`);
-        }
         const hallu = !!(player?.Hallucination || player?.hallucinating);
         const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
         const memGlyph = hallu

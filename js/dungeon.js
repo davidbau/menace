@@ -4393,11 +4393,9 @@ export function init_dungeons(roleIndex, wizard = true) {
     if (roleMnum === PM_ARCHEOLOGIST || roleMnum === PM_WIZARD) {
         rn2(100);
     }
-    // C ref: role.c randrole() — priests pick a random pantheon role.
-    // This consumes rn2(SIZE(roles)) before dungeon initialization.
-    if (roleMnum === PM_CLERIC) {
-        rn2(roles.length);
-    }
+    // NOTE: Priest pantheon rn2(13) is consumed in initLevelGeneration()
+    // between init_objects() and init_dungeons(), matching C's role_init()
+    // ordering. Do NOT duplicate it here.
 
     // 1. nhlib.lua: shuffle(align) — 3-element Fisher-Yates
     rn2(3); rn2(2);
@@ -4977,6 +4975,19 @@ export function initLevelGeneration(roleIndex, wizard = true, opts = {}) {
     set_mkroom_wizard_mode(_wizardMode);
     set_mkroom_ubirthday(_gameUbirthday);
     init_objects();
+    // C ref: role.c role_init() lines 2064-2078 — pantheon for Priest.
+    // After init_objects (198 ISAAC values), before init_dungeons.
+    // Return the pantheon index; caller stores on player object.
+    let pantheonIdx = roleIndex;
+    {
+        const _role = roles[roleIndex];
+        if (_role && !_role.gods[0]) {
+            let _trycnt = 0;
+            while (!roles[pantheonIdx]?.gods?.[0] && ++_trycnt < 100) {
+                pantheonIdx = rn2(roles.length); // C: rn2(SIZE(roles)-1) = rn2(13)
+            }
+        }
+    }
     if (_gstate) {
         _gstate._makemonRoleIndex = Number.isInteger(roleIndex) ? roleIndex : null;
         _gstate._makemonRoleOpts = opts ? { ...opts } : {};
@@ -4991,7 +5002,7 @@ export function initLevelGeneration(roleIndex, wizard = true, opts = {}) {
     setMtInitialized(false); // Reset MT RNG state for new game
 
     // NOTE: xoshiro256** seeding happens in test harness before calling this
-    return dungeonResult;
+    return { ...dungeonResult, pantheonIdx };
 }
 
 // C ref: mklev.c makelevel()
@@ -5876,11 +5887,30 @@ export function lev_by_name(name = '') {
   return null;
 }
 
-// C ref: dungeon.c:2021
+// C ref: dungeon.c:2021 — level_difficulty()
+// Returns a difficulty level for monster/object generation.
+// Accounts for builds-up branches (Mines, Sokoban), endgame, and amulet.
 export function level_difficulty(lev = null, game = null) {
   const g = game || _gstate;
   const useLev = lev?.dnum !== undefined ? lev : (g?.map?.uz || g?.uz || { dnum: DUNGEONS_OF_DOOM, dlevel: 1 });
-  return Math.max(1, depth(useLev));
+  // C ref: dungeon.c:2025 — endgame: depth(sanctum) + ulevel/2
+  if (In_endgame(useLev)) {
+      const player = g?.u;
+      const ulevel = Number.isFinite(player?.ulevel) ? player.ulevel : 1;
+      // sanctum_level is deep Gehennom; approximate with depth(useLev)
+      return depth(useLev) + Math.floor(ulevel / 2);
+  }
+  // C ref: dungeon.c:2027 — amulet of Yendor
+  if (g?.u?.uhave_amulet) {
+      return deepest_lev_reached();
+  }
+  let res = depth(useLev);
+  // C ref: dungeon.c:2036 — builds-up branch correction (Mines, Sokoban)
+  if (builds_up(useLev)) {
+      const entry = _dungeonEntryLevelByDnum.get(useLev.dnum) || 1;
+      res += 2 * (entry - useLev.dlevel + 1);
+  }
+  return Math.max(1, res);
 }
 
 // C ref: dungeon.c:2169

@@ -1127,9 +1127,22 @@ function knownExtendedCommands(game) {
 }
 
 // C ref: cmd.c extcmdlist[] AUTOCOMPLETE flag — some commands are excluded
-// from live autocomplete display. C echoes typed characters verbatim for
-// these commands even when the prefix is unique.
-const NO_DISPLAY_AUTOCOMPLETE = new Set(['kick', 'twoweapon']);
+// C ref: cmd.c ext_func_tab — commands with AUTOCOMPLETE flag.
+// Only these commands show auto-completed names during typing.
+// Commands WITHOUT this flag (kick, twoweapon, wizloaddes, etc.)
+// echo only the typed characters.
+const DISPLAY_AUTOCOMPLETE = new Set([
+    'adjust', 'annotate', 'chat', 'chronicle', 'conduct', 'dip',
+    'enhance', 'force', 'invoke', 'jump', 'loot', 'monster', 'name',
+    'offer', 'polyself', 'pray', 'quit', 'ride', 'rub', 'sit',
+    'tip', 'turn', 'untrap', 'wipe',
+    // Wizard-mode commands with AUTOCOMPLETE
+    'dumpmap', 'dumpobj', 'dumpsnap', 'levelchange', 'lightsources',
+    'panic', 'stats', 'telekinesis', 'timeout', 'vision',
+    'wizbury', 'wizdispmacros', 'wizintrinsic', 'wizkill',
+    'wizmondiff', 'wizrumorcheck', 'wizseenv', 'wizsmell',
+    'wizwhere', 'wmode',
+]);
 
 function displayCompletedExtcmd(typed, game) {
     const raw = String(typed || '');
@@ -1145,8 +1158,8 @@ function displayCompletedExtcmd(typed, game) {
     if (exact) return raw;
     const matches = cmds.filter((c) => c.startsWith(lowered));
     if (matches.length === 1) {
-        // Don't show autocomplete for commands that lack the AUTOCOMPLETE flag in C.
-        if (NO_DISPLAY_AUTOCOMPLETE.has(matches[0])) return raw;
+        // Only show autocomplete for commands with C's AUTOCOMPLETE flag.
+        if (!DISPLAY_AUTOCOMPLETE.has(matches[0])) return raw;
         return matches[0];
     }
     return raw;

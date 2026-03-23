@@ -67,7 +67,7 @@ import {
     is_pool, is_lava, is_pool_or_lava, is_moat, is_ice,
     is_drawbridge_wall, find_drawbridge, destroy_drawbridge,
 } from './dbridge.js';
-import { deltrap, Can_dig_down } from './dungeon.js';
+import { deltrap, Can_dig_down, level_difficulty } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { TT_NONE, TT_PIT, TT_WEB, TT_BURIEDBALL } from './const.js';
@@ -626,7 +626,7 @@ export function dig_up_grave(cc, map, player) {
         // "The grave's owner is very upset!" — zombie
         // C: makemon(mkclass(S_ZOMBIE, 0), dig_x, dig_y, MM_NOMSG)
         {
-            const zmndx = mkclass(S_ZOMBIE, 0);
+            const zmndx = mkclass(S_ZOMBIE, 0, level_difficulty());
             if (zmndx >= 0) {
                 makemon(zmndx, dig_x, dig_y, MM_NOMSG, undefined, map);
             }
@@ -636,7 +636,7 @@ export function dig_up_grave(cc, map, player) {
         // "You've disturbed a tomb!" — mummy
         // C: makemon(mkclass(S_MUMMY, 0), dig_x, dig_y, MM_NOMSG)
         {
-            const mmndx = mkclass(S_MUMMY, 0);
+            const mmndx = mkclass(S_MUMMY, 0, level_difficulty());
             if (mmndx >= 0) {
                 makemon(mmndx, dig_x, dig_y, MM_NOMSG, undefined, map);
             }
