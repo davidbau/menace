@@ -16922,3 +16922,16 @@ source is elsewhere in the moveloop phase ordering.
   container. Passing the `map` fixes both mixed-gold pickup tests and the more
   general rule: floor extraction helpers need the owning map when the backing
   store is an array rather than only an `nobj` chain.
+- 2026-03-23: the late `seed031` camera-flash seam was a true keylog capture
+  boundary, not a JS camera bug. In the canonical fixture, the flash fired on
+  raw step `426` (`b`), but the recorded C session split its `tmp_at` bundle so
+  the third `^tmp_at_step[11,8,4081]` landed on raw step `427` and
+  `^tmp_at_end[flags=0]` landed on raw step `428`. A targeted rerecord with
+  `regen.key_delays_s = { "426": 0.75 }` consolidated the whole flash back onto
+  step `426`, kept gameplay fully green (`51561/51561` RNG and
+  `28950/28950` events), and moved the first screen divergence from the late
+  camera cell (`step 425`, `!` vs background) to a later menu seam at
+  `step 1222` (`Coins` vs `Potions`). Practical rule: when a screen-only seam
+  shows conserved gameplay and adjacent raw steps split one `tmp_at` visual
+  effect, fix the capture timing in the session regen metadata and rerecord the
+  fixture instead of patching JS display logic.
