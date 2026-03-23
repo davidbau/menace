@@ -236,7 +236,9 @@ export function getSessionStartup(session) {
 }
 
 export function getSessionCharacter(session) {
-    return parseSessionCharacter(session);
+    const rc = session?.nethackrc || session?.raw?.nethackrc || '';
+    if (rc) return parseNethackrcFull(rc).character;
+    return {};
 }
 
 // Manual-direct sessions still carry interactive chargen/startup keys in the
@@ -486,67 +488,6 @@ export async function generateMapsWithRng(seed, maxDepth) {
 const ROLE_INDEX = {};
 for (let i = 0; i < roles.length; i++) ROLE_INDEX[roles[i].name] = i;
 
-// Local session character parser (avoids circular dependency with replay_core).
-function parseSessionCharacter(session) {
-    if (!session?.options && !session?.nethackrc && !session?.raw?.nethackrc) return {};
-    if (session?.raw?.regen?.mode === 'manual-direct-live') {
-        const rawSteps = Array.isArray(session.raw?.steps) ? session.raw.steps : [];
-        const rawBoundary = getManualDirectChargenBoundary(session.raw);
-        const candidateLines = [];
-        const maxStep = rawBoundary >= 0 ? rawBoundary : Math.min(rawSteps.length - 1, 24);
-        for (let i = 1; i <= maxStep; i++) {
-            for (const line of getSessionScreenLines(rawSteps[i] || {})) {
-                candidateLines.push(line);
-            }
-        }
-        const parsed = parseManualDirectCharacterFromLines(candidateLines);
-        if (parsed) return parsed;
-    }
-    let startupName = null;
-    let startupRank = null;
-    // Find character name from startup status line.
-    const startup = session?.steps?.[0]?.key === null ? session.steps[0] : session?.startup;
-    const startupLines = getSessionScreenLines(startup || {});
-    for (const line of startupLines) {
-        if (!line || !line.includes('St:')) continue;
-        const m = line.match(/^\s*(.*?)\s+St:/);
-        if (!m) continue;
-        const statusPrefix = m[1].trim();
-        const theIdx = statusPrefix.indexOf(' the ');
-        if (theIdx > 0) {
-            startupName = statusPrefix.slice(0, theIdx).trim();
-            startupRank = statusPrefix.slice(theIdx + 5).trim();
-        } else if (statusPrefix.length > 0) {
-            startupName = statusPrefix;
-        }
-        if (startupName) break;
-    }
-    let roleFromStartup = null;
-    if (startupRank) {
-        const matches = [];
-        for (const role of roles) {
-            if (!role?.ranks) continue;
-            if (role.ranks.some((r) => r?.m === startupRank || r?.f === startupRank)) {
-                matches.push(role.name);
-            }
-        }
-        if (matches.length === 1) roleFromStartup = matches[0];
-    }
-
-    // Fall back to options, then nethackrc for character fields.
-    const opts = session?.options || {};
-    const rawSession = session?.raw || session;
-    const rc = rawSession?.nethackrc || session?.nethackrc || '';
-    const rcChar = rc ? parseNethackrcFull(rc).character : {};
-
-    return {
-        name: startupName || opts.name || rcChar.name || null,
-        role: roleFromStartup || opts.role || rcChar.role || null,
-        race: opts.race || rcChar.race || null,
-        gender: opts.gender || rcChar.gender || null,
-        align: opts.align || rcChar.align || null,
-    };
-}
 
 export async function generateStartupWithRng(seed, session) {
     initrack();
@@ -554,7 +495,7 @@ export async function generateStartupWithRng(seed, session) {
     initRng(seed);
     setGameSeed(seed);
 
-    const charOpts = parseSessionCharacter(session);
+    const charOpts = getSessionCharacter(session);
     const roleIndex = ROLE_INDEX[charOpts.role] ?? 11;
 
     const preStartupEntries = getPreStartupRngEntries(session);
@@ -562,8 +503,8 @@ export async function generateStartupWithRng(seed, session) {
 
     const alignMap0 = { lawful: 1, neutral: 0, chaotic: -1 };
     const raceMap0 = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
-    const rcForStartup = session?.nethackrc ? parseNethackrcFull(session.nethackrc) : null;
-    initLevelGeneration(roleIndex, rcForStartup?.wizard ?? session?.options?.wizard ?? true, {
+    const rcParsed = session?.nethackrc ? parseNethackrcFull(session.nethackrc) : null;
+    initLevelGeneration(roleIndex, rcParsed?.wizard ?? false, {
         alignment: alignMap0[charOpts.align],
         race: raceMap0[charOpts.race],
     });
@@ -638,39 +579,3 @@ function titleCaseWord(word) {
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
-function parseManualDirectCharacterFromLines(lines) {
-    const roleNames = new Set(roles.map((role) => role?.name).filter(Boolean));
-    const raceAliases = {
-        human: 'human',
-        elf: 'elf',
-        elven: 'elf',
-        dwarf: 'dwarf',
-        dwarven: 'dwarf',
-        gnome: 'gnome',
-        gnomish: 'gnome',
-        orc: 'orc',
-        orcish: 'orc',
-    };
-    for (const rawLine of lines) {
-        const line = stripAnsiSequences(rawLine || '').trim();
-        if (!line) continue;
-
-        let match = line.match(/^(.+?) the (lawful|neutral|chaotic) (?:(male|female) )?(human|elf|elven|dwarf|dwarven|gnome|gnomish|orc|orcish) ([A-Za-z][A-Za-z ]+)$/i);
-        if (!match) {
-            match = line.match(/^Hello (.+?), welcome to NetHack!\s+You are a (lawful|neutral|chaotic) (?:(male|female) )?(human|elf|elven|dwarf|dwarven|gnome|gnomish|orc|orcish) ([A-Za-z][A-Za-z ]+)\.?/i);
-        }
-        if (!match) continue;
-
-        const [, name, align, gender, race, role] = match;
-        const normalizedRole = role.trim();
-        if (!roleNames.has(normalizedRole)) continue;
-        return {
-            name: name.trim(),
-            role: normalizedRole,
-            race: raceAliases[race.toLowerCase()] || race.toLowerCase(),
-            gender: gender ? gender.toLowerCase() : null,
-            align: align.toLowerCase(),
-        };
-    }
-    return null;
-}

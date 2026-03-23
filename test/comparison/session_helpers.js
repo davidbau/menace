@@ -1,7 +1,7 @@
-// test/comparison/session_helpers.js -- Legacy compatibility facade.
+// test/comparison/session_helpers.js -- Re-export facade.
 //
-// Keep this file small so older tooling can keep importing the same paths.
-// Replay behavior is now owned by core modules in js/.
+// Provides a single import point for test files that need replay/comparison
+// utilities from multiple modules. No logic lives here — just re-exports.
 
 export {
     compareRng,
@@ -36,6 +36,7 @@ export {
     getSessionCharacter,
     getSessionGameplaySteps,
     prepareReplayArgs,
+    stripAnsiSequences as stripAnsiSequencesCore,
 } from '../../js/replay_compare.js';
 
 export {
@@ -46,10 +47,9 @@ export {
 // ---------------------------------------------------------------------------
 // replayGameplaySession(seed, session, opts)
 //
-// Convenience bridge: accepts the old (seed, session, opts) calling convention,
-// converts via prepareReplayArgs, calls the game-agnostic replaySession(seed, opts, keys),
-// then groups the flat per-key results back into per-step results for backward-
-// compatible test assertions.
+// Convenience adapter: calls prepareReplayArgs + replaySession, then groups
+// the flat per-key results back into per-step results using stepBoundaries.
+// Used by unit tests that compare per-step RNG/screen output.
 // ---------------------------------------------------------------------------
 
 import { replaySession as _replaySession } from '../../js/replay_core.js';
@@ -59,9 +59,6 @@ export async function replayGameplaySession(seed, session, opts = {}) {
     const args = _prepareReplayArgs(seed, session, opts);
     const jsSession = await _replaySession(args.seed, args.opts, args.keys);
 
-    // Adapt V3 session for backward-compatible test assertions.
-    // jsSession.steps[0] is startup, jsSession.steps[1..] are per-keystroke.
-    // Group per-keystroke steps using stepBoundaries to align with session steps.
     const startup = {
         rng: jsSession.steps[0].rng,
         screen: (jsSession.steps[0].screen || '').split('\n').map(l => _stripAnsi(l)),
