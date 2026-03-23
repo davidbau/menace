@@ -38,11 +38,6 @@ export function shufl(base, num) {
   }
 }
 
-// C ref: alloc(num) → in JS just returns a new object placeholder
-export function alloc() {
-  return {};
-}
-
 // C ref: losestr(num) — reduce strength
 export function losestr(num) {
   if (game.u.ustr > 18) {
@@ -56,13 +51,6 @@ export function losestr(num) {
   game.flags.botl |= STR;
 }
 
-// C ref: getret() — wait for space key
-export async function getret() {
-  await pline('\n\n--Hit space to continue--');
-  let ch;
-  do { ch = await game.input.getKey(); } while (ch !== ' ');
-}
-
 // C ref: glo(foo) — set lock filename suffix
 export function glo(foo) {
   const dot = game.lock.indexOf('.');
@@ -70,21 +58,6 @@ export function glo(foo) {
   game.lock = game.lock + '.' + foo;
 }
 
-// C ref: lesshungry(n) — decrease hunger counter
-function lesshungry(n) {
-  game.u.uhunger += n;
-  if (game.u.uhunger > 2000) game.u.uhunger = 2000;
-}
-
-// C ref: useup(obj) — use up one item from inventory
-function useup(obj) {
-  if (obj.quan > 1) { obj.quan--; return; }
-  // Remove from inventory
-  if (obj === game.invent) { game.invent = game.invent.nobj; return; }
-  let prev = game.invent;
-  while (prev && prev.nobj !== obj) prev = prev.nobj;
-  if (prev) prev.nobj = obj.nobj;
-}
 
 // ===== Score storage for Hack =====
 
@@ -232,39 +205,9 @@ export async function done1() {
 }
 
 // C ref: rhack(cmd) — execute one command
+// do.js provides _rhack_fn which handles all commands; this is the dispatch stub.
 async function rhack(cmd) {
-  // Import do.js rhack function (avoiding circular deps with a deferred import)
   if (_rhack_fn) return _rhack_fn(cmd);
-  // Fallback: basic movement only
-  if (movecm(cmd)) {
-    if (game.multi) game.flags.mv = 1;
-    await domove();
-    return;
-  }
-  if (movecm(String.fromCharCode(cmd.charCodeAt(0) + 0x20))) {
-    game.flags.mv = 2;
-    game.multi += 80;
-    await domove();
-    return;
-  }
-  switch (cmd) {
-    case 's': await dosearch(); break;
-    case 'Q': await done1(); break;
-    case '>':
-      if (game.u.ustuck || game.u.ux !== game.xdnstair || game.u.uy !== game.ydnstair) {
-        await pline("You can't go down now."); game.flags.move = game.multi = 0; return;
-      }
-      await movemon(); seeoff(1); await dodown(); setsee(); await docrt(); break;
-    case '<':
-      if (game.u.ustuck || game.u.ux !== game.xupstair || game.u.uy !== game.yupstair) {
-        await pline("You can't go up now."); game.flags.move = game.multi = 0; return;
-      }
-      await movemon(); seeoff(1); await doup(); setsee(); await docrt(); break;
-    case ' ': break;
-    default:
-      await pline('Unknown command: %s', cmd);
-      game.flags.move = false;
-  }
 }
 
 let _rhack_fn = null;
