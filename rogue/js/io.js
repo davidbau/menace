@@ -66,15 +66,19 @@ export async function endmsg() {
   // Display the new message
   // Clear row 0 of cw
   for (let c = 0; c < COLS; c++) g.cw[0][c] = ' ';
-  // Write message
-  const str = _msgbuf.slice(0, COLS);
-  for (let i = 0; i < str.length; i++) {
-    g.cw[0][i] = str[i];
+  // Write message — expand tabs to spaces (matching C curses waddch tab handling)
+  let col = 0;
+  for (let i = 0; i < _msgbuf.length && col < COLS; i++) {
+    const ch = _msgbuf[i];
+    if (ch === '\t') {
+      const nextTab = (Math.floor(col / 8) + 1) * 8;
+      while (col < nextTab && col < COLS) g.cw[0][col++] = ' ';
+    } else {
+      g.cw[0][col++] = ch;
+    }
   }
-  // Clear rest
-  for (let c = str.length; c < COLS; c++) g.cw[0][c] = ' ';
 
-  g.mpos = _newpos;
+  g.mpos = col;  // actual display column after tab expansion
   _newpos = 0;
   _msgbuf = "";
 

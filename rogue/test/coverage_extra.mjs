@@ -236,6 +236,37 @@ async function testArrowStraightLine() {
               `player at row ${playerRow} — straight line north confirmed, no '&' on any screen)`);
 }
 
+/**
+ * Test options screen ('o' command) — verify no stale chars when toggling False→True.
+ * The 'e' in 'False' (5 chars) must be cleared when overwritten by 'True' (4 chars).
+ * Key sequence: 'o' open, 'T' toggle terse True, ESC quit early, ' ' continue.
+ */
+async function testOptionsToggle() {
+  const { runSession } = await import('./node_runner.mjs');
+  const steps = await runSession(42, 'oT\x1b ');
+
+  // Step 2: after 'ESC' quits options editing, screen reflects the committed state.
+  // The first options row must show 'True' not 'Truee'.
+  for (let i = 0; i < steps.length; i++) {
+    for (let r = 0; r < steps[i].screen.length; r++) {
+      const row = steps[i].screen[r] || '';
+      if (row.includes('Truee') || row.includes('Falsee')) {
+        console.error(`testOptionsToggle FAIL: stale char on screen step ${i} row ${r}: ${JSON.stringify(row)}`);
+        process.exit(1);
+      }
+    }
+  }
+
+  // Also verify terse option is actually shown as 'True' after toggling
+  const optScreen = steps[2].screen;
+  const terseRow = optScreen.find(r => r.includes('Terse output:'));
+  if (!terseRow || !terseRow.includes('True')) {
+    console.error(`testOptionsToggle FAIL: expected 'True' for terse on step 2, got: ${JSON.stringify(terseRow)}`);
+    process.exit(1);
+  }
+  console.log('testOptionsToggle: PASS (options False→True cleared correctly, no stale chars)');
+}
+
 // Run all coverage tests
 await testDeath();
 await testDeathArrow();
@@ -243,5 +274,6 @@ await testWinner();
 await testSaveLoad();
 await testSecretdoorDisplay();
 await testArrowStraightLine();
+await testOptionsToggle();
 
 console.log('coverage_extra: all tests complete');
