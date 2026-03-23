@@ -15,9 +15,9 @@ import {
 export const monsters = [
   { m_name: "giant ant",         m_carry:  0, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    10, s_lvl: 2, s_arm: 3, s_hpt: 1, s_dmg: "1d6" } },
   { m_name: "bat",               m_carry:  0, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:     1, s_lvl: 1, s_arm: 3, s_hpt: 1, s_dmg: "1d2" } },
-  { m_name: "centaur",           m_carry: 15, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    25, s_lvl: 4, s_arm: 4, s_hpt: 1, s_dmg: "1d6/1d6" } },
+  { m_name: "centaur",           m_carry: 15, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    15, s_lvl: 4, s_arm: 4, s_hpt: 1, s_dmg: "1d6/1d6" } },
   { m_name: "dragon",            m_carry:100, m_flags: ISGREED,            m_stats: { s_str:{st_str:1,st_add:1}, s_exp:  9000, s_lvl:10, s_arm:-1, s_hpt: 1, s_dmg: "1d8/1d8/3d10" } },
-  { m_name: "floating eye",      m_carry:  0, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    10, s_lvl: 1, s_arm: 9, s_hpt: 1, s_dmg: "1d1" } },
+  { m_name: "floating eye",      m_carry:  0, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:     5, s_lvl: 1, s_arm: 9, s_hpt: 1, s_dmg: "0d0" } },
   { m_name: "violet fungi",      m_carry:  0, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    85, s_lvl: 8, s_arm: 3, s_hpt: 1, s_dmg: "000d0" } },
   { m_name: "gnome",             m_carry: 10, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:     8, s_lvl: 1, s_arm: 5, s_hpt: 1, s_dmg: "1d6" } },
   { m_name: "hobgoblin",         m_carry:  0, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:     3, s_lvl: 1, s_arm: 5, s_hpt: 1, s_dmg: "1d8" } },
@@ -33,11 +33,11 @@ export const monsters = [
   { m_name: "rust monster",      m_carry:  0, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    25, s_lvl: 5, s_arm: 2, s_hpt: 1, s_dmg: "0d0/0d0" } },
   { m_name: "snake",             m_carry:  0, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:     3, s_lvl: 1, s_arm: 5, s_hpt: 1, s_dmg: "1d3" } },
   { m_name: "troll",             m_carry: 50, m_flags: ISREGEN|ISMEAN,     m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    55, s_lvl: 6, s_arm: 4, s_hpt: 1, s_dmg: "1d8/1d8/2d6" } },
-  { m_name: "umber hulk",        m_carry: 40, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:  1000, s_lvl: 8, s_arm: 2, s_hpt: 1, s_dmg: "3d4/3d4/2d5" } },
+  { m_name: "umber hulk",        m_carry: 40, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:   130, s_lvl: 8, s_arm: 2, s_hpt: 1, s_dmg: "3d4/3d4/2d5" } },
   { m_name: "vampire",           m_carry: 20, m_flags: ISREGEN|ISMEAN,     m_stats: { s_str:{st_str:1,st_add:1}, s_exp:   380, s_lvl: 8, s_arm: 1, s_hpt: 1, s_dmg: "1d10" } },
   { m_name: "wraith",            m_carry:  0, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    55, s_lvl: 5, s_arm: 4, s_hpt: 1, s_dmg: "1d6" } },
   { m_name: "xorn",              m_carry:  0, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:   120, s_lvl: 7, s_arm:-2, s_hpt: 1, s_dmg: "1d3/1d3/1d3/4d6" } },
-  { m_name: "yeti",              m_carry: 30, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    35, s_lvl: 4, s_arm: 6, s_hpt: 1, s_dmg: "1d6/1d6" } },
+  { m_name: "yeti",              m_carry: 30, m_flags: 0,                  m_stats: { s_str:{st_str:1,st_add:1}, s_exp:    50, s_lvl: 4, s_arm: 6, s_hpt: 1, s_dmg: "1d6/1d6" } },
   { m_name: "zombie",            m_carry:  0, m_flags: ISMEAN,             m_stats: { s_str:{st_str:1,st_add:1}, s_exp:     7, s_lvl: 2, s_arm: 8, s_hpt: 1, s_dmg: "1d8" } },
 ];
 
