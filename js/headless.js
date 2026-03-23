@@ -1401,6 +1401,7 @@ export class HeadlessDisplay {
             for (let c = offx; c < this.cols; c++) {
                 this.grid[i][c] = ' ';
                 this.colors[i][c] = CLR_GRAY;
+                this.attrs[i][c] = 0;
             }
             this.putstr(offx, i, lines[i]);
         }
@@ -1408,6 +1409,7 @@ export class HeadlessDisplay {
             for (let c = offx; c < this.cols; c++) {
                 this.grid[i][c] = ' ';
                 this.colors[i][c] = CLR_GRAY;
+                this.attrs[i][c] = 0;
             }
         }
     }
