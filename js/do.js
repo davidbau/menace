@@ -1354,16 +1354,10 @@ export async function deferred_goto(player, game) {
             await losehp(Math.max(0, dmg), "falling down a mine shaft", KILLED_BY, player, game?.display, game);
         }
     }
-    // C ref: do.c goto_level() calls u_entered_or_left_rooms(TRUE) then
-    // check_special_room(FALSE) before return. The newlev=TRUE call resets
-    // urooms so the subsequent FALSE call detects all rooms as "entered".
+    // C ref: check_special_room(FALSE) now runs inside changeLevelCore
+    // (matching C's goto_level). Room entry messages fire there.
     if (dest !== fromDepth) {
         const newMap = game?.map || game?.lev;
-        move_update(true, player, newMap);
-        // Defer shop greeting until after docrt in allmain.js changeLevel
-        player._deferShopGreeting = true;
-        await check_special_room(false, player, newMap, game?.display, game?.fov || null);
-        player._deferShopGreeting = false;
         const objs = newMap?.objectsAt ? newMap.objectsAt(player.x, player.y) : [];
         if (arrivalMsg && objs.length === 1) {
             observeObject(objs[0]);
@@ -1889,6 +1883,17 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         }
     }
 
+    // C ref: do.c:1966 check_special_room(FALSE) — room entry messages
+    // after level transition. Must run inside goto_level (changeLevelCore),
+    // not in deferred_goto, matching C's call sequence.
+    {
+        const newMap = game?.map || game?.lev;
+        const player = game.u || game.u;
+        if (newMap && player) {
+            move_update(true, player, newMap);
+            await check_special_room(false, player, newMap, game?.display, game?.fov || null);
+        }
+    }
 }
 
 // C ref: do.c:1479 goto_level() — level transition core.
