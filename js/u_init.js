@@ -1279,6 +1279,9 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     // C ref: nhlua.c NHCORE_START_NEW_GAME triggers shuffle
     rn2(3); rn2(2);
 
+    // NOTE: rnd(9000) (rndencode) and rnd(30) (seerTurn) are consumed in
+    // _gameLoopStep preamble (allmain.js), matching C's moveloop_preamble()
+    // which runs at step 1 after the first key press dismisses lore --More--.
     return {};
 }
 
@@ -1299,12 +1302,14 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     resetHungerState();
     // C ref: allmain.c:787 — init_artifacts() before u_init(), includes hack_artifacts()
     hack_artifacts(player);
-    const { enadv_roll, rightHanded } = initLevelGeneration(roleIndex, wizard, {
+    const { enadv_roll, rightHanded, pantheonIdx } = initLevelGeneration(roleIndex, wizard, {
         alignment: player.alignment,
         race: player.race,
     });
     // C ref: u_init_misc() handedness assignment in u.uhandedness
     player.rightHanded = rightHanded;
+    // C ref: role.c role_init() — pantheon for roles without gods (Priest)
+    player.pantheonIdx = pantheonIdx;
     // C ref: allmain.c/u_init.c ordering: u.uhp/u.uen are initialized before
     // makelevel(), so early mklev mapdump checkpoints see populated hero stats.
     const role = roles[player.roleIndex];

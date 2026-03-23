@@ -2001,7 +2001,8 @@ export class NetHackGame {
         }
         this.levels[startDlevel] = map;
         this.u.wizard = this.wizard;
-        this.seerTurn = initResult.seerTurn;
+        // seerTurn is set in _gameLoopStep preamble (moveloop_preamble equivalent)
+        this.seerTurn = 0;
         if (urlOpts.simulateManualDirectChargen?.hasTutorial) {
             await _enterTutorial(this, { direct: true });
         }
@@ -2040,13 +2041,14 @@ export class NetHackGame {
             const female = this.u.gender === FEMALE;
             const align = this.u.alignment;
 
-            let deityName = godForRoleAlign(roleIdx, align);
-            let goddess = isGoddess(roleIdx, align);
+            // Use pantheonIdx from initLevelGeneration for godless roles (Priest).
+            // The rn2(13) was consumed at the correct ISAAC position.
+            const pIdx = this.u.pantheonIdx ?? roleIdx;
+            let deityName = godForRoleAlign(pIdx, align);
+            let goddess = isGoddess(pIdx, align);
             if (!deityName) {
-                let donorRole;
-                do { donorRole = rn2(roles.length); } while (!roles[donorRole].gods[0]);
-                deityName = godForRoleAlign(donorRole, align);
-                goddess = isGoddess(donorRole, align);
+                deityName = 'Unknown';
+                goddess = false;
             }
             const godOrGoddess = goddess ? 'goddess' : 'god';
             const rankTitle = rankOf(1, roleIdx, female);
@@ -2509,6 +2511,16 @@ export class NetHackGame {
     }
 
     async _gameLoopStep() {
+        // C ref: allmain.c moveloop_preamble() — runs once at the start of
+        // moveloop, AFTER the first key press (lore --More-- dismiss).
+        // rnd(9000) sets rndencode; rnd(30) sets seer_turn.
+        // In C this is step 1; JS matches by running here instead of initFirstLevel.
+        if (!this._preambleDone) {
+            this._preambleDone = true;
+            rnd(9000);              // C ref: allmain.c:74 rndencode
+            this.seerTurn = rnd(30); // C ref: allmain.c:81 seer_turn
+        }
+
         while (true) {
             const hasPendingRunAdvanceTurn = !!this._pendingRunAdvanceTurn;
             const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
