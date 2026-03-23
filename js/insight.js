@@ -35,7 +35,7 @@ import { x_monnam, pmname } from './do_name.js';
 import { find_mac } from './worn.js';
 import { pline, getGameLog } from './pline.js';
 import { showPager, showMoreTextPages } from './pager.js';
-import { is_pool_or_lava } from './dbridge.js';
+import { is_pool_or_lava, is_pool, is_lava } from './dbridge.js';
 import { makeplural, an } from './objnam.js';
 import { races } from './role.js';
 import { rank_of } from './botl.js';
@@ -794,7 +794,10 @@ function status_enlightenment(mode, final, game) {
     } else if (player.uinwater) {
         you_are(final, player.swimming ? 'swimming' : 'in water', '');
     } else if (walking_on_water(player, map)) {
-        you_are(final, 'walking on water', '');
+        // C ref: insight.c:973-977 — detect water vs lava
+        const surface = is_pool(player.x, player.y, map) ? 'water'
+            : is_lava(player.x, player.y, map) ? 'lava' : 'water';
+        you_are(final, `walking on ${surface}`, '');
     }
 
     // Internal troubles
