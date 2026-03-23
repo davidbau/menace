@@ -239,6 +239,7 @@ export const helpstr = [
   { h_ch: 'p',      h_desc: "<dir>\tzap a wand in a direction" },
   { h_ch: 'z',      h_desc: "\tzap a wand or staff" },
   { h_ch: '>',      h_desc: "\tgo down a staircase" },
+  { h_ch: '<',      h_desc: "\tgo up a staircase" },
   { h_ch: 's',      h_desc: "\tsearch for trap/secret door" },
   { h_ch: ' ',      h_desc: "\t(space) rest for a while" },
   { h_ch: 'i',      h_desc: "\tinventory" },

@@ -265,6 +265,7 @@ async function dispatch(g, ch) {
       }
       break;
     case 'v':
+      g.after = false;
       await _msg(`Rogue version ${g.release || '3.6'}. (mctesq was here)`);
       break;
     case '\x0c': // Ctrl-L: redraw
