@@ -635,7 +635,7 @@ export function getComparableEventStreams(jsRng = [], sessionRng = []) {
     // and ^add_region events.  Sessions recorded without these patches won't
     // have them.  If either side lacks an event type entirely, filter it from
     // both sides so old sessions remain comparable without rerecording.
-    const optionalPrefixes = ['^moveamt[', '^fog_everyturn[', '^add_region['];
+    const optionalPrefixes = ['^moveamt[', '^fog_everyturn[', '^add_region[', '^catchup['];
     for (const prefix of optionalPrefixes) {
         const jsHas = js.some((e) => typeof e === 'string' && e.startsWith(prefix));
         const sessionHas = session.some((e) => typeof e === 'string' && e.startsWith(prefix));
