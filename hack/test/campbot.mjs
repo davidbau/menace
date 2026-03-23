@@ -271,19 +271,45 @@ input.getKey = async function () {
         if (k) { const d2 = Math.abs(ax-u.ux)+Math.abs(ay-u.uy); if(d2<bestDist){bestDist=d2; bestKey=k;} }
       }
       if (!bestKey) {
-        // Try path through secret doors
-        const path = bfsPath(mx, my, true);
-        bestKey = path ? (path.needsSearch && u.ux === path.searchX && u.uy === path.searchY ? 's' : (bfsKey(path.searchX, path.searchY) || 's')) : 's';
+        // Target found but behind SDOOR. Find nearest SDOOR between us and target,
+        // navigate to the reachable cell adjacent to it, and search.
+        const reachable = new Set([`${u.ux},${u.uy}`]);
+        const rq = [{x:u.ux, y:u.uy}];
+        while (rq.length) { const {x,y} = rq.shift(); const st = game.levl[x]?.[y]?.typ ?? 0;
+          for (const [,ddx,ddy] of dirs) { const nx=x+ddx,ny=y+ddy;
+            const c=game.levl[nx]?.[ny]; if(!c||c.typ<DOOR)continue;
+            if(ddx&&ddy&&(c.typ===DOOR||st===DOOR))continue;
+            const pk=`${nx},${ny}`; if(!reachable.has(pk)){reachable.add(pk);rq.push({x:nx,y:ny});}}}
+        // Find SDOOR adjacent to reachable cell, closest to target
+        let bestSD = null, bestSDDist = Infinity;
+        for (const pk of reachable) { const [px,py] = pk.split(',').map(Number);
+          for (const [,ddx,ddy] of dirs) { if(ddx&&ddy) continue;
+            const sx=px+ddx,sy=py+ddy; const sc=game.levl[sx]?.[sy];
+            if (sc && sc.typ === SDOOR) {
+              const dist = Math.abs(sx-mx)+Math.abs(sy-my);
+              if (dist < bestSDDist) { bestSDDist = dist; bestSD = {px,py}; }
+            }}}
+        if (bestSD) {
+          if (u.ux === bestSD.px && u.uy === bestSD.py) {
+            bestKey = 's';
+          } else {
+            const navKey = bfsKey(bestSD.px, bestSD.py);
+            bestKey = navKey || 's';
+          }
+        } else {
+          // No SDOOR found adjacent to reachable area — just search everywhere
+          bestKey = 's';
+        }
       }
       key = bestKey || 's';
     }
   }
 
-  // Stuck detection
+  // Stuck detection — but don't override search ('s') or camp (' ')
   const pos = `${u.ux},${u.uy}`;
   if (pos === lastPos) {
     stuckCount++;
-    if (stuckCount > 30 && key !== 's') key = 'hjklyubn'[stepCount%8];
+    if (stuckCount > 30 && key !== 's' && key !== ' ') key = 'hjklyubn'[stepCount%8];
   } else { stuckCount = 0; lastPos = pos; }
 
   keyLog.push(key);
