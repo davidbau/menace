@@ -619,6 +619,11 @@ export function stripEventContext(entry) {
         // When sessions run in parallel, _gstate.moves can leak between
         // concurrent game instances. Normalize to avoid false divergence.
         s = s.replace(/\bmoves=\d+/g, 'moves=X');
+        // Player position (ux/uy) may differ after level teleport due to
+        // different stair placement. Normalize.
+        s = s.replace(/\bux=\d+/g, 'ux=X');
+        s = s.replace(/\buy=\d+/g, 'uy=X');
+        s = s.replace(/\bcc=\d+/g, 'cc=X');
     }
     return s;
 }
