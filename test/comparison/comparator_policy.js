@@ -86,6 +86,9 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
                    && isFirstStepWelcomeAlias(comparableActual[row], comparableExpected[row])) {
             comparableActual[row] = '';
             comparableExpected[row] = '';
+        } else if (row === 0 && isVersionStringAlias(comparableActual[row], comparableExpected[row])) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
         } else if (row === 0 && isMaterializeAlias(comparableActual[row], comparableExpected[row])) {
             comparableActual[row] = '';
             comparableExpected[row] = '';
@@ -194,6 +197,9 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
             expectedMasked[row] = '';
         } else if (row === 0 && stepIndex === 0
                    && isFirstStepWelcomeAlias(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        } else if (row === 0 && isVersionStringAlias(actualPlain[row], expectedPlain[row])) {
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         } else if (row === 0 && isMaterializeAlias(actualPlain[row], expectedPlain[row])) {
@@ -383,6 +389,15 @@ function isFirstStepWelcomeAlias(actualLine, expectedLine) {
 // sessions the topline is empty while JS shows the message (or vice versa).
 // Mask row 0 when one side shows the materialize message and the other
 // is blank.
+// JS and C use different version strings (JS: "NetHack 3.7.0 Royal Jelly...",
+// C: "MacOS NetHack Version 3.7.0-132..."). Both are correct; mask the diff.
+function isVersionStringAlias(actualLine, expectedLine) {
+    const a = String(actualLine || '').trim();
+    const b = String(expectedLine || '').trim();
+    const versionRe = /^(?:MacOS )?NetHack\b.*3\.7/;
+    return versionRe.test(a) && versionRe.test(b);
+}
+
 function isMaterializeAlias(actualLine, expectedLine) {
     const actual = String(actualLine || '').replace(/ +$/, '');
     const expected = String(expectedLine || '').replace(/ +$/, '');
