@@ -236,17 +236,94 @@ export function getSessionStartup(session) {
 }
 
 export function getSessionCharacter(session) {
-    return parseSessionCharacter(session);
+    const rc = session?.nethackrc || session?.raw?.nethackrc || '';
+    if (rc) return parseNethackrcFull(rc).character;
+    return {};
 }
 
-// V4 key-driven: all steps after step 0 (key=null) are gameplay steps,
-// including --More-- dismissals, chargen keys, and tutorial prompts.
+// Manual-direct sessions still carry interactive chargen/startup keys in the
+// recorded step stream. replaySession() needs those keys pre-pushed into init(),
+// then should compare only real gameplay steps afterward.
+function getManualDirectChargenInfo(rawSession) {
+    const steps = rawSession?.steps || [];
+    let firstBurst = -1;
+    let lastBurst = -1;
+    for (let i = 1; i < steps.length; i++) {
+        if ((steps[i].rng || []).length > 100) {
+            if (firstBurst < 0) firstBurst = i;
+            lastBurst = i;
+        }
+        if (firstBurst >= 0 && i > firstBurst + 10) break;
+    }
+    if (firstBurst < 0) return null;
+    const hasTutorial = lastBurst > firstBurst;
+    let boundary = lastBurst;
+    for (let j = lastBurst + 1; j < steps.length && j <= lastBurst + 10; j++) {
+        if ((steps[j].rng || []).length > 3) break;
+        boundary = j;
+    }
+    return { boundary, hasTutorial, firstBurst, lastBurst };
+}
+
+function getManualDirectChargenBoundary(rawSession) {
+    return getManualDirectChargenInfo(rawSession)?.boundary ?? -1;
+}
+
+export function getGameplayRawStepBase(session) {
+    if (!session?.steps?.length) return 1;
+    if (session.regen?.mode === 'manual-direct-live') {
+        const boundary = getManualDirectChargenBoundary(session);
+        if (boundary >= 0) return boundary + 2;
+    }
+    if (session.steps[0]?.key === null) return 2;
+    return 1;
+}
+
 export function getSessionGameplaySteps(session) {
     if (!session?.steps) return [];
     if (session.steps.length > 0 && session.steps[0].key === null) {
+        if (session.regen?.mode === 'manual-direct-live') {
+            const boundary = getManualDirectChargenBoundary(session);
+            if (boundary >= 0) return session.steps.slice(boundary + 1);
+        }
         return session.steps.slice(1);
     }
     return session.steps;
+}
+
+export function getChargenKeys(session) {
+    if (session.type !== 'chargen') return [];
+    const keys = [];
+    for (const step of (session.steps || [])) {
+        if (step.key === null) break;
+        if (typeof step.key === 'string' && step.key.length > 0) {
+            keys.push(step.key);
+        }
+    }
+    return keys;
+}
+
+export function applyManualDirectChargenView(session) {
+    if (session.raw?.regen?.mode !== 'manual-direct-live') return session;
+    const rawBoundary = getManualDirectChargenBoundary(session.raw);
+    if (rawBoundary < 0) return session;
+    const sessionBoundary = rawBoundary - 1;
+    const chargenSteps = session.steps.slice(0, sessionBoundary + 1);
+    const chargenRng = chargenSteps.flatMap((s) => s.rng || []);
+    const hasPickAlign = chargenSteps.some((s) =>
+        (s.rng || []).some((r) => typeof r === 'string' && r.includes('pick_align'))
+    );
+    const firstGameplayStep = session.steps[sessionBoundary + 1];
+    return {
+        ...session,
+        startup: {
+            ...(session.startup || {}),
+            rng: [...(session.startup?.rng || []), ...chargenRng],
+            screen: firstGameplayStep?.screen ?? (session.startup?.screen ?? []),
+        },
+        steps: session.steps.slice(sessionBoundary + 1),
+        _manualDirectChargen: { hasPickAlign },
+    };
 }
 
 // Legacy compat — always true for V4 sessions.
@@ -259,59 +336,54 @@ export function hasStartupBurstInFirstStep(session) {
 // V4 key-driven: all sessions use env + nethackrc. Step 0 is the initial
 // screen (lore + --More--), and all subsequent keys drive the game.
 export function prepareReplayArgs(seed, session, opts = {}) {
-    // Derive options from nethackrc if not already present.
-    if (session.nethackrc && !session.options && !session._v4OptionsApplied) {
-        const { character, flags, wizard } = parseNethackrcFull(session.nethackrc);
-        session.options = {};
-        if (character.name) session.options.name = character.name;
-        if (character.role) session.options.role = character.role;
-        if (character.race) session.options.race = character.race;
-        if (character.gender) session.options.gender = character.gender;
-        if (character.align) session.options.align = character.align;
-        if (wizard) session.options.wizard = true;
-        if (flags.pickup === false) session.options.autopickup = false;
-        if (flags.verbose === false) session.options.verbose = false;
-        if (flags.tutorial === false) session.options.tutorial = false;
-        if (flags.DECgraphics) session.options.symset = 'DECgraphics';
-        if (flags.time === true) session.options.time = true;
-        if (flags.color === false) session.options.color = false;
-        if (flags.rest_on_space) session.options.rest_on_space = true;
-        if (session.env?.NETHACK_FIXED_DATETIME) {
-            session.options.datetime = session.env.NETHACK_FIXED_DATETIME;
-        }
-        session._v4OptionsApplied = true;
-    }
-    const sessionChar = parseSessionCharacter(session);
+    const rawSession = session?.raw || session;
+    const nethackrc = rawSession?.nethackrc || session?.nethackrc || '';
+
+    // 8A.6: Pass nethackrc to game.init() — it parses character/wizard/flags.
+    const parsed = nethackrc ? parseNethackrcFull(nethackrc) : { character: {}, flags: {}, wizard: false };
+
     const replayFlags = typeof opts.flags === 'object' && opts.flags !== null
         ? { ...opts.flags }
         : {};
-    // Only set character when role is known (pre-selected character).
-    // When role is absent (e.g., manual-direct sessions with interactive
-    // chargen), leave character null so game.init() uses the key sequence.
-    const hasCharacter = !!(sessionChar.role);
+
     const initOpts = {
-        wizard: session.options?.wizard ?? false,
-        character: hasCharacter ? {
-            role: sessionChar.role,
-            name: sessionChar.name,
-            gender: sessionChar.gender,
-            race: sessionChar.race,
-            align: sessionChar.align,
-        } : null,
+        nethackrc: nethackrc || undefined,
+        // Legacy fields kept for callers that don't use nethackrc yet
+        wizard: !!parsed.wizard,
+        character: parsed.character?.role ? parsed.character : null,
         startDnum: Number.isInteger(opts.startDnum) ? opts.startDnum : undefined,
         startDlevel: Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1,
         dungeonAlignOverride: Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined,
         flags: replayFlags,
     };
 
-    const hasCheckpointEvents = (Array.isArray(session?.steps) ? session.steps : []).some((step) =>
+    const allSteps = rawSession?.steps || session?.steps || [];
+    const hasCheckpointEvents = allSteps.some((step) =>
         Array.isArray(step?.rng) && step.rng.some((entry) => typeof entry === 'string' && entry.startsWith('^ckpt['))
     );
     if (hasCheckpointEvents) {
         initOpts.captureSpecialLevelCheckpoints = true;
     }
 
-    // Flatten all step keys (including startup --More-- spaces) into a single string.
+    let chargenKeys = null;
+    const sessionChargenKeys = getChargenKeys(session);
+    if (sessionChargenKeys.length > 0) chargenKeys = sessionChargenKeys;
+
+    if (rawSession?.regen?.mode === 'manual-direct-live') {
+        const info = getManualDirectChargenInfo(rawSession);
+        if (info) {
+            const chargenOnlySteps = (rawSession.steps || []).slice(1, info.firstBurst);
+            const hasPickAlign = chargenOnlySteps.some((step) =>
+                (step.rng || []).some((entry) => typeof entry === 'string' && entry.includes('pick_align'))
+            );
+            initOpts.simulateManualDirectChargen = {
+                hasPickAlign,
+                hasTutorial: info.hasTutorial,
+            };
+        }
+    }
+
+    // Flatten gameplay step keys after any folded startup prefix.
     const steps = getSessionGameplaySteps(session);
     let maxKeys = opts.maxSteps;
     let keys = '';
@@ -320,10 +392,9 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         if (typeof steps[i].key === 'string') keys += steps[i].key;
     }
 
-    // Build display flags from session metadata.
-    const sessionSymset = session?.options?.symset || session?.meta?.options?.symset;
-    const decgraphicsMode = session.screenMode === 'decgraphics' || sessionSymset === 'DECgraphics';
-    const displayFlags = { DECgraphics: !!decgraphicsMode };
+    // Build display flags from nethackrc.
+    const decgraphicsMode = !!parsed.flags.DECgraphics;
+    const displayFlags = { DECgraphics: decgraphicsMode };
     if (opts.flags && typeof opts.flags === 'object') {
         Object.assign(displayFlags, opts.flags);
     }
@@ -333,11 +404,11 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         opts: {
             initOpts,
             displayFlags,
+            chargenKeys,
             captureScreens: opts.captureScreens,
             onKey: opts.onKey,
         },
         keys,
-        // Expose step boundaries so the comparator can group key results back into steps.
         stepBoundaries: steps.map(s => (typeof s.key === 'string' ? s.key.length : 0)),
     };
 }
@@ -417,48 +488,6 @@ export async function generateMapsWithRng(seed, maxDepth) {
 const ROLE_INDEX = {};
 for (let i = 0; i < roles.length; i++) ROLE_INDEX[roles[i].name] = i;
 
-// Local session character parser (avoids circular dependency with replay_core).
-function parseSessionCharacter(session) {
-    if (!session?.options) return {};
-    let startupName = null;
-    let startupRank = null;
-    // Find character name from startup status line.
-    const startup = session?.steps?.[0]?.key === null ? session.steps[0] : session?.startup;
-    const startupLines = getSessionScreenLines(startup || {});
-    for (const line of startupLines) {
-        if (!line || !line.includes('St:')) continue;
-        const m = line.match(/^\s*(.*?)\s+St:/);
-        if (!m) continue;
-        const statusPrefix = m[1].trim();
-        const theIdx = statusPrefix.indexOf(' the ');
-        if (theIdx > 0) {
-            startupName = statusPrefix.slice(0, theIdx).trim();
-            startupRank = statusPrefix.slice(theIdx + 5).trim();
-        } else if (statusPrefix.length > 0) {
-            startupName = statusPrefix;
-        }
-        if (startupName) break;
-    }
-    let roleFromStartup = null;
-    if (startupRank) {
-        const matches = [];
-        for (const role of roles) {
-            if (!role?.ranks) continue;
-            if (role.ranks.some((r) => r?.m === startupRank || r?.f === startupRank)) {
-                matches.push(role.name);
-            }
-        }
-        if (matches.length === 1) roleFromStartup = matches[0];
-    }
-
-    return {
-        name: startupName || session.options.name,
-        role: roleFromStartup || session.options.role,
-        race: session.options.race,
-        gender: session.options.gender,
-        align: session.options.align,
-    };
-}
 
 export async function generateStartupWithRng(seed, session) {
     initrack();
@@ -466,7 +495,7 @@ export async function generateStartupWithRng(seed, session) {
     initRng(seed);
     setGameSeed(seed);
 
-    const charOpts = parseSessionCharacter(session);
+    const charOpts = getSessionCharacter(session);
     const roleIndex = ROLE_INDEX[charOpts.role] ?? 11;
 
     const preStartupEntries = getPreStartupRngEntries(session);
@@ -474,7 +503,8 @@ export async function generateStartupWithRng(seed, session) {
 
     const alignMap0 = { lawful: 1, neutral: 0, chaotic: -1 };
     const raceMap0 = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
-    initLevelGeneration(roleIndex, session.options?.wizard ?? true, {
+    const rcParsed = session?.nethackrc ? parseNethackrcFull(session.nethackrc) : null;
+    initLevelGeneration(roleIndex, rcParsed?.wizard ?? false, {
         alignment: alignMap0[charOpts.align],
         race: raceMap0[charOpts.race],
     });
@@ -543,3 +573,9 @@ function consumeRngEntries(entries) {
     // are consumed by the map generation that follows.
     // The real implementation would need to parse and replay each entry.
 }
+
+function titleCaseWord(word) {
+    if (!word) return word;
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+

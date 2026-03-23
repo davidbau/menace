@@ -182,7 +182,21 @@ function emitStartupRunstepIfEnabled(game) {
 }
 
 // No-op: legacy startup prompt settlement removed (V4 key-driven startup).
-async function settleStartupInputBoundaries(_game) {}
+async function settleStartupInputBoundaries(game, opts = {}) {
+    if (!opts?.initOpts?.simulateManualDirectChargen) return;
+    if (game?.pendingPrompt?.source !== 'startup_lore') return;
+
+    game.pendingPrompt = null;
+    if (game.display) {
+        game.display.toplin = 0;
+        game.display.topMessage = null;
+        game.display.messageNeedsMore = false;
+        game.display.messageNeedsMoreBoundary = false;
+    }
+    if (typeof game.docrt === 'function') {
+        game.docrt();
+    }
+}
 
 // ---------------------------------------------------------------------------
 // replaySession(seed, opts, keys)
@@ -233,7 +247,7 @@ export async function replaySession(seed, opts, keys) {
 
     const initOpts = { seed, ...(opts.initOpts || {}) };
     await game.init(initOpts);
-    await settleStartupInputBoundaries(game);
+    await settleStartupInputBoundaries(game, opts);
     emitStartupRunstepIfEnabled(game);
 
     // The welcome/lore message from init may still be visible on the topline.

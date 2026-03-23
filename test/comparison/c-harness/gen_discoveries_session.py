@@ -12,19 +12,18 @@ Output: test/comparison/sessions/interface_discoveries.session.json
 
 import sys
 import os
-import json
 import importlib.util
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
 SESSIONS_DIR = os.path.join(PROJECT_ROOT, 'test', 'comparison', 'sessions')
 
-# Import run_session helpers
+# Import record_c_session from run_session.py
 _spec = importlib.util.spec_from_file_location('run_session', os.path.join(SCRIPT_DIR, 'run_session.py'))
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 
-compact_session_json = _mod.compact_session_json
+record_c_session = _mod.record_c_session
 
 
 def main():
@@ -38,20 +37,29 @@ def main():
     seed = int(args[0]) if args else 2
     output = out_override or os.path.join(SESSIONS_DIR, 'interface_discoveries.session.json')
 
-    # Keys: \ (discoveries), then spaces to page through, then final space exits pager
-    # run_interface_session with auto_clear_more=False preserves pager pages
-    keys = '\\   '  # backslash + 3 spaces to page through discoveries
+    env = {
+        'NETHACK_SEED': str(seed),
+        'NETHACK_FIXED_DATETIME': '20000110090000',
+    }
+    nethackrc = (
+        'OPTIONS=name:Wizard,role:Valkyrie,race:human,gender:female,align:neutral\n'
+        'OPTIONS=!autopickup,symset:DECgraphics,!verbose,!tutorial\n'
+        'OPTIONS=suppress_alert:3.4.3\n'
+        'WIZARD=Wizard\n'
+    )
+    # Keys: space (dismiss lore --More--), space (dismiss welcome --More--),
+    # then \ (discoveries), then spaces to page through pager
+    keys = [' ', ' ', '\\', ' ', ' ', ' ']
 
-    _mod.run_interface_session(seed, output, keys, verbose=True)
-
-    # Patch the session metadata
-    with open(output) as f:
-        data = json.load(f)
-    data['regen']['subtype'] = 'in-game'
-    data['options']['description'] = 'Discoveries (\\) command at game start — Valkyrie with oil lamp'
-    with open(output, 'w') as f:
-        f.write(compact_session_json(data))
-
+    record_c_session(
+        env=env,
+        nethackrc=nethackrc,
+        keys=keys,
+        output_path=output,
+        regen_metadata={'mode': 'interface', 'subtype': 'in-game'},
+        session_type='interface',
+        verbose=True,
+    )
     print(f'Output: {output}')
 
 

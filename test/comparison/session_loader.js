@@ -3,7 +3,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
-import { parseNethackrcFull } from '../../js/storage.js';
+// parseNethackrcFull removed (8A.8) — callers parse nethackrc directly.
 
 const keylogMetaCache = new Map();
 
@@ -304,25 +304,9 @@ export function normalizeSession(raw, meta = {}) {
     const source = raw?.source || 'unknown';
     const seed = Number.isInteger(raw?.seed) ? raw.seed : 0;
     const type = deriveType(raw, file);
-    let options = { ...(raw?.options || {}) };
-    // V4: derive options from nethackrc when no options field is present
-    if (Object.keys(options).length === 0 && raw?.nethackrc) {
-        const { character, flags, wizard } = parseNethackrcFull(raw.nethackrc);
-        if (character.name) options.name = character.name;
-        if (character.role) options.role = character.role;
-        if (character.race) options.race = character.race;
-        if (character.gender) options.gender = character.gender;
-        if (character.align) options.align = character.align;
-        if (wizard) options.wizard = true;
-        if (flags.pickup === false) options.autopickup = false;
-        if (flags.verbose === false) options.verbose = false;
-        if (flags.tutorial === false) options.tutorial = false;
-        if (flags.DECgraphics) options.symset = 'DECgraphics';
-        if (flags.time === true) options.time = true;
-        if (flags.color === false) options.color = false;
-        if (flags.rest_on_space) options.rest_on_space = true;
-        if (raw?.env?.NETHACK_FIXED_DATETIME) options.datetime = raw.env.NETHACK_FIXED_DATETIME;
-    }
+    // 8A.8: options come from raw.options (legacy) or are read directly from
+    // nethackrc by callers via parseNethackrcFull. No derivation here.
+    const options = { ...(raw?.options || {}) };
     const inferredDatetime = inferSessionDatetime(raw);
     if (!options.datetime && inferredDatetime) {
         options.datetime = inferredDatetime;

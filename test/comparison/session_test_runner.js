@@ -7,7 +7,7 @@ import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 
 import { replaySession } from '../../js/replay_core.js';
-import { prepareReplayArgs } from '../../js/replay_compare.js';
+import { prepareReplayArgs, applyManualDirectChargenView } from '../../js/replay_compare.js';
 import { NetHackGame } from '../../js/allmain.js';
 import {
     createHeadlessInput,
@@ -20,7 +20,7 @@ import {
     getRngLog,
     disableRngLog,
 } from '../../js/rng.js';
-import { DEFAULT_FLAGS } from '../../js/storage.js';
+import { DEFAULT_FLAGS, parseNethackrcFull } from '../../js/storage.js';
 import { resetInputModuleState } from '../../js/input.js';
 import { resetNoisesState } from '../../js/mhitm.js';
 import { stairway_free_all } from '../../js/stairs.js';
@@ -434,13 +434,14 @@ async function replayInterfaceSession(session) {
     const game = new NetHackGame({ display, input });
     const subtype = session.meta.regen?.subtype;
     const replaySessionInterface = subtype !== 'startup' && subtype !== 'nameprompt';
-    const inGameInterface = subtype === 'options' || session.meta.options?.wizard === true;
+    const rcParsed = session.raw?.nethackrc ? parseNethackrcFull(session.raw.nethackrc) : null;
+    const inGameInterface = subtype === 'options' || !!rcParsed?.wizard;
     if (replaySessionInterface) {
         const replayFlags = { ...DEFAULT_FLAGS };
         replayFlags.color = sessionColorEnabled(session);
         if (subtype === 'options') replayFlags.color = true;
-        if (session.meta.options?.autopickup === false) replayFlags.pickup = false;
-        const wantsDec = session.meta.options?.symset === 'DECgraphics';
+        if (rcParsed?.flags?.pickup === false) replayFlags.pickup = false;
+        const wantsDec = !!rcParsed?.flags?.DECgraphics;
         replayFlags.DECgraphics = !!wantsDec;
         replayFlags.bgcolors = true;
         replayFlags.customcolors = true;
@@ -575,7 +576,8 @@ async function runGameplayResult(session) {
     const start = Date.now();
 
     try {
-        const replay = await recordGameplaySessionFromInputs(session);
+        const sessionForCmp = applyManualDirectChargenView(session);
+        const replay = await recordGameplaySessionFromInputs(sessionForCmp);
         if (!replay || replay.error) {
             markFailed(result, replay?.error || 'Replay failed');
             setDuration(result, Date.now() - start);
@@ -584,7 +586,7 @@ async function runGameplayResult(session) {
         if (replay.synclockDiagnostics && typeof replay.synclockDiagnostics === 'object') {
             result.synclockDiagnostics = replay.synclockDiagnostics;
         }
-        const cmp = compareRecordedGameplaySession(session, replay);
+        const cmp = compareRecordedGameplaySession(sessionForCmp, replay);
 
         if (cmp.rng.total > 0) {
             recordRng(result, cmp.rng.matched, cmp.rng.total, cmp.rng.firstDivergence);
@@ -769,7 +771,8 @@ async function runInterfaceResult(session) {
         const expectedSteps = Array.isArray(session.raw?.steps) ? session.raw.steps.slice(1) : [];
         const actualSteps = replay.steps || [];
         const count = Math.min(expectedSteps.length, actualSteps.length);
-        const decgraphics = session.meta.options?.symset === 'DECgraphics';
+        const rcParsedIface = session.raw?.nethackrc ? parseNethackrcFull(session.raw.nethackrc) : null;
+        const decgraphics = !!rcParsedIface?.flags?.DECgraphics;
         let screensMatched = 0;
         let screensTotal = 0;
         let rngMatched = 0;

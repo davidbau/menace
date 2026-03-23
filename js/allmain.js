@@ -49,7 +49,8 @@ import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance, depth as dung
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto, maybe_lvltport_feedback } from './do.js';
 import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          loadFlags, saveFlags, deserializeRng,
-         restGameState, restLev, listSavedData, clearAllData } from './storage.js';
+         restGameState, restLev, listSavedData, clearAllData,
+         parseNethackrcFull } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
 import { nhgetch, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
@@ -1764,6 +1765,20 @@ export class NetHackGame {
         // C does not display a welcome banner before chargen; keep parity.
 
         // Player selection
+        // 8A.6: nethackrc is the canonical init format. Parse it for character
+        // info, wizard flag, and game flags. Falls back to urlOpts.character
+        // for legacy callers.
+        if (urlOpts.nethackrc) {
+            const rcParsed = parseNethackrcFull(urlOpts.nethackrc);
+            if (rcParsed.wizard) this.wizard = true;
+            urlOpts.character = urlOpts.character || rcParsed.character;
+            // Apply flags from nethackrc that aren't already set
+            if (rcParsed.flags && this.flags) {
+                for (const [k, v] of Object.entries(rcParsed.flags)) {
+                    if (this.flags[k] === undefined) this.flags[k] = v;
+                }
+            }
+        }
         if (urlOpts.character) {
             // Headless/replay path: set player fields directly (no chargen RNG)
             const char = urlOpts.character;
@@ -1825,6 +1840,10 @@ export class NetHackGame {
                 selectedAlign = validAligns[0] ?? role?.validAligns?.[0] ?? A_NEUTRAL;
             }
             this.u.alignment = selectedAlign;
+
+            if (urlOpts.simulateManualDirectChargen?.hasPickAlign) {
+                rn2(1);
+            }
         } else if (this.wizard) {
             // Wizard mode: auto-select Valkyrie (index 11)
             this.u.initRole(11); // PM_VALKYRIE
@@ -1892,6 +1911,10 @@ export class NetHackGame {
         this.seerTurn = initResult.seerTurn;
         await set_wear(this.u, null);
 
+        if (urlOpts.simulateManualDirectChargen?.hasTutorial) {
+            await _enterTutorial(this, { direct: true });
+        }
+
         // Apply flags
         this.u.showExp = this.flags.showexp;
         this.u.showScore = this.flags.showscore;
@@ -1906,7 +1929,7 @@ export class NetHackGame {
         // C ref: moveloop_preamble() shows lore text with --More-- then
         // proceeds to welcome text with --More--.  Render lore and set a
         // pendingPrompt so the key sequence drives dismissal.
-        if (urlOpts.character && !this.flags.tutorial) {
+        if (urlOpts.character && !this.flags.tutorial && !urlOpts.simulateManualDirectChargen) {
             const roleIdx = this.u.roleIndex;
             const raceIdx = this.u.race;
             const female = this.u.gender === FEMALE;

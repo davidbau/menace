@@ -12,7 +12,7 @@ import { prepareReplayArgs } from '../../js/replay_compare.js';
 import { replaySession } from '../../js/replay_core.js';
 import { buildDebugMapdumpPayload } from '../../js/dungeon.js';
 import { resolveSessionFixedDatetime } from './session_datetime.js';
-import { DEFAULT_FLAGS } from '../../js/storage.js';
+import { DEFAULT_FLAGS, parseNethackrcFull } from '../../js/storage.js';
 import { runSessionBundle } from './session_test_runner.js';
 import { findFirstGridDiff } from './comparators.js';
 
@@ -850,7 +850,8 @@ async function main() {
     const enableRunstep = args.runstepMode !== 'off';
 
     const flags = { ...DEFAULT_FLAGS, bgcolors: true, customcolors: true };
-    if (session.meta.options?.autopickup === false) flags.pickup = false;
+    const rcDbg = session.raw?.nethackrc ? parseNethackrcFull(session.raw.nethackrc) : null;
+    if (rcDbg?.flags?.pickup === false) flags.pickup = false;
 
     const replayArgs = prepareReplayArgs(session.meta.seed, session.raw, {
         captureScreens: !!args.screens,
