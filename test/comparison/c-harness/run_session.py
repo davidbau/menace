@@ -1481,6 +1481,13 @@ def record_c_session(env, nethackrc, keys, output_path,
         for _ in range(100):  # up to 2 more seconds
             content = tmux_capture(session_name)
             if content.strip():
+                # Handle stale game state prompts (not part of the session)
+                if 'keep the save file' in content.lower():
+                    tmux_send(session_name, 'n', 0.3)
+                    continue
+                if 'Destroy old game' in content:
+                    tmux_send(session_name, 'y', 0.5)
+                    continue
                 break
             time.sleep(0.02)
 

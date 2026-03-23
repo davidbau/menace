@@ -110,6 +110,12 @@ def migrate_session(info, dry_run=False, probe_only=False):
     env = info['env']
     nethackrc = info['nethackrc']
 
+    # Skip already-migrated sessions (step 0 has lore or chargen text)
+    session = info['session']
+    step0_screen = (session.get('steps', [{}])[0].get('screen', '') or '').replace('\x1b', '')
+    if 'It is written' in step0_screen or 'Shall I pick' in step0_screen:
+        return None  # already unified
+
     # --- Determine the full key sequence ---
 
     if stype in ('gameplay', 'wizload', 'interface', 'option_test'):
