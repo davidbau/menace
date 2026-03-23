@@ -38,6 +38,7 @@ import { align_gname } from './pray.js';
 import { game as _gstate } from './gstate.js';
 import { NON_PM } from './const.js';
 import { mkclass } from './makemon.js';
+import { level_difficulty } from './dungeon.js';
 import {
   G_GENOD,
   PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER, PM_KNIGHT,
@@ -284,7 +285,7 @@ export function qt_montype() {
   if (qpm !== NON_PM && rn2(5) !== 0 && !(_gstate?.mvitals?.[qpm]?.mvflags & G_GENOD)) {
     return qpm;
   }
-  return mkclass(qsym, 0);
+  return mkclass(qsym, 0, level_difficulty());
 }
 
 // cf. questpgr.c:654 — deliver_splev_message(): display special-level arrival text
