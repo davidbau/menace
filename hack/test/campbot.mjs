@@ -166,7 +166,15 @@ input.getKey = async function () {
         }
         if (exploreKey) break;
       }
-      key = exploreKey || 'hjkl'[stepCount%4];
+      if (exploreKey) {
+        key = exploreKey;
+      } else {
+        // All reachable cells explored but target not found.
+        // Search ('s') to reveal secret doors, then re-explore.
+        key = 's';
+        // After searching, clear visited set to re-explore with newly revealed paths
+        if (stepCount % 20 === 0) exploreVisited.clear();
+      }
     } else if (isAdjacentToTarget(target) && campCount < campTurns) {
       // Camp: press ' ' (space = no-op) to pass turn, letting monster act.
       // Use space not 's' because 's' doesn't dismiss --More-- prompts (only space does).
