@@ -77,7 +77,7 @@ export class Shell {
                 else this.scrollBuffer.push(row);
             }
             if (options.bye && options.rows && options.rows.length > 0) {
-                this._addLine('GOODBYE', OUTPUT_COLOR);
+                this._addLine(typeof options.bye === 'string' ? options.bye : 'GOODBYE', OUTPUT_COLOR);
             } else if (options.rows && options.rows.length > 0) {
                 this._addLine('^C', PROMPT_COLOR);
                 this._addLine('Interrupt', OUTPUT_COLOR);
