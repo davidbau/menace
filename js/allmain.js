@@ -1403,24 +1403,14 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, opts = {}) 
                 if (g?.display && typeof g.display.cursorOnPlayer === 'function' && g.u) {
                     g.display.cursorOnPlayer(g.u);
                 }
+                // C ref: welcome() shows the message via pline() without --More--.
+                // The welcome is visible on the message line; the NEXT key processes
+                // a normal command (not a --More-- dismiss). Do NOT consume a second
+                // key for welcome — match C's single-key lore dismiss.
                 if (g?.display && typeof g.display.putstr_message === 'function') {
                     await g.display.putstr_message(welcomeMsg);
                 }
-                stage = 'welcome';
-                return { handled: true, tookTime: false, moved: false, prompt: true };
-            }
-            if (stage === 'welcome') {
-                if (g?.display) {
-                    if (typeof g.display.clearRow === 'function') {
-                        g.display.clearRow(0);
-                        g.display.clearRow(1);
-                        g.display.clearRow(2);
-                    }
-                    if ('topMessage' in g.display) g.display.topMessage = null;
-                    if ('toplines' in g.display) g.display.toplines = '';
-                    if ('messageNeedsMore' in g.display) g.display.messageNeedsMore = false;
-                    if ('messageNeedsMoreBoundary' in g.display) g.display.messageNeedsMoreBoundary = false;
-                }
+                // C ref: moveloop_preamble() set_wear() runs after welcome().
                 if (g?.u) {
                     await set_wear(g.u, null);
                 }
@@ -1977,11 +1967,10 @@ export class NetHackGame {
         }
         this.display.cursorOnPlayer(this.u);
 
-        // C ref: moveloop_preamble() shows lore text with --More-- after the
-        // first level is initialized, so the live map/status are already under
-        // the overlay. Handle all non-wizard fresh starts through this common
-        // pending-prompt flow.
-        if (!this.wizard) {
+        // C ref: welcome(TRUE) shows lore + welcome for ALL new games including
+        // wizard mode. The lore overlay goes on top of the map/status; the first
+        // key press dismisses it and shows the welcome message (no --More--).
+        {
             const roleIdx = this.u.roleIndex;
             const raceIdx = this.u.race;
             const female = this.u.gender === FEMALE;
@@ -2026,8 +2015,6 @@ export class NetHackGame {
             this.pendingPrompt = buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, {
                 tutorial: this.flags.tutorial,
             });
-        } else if (this.flags.tutorial) {
-            await _maybeDoTutorial(this);
         }
 
         this._emitGameplayStart();
