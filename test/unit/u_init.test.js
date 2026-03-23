@@ -149,13 +149,13 @@ describe('Post-level initialization (u_init)', () => {
         // Check structure: first call should be rn2(2) for pet type
         assert.ok(log[0].includes('rn2(2)'), `First call should be rn2(2) for pet type, got: ${log[0]}`);
 
-        // Last 4 calls should be the welcome sequence:
-        // rn2(3), rn2(2), rnd(9000), rnd(30)
+        // Last 2 calls should be the nhlib shuffle:
+        // rn2(3), rn2(2)
+        // NOTE: rnd(9000) and rnd(30) moved to _gameLoopStep preamble
+        // (matching C's moveloop_preamble timing at step 1).
         const n = log.length;
-        assert.ok(log[n-4].includes('rn2(3)'), `4th-to-last should be rn2(3), got: ${log[n-4]}`);
-        assert.ok(log[n-3].includes('rn2(2)'), `3rd-to-last should be rn2(2), got: ${log[n-3]}`);
-        assert.ok(log[n-2].includes('rnd(9000)'), `2nd-to-last should be rnd(9000), got: ${log[n-2]}`);
-        assert.ok(log[n-1].includes('rnd(30)'), `Last should be rnd(30), got: ${log[n-1]}`);
+        assert.ok(log[n-2].includes('rn2(3)'), `2nd-to-last should be rn2(3), got: ${log[n-2]}`);
+        assert.ok(log[n-1].includes('rn2(2)'), `Last should be rn2(2), got: ${log[n-1]}`);
     });
 
     it('does not force pet placement when no valid adjacent tiles exist', async () => {

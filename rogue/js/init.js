@@ -19,9 +19,14 @@ export function init_player() {
   ps.s_lvl = 1;
   ps.s_exp = 0;
   g.max_hp = ps.s_hpt = 12;
-  // DBM: Always generate with st_str >= 18
-  ps.s_str.st_str = 18;
-  ps.s_str.st_add = rnd(100) + 1;
+  // C ref: init.c — 1% chance of exceptional strength 18/XX
+  if (rnd(100) === 7) {
+    ps.s_str.st_str = 18;
+    ps.s_str.st_add = rnd(100) + 1;
+  } else {
+    ps.s_str.st_str = 16;
+    ps.s_str.st_add = 0;
+  }
   ps.s_dmg = "1d4";
   ps.s_arm = 10;
   // max_stats = pstats

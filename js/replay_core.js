@@ -193,8 +193,21 @@ async function settleStartupInputBoundaries(game, opts = {}) {
         game.display.messageNeedsMore = false;
         game.display.messageNeedsMoreBoundary = false;
     }
-    if (typeof game.docrt === 'function') {
-        game.docrt();
+    // Refresh display after clearing startup prompt.
+    // Use display APIs directly (replay_core avoids game.docrt ownership).
+    if (game.display && game.map && game.u && game.fov) {
+        if (typeof game.fov.compute === 'function') {
+            game.fov.compute(game.map, game.u.x, game.u.y);
+        }
+        if (typeof game.display.renderMap === 'function') {
+            game.display.renderMap(game.map, game.u, game.fov, game.flags);
+        }
+        if (typeof game.display.renderStatus === 'function') {
+            game.display.renderStatus(game.u);
+        }
+        if (typeof game.display.cursorOnPlayer === 'function') {
+            game.display.cursorOnPlayer(game.u);
+        }
     }
 }
 
