@@ -1388,7 +1388,10 @@ export async function deferred_goto(player, game) {
     if (dest !== fromDepth) {
         const newMap = game?.map || game?.lev;
         move_update(true, player, newMap);
+        // Defer shop greeting until after docrt in allmain.js changeLevel
+        player._deferShopGreeting = true;
         await check_special_room(false, player, newMap, game?.display, game?.fov || null);
+        player._deferShopGreeting = false;
         const objs = newMap?.objectsAt ? newMap.objectsAt(player.x, player.y) : [];
         if (arrivalMsg && objs.length === 1) {
             observeObject(objs[0]);

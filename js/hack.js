@@ -41,7 +41,7 @@ import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, n
 import { x_monnam, y_monnam, YMonnam, Monnam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleEnteredShopGreeting, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
+import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_entered_shop, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
@@ -3283,10 +3283,12 @@ export async function check_special_room(newlev, player, map, display, fov) {
 
     if (!player.uentered && !player.ushops_entered) return { suppressFloorFeedback };
 
-    if (player.ushops_entered) {
-        suppressFloorFeedback = await maybeHandleEnteredShopGreeting(
-            player.ushops_entered, map, player, display
-        ) || suppressFloorFeedback;
+    // C ref: hack.c:3543 — u_entered_shop for newly entered shops.
+    // When called during level change (newlev path), the greeting is
+    // deferred because docrt() hasn't run yet. The greeting will be
+    // shown by the deferred call in allmain.js changeLevel after docrt.
+    if (player.ushops_entered && !player._deferShopGreeting) {
+        await u_entered_shop(player.ushops_entered, map, player, display);
     }
 
     if (!player.uentered) return { suppressFloorFeedback };

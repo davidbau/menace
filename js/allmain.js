@@ -36,7 +36,7 @@ import { ageSpells } from './spell.js';
 import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
-import { maybeHandleShopEntryMessage } from './shk.js';
+import { u_entered_shop as _u_entered_shop } from './shk.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
@@ -2124,17 +2124,18 @@ export class NetHackGame {
         this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
-        // If a pre-transition message left a pending --More-- (for example,
-        // follower "still eating/trapped"), resolve it before deferred
-        // teleport arrival feedback so key consumption stays C-aligned.
+        // C ref: do.c:1966 check_special_room(FALSE) — shop greeting after docrt.
+        // Room tracking (move_update + check_special_room) ran in changeLevelCore
+        // but u_entered_shop was deferred because docrt hadn't run yet.
+        // Now run the deferred greeting (zero RNG, just display message).
+        if (this.u.ushops_entered) {
+            await _u_entered_shop(this.u.ushops_entered, this.map, this.u, this.display);
+        }
+        // If a message is pending (shop greeting, follower "still eating/trapped"),
+        // resolve it before teleport arrival feedback so key consumption stays C-aligned.
         if (this.display?.messageNeedsMore) {
             await more(this.display, { forceVisual: true });
         }
-        // C ref: do.c:1966 check_special_room(FALSE) — shop/room entry messages.
-        // TODO: port full check_special_room() for shopkeeper greeting parity.
-        // Current gap: ^V level-teleport into a shop doesn't show shopkeeper
-        // greeting because maybeHandleShopEntryMessage would consume different
-        // RNG than C's u_entered_shop() (which does bill/customer setup too).
         // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
         // and before later arrival messages. This can consume dfr_post_msg
         // early so deferred_goto() won't print it again.
