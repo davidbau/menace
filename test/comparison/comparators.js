@@ -595,6 +595,13 @@ export function stripEventContext(entry) {
     const at = entry.indexOf('] @');
     let s = at >= 0 ? entry.slice(0, at + 1) : entry;
     s = s.replace(/\boid=\d+/g, 'oid=X');
+    // C ref: dog_move_choice with chi=-1 means the pet ate (goto newdogpos
+    // skipped mfndpos). C's cnt and appr are uninitialized stack values;
+    // JS emits 0. Normalize both to 0 for this case.
+    if (s.includes('^dog_move_choice[') && s.includes('chi=-1')) {
+        s = s.replace(/\bcnt=\d+/g, 'cnt=0');
+        s = s.replace(/\bappr=\d+/g, 'appr=0');
+    }
     // C's load_special() emits "after_wallification_special" and
     // "after_finalize_special" while lspo_finalize_level() emits
     // "after_wallification" and "after_finalize". JS may route through
