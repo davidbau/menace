@@ -16811,6 +16811,27 @@ source is elsewhere in the moveloop phase ordering.
     blindly clear row `0`; match the C tty ownership of the surviving prompt
     vs message line
 
+## 2026-03-23 - manual-direct replay after V4 cleanup still needs transformed startup semantics
+
+- Removing the old manual-direct replay helpers in the V4 startup cleanup broke
+  `seed031_manual_direct`, `seed032_manual_direct`, and
+  `seed033_manual_direct` at startup even though the canonical sessions
+  themselves were still valid.
+- The restored requirements were:
+  - compare gameplay against a transformed manual-direct view
+  - build replay args from that transformed view, not `session.raw`
+  - still compute startup simulation (`pick_align`, tutorial levelgen) from the
+    raw session
+  - recover character metadata from raw chargen/confirmation/welcome screens,
+    because the transformed startup screen may already be pure gameplay
+  - suppress the startup lore prompt during replay when that manual-direct
+    startup has already been folded out of the comparison view
+- After restoring those semantics, the manual-direct trio returned to their
+  expected frontiers:
+  - `seed031`: RNG/events green, remaining screen seam at step `409`
+  - `seed032`: first RNG/event seam back at step `280`
+  - `seed033`: first RNG seam back at step `338`
+
 ## 2026-03-22 - hallucinating menu overlays need a frozen underlay
 
 - Continuing the late `seed031` screen-only work exposed a second container-menu

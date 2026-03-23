@@ -1825,6 +1825,10 @@ export class NetHackGame {
                 selectedAlign = validAligns[0] ?? role?.validAligns?.[0] ?? A_NEUTRAL;
             }
             this.u.alignment = selectedAlign;
+
+            if (urlOpts.simulateManualDirectChargen?.hasPickAlign) {
+                rn2(1);
+            }
         } else if (this.wizard) {
             // Wizard mode: auto-select Valkyrie (index 11)
             this.u.initRole(11); // PM_VALKYRIE
@@ -1892,6 +1896,10 @@ export class NetHackGame {
         this.seerTurn = initResult.seerTurn;
         await set_wear(this.u, null);
 
+        if (urlOpts.simulateManualDirectChargen?.hasTutorial) {
+            await _enterTutorial(this, { direct: true });
+        }
+
         // Apply flags
         this.u.showExp = this.flags.showexp;
         this.u.showScore = this.flags.showscore;
@@ -1906,7 +1914,7 @@ export class NetHackGame {
         // C ref: moveloop_preamble() shows lore text with --More-- then
         // proceeds to welcome text with --More--.  Render lore and set a
         // pendingPrompt so the key sequence drives dismissal.
-        if (urlOpts.character && !this.flags.tutorial) {
+        if (urlOpts.character && !this.flags.tutorial && !urlOpts.simulateManualDirectChargen) {
             const roleIdx = this.u.roleIndex;
             const raceIdx = this.u.race;
             const female = this.u.gender === FEMALE;

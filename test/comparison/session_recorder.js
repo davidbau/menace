@@ -90,7 +90,7 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
             ? globalThis.__SESSION_PROGRESS_EMIT
             : null;
         const args = prepareReplayArgs(
-            session.meta.seed, session.raw, {
+            session.meta.seed, session, {
                 captureScreens: true,
                 flags,
                 onKey: emitProgress ? ({ index, ch, game }) => {

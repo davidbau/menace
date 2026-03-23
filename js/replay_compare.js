@@ -239,14 +239,89 @@ export function getSessionCharacter(session) {
     return parseSessionCharacter(session);
 }
 
-// V4 key-driven: all steps after step 0 (key=null) are gameplay steps,
-// including --More-- dismissals, chargen keys, and tutorial prompts.
+// Manual-direct sessions still carry interactive chargen/startup keys in the
+// recorded step stream. replaySession() needs those keys pre-pushed into init(),
+// then should compare only real gameplay steps afterward.
+function getManualDirectChargenInfo(rawSession) {
+    const steps = rawSession?.steps || [];
+    let firstBurst = -1;
+    let lastBurst = -1;
+    for (let i = 1; i < steps.length; i++) {
+        if ((steps[i].rng || []).length > 100) {
+            if (firstBurst < 0) firstBurst = i;
+            lastBurst = i;
+        }
+        if (firstBurst >= 0 && i > firstBurst + 10) break;
+    }
+    if (firstBurst < 0) return null;
+    const hasTutorial = lastBurst > firstBurst;
+    let boundary = lastBurst;
+    for (let j = lastBurst + 1; j < steps.length && j <= lastBurst + 10; j++) {
+        if ((steps[j].rng || []).length > 3) break;
+        boundary = j;
+    }
+    return { boundary, hasTutorial, firstBurst, lastBurst };
+}
+
+function getManualDirectChargenBoundary(rawSession) {
+    return getManualDirectChargenInfo(rawSession)?.boundary ?? -1;
+}
+
+export function getGameplayRawStepBase(session) {
+    if (!session?.steps?.length) return 1;
+    if (session.regen?.mode === 'manual-direct-live') {
+        const boundary = getManualDirectChargenBoundary(session);
+        if (boundary >= 0) return boundary + 2;
+    }
+    if (session.steps[0]?.key === null) return 2;
+    return 1;
+}
+
 export function getSessionGameplaySteps(session) {
     if (!session?.steps) return [];
     if (session.steps.length > 0 && session.steps[0].key === null) {
+        if (session.regen?.mode === 'manual-direct-live') {
+            const boundary = getManualDirectChargenBoundary(session);
+            if (boundary >= 0) return session.steps.slice(boundary + 1);
+        }
         return session.steps.slice(1);
     }
     return session.steps;
+}
+
+export function getChargenKeys(session) {
+    if (session.type !== 'chargen') return [];
+    const keys = [];
+    for (const step of (session.steps || [])) {
+        if (step.key === null) break;
+        if (typeof step.key === 'string' && step.key.length > 0) {
+            keys.push(step.key);
+        }
+    }
+    return keys;
+}
+
+export function applyManualDirectChargenView(session) {
+    if (session.raw?.regen?.mode !== 'manual-direct-live') return session;
+    const rawBoundary = getManualDirectChargenBoundary(session.raw);
+    if (rawBoundary < 0) return session;
+    const sessionBoundary = rawBoundary - 1;
+    const chargenSteps = session.steps.slice(0, sessionBoundary + 1);
+    const chargenRng = chargenSteps.flatMap((s) => s.rng || []);
+    const hasPickAlign = chargenSteps.some((s) =>
+        (s.rng || []).some((r) => typeof r === 'string' && r.includes('pick_align'))
+    );
+    const firstGameplayStep = session.steps[sessionBoundary + 1];
+    return {
+        ...session,
+        startup: {
+            ...(session.startup || {}),
+            rng: [...(session.startup?.rng || []), ...chargenRng],
+            screen: firstGameplayStep?.screen ?? (session.startup?.screen ?? []),
+        },
+        steps: session.steps.slice(sessionBoundary + 1),
+        _manualDirectChargen: { hasPickAlign },
+    };
 }
 
 // Legacy compat — always true for V4 sessions.
@@ -259,6 +334,7 @@ export function hasStartupBurstInFirstStep(session) {
 // V4 key-driven: all sessions use env + nethackrc. Step 0 is the initial
 // screen (lore + --More--), and all subsequent keys drive the game.
 export function prepareReplayArgs(seed, session, opts = {}) {
+    const rawSession = session?.raw || session;
     // Derive options from nethackrc if not already present.
     if (session.nethackrc && !session.options && !session._v4OptionsApplied) {
         const { character, flags, wizard } = parseNethackrcFull(session.nethackrc);
@@ -311,7 +387,25 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         initOpts.captureSpecialLevelCheckpoints = true;
     }
 
-    // Flatten all step keys (including startup --More-- spaces) into a single string.
+    let chargenKeys = null;
+    const sessionChargenKeys = getChargenKeys(session);
+    if (sessionChargenKeys.length > 0) chargenKeys = sessionChargenKeys;
+
+    if (rawSession?.regen?.mode === 'manual-direct-live') {
+        const info = getManualDirectChargenInfo(rawSession);
+        if (info) {
+            const chargenOnlySteps = (rawSession.steps || []).slice(1, info.firstBurst);
+            const hasPickAlign = chargenOnlySteps.some((step) =>
+                (step.rng || []).some((entry) => typeof entry === 'string' && entry.includes('pick_align'))
+            );
+            initOpts.simulateManualDirectChargen = {
+                hasPickAlign,
+                hasTutorial: info.hasTutorial,
+            };
+        }
+    }
+
+    // Flatten gameplay step keys after any folded startup prefix.
     const steps = getSessionGameplaySteps(session);
     let maxKeys = opts.maxSteps;
     let keys = '';
@@ -333,6 +427,7 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         opts: {
             initOpts,
             displayFlags,
+            chargenKeys,
             captureScreens: opts.captureScreens,
             onKey: opts.onKey,
         },
@@ -420,6 +515,19 @@ for (let i = 0; i < roles.length; i++) ROLE_INDEX[roles[i].name] = i;
 // Local session character parser (avoids circular dependency with replay_core).
 function parseSessionCharacter(session) {
     if (!session?.options) return {};
+    if (session?.raw?.regen?.mode === 'manual-direct-live') {
+        const rawSteps = Array.isArray(session.raw?.steps) ? session.raw.steps : [];
+        const rawBoundary = getManualDirectChargenBoundary(session.raw);
+        const candidateLines = [];
+        const maxStep = rawBoundary >= 0 ? rawBoundary : Math.min(rawSteps.length - 1, 24);
+        for (let i = 1; i <= maxStep; i++) {
+            for (const line of getSessionScreenLines(rawSteps[i] || {})) {
+                candidateLines.push(line);
+            }
+        }
+        const parsed = parseManualDirectCharacterFromLines(candidateLines);
+        if (parsed) return parsed;
+    }
     let startupName = null;
     let startupRank = null;
     // Find character name from startup status line.
@@ -542,4 +650,46 @@ function consumeRngEntries(entries) {
     // This is a no-op stub — the actual RNG is seeded and the entries
     // are consumed by the map generation that follows.
     // The real implementation would need to parse and replay each entry.
+}
+
+function titleCaseWord(word) {
+    if (!word) return word;
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
+function parseManualDirectCharacterFromLines(lines) {
+    const roleNames = new Set(roles.map((role) => role?.name).filter(Boolean));
+    const raceAliases = {
+        human: 'human',
+        elf: 'elf',
+        elven: 'elf',
+        dwarf: 'dwarf',
+        dwarven: 'dwarf',
+        gnome: 'gnome',
+        gnomish: 'gnome',
+        orc: 'orc',
+        orcish: 'orc',
+    };
+    for (const rawLine of lines) {
+        const line = stripAnsiSequences(rawLine || '').trim();
+        if (!line) continue;
+
+        let match = line.match(/^(.+?) the (lawful|neutral|chaotic) (?:(male|female) )?(human|elf|elven|dwarf|dwarven|gnome|gnomish|orc|orcish) ([A-Za-z][A-Za-z ]+)$/i);
+        if (!match) {
+            match = line.match(/^Hello (.+?), welcome to NetHack!\s+You are a (lawful|neutral|chaotic) (?:(male|female) )?(human|elf|elven|dwarf|dwarven|gnome|gnomish|orc|orcish) ([A-Za-z][A-Za-z ]+)\.?/i);
+        }
+        if (!match) continue;
+
+        const [, name, align, gender, race, role] = match;
+        const normalizedRole = role.trim();
+        if (!roleNames.has(normalizedRole)) continue;
+        return {
+            name: name.trim(),
+            role: normalizedRole,
+            race: raceAliases[race.toLowerCase()] || race.toLowerCase(),
+            gender: gender ? gender.toLowerCase() : null,
+            align: align.toLowerCase(),
+        };
+    }
+    return null;
 }
