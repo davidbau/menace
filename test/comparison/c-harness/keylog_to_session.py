@@ -107,6 +107,43 @@ def parse_key_delay_overrides(raw_value):
     return out
 
 
+def build_v4_fields(seed, character, symset, tutorial_enabled, wizard_enabled, fixed_datetime, interactive=False):
+    """Build V4 env + nethackrc fields for keylog-derived sessions."""
+    env = {'NETHACK_SEED': str(seed)}
+    if fixed_datetime:
+        env['NETHACK_FIXED_DATETIME'] = fixed_datetime
+
+    if interactive:
+        # Manual-direct/live keylogs should replay the startup prompts from the
+        # key stream itself; keep nethackrc empty to preserve that behavior.
+        return {
+            'env': env,
+            'nethackrc': '',
+        }
+
+    rc_lines = [
+        f'OPTIONS=name:{character["name"]}',
+        f'OPTIONS=race:{character["race"]}',
+        f'OPTIONS=role:{character["role"]}',
+        f'OPTIONS=gender:{character["gender"]}',
+        f'OPTIONS=align:{character["align"]}',
+        'OPTIONS=!autopickup',
+    ]
+    if tutorial_enabled is True:
+        rc_lines.append('OPTIONS=tutorial')
+    elif tutorial_enabled is False:
+        rc_lines.append('OPTIONS=!tutorial')
+    rc_lines.append('OPTIONS=suppress_alert:3.4.3')
+    rc_lines.append(f'OPTIONS=symset:{symset}')
+    if wizard_enabled and character.get('name'):
+        rc_lines.append(f'WIZARD={character["name"]}')
+    rc_lines.append('')
+    return {
+        'env': env,
+        'nethackrc': '\n'.join(rc_lines),
+    }
+
+
 def parse_args():
     p = argparse.ArgumentParser(description='Convert keylog JSONL to standard session JSON')
     p.add_argument('--from-config', action='store_true', help='Regenerate keylog sessions from seeds.json keylog_sessions')
@@ -472,11 +509,20 @@ def run_from_keylog(
             clear_more_prompts(session_name)
 
         session_data = {
-            'version': 3,
+            'version': 4,
             'seed': seed,
             'source': 'c',
             'recorded_with': get_recorded_with(),
             'type': 'gameplay',
+            **build_v4_fields(
+                seed,
+                character,
+                symset,
+                tutorial_enabled,
+                bool(wizard_enabled),
+                fixed_datetime,
+                interactive=interactive,
+            ),
             'options': {
                 'name': None if interactive else character['name'],
                 'role': None if interactive else character['role'],
