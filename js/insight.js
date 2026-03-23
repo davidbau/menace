@@ -636,10 +636,11 @@ function background_enlightenment(mode, final, game) {
         if (ulvl < 30 && (final || game.wizard)) {
             const nxtlvl = newuexp(ulvl);
             const delta = nxtlvl - exp;
-            const neededPhrase = exp > 0
-                ? `${delta} more were needed`
-                : `${delta} were needed`;
-            buf += `, ${neededPhrase} ${ulvl < 18 ? 'to attain' : 'for'} level ${ulvl + 1}`;
+            // C ref: insight.c:681-686 — "were " only in final (end-of-game);
+            // present tense uses just "needed" without "were"
+            const moreStr = exp > 0 ? 'more ' : '';
+            const tenseStr = !final ? '' : (delta === 1 ? 'was ' : 'were ');
+            buf += `, ${delta} ${moreStr}${tenseStr}needed ${ulvl < 18 ? 'to attain' : 'for'} level ${ulvl + 1}`;
         }
         you_have(final, buf, '');
     }
