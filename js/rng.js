@@ -667,7 +667,10 @@ export function rnz(i) {
 // suppressed by RNGLOG_IN_RND_C. We match this with rngDepth check in rn2.
 export function rne(x) {
     enterRng();
-    const utmp = 5; // u.ulevel < 15 → utmp = 5
+    // C ref: rnd.c — utmp = max(u.ulevel/3, 5) when ulevel < 15 → 5;
+    // ulevel >= 15 → ulevel/3. Read from game state when available.
+    const ulevel = _rnlPlayerAccessor?.()?.ulevel || 1;
+    const utmp = ulevel < 15 ? 5 : Math.floor(ulevel / 3);
     let tmp = 1;
     while (tmp < utmp && !rn2(x))
         tmp++;

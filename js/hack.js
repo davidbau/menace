@@ -53,12 +53,13 @@ import { monflee, closed_door } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
 import { Invocation_lev, find_level, deltrap, room_discovered } from './dungeon.js';
+import { Hello } from './role.js';
 import { search_special } from './mkroom.js';
 import { midnight } from './calendar.js';
 import { tmp_at, nh_delay_output, nh_delay_output_nowait } from './animation.js';
 import { DISP_ALL, DISP_END } from './const.js';
 import { getpos_async } from './getpos.js';
-import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, There, set_msg_xy } from './pline.js';
+import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, There, set_msg_xy, verbalize } from './pline.js';
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { maybe_unhide_at } from './mon.js';
@@ -69,7 +70,7 @@ import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KI
          SHARED, SHARED_PLUS } from './const.js';
 import { MZ_LARGE, MZ_HUMAN, PM_GRID_BUG, AT_WEAP,
          PM_WIZARD, PM_VALKYRIE, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN,
-         S_NYMPH,
+         PM_ORACLE, S_NYMPH,
          M1_TUNNEL, M1_NEEDPICK, M1_WALLWALK } from './monsters.js';
 import { stackobj } from './invent.js';
 import { thitu } from './mthrowu.js';
@@ -3275,10 +3276,21 @@ export async function check_special_room(newlev, player, map, display, fov) {
                 await pline('You enter an abandoned barracks.');
             }
             break;
-        case DELPHI:
-            // TODO: Oracle greeting (C ref: hack.c:3596-3608)
-            msg_given = false;
+        case DELPHI: {
+            // C ref: hack.c:3596-3608 — Oracle greeting
+            const oracle = monstinroom(PM_ORACLE, roomno, map);
+            if (oracle) {
+                if (!oracle.mpeaceful) {
+                    await verbalize("You're in Delphi, %s.", player.name || 'stranger');
+                } else {
+                    await verbalize("%s, %s, welcome to Delphi!",
+                        Hello(null, player.roleIndex), player.name || 'stranger');
+                }
+            } else {
+                msg_given = false;
+            }
             break;
+        }
         case TEMPLE:
             // C ref: hack.c:3610 — intemple(roomno + ROOMOFFSET)
             await intemple(roomno + ROOMOFFSET, map, player, display, fov);
