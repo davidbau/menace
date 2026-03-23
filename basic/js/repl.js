@@ -39,11 +39,12 @@ export class BasicRepl {
 
     // Startup banner
     this._write('BASIC-PLUS  V1.5  (1979)\n');
-    this._write('READY.\n');
 
     // Main REPL loop
+    let first = true;
     while (true) {
-      this._write('\nREADY\n');
+      this._write(first ? '\nREADY.\n' : '\nREADY\n');
+      first = false;
       const line = await this._readLine();
       if (line === null) continue;
 
@@ -120,8 +121,7 @@ export class BasicRepl {
         if (this._interp._running) {
           this._breakFlag = true;
         } else {
-          // At the prompt, Ctrl-C exits to shell
-          this._write('^C\n');
+          // At the prompt, Ctrl-C exits to shell (shell adds its own ^C line)
           if (typeof window !== 'undefined') {
             var rows = window._basicDisplay ? window._basicDisplay.getRows() : [];
             try { localStorage.setItem('shell_context', JSON.stringify({ app: 'basic', user: 'rodney', rows: rows })); } catch(e) {}

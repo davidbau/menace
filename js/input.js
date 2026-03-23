@@ -1,6 +1,11 @@
 // input.js -- Runtime-agnostic input primitives.
 // Provides an async input queue plus module-level wrappers used by game code.
 
+// Thrown when Ctrl-C is pressed during getlin or chargen nhgetch.
+export class CtrlCInterrupt extends Error {
+    constructor() { super('Interrupted'); this.name = 'CtrlCInterrupt'; }
+}
+
 import { CLR_GRAY } from './render.js';
 import { pushRngLogEntry } from './rng.js';
 import { recordKey, isReplayMode, getNextReplayKey } from './keylog.js';
@@ -736,6 +741,8 @@ export async function getlin(prompt, display) {
                 }
             }
             return line;
+        } else if (ch === 3) { // Ctrl-C
+            throw new CtrlCInterrupt();
         } else if (ch === 27) { // ESC
             if (disp) {
                 disp.topMessage = null;

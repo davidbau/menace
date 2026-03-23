@@ -320,22 +320,6 @@ This shell implements the 1982 Bourne sh language: lexer, parser, word expansion
 (tilde, `$VAR`, `` `cmd` ``, IFS splitting, globbing), and the full control flow
 syntax.  It runs in a simulated Unix filesystem inside a browser.
 
-The implementation in `shell/sh/` consists of:
-
-- `lexer.js` — tokenizes source text, handles quoting and here-docs
-- `parser.js` — recursive-descent parser producing an AST
-- `expand.js` — word expansion (parameters, command substitution, globbing)
-- `interpreter.js` — AST executor with `ShEnv` for variable state
-- `builtins.js` — built-in commands (`echo`, `test`, `read`, `expr`, etc.)
-
-The `Shell` class in `shell/shell.js` uses the sh interpreter for all command
-dispatch.  ShEnv is the authoritative environment; variable assignments persist
-across commands.  The `sh` command drops into an interactive subshell with the
-same set of built-in commands.
-
-The games (`nethack`, `dungeon`, `hack`, `rogue`, etc.) are available as commands
-from both the main shell and any subshell.
-
 ---
 
 *"The shell is the glue of Unix.  It is what makes a collection of small tools

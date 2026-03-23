@@ -9,7 +9,7 @@ import { A_DEX, A_CON,
 import { NORMAL_SPEED } from './const.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount, pushRngLogEntry } from './rng.js';
 import { CLR_GRAY } from './display.js';
-import { more, nhgetch, getCount, getlin, setInputRuntime } from './input.js';
+import { more, nhgetch as _nhgetch, getCount, getlin, setInputRuntime, CtrlCInterrupt } from './input.js';
 import { FOV } from './vision.js';
 import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
@@ -32,6 +32,13 @@ import { init_nhwindows, create_nhwindow, destroy_nhwindow,
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
 import { find_ac } from './do_wear.js';
 
+// Local nhgetch that throws CtrlCInterrupt on Ctrl-C during chargen.
+async function nhgetch() {
+    const code = await _nhgetch();
+    if (code === 3) throw new CtrlCInterrupt();
+    return code;
+}
+
 // --- Game State ---
 // C ref: decl.h -- globals are accessed via NH object (see DECISIONS.md #7)
 
@@ -39,6 +46,18 @@ import { find_ac } from './do_wear.js';
 // C ref: role.c player_selection() -- choose role, race, gender, alignment
 // Autotranslated from role.c:2204
 export async function playerSelection(game) {
+    try {
+        await _playerSelectionImpl(game);
+    } catch (e) {
+        if (e instanceof CtrlCInterrupt) {
+            await game._runLifecycle('shell');
+            return;
+        }
+        throw e;
+    }
+}
+
+async function _playerSelectionImpl(game) {
     // Phase 0: Prompt for player name
     // C ref: role.c plnamesuffix() -> askname() — prompts "Who are you?"
     // Name prompt happens BEFORE role/race/gender/alignment selection

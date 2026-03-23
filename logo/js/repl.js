@@ -123,8 +123,7 @@ export class LogoRepl {
       }
 
       if (code === 3) {
-        // Ctrl-C — quit Logo, return to shell as logged-in rodney
-        this._write('^C\n');
+        // Ctrl-C — quit Logo, return to shell (shell adds its own ^C line)
         this._running = false;
         if (typeof window !== 'undefined') {
           var rows = window._logoDisplay ? window._logoDisplay.getRows() : [];
