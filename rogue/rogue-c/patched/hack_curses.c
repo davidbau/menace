@@ -300,26 +300,14 @@ int wrefresh(WINDOW *win)
         return OK;
     }
 
-    /* For cw: composite the two overlay layers:
-     *   Layer 1 (base):    blank  — only show what cw/mw have explicitly drawn.
-     *   Layer 2 (overlay): mw._overlay — monsters (mvwaddch to mw)
-     *   Layer 3 (overlay): cw._overlay — player @, explored map (wmove/waddch to cw)
-     *
-     * This matches Berkeley curses: wrefresh(cw) shows the player-visible layer.
-     * stdscr holds the full dungeon but is not composited here; it is only shown
-     * when wrefresh(stdscr) is called explicitly (death/winner screens).
+    /* For cw: copy cw directly to harness_display.
+     * mw tracks monster positions for winat() but is never shown directly —
+     * visible monsters are drawn to cw explicitly via mvwaddch(cw,...) only
+     * when cansee() is true.  Compositing mw would reveal all monsters.
      */
     for (i = 0; i < LINES; i++) {
         memset(harness_display[i], ' ', COLS);
         harness_display[i][COLS] = '\0';
-        /* Overlay mw non-null chars (monsters) */
-        if (mw) {
-            for (j = 0; j < COLS; j++) {
-                char mc = mw->_overlay[i][j];
-                if (mc) harness_display[i][j] = mc;
-            }
-        }
-        /* Overlay cw non-null chars (player, explicitly drawn items) */
         if (cw) {
             for (j = 0; j < COLS; j++) {
                 char cc = cw->_overlay[i][j];

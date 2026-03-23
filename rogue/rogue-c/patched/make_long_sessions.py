@@ -171,7 +171,7 @@ SESSIONS = [
 ]
 
 
-def run_session(seed, keys, out_path, timeout=60):
+def run_session(seed, keys, out_path, timeout=300):
     env = os.environ.copy()
     env["HARNESS_SEED"] = str(seed)
     env["HARNESS_KEYS"] = keys
@@ -181,7 +181,7 @@ def run_session(seed, keys, out_path, timeout=60):
     except subprocess.TimeoutExpired:
         return None, "timeout"
     if not os.path.exists(out_path):
-        return None, result.stderr.decode(errors="replace")
+        return None, result.stderr.decode(errors="replace") or "harness failed (no output)"
     with open(out_path) as f:
         data = json.load(f)
     return data, None

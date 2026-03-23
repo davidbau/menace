@@ -257,18 +257,12 @@ export function draw(win) {
     return;
   }
 
-  // For cw: composite mw overlay + cw overlay over blank base.
-  // Matches Berkeley curses: wrefresh(cw) shows the player-visible layer only.
+  // For cw: show cw directly. mw tracks monster positions for winat() but is
+  // never composited — visible monsters are drawn to cw via mvwaddch(cw,...)
+  // only when cansee() is true. Compositing mw would reveal all monsters.
   for (let r = 0; r < LINES; r++) {
     for (let c = 0; c < COLS; c++) {
-      let ch = ' ';
-      // Layer 1: mw overlay (monster positions)
-      const mc = g.mw[r][c];
-      if (mc !== ' ') ch = mc;
-      // Layer 2: cw overlay (player @, explicitly drawn items, explored map)
-      const cc = g.cw[r][c];
-      if (cc !== ' ') ch = cc;
-      display.putChar(c + 1, r + 1, ch);
+      display.putChar(c + 1, r + 1, g.cw[r][c]);
     }
   }
   // Position cursor at cw cursor
