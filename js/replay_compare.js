@@ -380,6 +380,30 @@ export function prepareReplayArgs(seed, session, opts = {}) {
                 hasPickAlign,
                 hasTutorial: info.hasTutorial,
             };
+            // Extract character from welcome message in the session data,
+            // since manual-direct sessions have empty nethackrc.
+            if (!initOpts.character) {
+                const welcomeStep = (rawSession.steps || [])[info.firstBurst + 1];
+                const welcomeScreen = String(welcomeStep?.screen || '').replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
+                const raceAdjMap = { human: 'human', elven: 'elf', dwarven: 'dwarf', gnomish: 'gnome', orcish: 'orc' };
+                const wm = welcomeScreen.match(/You are an?\s+(chaotic|neutral|lawful)\s+(?:(male|female)\s+)?(\w+)\s+(\w+)/);
+                if (wm) {
+                    initOpts.character = {
+                        name: welcomeScreen.match(/Hello (\w+),/)?.[1] || 'Player',
+                        align: wm[1],
+                        gender: wm[2] || 'male',
+                        race: raceAdjMap[wm[3]] || wm[3],
+                        role: wm[4],
+                    };
+                }
+                // Find name from status line if welcome parse missed it
+                if (initOpts.character && !initOpts.character.name) {
+                    for (const line of welcomeScreen.split('\n')) {
+                        const sm = line.match(/^\s*(\S+)\s+the\s+\S+\s*St:/);
+                        if (sm) { initOpts.character.name = sm[1]; break; }
+                    }
+                }
+            }
         }
     }
 

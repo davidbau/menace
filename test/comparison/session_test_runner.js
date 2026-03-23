@@ -1115,7 +1115,7 @@ export async function runSessionBundle({
     failFast = false,
     parallel = defaultParallelWorkers(),
     onProgress = null,
-    sessionTimeoutMs = 20000,
+    sessionTimeoutMs = 30000,
 } = {}) {
     // Keep JS replay-time calendar/luck behavior aligned with C captures.
     // Allow explicit caller override via environment.
@@ -1305,7 +1305,7 @@ export async function runSessionCli() {
         failedFromPath: null,
         failFast: false,
         parallel: defaultParallelWorkers(),
-        sessionTimeoutMs: 20000,
+        sessionTimeoutMs: 30000,
     };
     const argv = process.argv.slice(2);
     for (let i = 0; i < argv.length; i++) {
