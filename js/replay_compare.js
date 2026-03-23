@@ -337,17 +337,14 @@ export function prepareReplayArgs(seed, session, opts = {}) {
     const rawSession = session?.raw || session;
     const nethackrc = rawSession?.nethackrc || session?.nethackrc || '';
 
-    // Parse character and flags directly from nethackrc (8A.2/8A.3).
+    // 8A.3: Character info comes directly from nethackrc. No screen name fallback.
     const parsed = nethackrc ? parseNethackrcFull(nethackrc) : { character: {}, flags: {}, wizard: false };
     const isWizard = !!parsed.wizard;
-    // Use startup screen name when available (some sessions have mismatched
-    // nethackrc name from V4 conversion). Fall back to nethackrc name.
-    const screenChar = parseSessionCharacter(session);
-    const charRole = parsed.character.role || screenChar.role || null;
-    const charName = screenChar.name || parsed.character.name || null;
-    const charGender = parsed.character.gender || screenChar.gender || null;
-    const charRace = parsed.character.race || screenChar.race || null;
-    const charAlign = parsed.character.align || screenChar.align || null;
+    const charRole = parsed.character.role || null;
+    const charName = parsed.character.name || null;
+    const charGender = parsed.character.gender || null;
+    const charRace = parsed.character.race || null;
+    const charAlign = parsed.character.align || null;
 
     const replayFlags = typeof opts.flags === 'object' && opts.flags !== null
         ? { ...opts.flags }
@@ -579,7 +576,8 @@ export async function generateStartupWithRng(seed, session) {
 
     const alignMap0 = { lawful: 1, neutral: 0, chaotic: -1 };
     const raceMap0 = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
-    initLevelGeneration(roleIndex, session.options?.wizard ?? true, {
+    const rcForStartup = session?.nethackrc ? parseNethackrcFull(session.nethackrc) : null;
+    initLevelGeneration(roleIndex, rcForStartup?.wizard ?? session?.options?.wizard ?? true, {
         alignment: alignMap0[charOpts.align],
         race: raceMap0[charOpts.race],
     });

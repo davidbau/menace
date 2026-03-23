@@ -23,6 +23,7 @@ import { monsterNearby } from './hack.js';
 import { newsym, getCachedMapCell, flush_screen } from './display.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
+import { parseNethackrcFull } from './storage.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS, WAND_CLASS,
          COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS } from './objects.js';
@@ -586,6 +587,11 @@ export async function generateStartupWithCoreReplay(seed, session, options = {})
 }
 
 function extractCharacterFromSession(session = {}) {
+    // Prefer nethackrc, fall back to options for legacy callers.
+    const rc = session.nethackrc || session.raw?.nethackrc || '';
+    if (rc) {
+        return parseNethackrcFull(rc).character;
+    }
     const opts = session.options || session.meta?.options || {};
     return {
         name: opts.name,
