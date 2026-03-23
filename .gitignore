@@ -27,4 +27,4 @@ tmp/session-comparisons/
 /*.mjs
 /CURRENT_ISSUE.md
 js/mailcorpus_plain.js
-rogue/rogue-c/patched/
+# rogue/rogue-c/patched/ — has its own .gitignore
