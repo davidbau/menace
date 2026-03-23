@@ -36,11 +36,12 @@ import { ageSpells } from './spell.js';
 import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
+import { maybeHandleShopEntryMessage } from './shk.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity, inv_weight, domove, lookaround, end_running, dotravel_target, runmode_delay_output, check_special_room } from './hack.js';
+import { monsterNearby, nomul, unmul, near_capacity, inv_weight, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -2076,9 +2077,10 @@ export class NetHackGame {
             await more(this.display, { forceVisual: true });
         }
         // C ref: do.c:1966 check_special_room(FALSE) — shop/room entry messages.
-        // Room tracking (move_update) was done in changeLevelCore. Now run
-        // the actual messages after docrt, matching C's sequence.
-        await check_special_room(false, this.u, this.map, this.display, this.fov);
+        // TODO: port full check_special_room() for shopkeeper greeting parity.
+        // Current gap: ^V level-teleport into a shop doesn't show shopkeeper
+        // greeting because maybeHandleShopEntryMessage would consume different
+        // RNG than C's u_entered_shop() (which does bill/customer setup too).
         // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
         // and before later arrival messages. This can consume dfr_post_msg
         // early so deferred_goto() won't print it again.

@@ -1352,15 +1352,13 @@ export async function deferred_goto(player, game) {
             await losehp(Math.max(0, dmg), "falling down a mine shaft", KILLED_BY, player, game?.display, game);
         }
     }
-    // C ref: do.c goto_level() calls move_update(TRUE) then
-    // check_special_room(FALSE) after docrt(). Set up room tracking here
-    // (move_update) but defer check_special_room to after docrt in
-    // allmain.js changeLevel, matching C's sequence.
+    // C ref: do.c goto_level() calls u_entered_or_left_rooms(TRUE) then
+    // check_special_room(FALSE) before return. The newlev=TRUE call resets
+    // urooms so the subsequent FALSE call detects all rooms as "entered".
     if (dest !== fromDepth) {
         const newMap = game?.map || game?.lev;
         move_update(true, player, newMap);
-        // Set up uentered/ushops_entered for later check_special_room call
-        move_update(false, player, newMap);
+        await check_special_room(false, player, newMap, game?.display, game?.fov || null);
         const objs = newMap?.objectsAt ? newMap.objectsAt(player.x, player.y) : [];
         if (arrivalMsg && objs.length === 1) {
             observeObject(objs[0]);
