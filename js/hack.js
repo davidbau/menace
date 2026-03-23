@@ -3211,11 +3211,8 @@ export async function check_special_room(newlev, player, map, display, fov) {
 
     if (!player.uentered && !player.ushops_entered) return;
 
-    // C ref: hack.c:3543 — u_entered_shop for newly entered shops.
-    // When called during level change (newlev path), the greeting is
-    // deferred because docrt() hasn't run yet. The greeting will be
-    // shown by the deferred call in allmain.js changeLevel after docrt.
-    if (player.ushops_entered && !player._deferShopGreeting) {
+    // C ref: hack.c:3543 — u_entered_shop for newly entered shops
+    if (player.ushops_entered) {
         await u_entered_shop(player.ushops_entered, map, player, display);
     }
 
