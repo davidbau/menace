@@ -86,27 +86,47 @@ ISAAC engine is identical — the issue is purely call-order alignment.
 
 An attempt to place the pantheon `rn2(13)` between `init_objects()` and
 `init_dungeons()` in `initLevelGeneration()` (dungeon.js) produced
-`rn2(13)=2` instead of C's `rn2(13)=4` at `rngCallCount=199`. Despite
-the count suggesting ISAAC index 198, the VALUE differs.
+`rn2(13)=2` instead of C's `rn2(13)=4`.
 
-**Possible explanations**:
-1. `rngCallCount` includes composite `rnd()` calls that also consume
-   ISAAC — making the actual ISAAC consumption higher than 198
-2. Something between `init_objects()` and the pantheon placement in JS
-   consumes ISAAC values that C doesn't
-3. JS's `initRng()` consumes startup ISAAC values for initialization
-   that C's `init_random()` doesn't
+**Critical discovery**: Running `init_objects()` STANDALONE with seed 3,
+then calling `rn2(13)`, produces value **4** — matching C perfectly.
+The ISAAC engine is verified correct. The issue is that in the FULL
+game.init() pipeline, something between `initRng(seed)` and
+`init_objects()` consumes EXTRA ISAAC values.
 
-**Next diagnostic**: Add a raw ISAAC value dump at index 198 in both JS
-and C to verify the stream is identical at that point.
+Between `initRng(3)` (allmain.js:1791) and `initFirstLevel` (1889):
+- setGameSeed, setFixedDatetime, startRecording — no RNG
+- parseNethackrcFull, character setup — no RNG
+- moon/friday13 change_luck — no RNG
+- hack_artifacts — no RNG
+
+**BUT**: the full replay pipeline (`replaySession` in replay_core.js)
+calls `settleStartupInputBoundaries()` and `emitStartupRunstepIfEnabled()`
+between `game.init()` and the first `_gameLoopStep()`. These or other
+replay infrastructure functions might consume RNG.
+
+**More importantly**: `game.init()` itself might call display functions
+(renderMap, renderStatus, cursorOnPlayer) or window functions
+(init_nhwindows) that consume display RNG via `rn2_on_display_rng()`.
+If the display RNG shares the ISAAC stream with the game RNG, display
+calls would shift the game ISAAC position.
+
+**Next diagnostic**: Insert `console.log(getRngCallCount())` at the
+start and end of `init_objects()` within the full pipeline to count
+exactly how many ISAAC values are consumed before and by init_objects.
+Then compare with the standalone count.
 
 ## Fix Plan
 
-### Phase 1: Verify ISAAC alignment at init_objects boundary
-- Add `console.log` of raw ISAAC value (before modulo) at index 198 in JS
-- Add `event_log` of raw rn2 value at the randrole call in C
-- Compare: if values match, ISAAC is aligned and the issue is in
-  intermediate calls. If values differ, find where they diverge.
+### Phase 1: Find the extra ISAAC consumption in the full pipeline
+- Insert `getRngCallCount()` logging at key points in `game.init()`:
+  before initRng, after initRng, before initFirstLevel, at start of
+  initLevelGeneration, before init_objects, after init_objects
+- Compare standalone init_objects ISAAC count vs full-pipeline count
+- Identify which function between initRng and init_objects consumes
+  the extra ISAAC value(s)
+- Check if `rn2_on_display_rng()` shares the game ISAAC stream
+  (it should use a SEPARATE display stream per rng.js design)
 
 ### Phase 2: Implement pantheon at correct ISAAC position
 - Place `rn2(13)` pantheon call in `initLevelGeneration` between
