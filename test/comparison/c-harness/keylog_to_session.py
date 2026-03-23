@@ -75,6 +75,38 @@ collect_mapdump_checkpoints = _session.collect_mapdump_checkpoints
 report_repaint_debug_log = _session.report_repaint_debug_log
 
 
+def parse_key_delay_overrides(raw_value):
+    """Parse NETHACK_KEY_DELAYS_S into a 1-based step->delay map."""
+    if not raw_value:
+        return {}
+    try:
+        parsed = json.loads(raw_value)
+    except Exception:
+        return {}
+
+    out = {}
+    if isinstance(parsed, list):
+        for idx, value in enumerate(parsed, start=1):
+            try:
+                delay = float(value)
+            except Exception:
+                continue
+            if delay >= 0.0:
+                out[idx] = delay
+        return out
+
+    if isinstance(parsed, dict):
+        for key, value in parsed.items():
+            try:
+                step = int(key)
+                delay = float(value)
+            except Exception:
+                continue
+            if step >= 1 and delay >= 0.0:
+                out[step] = delay
+    return out
+
+
 def parse_args():
     p = argparse.ArgumentParser(description='Convert keylog JSONL to standard session JSON')
     p.add_argument('--from-config', action='store_true', help='Regenerate keylog sessions from seeds.json keylog_sessions')
@@ -365,6 +397,8 @@ def run_from_keylog(
     keylog_moves_base = int(events[0].get('moves', 0))
 
     key_delay_s = max(0.0, float(key_delay_ms) / 1000.0)
+    key_delay_overrides = parse_key_delay_overrides(os.environ.get('NETHACK_KEY_DELAYS_S'))
+    final_capture_delay_s = max(0.0, float(os.environ.get('NETHACK_FINAL_CAPTURE_DELAY_S', '0.0')))
 
     fixed_datetime = datetime_hint or _session.harness_fixed_datetime()
     datetime_env = f'NETHACK_FIXED_DATETIME={fixed_datetime} ' if fixed_datetime else ''
@@ -464,6 +498,12 @@ def run_from_keylog(
         }
         if regen:
             session_data['regen'] = regen
+            if key_delay_overrides:
+                session_data['regen'] = dict(session_data['regen'])
+                session_data['regen']['key_delays_s'] = key_delay_overrides
+            if final_capture_delay_s > 0.0:
+                session_data['regen'] = dict(session_data['regen'])
+                session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
             session_env = {}
             for key in (
                 'NETHACK_EVENT_TEST_MOVE',
@@ -486,9 +526,16 @@ def run_from_keylog(
             f'=== Replaying {len(events)} keylog events '
             f'(seed={seed}, screenCapture={screen_capture_mode}, tutorial={tutorial_enabled}, keyDelayMs={key_delay_ms}) ==='
         )
+        if key_delay_overrides:
+            print(f'Per-turn key delay overrides: {len(key_delay_overrides)} steps')
         for i, e in enumerate(events):
             code = int(e['key'])
-            send_keycode(session_name, code, key_delay_s)
+            step_num = i + 1
+            step_delay_s = key_delay_overrides.get(step_num, key_delay_s)
+            send_keycode(session_name, code, step_delay_s)
+
+            if i == len(events) - 1 and final_capture_delay_s > 0.0:
+                time.sleep(final_capture_delay_s)
 
             screen = capture_screen_v3(session_name)
             screen_lines = screen_to_plain_lines(screen)
@@ -528,6 +575,10 @@ def run_from_keylog(
             if depth != prev_depth_recorded:
                 step['depth'] = depth
                 prev_depth_recorded = depth
+            if step_num in key_delay_overrides:
+                step['capture'] = {
+                    'key_delay_s': step_delay_s,
+                }
 
             session_data['steps'].append(step)
             prev_rng_count = rng_count
