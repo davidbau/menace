@@ -157,7 +157,8 @@ input.getKey = async function () {
   let key;
 
   if (depth !== lastDepth) {
-    process.stderr.write(`  Level ${depth}\n`);
+    let _ms = []; for (let _m = game.fmon; _m; _m = _m.nmon) if (_m.data) _ms.push(_m.data.mlet);
+    process.stderr.write(`  Level ${depth} [${_ms.join(',')}]\n`);
     lastDepth = depth;
     exploreVisited.clear();
     campCount = 0;
