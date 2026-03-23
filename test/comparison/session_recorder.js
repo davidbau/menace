@@ -3,7 +3,7 @@
 
 import { replaySession } from '../../js/replay_core.js';
 import { prepareReplayArgs, stripAnsiSequences } from '../../js/replay_compare.js';
-import { DEFAULT_FLAGS } from '../../js/storage.js';
+import { DEFAULT_FLAGS, parseNethackrcFull } from '../../js/storage.js';
 import { resolveSessionFixedDatetime } from './session_datetime.js';
 
 const DEFAULT_FIXED_DATETIME = '20000110090000';
@@ -32,14 +32,25 @@ function ensureSessionGlobals() {
     });
 }
 
+// 8A.4: Build replay flags directly from nethackrc, not from session.meta.options.
 export function buildGameplayReplayFlags(session) {
     const flags = { ...DEFAULT_FLAGS };
-    flags.color = session?.meta?.options?.color !== false;
-    // NetHack defaults verbose=true; preserve that unless a session explicitly disables it.
-    flags.verbose = session?.meta?.options?.verbose !== false;
-    if (session?.meta?.options?.autopickup === false) flags.pickup = false;
-    if (session?.meta?.options?.rest_on_space) flags.rest_on_space = true;
-    flags.DECgraphics = session?.meta?.options?.symset === 'DECgraphics';
+    const nethackrc = session?.raw?.nethackrc || session?.nethackrc || '';
+    if (nethackrc) {
+        const parsed = parseNethackrcFull(nethackrc);
+        flags.color = parsed.flags.color !== false;
+        flags.verbose = parsed.flags.verbose !== false;
+        if (parsed.flags.pickup === false) flags.pickup = false;
+        if (parsed.flags.rest_on_space) flags.rest_on_space = true;
+        flags.DECgraphics = !!parsed.flags.DECgraphics;
+    } else {
+        // Fallback for sessions without nethackrc (legacy or manual-direct)
+        flags.color = session?.meta?.options?.color !== false;
+        flags.verbose = session?.meta?.options?.verbose !== false;
+        if (session?.meta?.options?.autopickup === false) flags.pickup = false;
+        if (session?.meta?.options?.rest_on_space) flags.rest_on_space = true;
+        flags.DECgraphics = session?.meta?.options?.symset === 'DECgraphics';
+    }
     flags.bgcolors = true;
     flags.customcolors = true;
     flags.customsymbols = true;

@@ -335,44 +335,36 @@ export function hasStartupBurstInFirstStep(session) {
 // screen (lore + --More--), and all subsequent keys drive the game.
 export function prepareReplayArgs(seed, session, opts = {}) {
     const rawSession = session?.raw || session;
-    // Derive options from nethackrc if not already present.
-    if (session.nethackrc && !session.options && !session._v4OptionsApplied) {
-        const { character, flags, wizard } = parseNethackrcFull(session.nethackrc);
-        session.options = {};
-        if (character.name) session.options.name = character.name;
-        if (character.role) session.options.role = character.role;
-        if (character.race) session.options.race = character.race;
-        if (character.gender) session.options.gender = character.gender;
-        if (character.align) session.options.align = character.align;
-        if (wizard) session.options.wizard = true;
-        if (flags.pickup === false) session.options.autopickup = false;
-        if (flags.verbose === false) session.options.verbose = false;
-        if (flags.tutorial === false) session.options.tutorial = false;
-        if (flags.DECgraphics) session.options.symset = 'DECgraphics';
-        if (flags.time === true) session.options.time = true;
-        if (flags.color === false) session.options.color = false;
-        if (flags.rest_on_space) session.options.rest_on_space = true;
-        if (session.env?.NETHACK_FIXED_DATETIME) {
-            session.options.datetime = session.env.NETHACK_FIXED_DATETIME;
-        }
-        session._v4OptionsApplied = true;
-    }
-    const sessionChar = parseSessionCharacter(session);
+    const nethackrc = rawSession?.nethackrc || session?.nethackrc || '';
+
+    // Parse character and flags directly from nethackrc (8A.2/8A.3).
+    const parsed = nethackrc ? parseNethackrcFull(nethackrc) : { character: {}, flags: {}, wizard: false };
+    const isWizard = !!parsed.wizard;
+    // Use startup screen name when available (some sessions have mismatched
+    // nethackrc name from V4 conversion). Fall back to nethackrc name.
+    const screenChar = parseSessionCharacter(session);
+    const charRole = parsed.character.role || screenChar.role || null;
+    const charName = screenChar.name || parsed.character.name || null;
+    const charGender = parsed.character.gender || screenChar.gender || null;
+    const charRace = parsed.character.race || screenChar.race || null;
+    const charAlign = parsed.character.align || screenChar.align || null;
+
     const replayFlags = typeof opts.flags === 'object' && opts.flags !== null
         ? { ...opts.flags }
         : {};
+
     // Only set character when role is known (pre-selected character).
     // When role is absent (e.g., manual-direct sessions with interactive
     // chargen), leave character null so game.init() uses the key sequence.
-    const hasCharacter = !!(sessionChar.role);
+    const hasCharacter = !!charRole;
     const initOpts = {
-        wizard: session.options?.wizard ?? false,
+        wizard: isWizard,
         character: hasCharacter ? {
-            role: sessionChar.role,
-            name: sessionChar.name,
-            gender: sessionChar.gender,
-            race: sessionChar.race,
-            align: sessionChar.align,
+            role: charRole,
+            name: charName,
+            gender: charGender,
+            race: charRace,
+            align: charAlign,
         } : null,
         startDnum: Number.isInteger(opts.startDnum) ? opts.startDnum : undefined,
         startDlevel: Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1,
@@ -380,7 +372,8 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         flags: replayFlags,
     };
 
-    const hasCheckpointEvents = (Array.isArray(session?.steps) ? session.steps : []).some((step) =>
+    const allSteps = rawSession?.steps || session?.steps || [];
+    const hasCheckpointEvents = allSteps.some((step) =>
         Array.isArray(step?.rng) && step.rng.some((entry) => typeof entry === 'string' && entry.startsWith('^ckpt['))
     );
     if (hasCheckpointEvents) {
@@ -414,10 +407,9 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         if (typeof steps[i].key === 'string') keys += steps[i].key;
     }
 
-    // Build display flags from session metadata.
-    const sessionSymset = session?.options?.symset || session?.meta?.options?.symset;
-    const decgraphicsMode = session.screenMode === 'decgraphics' || sessionSymset === 'DECgraphics';
-    const displayFlags = { DECgraphics: !!decgraphicsMode };
+    // Build display flags from nethackrc.
+    const decgraphicsMode = !!parsed.flags.DECgraphics;
+    const displayFlags = { DECgraphics: decgraphicsMode };
     if (opts.flags && typeof opts.flags === 'object') {
         Object.assign(displayFlags, opts.flags);
     }
@@ -432,7 +424,6 @@ export function prepareReplayArgs(seed, session, opts = {}) {
             onKey: opts.onKey,
         },
         keys,
-        // Expose step boundaries so the comparator can group key results back into steps.
         stepBoundaries: steps.map(s => (typeof s.key === 'string' ? s.key.length : 0)),
     };
 }
