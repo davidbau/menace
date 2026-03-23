@@ -4999,6 +4999,11 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
     }
 
     if (_gstate) _gstate._levelDepth = depth;
+    // Ensure sp_lev's levelState.levelDepth is also set, so
+    // withSpecialLevelDepth's finally-block restores the correct value
+    // instead of resetting to undefined → 1.
+    const _ls = getLevelState();
+    if (_ls) _ls.levelDepth = depth;
     // C ref: mklev.c:1260, sp_lev.c:6004 — oinit() calls setgemprobs(&u.uz)
     // Depth-only callers (no branch coordinates) should still use the
     // requested level depth rather than falling back to level 1.
