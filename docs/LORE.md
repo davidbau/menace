@@ -16935,3 +16935,71 @@ source is elsewhere in the moveloop phase ordering.
   shows conserved gameplay and adjacent raw steps split one `tmp_at` visual
   effect, fix the capture timing in the session regen metadata and rerecord the
   fixture instead of patching JS display logic.
+- 2026-03-23: `showMoreTextPages()` has two C-faithful pager rules that matter
+  for endgame disclosure parity. First, the final page still waits for a key
+  but does not display a bottom-row `--More--`; showing that marker on the last
+  page kept `seed031` one step early at the final-enlightenment boundary.
+
+## 2026-03-23 - `seed031` late endgame parity: score/tombstone/topten are real progress; remaining seam is final conduct state
+
+- After the camera capture-boundary rerecord fix, `seed031_manual_direct` still
+  had a long late screen-only tail through death disclosure, tombstone, and
+  topten.
+- The fixes that materially moved the frontier were real JS endgame-state and
+  windowport fixes, not comparator workarounds:
+  - potion discovery needed the C `more_experienced(0, 10)` credit when a
+    quaffed potion becomes known
+  - JS needed a real `player.urexp` endgame field with save/restore support
+  - death finalization needed to compute the final C-style score into `urexp`
+  - headless death flow needed the combined C-style tombstone + death-summary
+    page and to stop at topten rather than falling through to browser
+    `Play again?`
+  - random tin variety has to persist in `obj.spe`; otherwise gameover
+    inventory naming drifts (`homemade tin` seam)
+  - gameover `doname()` needs the Hawaiian-shirt motif suffix and `GemStone()`
+    naming (`jade stone`) for end-of-run inventory/disclosure parity
+  - vanquished display needs C-style neutral monster titles (`gnome leader`,
+    `dwarf leader`, etc.) and the boxed text-window path rather than the
+  generic pager
+- These changes move the isolated `seed031` batch much later while keeping
+  gameplay channels green:
+  - RNG `51561/51561`
+  - events `28950/28950`
+- The remaining late seam after this batch is not another tombstone or popup
+  geometry issue. It is in the final conduct/disclosure content:
+  - current first divergence is step `1360`
+  - JS still shows the food-conduct line (`You went without food.`)
+  - the canonical session's transformed final conduct page starts at
+    `You were an atheist.`
+- Working conclusion: the next `seed031` blocker is a real conduct-state /
+  disclosure-content issue, not gameplay RNG/event drift and not another
+  generic window-owner bug.
+  Second, terminal save/restore has to support both display backends:
+  browser-style displays store `{ ch, color, attr }` cells in `display.grid`,
+  but headless replay stores chars in `display.grid` and colors/attrs in the
+  parallel `display.colors` and `display.attrs` arrays. Reusing object-cell
+  save/restore against the headless backend restores `undefined` chars and
+  blanks the saved map under the next prompt. The faithful pager fix is to
+  snapshot and restore chars/colors/attrs from whichever backend is active.
+
+- 2026-03-23: the remaining late `seed031` conduct/disclosure seam turned out
+  to have two real JS root causes. First, JS was missing C gameplay producers
+  for final disclosure state:
+  - `Player` needed zero-initialized `uconduct`, `uroleplay`, `uachieved`,
+    `uhave`, and `uevent`
+  - `eatcorpse()` must route through `eating_conducts()` so corpse meals
+    increment `uconduct.food` like C
+  - `goto_level()` needs to record branch-entry achievements such as
+    `ACH_MINE`
+  - `pluslvl()` needs to record rank achievements via `achieve_rank()`
+  After those fixes, live replay at the final disclosure had the expected
+  `uachieved=[15,23]` (`entered the Gnomish Mines`, `attained the rank of
+  Sightseer`) and the false `You went without food.` line disappeared.
+- 2026-03-23: once the state was correct, the last `seed031` screen seam was
+  still an owner/control-flow bug. `show_conduct()` must use the C `NHW_MENU`
+  popup path rather than the generic pager; otherwise the conduct page renders
+  full-width instead of as a right-side overlay over the live map. After that,
+  JS still replayed the tombstone page twice because endgame prompt teardown
+  could call `showGameOver()` more than once. Making `NetHackGame.showGameOver()`
+  idempotent fixed the duplicate invocation and moved `seed031` to full screen
+  parity (`1365/1365` screens) while keeping gameplay channels green.

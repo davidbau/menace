@@ -92,11 +92,11 @@ export function currency(amount) {
 }
 
 // C ref: invent.c display_inventory() / display_pickinv()
-export function buildInventoryOverlayLines(player, filterFn = null) {
+export function buildInventoryOverlayLines(player, filterFn = null, options = null) {
     const items = Array.isArray(player?.inventory)
         ? player.inventory.filter((item) => !filterFn || filterFn(item))
         : [];
-    return buildInventoryOverlayLinesFromItems(items, player);
+    return buildInventoryOverlayLinesFromItems(items, player, options);
 }
 
 function displayOnlyFullyIdentifiedName(item, player) {
@@ -2045,7 +2045,7 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
     const prompt = choices
         ? `What do you want to ${word}? [${choices} or ?*] `
         : `What do you want to ${word}? [*] `;
-    const allInvLetters = inv.filter(o => o?.invlet).map(o => o.invlet).join('');
+    const allInvLetters = allValid.filter(o => o?.invlet).map(o => o.invlet).join('');
     const clearPrompt = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -2107,7 +2107,8 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
         // '?' or '*' = show inventory overlay
         if (c === '?' || c === '*') {
             clearPrompt();
-            const lines = buildInventoryOverlayLines(p);
+            const includeSyntheticGold = allValid.some((o) => o?.oclass === COIN_CLASS);
+            const lines = buildInventoryOverlayLinesFromItems(allValid, p, { includeSyntheticGold });
             const menuSelection = await renderOverlayMenuUntilDismiss(
                 display, lines, allInvLetters
             );
@@ -2807,7 +2808,7 @@ export async function look_here(player, map, obj_cnt) {
             await win_putstr(tmpwin, 0, 'Things that are here:');
         }
         for (const obj of objects) {
-            observeObject(obj);
+            obj.dknown = true;
             await win_putstr(tmpwin, 0, doname(obj));
         }
         await win_putstr(tmpwin, 0, '');
@@ -2817,7 +2818,7 @@ export async function look_here(player, map, obj_cnt) {
         if (featureText && featureVerb) {
             await pline(`There ${featureVerb} ${featureText} here.`);
         }
-        observeObject(objects[0]);
+        objects[0].dknown = true;
         await You('see here %s.', doname(objects[0]));
     } else if (featureText && featureVerb) {
         await There("%s %s here.", featureVerb, featureText);

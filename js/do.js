@@ -8,7 +8,7 @@ import { COLNO, ROWNO, STAIRS,
          I_SPECIAL, TIMEOUT, WOUNDED_LEGS, is_pit, is_hole,
          W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED, STRAT_WAITFORU } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
-import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair, depth as dungeonDepth, level_difficulty } from './dungeon.js';
+import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair, depth as dungeonDepth, level_difficulty, In_mines } from './dungeon.js';
 import { mon_arrive } from './dog.js';
 import { initrack } from './monmove.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS,
@@ -61,6 +61,8 @@ import { finesse_ahriman } from './artifact.js';
 import { freeinv } from './invent.js';
 import { ship_object } from './dokick.js';
 import { game as _gstate } from './gstate.js';
+import { record_achievement } from './insight.js';
+import { ACH_MINE } from './const.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
 const gd = {};
@@ -1358,7 +1360,10 @@ export async function deferred_goto(player, game) {
     if (dest !== fromDepth) {
         const newMap = game?.map || game?.lev;
         move_update(true, player, newMap);
+        // Defer shop greeting until after docrt in allmain.js changeLevel
+        player._deferShopGreeting = true;
         await check_special_room(false, player, newMap, game?.display, game?.fov || null);
+        player._deferShopGreeting = false;
         const objs = newMap?.objectsAt ? newMap.objectsAt(player.x, player.y) : [];
         if (arrivalMsg && objs.length === 1) {
             observeObject(objs[0]);
@@ -1812,6 +1817,12 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     const activeDnum = Number.isInteger(game.dnum)
         ? game.dnum
         : (Number.isInteger(targetDnum) ? targetDnum : currentDnum);
+    const previousUz = (game.u || game.u)?.uz
+        ? { dnum: (game.u || game.u).uz.dnum, dlevel: (game.u || game.u).uz.dlevel }
+        : (Number.isInteger(currentDnum) && Number.isInteger(previousDepth)
+            ? { dnum: currentDnum, dlevel: previousDepth }
+            : null);
+    const newdungeon = !!(previousUz && previousUz.dnum !== activeDnum);
     stampLevelIdentity((game.map || game.map), activeDnum, depth);
     setCurrentLevelStairs(game.map || game.map);
 
@@ -1839,6 +1850,12 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
             heroY: (game.u || game.u).y,
         });
         resolveArrivalCollision(game);
+    }
+
+    // C ref: do.c goto_level() — entering the Mines records ACH_MINE on the
+    // first branch transition into that dungeon.
+    if (newdungeon && In_mines((game.u || game.u).uz)) {
+        record_achievement(ACH_MINE, game.u || game.u);
     }
 
     // C ref: do.c goto_level() — initial bubble/cloud move before vision refresh.

@@ -72,7 +72,7 @@ function genericObjectGlyph(obj) {
     };
 }
 
-function maybeObserveObjectForMap(obj, player, x, y) {
+export function maybeObserveObjectForMap(obj, player, x, y) {
     if (!isGenericObject(obj) || !player || !Number.isInteger(x) || !Number.isInteger(y)) {
         return;
     }

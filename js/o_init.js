@@ -519,6 +519,11 @@ export function undiscoverObject(oindx) {
 // C ref: o_init.c observe_object()
 export function observeObject(obj) {
     if (!obj) return;
+    if (process?.env?.TRACE_DISCOVERY_GEMS === '1' && objectData[obj.otyp]?.oc_class === GEM_CLASS) {
+        const step = Number.isInteger(_gstate?.map?._replayStepIndex) ? (_gstate.map._replayStepIndex + 1) : -1;
+        const stack = new Error().stack?.split('\n').slice(1, 6).map((s) => s.trim()).join(' | ');
+        console.log(`[trace_gem_observe] step=${step} otyp=${obj.otyp} name=${obj_typename(obj.otyp)} pos=${obj.ox},${obj.oy} stack=${stack}`);
+    }
     obj.dknown = true;
     discoverObject(obj.otyp, false, true);
 }
@@ -531,38 +536,7 @@ function interestingToDiscover(otyp) {
 }
 
 export function discoveryTypeName(otyp) {
-    const od = objectData[otyp];
-    if (!od) return 'unknown object';
-    const nn = ocNameKnown[otyp];
-    const dn = od.oc_descr || od.oc_name;
-    const an = od.oc_name;
-    const withDesc = (base) => od.oc_descr ? `${base} (${od.oc_descr})` : base;
-
-    switch (od.oc_class) {
-    case COIN_CLASS:
-        return an;
-    case POTION_CLASS:
-        return withDesc(nn ? `potion of ${an}` : 'potion');
-    case SCROLL_CLASS:
-        return withDesc(nn ? `scroll of ${an}` : 'scroll');
-    case WAND_CLASS:
-        return withDesc(nn ? `wand of ${an}` : 'wand');
-    case SPBOOK_CLASS:
-        return withDesc(nn ? `spellbook of ${an}` : 'spellbook');
-    case RING_CLASS:
-        return withDesc(nn ? `ring of ${an}` : 'ring');
-    case AMULET_CLASS:
-        return withDesc(nn ? an : 'amulet');
-    default:
-        if (nn) {
-            const pairPrefix = (od.oc_class === ARMOR_CLASS
-                && (od.oc_subtyp === ARM_GLOVES || od.oc_subtyp === ARM_BOOTS))
-                ? 'pair of '
-                : '';
-            return withDesc(`${pairPrefix}${an}`);
-        }
-        return dn;
-    }
+    return obj_typename(otyp);
 }
 
 export function getDiscoveriesMenuLines() {
@@ -626,10 +600,13 @@ export function setDiscoveryState(state) {
     for (let i = 0; i < n; i++) {
         ocNameKnown[i] = !!state.ocNameKnown[i];
         ocEncountered[i] = !!state.ocEncountered[i];
-        if (ocNameKnown[i] || ocEncountered[i]) pushDisco(i);
     }
-    if (Array.isArray(state.disco)) {
+    if (Array.isArray(state.disco) && state.disco.length > 0) {
         for (const otyp of state.disco) pushDisco(otyp);
+    } else {
+        for (let i = 0; i < n; i++) {
+            if (ocNameKnown[i] || ocEncountered[i]) pushDisco(i);
+        }
     }
 }
 

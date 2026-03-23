@@ -37,6 +37,7 @@ import { mark_vision_dirty } from './vision.js';
 import { float_up, float_down } from './trap.js';
 import { float_vs_flight, polyself } from './polyself.js';
 import { rndexp, pluslvl } from './exper.js';
+import { more_experienced } from './exper.js';
 import { discoverObject, isObjectNameKnown, objdescr_is } from './o_init.js';
 import { trycall } from './do.js';
 import { heal_legs } from './do.js';
@@ -565,7 +566,9 @@ async function handleQuaff(player, map, display) {
         .join('');
     const showQuaffHelpList = async () => {
         replacePromptMessage();
-        const lines = buildInventoryOverlayLines(player);
+        const lines = buildInventoryOverlayLines(player, (item) => item?.oclass === POTION_CLASS, {
+            includeSyntheticGold: false,
+        });
         return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
     };
     const showQuaffPrompt = async () => {
@@ -656,6 +659,7 @@ async function handleQuaff(player, map, display) {
             if (item.dknown && !isObjectNameKnown(item.otyp)) {
                 if (!potionUnknown) {
                     discoverObject(item.otyp, true, true);
+                    more_experienced(0, 10, gstateGame, player);
                 } else {
                     await trycall(item);
                 }

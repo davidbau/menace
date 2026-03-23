@@ -2737,10 +2737,56 @@ export async function remote_burglary(x, y, map) {
 // U entered/left shop (C: u_entered_shop, u_left_shop)
 // ============================================================
 
-// C ref: shk.c u_entered_shop() -- called from check_special_room
-export function u_entered_shop(enterroom, map, player) {
-    // The existing maybeHandleShopEntryMessage handles this case
-    // This export provides the C-compatible interface
+// C ref: shk.c u_entered_shop() -- called from check_special_room.
+// This must consume ZERO RNG to match C (pacify_shk, verbalize, pline
+// don't call rn2/rnd). Only state updates + display message.
+export async function u_entered_shop(enterstring, map, player, display) {
+    if (!enterstring) return;
+
+    for (const ch of enterstring) {
+        const roomno = ch.charCodeAt(0);
+        const shkp = findShopkeeper(map, roomno);
+        if (!shkp) {
+            // Deserted shop
+            if (player.ushops) player.ushops = '';
+            continue;
+        }
+        if (!inhishop(shkp, map)) {
+            if (player.ushops) player.ushops = '';
+            continue;
+        }
+
+        // C ref: bill setup (no RNG)
+        if (!shkp.bill) shkp.bill = [];
+
+        // C ref: new customer — pacify shopkeeper (no RNG)
+        const plname = String(player?.name || 'customer').toLowerCase();
+        if ((!shkp.visitct || shkp.customer) && shkp.customer !== plname) {
+            shkp.visitct = 0;
+            shkp.following = false;
+            shkp.customer = plname;
+            shkp.mpeaceful = true; // pacify_shk
+        }
+
+        if (muteshk(shkp) || shkp.following) continue;
+        if (!display) continue;
+
+        const rt = map.rooms?.[roomno - ROOMOFFSET]?.rtype || SHOPBASE;
+        const shopTypeName = shtypes[rt - SHOPBASE]?.name || 'shop';
+        const shkName = shopkeeperName(shkp);
+
+        if (shkp.mpeaceful === false) {
+            await display.putstr_message(`"So, ${plname}, you dare return to ${sSuffix(shkName)} ${shopTypeName}?!"`);
+        } else if (shkp.surcharge) {
+            await display.putstr_message(`"Back again, ${plname}?  I've got my eye on you."`);
+        } else if (shkp.robbed) {
+            await display.putstr_message(`${capitalizeWord(shkName)} mutters imprecations against shoplifters.`);
+        } else {
+            const greeting = Hello(shkp, player.roleIndex);
+            await display.putstr_message(`"${greeting}, ${plname}!  Welcome${shkp.visitct ? ' again' : ''} to ${sSuffix(shkName)} ${shopTypeName}!"`);
+            shkp.visitct = (shkp.visitct || 0) + 1;
+        }
+    }
 }
 
 // C ref: shk.c u_left_shop()

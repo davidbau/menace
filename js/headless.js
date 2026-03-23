@@ -618,6 +618,7 @@ const DEC_TO_UNICODE = {
 // Now supports terminal attributes (inverse video, bold, underline).
 export class HeadlessDisplay {
     constructor() {
+        this.isHeadless = true;
         this.cols = TERMINAL_COLS;
         this.rows = TERMINAL_ROWS;
         this.grid = [];
@@ -1226,6 +1227,36 @@ export class HeadlessDisplay {
                 this.grid[i][c] = ' ';
                 this.colors[i][c] = CLR_GRAY;
             }
+        }
+    }
+
+    renderTombstone(name, gold, deathLines, year) {
+        this.clearScreen();
+        const rip = [
+            '                       ----------',
+            '                      /          \\',
+            '                     /    REST    \\',
+            '                    /      IN      \\',
+            '                   /     PEACE      \\',
+            '                  /                  \\',
+        ];
+        const FACE_WIDTH = 16;
+        const centerOnStone = (text) => {
+            let t = String(text || '');
+            if (t.length > FACE_WIDTH) t = t.substring(0, FACE_WIDTH);
+            const pad = Math.floor((FACE_WIDTH - t.length) / 2);
+            const inner = ' '.repeat(pad) + t + ' '.repeat(FACE_WIDTH - pad - t.length);
+            return `                  | ${inner} |`;
+        };
+        rip.push(centerOnStone(name));
+        rip.push(centerOnStone(`${gold} Au`));
+        for (let i = 0; i < 4; i++) rip.push(centerOnStone(deathLines[i] || ''));
+        rip.push(centerOnStone(year));
+        rip.push('                 *|     *  *  *      | *');
+        rip.push('        _________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______');
+        const startRow = 1;
+        for (let i = 0; i < rip.length && startRow + i < this.rows; i++) {
+            this.putstr(0, startRow + i, rip[i], CLR_WHITE);
         }
     }
 

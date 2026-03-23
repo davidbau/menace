@@ -32,6 +32,8 @@ import {
     LA_UP, LA_DOWN,
     W_NONDIGGABLE,
     W_NORTH, W_SOUTH, W_EAST, W_WEST, W_ANY,
+    NHW_MENU, MENU_BEHAVE_STANDARD, PICK_NONE, PICK_ONE,
+    ATR_NONE, MENU_ITEMFLAGS_NONE, NO_COLOR,
 } from './const.js';
 import { GameMap } from './game.js';
 import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw, pushRngLogEntry } from './rng.js';
@@ -48,6 +50,7 @@ import {
     add_to_buried,
 } from './mkobj.js';
 import { makemon, mkclass, rndmonnum_adj, set_malign } from './makemon.js';
+import { create_nhwindow, start_menu, add_menu, end_menu, select_menu, destroy_nhwindow } from './windows.js';
 import { NO_MM_FLAGS, SIZE, nul_glyphinfo,
          LR_DOWNSTAIR, LR_UPSTAIR, LR_PORTAL, LR_BRANCH,
          LR_TELE, LR_UPTELE, LR_DOWNTELE, SHARED } from './const.js';
@@ -1007,6 +1010,21 @@ export function dname_to_dnum(name) {
         'tutorial': TUTORIAL
     };
     return map[key];
+}
+
+export function dnum_to_dname(dnum) {
+    const map = {
+        [DUNGEONS_OF_DOOM]: 'The Dungeons of Doom',
+        [GNOMISH_MINES]: 'The Gnomish Mines',
+        [SOKOBAN]: 'Sokoban',
+        [QUEST]: 'The Quest',
+        [KNOX]: 'Fort Ludios',
+        [GEHENNOM]: 'Gehennom',
+        [VLADS_TOWER]: "Vlad's Tower",
+        [ELEMENTAL_PLANES]: 'The Elemental Planes',
+        [TUTORIAL]: 'Tutorial',
+    };
+    return map[Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM] || 'The Dungeons of Doom';
 }
 
 export function dungeon_branch(name) {

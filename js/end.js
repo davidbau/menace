@@ -34,12 +34,18 @@ import { AMULET_OF_LIFE_SAVING, AMULET_CLASS, GEM_CLASS,
 import { Is_container, xname, doname } from './mkobj.js';
 import { arti_cost, artiname } from './artifact.js';
 import { acurr } from './attrib.js';
-import { currency } from './invent.js';
+import { currency, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { d } from './rng.js';
 import { roles } from './player.js';
 import { freedynamicdata } from './save.js';
 import { ynFunction } from './input.js';
 import { can_make_bones } from './bones.js';
+import { enlightenment, show_conduct, list_vanquished } from './insight.js';
+import { destroy_nhwindow } from './windows.js';
+import { show_overview } from './dungeon.js';
+import { money_cnt } from './hack.js';
+import { hidden_gold } from './vault.js';
+import { depth } from './dungeon.js';
 
 // cf. end.c:47 — death descriptions (indexed by game_end_types)
 const deaths = [
@@ -69,6 +75,11 @@ const killer = {
     format: KILLED_BY_AN,
     next: null,  // linked list for delayed killers
 };
+
+// C ref: insight.c enlightenment final-state constants.
+const ENL_GAMEOVERDEAD = 2;
+const BASICENLIGHTENMENT = 1;
+const MAGICENLIGHTENMENT = 2;
 
 // Access the killer state
 export function getKiller() { return killer; }
@@ -493,24 +504,179 @@ async function maybeInstallPossessionsPrompt(how, game) {
         : 'Do you want your possessions identified? [ynq] (n)';
     await pline(prompt);
 
+    const clearEndPrompt = (display) => {
+        if (!display) return;
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        if (Object.hasOwn(display, 'messageNeedsMore')) {
+            display.messageNeedsMore = false;
+        }
+    };
+
+    const finishEndgameDisplay = async (gameCtx) => {
+        if (gameCtx?.gameOver && typeof gameCtx?.showGameOver === 'function') {
+            await gameCtx.showGameOver();
+            return;
+        }
+        renderHeadlessEndWarnings(gameCtx);
+    };
+
+    const hasVanquished = (gameCtx) => {
+        const mvitals = gameCtx?.mvitals || gameCtx?.u?.mvitals || [];
+        for (const vital of mvitals) {
+            if ((vital?.died || 0) > 0) return true;
+        }
+        return false;
+    };
+
+    const disclosureSteps = [
+        {
+            type: 'death_attributes',
+            prompt: 'Do you want to see your attributes? [ynq] (n)',
+            async action(gameCtx) {
+                await enlightenment(BASICENLIGHTENMENT | MAGICENLIGHTENMENT, ENL_GAMEOVERDEAD, gameCtx);
+            },
+        },
+        {
+            type: 'death_vanquished',
+            prompt: 'Do you want an account of creatures vanquished? [ynaq] (n)',
+            shouldAsk: hasVanquished,
+            async action(gameCtx) {
+                return await list_vanquished('y', false, gameCtx, { blocking: false });
+            },
+        },
+        {
+            type: 'death_conduct',
+            prompt: 'Do you want to see your conduct and achievements? [ynq] (n)',
+            async action(gameCtx) {
+                await show_conduct(ENL_GAMEOVERDEAD, gameCtx);
+            },
+        },
+        {
+            type: 'death_overview',
+            prompt: 'Do you want to see the dungeon overview? [ynq] (n)',
+            shouldAsk: (gameCtx) => !!gameCtx?.map,
+            async action(gameCtx) {
+                await show_overview((how >= PANICKED) ? 1 : 2, how, gameCtx.map);
+            },
+        },
+    ];
+
+    const installDisclosurePrompt = async (gameCtx, stepIndex) => {
+        for (let idx = stepIndex; idx < disclosureSteps.length; idx++) {
+            const step = disclosureSteps[idx];
+            if (typeof step.shouldAsk === 'function' && !step.shouldAsk(gameCtx)) continue;
+            clearEndPrompt(gameCtx.display);
+            await pline(step.prompt);
+            gameCtx.pendingPrompt = {
+                type: step.type,
+                onKey: async (chCode, innerGame) => {
+                    const ch = String.fromCharCode(chCode || 0).toLowerCase();
+                    if (ch === 'q') {
+                        innerGame.done_stopprint = (innerGame.done_stopprint || 0) + 1;
+                        innerGame.pendingPrompt = null;
+                        clearEndPrompt(innerGame.display);
+                        await finishEndgameDisplay(innerGame);
+                        return {
+                            handled: true,
+                            moved: false,
+                            tookTime: false,
+                            terminalScreenOwned: true,
+                        };
+                    }
+                    innerGame.pendingPrompt = null;
+                    const actionResult = (ch === 'y' || ch === 'a')
+                        ? await step.action(innerGame)
+                        : null;
+                    if (actionResult?.type === 'vanquished_popup') {
+                        innerGame.pendingPrompt = {
+                            type: 'death_vanquished_popup',
+                            onKey: async (dismissCode, popupGame) => {
+                                if (![32, 10, 13, 27, 16].includes(dismissCode || 0)) {
+                                    return {
+                                        handled: true,
+                                        moved: false,
+                                        tookTime: false,
+                                        terminalScreenOwned: true,
+                                    };
+                                }
+                                popupGame.pendingPrompt = null;
+                                if (typeof popupGame.display?.clearTextPopup === 'function') {
+                                    popupGame.display.clearTextPopup();
+                                    if (typeof popupGame.display?.clearRow === 'function') {
+                                        popupGame.display.clearRow(0);
+                                    }
+                                }
+                                destroy_nhwindow(actionResult.win);
+                                await installDisclosurePrompt(popupGame, idx + 1);
+                                if (!popupGame.pendingPrompt) {
+                                    await finishEndgameDisplay(popupGame);
+                                }
+                                return {
+                                    handled: true,
+                                    moved: false,
+                                    tookTime: false,
+                                    terminalScreenOwned: true,
+                                };
+                            },
+                        };
+                        return {
+                            handled: true,
+                            moved: false,
+                            tookTime: false,
+                            terminalScreenOwned: true,
+                        };
+                    }
+                    await installDisclosurePrompt(innerGame, idx + 1);
+                    if (!innerGame.pendingPrompt) {
+                        await finishEndgameDisplay(innerGame);
+                    }
+                    return {
+                        handled: true,
+                        moved: false,
+                        tookTime: false,
+                        terminalScreenOwned: true,
+                    };
+                },
+            };
+            return true;
+        }
+        clearEndPrompt(gameCtx.display);
+        await finishEndgameDisplay(gameCtx);
+        return false;
+    };
+
     game.pendingPrompt = {
         type: 'death_possessions_identify',
         onKey: async (chCode, gameCtx) => {
             const ch = String.fromCharCode(chCode || 0).toLowerCase();
             if (ch === 'y') {
-                // TODO(c-faithful): display full inventory + container contents.
+                const who = gameCtx.u || gameCtx.player || player;
+                const lines = buildInventoryOverlayLines(who, null, {
+                    fullyIdentify: true,
+                    includeSyntheticGold: false,
+                });
+                await renderOverlayMenuUntilDismiss(gameCtx.display, lines, '');
+                await installDisclosurePrompt(gameCtx, 0);
             } else if (ch === 'q') {
                 gameCtx.done_stopprint = (gameCtx.done_stopprint || 0) + 1;
+                gameCtx.pendingPrompt = null;
+                clearEndPrompt(gameCtx.display);
+                await finishEndgameDisplay(gameCtx);
+                return {
+                    handled: true,
+                    moved: false,
+                    tookTime: false,
+                    terminalScreenOwned: true,
+                };
             }
-            gameCtx.pendingPrompt = null;
-            if (gameCtx.display) {
-                if (typeof gameCtx.display.clearRow === 'function') gameCtx.display.clearRow(0);
-                gameCtx.display.topMessage = null;
-                if (Object.hasOwn(gameCtx.display, 'messageNeedsMore')) {
-                    gameCtx.display.messageNeedsMore = false;
-                }
+            if (ch !== 'y') {
+                gameCtx.pendingPrompt = null;
+                await installDisclosurePrompt(gameCtx, 0);
             }
-            renderHeadlessEndWarnings(gameCtx);
+            if (!gameCtx.pendingPrompt) {
+                await finishEndgameDisplay(gameCtx);
+            }
             return {
                 handled: true,
                 moved: false,
@@ -549,6 +715,23 @@ async function really_done(how, game) {
     // C ref: end.c really_done() computes bones_ok here, after the game-over
     // state is established and before disclosure/prompt flow continues.
     game.bonesOk = (how < GENOCIDED) && can_make_bones(game);
+
+    // C ref: end.c score finalization before disclosure/topten.
+    {
+        const deepest = Math.max(
+            Number(player.maxDungeonLevel) || 0,
+            depth(player.uz || game?.map?.uz || { dnum: 0, dlevel: (player.dungeonLevel || 1) })
+        );
+        let umoney = money_cnt(player.inventory || player.invent || []);
+        umoney += hidden_gold(true, player);
+        let tmp = umoney - (player.umoney0 || 0);
+        if (tmp < 0) tmp = 0;
+        if (how < PANICKED) tmp -= Math.trunc(tmp / 10);
+        tmp += 50 * Math.max(0, deepest - 1);
+        if (deepest > 20) tmp += 1000 * ((deepest > 30) ? 10 : deepest - 20);
+        player.urexp = nowrap_add(player.urexp || 0, tmp);
+        game.done_money = umoney;
+    }
 
     const installedPrompt = await maybeInstallPossessionsPrompt(how, game);
     if (!installedPrompt && game.display) {

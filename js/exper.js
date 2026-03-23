@@ -15,6 +15,8 @@ import { find_mac } from './worn.js';
 import { extra_nasty } from './mondata.js';
 import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
+import { xlev_to_rank } from './botl.js';
+import { achieve_rank, record_achievement } from './insight.js';
 
 function expTraceEnabled(game = null) {
     if (!envFlag('WEBHACK_EXP_TRACE')) return false;
@@ -238,6 +240,7 @@ export async function pluslvl(player, display, incr) {
     player._botl = true;
 
     if (player.ulevel < MAXULEV) {
+        const oldrank = xlev_to_rank(player.ulevel);
         if (incr) {
             const tmp = newuexp(player.ulevel + 1);
             const currentExp = (Number(player.uexp) || Number(player.exp) || 0);
@@ -256,6 +259,10 @@ export async function pluslvl(player, display, incr) {
         }
         if (player.ulevelmax == null || player.ulevelmax < player.ulevel) {
             player.ulevelmax = player.ulevel;
+        }
+        const newrank = xlev_to_rank(player.ulevel);
+        if (newrank > oldrank) {
+            record_achievement(achieve_rank(newrank, player), player);
         }
         // C ref: exper.c:355 — adjabil(oldlevel, newlevel) gives new intrinsics.
         // Lazy import to avoid circular dependency (attrib.js re-exports from exper.js).

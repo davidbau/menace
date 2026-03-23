@@ -23,6 +23,7 @@ function makeDisplay() {
     return {
         rows: 24,
         cols: 80,
+        isHeadless: true,
         tombstones,
         putstrCalls,
         clearScreen() {},
@@ -68,8 +69,8 @@ describe('NetHackGame showGameOver tombstone flow', () => {
         game.flags = { tombstone: true };
         seedPlayer(game);
 
-        input.pushInput(' '.charCodeAt(0)); // dismiss tombstone
-        input.pushInput('n'.charCodeAt(0)); // do not restart (no promo: lifecycle={} has no handler)
+        input.pushInput(' '.charCodeAt(0)); // dismiss combined tombstone+summary page
+        input.pushInput(' '.charCodeAt(0)); // dismiss C-style intermediate --More-- boundary
 
         await game.showGameOver();
 
@@ -77,7 +78,8 @@ describe('NetHackGame showGameOver tombstone flow', () => {
         assert.equal(display.tombstones[0].name, 'Hero');
         assert.equal(display.tombstones[0].gold, 123);
         assert.ok(display.tombstones[0].deathLines.join(' ').includes('killed by a newt'));
-        assert.ok(display.putstrCalls.some((c) => c.str.includes('(Press any key)')));
+        assert.ok(display.putstrCalls.some((c) => c.str.includes('You died in')));
+        assert.equal(getInputQueueLength(), 0);
     });
 
     it('skips tombstone screen when disabled', async () => {
@@ -89,11 +91,9 @@ describe('NetHackGame showGameOver tombstone flow', () => {
         game.flags = { tombstone: false };
         seedPlayer(game);
 
-        input.pushInput('n'.charCodeAt(0)); // play again? no (no promo: lifecycle={} has no handler)
-
         await game.showGameOver();
 
         assert.equal(display.tombstones.length, 0);
-        assert.ok(!display.putstrCalls.some((c) => c.str.includes('(Press any key)')));
+        assert.ok(!display.putstrCalls.some((c) => c.str.includes('You died in')));
     });
 });

@@ -15,10 +15,13 @@ import {
     IS_WALL, IS_STWALL, IS_SDOOR,
     SV0, SV1, SV2, SV3, SV4, SV5, SV6, SV7,
     WM_C_OUTER, WM_C_INNER, WM_X_TL, WM_X_TR, WM_X_BL, WM_X_BR, WM_X_TLBR, WM_X_BLTR,
+    MAXTCHARS,
 } from './const.js';
 
 import { def_monsyms, def_oc_syms, S_sw_tl, S_sw_br, NUM_ZAP, GLYPH_ZAP_OFF, GLYPH_SWALLOW_OFF,
     glyph_is_invisible, glyph_is_trap, glyph_is_generic_object, GLYPH_CMAP_MAIN_OFF,
+    GLYPH_CMAP_STONE_OFF, GLYPH_CMAP_A_OFF, GLYPH_ALTAR_OFF, GLYPH_CMAP_B_OFF, GLYPH_CMAP_C_OFF,
+    S_stone, S_trwall, S_altar, S_arrow_trap, S_goodpos, S_digbeam, S_grave, NO_GLYPH,
 } from './symbols.js';
 import { M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
@@ -62,6 +65,7 @@ import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySe
 import { more } from './input.js';
 import { game as _gstate } from './gstate.js';
 import { distu } from './hacklib.js';
+import { obj_typename } from './objnam.js';
 import {
     debugRepaint,
     logRepaint,
@@ -897,7 +901,9 @@ span.nh-cursor {
                     const underObjs = coversObjectsAt(loc, player) ? [] : gameMap.objectsAt(x, y);
                     if (underObjs.length > 0) {
                         const underTop = underObjs[underObjs.length - 1];
-                        const underGlyph = objectMapGlyph(underTop, false, { player, x, y });
+                        const underGlyph = objectMapGlyph(underTop, false, {
+                            player, x, y, observe: false
+                        });
                         loc.mem_obj = underGlyph.ch || 0;
                         loc.mem_obj_color = Number.isInteger(underGlyph.color)
                             ? underGlyph.color
@@ -2472,9 +2478,16 @@ export function set_seenv(lev, x0, y0, x, y) {
     | seenvMatrix[Math.sign(dy) + 1][Math.sign(dx) + 1];
 }
 
-// C macro: #define cmap_to_glyph(cmap_idx) ((int)(cmap_idx) + GLYPH_CMAP_MAIN_OFF)
+// C ref: include/display.h cmap_to_glyph() — cmap indices are split across
+// multiple glyph blocks, not a single contiguous GLYPH_CMAP_MAIN_OFF range.
 export function cmap_to_glyph(cmap_idx) {
-  return cmap_idx + GLYPH_CMAP_MAIN_OFF;
+  if (cmap_idx === S_stone) return GLYPH_CMAP_STONE_OFF;
+  if (cmap_idx <= S_trwall) return GLYPH_CMAP_MAIN_OFF + cmap_idx;
+  if (cmap_idx < S_altar) return GLYPH_CMAP_A_OFF + (cmap_idx - (S_trwall + 1));
+  if (cmap_idx === S_altar) return GLYPH_ALTAR_OFF;
+  if (cmap_idx < S_arrow_trap + MAXTCHARS) return GLYPH_CMAP_B_OFF + (cmap_idx - S_grave);
+  if (cmap_idx <= S_goodpos) return GLYPH_CMAP_C_OFF + (cmap_idx - S_digbeam);
+  return NO_GLYPH;
 }
 
 // Autotranslated from display.c:3785
@@ -2716,7 +2729,9 @@ export function newsym(x, y, ctxOrMap = null) {
         const underObjs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
         if (underObjs.length > 0) {
             const underTop = underObjs[underObjs.length - 1];
-            const underGlyph = objectMapGlyph(underTop, false, { player, x, y });
+            const underGlyph = objectMapGlyph(underTop, false, {
+                player, x, y, observe: false
+            });
             loc.mem_obj = underGlyph.ch || 0;
             loc.mem_obj_color = Number.isInteger(underGlyph.color)
                 ? underGlyph.color : CLR_GRAY;
@@ -2781,6 +2796,13 @@ export function newsym(x, y, ctxOrMap = null) {
         cosmic_display_log_newsym(x, y, 'visible-map-location', true);
         cosmic_display_log_maploc(x, y, 'obj', true);
         const topObj = objs[objs.length - 1];
+        if (process?.env?.TRACE_NEWSYM_OBJECT_STACK === '1'
+            && Number.isInteger(map?._replayStepIndex)
+            && map._replayStepIndex === 548
+            && x === 61 && y === 14) {
+            const stack = objs.map((obj) => `${obj.otyp}:${obj_typename(obj.otyp)}`).join(' | ');
+            console.log(`[trace_newsym_stack] step=${map._replayStepIndex + 1} x=${x} y=${y} top=${topObj.otyp}:${obj_typename(topObj.otyp)} stack=${stack}`);
+        }
         const hallu = !!(player?.Hallucination || player?.hallucinating);
         const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
         const memGlyph = hallu

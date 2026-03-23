@@ -36,6 +36,7 @@ import { ageSpells } from './spell.js';
 import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
+import { u_entered_shop as _u_entered_shop } from './shk.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
@@ -1371,8 +1372,9 @@ async function renderToplineMorePrompt(display, msg) {
     await display.putstr(col, 0, moreStr, CLR_GRAY);
 }
 
-function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg) {
+function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, opts = {}) {
     const isDismiss = (ch) => (ch === 32 || ch === 27 || ch === 10 || ch === 13 || ch === 16);
+    const showTutorial = !!opts.tutorial;
     const clearLoreOverlay = (display) => {
         if (!display) return;
         const rows = Number.isInteger(display.rows) ? display.rows : 24;
@@ -1385,17 +1387,55 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg) {
             }
         }
     };
+    let stage = 'lore';
     return {
         source: 'startup_lore',
         async onKey(ch, g) {
             if (!isDismiss(ch)) return { handled: true, tookTime: false, moved: false, prompt: true };
-            clearLoreOverlay(g?.display);
-            // Re-render the map that was underneath the lore overlay.
-            if (g?.display && g.map && g.u && g.fov && typeof g.display.renderMap === 'function') {
-                g.display.renderMap(g.map, g.u, g.fov, g.flags);
+            if (stage === 'lore') {
+                clearLoreOverlay(g?.display);
+                // Re-render the map that was underneath the lore overlay.
+                if (g?.display && g.map && g.u && g.fov && typeof g.display.renderMap === 'function') {
+                    g.display.renderMap(g.map, g.u, g.fov, g.flags);
+                }
+                if (g?.display && typeof g.display.renderStatus === 'function' && g.u) {
+                    g.display.renderStatus(g.u);
+                }
+                if (g?.display && typeof g.display.cursorOnPlayer === 'function' && g.u) {
+                    g.display.cursorOnPlayer(g.u);
+                }
+                if (g?.display && typeof g.display.putstr_message === 'function') {
+                    await g.display.putstr_message(welcomeMsg);
+                }
+                stage = 'welcome';
+                return { handled: true, tookTime: false, moved: false, prompt: true };
             }
-            if (g?.display && typeof g.display.putstr_message === 'function') {
-                await g.display.putstr_message(welcomeMsg);
+            if (stage === 'welcome') {
+                if (g?.display) {
+                    if (typeof g.display.clearRow === 'function') {
+                        g.display.clearRow(0);
+                        g.display.clearRow(1);
+                        g.display.clearRow(2);
+                    }
+                    if ('topMessage' in g.display) g.display.topMessage = null;
+                    if ('toplines' in g.display) g.display.toplines = '';
+                    if ('messageNeedsMore' in g.display) g.display.messageNeedsMore = false;
+                    if ('messageNeedsMoreBoundary' in g.display) g.display.messageNeedsMoreBoundary = false;
+                }
+                if (g?.u) {
+                    await set_wear(g.u, null);
+                }
+                if (g?.display && typeof g.display.renderStatus === 'function' && g.u) {
+                    g.display.renderStatus(g.u);
+                }
+                if (g?.display && typeof g.display.cursorOnPlayer === 'function' && g.u) {
+                    g.display.cursorOnPlayer(g.u);
+                }
+                g.pendingPrompt = null;
+                if (showTutorial) {
+                    await _maybeDoTutorial(g);
+                }
+                return { handled: true, tookTime: false, moved: false, prompt: true };
             }
             g.pendingPrompt = null;
             return { handled: true, tookTime: false, moved: false, prompt: true };
@@ -1725,11 +1765,11 @@ export class NetHackGame {
 
         // Load user flags (C ref: flags struct from flag.h)
         this.flags = loadFlags(urlOpts.flags || null);
-        // In non-browser runtimes (replay/headless), default to skipping the
-        // startup tutorial prompt unless explicitly requested.  This preserves
-        // deterministic replay behavior and avoids hanging on unattended input
-        // paths.
-        if (typeof urlOpts.tutorial !== 'boolean' && !interactiveMode) {
+        // In non-browser runtimes with a fully preselected character, default
+        // to skipping the tutorial prompt unless explicitly requested. Raw
+        // key-driven startup sessions need the prompt to remain active so the
+        // recorded keys can answer it naturally.
+        if (typeof urlOpts.tutorial !== 'boolean' && !interactiveMode && urlOpts.character) {
             this.flags.tutorial = false;
         }
         this._emitRuntimeBindings();
@@ -1909,8 +1949,6 @@ export class NetHackGame {
         this.levels[startDlevel] = map;
         this.u.wizard = this.wizard;
         this.seerTurn = initResult.seerTurn;
-        await set_wear(this.u, null);
-
         if (urlOpts.simulateManualDirectChargen?.hasTutorial) {
             await _enterTutorial(this, { direct: true });
         }
@@ -1923,13 +1961,27 @@ export class NetHackGame {
         // Initial display
         this.fov.compute(this.map, this.u.x, this.u.y);
         this.display.renderMap(this.map, this.u, this.fov, this.flags);
-        this.display.renderStatus(this.u);
+        // C newgame() shows the initial map/status before moveloop_preamble()
+        // applies set_wear() side-effects. The lore/welcome overlays preserve
+        // that stale underlay, including AC:0 for fresh non-wizard starts.
+        if (!this.wizard) {
+            const savedAc = this.u.ac;
+            this.u.ac = 0;
+            try {
+                this.display.renderStatus(this.u);
+            } finally {
+                this.u.ac = savedAc;
+            }
+        } else {
+            this.display.renderStatus(this.u);
+        }
         this.display.cursorOnPlayer(this.u);
 
-        // C ref: moveloop_preamble() shows lore text with --More-- then
-        // proceeds to welcome text with --More--.  Render lore and set a
-        // pendingPrompt so the key sequence drives dismissal.
-        if (urlOpts.character && !this.flags.tutorial && !urlOpts.simulateManualDirectChargen) {
+        // C ref: moveloop_preamble() shows lore text with --More-- after the
+        // first level is initialized, so the live map/status are already under
+        // the overlay. Handle all non-wizard fresh starts through this common
+        // pending-prompt flow.
+        if (!this.wizard) {
             const roleIdx = this.u.roleIndex;
             const raceIdx = this.u.race;
             const female = this.u.gender === FEMALE;
@@ -1969,7 +2021,10 @@ export class NetHackGame {
             const plname = this.wizard ? 'wizard' : this.u.name;
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
 
-            this.pendingPrompt = buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg);
+            this.display.renderLoreText(loreLines, loreOffx);
+            this.pendingPrompt = buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, {
+                tutorial: this.flags.tutorial,
+            });
         } else if (this.flags.tutorial) {
             await _maybeDoTutorial(this);
         }
@@ -2015,9 +2070,15 @@ export class NetHackGame {
         this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
-        // If a pre-transition message left a pending --More-- (for example,
-        // follower "still eating/trapped"), resolve it before deferred
-        // teleport arrival feedback so key consumption stays C-aligned.
+        // C ref: do.c:1966 check_special_room(FALSE) — shop greeting after docrt.
+        // Room tracking (move_update + check_special_room) ran in changeLevelCore
+        // but u_entered_shop was deferred because docrt hadn't run yet.
+        // Now run the deferred greeting (zero RNG, just display message).
+        if (this.u.ushops_entered) {
+            await _u_entered_shop(this.u.ushops_entered, this.map, this.u, this.display);
+        }
+        // If a message is pending (shop greeting, follower "still eating/trapped"),
+        // resolve it before teleport arrival feedback so key consumption stays C-aligned.
         if (this.display?.messageNeedsMore) {
             await more(this.display, { forceVisual: true });
         }
@@ -2356,6 +2417,10 @@ export class NetHackGame {
     // Show game-over screen (tombstone + score). Delegates to nethack.js showGameOver.
     // Also available as a standalone instance method for tests and external callers.
     async showGameOver() {
+        if (this._showGameOverDisplayed) {
+            return;
+        }
+        this._showGameOverDisplayed = true;
         await _showGameOver(this);
         this._emitGameOver();
     }

@@ -12,10 +12,11 @@ import {
     SPBOOK_no_NOVEL,
     WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS,
     CHAIN_CLASS, VENOM_CLASS,
-    IRON, COPPER, WOOD, PLASTIC, GLASS, DRAGON_HIDE, LIQUID, MINERAL,
+    IRON, COPPER, WOOD, PLASTIC, GLASS, DRAGON_HIDE, LIQUID, MINERAL, GEMSTONE,
     ARROW, ELVEN_ARROW, ORCISH_ARROW, YA, CROSSBOW_BOLT, DART, FLINT, ROCK,
-    SHORT_SWORD,
+    SHORT_SWORD, HAWAIIAN_SHIRT,
     GOLD_PIECE, DILITHIUM_CRYSTAL, LOADSTONE,
+    RUBY, DIAMOND, SAPPHIRE, BLACK_OPAL, EMERALD, OPAL,
     WAN_CANCELLATION, WAN_LIGHT, WAN_LIGHTNING,
     BAG_OF_HOLDING, OILSKIN_SACK, BAG_OF_TRICKS, SACK, HORN_OF_PLENTY,
     LARGE_BOX, CHEST, ICE_BOX, CORPSE, STATUE, FIGURINE, EGG, BOULDER,
@@ -657,7 +658,9 @@ function mksobj_init(obj, artif, skipErosion) {
                     if (mndx >= 0 && mons[mndx].cnutrit > 0
                         && !(mons[mndx].geno & G_NOCORPSE)) {
                         obj.corpsenm = mndx;
-                        rn2(15); // set_tin_variety RANDOM_TIN: rn2(TTSZ-1) where TTSZ=16
+                        // C ref: eat.c set_tin_variety(RANDOM_TIN) stores the
+                        // selected variety in spe as -(r + 1).
+                        obj.spe = -(rn2(15) + 1);
                         mkobjTrace(`tin selected=${mndx} at_try=${201 - tryct} call=${getRngCallCount()}`);
                         break;
                     }
@@ -1199,6 +1202,49 @@ function just_an(str) {
     return 'a';
 }
 
+// C ref: read.c hawaiian_motif() — endgame disclosure uses a stable motif
+// derived from o_id. JS does not currently fold in ubirthday here.
+const hawaiian_motifs = [
+    'flamingo', 'parrot', 'toucan', 'bird of paradise',
+    'sea turtle', 'tropical fish', 'jellyfish', 'giant eel', 'water nymph',
+    'plumeria', 'orchid', 'hibiscus flower', 'palm tree',
+    'hula dancer', 'sailboat', 'ukulele',
+];
+
+function hawaiian_motif(shirt) {
+    const motif = Number(shirt?.o_id) || 0;
+    return hawaiian_motifs[motif % hawaiian_motifs.length];
+}
+
+// C ref: eat.c tin_details() / tintxts[] — naming for known tins.
+const tin_variety_texts = [
+    'rotten', 'homemade', 'soup made from', 'french fried',
+    'pickled', 'boiled', 'smoked', 'dried',
+    'deep fried', 'szechuan', 'broiled', 'stir fried',
+    'sauteed', 'candied', 'pureed',
+];
+
+function tin_variety_name(obj) {
+    if (!obj) return null;
+    if (obj.spe === 1) return 'spinach';
+    if (obj.cursed) return tin_variety_texts[0];
+    if (obj.spe < 0) {
+        const idx = Math.max(0, Math.min(tin_variety_texts.length - 1, (-obj.spe) - 1));
+        return tin_variety_texts[idx];
+    }
+    return null;
+}
+
+// C ref: objnam.c GemStone macro.
+function gemStone(typ) {
+    if (typ === FLINT) return true;
+    const od = objectData[typ];
+    return od && od.oc_material === GEMSTONE
+        && typ !== DILITHIUM_CRYSTAL && typ !== RUBY && typ !== DIAMOND
+        && typ !== SAPPHIRE && typ !== BLACK_OPAL && typ !== EMERALD
+        && typ !== OPAL;
+}
+
 // makeplural imported from objnam.js
 
 // C ref: objnam.c xname() pluralize path + makeplural()
@@ -1327,13 +1373,21 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             // xname() never includes the monster type; only doname() adds it via corpse_xname().
             base = 'corpse';
         } else if (obj.otyp === TIN && known) {
-            // C ref: eat.c tin_details() — show content when obj->known is set
+            // C ref: eat.c tin_details() — show content/variety when obj->known is set.
             if (obj.spe === 1) {
                 base = 'tin of spinach';
             } else if (Number.isInteger(obj.corpsenm) && obj.corpsenm >= 0 && mons[obj.corpsenm]) {
-                // C: vegetarian monsters get "tin of <name>"; others get "tin of <name> meat"
-                // JS monsters lack material field; default to meat (correct for sewer rat etc.)
-                base = `tin of ${mons[obj.corpsenm].mname} meat`;
+                const variety = (!!obj.cknown && obj.spe < 0) ? tin_variety_name(obj) : null;
+                const monsterPart = `${mons[obj.corpsenm].mname} meat`;
+                if (variety === 'rotten' || variety === 'homemade') {
+                    base = `${variety} tin of ${monsterPart}`;
+                } else if (variety) {
+                    base = `tin of ${variety} ${monsterPart}`;
+                } else {
+                    // C: vegetarian monsters get "tin of <name>"; others get "tin of <name> meat"
+                    // JS monsters lack material field; default to meat (correct for sewer rat etc.)
+                    base = `tin of ${monsterPart}`;
+                }
             }
             // else: empty/unknown tin — just "tin"
         } else {
@@ -1349,6 +1403,7 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             base = od.oc_descr ? `${od.oc_descr} ${rock}` : od.oc_name;
         } else {
             base = od.oc_name;
+            if (gemStone(obj.otyp)) base += ' stone';
         }
         break;
     }
@@ -1502,6 +1557,14 @@ export function doname(obj, player) {
     if (quan === 1 && !result.startsWith('the ')) {
         result = `${just_an(result)} ${result}`;
     }
+
+    // C ref: objnam.c doname() appends Hawaiian shirt motifs only during
+    // end-of-game disclosure and only for real objects with o_id.
+    if (_gstate?.gameOver && obj?.o_id && obj.otyp === HAWAIIAN_SHIRT) {
+        const motif = hawaiian_motif(obj);
+        result += ` with ${just_an(motif)} ${motif} motif`;
+    }
+
     // C ref: "named" suffix is now handled in xname_for_doname() — no duplication here.
 
     // C ref: objnam.c doname() appends "(lit)" for lit light sources.

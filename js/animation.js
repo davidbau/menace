@@ -36,6 +36,7 @@ class AnimationCore {
             trace: false,
             onTrace: null,
             onDelayBoundary: null,
+            delayHook: null,
             canSee: null,
         };
     }
@@ -139,6 +140,11 @@ class AnimationCore {
             this.policy.onDelayBoundary({ ms });
         }
         this._flush();
+
+        if (typeof this.policy.delayHook === 'function') {
+            await this.policy.delayHook(ms);
+            return;
+        }
 
         if (this.policy.skipDelays || this.policy.mode === 'headless') {
             return;

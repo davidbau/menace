@@ -235,7 +235,6 @@ export async function replaySession(seed, opts, keys) {
             synclockDiagTotal += 1;
         })
         : null;
-
     // Pre-push chargen keys if provided.
     if (Array.isArray(opts.chargenKeys)) {
         for (const key of opts.chargenKeys) {
@@ -246,9 +245,17 @@ export async function replaySession(seed, opts, keys) {
     }
 
     const initOpts = { seed, ...(opts.initOpts || {}) };
-    await game.init(initOpts);
-    await settleStartupInputBoundaries(game, opts);
-    emitStartupRunstepIfEnabled(game);
+    let initPromise = null;
+    let startupPending = false;
+    initPromise = game.init(initOpts);
+    const settled = await drainUntilInput(initPromise, game.input);
+    if (settled.done) {
+        await settleStartupInputBoundaries(game, opts);
+        emitStartupRunstepIfEnabled(game);
+        initPromise = null;
+    } else {
+        startupPending = true;
+    }
 
     // The welcome/lore message from init may still be visible on the topline.
     // Leave it in place so step 0 shows the natural post-init screen state.
@@ -293,6 +300,15 @@ export async function replaySession(seed, opts, keys) {
     // Feed each keystroke to the game, record results.
     let pendingCommand = null;
 
+    const drainCommandForCurrentStep = async (commandPromise) => {
+        const settled = await drainUntilInput(commandPromise, game.input);
+        if (!settled.done) {
+            pendingCommand = commandPromise;
+            return;
+        }
+        pendingCommand = null;
+    };
+
     for (let i = 0; i < keys.length; i++) {
         const preMap = game.map || game.map || null;
         if (preMap) preMap._replayStepIndex = i;
@@ -303,7 +319,34 @@ export async function replaySession(seed, opts, keys) {
         if (game?.map) game.map._replayStepIndex = i;
         if (game?.lev) game.map._replayStepIndex = i;
 
-        if (pendingCommand) {
+        if (startupPending && initPromise) {
+            replayPendingTrace(
+                `step=${i + 1}`,
+                `key=${JSON.stringify(String.fromCharCode(ch))}`,
+                'mode=startup',
+                replayBoundaryState(game, game.input)
+            );
+            pushInput(ch);
+            const settled = await drainUntilInput(initPromise, game.input);
+            if (settled.done) {
+                startupPending = false;
+                await settleStartupInputBoundaries(game, opts);
+                emitStartupRunstepIfEnabled(game);
+                initPromise = null;
+                replayPendingTrace(
+                    `step=${i + 1}`,
+                    'startup=done',
+                    replayBoundaryState(game, game.input)
+                );
+            } else {
+                replayPendingTrace(
+                    `step=${i + 1}`,
+                    'startup=waiting',
+                    pendingWaitSite(game.input),
+                    replayBoundaryState(game, game.input)
+                );
+            }
+        } else if (pendingCommand) {
             replayPendingTrace(
                 `step=${i + 1}`,
                 `key=${JSON.stringify(String.fromCharCode(ch))}`,
@@ -311,9 +354,8 @@ export async function replaySession(seed, opts, keys) {
                 replayBoundaryState(game, game.input)
             );
             pushInput(ch);
-            const settled = await drainUntilInput(pendingCommand, game.input);
-            if (settled.done) {
-                pendingCommand = null;
+            await drainCommandForCurrentStep(pendingCommand);
+            if (!pendingCommand) {
                 replayPendingTrace(
                     `step=${i + 1}`,
                     'resume=done',
@@ -331,9 +373,8 @@ export async function replaySession(seed, opts, keys) {
         } else {
             pushInput(ch);
             const commandPromise = game._gameLoopStep();
-            const settled = await drainUntilInput(commandPromise, game.input);
-            if (!settled.done) {
-                pendingCommand = commandPromise;
+            await drainCommandForCurrentStep(commandPromise);
+            if (pendingCommand) {
                 replayPendingTrace(
                     `step=${i + 1}`,
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
@@ -365,7 +406,10 @@ export async function replaySession(seed, opts, keys) {
         // terminal reflects the updated status. Force a renderStatus refresh
         // to match, since JS only calls renderStatus at explicit boundaries.
         await Promise.resolve();
-        if (!pendingCommand && opts.captureScreens && !game.gameOver) {
+        const startupHasLiveMap = !!(game?.map || game?.lev);
+        const startupLoreVisible = game?.pendingPrompt?.source === 'startup_lore';
+        if ((!startupPending || startupHasLiveMap) && !pendingCommand && !startupLoreVisible
+            && opts.captureScreens && !game.gameOver) {
             const player = game.u || game.u;
             if (player && typeof display.renderStatus === 'function') {
                 display._suppressReplayCaptureRepaint = true;

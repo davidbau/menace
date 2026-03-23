@@ -241,6 +241,11 @@ export function getSessionCharacter(session) {
     return {};
 }
 
+function sessionUsesDecGraphics(rawSession) {
+    const steps = rawSession?.steps || [];
+    return steps.some((step) => typeof step?.screen === 'string' && step.screen.includes('\x0e'));
+}
+
 // Manual-direct sessions still carry interactive chargen/startup keys in the
 // recorded step stream. replaySession() needs those keys pre-pushed into init(),
 // then should compare only real gameplay steps afterward.
@@ -271,7 +276,8 @@ function getManualDirectChargenBoundary(rawSession) {
 
 export function getGameplayRawStepBase(session) {
     if (!session?.steps?.length) return 1;
-    if (session.regen?.mode === 'manual-direct-live') {
+    const regen = session.regen || session.meta?.regen || null;
+    if (regen?.mode === 'manual-direct-live') {
         const boundary = getManualDirectChargenBoundary(session);
         if (boundary >= 0) return boundary + 2;
     }
@@ -282,10 +288,6 @@ export function getGameplayRawStepBase(session) {
 export function getSessionGameplaySteps(session) {
     if (!session?.steps) return [];
     if (session.steps.length > 0 && session.steps[0].key === null) {
-        if (session.regen?.mode === 'manual-direct-live') {
-            const boundary = getManualDirectChargenBoundary(session);
-            if (boundary >= 0) return session.steps.slice(boundary + 1);
-        }
         return session.steps.slice(1);
     }
     return session.steps;
@@ -304,26 +306,7 @@ export function getChargenKeys(session) {
 }
 
 export function applyManualDirectChargenView(session) {
-    if (session.raw?.regen?.mode !== 'manual-direct-live') return session;
-    const rawBoundary = getManualDirectChargenBoundary(session.raw);
-    if (rawBoundary < 0) return session;
-    const sessionBoundary = rawBoundary - 1;
-    const chargenSteps = session.steps.slice(0, sessionBoundary + 1);
-    const chargenRng = chargenSteps.flatMap((s) => s.rng || []);
-    const hasPickAlign = chargenSteps.some((s) =>
-        (s.rng || []).some((r) => typeof r === 'string' && r.includes('pick_align'))
-    );
-    const firstGameplayStep = session.steps[sessionBoundary + 1];
-    return {
-        ...session,
-        startup: {
-            ...(session.startup || {}),
-            rng: [...(session.startup?.rng || []), ...chargenRng],
-            screen: firstGameplayStep?.screen ?? (session.startup?.screen ?? []),
-        },
-        steps: session.steps.slice(sessionBoundary + 1),
-        _manualDirectChargen: { hasPickAlign },
-    };
+    return session;
 }
 
 // Legacy compat — always true for V4 sessions.
@@ -370,41 +353,7 @@ export function prepareReplayArgs(seed, session, opts = {}) {
     if (sessionChargenKeys.length > 0) chargenKeys = sessionChargenKeys;
 
     if (rawSession?.regen?.mode === 'manual-direct-live') {
-        const info = getManualDirectChargenInfo(rawSession);
-        if (info) {
-            const chargenOnlySteps = (rawSession.steps || []).slice(1, info.firstBurst);
-            const hasPickAlign = chargenOnlySteps.some((step) =>
-                (step.rng || []).some((entry) => typeof entry === 'string' && entry.includes('pick_align'))
-            );
-            initOpts.simulateManualDirectChargen = {
-                hasPickAlign,
-                hasTutorial: info.hasTutorial,
-            };
-            // Extract character from welcome message in the session data,
-            // since manual-direct sessions have empty nethackrc.
-            if (!initOpts.character) {
-                const welcomeStep = (rawSession.steps || [])[info.firstBurst + 1];
-                const welcomeScreen = String(welcomeStep?.screen || '').replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
-                const raceAdjMap = { human: 'human', elven: 'elf', dwarven: 'dwarf', gnomish: 'gnome', orcish: 'orc' };
-                const wm = welcomeScreen.match(/You are an?\s+(chaotic|neutral|lawful)\s+(?:(male|female)\s+)?(\w+)\s+(\w+)/);
-                if (wm) {
-                    initOpts.character = {
-                        name: welcomeScreen.match(/Hello (\w+),/)?.[1] || 'Player',
-                        align: wm[1],
-                        gender: wm[2] || 'male',
-                        race: raceAdjMap[wm[3]] || wm[3],
-                        role: wm[4],
-                    };
-                }
-                // Find name from status line if welcome parse missed it
-                if (initOpts.character && !initOpts.character.name) {
-                    for (const line of welcomeScreen.split('\n')) {
-                        const sm = line.match(/^\s*(\S+)\s+the\s+\S+\s*St:/);
-                        if (sm) { initOpts.character.name = sm[1]; break; }
-                    }
-                }
-            }
-        }
+        chargenKeys = null;
     }
 
     // Flatten gameplay step keys after any folded startup prefix.
@@ -417,7 +366,7 @@ export function prepareReplayArgs(seed, session, opts = {}) {
     }
 
     // Build display flags from nethackrc.
-    const decgraphicsMode = !!parsed.flags.DECgraphics;
+    const decgraphicsMode = !!parsed.flags.DECgraphics || sessionUsesDecGraphics(rawSession);
     const displayFlags = { DECgraphics: decgraphicsMode };
     if (opts.flags && typeof opts.flags === 'object') {
         Object.assign(displayFlags, opts.flags);
@@ -602,4 +551,3 @@ function titleCaseWord(word) {
     if (!word) return word;
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
-

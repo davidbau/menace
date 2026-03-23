@@ -16,6 +16,7 @@ import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          Goodbye, roleNameForGender, alignName, formatLoreText } from './player.js';
 import { GameMap } from './game.js';
 import { initLevelGeneration, mklev, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
+import { depth } from './dungeon.js';
 import { runWithSplevPlayerSnapshot } from './sp_lev.js';
 import { monsterNearby } from './hack.js';
 import { simulatePostLevelInit, initFirstLevel } from './u_init.js';
@@ -26,11 +27,19 @@ import { loadSave, deleteSave, hasSave, saveGame,
          listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
+import { getyear } from './calendar.js';
 import { init_nhwindows, create_nhwindow, destroy_nhwindow,
          start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
 import { find_ac } from './do_wear.js';
+
+function endgameDungeonName(dnum) {
+    switch (dnum) {
+    case 1: return 'The Gnomish Mines';
+    default: return 'The Dungeons of Doom';
+    }
+}
 
 // Local nhgetch that throws CtrlCInterrupt on Ctrl-C during chargen.
 async function nhgetch() {
@@ -58,11 +67,6 @@ export async function playerSelection(game) {
 }
 
 async function _playerSelectionImpl(game) {
-    // Phase 0: Prompt for player name
-    // C ref: role.c plnamesuffix() -> askname() — prompts "Who are you?"
-    // Name prompt happens BEFORE role/race/gender/alignment selection
-    await promptPlayerName(game);
-
     // Display copyright notice
     // C ref: allmain.c -- copyright screen displayed with autopick prompt
     game.display.clearScreen();
@@ -70,6 +74,11 @@ async function _playerSelectionImpl(game) {
     await game.display.putstr(0, 5, "         By Stichting Mathematisch Centrum and M. Stephenson.", CLR_GRAY);
     await game.display.putstr(0, 6, "         Version 3.7.0 Royal Jelly — vibe-coded by The Hive.", CLR_GRAY);
     await game.display.putstr(0, 7, "         See license for details.", CLR_GRAY);
+
+    // Phase 0: Prompt for player name with the copyright block already visible.
+    // C ref: role.c plnamesuffix() -> askname() — prompt rendered on the
+    // startup screen rather than the in-game command topline.
+    await promptPlayerName(game);
     if (game._namePromptEcho) {
         await game.display.putstr(0, 12, game._namePromptEcho, CLR_GRAY);
     }
@@ -112,7 +121,7 @@ export async function promptPlayerName(game) {
 
     // No saved name - prompt for it
     while (true) {
-        const name = await getlin('Who are you? ', game.display);
+        const name = await getlin('Who are you? ', game.display, { row: 12 });
 
         // C NetHack doesn't allow ESC to cancel - recursively prompts until valid
         if (name === null || name.trim() === '') {
@@ -144,38 +153,38 @@ export async function showGameOver(game) {
     const p = (game.u || game.u);
     const deathCause = p.deathCause || game.gameOverReason || 'died';
 
-    // Calculate final score (simplified C formula from end.c)
-    // C ref: end.c done_in_by(), calc_score()
-    // Base score is accumulated from exp + kills during play
-    // Add gold
-    p.score += p.gold;
-    // Add 50 per dungeon level below 1
-    if (p.dungeonLevel > 1) {
-        p.score += (p.dungeonLevel - 1) * 50;
-    }
-    // Depth bonus for deep levels
-    if (p.maxDungeonLevel > 20) {
-        p.score += (p.maxDungeonLevel - 20) * 1000;
-    }
-    // Escaped bonus
-    if (game.gameOverReason === 'escaped') {
-        p.score += p.gold; // double gold for escaping
-    }
-
     // Word-wrap death description for tombstone (max ~16 chars per line)
     const deathLines = wrapDeathText(deathCause, 16);
+    const female = p.gender === FEMALE;
+    const roleName = roleNameForGender(p.roleIndex, female);
+    const farewell = `${Goodbye(p.roleIndex)} ${p.name} the ${roleName}...`;
 
-    // Show tombstone if flags.tombstone is enabled (not for ctrlc — C NetHack skips tombstone on QUIT)
+    // C ref: end.c writes the tombstone and the death-summary lines into the
+    // same NHW_TEXT window, then displays that page with --More--. There is
+    // no standalone "(Press any key)" tombstone pause for the text path.
     if (game.flags && game.flags.tombstone && game.gameOverReason !== 'ctrlc') {
-        const year = String(new Date().getFullYear());
+        const year = String(getyear());
         game.display.renderTombstone(p.name, p.gold, deathLines, year);
-        // Press any key prompt below tombstone
-        await game.display.putstr(0, 20, '(Press any key)', 7);
+        const where = endgameDungeonName(p.dungeonNumber ?? game?.map?.uz?.dnum ?? 0);
+        const deathDepth = depth(p.uz || game?.map?.uz || { dnum: 0, dlevel: (p.dungeonLevel || 1) });
+        const points = (Number.isInteger(p.urexp) && Number(p.urexp) !== 0) ? p.urexp : p.score;
+        const turns = Number.isInteger(game.moves)
+            ? game.moves
+            : (Number.isInteger(p.turns) ? p.turns : (Number.isInteger(game.turnCount) ? game.turnCount : 0));
+        p.deathwhere = where;
+        await game.display.putstr(0, 18, farewell, 7);
+        await game.display.putstr(0, 20, `You died in ${where} on dungeon level ${deathDepth} with ${points} points,`, 7);
+        await game.display.putstr(0, 21, `and ${p.gold} pieces of gold, after ${turns} moves.`, 7);
+        await game.display.putstr(0, 22, `You were level ${p.level ?? p.ulevel ?? 1} with a maximum of ${p.uhpmax} hit points when you died.`, 7);
+        await game.display.putstr(0, 23, '--More--', 7);
+        await nhgetch();
+        game.display.clearScreen();
+        await game.display.putstr(0, 23, '--More--', 7);
         await nhgetch();
     }
 
     // Build and save topten entry
-    const entry = buildEntry(p, game.gameOverReason, roles, races);
+    const entry = buildEntry(p, game.gameOverReason, roles, races, game);
     const rank = saveScore(entry);
 
     // Display topten list
@@ -184,6 +193,13 @@ export async function showGameOver(game) {
 
     const header = formatTopTenHeader();
     let row = 0;
+    if (rank > 0) {
+        if (rank <= 10) {
+            row = 2;
+            await game.display.putstr(0, row++, 'You made the top ten list!', 7);
+            row++;
+        }
+    }
     await game.display.putstr(0, row++, header, 14); // CLR_WHITE
 
     // Show entries around the player's rank
@@ -211,11 +227,12 @@ export async function showGameOver(game) {
         await game.display.putstr(0, row++, '  ...', 7);
     }
 
+    if (game.display?.isHeadless) {
+        return;
+    }
+
     // Farewell message
     row = Math.min(row + 1, game.display.rows - 3);
-    const female = p.gender === FEMALE;
-    const roleName = roleNameForGender(p.roleIndex, female);
-    const farewell = `${Goodbye(p.roleIndex)} ${p.name} the ${roleName}...`;
     await game.display.putstr(0, row++, farewell, 14);
 
     // After Ctrl-C quit, drop into the shell instead of prompting to play again.
@@ -244,7 +261,7 @@ export async function maybeDoTutorial(game) {
     add_menu(win, null, { ival: 'n' }, 'n'.charCodeAt(0), 0, ATR_NONE, 0, 'No, just start play', 0);
     // Browser-only: offer a "don't ask again" option that persists !tutorial.
     // Omitted in headless replay to keep C-parity for session tests.
-    const inBrowser = typeof window !== 'undefined';
+    const inBrowser = typeof window !== 'undefined' && !game?.display?.isHeadless;
     if (inBrowser) {
         add_menu(win, null, { ival: 'N' }, 'N'.charCodeAt(0), 0, ATR_NONE, 0, "No, and don't ask again", 0);
     } else {
@@ -738,7 +755,7 @@ export async function showAlignMenu(game, roleIdx, raceIdx, gender, isFirstMenu)
 }
 
 // Show confirmation screen
-// Returns true if confirmed, false if user wants to restart
+// Returns 'confirm', 'restart', or 'rename'
 export async function showConfirmation(game, roleIdx, raceIdx, gender, align) {
     const female = gender === FEMALE;
     const rName = roleNameForGender(roleIdx, female);
@@ -748,12 +765,13 @@ export async function showConfirmation(game, roleIdx, raceIdx, gender, align) {
     const confirmText = `${(game.u || game.u).name} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
 
     const lines = [];
-    lines.push('Is this ok? [ynq]');
+    lines.push('Is this ok? [ynaq]');
     lines.push('');
     lines.push(confirmText);
     lines.push('');
     lines.push('y * Yes; start game');
     lines.push('n - No; choose role again');
+    lines.push('a - Not yet; choose another name');
     lines.push('q - Quit');
     lines.push('(end)');
 
@@ -761,9 +779,11 @@ export async function showConfirmation(game, roleIdx, raceIdx, gender, align) {
     const ch = await nhgetch();
     const c = String.fromCharCode(ch);
 
-    if (c === 'q') { await game._runLifecycle('promo'); return false; }
+    if (c === 'q') { await game._runLifecycle('promo'); return 'restart'; }
+    if (c === 'a') return 'rename';
     // Both 'y' and '*' accept (as shown in menu: "y * Yes")
-    return c === 'y' || c === '*';
+    if (c === 'y' || c === '*') return 'confirm';
+    return 'restart';
 }
 
 // Show lore text and welcome message
@@ -1060,8 +1080,9 @@ async function autoPickAll(game, showConfirm) {
     (game.u || game.u).initRole(roleIdx);
     (game.u || game.u).alignment = align;
 
-    // Show lore and welcome
-    await showLoreAndWelcome(game, roleIdx, raceIdx, gender, align);
+    // Common startup presentation happens after first-level init so the
+    // lore/welcome overlays sit on top of the live map and status area.
+    return;
 }
 
 // Manual selection loop: role → race → gender → alignment
@@ -1221,16 +1242,19 @@ async function manualSelection(game) {
         }
 
         if (currentMenu === 'confirm') {
-            const confirmed = await showConfirmation(game, roleIdx, raceIdx, gender, align);
-            if (confirmed) {
+            const confirmation = await showConfirmation(game, roleIdx, raceIdx, gender, align);
+            if (confirmation === 'confirm') {
                 (game.u || game.u).roleIndex = roleIdx;
                 (game.u || game.u).race = raceIdx;
                 (game.u || game.u).gender = gender;
                 (game.u || game.u).alignment = align;
                 (game.u || game.u).initRole(roleIdx);
                 (game.u || game.u).alignment = align;
-                await showLoreAndWelcome(game, roleIdx, raceIdx, gender, align);
                 return;
+            } else if (confirmation === 'rename') {
+                await promptPlayerName(game);
+                currentMenu = 'confirm';
+                continue;
             } else {
                 roleIdx = -1;
                 raceIdx = -1;

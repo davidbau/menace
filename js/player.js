@@ -62,6 +62,7 @@ export class Player {
         this.level = 1;  // experience level (C: u.ulevel)
         this.ulevelmax = 1; // max level attained (C: u.ulevelmax)
         this.exp = 0;    // experience points
+        this.urexp = 0;  // score / record points (C: u.urexp)
         this.score = 0;
 
         // Attributes [STR, INT, WIS, DEX, CON, CHA]
@@ -155,6 +156,34 @@ export class Player {
         this._bashmsgWepObj = null;
         this.kickedloc = null;
         this.questLocateHintShown = false;
+
+        // C ref: you.h / decl.c zero-initialized conduct and endgame structs.
+        this.uconduct = {
+            food: 0,
+            unvegan: 0,
+            unvegetarian: 0,
+            gnostic: 0,
+            literate: 0,
+            wishes: 0,
+            wisharti: 0,
+            killer: 0,
+            weaphit: 0,
+            polypiles: 0,
+            polyselfs: 0,
+            pets: 0,
+            sokocheat: 0,
+        };
+        this.uroleplay = {
+            blind: 0,
+            deaf: 0,
+            nudist: 0,
+            pauper: 0,
+            reroll: 0,
+            numbones: 0,
+        };
+        this.uachieved = [];
+        this.uhave = {};
+        this.uevent = {};
 
         // Death cause -- C ref: killer.name from end.c
         this.deathCause = '';

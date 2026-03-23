@@ -31,25 +31,24 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
          ACH_NOVL, ACH_SOKO, ACH_BGRM, ACH_RNK1, ACH_RNK2, ACH_RNK3, ACH_RNK4,
          ACH_RNK5, ACH_RNK6, ACH_RNK7, ACH_RNK8, ACH_TUNE, N_ACH } from './const.js';
 import { mons, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC, PM_LONG_WORM, PM_HIGH_CLERIC, G_UNIQ, M2_PNAME, NUMMONS, G_GENOD, G_EXTINCT, G_GONE } from './monsters.js';
-import { x_monnam } from './do_name.js';
+import { x_monnam, pmname } from './do_name.js';
 import { find_mac } from './worn.js';
 import { pline, getGameLog } from './pline.js';
-import { showPager } from './pager.js';
+import { showPager, showMoreTextPages } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
 import { makeplural, an } from './objnam.js';
+import { races } from './role.js';
 import { rank_of } from './botl.js';
 import { newuexp } from './exper.js';
 import { align_gname } from './pray.js';
 import { magic_negation } from './mondata.js';
 import { inv_weight, near_capacity } from './hack.js';
 import { weapon_type, skill_name, P_SKILL } from './weapon.js';
+import { depth, dnum_to_dname } from './dungeon.js';
 import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW, HALF_PHDAM, HALF_SPDAM, UNENCUMBERED, ECMD_OK,
          CONFUSION, BLINDED, STUNNED, FAST, INVIS, ANTIMAGIC } from './const.js';
-// Window system imports available for future use (e.g., menu-based display)
-// import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
-//          end_menu, select_menu, display_nhwindow,
-//          NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_NONE, PICK_ONE,
-//          ATR_NONE } from './windows.js';
+import { NHW_MENU, ATR_NONE } from './const.js';
+import { create_nhwindow, destroy_nhwindow, putstr, display_nhwindow } from './windows.js';
 
 // Enlightenment final-state constants
 const ENL_GAMEINPROGRESS = 0;
@@ -594,7 +593,10 @@ function background_enlightenment(mode, final, game) {
         alignAdverb = 'nominally ';
     }
     const godName = align_gname(alignType, player) || player.godName || 'your deity';
-    enlght_out(`  You ${!final ? 'are' : 'were'} ${alignAdverb}${alignName}, on a mission for ${godName}`);
+    const mission = alignAdverb.trim() === 'nominally'
+        ? 'nominally on a mission'
+        : 'on a mission';
+    enlght_out(`  You ${!final ? 'are' : 'were'} ${alignName}, ${mission} for ${godName}`);
     // Opposing gods line — cf. insight.c:533-545
     let oppBuf = `  who ${!final ? 'is' : 'was'} opposed by`;
     if (alignType !== A_LAWFUL)
@@ -611,8 +613,10 @@ function background_enlightenment(mode, final, game) {
     you_are(final, `${handed}-handed`, '');
 
     // Dungeon level — cf. insight.c:575-608
-    const dname = game.dungeonName || 'the Dungeons of Doom';
-    const dlevel = player.dungeonLevel || player.depth || 1;
+    const lev = player.uz || game?.map?.uz || null;
+    let dname = lev ? dnum_to_dname(lev.dnum) : (game.dungeonName || 'The Dungeons of Doom');
+    if (dname.startsWith('The ')) dname = `the ${dname.slice(4)}`;
+    const dlevel = lev ? depth(lev) : (player.dungeonLevel || player.depth || 1);
     you_are(final, `in ${dname}, on level ${dlevel}`, '');
 
     // Turns — cf. insight.c:611-618
@@ -632,7 +636,10 @@ function background_enlightenment(mode, final, game) {
         if (ulvl < 30 && (final || game.wizard)) {
             const nxtlvl = newuexp(ulvl);
             const delta = nxtlvl - exp;
-            buf += `, ${delta}${exp > 0 ? ' more' : ''} needed ${ulvl < 18 ? 'to attain' : 'for'} level ${ulvl + 1}`;
+            const neededPhrase = exp > 0
+                ? `${delta} more were needed`
+                : `${delta} were needed`;
+            buf += `, ${neededPhrase} ${ulvl < 18 ? 'to attain' : 'for'} level ${ulvl + 1}`;
         }
         you_have(final, buf, '');
     }
@@ -680,7 +687,7 @@ function basics_enlightenment(mode, final, game) {
     if (!gold) {
         enlght_out(`  Your wallet ${!final ? 'is' : 'was'} empty.`);
     } else {
-        enlght_out(`  Your wallet contain${!final ? 's' : 'ed'} ${gold} gold piece${gold === 1 ? '' : 's'}.`);
+        enlght_out(`  Your wallet contain${!final ? 's' : 'ed'} ${gold} zorkmid${gold === 1 ? '' : 's'}.`);
     }
 
     // Autopickup
@@ -737,7 +744,16 @@ function one_characteristic(mode, final, attrindx, game) {
     const attrs = player.attributes || player.attrs || [];
     const acurrent = attrs[attrindx] || 0;
     const name = attrname[attrindx] || 'unknown';
-    const valubuf = attrval(attrindx, acurrent);
+    let valubuf = attrval(attrindx, acurrent);
+
+    if (final) {
+        const race = races[player.race];
+        let alimit = race ? race.attrmax[attrindx] : 18;
+        if (attrindx === A_STR && alimit === 18) {
+            alimit = 118; // C STR18(100)
+        }
+        valubuf += ` (limit:${attrval(attrindx, alimit)})`;
+    }
 
     // In C, also shows base/peak/limit when they differ from current;
     // we show current only since JS doesn't track those separately yet
@@ -1066,6 +1082,10 @@ export function real_attributes_enlightenment(mode, final, game) {
         }
         enl_msg(final, 'You ', verb, verb, ' a one-shot death via saving-grace', '');
     }
+
+    if (final === ENL_GAMEOVERDEAD) {
+        enlght_out('  You are dead.');
+    }
 }
 
 // cf. insight.c:2014 — doattributes(game): ^X attribute display command
@@ -1134,7 +1154,11 @@ export async function enlightenment(mode, final, game) {
     _enl_lines = [];
 
     if (game.display) {
-        await showPager(game.display, text, 'Enlightenment');
+        if (final === ENL_GAMEOVERDEAD || final === ENL_GAMEOVERALIVE) {
+            await showMoreTextPages(game.display, text);
+        } else {
+            await showPager(game.display, text, 'Enlightenment');
+        }
     }
 }
 
@@ -1275,39 +1299,140 @@ export async function show_conduct(final, game) {
         enl_msg(final, 'You ', presentverb, pastverb, sokobuf, '');
     }
 
-    // Display the accumulated text
-    const text = _enl_lines.join('\n');
+    if (final) {
+        append_achievements_enlightenment(final, game);
+    }
+
+    // Display the accumulated text through the tty menu/text window path.
+    // C ref: insight.c show_conduct() creates NHW_MENU, putstr()s each line,
+    // then display_nhwindow(..., TRUE), which renders a right-side popup over
+    // the live map/status underlay rather than a full-screen pager.
+    const lines = _enl_lines.slice();
     _enl_lines = [];
 
     if (game.display) {
-        await showPager(game.display, text, 'Conduct');
+        const win = create_nhwindow(NHW_MENU);
+        for (const line of lines) {
+            await putstr(win, ATR_NONE, line);
+        }
+        await display_nhwindow(win, true);
+        destroy_nhwindow(win);
+    }
+}
+
+function append_achievements_enlightenment(final, game) {
+    const player = (game.u || game.u);
+    const entries = Array.isArray(player.uachieved) ? player.uachieved : [];
+    const wizard = !!game.wizard;
+    if (!final && !wizard) return;
+    if (!entries.length) return;
+
+    enlght_out('');
+    enlght_out(' Achievements:');
+    for (const raw of entries) {
+        const achidx = Number(raw) || 0;
+        const ach = Math.abs(achidx);
+        switch (ach) {
+        case ACH_BLND:
+            enl_msg(final, 'You ', 'are exploring', 'explored', ' without being able to see', '');
+            break;
+        case ACH_NUDE:
+            enl_msg(final, 'You ', 'have gone', 'went', ' without any armor', '');
+            break;
+        case ACH_MINE:
+            you_have_X(final, 'entered the Gnomish Mines');
+            break;
+        case ACH_TOWN:
+            you_have_X(final, 'entered Minetown');
+            break;
+        case ACH_SHOP:
+            you_have_X(final, 'entered a shop');
+            break;
+        case ACH_TMPL:
+            you_have_X(final, 'entered a temple');
+            break;
+        case ACH_ORCL:
+            you_have_X(final, 'consulted the Oracle of Delphi');
+            break;
+        case ACH_NOVL:
+            you_have_X(final, 'read from a Discworld novel');
+            break;
+        case ACH_SOKO:
+            you_have_X(final, 'entered Sokoban');
+            break;
+        case ACH_SOKO_PRIZE:
+            you_have_X(final, 'completed Sokoban');
+            break;
+        case ACH_MINE_PRIZE:
+            you_have_X(final, 'completed the Gnomish Mines');
+            break;
+        case ACH_BGRM:
+            you_have_X(final, 'entered the Big Room');
+            break;
+        case ACH_MEDU:
+            you_have_X(final, 'defeated Medusa');
+            break;
+        case ACH_TUNE:
+            you_have_X(final, "learned the tune to open and close the Castle's drawbridge");
+            break;
+        case ACH_BELL:
+            enl_msg(final, 'You ',
+                player?.uhave?.bell ? 'have' : 'have handled',
+                player?.uhave?.bell ? 'had' : 'handled',
+                ' the Bell of Opening', '');
+            break;
+        case ACH_HELL:
+            enl_msg(final, 'You ', 'have ', '', 'entered Gehennom', '');
+            break;
+        case ACH_CNDL:
+            enl_msg(final, 'You ',
+                player?.uhave?.menorah ? 'have' : 'have handled',
+                player?.uhave?.menorah ? 'had' : 'handled',
+                ' the Candelabrum of Invocation', '');
+            break;
+        case ACH_BOOK:
+            enl_msg(final, 'You ',
+                player?.uhave?.book ? 'have' : 'have handled',
+                player?.uhave?.book ? 'had' : 'handled',
+                ' the Book of the Dead', '');
+            break;
+        case ACH_INVK:
+            you_have_X(final, "gained access to Moloch's Sanctum");
+            break;
+        case ACH_AMUL:
+            enl_msg(final, 'You ',
+                player?.uhave?.amulet ? 'have' : 'have obtained',
+                player?.uevent?.ascended ? 'delivered'
+                    : player?.uhave?.amulet ? 'had' : 'had obtained',
+                ' the Amulet of Yendor', '');
+            break;
+        case ACH_ENDG:
+            you_have_X(final, 'reached the Elemental Planes');
+            break;
+        case ACH_ASTR:
+            you_have_X(final, 'reached the Astral Plane');
+            break;
+        case ACH_UWIN:
+            enlght_out(' You ascended!');
+            break;
+        case ACH_RNK1: case ACH_RNK2: case ACH_RNK3: case ACH_RNK4:
+        case ACH_RNK5: case ACH_RNK6: case ACH_RNK7: case ACH_RNK8:
+            you_have_X(final, `attained the rank of ${rank_of(ach - (ACH_RNK1 - 1), player.roleNum ?? player.role ?? 11, achidx < 0)}`);
+            break;
+        default:
+            enlght_out(` [Unexpected achievement #${achidx}.]`);
+            break;
+        }
     }
 }
 
 // cf. insight.c:2253 [static] — show_achievements()
 export async function show_achievements(final, game) {
-    const player = (game.u || game.u);
-    const entries = Array.isArray(player.uachieved) ? player.uachieved : [];
-    const lines = [];
-    lines.push(`${final ? 'Major' : 'Recorded'} achievements:`);
-    if (!entries.length) {
-        lines.push(' none');
-    } else {
-        for (const raw of entries) {
-            const ach = Math.abs(Number(raw) || 0);
-            let label = `achievement #${ach}`;
-            if (ach === ACH_BELL) label = 'obtained the Bell of Opening';
-            else if (ach === ACH_CNDL) label = 'obtained the Candelabrum of Invocation';
-            else if (ach === ACH_BOOK) label = 'obtained the Book of the Dead';
-            else if (ach === ACH_AMUL) label = 'obtained the Amulet of Yendor';
-            else if (ach === ACH_ENDG) label = 'entered the endgame';
-            else if (ach === ACH_ASTR) label = 'reached the Astral Plane';
-            else if (ach === ACH_UWIN) label = 'completed the game objective';
-            else if (ach === ACH_SOKO_PRIZE) label = 'claimed the Sokoban prize';
-            else if (ach === ACH_MINE_PRIZE) label = 'claimed the Gnomish Mines prize';
-            lines.push(` - ${label}`);
-        }
-    }
+    const savedLines = _enl_lines;
+    _enl_lines = [];
+    append_achievements_enlightenment(final, game);
+    const lines = _enl_lines.slice();
+    _enl_lines = savedLines;
     if (game.display) {
         await showPager(game.display, lines.join('\n'), 'Achievements');
     }
@@ -1489,8 +1614,12 @@ function UniqCritterIndx(mndx) {
     return (mons[mndx].geno & G_UNIQ) !== 0 && mndx !== PM_HIGH_CLERIC;
 }
 
+function vanqSpeciesName(mndx) {
+    return pmname(mons[mndx], 'neutral') || `monster #${mndx}`;
+}
+
 // cf. insight.c:2794 — list_vanquished(defquery, ask, game): list vanquished
-export async function list_vanquished(defquery, ask, game) {
+export async function list_vanquished(defquery, ask, game, opts = {}) {
     // mvitals tracks .died counts per monster index
     const mvitals = game.mvitals || ((game.u || game.u) && (game.u || game.u).mvitals) || [];
     const sortmode = (game.flags && game.flags.vanq_sortmode) || VANQ_MLVL_MNDX;
@@ -1520,7 +1649,7 @@ export async function list_vanquished(defquery, ask, game) {
 
     for (const i of mindx) {
         const nkilled = (mvitals[i] && mvitals[i].died) || 0;
-        const mname = (mons[i] && mons[i].mname) || `monster #${i}`;
+        const mname = vanqSpeciesName(i);
 
         let buf;
         if (UniqCritterIndx(i)) {
@@ -1550,8 +1679,19 @@ export async function list_vanquished(defquery, ask, game) {
     }
 
     if (game.display) {
-        await showPager(game.display, lines.join('\n'), 'Vanquished');
+        const win = create_nhwindow(NHW_MENU);
+        for (const line of lines) {
+            await putstr(win, ATR_NONE, line);
+        }
+        const blocking = opts.blocking !== false;
+        await display_nhwindow(win, blocking);
+        if (blocking) {
+            destroy_nhwindow(win);
+            return null;
+        }
+        return { type: 'vanquished_popup', win };
     }
+    return null;
 }
 
 // Comparator for vanquished monster sorting
@@ -1576,8 +1716,8 @@ function vanqsort_cmp(indx1, indx2, sortmode, mvitals) {
     }
     // falls through
     case VANQ_ALPHA_MIX: {
-        const name1 = (mons[indx1] && mons[indx1].mname) || '';
-        const name2 = (mons[indx2] && mons[indx2].mname) || '';
+        const name1 = vanqSpeciesName(indx1);
+        const name2 = vanqSpeciesName(indx2);
         res = name1.toLowerCase().localeCompare(name2.toLowerCase());
         break;
     }
@@ -1781,10 +1921,10 @@ export async function doborn(game) {
 }
 
 // cf. insight.c:2516 — achieve_rank
-export function achieve_rank(rank) {
+export function achieve_rank(rank, player = globalThis.gs?.player) {
     // rank is 1..8; returns signed achievement index (negative for female)
     let achidx = (rank - 1) + ACH_RNK1;
-    if (globalThis.gs?.player?.flags?.female) achidx = -achidx;
+    if (player?.flags?.female || player?.female) achidx = -achidx;
     return achidx;
 }
 
