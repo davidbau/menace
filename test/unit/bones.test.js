@@ -144,11 +144,12 @@ describe('canMakeBones', () => {
         assert.equal(typeof result, 'boolean');
     });
 
-    it('depth 2: rn2(1) always returns 0, so ghost always appears', () => {
-        // depth >> 2 = 0, so rn2(1 + 0) = rn2(1) = always 0
+    it('depth 2: rn2(1) always returns 0, so non-wizard bones are rejected', () => {
+        // C ref: can_make_bones() returns false on a zero roll unless wizard mode.
+        // At depth 2, rn2(1 + (depth >> 2)) = rn2(1) = always 0.
         initRng(99);
         const game = { u: { dungeonLevel: 2 } };
-        assert.equal(canMakeBones(game), true);
+        assert.equal(canMakeBones(game), false);
     });
 });
 

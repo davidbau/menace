@@ -421,13 +421,12 @@ describe('loot via meta key', () => {
         };
         game.map.objects.push(chest);
         pushInput('i'.charCodeAt(0)); // put-in mode
-        // Only one class → no class-query prompt; getlin prompt for classes skipped
-        // But with multiple classes we'd get a getlin — here only one class so auto-selected
-        // Actually with only one class, still uses getlin. Let's use 'a' to select all.
-        // Push 'a\n' for the getlin class-selection prompt (all classes).
+        // Current menu_loot(TRUE) flow prompts once for category selection and
+        // once for the specific object selection, even with one carried item.
         pushInput('a'.charCodeAt(0));
         pushInput('\n'.charCodeAt(0));
-        pushInput('q'.charCodeAt(0)); // quit outer menu (should not be reached)
+        pushInput('a'.charCodeAt(0));
+        pushInput('\n'.charCodeAt(0));
 
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 

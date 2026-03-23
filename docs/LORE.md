@@ -16885,3 +16885,19 @@ source is elsewhere in the moveloop phase ordering.
   This is observability/infrastructure only; it does not itself resolve the
   remaining `seed031` screen seam, but it makes the intended timing probe
   mechanically possible and auditable.
+- 2026-03-22: public headless helpers used by unit tests must return a
+  command-ready game, not one still blocked on startup lore dismissal.
+  After the V4 startup cleanup, `createHeadlessGame()` and `HeadlessGame.start()`
+  could return with `pendingPrompt.source === "startup_lore"`. The next key was
+  consumed by that prompt instead of the command under test, which broke wizard
+  command unit tests and the headless replay contract. The faithful fix for
+  these public headless helpers is to clear the startup-lore prompt/topline
+  state and `docrt()` before returning. This is a helper-readiness fix for unit
+  harnesses, not a gameplay behavior change.
+- 2026-03-22: `pick_obj()` must pass the live `map` through to
+  `obj_extract_self()`. Without that, array-backed test maps could credit picked
+  gold to the player while leaving the same gold object in `map.objects`,
+  because `obj_extract_self()` had no map context to remove it from the floor
+  container. Passing the `map` fixes both mixed-gold pickup tests and the more
+  general rule: floor extraction helpers need the owning map when the backing
+  store is an array rather than only an `nobj` chain.
