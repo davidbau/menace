@@ -426,7 +426,7 @@ function normalizeDestRect(rect) {
     };
 }
 
-function captureCheckpoint(phase) {
+export function captureCheckpoint(phase) {
     if (!checkpointCaptureEnabled || !levelState.map) return;
     const map = levelState.map;
     const typGrid = [];

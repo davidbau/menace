@@ -98,7 +98,7 @@ import {
 } from './special_levels.js';
 import { envFlag, hasEnv } from './runtime_env.js';
 import { litstate_rnd } from './mkmap.js';
-import { withLevelContext, withFinalizeContext, withSpecialLevelDepth, initLuaMT, resetLevelState, nhlib_shuffle_align, getLevelState } from './sp_lev.js';
+import { withLevelContext, withFinalizeContext, withSpecialLevelDepth, initLuaMT, resetLevelState, nhlib_shuffle_align, getLevelState, captureCheckpoint } from './sp_lev.js';
 import {
     themerooms_generate as themermsGenerate,
     themerooms_post_level_generate,
@@ -5363,6 +5363,12 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
 
     // C ref: mklev.c:1533-1539,1558,1561-1562 — level_finalize_topology().
     level_finalize_topology(map, depth);
+
+    // C ref: 022-auto-key-dumpsnap patch emits ^ckpt[phase=after_map] after
+    // every level gen.  Special levels emit this inside sp_lev; procedural
+    // levels need it here.  Use withLevelContext to set levelState.map
+    // temporarily so captureCheckpoint can read the map grid.
+    await withLevelContext(map, depth, () => captureCheckpoint('after_map'));
 
     return finishGeneratedMap(map);
     } finally {
