@@ -163,22 +163,19 @@
 
 ---
 
-## 8D. Session Format Finalization
+## 8D. Session Format Finalization ✅
 
-### 8D.1 Finalize V4 session schema
-- [ ] Document final schema: `version`, `env`, `nethackrc`, `seed`, `source`,
-      `type`, `regen`, `recorded_with`, `steps[]`
-- [ ] `steps[]` includes ALL steps from game launch:
-  - step 0: initial screen (key: null) — first thing on screen
-  - steps 1-N: every keystroke including --More-- spaces, chargen,
-    #wizloaddes typing, gameplay moves
-- [ ] No `options` field
-- [ ] Update `docs/SESSION_FORMAT_V3.md` → `SESSION_FORMAT_V4.md`
+### 8D.1 Finalize V4 session schema ✅
+- [x] `docs/SESSION_FORMAT_V4.md` documents final schema
+- [x] Covers: version, env, nethackrc, seed, source, type, regen, recorded_with, steps
+- [x] Steps include ALL steps from game launch (key-driven startup)
+- [x] No `options` field in V4
+- [x] Comparison channels and optional event types documented
 
-### 8D.2 Validate all sessions against schema
-- [ ] Write a schema validator (or JSON Schema)
-- [ ] Run on all 506 sessions
-- [ ] Verify: every session has env, nethackrc, steps with complete key sequence
+### 8D.2 Validate all sessions against schema ✅
+- [x] `scripts/validate_session_schema.mjs` validates V4 schema
+- [x] Checks: version=4, env fields, nethackrc string, steps structure, no V3 options
+- [x] Result: 563/563 sessions valid
 
 ---
 
