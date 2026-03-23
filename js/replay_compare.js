@@ -337,32 +337,18 @@ export function prepareReplayArgs(seed, session, opts = {}) {
     const rawSession = session?.raw || session;
     const nethackrc = rawSession?.nethackrc || session?.nethackrc || '';
 
-    // 8A.3: Character info comes directly from nethackrc. No screen name fallback.
+    // 8A.6: Pass nethackrc to game.init() — it parses character/wizard/flags.
     const parsed = nethackrc ? parseNethackrcFull(nethackrc) : { character: {}, flags: {}, wizard: false };
-    const isWizard = !!parsed.wizard;
-    const charRole = parsed.character.role || null;
-    const charName = parsed.character.name || null;
-    const charGender = parsed.character.gender || null;
-    const charRace = parsed.character.race || null;
-    const charAlign = parsed.character.align || null;
 
     const replayFlags = typeof opts.flags === 'object' && opts.flags !== null
         ? { ...opts.flags }
         : {};
 
-    // Only set character when role is known (pre-selected character).
-    // When role is absent (e.g., manual-direct sessions with interactive
-    // chargen), leave character null so game.init() uses the key sequence.
-    const hasCharacter = !!charRole;
     const initOpts = {
-        wizard: isWizard,
-        character: hasCharacter ? {
-            role: charRole,
-            name: charName,
-            gender: charGender,
-            race: charRace,
-            align: charAlign,
-        } : null,
+        nethackrc: nethackrc || undefined,
+        // Legacy fields kept for callers that don't use nethackrc yet
+        wizard: !!parsed.wizard,
+        character: parsed.character?.role ? parsed.character : null,
         startDnum: Number.isInteger(opts.startDnum) ? opts.startDnum : undefined,
         startDlevel: Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1,
         dungeonAlignOverride: Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined,
