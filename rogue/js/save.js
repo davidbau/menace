@@ -174,6 +174,14 @@ export function hasSave() {
 
 export function clearSave() {
   try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  // Remove VFS save-file entry
+  try {
+    const fsRaw = localStorage.getItem('menace-fs');
+    if (fsRaw) {
+      const fs = JSON.parse(fsRaw);
+      if ('home/rogue.sav' in fs) { delete fs['home/rogue.sav']; localStorage.setItem('menace-fs', JSON.stringify(fs)); }
+    }
+  } catch (e) { /* VFS not available */ }
 }
 
 // ===== saveGame() =====
@@ -361,6 +369,13 @@ export async function saveGame() {
 
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    // Write a visible save-file entry to the shell VFS (shows up in `ls`)
+    try {
+      const fsRaw = localStorage.getItem('menace-fs');
+      const fs = fsRaw ? JSON.parse(fsRaw) : {};
+      fs['home/rogue.sav'] = `Rogue save: level ${g.level}, gold ${g.purse}, HP ${g.player.t_stats.s_hpt}/${g.max_hp}\n`;
+      localStorage.setItem('menace-fs', JSON.stringify(fs));
+    } catch (e) { /* VFS not available */ }
     await msg('Saved.');
     return true;
   } catch (e) {

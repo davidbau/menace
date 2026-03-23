@@ -307,6 +307,13 @@ export async function dosave() {
     wandcall: game.wandcall, ringcall: game.ringcall,
   };
   try { localStorage.setItem('hack_save', JSON.stringify(state)); } catch (e) { /* ignore in Node/harness */ }
+  // Write a visible save-file entry to the shell VFS (shows up in `ls`)
+  try {
+    const fsRaw = localStorage.getItem('menace-fs');
+    const fs = fsRaw ? JSON.parse(fsRaw) : {};
+    fs['home/hack.sav'] = `Hack save: level ${game.dlevel}, HP ${game.u.uhp}/${game.u.uhpmax}\n`;
+    localStorage.setItem('menace-fs', JSON.stringify(fs));
+  } catch (e) { /* VFS not available */ }
   throw new GameOver('saved');
 }
 
@@ -320,6 +327,14 @@ export async function dorecover() {
   if (!s || s.version !== 2) return false;
 
   localStorage.removeItem('hack_save');
+  // Remove the VFS save-file entry now that save is consumed
+  try {
+    const fsRaw = localStorage.getItem('menace-fs');
+    if (fsRaw) {
+      const fs = JSON.parse(fsRaw);
+      if ('home/hack.sav' in fs) { delete fs['home/hack.sav']; localStorage.setItem('menace-fs', JSON.stringify(fs)); }
+    }
+  } catch (e) { /* VFS not available */ }
 
   // Restore scalars
   game.dlevel     = s.dlevel;
