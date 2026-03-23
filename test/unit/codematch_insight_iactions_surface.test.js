@@ -53,7 +53,9 @@ test('insight: attributes_enlightenment surface runs on minimal game object', as
 });
 
 test('insight: show_achievements returns text lines without display dependency', async () => {
-    const game = { u: { uachieved: [1, 2, 6] } };
+    // C ref: achievements only shown in wizard mode or final (end-of-game).
+    // Pass wizard: true so the function doesn't early-return.
+    const game = { u: { uachieved: [1, 2, 6] }, wizard: true };
     const lines = await show_achievements(0, game);
     assert.ok(Array.isArray(lines));
     assert.ok(lines.length >= 2);
