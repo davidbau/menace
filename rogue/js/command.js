@@ -306,8 +306,9 @@ async function dispatch(g, ch) {
       g.count = 0;
       g.after = false;
       break;
-    case '!': // Shell escape — no-op in JS (C: shell())
+    case '!': // Shell escape — launch subshell (C: shell())
       g.after = false;
+      await shell_escape();
       break;
     default:
       g.after = false;
@@ -324,6 +325,41 @@ function unctrl(ch) {
   const code = ch.charCodeAt(0);
   if (code < 32) return '^' + String.fromCharCode(code + 64);
   return ch;
+}
+
+/**
+ * shell_escape(): launch a subshell (matching C's shell() in command.c).
+ * Clears screen, runs Shell, waits for Return, redraws rogue.
+ */
+async function shell_escape() {
+  const g = game();
+
+  // C: wclear(hw); wmove(hw, LINES-1, 0); draw(hw); endwin();
+  wclear(g.hw);
+  draw(g.hw);
+
+  g.in_shell = true;
+
+  try {
+    // Try to import Shell — only available in browser build
+    const { Shell } = await import('../../shell/shell.js');
+    const shell = new Shell(g.display, () => g.input.getKey());
+    await shell.run();
+  } catch (e) {
+    // Shell not available (Node.js harness) — just show message
+    // C: md_shellescape() would fork /bin/sh here
+  }
+
+  g.in_shell = false;
+
+  // C: printf("\n[Press return to continue]"); wait_for(cw, '\n');
+  const { wait_for } = await import('./io.js');
+  mvwaddstr(g.hw, LINES - 1, 0, '[Press return to continue]');
+  draw(g.hw);
+  await wait_for('\n');
+
+  // C: clearok(cw, TRUE); touchwin(cw); draw(cw);
+  draw(g.cw);
 }
 
 /**
