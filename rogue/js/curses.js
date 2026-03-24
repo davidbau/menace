@@ -338,12 +338,9 @@ export async function show_win(scr, message) {
   const g = game();
   const { wait_for } = await import('./io.js');
   mvwaddstr(scr, 0, 0, message);
-  // touchwin(scr) — no-op in JS
   wmove(scr, g.player.t_pos.y, g.player.t_pos.x);
   draw(scr);
   await wait_for(' ');
-  // clearok(cw, TRUE) — no-op in JS
-  // touchwin(cw) — no-op in JS
 }
 
 // ---- Misc curses no-ops ----

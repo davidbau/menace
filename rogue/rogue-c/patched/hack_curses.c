@@ -344,9 +344,12 @@ int touchwin(WINDOW *win)
 int overwrite(WINDOW *src, WINDOW *dst)
 {
     if (!src || !dst) return ERR;
-    int i;
+    int i, j;
     for (i = 0; i < LINES; i++) {
         memcpy(dst->_data[i], src->_data[i], COLS + 1);
+        /* Sync _overlay so wrefresh(cw) picks up overwritten chars */
+        for (j = 0; j < COLS; j++)
+            dst->_overlay[i][j] = (src->_data[i][j] == ' ') ? '\0' : src->_data[i][j];
     }
     dst->_cury = src->_cury;
     dst->_curx = src->_curx;
@@ -363,7 +366,10 @@ int overlay(WINDOW *src, WINDOW *dst)
     for (y = 0; y < LINES; y++) {
         for (x = 0; x < COLS; x++) {
             char c = src->_data[y][x];
-            if (c != ' ') dst->_data[y][x] = c;
+            if (c != ' ') {
+                dst->_data[y][x] = c;
+                dst->_overlay[y][x] = c;
+            }
         }
     }
     return OK;
