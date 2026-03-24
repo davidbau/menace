@@ -57,6 +57,7 @@ async function create_obj() {
   const typeChar = await _readchar();
   g.mpos = 0;  // C: mpos = 0 after each readchar in create_obj()
   obj.o_type = typeChar;
+  obj.o_pos = { x: 0, y: 0 };
   obj.o_group = 0;
   obj.o_count = 1;
   obj.o_flags = 0;
@@ -66,6 +67,7 @@ async function create_obj() {
   obj.o_damage = '0d0';
   obj.o_hurldmg = '0d0';
   obj.o_launch = -1;
+  obj.o_charges = 0;
 
   await _msg(`Which ${typeChar} do you want? (0-f)`);
   const whichChar = await _readchar();
@@ -187,10 +189,17 @@ export async function wizard_cmds(ch) {
         const item = new_item();
         const obj = item.l_data;
         obj.o_type = WEAPON;
+        obj.o_pos = { x: 0, y: 0 };
         obj.o_which = TWOSWORD;
         if (_init_weapon) _init_weapon(obj, SWORD);
         obj.o_hplus = 1;
         obj.o_dplus = 1;
+        obj.o_flags = 0;
+        obj.o_group = 0;
+        obj.o_count = 1;
+        obj.o_ac = 0;
+        obj.o_launch = -1;
+        obj.o_charges = 0;
         if (_add_pack) await _add_pack(item, true);
         g.cur_weapon = obj;
       }
@@ -199,9 +208,18 @@ export async function wizard_cmds(ch) {
         const item = new_item();
         const obj = item.l_data;
         obj.o_type = ARMOR;
+        obj.o_pos = { x: 0, y: 0 };
         obj.o_which = PLATE_MAIL;
         obj.o_ac = -5;
-        obj.o_flags |= ISKNOW;
+        obj.o_flags = ISKNOW;
+        obj.o_group = 0;
+        obj.o_count = 1;
+        obj.o_hplus = 0;
+        obj.o_dplus = 0;
+        obj.o_damage = '0d0';
+        obj.o_hurldmg = '0d0';
+        obj.o_launch = -1;
+        obj.o_charges = 0;
         g.cur_armor = obj;
         if (_add_pack) await _add_pack(item, true);
       }
