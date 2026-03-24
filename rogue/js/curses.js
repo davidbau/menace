@@ -247,7 +247,8 @@ export function draw(win) {
         display.putChar(c + 1, r + 1, g.hw[r][c]);
       }
     }
-    display.moveCursor(_cwState.x + 1, _cwState.y + 1);
+    // Position cursor at hw's cursor (e.g., option being edited), not cw's
+    display.moveCursor(_hwState.x + 1, _hwState.y + 1);
     display.flush();
     return;
   }
