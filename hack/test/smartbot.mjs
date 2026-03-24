@@ -300,21 +300,33 @@ input.getKey = async function () {
   // ===== XP Grinding: fight monsters before descending =====
   if (grindXP > 0 && depth < targetDepth && u.uexp < grindXP * depth) {
     // Need more XP before descending. Hunt monsters on this level.
-    const huntKey = findHuntTarget();
-    if (huntKey) {
-      key = huntKey;
-      keyLog.push(key); return key;
+    // But give up after 200 steps on the same level with no XP gain.
+    if (!game._grindLevelSteps) game._grindLevelSteps = 0;
+    if (!game._grindLevelXP) game._grindLevelXP = u.uexp;
+    if (depth !== game._grindLastLevel) {
+      game._grindLevelSteps = 0;
+      game._grindLevelXP = u.uexp;
+      game._grindLastLevel = depth;
     }
-    // No reachable monsters — search for SDOORs to reveal new areas
-    const sd = nearestSDOOR();
-    if (sd) {
-      if (u.ux === sd.x && u.uy === sd.y) {
-        keyLog.push('s'); return 's';
+    game._grindLevelSteps++;
+    const xpGained = u.uexp - game._grindLevelXP;
+    // Give up grinding on this level after 200 steps with no XP gain
+    if (game._grindLevelSteps < 200 || xpGained > 0) {
+      if (xpGained > 0) { game._grindLevelSteps = 0; game._grindLevelXP = u.uexp; } // reset on progress
+      const huntKey = findHuntTarget();
+      if (huntKey) {
+        key = huntKey;
+        keyLog.push(key); return key;
       }
-      const sk = nav(sd.x, sd.y);
-      if (sk) { keyLog.push(sk); return sk; }
+      // No reachable monsters — search for SDOORs to reveal new areas
+      const sd = nearestSDOOR();
+      if (sd) {
+        if (u.ux === sd.x && u.uy === sd.y) { keyLog.push('s'); return 's'; }
+        const sk = nav(sd.x, sd.y);
+        if (sk) { keyLog.push(sk); return sk; }
+      }
     }
-    // No SDOORs either — descend (monsters on this level are exhausted)
+    // Timeout or no SDOORs — descend
   }
 
   // ===== Navigate to stairs and descend =====
