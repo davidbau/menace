@@ -67,14 +67,14 @@ open('main.c','w').write(t)"
 import re; t = open('io.c').read(); \
 t = re.sub(r'(wait_for\(WINDOW \*win, int ch\)\n\{)', r'\1\n#ifdef HARNESS\n    (void)win; (void)ch; return;\n#endif', t); \
 open('io.c','w').write(t)"
-	@# Suppress --More-- draw in endmsg: skip draw(cw) for the --More-- display
-	@# in harness mode so harness_display always reflects the LATEST message.
-	@# The md_readchar wrefresh handles display refresh before key capture.
+	@# Suppress entire --More-- block in endmsg when HARNESS.
+	@# The waddstr("--More--") corrupts _overlay: spaces in the NEXT message
+	@# become transparent \0, showing "--More--" chars through.
 	@python3 -c "\
 t = open('io.c').read(); \
 t = t.replace(\
-    'waddstr(cw, \"--More--\");\n\tdraw(cw);',\
-    'waddstr(cw, \"--More--\");\n#ifndef HARNESS\n\tdraw(cw);\n#endif',\
+    'wmove(cw, 0, mpos);\n\twaddstr(cw, \"--More--\");\n\tdraw(cw);',\
+    '#ifndef HARNESS\n\twmove(cw, 0, mpos);\n\twaddstr(cw, \"--More--\");\n\tdraw(cw);\n#endif',\
     1); \
 open('io.c','w').write(t)"
 	@# Add parity trace logging to command.c (after readchar, log no_command/after state)
