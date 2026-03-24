@@ -68,6 +68,10 @@ export class Display {
 }
 span.rogue-cursor {
   animation: rogue-cursor-blink 0.8s step-end infinite;
+}
+span.rogue-standout {
+  background: #ccc;
+  color: #000;
 }`;
     this._container.appendChild(style);
     this._cursorSpan = null;
@@ -102,9 +106,15 @@ span.rogue-cursor {
   }
 
   // Put character at position (x, y) — 1-based, don't move cursor
-  putChar(x, y, ch) {
+  // attr: 0=normal, 1=standout (inverse video)
+  putChar(x, y, ch, attr) {
     if (y >= 1 && y <= this.ROWS && x >= 1 && x <= this.COLS) {
       this.grid[y][x] = typeof ch === 'number' ? String.fromCharCode(ch) : ch;
+      if (!this._attrGrid) {
+        this._attrGrid = [];
+        for (let r = 0; r <= this.ROWS; r++) this._attrGrid[r] = new Array(this.COLS + 1).fill(0);
+      }
+      this._attrGrid[y][x] = attr || 0;
       this._dirty = true;
     }
   }
@@ -155,6 +165,13 @@ span.rogue-cursor {
         const ch = this.grid[r][c];
         const span = this._spans[r][c];
         if (span.textContent !== ch) span.textContent = ch;
+        // Standout (inverse video): swap fg/bg
+        const isStandout = this._attrGrid && this._attrGrid[r][c];
+        if (isStandout && !span.classList.contains('rogue-standout')) {
+          span.classList.add('rogue-standout');
+        } else if (!isStandout && span.classList.contains('rogue-standout')) {
+          span.classList.remove('rogue-standout');
+        }
       }
     }
     this._dirty = false;

@@ -27,6 +27,12 @@ export const _cwState = { y: 0, x: 0 };
 export const _mwState = { y: 0, x: 0 };
 export const _hwState = { y: 0, x: 0 };
 
+// Standout (inverse video) mode flag
+let _standout = false;
+
+export function standout() { _standout = true; }
+export function standend() { _standout = false; }
+
 function _arr(win) {
   const g = game();
   if (!win || win === 'cw' || win === g.cw) return g.cw;
@@ -34,6 +40,14 @@ function _arr(win) {
   if (win === 'stdscr' || win === g.stdscr) return g.stdscr;
   if (win === 'hw' || win === g.hw) return g.hw;
   return win;
+}
+
+function _attrArr(win) {
+  const g = game();
+  if (!win || win === 'cw' || win === g.cw) return g.cw_attr;
+  if (win === 'stdscr' || win === g.stdscr) return g.stdscr_attr;
+  if (win === 'hw' || win === g.hw) return g.hw_attr;
+  return null;  // mw has no attr plane
 }
 
 function _state(win) {
@@ -129,7 +143,11 @@ export function waddch(win, ch) {
     return;
   }
   const y = st.y, x = st.x;
-  if (y >= 0 && y < LINES && x >= 0 && x < COLS) arr[y][x] = ch;
+  if (y >= 0 && y < LINES && x >= 0 && x < COLS) {
+    arr[y][x] = ch;
+    const attr = _attrArr(win);
+    if (attr) attr[y][x] = _standout ? 1 : 0;
+  }
   // Advance x for cw, stdscr, and hw
   if (win === g.cw || win === 'cw' || win === g.stdscr || win === 'stdscr' ||
       win === 'hw' || win === g.hw) {
@@ -143,7 +161,11 @@ export function mvwaddch(win, y, x, ch) {
   const arr = _arr(win);
   const st = _state(win);
   st.y = y; st.x = x;
-  if (y >= 0 && y < LINES && x >= 0 && x < COLS) arr[y][x] = ch;
+  if (y >= 0 && y < LINES && x >= 0 && x < COLS) {
+    arr[y][x] = ch;
+    const attr = _attrArr(win);
+    if (attr) attr[y][x] = _standout ? 1 : 0;
+  }
 }
 
 // waddstr(win, str): write string at current cursor in win
@@ -177,9 +199,12 @@ export function mvwprintw(win, y, x, fmt, ...args) {
 // wclear(win): clear window
 export function wclear(win) {
   const arr = _arr(win);
+  const attr = _attrArr(win);
   for (let r = 0; r < LINES; r++)
-    for (let c = 0; c < COLS; c++)
+    for (let c = 0; c < COLS; c++) {
       arr[r][c] = ' ';
+      if (attr) attr[r][c] = 0;
+    }
   const st = _state(win);
   st.y = 0; st.x = 0;
 }
@@ -244,22 +269,19 @@ export function draw(win) {
   if (win === g.hw) {
     for (let r = 0; r < LINES; r++) {
       for (let c = 0; c < COLS; c++) {
-        display.putChar(c + 1, r + 1, g.hw[r][c]);
+        display.putChar(c + 1, r + 1, g.hw[r][c], g.hw_attr[r][c]);
       }
     }
-    // Position cursor at hw's cursor (e.g., option being edited), not cw's
     display.moveCursor(_hwState.x + 1, _hwState.y + 1);
     display.flush();
     return;
   }
 
   // stdscr is used by death/winner screens (clear+addstr+draw(stdscr)).
-  // In 1980 Berkeley curses, wrefresh(stdscr) copies stdscr directly to the
-  // terminal — no compositing with cw/mw overlays.
   if (win === g.stdscr || win === 'stdscr') {
     for (let r = 0; r < LINES; r++) {
       for (let c = 0; c < COLS; c++) {
-        display.putChar(c + 1, r + 1, g.stdscr[r][c]);
+        display.putChar(c + 1, r + 1, g.stdscr[r][c], g.stdscr_attr[r][c]);
       }
     }
     display.moveCursor(_cwState.x + 1, _cwState.y + 1);
@@ -267,12 +289,10 @@ export function draw(win) {
     return;
   }
 
-  // For cw: show cw directly. mw tracks monster positions for winat() but is
-  // never composited — visible monsters are drawn to cw via mvwaddch(cw,...)
-  // only when cansee() is true. Compositing mw would reveal all monsters.
+  // For cw: show cw directly.
   for (let r = 0; r < LINES; r++) {
     for (let c = 0; c < COLS; c++) {
-      display.putChar(c + 1, r + 1, g.cw[r][c]);
+      display.putChar(c + 1, r + 1, g.cw[r][c], g.cw_attr[r][c]);
     }
   }
   // Position cursor at cw cursor

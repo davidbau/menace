@@ -4,7 +4,7 @@
  */
 
 import { game } from './gstate.js';
-import { clear, wclear, draw, mvwaddstr } from './curses.js';
+import { clear, wclear, draw, mvwaddstr, standout, standend } from './curses.js';
 import { wait_for } from './io.js';
 import { addScore, scoreLines, storeGameover } from './score.js';
 import {
@@ -108,7 +108,8 @@ export async function total_winner() {
   wclear(g.mw);
   wclear(g.cw);
 
-  // "YOU MADE IT" banner
+  // "YOU MADE IT" banner — displayed in standout (inverse video)
+  standout();
   mvwaddstr(g.stdscr, 0,  0, '                                                               ');
   mvwaddstr(g.stdscr, 1,  0, '  @   @               @   @           @          @@@  @     @  ');
   mvwaddstr(g.stdscr, 2,  0, '  @   @               @@ @@           @           @   @     @  ');
@@ -119,6 +120,7 @@ export async function total_winner() {
   mvwaddstr(g.stdscr, 7,  0, '   @@@   @@@   @@ @   @   @  @@@@  @@@@  @@@     @@@   @@   @  ');
   mvwaddstr(g.stdscr, 8,  0, '                                                               ');
   mvwaddstr(g.stdscr, 9,  0, '     Congratulations, you have made it to the light of day!    ');
+  standend();
   mvwaddstr(g.stdscr, 11, 0, 'You have joined the elite ranks of those who have escaped the');
   mvwaddstr(g.stdscr, 12, 0, 'Dungeons of Doom alive.  You journey home and sell all your loot at');
   mvwaddstr(g.stdscr, 13, 0, 'a great profit and are admitted to the fighters guild.');
