@@ -18,6 +18,7 @@
 import { movemon, settrack, mon_regen, initrack } from './monmove.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
+import { emitRunstepEvent } from './runstep_trace.js';
 import { nh_timeout, do_storms, fall_asleep } from './timeout.js';
 import { pline, Norep } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, makemon_appear, withMakemonPlayerOverrideAsync } from './makemon.js';
@@ -95,23 +96,6 @@ const QUEST_PORTAL_INFO_BY_ROLE = {
     Val: { leader: 'Norn', homebase: 'the Shrine of Destiny' },
     Wiz: { leader: 'Neferet the Green', homebase: 'the Lonely Tower' },
 };
-
-function runstepEventEnabled() {
-    const raw = String(getEnv('WEBHACK_EVENT_RUNSTEP', '0') || '').trim().toLowerCase();
-    return raw === '1' || raw === 'true' || raw === 'on';
-}
-
-function emitRunstep(game, keyarg, path, cmdOverride = null) {
-    if (!runstepEventEnabled()) return;
-    const ctx = game?.context || {};
-    const p = game?.u || game?.player || {};
-    const ux = Number.isFinite(Number(p?.x)) ? Number(p.x) : Number(p?.ux || 0);
-    const uy = Number.isFinite(Number(p?.y)) ? Number(p.y) : Number(p?.uy || 0);
-    const cmd = (cmdOverride == null) ? (game?.cmdKey | 0) : (cmdOverride | 0);
-    pushRngLogEntry(
-        `^runstep[path=${path} keyarg=${keyarg | 0} cmd=${cmd} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
-    );
-}
 
 function questPortalInfoForPlayer(player) {
     const role = Number.isInteger(player?.roleIndex) ? roles[player.roleIndex] : null;
@@ -739,7 +723,7 @@ export async function run_command(game, ch, opts = {}) {
         : ((game.countAccum != null) ? (game.countAccum | 0) : 0);
     game.commandCount = effectiveCountPrefix;
     if (!_suppressFreshRunstep) {
-        emitRunstep(game, 0, 'fresh_cmd', chCode);
+        emitRunstepEvent(game, 0, 'fresh_cmd', chCode);
     }
     if (effectiveCountPrefix > 0) {
         game.multi = effectiveCountPrefix - 1; // first execution is now
@@ -844,7 +828,7 @@ async function repeatLoop(game, {
             if (mode === 'movement_only') {
                 break;
             }
-            emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
+            emitRunstepEvent(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
             game.multi--;
             game.advanceRunTurn = async () => {
                 await advanceTimedTurn(game, coreOpts);
@@ -884,7 +868,7 @@ async function runMovementRepeatSlice(game, {
     bumpHeroSeqN,
 }) {
     const ctx = game.context || {};
-    emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
+    emitRunstepEvent(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
     // C ref: allmain.c:527-530 — movement/travel multi repeat.
     // lookaround() can abort running by clearing multi.
     // Restructured to match do_run's operation ordering:
@@ -1522,7 +1506,7 @@ export class NetHackGame {
         this.commandCount = 0;
         this.cmdKey = 0;
         this.emitRunstep = (keyarg, path, cmdOverride = null) => {
-            emitRunstep(this, keyarg, path, cmdOverride);
+            emitRunstepEvent(this, keyarg, path, cmdOverride);
         };
         this.lastCommand = null;
         this._repeatPrefixChainActive = false;

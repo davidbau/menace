@@ -10,6 +10,7 @@ import { NetHackGame, inputSnap } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
 import { consumeHarnessMapdumpPayloads } from './dungeon.js';
 import { envFlag, getEnv } from './runtime_env.js';
+import { emitRunstepEvent } from './runstep_trace.js';
 
 export { HeadlessDisplay };
 
@@ -192,17 +193,6 @@ function pendingWaitSite(inputRuntime) {
     return nonInternal || frames[1] || frames[0] || '';
 }
 
-function emitStartupRunstepIfEnabled(game) {
-    if (!envFlag('WEBHACK_EVENT_RUNSTEP')) return;
-    const ctx = game?.context || {};
-    const p = game?.u || game?.player || {};
-    const ux = Number.isFinite(Number(p?.x)) ? Number(p.x) : Number(p?.ux || 0);
-    const uy = Number.isFinite(Number(p?.y)) ? Number(p.y) : Number(p?.uy || 0);
-    pushRngLogEntry(
-        `^runstep[path=fresh_cmd keyarg=0 cmd=0 cc=0 moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
-    );
-}
-
 async function settleStartupInputBoundaries(game, opts = {}) {
     if (!opts?.initOpts?.simulateManualDirectChargen) return;
     if (game?.pendingPrompt?.source !== 'startup_lore') return;
@@ -286,7 +276,7 @@ export async function replaySession(seed, opts, keys) {
     const settled = await drainUntilInput(initPromise, game.input);
     if (settled.done) {
         await settleStartupInputBoundaries(game, opts);
-        emitStartupRunstepIfEnabled(game);
+        emitRunstepEvent(game, 0, 'fresh_cmd', 0, { commandCount: 0 });
         initPromise = null;
     } else {
         startupPending = true;
@@ -366,7 +356,7 @@ export async function replaySession(seed, opts, keys) {
             if (settled.done) {
                 startupPending = false;
                 await settleStartupInputBoundaries(game, opts);
-                emitStartupRunstepIfEnabled(game);
+                emitRunstepEvent(game, 0, 'fresh_cmd', 0, { commandCount: 0 });
                 initPromise = null;
                 replayPendingTrace(
                     `step=${i + 1}`,
