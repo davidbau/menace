@@ -41,7 +41,10 @@ export function setRngSeed(s) { _seed = s | 0; }
 // C: abs(RN) % range
 export function rnd(range) {
   if (range === 0) return 0;
-  return Math.abs(RN()) % range;
+  const result = Math.abs(RN()) % range;
+  const g = game();
+  if (g && g.rawRngLog) g.rawRngLog.push(result);
+  return result;
 }
 
 // roll(n, s): sum of n dice of s sides (1..s each)
