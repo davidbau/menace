@@ -45,13 +45,50 @@ export class Display {
     ].join(';');
     this._container.appendChild(pre);
     this._pre = pre;
+
+    // Build span grid for per-cell cursor styling
+    this._spans = [];
+    for (let r = 1; r <= this.ROWS; r++) {
+      this._spans[r] = [];
+      for (let c = 1; c <= this.COLS; c++) {
+        const span = document.createElement('span');
+        span.textContent = ' ';
+        this._spans[r][c] = span;
+        pre.appendChild(span);
+      }
+      if (r < this.ROWS) pre.appendChild(document.createTextNode('\n'));
+    }
+
+    // CSS for blinking cursor
+    const style = document.createElement('style');
+    style.textContent = `
+@keyframes rogue-cursor-blink {
+  0%, 49% { box-shadow: inset 0 -2px 0 0 rgba(255,255,255,0.85); }
+  50%, 100% { box-shadow: none; }
+}
+span.rogue-cursor {
+  animation: rogue-cursor-blink 0.8s step-end infinite;
+}`;
+    this._container.appendChild(style);
+    this._cursorSpan = null;
+
     this._render();
   }
 
   // Move cursor to (x, y) — 1-based
   moveCursor(x, y) {
+    // Remove old cursor
+    if (this._cursorSpan) {
+      this._cursorSpan.classList.remove('rogue-cursor');
+      this._cursorSpan = null;
+    }
     this.curx = x;
     this.cury = y;
+    // Add new cursor
+    if (y >= 1 && y <= this.ROWS && x >= 1 && x <= this.COLS && this._spans[y]) {
+      this._cursorSpan = this._spans[y][x];
+      this._cursorSpan.classList.add('rogue-cursor');
+    }
   }
 
   // Put character at current cursor position, advance curx
@@ -113,22 +150,27 @@ export class Display {
   }
 
   _render() {
-    let lines = [];
     for (let r = 1; r <= this.ROWS; r++) {
-      const raw = this.grid[r].slice(1).join('');
-      let line = '';
-      for (let i = 0; i < raw.length; i++) {
-        if (raw[i] === '\t') {
-          const nextStop = (Math.floor(line.length / 8) + 1) * 8;
-          while (line.length < nextStop && line.length < this.COLS) line += ' ';
-        } else {
-          line += raw[i];
-        }
+      for (let c = 1; c <= this.COLS; c++) {
+        const ch = this.grid[r][c];
+        const span = this._spans[r][c];
+        if (span.textContent !== ch) span.textContent = ch;
       }
-      lines.push(line);
     }
-    this._pre.textContent = lines.join('\n');
     this._dirty = false;
+  }
+
+  // Cursor visibility control (for Shell compatibility)
+  cursSet(visibility) {
+    if (!visibility && this._cursorSpan) {
+      this._cursorSpan.classList.remove('rogue-cursor');
+      this._cursorSpan = null;
+    }
+  }
+
+  // Get cursor position (for mock_display compatibility)
+  getCursor() {
+    return [this.cury - 1, this.curx - 1];
   }
 
   scheduleRender() {
