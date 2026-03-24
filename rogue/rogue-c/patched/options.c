@@ -4,10 +4,19 @@
  * it is the only way to keep the wolves off of my back.
  *
  * @(#)options.c	3.3 (Berkeley) 5/25/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
+#include <stdlib.h>
 #include "curses.h"
 #include <ctype.h>
+#include <string.h>
+#include "machdep.h"
 #include "rogue.h"
 
 #define	NUM_OPTS	(sizeof optlist / sizeof (OPTION))
@@ -18,14 +27,12 @@
 struct optstruct {
     char	*o_name;	/* option name */
     char	*o_prompt;	/* prompt for interactive entry */
-    int		*o_opt;		/* pointer to thing to set */
-    int		(*o_putfunc)();	/* function to print value */
+    void	*o_opt;		/* pointer to thing to set */
+    void	(*o_putfunc)();	/* function to print value */
     int		(*o_getfunc)();	/* function to get value interactively */
 };
 
 typedef struct optstruct	OPTION;
-
-int	put_bool(), get_bool(), put_str(), get_str();
 
 OPTION	optlist[] = {
     {"terse",	 "Terse output: ",
@@ -49,17 +56,18 @@ OPTION	optlist[] = {
 /*
  * print and then set options from the terminal
  */
+void
 option()
 {
-    register OPTION	*op;
-    register int	retval;
+    OPTION	*op;
+    int	retval;
 
     wclear(hw);
     touchwin(hw);
     /*
      * Display current values of options
      */
-    for (op = optlist; op < &optlist[NUM_OPTS]; op++)
+    for (op = optlist; op <= &optlist[NUM_OPTS-1]; op++)
     {
 	waddstr(hw, op->o_prompt);
 	(*op->o_putfunc)(op->o_opt);
@@ -69,19 +77,19 @@ option()
      * Set values
      */
     wmove(hw, 0, 0);
-    for (op = optlist; op < &optlist[NUM_OPTS]; op++)
+    for (op = optlist; op <= &optlist[NUM_OPTS-1]; op++)
     {
 	waddstr(hw, op->o_prompt);
 	if ((retval = (*op->o_getfunc)(op->o_opt, hw)))
 	    if (retval == QUIT)
 		break;
 	    else if (op > optlist) {	/* MINUS */
-		wmove(hw, (op - optlist) - 1, 0);
+		wmove(hw, (int)(op - optlist) - 1, 0);
 		op -= 2;
 	    }
 	    else	/* trying to back up beyond the top */
 	    {
-		putchar('\007');
+		beep();
 		wmove(hw, 0, 0);
 		op--;
 	    }
@@ -91,7 +99,7 @@ option()
      */
     mvwaddstr(hw, LINES-1, 0, "--Press space to continue--");
     draw(hw);
-    wait_for(' ');
+    wait_for(hw,' ');
     clearok(cw, TRUE);
     touchwin(cw);
     after = FALSE;
@@ -100,31 +108,31 @@ option()
 /*
  * put out a boolean
  */
-put_bool(b)
-bool	*b;
+void
+put_bool(void *b)
 {
-    waddstr(hw, *b ? "True" : "False");
+    waddstr(hw, *(int *)b ? "True" : "False");
 }
 
 /*
  * put out a string
  */
-put_str(str)
-char *str;
+void
+put_str(void *str)
 {
-    waddstr(hw, str);
+    waddstr(hw, (char *) str);
 }
 
 /*
  * allow changing a boolean option and print it out
  */
 
-get_bool(bp, win)
-bool *bp;
-WINDOW *win;
+int
+get_bool(void *vp, WINDOW *win)
 {
-    register int oy, ox;
-    register bool op_bad;
+    int *bp = (int *) vp;
+    int oy, ox;
+    int op_bad;
 
     op_bad = TRUE;
     getyx(win, oy, ox);
@@ -133,7 +141,7 @@ WINDOW *win;
     {
 	wmove(win, oy, ox);
 	draw(win);
-	switch (readchar())
+	switch (readchar(win))
 	{
 	    case 't':
 	    case 'T':
@@ -160,7 +168,6 @@ WINDOW *win;
     }
     wmove(win, oy, ox);
     waddstr(win, *bp ? "True" : "False");
-    wclrtoeol(win);
     waddch(win, '\n');
     return NORM;
 }
@@ -168,12 +175,12 @@ WINDOW *win;
 /*
  * set a string option
  */
-get_str(opt, win)
-register char *opt;
-WINDOW *win;
+int
+get_str(void *vopt, WINDOW *win)
 {
-    register char *sp;
-    register int c, oy, ox;
+    char *opt = (char *) vopt;
+    char *sp;
+    int c, oy, ox;
     char buf[80];
 
     draw(win);
@@ -182,24 +189,36 @@ WINDOW *win;
      * loop reading in the string, and put it in a temporary buffer
      */
     for (sp = buf;
-	(c = readchar()) != '\n' && c != '\r' && c != '\033' && c != '\007';
+	(c = readchar(win)) != '\n' && c != '\r' && c != '\033' && c != '\007';
 	wclrtoeol(win), draw(win))
     {
 	if (c == -1)
 	    continue;
-	else if (c == erasechar())	/* process erase character */
+	else if (c == md_erasechar())	/* process erase character */
 	{
 	    if (sp > buf)
 	    {
-		register int i;
+		int i;
+		int myx, myy;
 
 		sp--;
-		for (i = strlen(unctrl(*sp)); i; i--)
-		    waddch(win, '\b');
+
+		for (i = (int) strlen(unctrl(*sp)); i; i--)
+		{
+		    getyx(win,myy,myx);
+		    if ((myx == 0)&& (myy > 0))
+		    {
+			wmove(win,myy-1,getmaxx(win)-1);
+			waddch(win,' ');
+			wmove(win,myy-1,getmaxx(win)-1);
+		    }
+		    else
+			waddch(win, '\b');
+		}
 	    }
 	    continue;
 	}
-	else if (c == killchar())	/* process kill character */
+	else if (c == md_killchar())	/* process kill character */
 	{
 	    sp = buf;
 	    wmove(win, oy, ox);
@@ -215,8 +234,12 @@ WINDOW *win;
 		sp += strlen(home);
 		continue;
 	    }
-	*sp++ = c;
-	waddstr(win, unctrl(c));
+
+	if ((sp - buf) < 78) /* Avoid overflow */
+	{
+	    *sp++ = c;
+	    waddstr(win, unctrl(c));
+	}
     }
     *sp = '\0';
     if (sp > buf)	/* only change option if something has been typed */
@@ -226,7 +249,7 @@ WINDOW *win;
     waddch(win, '\n');
     draw(win);
     if (win == cw)
-	mpos += sp - buf;
+	mpos += (int)(sp - buf);
     if (c == '-')
 	return MINUS;
     else if (c == '\033' || c == '\007')
@@ -243,12 +266,12 @@ WINDOW *win;
  * or the end of the entire option string.
  */
 
-parse_opts(str)
-register char *str;
+void
+parse_opts(char *str)
 {
-    register char *sp;
-    register OPTION *op;
-    register int len;
+    char *sp;
+    OPTION *op;
+    int len;
 
     while (*str)
     {
@@ -257,18 +280,18 @@ register char *str;
 	 */
 	for (sp = str; isalpha(*sp); sp++)
 	    continue;
-	len = sp - str;
+	len = (int)(sp - str);
 	/*
 	 * Look it up and deal with it
 	 */
-	for (op = optlist; op < &optlist[NUM_OPTS]; op++)
+	for (op = optlist; op <= &optlist[NUM_OPTS-1]; op++)
 	    if (EQSTR(str, op->o_name, len))
 	    {
 		if (op->o_putfunc == put_bool)	/* if option is a boolean */
-		    *(bool *)op->o_opt = TRUE;
+		    *(int *)op->o_opt = TRUE;
 		else				/* string option */
 		{
-		    register char *start;
+		    char *start;
 		    /*
 		     * Skip to start of string value
 		     */
@@ -298,7 +321,7 @@ register char *str;
 	    else if (op->o_putfunc == put_bool
 	      && EQSTR(str, "no", 2) && EQSTR(str + 2, op->o_name, len - 2))
 	    {
-		*(bool *)op->o_opt = FALSE;
+		*(int *)op->o_opt = FALSE;
 		break;
 	    }
 
@@ -314,16 +337,17 @@ register char *str;
 /*
  * copy string using unctrl for things
  */
-strucpy(s1, s2, len)
-register char *s1, *s2;
-register int len;
+void
+strucpy(char *s1, char *s2, size_t len)
 {
-    register char *sp;
+    const char *sp;
 
     while (len--)
     {
-	strcpy(s1, (sp = unctrl(*s2++)));
+    	sp = unctrl(*s2);
+	strcpy(s1, sp);
 	s1 += strlen(sp);
+	s2++;
     }
     *s1 = '\0';
 }

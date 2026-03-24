@@ -2,6 +2,12 @@
  * All the daemon and fuse functions are in here
  *
  * @(#)daemons.c	3.7 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
 #include "curses.h"
@@ -12,6 +18,7 @@
  *	A healing daemon that restors hit points after rest
  */
 
+void
 doctor()
 {
     register int lv, ohp;
@@ -44,9 +51,10 @@ doctor()
  *	Called when it is time to start rolling for wandering monsters
  */
 
+void
 swander()
 {
-    daemon(rollwand, 0, BEFORE);
+    start_daemon(rollwand, 0, BEFORE);
 }
 
 /*
@@ -54,10 +62,11 @@ swander()
  *	Called to roll to see if a wandering monster starts up
  */
 
+int between = 0;
+
+void
 rollwand()
 {
-    static int between = 0;
-
     if (++between >= 4)
     {
 	if (roll(1, 6) == 4)
@@ -75,6 +84,7 @@ rollwand()
  *	Release the poor player from his confusion
  */
 
+void
 unconfuse()
 {
     player.t_flags &= ~ISHUH;
@@ -87,6 +97,7 @@ unconfuse()
  *	He lost his see invisible power
  */
 
+void
 unsee()
 {
     player.t_flags &= ~CANSEE;
@@ -97,6 +108,7 @@ unsee()
  *	He gets his sight back
  */
 
+void
 sight()
 {
     if (on(player, ISBLIND))
@@ -113,6 +125,7 @@ sight()
  *	End the hasting
  */
 
+void
 nohaste()
 {
     player.t_flags &= ~ISHASTE;
@@ -122,6 +135,7 @@ nohaste()
 /*
  * digest the hero's food
  */
+void
 stomach()
 {
     register int oldfood;

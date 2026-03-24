@@ -1,24 +1,26 @@
-/* 11-23-81 Aw01 Try different rooms when trying to find some FLOOR */
-#include "curses.h"
-#include "rogue.h"
-#ifdef HARNESS
-extern void harness_log_event(const char *name);
-#define LOG_EVENT(name) harness_log_event("^{" name "}[]")
-#else
-#define LOG_EVENT(name) ((void)0)
-#endif
-
 /*
  * new_level:
  *	Dig and draw a new level
  *
  * @(#)new_level.c	3.7 (Berkeley) 6/2/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
+#include "curses.h"
+#include "rogue.h"
+
+#include <string.h>
+
+void
 new_level()
 {
-    register int rm, i;
-    register char ch;
+    int rm, i;
+    int ch = 0;
     coord stairs;
 
     if (level > max_level)
@@ -31,17 +33,13 @@ new_level()
      * Free up the monsters on the last level
      */
     free_list(mlist);
-    LOG_EVENT("do_rooms");
     do_rooms();				/* Draw rooms */
-    LOG_EVENT("do_passages");
     do_passages();			/* Draw passages */
     no_food++;
-    LOG_EVENT("put_things");
     put_things();			/* Place objects (if any) */
     /*
      * Place the staircase down.
      */
-    LOG_EVENT("stairs");
     do {
         rm = rnd_room();
 	rnd_pos(&rooms[rm], &stairs);
@@ -50,7 +48,6 @@ new_level()
     /*
      * Place the traps
      */
-    LOG_EVENT("traps");
     if (rnd(10) < level)
     {
 	ntraps = rnd(level/4)+1;
@@ -66,7 +63,7 @@ new_level()
 	    } until (winat(stairs.y, stairs.x) == FLOOR);
 	    switch(rnd(6))
 	    {
-		when 0: ch = TRAPDOOR;
+		case 0: ch = TRAPDOOR;
 		when 1: ch = BEARTRAP;
 		when 2: ch = SLEEPTRAP;
 		when 3: ch = ARROWTRAP;
@@ -79,7 +76,6 @@ new_level()
 	    traps[i].tr_pos = stairs;
 	}
     }
-    LOG_EVENT("hero");
     do
     {
 	rm = rnd_room();
@@ -95,9 +91,10 @@ new_level()
  * Pick a room that is really there
  */
 
+int
 rnd_room()
 {
-    register int rm;
+    int rm;
 
     do
     {
@@ -111,12 +108,13 @@ rnd_room()
  *	put potions and scrolls on this level
  */
 
+void
 put_things()
 {
-    register int i;
-    register struct linked_list *item;
-    register struct object *cur;
-    register int rm;
+    int i;
+    struct linked_list *item;
+    struct object *cur;
+    int rm;
     coord tp;
 
     /*
@@ -145,7 +143,7 @@ put_things()
 	     * Put it somewhere
 	     */
 	    do {
-	        rm = rnd_room();		/* Aw01 Try differnt rooms */
+	        rm = rnd_room();
 		rnd_pos(&rooms[rm], &tp);
 	    } until (winat(tp.y, tp.x) == FLOOR);
 	    mvaddch(tp.y, tp.x, cur->o_type);
@@ -161,14 +159,15 @@ put_things()
 	attach(lvl_obj, item);
 	cur = (struct object *) ldata(item);
 	cur->o_hplus = cur->o_dplus = 0;
-	cur->o_damage = cur->o_hurldmg = "0d0";
+	strcpy(cur->o_damage, "0d0");
+	strcpy(cur->o_hurldmg, "0d0");
 	cur->o_ac = 11;
 	cur->o_type = AMULET;
 	/*
 	 * Put it somewhere
 	 */
 	do {
-	    rm = rnd_room();		/* Aw01 Try different rooms */
+	    rm = rnd_room();
 	    rnd_pos(&rooms[rm], &tp);
 	} until (winat(tp.y, tp.x) == FLOOR);
 	mvaddch(tp.y, tp.x, cur->o_type);
