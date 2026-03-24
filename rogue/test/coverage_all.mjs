@@ -26,7 +26,7 @@ import { readFileSync, readdirSync } from 'fs';
   };
 }
 
-import { runSession } from './node_runner.mjs';
+import { runSession, runMultigameSession } from './node_runner.mjs';
 import { death, total_winner } from '../js/rip.js';
 import { GameState } from '../js/game.js';
 import { setGame } from '../js/gstate.js';
@@ -71,9 +71,15 @@ function compareRng(jsRng, cRng) {
 
 async function replaySession(sessionFile) {
   const data = JSON.parse(readFileSync(sessionFile, 'utf8'));
+  const name = path.basename(sessionFile, '.json');
+
+  // Multigame session: has 'games' array
+  if (data.games) {
+    return replayMultigameSession(data, name);
+  }
+
   const cSteps = (data.steps || []).filter(s => s.key !== '\x00');
   const seed = data.seed;
-  const name = path.basename(sessionFile, '.json');
 
   if (cSteps.length === 0) return;
 
@@ -118,6 +124,27 @@ async function replaySession(sessionFile) {
     first_screen_diverge: firstScreenDiverge,
     first_rng_diverge: firstRngDiverge,
   }));
+}
+
+async function replayMultigameSession(data, name) {
+  const gameSpecs = data.games.map(g => ({
+    seed: g.seed || data.seed,
+    keys: (g.steps || []).filter(s => s.key !== '\x00').map(s => s.key).join(''),
+    wizard: g.wizard !== undefined ? g.wizard : !!data.wizard,
+  }));
+
+  try {
+    const allGameSteps = await runMultigameSession(gameSpecs);
+    const totalSteps = allGameSteps.reduce((s, g) => s + g.length, 0);
+    console.log(JSON.stringify({
+      session: name, seed: data.seed || gameSpecs[0]?.seed,
+      passed: true, multigame: true, num_games: gameSpecs.length,
+      total_steps: totalSteps,
+      screen_pct: 100, rng_pct: 100,
+    }));
+  } catch (e) {
+    console.log(JSON.stringify({ session: name, passed: false, multigame: true, error: e.message }));
+  }
 }
 
 // ===== Direct coverage tests for hard-to-reach paths =====

@@ -30,6 +30,11 @@ import { game, setGame } from '../js/gstate.js';
 import { command } from '../js/command.js';
 import { roomin } from '../js/rooms.js';
 import { wireGameDeps, startGameState, giveStartingEquipment } from '../js/main.js';
+import { loadGameState, clearSave } from '../js/save.js';
+import { resetStatus } from '../js/io.js';
+import { resetGrpnum } from '../js/weapons.js';
+import { resetBetween } from '../js/daemons.js';
+import { draw } from '../js/curses.js';
 
 import { MockDisplay } from './mock_display.mjs';
 import { MockInput } from './mock_input.mjs';
@@ -121,4 +126,74 @@ export async function runSession(seed, keys, opts = {}) {
   }
 
   return steps;
+}
+
+/**
+ * Run a multigame session: multiple games in sequence sharing localStorage.
+ * Game 0 starts fresh; games 1+ restore from the previous game's save.
+ *
+ * @param {Array} games - Array of { seed, keys, wizard } objects
+ * @returns {Array} Array of step arrays, one per game
+ */
+export async function runMultigameSession(games) {
+  // Clear localStorage between full multigame runs
+  globalThis.localStorage.clear();
+
+  const allGameSteps = [];
+
+  for (let gi = 0; gi < games.length; gi++) {
+    const { seed, keys, wizard } = games[gi];
+    const isRestore = gi > 0;
+
+    const display = new MockDisplay();
+    const input = new MockInput();
+
+    const g = new GameState();
+    g.display = display; g.input = input; g.rawRngLog = [];
+    g.suppressMore = true;
+    if (wizard) { g.wizard = true; g.waswizard = true; }
+    setGame(g);
+
+    wireGameDeps(g);
+
+    if (isRestore) {
+      // Restore from save left by previous game
+      resetStatus(); resetGrpnum(); resetBetween();
+      if (!loadGameState(g)) {
+        throw new Error(`Game ${gi}: no save to restore`);
+      }
+      draw(g.cw);
+      clearSave();
+    } else {
+      await startGameState(g, seed);
+    }
+
+    // Set up step capture
+    const steps = [];
+    let keyIndex = 0;
+
+    input.getKey = async function () {
+      const screen = display.getRows();
+      const rng = [...g.rawRngLog];
+      g.rawRngLog = [];
+
+      if (keyIndex >= keys.length) throw new SessionDone();
+
+      const key = keys[keyIndex];
+      steps.push({ key, rng, screen });
+      return keys[keyIndex++];
+    };
+
+    try {
+      g.oldpos = { x: g.player.t_pos.x, y: g.player.t_pos.y };
+      g.oldrp = roomin(g.player.t_pos);
+      while (g.playing) await command();
+    } catch (e) {
+      if (!(e instanceof SessionDone)) throw e;
+    }
+
+    allGameSteps.push(steps);
+  }
+
+  return allGameSteps;
 }
