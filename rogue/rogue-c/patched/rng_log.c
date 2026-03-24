@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "harness_events.h"
 
@@ -34,9 +35,9 @@ void harness_srand(unsigned int s)
 
 /* RNG call log — filled per step, read by harness_main.c */
 #define MAX_RNG_LOG 8192
-int  harness_rng_log[MAX_RNG_LOG];
-int  *harness_rng_buf = harness_rng_log;  /* alias for harness_main.c compat */
-int  harness_rng_args[MAX_RNG_LOG];
+static int  _harness_rng_log[MAX_RNG_LOG];
+int  *harness_rng_buf = _harness_rng_log;
+static int  _harness_rng_args[MAX_RNG_LOG];
 int  harness_rng_count = 0;
 
 /* Event buffer — reset between steps by the harness */
@@ -60,8 +61,8 @@ int harness_rnd(int range)
     result = abs(RN) % range;
 
     if (harness_rng_count < MAX_RNG_LOG) {
-        harness_rng_args[harness_rng_count] = range;
-        harness_rng_log[harness_rng_count] = result;
+        _harness_rng_args[harness_rng_count] = range;
+        _harness_rng_log[harness_rng_count] = result;
         harness_rng_count++;
     }
     harness_rng_call_count++;

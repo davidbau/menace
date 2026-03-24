@@ -1,43 +1,47 @@
 /**
  * rng.js — Seeded RNG for Rogue 3.6 JS port
  *
- * macOS rand() uses the Park-Miller (Lehmer) generator:
- *   next = (seed * 16807) % 2147483647
- *   return next & 0x7fff
+ * Matches the RN macro from rogue.h in RoguelikeRestorationProject/rogue3.6:
+ *   #define RN (((seed = seed*11109+13849) & 0x7fff) >> 1)
  *
- * Verified: srand(42) -> rand() = 705894 raw, 705894 & 0x7fff = 17766
- * which matches session seed42.json step 0 rng[0] = 17766.
+ * This is a Linear Congruential Generator with:
+ *   multiplier = 11109
+ *   increment  = 13849
+ *   mask       = 0x7fff (15 bits)
+ *   shift      = >> 1 (14-bit output: 0-16383)
+ *
+ * rnd(range) = abs(RN) % range
  */
 
 import { game } from './gstate.js';
 
-const M = 2147483647; // 2^31 - 1
-
 let _seed = 0;
 
 export function srand(s) {
-  _seed = (s | 0) >>> 0;
-  if (_seed === 0) _seed = 1; // Park-Miller seed must be nonzero
+  _seed = s | 0;
 }
 
-// Park-Miller: next = (seed * 16807) % (2^31-1)
-// JS loses precision with 32-bit int * 16807 if seed is large, so use BigInt
+// RN macro: LCG step, mask to 15 bits, right-shift by 1
+function RN() {
+  _seed = (_seed * 11109 + 13849) | 0; // 32-bit integer overflow via |0
+  return (_seed & 0x7fff) >> 1;
+}
+
 export function rand() {
-  // Use BigInt for the multiplication to avoid precision loss
-  _seed = Number(BigInt(_seed) * 16807n % 2147483647n);
-  // Log the low 15 bits for parity testing (matches session JSON format)
+  const val = RN();
   const g = game();
-  if (g && g.rawRngLog) g.rawRngLog.push(_seed & 0x7fff);
-  return _seed;  // Return FULL value (used by rnd() for modulo)
+  if (g && g.rawRngLog) g.rawRngLog.push(val);
+  return val;
 }
 
 export function getRngSeed() { return _seed; }
-export function setRngSeed(s) { _seed = Number(s) >>> 0; if (_seed === 0) _seed = 1; }
+export function setRngSeed(s) { _seed = s | 0; }
 
 // rnd(range): 0 to range-1
-// C: rand() % range — uses full Park-Miller value, NOT masked to 15 bits
+// C: abs(RN) % range
 export function rnd(range) {
-  return range === 0 ? 0 : rand() % range;
+  if (range === 0) return 0;
+  return Math.abs(RN()) % range;
 }
 
 // roll(n, s): sum of n dice of s sides (1..s each)
