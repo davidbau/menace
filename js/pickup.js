@@ -1956,7 +1956,12 @@ async function containerMenu(game, container) {
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
 
-        if (c === '\x1b' || c === 'q') break;
+        // C ref: yn_function maps unrecognized keys (including space) to
+        // the default 'q' (quit). Only ':', 'o', 'i', 'b', 'r', 's', '?'
+        // are valid responses; everything else breaks out of the menu loop.
+        if (c === '\x1b' || c === 'q'
+            || (c !== ':' && c !== 'o' && c !== 'i' && c !== 'b'
+                && c !== 'r' && c !== 's' && c !== '?')) break;
 
         if (c === ':') {
             // Look inside — show contents then loop back to menu.
