@@ -16,9 +16,15 @@ WINDOW *curscr = NULL;
 /* Harness display snapshot — copied from cw on wrefresh(cw) */
 char harness_display[LINES][COLS + 1];
 
+/* Harness attribute plane — tracks standout (inverse) per cell */
+char harness_attr[LINES][COLS + 1];
+
 /* Harness cursor position — updated on each wrefresh */
 int harness_cursor_y = 0;
 int harness_cursor_x = 0;
+
+/* Global standout mode flag */
+static int _standout_mode = 0;
 
 /* ===== Window allocation ===== */
 
@@ -133,6 +139,8 @@ int waddch(WINDOW *win, int ch)
         win->_data[y][x] = c;
         /* overlay: non-space = opaque; space = transparent (clear overlay) */
         win->_overlay[y][x] = (c == ' ') ? '\0' : c;
+        /* Track standout attribute */
+        win->_attr[y][x] = _standout_mode ? 1 : 0;
         win->_curx = x + 1;
     }
     return OK;
@@ -290,16 +298,20 @@ int wrefresh(WINDOW *win)
 
     if (win == hw) {
         /* Help window replaces entire display */
-        for (i = 0; i < LINES; i++)
+        for (i = 0; i < LINES; i++) {
             memcpy(harness_display[i], hw->_data[i], COLS + 1);
+            memcpy(harness_attr[i], hw->_attr[i], COLS + 1);
+        }
         harness_cursor_y = hw->_cury;
         harness_cursor_x = hw->_curx;
         return OK;
     }
 
     if (win == stdscr || win == curscr) {
-        for (i = 0; i < LINES; i++)
+        for (i = 0; i < LINES; i++) {
             memcpy(harness_display[i], stdscr->_data[i], COLS + 1);
+            memcpy(harness_attr[i], stdscr->_attr[i], COLS + 1);
+        }
         harness_cursor_y = stdscr->_cury;
         harness_cursor_x = stdscr->_curx;
         return OK;
@@ -311,11 +323,16 @@ int wrefresh(WINDOW *win)
      */
     for (i = 0; i < LINES; i++) {
         memset(harness_display[i], ' ', COLS);
+        memset(harness_attr[i], 0, COLS);
         harness_display[i][COLS] = '\0';
+        harness_attr[i][COLS] = '\0';
         if (cw) {
             for (j = 0; j < COLS; j++) {
                 char cc = cw->_overlay[i][j];
-                if (cc) harness_display[i][j] = cc;
+                if (cc) {
+                    harness_display[i][j] = cc;
+                    harness_attr[i][j] = cw->_attr[i][j];
+                }
             }
         }
     }
@@ -382,10 +399,10 @@ int overlay(WINDOW *src, WINDOW *dst)
 
 /* ===== Attribute stubs ===== */
 
-int standout(void)  { return OK; }
-int standend(void)  { return OK; }
-int wstandout(WINDOW *win) { (void)win; return OK; }
-int wstandend(WINDOW *win) { (void)win; return OK; }
+int standout(void)  { _standout_mode = 1; return OK; }
+int standend(void)  { _standout_mode = 0; return OK; }
+int wstandout(WINDOW *win) { (void)win; _standout_mode = 1; return OK; }
+int wstandend(WINDOW *win) { (void)win; _standout_mode = 0; return OK; }
 
 /* ===== Terminal mode stubs ===== */
 

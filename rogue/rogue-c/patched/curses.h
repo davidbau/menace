@@ -38,6 +38,8 @@ typedef struct _win_st {
     /* _overlay tracks which cells were explicitly written to THIS window
      * (not inherited from another). Used by wrefresh for compositing. */
     char _overlay[LINES][COLS + 1];
+    /* _attr tracks standout (inverse) attribute per cell: 1=standout, 0=normal */
+    char _attr[LINES][COLS + 1];
 } WINDOW;
 
 /* Global windows */
