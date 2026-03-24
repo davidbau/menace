@@ -32,6 +32,7 @@ int  harness_rand(void);
 #define SCRROWS 24
 #define SCRCOLS 80
 extern char harness_display[SCRROWS][SCRCOLS + 1];
+extern char harness_attr[SCRROWS][SCRCOLS + 1];
 extern int harness_cursor_y, harness_cursor_x;
 
 /* ===== Keystroke injection ===== */
@@ -48,6 +49,7 @@ static unsigned int g_harness_seed = 42;  /* our forced seed for JSON output */
 typedef struct {
     char key;
     char screen[SCRROWS][SCRCOLS + 1];
+    char attr[SCRROWS][SCRCOLS + 1];  /* 1=standout per cell */
     int  cursor_y, cursor_x;
     int  rng[MAX_RNG_PER_STEP];
     int  rng_count;
@@ -136,8 +138,35 @@ static void emit_session_json(FILE *out, unsigned int seed)
             if (r < SCRROWS - 1) fputc(',', out);
             fputc('\n', out);
         }
-        fprintf(out, "      ]\n");
-        fprintf(out, "    }%s\n", (i < harness_nsteps - 1) ? "," : "");
+        fprintf(out, "      ]");
+        /* Emit standout attribute data only when cells have standout */
+        {
+            int has_standout = 0;
+            for (r = 0; r < SCRROWS && !has_standout; r++)
+                for (int c = 0; c < SCRCOLS && !has_standout; c++)
+                    if (s->attr[r][c]) has_standout = 1;
+            if (has_standout) {
+                int first = 1;
+                fprintf(out, ",\n      \"standout\": [");
+                for (r = 0; r < SCRROWS; r++) {
+                    /* Encode as list of [row, startCol, endCol] ranges */
+                    int c = 0;
+                    while (c < SCRCOLS) {
+                        if (s->attr[r][c]) {
+                            int start = c;
+                            while (c < SCRCOLS && s->attr[r][c]) c++;
+                            if (!first) fputc(',', out);
+                            first = 0;
+                            fprintf(out, "[%d,%d,%d]", r, start, c);
+                        } else {
+                            c++;
+                        }
+                    }
+                }
+                fprintf(out, "]");
+            }
+        }
+        fprintf(out, "\n    }%s\n", (i < harness_nsteps - 1) ? "," : "");
     }
     fprintf(out, "  ]\n}\n");
 }
@@ -149,8 +178,9 @@ static void capture_step(char key)
     if (harness_nsteps >= MAX_STEPS) return;
     HarnessStep *s = &harness_steps[harness_nsteps++];
     s->key = key;
-    /* copy current screen and cursor from harness_display */
+    /* copy current screen, attributes, and cursor from harness_display */
     memcpy(s->screen, harness_display, sizeof(s->screen));
+    memcpy(s->attr, harness_attr, sizeof(s->attr));
     s->cursor_y = harness_cursor_y;
     s->cursor_x = harness_cursor_x;
     /* copy and reset RNG buffer */
