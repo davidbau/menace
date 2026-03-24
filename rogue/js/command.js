@@ -192,6 +192,9 @@ export async function command() {
       if (_pick_up) await _pick_up(g.take);
     }
     if (!g.running) g.door_stop = false;
+    // C ref: command.c:295 — if after is false (non-turn command like ?,i),
+    // give the player another chance to act this turn.
+    if (!g.after) ntimes++;
   }
 
   // Run AFTER daemons/fuses (skip if game ended, e.g. after death)
