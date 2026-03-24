@@ -276,9 +276,9 @@ input.getKey = async function () {
           if (u.ux === path.searchX && u.uy === path.searchY) {
             key = 's';
           } else {
+            // Navigate to search position — bypass stuck detection entirely
             const sk = nav(path.searchX, path.searchY);
-            // If stuck navigating to search pos, search from here instead
-            key = (sk && lastPos === `${u.ux},${u.uy}` && stuckCount > 3) ? 's' : (sk || 's');
+            key = sk || 's';
           }
           keyLog.push(key); return key; // bypass stuck detection
         }
