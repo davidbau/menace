@@ -1328,12 +1328,11 @@ export async function deferred_goto(player, game) {
         if (player.dfr_pre_msg)
             await pline(player.dfr_pre_msg);
         // C ref: teleport.c level_tele() schedules goto_level() for
-        // end-of-turn deferred_goto(). By then moveloop has advanced to the
-        // command's move context, so align_shift() refreshes against the
-        // destination u.uz before mklev()-time monster weighting.
-        if (game) {
-            game._alignShiftMoves = Number.NaN;
-        }
+        // end-of-turn deferred_goto(). C's align_shift() caches on
+        // svm.moves and only refreshes when moves changes. During wizard
+        // ^V teleport (which doesn't advance moves), the cache retains
+        // the PREVIOUS level's alignment. Do NOT force-invalidate here;
+        // the cache will naturally refresh when moves advances.
         // In C this calls goto_level(); in JS we use changeLevel()
         await game.changeLevel(dest, 'teleport');
         // C ref: do.c deferred_goto() prints dfr_post_msg after goto_level()
