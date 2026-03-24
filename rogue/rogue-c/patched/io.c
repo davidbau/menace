@@ -2,12 +2,22 @@
  * Various input/output functions
  *
  * @(#)io.c	3.10 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
+#include <stdlib.h>
 #include "curses.h"
 #include <ctype.h>
-#include "rogue.h"
 #include <stdarg.h>
+#include <string.h>
+#include "machdep.h"
+#include "rogue.h"
+
 /*
  * msg:
  *	Display a message at the top of the screen.
@@ -17,6 +27,7 @@ static char msgbuf[BUFSIZ];
 static int newpos = 0;
 
 /*VARARGS1*/
+void
 msg(char *fmt, ...)
 {
     va_list ap;
@@ -34,7 +45,7 @@ msg(char *fmt, ...)
      * otherwise add to the message and flush it out
      */
     va_start(ap, fmt);
-    doadd(fmt,ap);
+    doadd(fmt, ap);
     va_end(ap);
     endmsg();
 }
@@ -42,9 +53,11 @@ msg(char *fmt, ...)
 /*
  * add things to the current message
  */
+void
 addmsg(char *fmt, ...)
 {
     va_list ap;
+
     va_start(ap, fmt);
     doadd(fmt, ap);
     va_end(ap);
@@ -54,15 +67,18 @@ addmsg(char *fmt, ...)
  * Display a new msg (giving him a chance to see the previous one if it
  * is up there with the --More--)
  */
+void
 endmsg()
 {
-    strcpy(huh, msgbuf);
+    strncpy(huh, msgbuf, 80);
+    huh[79] = 0;
+
     if (mpos)
     {
 	wmove(cw, 0, mpos);
 	waddstr(cw, "--More--");
 	draw(cw);
-	wait_for(' ');
+	wait_for(cw,' ');
     }
     mvwaddstr(cw, 0, 0, msgbuf);
     wclrtoeol(cw);
@@ -71,22 +87,11 @@ endmsg()
     draw(cw);
 }
 
+void
 doadd(char *fmt, va_list ap)
 {
-    static FILE junk;
-
     vsprintf(&msgbuf[newpos], fmt, ap);
-#if 0
-    /*
-     * Do the printf into buf
-     */
-    junk._flag = _IOWRT + _IOSTRG;
-    junk._ptr = &msgbuf[newpos];
-    junk._cnt = 32767;
-    _doprnt(fmt, args, &junk);
-    putc('\0', &junk);
-    #endif
-    newpos = strlen(msgbuf);
+    newpos = (int) strlen(msgbuf);
 }
 
 /*
@@ -94,7 +99,8 @@ doadd(char *fmt, va_list ap)
  *	returns true if it is ok to step on ch
  */
 
-step_ok(ch)
+int
+step_ok(int ch)
 {
     switch (ch)
     {
@@ -114,47 +120,32 @@ step_ok(ch)
  *	getchar.
  */
 
-/* readchar — in HARNESS mode renamed to readchar_harness by harness_rename.h.
- * harness_main.c exports harness_next_key() which does key injection + capture. */
-readchar()
+int
+readchar(WINDOW *win)
 {
-#ifdef HARNESS
-    extern int harness_next_key(void);
-    return harness_next_key();
-#else
-    char c;
+    int ch;
 
-    fflush(stdout);
-    while (read(0, &c, 1) < 0)
-	continue;
-    return c;
-#endif
+    ch = md_readchar(win);
+
+    if ((ch == 3) || (ch == 0))
+    {
+	quit(0);
+        return(27);
+    }
+
+    return(ch);
 }
 
-#if 0
-/*
- * unctrl:
- *	Print a readable version of a certain character
- */
-
-char *
-unctrl(ch)
-char ch;
-{
-    extern char *_unctrl[];		/* Defined in curses library */
-
-    return _unctrl[ch&0177];
-}
-#endif
 /*
  * status:
  *	Display the important stats line.  Keep the cursor where it was.
  */
 
+void
 status()
 {
-    register int oy, ox, temp;
-    register char *pb;
+    int oy, ox, temp;
+    char *pb;
     static char buf[80];
     static int hpwidth = 0, s_hungry = -1;
     static int s_lvl = -1, s_pur, s_hp = -1, s_str, s_add, s_ac = 0;
@@ -186,7 +177,7 @@ status()
 	sprintf(pb, "/%d", pstats.s_str.st_add);
     }
     pb = &buf[strlen(buf)];
-    sprintf(pb, "  Ac: %-2d  Exp: %d/%ld",
+    sprintf(pb, "  Ac: %-2d  Exp: %d/%d",
 	cur_armor != NULL ? cur_armor->o_ac : pstats.s_arm, pstats.s_lvl,
 	pstats.s_exp);
     /*
@@ -202,7 +193,7 @@ status()
     mvwaddstr(cw, LINES - 1, 0, buf);
     switch (hungry_state)
     {
-	when 0: ;
+	case 0: ;
 	when 1:
 	    waddstr(cw, "  Hungry");
 	when 2:
@@ -220,16 +211,16 @@ status()
  *	Sit around until the guy types the right key
  */
 
-wait_for(ch)
-register char ch;
+void
+wait_for(WINDOW *win, int ch)
 {
-    register char c;
+    int c;
 
     if (ch == '\n')
-        while ((c = readchar()) != '\n' && c != '\r')
+        while ((c = readchar(win)) != '\n' && c != '\r')
 	    continue;
     else
-        while (readchar() != ch)
+        while (readchar(win) != ch)
 	    continue;
 }
 
@@ -238,15 +229,20 @@ register char ch;
  *	function used to display a window and wait before returning
  */
 
-show_win(scr, message)
-register WINDOW *scr;
-char *message;
+void
+show_win(WINDOW *scr, char *message)
 {
     mvwaddstr(scr, 0, 0, message);
     touchwin(scr);
     wmove(scr, hero.y, hero.x);
     draw(scr);
-    wait_for(' ');
+    wait_for(scr,' ');
     clearok(cw, TRUE);
     touchwin(cw);
+}
+
+void
+flush_type()
+{
+	flushinp();
 }

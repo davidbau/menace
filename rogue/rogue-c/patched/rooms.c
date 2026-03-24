@@ -1,22 +1,27 @@
-
-/* Aw01 11-22-81 Correct computation of maximum room size */
-
 /*
  * Draw the nine rooms on the screen
  *
  * @(#)rooms.c	3.8 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
+#include <stdlib.h>
 #include "curses.h"
 #include "rogue.h"
 
+void
 do_rooms()
 {
-    register int i;
-    register struct room *rp;
-    register struct linked_list *item;
-    register struct thing *tp;
-    register int left_out;
+    int i;
+    struct room *rp;
+    struct linked_list *item;
+    struct thing *tp;
+    int left_out;
     coord top;
     coord bsze;
     coord mp;
@@ -24,13 +29,12 @@ do_rooms()
     /*
      * bsze is the maximum room size
      */
-    bsze.x = (COLS-2)/3;	/* Aw01 Allow for passages and mode lines */
-    bsze.y = (LINES-4)/3;	/* Aw01 */
-
+    bsze.x = COLS/3;
+    bsze.y = LINES/3;
     /*
      * Clear things for a new level
      */
-    for (rp = rooms; rp < &rooms[MAXROOMS]; rp++)
+    for (rp = rooms; rp <= &rooms[MAXROOMS-1]; rp++)
 	rp->r_goldval = rp->r_nexits = rp->r_flags = 0;
     /*
      * Put the gone rooms, if any, on the level
@@ -46,8 +50,8 @@ do_rooms()
 	/*
 	 * Find upper left corner of box that this room goes in
 	 */
-	top.x = (i%3)*(bsze.x+1);
-	top.y = i/3*(bsze.y+1) + 1;
+	top.x = (i%3)*bsze.x + 1;
+	top.y = i/3*bsze.y;
 	if (rp->r_flags & ISGONE)
 	{
 	    /*
@@ -59,7 +63,7 @@ do_rooms()
 		rp->r_pos.x = top.x + rnd(bsze.x-2) + 1;
 		rp->r_pos.y = top.y + rnd(bsze.y-2) + 1;
 		rp->r_max.x = -COLS;
-		rp->r_max.y = -LINES + 1;	/* Aw01 fix a type x=>y */
+		rp->r_max.y = -LINES;
 	    } until(rp->r_pos.y > 0 && rp->r_pos.y < LINES-1);
 	    continue;
 	}
@@ -68,10 +72,13 @@ do_rooms()
 	/*
 	 * Find a place and size for a random room
 	 */
-	 rp->r_max.x = rnd(bsze.x - 3) + 4;
-	 rp->r_max.y = rnd(bsze.y - 3) + 4;
-	 rp->r_pos.x = top.x + rnd(bsze.x + 1 - rp->r_max.x);
-	 rp->r_pos.y = top.y + rnd(bsze.y + 1 - rp->r_max.y);
+	do
+	{
+	    rp->r_max.x = rnd(bsze.x - 4) + 4;
+	    rp->r_max.y = rnd(bsze.y - 4) + 4;
+	    rp->r_pos.x = top.x + rnd(bsze.x - rp->r_max.x);
+	    rp->r_pos.y = top.y + rnd(bsze.y - rp->r_max.y);
+	} until (rp->r_pos.y != 0);
 	/*
 	 * Put the gold in
 	 */
@@ -108,10 +115,10 @@ do_rooms()
  * Draw a box around a room
  */
 
-draw_room(rp)
-register struct room *rp;
+void
+draw_room(struct room *rp)
 {
-    register int j, k;
+    int j, k;
 
     move(rp->r_pos.y, rp->r_pos.x+1);
     vert(rp->r_max.y-2);				/* Draw left side */
@@ -141,8 +148,8 @@ register struct room *rp;
  *	draw a horizontal line
  */
 
-horiz(cnt)
-register int cnt;
+void
+horiz(int cnt)
 {
     while (cnt--)
 	addch('-');
@@ -153,10 +160,10 @@ register int cnt;
  *	draw a vertical line
  */
 
-vert(cnt)
-register int cnt;
+void
+vert(int cnt)
 {
-    register int x, y;
+    int x, y;
 
     getyx(stdscr, y, x);
     x--;
@@ -171,9 +178,8 @@ register int cnt;
  *	pick a random spot in a room
  */
 
-rnd_pos(rp, cp)
-register struct room *rp;
-register coord *cp;
+void
+rnd_pos(struct room *rp, coord *cp)
 {
     cp->x = rp->r_pos.x + rnd(rp->r_max.x-2) + 1;
     cp->y = rp->r_pos.y + rnd(rp->r_max.y-2) + 1;

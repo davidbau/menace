@@ -2,10 +2,17 @@
  * Functions for dealing with problems brought about by weapons
  *
  * @(#)weapons.c	3.17 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
 #include "curses.h"
 #include <ctype.h>
+#include <string.h>
 #include "rogue.h"
 
 #define NONE 100
@@ -13,7 +20,7 @@
 char *w_names[MAXWEAPONS] = {
     "mace",
     "long sword",
-    "short bow",
+    "int bow",
     "arrow",
     "dagger",
     "rock",
@@ -28,7 +35,7 @@ char *w_names[MAXWEAPONS] = {
 static struct init_weps {
     char *iw_dam;
     char *iw_hrl;
-    char iw_launch;
+    int iw_launch;
     int iw_flags;
 } init_dam[MAXWEAPONS] = {
     "2d4", "1d3", NONE, 0,		/* Mace */
@@ -50,11 +57,11 @@ static struct init_weps {
  *	Fire a missile in a given direction
  */
 
-missile(ydelta, xdelta)
-int ydelta, xdelta;
+void
+missile(int ydelta, int xdelta)
 {
-    register struct object *obj;
-    register struct linked_list *item, *nitem;
+    struct object *obj;
+    struct linked_list *item, *nitem;
 
     /*
      * Get which thing we are hurling
@@ -100,9 +107,8 @@ int ydelta, xdelta;
  * do the actual motion on the screen done by an object traveling
  * across the room
  */
-do_motion(obj, ydelta, xdelta)
-register struct object *obj;
-register int ydelta, xdelta;
+void
+do_motion(struct object *obj, int ydelta, int xdelta)
 {
     /*
      * Come fly with us ...
@@ -110,7 +116,7 @@ register int ydelta, xdelta;
     obj->o_pos = hero;
     for (;;)
     {
-	register int ch;
+	int ch;
 
 	/*
 	 * Erase the old one
@@ -147,12 +153,11 @@ register int ydelta, xdelta;
  *	Drop an item someplace around here.
  */
 
-fall(item, pr)
-register struct linked_list *item;
-bool pr;
+void
+fall(struct linked_list *item, int pr)
 {
-    register struct object *obj;
-    register struct room *rp;
+    struct object *obj;
+    struct room *rp;
     static coord fpos;
 
     obj = (struct object *) ldata(item);
@@ -169,7 +174,10 @@ bool pr;
 	return;
     }
     if (pr)
-	msg("Your %s vanishes as it hits the ground.", w_names[obj->o_which]);
+        if (obj->o_type == WEAPON) /* BUGFUX: Identification trick */
+            msg("Your %s vanishes as it hits the ground.", w_names[obj->o_which]);
+        else
+            msg("%s vanishes as it hits the ground.", inv_name(obj,TRUE));
     discard(item);
 }
 
@@ -178,15 +186,14 @@ bool pr;
  *	Set up the initial goodies for a weapon
  */
 
-init_weapon(weap, type)
-register struct object *weap;
-char type;
+void
+init_weapon(struct object *weap, int type)
 {
-    register struct init_weps *iwp;
+    struct init_weps *iwp;
 
     iwp = &init_dam[type];
-    weap->o_damage = iwp->iw_dam;
-    weap->o_hurldmg = iwp->iw_hrl;
+    strcpy(weap->o_damage,iwp->iw_dam);
+    strcpy(weap->o_hurldmg,iwp->iw_hrl);
     weap->o_launch = iwp->iw_launch;
     weap->o_flags = iwp->iw_flags;
     if (weap->o_flags & ISMANY)
@@ -202,9 +209,8 @@ char type;
  * Does the missile hit the monster
  */
 
-hit_monster(y, x, obj)
-register int y, x;
-struct object *obj;
+int
+hit_monster(int y, int x, struct object *obj)
 {
     static coord mp;
 
@@ -219,29 +225,30 @@ struct object *obj;
  */
 
 char *
-num(n1, n2)
-register int n1, n2;
+num(int n1, int n2)
 {
     static char numbuf[80];
 
     if (n1 == 0 && n2 == 0)
 	return "+0";
     if (n2 == 0)
-	 sprintf(numbuf, "%s%d", n1 < 0 ? "" : "+", n1);
-    else  sprintf(numbuf, "%s%d,%s%d",
+	sprintf(numbuf, "%s%d", n1 < 0 ? "" : "+", n1);
+    else
+        sprintf(numbuf, "%s%d,%s%d",
 				n1 < 0 ? "" : "+", n1, n2 < 0 ? "" : "+", n2);
-                return numbuf;
-}
+    return numbuf;
+}    
 
 /*
  * wield:
  *	Pull out a certain weapon
  */
 
+void
 wield()
 {
-    register struct linked_list *item;
-    register struct object *obj, *oweapon;
+    struct linked_list *item;
+    struct object *obj, *oweapon;
 
     oweapon = cur_weapon;
     if (!dropcheck(cur_weapon))
@@ -277,11 +284,10 @@ bad:
 /*
  * pick a random position around the give (y, x) coordinates
  */
-fallpos(pos, newpos, passages)
-register coord *pos, *newpos;
-register bool passages;
+int
+fallpos(coord *pos, coord *newpos, int passages)
 {
-    register int y, x, cnt, ch;
+    int y, x, cnt, ch;
 
     cnt = 0;
     for (y = pos->y - 1; y <= pos->y + 1; y++)

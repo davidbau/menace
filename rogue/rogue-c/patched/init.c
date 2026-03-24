@@ -1,25 +1,27 @@
 /*
- * DBM	2/12/82	Changed damage done by a floating eye to be non-zero.
- *		Changed experience point values for Yeti (50 to 35),
- *		Centaur (15 to 25), Floating Eye (5 to 10), and
- *		Umber Hulk (130 to 1000).
- *		Characters always start with 18 or better strength.
- */
-
-/*
  * global variable initializaton
  *
  * @(#)init.c	3.33 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
 #include "curses.h"
 #include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include "machdep.h"
 #include "rogue.h"
 
-bool playing = TRUE, running = FALSE, wizard = FALSE;
-bool notify = TRUE, fight_flush = FALSE, terse = FALSE, door_stop = FALSE;
-bool jump = FALSE, slow_invent = FALSE, firstmove = FALSE, askme = FALSE;
-bool amulet = FALSE, in_shell = FALSE;
+int playing = TRUE, running = FALSE, wizard = FALSE;
+int notify = TRUE, fight_flush = FALSE, terse = FALSE, door_stop = FALSE;
+int jump = FALSE, slow_invent = FALSE, firstmove = FALSE, askme = FALSE;
+int amulet = FALSE;
+int in_shell = FALSE;
 struct linked_list *lvl_obj = NULL, *mlist = NULL;
 struct object *cur_weapon = NULL;
 int mpos = 0, no_move = 0, no_command = 0, level = 1, purse = 0, inpack = 0;
@@ -27,16 +29,59 @@ int total = 0, no_food = 0, count = 0, fung_hit = 0, quiet = 0;
 int food_left = HUNGERTIME, group = 1, hungry_state = 0;
 int lastscore = -1;
 
+struct thing player;
+struct room rooms[MAXROOMS];
+struct room *oldrp;
+struct stats max_stats; 
+struct object *cur_armor;
+struct object *cur_ring[2];
+int after;
+int waswizard;
+coord oldpos;                            /* Position before last look() call */
+coord delta;                             /* Change indicated to get_dir()    */
+
+int s_know[MAXSCROLLS];         /* Does he know what a scroll does */
+int p_know[MAXPOTIONS];         /* Does he know what a potion does */
+int r_know[MAXRINGS];                   /* Does he know what a ring does
+ */
+int ws_know[MAXSTICKS];         /* Does he know what a stick does */
+
+int  take;                               /* Thing the rogue is taking */
+int  runch;                              /* Direction player is running */
+char whoami[80];                 /* Name of player */
+char fruit[80];                          /* Favorite fruit */
+char huh[80];                            /* The last message printed */
+int dnum;                                /* Dungeon number */
+char *s_names[MAXSCROLLS];               /* Names of the scrolls */
+char *p_colors[MAXPOTIONS];              /* Colors of the potions */
+char *r_stones[MAXRINGS];                /* Stone settings of the rings */
+char *a_names[MAXARMORS];                /* Names of armor types */
+char *ws_made[MAXSTICKS];                /* What sticks are made of */
+char *s_guess[MAXSCROLLS];               /* Players guess at what scroll is */
+char *p_guess[MAXPOTIONS];               /* Players guess at what potion is */
+char *r_guess[MAXRINGS];         /* Players guess at what ring is */
+char *ws_guess[MAXSTICKS];               /* Players guess at what wand is */
+char *ws_type[MAXSTICKS];                /* Is it a wand or a staff */
+char file_name[80];                      /* Save file name */
+char home[PATH_MAX];                     /* User's home directory */
+unsigned char prbuf[80];                 /* Buffer for sprintfs */
+int max_hp;                              /* Player's max hit points */
+int ntraps;                              /* Number of traps on this level */
+int max_level;                           /* Deepest player has gone */
+int seed;                                /* Random number seed */
+
+struct trap  traps[MAXTRAPS];
+
+
 #define ___ 1
 #define _x {1,1}
 struct monster monsters[26] = {
 	/* Name		 CARRY	FLAG    str, exp, lvl, amr, hpt, dmg */
 	{ "giant ant",	 0,	ISMEAN,	{ _x, 10,   2,   3, ___, "1d6" } },
 	{ "bat",	 0,	0,	{ _x,  1,   1,   3, ___, "1d2" } },
-	{ "centaur",	 15,	0,	{ _x, 25,   4,   4, ___, "1d6/1d6" } },
+	{ "centaur",	 15,	0,	{ _x, 15,   4,   4, ___, "1d6/1d6" } },
 	{ "dragon",	 100,	ISGREED,{ _x,9000, 10,  -1, ___, "1d8/1d8/3d10" } },
-	/* DBM: changed damage for floating eye from 0d0 to 1d1. */
-	{ "floating eye",0,	0,	{ _x, 10,   1,   9, ___, "1d1" } },
+	{ "floating eye",0,	0,	{ _x,  5,   1,   9, ___, "0d0" } },
 	{ "violet fungi",0,	ISMEAN,	{ _x, 85,   8,   3, ___, "000d0" } },
 	{ "gnome",	 10,	0,	{ _x,  8,   1,   5, ___, "1d6" } },
 	{ "hobgoblin",	 0,	ISMEAN,	{ _x,  3,   1,   5, ___, "1d8" } },
@@ -52,11 +97,11 @@ struct monster monsters[26] = {
 	{ "rust monster",0,	ISMEAN,	{ _x, 25,   5,   2, ___, "0d0/0d0" } },
 	{ "snake",	 0,	ISMEAN,	{ _x,  3,   1,   5, ___, "1d3" } },
 	{ "troll",	 50,	ISREGEN|ISMEAN,{ _x, 55,   6,   4, ___, "1d8/1d8/2d6" } },
-	{ "umber hulk",	 40,	ISMEAN,	{ _x,1000,   8,   2, ___, "3d4/3d4/2d5" } },
+	{ "umber hulk",	 40,	ISMEAN,	{ _x,130,   8,   2, ___, "3d4/3d4/2d5" } },
 	{ "vampire",	 20,	ISREGEN|ISMEAN,{ _x,380,   8,   1, ___, "1d10" } },
 	{ "wraith",	 0,	0,	{ _x, 55,   5,   4, ___, "1d6" } },
 	{ "xorn",	 0,	ISMEAN,	{ _x,120,   7,  -2, ___, "1d3/1d3/1d3/4d6" } },
-	{ "yeti",	 30,	0,	{ _x, 35,   4,   6, ___, "1d6/1d6" } },
+	{ "yeti",	 30,	0,	{ _x, 50,   4,   6, ___, "1d6/1d6" } },
 	{ "zombie",	 0,	ISMEAN,	{ _x,  7,   2,   8, ___, "1d8" } }
 };
 #undef ___
@@ -66,12 +111,12 @@ struct monster monsters[26] = {
  *	roll up the rogue
  */
 
+void
 init_player()
 {
     pstats.s_lvl = 1;
     pstats.s_exp = 0L;
     max_hp = pstats.s_hpt = 12;
-    /* Restore original 1% exceptional strength (reverts DBM change). */
     if (rnd(100) == 7)
     {
 	pstats.s_str.st_str = 18;
@@ -82,7 +127,7 @@ init_player()
 	pstats.s_str.st_str = 16;
 	pstats.s_str.st_add = 0;
     }
-    pstats.s_dmg = "1d4";
+    strcpy(pstats.s_dmg,"1d4");
     pstats.s_arm = 10;
     max_stats = pstats;
     pack = NULL;
@@ -93,36 +138,37 @@ init_player()
  * potions and scrolls
  */
 
-static char *rainbow[] = {
-    "Red",
-    "Blue",
-    "Green",
-    "Yellow",
-    "Black",
-    "Brown",
-    "Orange",
-    "Pink",
-    "Purple",
-    "Grey",
-    "White",
-    "Silver",
-    "Gold",
-    "Violet",
-    "Clear",
-    "Vermilion",
-    "Ecru",
-    "Turquoise",
-    "Magenta",
-    "Amber",
-    "Topaz",
-    "Plaid",
-    "Tan",
-    "Tangerine"
+char *rainbow[] = {
+    "red",
+    "blue",
+    "green",
+    "yellow",
+    "black",
+    "brown",
+    "orange",
+    "pink",
+    "purple",
+    "grey",
+    "white",
+    "silver",
+    "gold",
+    "violet",
+    "clear",
+    "vermilion",
+    "ecru",
+    "turquoise",
+    "magenta",
+    "amber",
+    "topaz",
+    "plaid",
+    "tan",
+    "tangerine"
 };
 
 #define NCOLORS (sizeof rainbow / sizeof (char *))
+int cNCOLORS = NCOLORS;
 
-static char *sylls[] = {
+char *sylls[] = {
     "a", "ab", "ag", "aks", "ala", "an", "ankh", "app", "arg", "arze",
     "ash", "ban", "bar", "bat", "bek", "bie", "bin", "bit", "bjor",
     "blu", "bot", "bu", "byt", "comp", "con", "cos", "cre", "dalf",
@@ -142,82 +188,85 @@ static char *sylls[] = {
     "zant", "zap", "zeb", "zim", "zok", "zon", "zum",
 };
 
-static char *stones[] = {
-    "Agate",
-    "Alexandrite",
-    "Amethyst",
-    "Carnelian",
-    "Diamond",
-    "Emerald",
-    "Granite",
-    "Jade",
-    "Kryptonite",
-    "Lapus lazuli",
-    "Moonstone",
-    "Obsidian",
-    "Onyx",
-    "Opal",
-    "Pearl",
-    "Ruby",
-    "Saphire",
-    "Tiger eye",
-    "Topaz",
-    "Turquoise",
+char *stones[] = {
+    "agate",
+    "alexandrite",
+    "amethyst",
+    "carnelian",
+    "diamond",
+    "emerald",
+    "granite",
+    "jade",
+    "kryptonite",
+    "lapus lazuli",
+    "moonstone",
+    "obsidian",
+    "onyx",
+    "opal",
+    "pearl",
+    "ruby",
+    "saphire",
+    "tiger eye",
+    "topaz",
+    "turquoise",
 };
 
 #define NSTONES (sizeof stones / sizeof (char *))
+int cNSTONES = NSTONES;
 
-static char *wood[] = {
-    "Avocado wood",
-    "Balsa",
-    "Banyan",
-    "Birch",
-    "Cedar",
-    "Cherry",
-    "Cinnibar",
-    "Driftwood",
-    "Ebony",
-    "Eucalyptus",
-    "Hemlock",
-    "Ironwood",
-    "Mahogany",
-    "Manzanita",
-    "Maple",
-    "Oak",
-    "Persimmon wood",
-    "Redwood",
-    "Rosewood",
-    "Teak",
-    "Walnut",
-    "Zebra wood",
+char *wood[] = {
+    "avocado wood",
+    "balsa",
+    "banyan",
+    "birch",
+    "cedar",
+    "cherry",
+    "cinnibar",
+    "driftwood",
+    "ebony",
+    "eucalyptus",
+    "hemlock",
+    "ironwood",
+    "mahogany",
+    "manzanita",
+    "maple",
+    "oak",
+    "persimmon wood",
+    "redwood",
+    "rosewood",
+    "teak",
+    "walnut",
+    "zebra wood",
 };
 
 #define NWOOD (sizeof wood / sizeof (char *))
+int cNWOOD = NWOOD;
 
-static char *metal[] = {
-    "Aluminium",
-    "Bone",
-    "Brass",
-    "Bronze",
-    "Copper",
-    "Iron",
-    "Lead",
-    "Pewter",
-    "Steel",
-    "Tin",
-    "Zinc",
+char *metal[] = {
+    "aluminium",
+    "bone",
+    "brass",
+    "bronze",
+    "copper",
+    "iron",
+    "lead",
+    "pewter",
+    "steel",
+    "tin",
+    "zinc",
 };
 
 #define NMETAL (sizeof metal / sizeof (char *))
+int cNMETAL = NMETAL;
 
 struct magic_item things[NUMTHINGS] = {
-    { 0,			27 },	/* potion */
-    { 0,			27 },	/* scroll */
-    { 0,			18 },	/* food */
-    { 0,			 9 },	/* weapon */
-    { 0,			 9 },	/* armor */
-    { 0,			 5 },	/* ring */
-    { 0,			 5 },	/* stick */
+    { "",			27 },	/* potion */
+    { "",			27 },	/* scroll */
+    { "",			18 },	/* food */
+    { "",			 9 },	/* weapon */
+    { "",			 9 },	/* armor */
+    { "",			 5 },	/* ring */
+    { "",			 5 },	/* stick */
 };
 
 struct magic_item s_magic[MAXSCROLLS] = {
@@ -268,7 +317,7 @@ struct magic_item r_magic[MAXRINGS] = {
     { "increase damage",	 8, 220 },
     { "regeneration",		 4, 260 },
     { "slow digestion",		 9, 240 },
-    { "telportation",		 9, 100 },
+    { "teleportation",		 9, 100 },
     { "stealth",		 7, 100 },
 };
 
@@ -322,15 +371,19 @@ int a_chances[MAXARMORS] = {
     100
 };
 
+#define MAX3(a,b,c)     (a > b ? (a > c ? a : c) : (b > c ? b : c))
+static int used[MAX3(NCOLORS, NSTONES, NWOOD)];
+
 /*
  * init_things
  *	Initialize the probabilities for types of things
  */
+void
 init_things()
 {
-    register struct magic_item *mp;
+    struct magic_item *mp;
 
-    for (mp = &things[1]; mp < &things[NUMTHINGS]; mp++)
+    for (mp = &things[1]; mp <= &things[NUMTHINGS-1]; mp++)
 	mp->mi_prob += (mp-1)->mi_prob;
     badcheck("things", things, NUMTHINGS);
 }
@@ -340,19 +393,20 @@ init_things()
  *	Initialize the potion color scheme for this time
  */
 
+void
 init_colors()
 {
-    register int i;
-    register char *str;
+    int i, j;
 
+    for (i = 0; i < NCOLORS; i++)
+	used[i] = 0;
     for (i = 0; i < MAXPOTIONS; i++)
     {
 	do
-	    str = rainbow[rnd(NCOLORS)];
-	until (isupper(*str));
-    str = strdup(str);
-	*str = tolower(*str);
-	p_colors[i] = str;
+	    j = rnd(NCOLORS);
+	until (!used[j]);
+	used[j] = TRUE;
+	p_colors[i] = rainbow[j];
 	p_know[i] = FALSE;
 	p_guess[i] = NULL;
 	if (i > 0)
@@ -366,11 +420,12 @@ init_colors()
  *	Generate the names of the various scrolls
  */
 
+void
 init_names()
 {
-    register int nsyl;
-    register char *cp, *sp;
-    register int i, nwords;
+    int nsyl;
+    char *cp, *sp;
+    int i, nwords;
 
     for (i = 0; i < MAXSCROLLS; i++)
     {
@@ -388,7 +443,7 @@ init_names()
 	    *cp++ = ' ';
 	}
 	*--cp = '\0';
-	s_names[i] = (char *) new(strlen(prbuf)+1);
+	s_names[i] = (char *) _new(strlen(prbuf)+1);
 	s_know[i] = FALSE;
 	s_guess[i] = NULL;
 	strcpy(s_names[i], prbuf);
@@ -403,19 +458,20 @@ init_names()
  *	Initialize the ring stone setting scheme for this time
  */
 
+void
 init_stones()
 {
-    register int i;
-    register char *str;
+    int i, j;
 
+    for (i = 0; i < NSTONES; i++)
+	used[i] = FALSE;
     for (i = 0; i < MAXRINGS; i++)
     {
 	do
-	    str = stones[rnd(NSTONES)];
-	until (isupper(*str));
-    str = strdup(str);
-	*str = tolower(*str);
-	r_stones[i] = str;
+	    j = rnd(NSTONES);
+	until (!used[j]);
+	used[j] = TRUE;
+	r_stones[i] = stones[j];
 	r_know[i] = FALSE;
 	r_guess[i] = NULL;
 	if (i > 0)
@@ -429,30 +485,43 @@ init_stones()
  *	Initialize the construction materials for wands and staffs
  */
 
+void
 init_materials()
 {
-    register int i;
-    register char *str;
+    int i, j;
+    static int metused[NMETAL];
+
+    for (i = 0; i < NWOOD; i++)
+	used[i] = FALSE;
+    for (i = 0; i < NMETAL; i++)
+	metused[i] = FALSE;
 
     for (i = 0; i < MAXSTICKS; i++)
     {
-	do
+	for (;;)
 	    if (rnd(100) > 50)
 	    {
-		str = metal[rnd(NMETAL)];
-		if (isupper(*str))
-			ws_type[i] = "wand";
+		j = rnd(NMETAL);
+		if (!metused[j])
+		{
+		    metused[j] = TRUE;
+		    ws_made[i] = metal[j];
+		    ws_type[i] = "wand";
+		    break;
+		}
 	    }
 	    else
 	    {
-		str = wood[rnd(NWOOD)];
-		if (isupper(*str))
-			ws_type[i] = "staff";
+		j = rnd(NWOOD);
+		if (!used[j])
+		{
+		    used[j] = TRUE;
+		    ws_made[i] = wood[j];
+		    ws_type[i] = "staff";
+		    break;
+		}
 	    }
-	until (isupper(*str));
-    str = strdup(str);
-	*str = tolower(*str);
-	ws_made[i] = str;
+
 	ws_know[i] = FALSE;
 	ws_guess[i] = NULL;
 	if (i > 0)
@@ -461,12 +530,10 @@ init_materials()
     badcheck("sticks", ws_magic, MAXSTICKS);
 }
 
-badcheck(name, magic, bound)
-char *name;
-register struct magic_item *magic;
-register int bound;
+void
+badcheck(char *name, struct magic_item *magic, int bound)
 {
-    register struct magic_item *end;
+    struct magic_item *end;
 
     if (magic[bound - 1].mi_prob == 100)
 	return;

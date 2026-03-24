@@ -2,9 +2,18 @@
  * Functions for dealing with linked lists of goodies
  *
  * @(#)list.c	3.3 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
 #include "curses.h"
+#include <stdlib.h>
+#include <string.h>
+#include "machdep.h"
 #include "rogue.h"
 
 /*
@@ -12,8 +21,8 @@
  *	Takes an item out of whatever linked list it might be in
  */
 
-_detach(list, item)
-register struct linked_list **list, *item;
+void
+_detach(struct linked_list **list, struct linked_list *item)
 {
     if (*list == item)
 	*list = next(item);
@@ -28,8 +37,8 @@ register struct linked_list **list, *item;
  *	add an item to the head of a list
  */
 
-_attach(list, item)
-register struct linked_list **list, *item;
+void
+_attach(struct linked_list **list, struct linked_list *item)
 {
     if (*list != NULL)
     {
@@ -51,10 +60,10 @@ register struct linked_list **list, *item;
  *	Throw the whole blamed thing away
  */
 
-_free_list(ptr)
-register struct linked_list **ptr;
+void
+_free_list(struct linked_list **ptr)
 {
-    register struct linked_list *item;
+    struct linked_list *item;
 
     while (*ptr != NULL)
     {
@@ -69,8 +78,8 @@ register struct linked_list **ptr;
  *	free up an item
  */
 
-discard(item)
-register struct linked_list *item;
+void
+discard(struct linked_list *item)
 {
     total -= 2;
     FREE(item->l_data);
@@ -83,28 +92,38 @@ register struct linked_list *item;
  */
 
 struct linked_list *
-new_item(size)
-int size;
+new_item(int size)
 {
-    register struct linked_list *item;
+    struct linked_list *item;
 
-    if ((item = (struct linked_list *) new(sizeof *item)) == NULL)
+    if ((item = (struct linked_list *) _new(sizeof *item)) == NULL)
+    {
 	msg("Ran out of memory for header after %d items", total);
-    if ((item->l_data = new(size)) == NULL)
+	return NULL;
+    }
+
+    if ((item->l_data = _new(size)) == NULL)
+    {
 	msg("Ran out of memory for data after %d items", total);
+	free(item);
+	return NULL;
+    }
+
     item->l_next = item->l_prev = NULL;
+    memset(item->l_data,0,size);
     return item;
 }
 
 char *
-new(size)
-int size;
+_new(size_t size)
 {
-    register char *space = ALLOC(size);
+    char *space = ALLOC(size);
 
     if (space == NULL)
-	fatal(sprintf(prbuf, "Rogue ran out of memory (%d).  Fatal error!", sbrk(0)));
+    {
+	sprintf(prbuf, "Rogue ran out of memory (%d).  Fatal error!", md_memused());
+        fatal(prbuf);
+    }
     total++;
-    memset(space, 0, size);  /* zero-initialise to prevent use of stale group numbers */
     return space;
 }

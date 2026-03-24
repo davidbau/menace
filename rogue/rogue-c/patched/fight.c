@@ -2,37 +2,44 @@
  * All the fighting gets done here
  *
  * @(#)fight.c	3.28 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
 #include "curses.h"
 #include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
 #include "rogue.h"
 
-long e_levels[] = {
-    10L,20L,40L,80L,160L,320L,640L,1280L,2560L,5120L,10240L,20480L,
-    40920L, 81920L, 163840L, 327680L, 655360L, 1310720L, 2621440L, 0L };
-
+int e_levels[] = {
+    10,20,40,80,160,320,640,1280,2560,5120,10240,20480,
+    40920, 81920, 163840, 327680, 655360, 1310720, 2621440, 0 };
 
 /*
  * fight:
  *	The player attacks the monster.
  */
 
-fight(mp, mn, weap, thrown)
-register coord *mp;
-char mn;
-struct object *weap;
-bool thrown;
+int
+fight(coord *mp, int mn, struct object *weap, int thrown)
 {
-    register struct thing *tp;
-    register struct linked_list *item;
-    register bool did_hit = TRUE;
+    struct thing *tp;
+    struct linked_list *item;
+    int did_hit = TRUE;
 
     /*
      * Find the monster we want to fight
      */
     if ((item = find_mons(mp->y, mp->x)) == NULL)
+    {
 	debug("Fight what @ %d,%d", mp->y, mp->x);
+	return(0);
+    }
     tp = (struct thing *) ldata(item);
     /*
      * Since we are fighting, things are not quiet so no healing takes
@@ -51,7 +58,7 @@ bool thrown;
     }
     if (did_hit)
     {
-	register char *mname;
+	char *mname;
 
 	did_hit = FALSE;
 	if (on(player, ISBLIND))
@@ -90,10 +97,10 @@ bool thrown;
  *	The monster attacks the player
  */
 
-attack(mp)
-register struct thing *mp;
+int
+attack(struct thing *mp)
 {
-    register char *mname;
+    char *mname;
 
     /*
      * Since this is an attack, stop running and any healing that was
@@ -116,7 +123,7 @@ register struct thing *mp;
 	if (off(*mp, ISCANC))
 	    switch (mp->t_type)
 	    {
-		when 'R':
+		case 'R':
 		    /*
 		     * If a rust monster hits, you lose armor
 		     */
@@ -142,6 +149,8 @@ register struct thing *mp;
 			endmsg();
 		    }
 		    no_command += rnd(2)+2;
+		    if (no_command > 100 && food_left <= 0)
+		    	death('E');
 		when 'A':
 		    /*
 		     * Ants have poisonous bites
@@ -197,7 +206,7 @@ register struct thing *mp;
 		    /*
 		     * Leperachaun steals some gold
 		     */
-		    register long lastpurse;
+		    int lastpurse;
 
 		    lastpurse = purse;
 		    purse -= GOLDCALC;
@@ -207,13 +216,14 @@ register struct thing *mp;
 			purse = 0;
 		    if (purse != lastpurse)
 			msg("Your purse feels lighter");
-		    removeM(&mp->t_pos, find_mons(mp->t_pos.y, mp->t_pos.x));
+		    remove_monster(&mp->t_pos, find_mons(mp->t_pos.y, mp->t_pos.x));
+		    mp = NULL;
 		}
 		when 'N':
 		{
-		    register struct linked_list *list, *steal;
-		    register struct object *obj;
-		    register int nobj;
+		    struct linked_list *list, *steal;
+		    struct object *obj;
+		    int nobj;
 
 		    /*
 		     * Nymph's steal a magic item, look through the pack
@@ -223,28 +233,33 @@ register struct thing *mp;
 		    for (nobj = 0, list = pack; list != NULL; list = next(list))
 		    {
 			obj = (struct object *) ldata(list);
-			if (obj != cur_armor && obj != cur_weapon &&
-			    is_magic(obj) && rnd(++nobj) == 0)
+			if (obj != cur_armor && 
+                            obj != cur_weapon &&
+                            obj != cur_ring[LEFT] &&
+                            obj != cur_ring[RIGHT] && /* Nymph bug fix */
+			    is_magic(obj) && 
+                            rnd(++nobj) == 0)
 				steal = list;
 		    }
 		    if (steal != NULL)
 		    {
-			register struct object *obj;
+			struct object *sobj;
 
-			obj = (struct object *) ldata(steal);
-			removeM(&mp->t_pos, find_mons(mp->t_pos.y, mp->t_pos.x));
-			if (obj->o_count > 1 && obj->o_group == 0)
+			sobj = (struct object *) ldata(steal);
+			remove_monster(&mp->t_pos, find_mons(mp->t_pos.y, mp->t_pos.x));
+			mp = NULL;
+			if (sobj->o_count > 1 && sobj->o_group == 0)
 			{
-			    register int oc;
+			    int oc;
 
-			    oc = obj->o_count--;
-			    obj->o_count = 1;
-			    msg("She stole %s!", inv_name(obj, TRUE));
-			    obj->o_count = oc;
+			    oc = sobj->o_count;
+			    sobj->o_count = 1;
+			    msg("She stole %s!", inv_name(sobj, TRUE));
+			    sobj->o_count = oc - 1;
 			}
 			else
 			{
-			    msg("She stole %s!", inv_name(obj, TRUE));
+			    msg("She stole %s!", inv_name(sobj, TRUE));
 			    detach(pack, steal);
 			    discard(steal);
 			}
@@ -269,15 +284,19 @@ register struct thing *mp;
      * Check to see if this is a regenerating monster and let it heal if
      * it is.
      */
-    if (on(*mp, ISREGEN) && rnd(100) < 33)
+    if ((mp != NULL) && (on(*mp, ISREGEN) && rnd(100) < 33))
 	mp->t_stats.s_hpt++;
     if (fight_flush)
     {
-	raw();	/* flush typeahead */
-	noraw();
+	flush_type();	/* flush typeahead */
     }
     count = 0;
     status();
+
+    if (mp == NULL)
+        return(-1);
+    else
+        return(0);
 }
 
 /*
@@ -285,11 +304,11 @@ register struct thing *mp;
  *	returns true if the swing hits
  */
 
-swing(at_lvl, op_arm, wplus)
-int at_lvl, op_arm, wplus;
+int
+swing(int at_lvl, int op_arm, int wplus)
 {
-    register int res = rnd(20)+1;
-    register int need = (21-at_lvl)-op_arm;
+    int res = rnd(20)+1;
+    int need = (21-at_lvl)-op_arm;
 
     return (res+wplus >= need);
 }
@@ -299,9 +318,10 @@ int at_lvl, op_arm, wplus;
  *	Check to see if the guy has gone up a level.
  */
 
+void
 check_level()
 {
-    register int i, add;
+    int i, add;
 
     for (i = 0; e_levels[i] != 0; i++)
 	if (e_levels[i] > pstats.s_exp)
@@ -323,16 +343,13 @@ check_level()
  *	Roll several attacks
  */
 
-roll_em(att, def, weap, hurl)
-struct stats *att, *def;
-struct object *weap;
-bool hurl;
+int
+roll_em(struct stats *att, struct stats *def, struct object *weap, int hurl)
 {
-    register char *cp;
-    register int ndice, nsides, def_arm;
-    register bool did_hit = FALSE;
-    register int prop_hplus, prop_dplus;
-    char *index();
+    char *cp;
+    int ndice, nsides, def_arm;
+    int did_hit = FALSE;
+    int prop_hplus, prop_dplus;
 
     prop_hplus = prop_dplus = 0;
     if (weap == NULL)
@@ -356,7 +373,7 @@ bool hurl;
 	if (weap->o_type == STICK && weap->o_which == WS_HIT
 	    && weap->o_charges == 0)
 		{
-		    weap->o_damage = "0d0";
+		    strcpy(weap->o_damage,"0d0");
 		    weap->o_hplus = weap->o_dplus = 0;
 		}
     }
@@ -378,7 +395,7 @@ bool hurl;
 		hplus += cur_ring[RIGHT]->o_ac;
 	}
 	ndice = atoi(cp);
-	if ((cp = index(cp, 'd')) == NULL)
+	if ((cp = strchr(cp, 'd')) == NULL)
 	    break;
 	nsides = atoi(++cp);
 	if (def == &pstats)
@@ -396,7 +413,7 @@ bool hurl;
 	    def_arm = def->s_arm;
 	if (swing(att->s_lvl, def_arm, hplus+str_plus(&att->s_str)))
 	{
-	    register int proll;
+	    int proll;
 
 	    proll = roll(ndice, nsides);
 	    if (ndice + nsides > 0 && proll < 1)
@@ -405,7 +422,7 @@ bool hurl;
 	    def->s_hpt -= max(0, damage);
 	    did_hit = TRUE;
 	}
-	if ((cp = index(cp, '/')) == NULL)
+	if ((cp = strchr(cp, '/')) == NULL)
 	    break;
 	cp++;
     }
@@ -419,8 +436,8 @@ bool hurl;
 
 char *
 prname(who, upper)
-register char *who;
-bool upper;
+char *who;
+int upper;
 {
     static char tbuf[80];
 
@@ -444,10 +461,10 @@ bool upper;
  *	Print a message to indicate a succesful hit
  */
 
-hit(er, ee)
-register char *er, *ee;
+void
+hit(char *er, char *ee)
 {
-    register char *s;
+    char *s = "";
 
     addmsg(prname(er, TRUE));
     if (terse)
@@ -455,7 +472,7 @@ register char *er, *ee;
     else
 	switch (rnd(4))
 	{
-	    when 0: s = " scored an excellent hit on ";
+	    case 0: s = " scored an excellent hit on ";
 	    when 1: s = " hit ";
 	    when 2: s = (er == 0 ? " have injured " : " has injured ");
 	    when 3: s = (er == 0 ? " swing and hit " : " swings and hits ");
@@ -471,15 +488,15 @@ register char *er, *ee;
  *	Print a message to indicate a poor swing
  */
 
-miss(er, ee)
-register char *er, *ee;
+void
+miss(char *er, char *ee)
 {
-    register char *s;
+    char *s = "";
 
     addmsg(prname(er, TRUE));
     switch (terse ? 0 : rnd(4))
     {
-	when 0: s = (er == 0 ? " miss" : " misses");
+	case 0: s = (er == 0 ? " miss" : " misses");
 	when 1: s = (er == 0 ? " swing and miss" : " swings and misses");
 	when 2: s = (er == 0 ? " barely miss" : " barely misses");
 	when 3: s = (er == 0 ? " don't hit" : " doesn't hit");
@@ -494,22 +511,22 @@ register char *er, *ee;
  * save_throw:
  *	See if a creature save against something
  */
-save_throw(which, tp)
-int which;
-struct thing *tp;
+int
+save_throw(int which, struct thing *tp)
 {
-    register int need;
+    int need;
 
     need = 14 + which - tp->t_stats.s_lvl / 2;
     return (roll(1, 20) >= need);
 }
+
 /*
  * save:
  *	See if he saves against various nasty things
  */
 
-save(which)
-int which;
+int
+save(int which)
 {
     return save_throw(which, &player);
 }
@@ -519,8 +536,8 @@ int which;
  *	compute bonus/penalties for strength on the "to hit" roll
  */
 
-str_plus(str)
-register str_t *str;
+int
+str_plus(str_t *str)
 {
     if (str->st_str == 18)
     {
@@ -541,8 +558,8 @@ register str_t *str;
  *	compute additional damage done for exceptionally high or low strength
  */
 
- add_dam(str)
- register str_t *str;
+ int
+ add_dam(str_t *str)
  {
     if (str->st_str == 18)
     {
@@ -568,6 +585,7 @@ register str_t *str;
  *	The guy just magically went up a level.
  */
 
+void
 raise_level()
 {
     pstats.s_exp = e_levels[pstats.s_lvl-1] + 1L;
@@ -579,9 +597,8 @@ raise_level()
  *	A missile hits a monster
  */
 
-thunk(weap, mname)
-register struct object *weap;
-register char *mname;
+void
+thunk(struct object *weap, char *mname)
 {
     if (weap->o_type == WEAPON)
 	msg("The %s hits the %s", w_names[weap->o_which], mname);
@@ -594,9 +611,8 @@ register char *mname;
  *	A missile misses a monster
  */
 
-bounce(weap, mname)
-register struct object *weap;
-register char *mname;
+void
+bounce(struct object *weap, char *mname)
 {
     if (weap->o_type == WEAPON)
 	msg("The %s misses the %s", w_names[weap->o_which], mname);
@@ -607,9 +623,8 @@ register char *mname;
 /*
  * remove a monster from the screen
  */
-removeM(mp, item)
-register coord *mp;
-register struct linked_list *item;
+void
+remove_monster(coord *mp, struct linked_list *item)
 {
     mvwaddch(mw, mp->y, mp->x, ' ');
     mvwaddch(cw, mp->y, mp->x, ((struct thing *) ldata(item))->t_oldch);
@@ -622,8 +637,8 @@ register struct linked_list *item;
  *	Returns true if an object radiates magic
  */
 
-is_magic(obj)
-register struct object *obj;
+int
+is_magic(struct object *obj)
 {
     switch (obj->o_type)
     {
@@ -646,12 +661,11 @@ register struct object *obj;
  *	Called to put a monster to death
  */
 
-killed(item, pr)
-register struct linked_list *item;
-bool pr;
+void
+killed(struct linked_list *item, int pr)
 {
-    register struct thing *tp;
-    register struct linked_list *pitem, *nexti;
+    struct thing *tp;
+    struct linked_list *pitem, *nexti;
 
     tp = (struct thing *) ldata(item);
     if (pr)
@@ -676,13 +690,13 @@ bool pr;
      */
     switch (tp->t_type)
     {
-	when 'F':
+	case 'F':
 	    player.t_flags &= ~ISHELD;
 	    fung_hit = 0;
 	    strcpy(monsters['F'-'A'].m_stats.s_dmg, "000d0");
 	when 'L':
 	{
-	    register struct room *rp;
+	    struct room *rp;
 
 	    if ((rp = roomin(&tp->t_pos)) == NULL)
 		break;
@@ -705,13 +719,9 @@ bool pr;
      * Empty the monsters pack
      */
     pitem = tp->t_pack;
-    /*
-     * Get rid of the monster.
-     */
-    removeM(&tp->t_pos, item);
     while (pitem != NULL)
     {
-	register struct object *obj;
+	struct object *obj;
 
 	nexti = next(tp->t_pack);
 	obj = (struct object *) ldata(pitem);
@@ -720,4 +730,8 @@ bool pr;
 	fall(pitem, FALSE);
 	pitem = nexti;
     }
+    /*
+     * Get rid of the monster.
+     */
+    remove_monster(&tp->t_pos, item);
 }
