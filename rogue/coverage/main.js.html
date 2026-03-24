@@ -24,16 +24,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.26% </span>
+                <span class="strong">87.53% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>322/369</span>
+                <span class='fraction'>323/369</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85% </span>
+                <span class="strong">90.47% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>17/20</span>
+                <span class='fraction'>19/21</span>
             </div>
         
             
@@ -45,15 +45,15 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.26% </span>
+                <span class="strong">87.53% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>322/369</span>
+                <span class='fraction'>323/369</span>
             </div>
         
             
         </div>
         <p class="quiet">
-        <div class="nh-fortune nh-good"><span class="nh-bracket">[</span> The Oracle says: thou hast covered much ground, but the dungeon goes deeper. <span class="nh-bracket">]</span></div>
+        <div class="nh-fortune nh-good"><span class="nh-bracket">[</span> You feel unprepared for the deeper dungeons of logic. <span class="nh-bracket">]</span></div>
         
             Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
         </p>
@@ -478,18 +478,18 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">36507x</span>
+<span class="cline-any cline-yes">36699x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">859x</span>
-<span class="cline-any cline-yes">859x</span>
-<span class="cline-any cline-yes">859x</span>
-<span class="cline-any cline-yes">859x</span>
-<span class="cline-any cline-yes">859x</span>
+<span class="cline-any cline-yes">860x</span>
+<span class="cline-any cline-yes">860x</span>
+<span class="cline-any cline-yes">860x</span>
+<span class="cline-any cline-yes">860x</span>
+<span class="cline-any cline-yes">860x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">24714x</span>
-<span class="cline-any cline-yes">24714x</span>
-<span class="cline-any cline-yes">24714x</span>
-<span class="cline-any cline-yes">24714x</span>
+<span class="cline-any cline-yes">24960x</span>
+<span class="cline-any cline-yes">24960x</span>
+<span class="cline-any cline-yes">24960x</span>
+<span class="cline-any cline-yes">24960x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -519,13 +519,13 @@
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">55x</span>
-<span class="cline-any cline-yes">55x</span>
-<span class="cline-any cline-yes">55x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">55x</span>
-<span class="cline-any cline-yes">55x</span>
-<span class="cline-any cline-yes">55x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-yes">13x</span>
@@ -891,7 +891,7 @@ async function waste_time() {
 function detach_from_pack(item) {
   const g = game();
   if (item.l_prev) item.l_prev.l_next = item.l_next;
-<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >  else g.pack = item.l_next;</span></span>
+  else g.pack = item.l_next;
   if (item.l_next) item.l_next.l_prev = item.l_prev;
   item.l_prev = item.l_next = null;
 }
@@ -1179,7 +1179,7 @@ export <span class="fstat-no" title="function not covered" >async function initG
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-24T09:32:33.689Z
+                at 2026-03-24T09:38:59.905Z
             </div>
         <script src="prettify.js"></script>
         <script>
