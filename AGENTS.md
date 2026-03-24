@@ -10,6 +10,11 @@ This project uses GitHub Issues for work tracking. `PROJECT_PLAN.md` is the auth
 
 ## Current Mission: Coverage Campaign (Phase 3)
 
+**Immediate priority**: Get seed031, seed032, and seed033 green before
+expanding coverage. These three sessions exercise deep gameplay paths
+(endgame disclosure, game-loop timing, tutorial flow) and expose parity
+bugs that block other work. Fix them first, then resume coverage expansion.
+
 The primary objective is **growing parity-session coverage toward 90%+**.
 
 The metric is **coverage percentage**, not session count. Sessions that don't
