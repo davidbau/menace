@@ -12,4 +12,5 @@
 /* readchar override: md_readchar is redirected to harness_next_key
  * via rogue_patch.h #define. No readchar rename needed. */
 
+
 #endif /* HARNESS_RENAME_H */

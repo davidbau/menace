@@ -33,14 +33,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>10/10</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.42% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>5/7</span>
+                <span class='fraction'>6/7</span>
             </div>
         
             
@@ -141,14 +141,14 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
+<span class="cline-any cline-yes">215x</span>
+<span class="cline-any cline-yes">215x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">99820x</span>
-<span class="cline-any cline-yes">99820x</span>
-<span class="cline-any cline-yes">99820x</span>
-<span class="cline-any cline-yes">99820x</span>
+<span class="cline-any cline-yes">113363x</span>
+<span class="cline-any cline-yes">113363x</span>
+<span class="cline-any cline-yes">113363x</span>
+<span class="cline-any cline-yes">113363x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -163,19 +163,19 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">100210x</span>
-<span class="cline-any cline-yes">99820x</span>
-<span class="cline-any cline-yes">99820x</span>
-<span class="cline-any cline-yes">100210x</span>
-<span class="cline-any cline-yes">99820x</span>
-<span class="cline-any cline-yes">100210x</span>
+<span class="cline-any cline-yes">113791x</span>
+<span class="cline-any cline-yes">113363x</span>
+<span class="cline-any cline-yes">113363x</span>
+<span class="cline-any cline-yes">113791x</span>
+<span class="cline-any cline-yes">113363x</span>
+<span class="cline-any cline-yes">113791x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">513x</span>
-<span class="cline-any cline-yes">513x</span>
-<span class="cline-any cline-yes">513x</span>
-<span class="cline-any cline-yes">513x</span>
+<span class="cline-any cline-yes">838x</span>
+<span class="cline-any cline-yes">838x</span>
+<span class="cline-any cline-yes">838x</span>
+<span class="cline-any cline-yes">838x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * rng.js — Seeded RNG for Rogue 3.6 JS port
  *
@@ -213,7 +213,7 @@ export <span class="fstat-no" title="function not covered" >function rand() {</s
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 export function getRngSeed() { return _seed; }
-export <span class="fstat-no" title="function not covered" >function setRngSeed(s) { _seed = s | 0; }</span>
+export function setRngSeed(s) { _seed = s | 0; }
 &nbsp;
 // rnd(range): 0 to range-1
 // C: abs(RN) % range
@@ -237,7 +237,7 @@ export function roll(number, sides) {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-24T09:38:59.905Z
+                at 2026-03-24T10:28:55.853Z
             </div>
         <script src="prettify.js"></script>
         <script>

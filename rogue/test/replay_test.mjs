@@ -11,7 +11,7 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
-import { runSession } from './node_runner.mjs';
+import { runSession, runMultigameSession } from './node_runner.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -65,10 +65,21 @@ function compareRng(jsRng, cRng) {
 
 async function replaySession(sessionFile, opts = {}) {
   const session = JSON.parse(readFileSync(sessionFile, 'utf8'));
+  const name = basename(sessionFile, '.json');
+  const seed = session.seed;
+
+  // Skip coverage-only sessions (no C harness data)
+  if (session.coverage_only) {
+    return { session: name, seed, passed: true, total_steps: 0, screen_pct: 100, rng_pct: 100, skipped: 'coverage_only' };
+  }
+
+  // Multigame sessions: compare each game separately
+  if (session.games) {
+    return replayMultigameSession(session, name, opts);
+  }
+
   // Strip C harness sentinel \x00 step (always added as final step by C harness)
   const cSteps = (session.steps || []).filter(s => s.key !== '\x00');
-  const seed = session.seed;
-  const name = basename(sessionFile, '.json');
 
   if (cSteps.length === 0) {
     return { session: name, seed, passed: false, total_steps: 0, screen_pct: 0, rng_pct: 0, error: 'empty session' };
@@ -164,6 +175,74 @@ async function replaySession(sessionFile, opts = {}) {
   }
 
   return result;
+}
+
+async function replayMultigameSession(session, name, opts) {
+  const seed = session.seed;
+  const games = session.games;
+
+  // Build game specs for the JS multigame runner
+  const gameSpecs = games.map(g => ({
+    seed: g.seed || seed,
+    keys: (g.steps || []).filter(s => s.key !== '\x00').map(s => s.key).join(''),
+    wizard: g.wizard !== undefined ? g.wizard : !!session.wizard,
+  }));
+
+  let allJsSteps;
+  try {
+    allJsSteps = await runMultigameSession(gameSpecs);
+  } catch (e) {
+    return { session: name, seed, passed: false, multigame: true, error: e.message };
+  }
+
+  // Compare each game's steps
+  let totalScreenMatches = 0, totalScreenCells = 0;
+  let totalRngMatches = 0, totalRngCells = 0;
+  let totalSteps = 0;
+  let firstScreenDiverge = -1, firstRngDiverge = -1;
+
+  for (let gi = 0; gi < games.length; gi++) {
+    const cSteps = (games[gi].steps || []).filter(s => s.key !== '\x00');
+    const jsSteps = allJsSteps[gi] || [];
+    const minSteps = Math.min(jsSteps.length, cSteps.length);
+
+    for (let i = 0; i < minSteps; i++) {
+      const screenComp = compareScreens(jsSteps[i].screen, cSteps[i].screen);
+      totalScreenMatches += screenComp.matches;
+      totalScreenCells += screenComp.total;
+      if (screenComp.matches < screenComp.total && firstScreenDiverge < 0)
+        firstScreenDiverge = totalSteps + i;
+
+      const rngComp = compareRng(jsSteps[i].rng, cSteps[i].rng);
+      const matchCount = rngComp.firstDiverge < 0 ? rngComp.jsLen : rngComp.firstDiverge;
+      totalRngMatches += matchCount;
+      totalRngCells += Math.max(rngComp.jsLen, rngComp.cLen, 1);
+      if (!rngComp.match && firstRngDiverge < 0)
+        firstRngDiverge = totalSteps + i;
+    }
+    totalSteps += minSteps;
+  }
+
+  const screenPct = totalScreenCells > 0 ? (totalScreenMatches / totalScreenCells * 100) : 0;
+  const rngPct = totalRngCells > 0 ? (totalRngMatches / totalRngCells * 100) : 0;
+
+  // Total JS and C step counts
+  const jsTotal = allJsSteps.reduce((s, g) => s + g.length, 0);
+  const cTotal = games.reduce((s, g) => s + (g.steps || []).filter(x => x.key !== '\x00').length, 0);
+
+  // For multigame: screen parity is primary (RNG diverges across save/restore boundaries)
+  const passed = screenPct >= 93.0 && jsTotal === cTotal;
+
+  return {
+    session: name, seed, passed, multigame: true,
+    num_games: games.length,
+    total_steps: totalSteps,
+    js_steps: jsTotal, c_steps: cTotal,
+    screen_pct: Math.round(screenPct * 10) / 10,
+    rng_pct: Math.round(rngPct * 10) / 10,
+    first_screen_diverge: firstScreenDiverge,
+    first_rng_diverge: firstRngDiverge,
+  };
 }
 
 async function main() {

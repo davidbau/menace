@@ -90,7 +90,8 @@ function dirChar(dy, dx) {
   return '.';
 }
 
-const PASSABLE = '.#:+!?/=)*]^,%*';
+// Include trap chars: > { $ } ~ ` (TRAPDOOR, ARROWTRAP, SLEEPTRAP, BEARTRAP, TELTRAP, DARTTRAP)
+const PASSABLE = '.#:+!?/=)*]^,%*>{$}~`';
 
 function walkTo(ty, tx) {
   const g = game();
