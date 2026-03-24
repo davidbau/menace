@@ -695,6 +695,53 @@ def capture_cursor(session):
     col, row, visible = (int(v) for v in out.split(','))
     return [col, row, visible]
 
+
+# ---------------------------------------------------------------------------
+# NOMUX: Direct screen capture from C shadow buffer (no tmux needed)
+# ---------------------------------------------------------------------------
+
+def capture_screen_nomux(nomux_file):
+    """Read NOMUX shadow buffer file and return 24 ANSI lines.
+
+    The C harness writes the shadow buffer to $NOMUX_SCREEN_FILE at each
+    nhgetch() boundary.  Format: 24 ANSI lines separated by newlines,
+    followed by a ---CURSOR:x,y line.
+    """
+    if not os.path.exists(nomux_file):
+        return None, None
+    with open(nomux_file, 'r') as f:
+        content = f.read()
+    if not content.strip():
+        return None, None
+    # Split cursor from screen content
+    cursor = None
+    screen_part = content
+    cursor_marker = '---CURSOR:'
+    idx = content.rfind(cursor_marker)
+    if idx >= 0:
+        cursor_str = content[idx + len(cursor_marker):].strip()
+        screen_part = content[:idx]
+        parts = cursor_str.split(',')
+        if len(parts) >= 2:
+            try:
+                cx, cy = int(parts[0]), int(parts[1])
+                cursor = [cx, cy, 1]  # visible=1 (cursor always visible at nhgetch)
+            except ValueError:
+                pass
+    lines = screen_part.split('\n')
+    while len(lines) < 24:
+        lines.append('')
+    return lines[:24], cursor
+
+
+def capture_screen_compressed_nomux(nomux_file):
+    """Read NOMUX screen and return as compressed ANSI string + cursor."""
+    lines, cursor = capture_screen_nomux(nomux_file)
+    if lines is None:
+        return None, None
+    return encode_screen_ansi_rle(lines), cursor
+
+
 def read_typ_grid(dumpmap_file):
     """Read a dumpmap file and return 21x80 grid of ints."""
     if not os.path.exists(dumpmap_file):
@@ -1396,6 +1443,8 @@ def record_c_session(env, nethackrc, keys, output_path,
     dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
     mapdump_dir = os.path.join(tmpdir, 'mapdumps')
     repaint_debug_file = os.path.join(tmpdir, 'repaint-debug.log')
+    nomux_screen_file = os.path.join(tmpdir, 'nomux_screen.txt')
+    use_nomux = os.environ.get('NOMUX', '') == '1'
     os.makedirs(mapdump_dir, exist_ok=True)
 
     with open(rc_path, 'w') as f:
@@ -1438,6 +1487,8 @@ def record_c_session(env, nethackrc, keys, output_path,
         'NETHACK_MAPDUMP_DIR': mapdump_dir,
         'NETHACK_NO_DELAY': '1',
     }
+    if use_nomux:
+        cmd_env['NOMUX_SCREEN_FILE'] = nomux_screen_file
     # Add passthrough env vars from host
     cmd_env.update(_passthrough_env_vars())
     # Add caller's env vars (these take priority)
@@ -1492,9 +1543,16 @@ def record_c_session(env, nethackrc, keys, output_path,
             time.sleep(0.02)
 
         # --- 6. Capture step 0 (initial screen, key=null) ---
-        screen = capture_screen_compressed(session_name)
+        if use_nomux:
+            screen, cursor = capture_screen_compressed_nomux(nomux_screen_file)
+            if screen is None:
+                # Fallback to tmux if NOMUX file not ready
+                screen = capture_screen_compressed(session_name)
+                cursor = capture_cursor(session_name)
+        else:
+            screen = capture_screen_compressed(session_name)
+            cursor = capture_cursor(session_name)
         rng_count, rng_lines = read_rng_log(rng_log_file)
-        cursor = capture_cursor(session_name)
         rng_entries = parse_rng_lines(rng_lines)
 
         session_data['steps'].append({
@@ -1569,10 +1627,16 @@ def record_c_session(env, nethackrc, keys, output_path,
                 time.sleep(final_capture_delay_s)
 
             # Capture state
-            screen = capture_screen_compressed(session_name)
+            if use_nomux:
+                screen, step_cursor = capture_screen_compressed_nomux(nomux_screen_file)
+                if screen is None:
+                    screen = capture_screen_compressed(session_name)
+                    step_cursor = capture_cursor(session_name)
+            else:
+                screen = capture_screen_compressed(session_name)
+                step_cursor = capture_cursor(session_name)
             screen_lines_cache = screen_to_plain_lines(screen)
             rng_count, rng_lines = read_rng_log(rng_log_file)
-            step_cursor = capture_cursor(session_name)
             delta_lines = rng_lines[prev_rng_count:rng_count]
             step_rng = parse_rng_lines(delta_lines)
 
