@@ -305,14 +305,13 @@
       "key": " ",
       "rng": [],
       "screen": [
-        "Terse output: False",
-        "Flush typeahead during battle: False",
-        "Show position only at end of run: False",
-        "Do inventories one line at a time: False",
-        "Ask me about unidentified things: False",
-        "Name: X",
-        "Fruit: papaya",
-        "Save file: /Users/davidbau/rogue.save",
+        "",
+        "",
+        "",
+        "                            -----------------------",
+        "                            |.!...................|",
+        "                            +..@..................|",
+        "                            ------+----------------",
         "",
         "",
         "",
@@ -328,12 +327,13 @@
         "",
         "",
         "",
-        "--Press space to continue--"
+        "",
+        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/0"
       ]
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

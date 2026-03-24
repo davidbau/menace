@@ -35,11 +35,13 @@
       "key": " ",
       "rng": ["^cmd[ch=105 no_cmd=0 after=1]"],
       "screen": [
-        "a) Some food.",
-        "b) +1 ring mail (being worn).",
-        "c) A +1,+1 mace (weapon in hand).",
-        "d) A +1 int bow.",
-        "e) 30 +0 arrows.",
+        "",
+        "",
+        "",
+        "                            -----------------------",
+        "                            |.!...................|",
+        "                            +..@..................|",
+        "                            ------+----------------",
         "",
         "",
         "",
@@ -56,14 +58,12 @@
         "",
         "",
         "",
-        "",
-        "",
-        "--Press space to continue--"
+        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/0"
       ]
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

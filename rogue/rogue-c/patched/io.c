@@ -214,6 +214,9 @@ status()
 void
 wait_for(WINDOW *win, int ch)
 {
+#ifdef HARNESS
+    (void)win; (void)ch; return;
+#endif
     int c;
 
     if (ch == '\n')

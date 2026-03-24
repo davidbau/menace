@@ -65,7 +65,7 @@
       "key": " ",
       "rng": [],
       "screen": [
-        "'z' not in pack--More--",
+        "Range is 'a' to 'e'",
         "",
         "",
         "                            -----------------------",
@@ -93,9 +93,9 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
-        "Range is 'a' to 'e'",
+        "",
         "",
         "",
         "                            -----------------------",

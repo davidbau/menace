@@ -57,10 +57,13 @@ export async function endmsg() {
   g.huh = _msgbuf;
 
   if (g.mpos) {
-    // Show --More-- at current message position
-    mvwaddstr(g.cw, 0, g.mpos, '--More--');
-    draw(g.cw);
-    await wait_for(' ');
+    if (g.suppressMore) {
+      // Harness: auto-dismiss --More-- without consuming keys
+    } else {
+      mvwaddstr(g.cw, 0, g.mpos, '--More--');
+      draw(g.cw);
+      await wait_for(' ');
+    }
   }
 
   // Display the new message
@@ -100,6 +103,7 @@ export async function readchar() {
  */
 export async function wait_for(ch) {
   const g = game();
+  if (g.suppressMore) return; // Harness: auto-dismiss
   if (ch === '\n') {
     let c;
     do {

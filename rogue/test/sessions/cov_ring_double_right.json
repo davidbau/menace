@@ -215,7 +215,7 @@
       "key": "=",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -245,7 +245,7 @@
       "key": "0",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -275,7 +275,7 @@
       "key": "n",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -305,7 +305,7 @@
       "key": "P",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -335,7 +335,7 @@
       "key": "b",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -365,7 +365,7 @@
       "key": "r",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "There is nothing on it to read",
         "",
         "",
         "                            -----------------------",
@@ -393,9 +393,9 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
