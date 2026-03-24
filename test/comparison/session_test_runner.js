@@ -387,6 +387,7 @@ async function waitForStableScreen(display, {
     return latest;
 }
 
+let _sessionLocalStorageBacking = null;
 function ensureSessionGlobals() {
     if (typeof globalThis.window === 'undefined') {
         globalThis.window = { location: { search: '' } };
@@ -396,7 +397,9 @@ function ensureSessionGlobals() {
         globalThis.window.location.search = '';
     }
 
-    const backing = new Map();
+    // Reuse backing Map so pre-seeded data persists across calls.
+    if (!_sessionLocalStorageBacking) _sessionLocalStorageBacking = new Map();
+    const backing = _sessionLocalStorageBacking;
     const storage = {
         getItem(key) { return backing.has(key) ? backing.get(key) : null; },
         setItem(key, value) { backing.set(key, String(value)); },
@@ -411,8 +414,23 @@ function ensureSessionGlobals() {
         enumerable: true,
         writable: true,
     });
+    // C ref: mk_tt_object() → tt_oname() → get_rnd_toptenentry().
+    // C's scoreboard accumulates entries from previous test runs, so
+    // tt_oname() returns non-NULL and skips the rn1(13) fallback.
+    // Pre-seed a dummy score so JS matches C's RNG consumption.
+    // Use BOTH the custom storage AND the native localStorage (Node 22+).
+    const dummyScores = JSON.stringify([{
+        points: 100, plrole: 'Val', plrace: 'Hum', plgend: 'Fem',
+        plalign: 'Neu', name: 'Test', deathcause: 'killed', turns: 1,
+        deathlev: 1, maxlvl: 1, hp: -1, maxhp: 10, deathdate: '20000101',
+        birthdate: '20000101', uid: 1, conduct: '', achieve: '',
+    }]);
+    storage.setItem('menace-topten', dummyScores);
+    try { globalThis.localStorage.setItem('menace-topten', dummyScores); } catch (e) { /* ignore */ }
     return storage;
 }
+
+import { setAssumeNonEmptyScoreboard } from '../../js/topten.js';
 
 function resetSessionRuntimeState() {
     // Worker threads can process multiple sessions; clear module statics first.
@@ -420,6 +438,8 @@ function resetSessionRuntimeState() {
     resetNoisesState();
     stairway_free_all();
     setGame(null);
+    // C's scoreboard accumulates entries, so tt_oname returns non-NULL.
+    setAssumeNonEmptyScoreboard(true);
     if (globalThis?.gs && typeof globalThis.gs === 'object') {
         globalThis.gs.stairs = null;
     }

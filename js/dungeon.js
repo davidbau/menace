@@ -290,6 +290,7 @@ import { obj_resists } from './objdata.js';
 import { placeFloorObject } from './invent.js';
 import { mpickobj } from './steal.js';
 import { set_corpsenm, place_object } from './mkobj.js';
+import { get_rnd_toptenentry, classmon } from './topten.js';
 import { getnow } from './calendar.js';
 
 // Module-level ubirthday surrogate for nameshk() — set by setGameSeed() before level gen.
@@ -3864,19 +3865,23 @@ function mkobj_at(map, oclass, x, y, artif) {
 }
 
 // C ref: mkobj.c mk_tt_object() — make CORPSE or STATUE with scoreboard name.
-// C's tt_oname() calls get_rnd_toptenentry() which always consumes rnd(10)
-// (sysopt.tt_oname_maxrank defaults to 10) before returning NULL for an empty
-// scoreboard.  We have no scoreboard, so simulate the RNG consumption and
-// fall through to the random player class path.
+// C's tt_oname() calls get_rnd_toptenentry() which consumes rnd(10) and
+// returns a scoreboard entry (or NULL if empty). If found, uses the entry's
+// role for corpsenm; if NULL, falls back to random player class via rn1.
 function mk_tt_object(map, objtype, x, y) {
     const initialize_it = (objtype !== STATUE);
     const otmp = mksobj_at(map, objtype, x, y, initialize_it, false);
     if (otmp) {
-        // C: get_rnd_toptenentry() → rnd(sysopt.tt_oname_maxrank) = rnd(10)
-        rnd(10);
-        // C: tt_oname returns NULL (empty scoreboard) → random player class
-        const pm = rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST);
-        set_corpsenm(otmp, pm);
+        // C ref: tt_oname() → get_rnd_toptenentry() (consumes rnd(10))
+        const tt = get_rnd_toptenentry();
+        if (!tt) {
+            // Empty scoreboard — random player class fallback
+            const pm = rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST);
+            set_corpsenm(otmp, pm);
+        } else {
+            // Scoreboard entry found — use its role
+            set_corpsenm(otmp, classmon(tt.plrole));
+        }
     }
     return otmp;
 }
