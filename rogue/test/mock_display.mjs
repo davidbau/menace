@@ -67,6 +67,11 @@ export class MockDisplay {
   flush() {}
   scheduleRender() {}
 
+  // Get cursor position as [row, col] (0-based, matching C's 0-based coords)
+  getCursor() {
+    return [this.cury - 1, this.curx - 1];
+  }
+
   // Get screen as 24-element array of trimmed strings (0-indexed, rows 0..23)
   getRows() {
     const rows = [];

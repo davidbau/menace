@@ -106,6 +106,7 @@ async function replaySession(sessionFile, opts = {}) {
   let totalScreenMatches = 0, totalScreenCells = 0;
   let totalRngMatches = 0, totalRngCells = 0;
   let firstScreenDiverge = -1, firstRngDiverge = -1;
+  let cursorMatches = 0, cursorTotal = 0, firstCursorDiverge = -1;
 
   for (let i = 0; i < totalSteps; i++) {
     const js = jsSteps[i];
@@ -122,6 +123,16 @@ async function replaySession(sessionFile, opts = {}) {
     totalRngMatches += matchCount;
     totalRngCells += Math.max(rngComp.jsLen, rngComp.cLen, 1);
     if (!rngComp.match && firstRngDiverge < 0) firstRngDiverge = i;
+
+    // Cursor comparison (if both have cursor data)
+    if (js.cursor && c.cursor) {
+      cursorTotal++;
+      if (js.cursor[0] === c.cursor[0] && js.cursor[1] === c.cursor[1]) {
+        cursorMatches++;
+      } else if (firstCursorDiverge < 0) {
+        firstCursorDiverge = i;
+      }
+    }
   }
 
   const screenPct = totalScreenCells > 0 ? (totalScreenMatches / totalScreenCells * 100) : 0;
@@ -153,6 +164,8 @@ async function replaySession(sessionFile, opts = {}) {
     rng_pct: Math.round(rngPct * 10) / 10,
     first_screen_diverge: firstScreenDiverge,
     first_rng_diverge: firstRngDiverge,
+    cursor_pct: cursorTotal > 0 ? Math.round(cursorMatches / cursorTotal * 1000) / 10 : null,
+    first_cursor_diverge: firstCursorDiverge,
   };
 
   if (opts.diagnose && (firstScreenDiverge >= 0 || firstRngDiverge >= 0)) {

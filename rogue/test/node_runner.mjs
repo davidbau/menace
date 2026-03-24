@@ -107,13 +107,14 @@ export async function runSession(seed, keys, opts = {}) {
 
   input.getKey = async function () {
     const screen = display.getRows();
+    const cursor = display.getCursor();
     const rng = [...g.rawRngLog];
     g.rawRngLog = [];
 
     if (keyIndex >= keys.length) throw new SessionDone();
 
     const key = keys[keyIndex];
-    steps.push({ key, rng, screen });
+    steps.push({ key, rng, screen, cursor });
     return keys[keyIndex++];
   };
 
@@ -174,13 +175,14 @@ export async function runMultigameSession(games) {
 
     input.getKey = async function () {
       const screen = display.getRows();
+      const cursor = display.getCursor();
       const rng = [...g.rawRngLog];
       g.rawRngLog = [];
 
       if (keyIndex >= keys.length) throw new SessionDone();
 
       const key = keys[keyIndex];
-      steps.push({ key, rng, screen });
+      steps.push({ key, rng, screen, cursor });
       return keys[keyIndex++];
     };
 

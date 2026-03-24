@@ -4,6 +4,7 @@
   "steps": [
     {
       "key": "\u0008",
+      "cursor": [11,9],
       "rng": [94,2,2,142,150,18,1,115,27,0,53,0,108,0,2,116,33,19,0,119,0,1,5,70,2,134,1,81,0,2,136,22,156,2,5,143,152,0,0,3,1,13,29,1,1,78,107,1,148,19,0,69,0,1,37,73,1,74,130,1,1,66,75,0,23,1,124,49,0,1,121,114,0,144,1,0,4,0,40,1,92,83,1,2,141,8,43,0,137,2,74,1,107,0,2,27,30,139,2,12,106,36,3,0,134,2,83,154,10,0,113,1,10,45,2,154,16,4,3,1,7,125,2,43,17,19,2,46,18,133,2,32,51,57,2,30,74,100,1,2,149,4,8,2,61,71,61,0,31,0,1,106,24,0,64,5,16,12,11,19,14,10,1,1,4,16,15,7,2,22,21,9,8,12,3,7,10,6,17,17,4,8,15,7,18,2,9,17,4,12,11,43,14,6,17,9,10,88,3,99,1,26,1,49,18,84,1,19,10,2,7,29,2,80,9,7,4,6,21,21,2,80,0,67,1,42,21,13,14,56,3,87,2,2,0,4,16,0,5,19,2,0,1,61,36,4,13,3,3,0,17,1,1,1,71,47,8,16,1,3,0,64,47,15,2,4,15,1,3,2,75,79,2,2,1,9,2,28,19,3,0,94,1,5,0,11,3,83,58,6,3,1,11,0,95,31,6,0,1,9,0,0,9,3,0,1,1,3,6,2,5,1,4,8,1,1,0,3,0,1,0,4,7,0,0,8,1,8,5,4,0,1,5,2,1,0,1,5,3,8,5,0,1,13,10,2,5,5,0,16,2,1,2,2,1,0,0,0,1,2,0,6,1,0,0,3,1,7,18,94,5,6,0,48,27,15,78,2,4,2,56,48,3,79,10,2,89,0,6,0,0,19,14,78,3,13,2,12,19,23,1,7,1,13,20,84,6,3,0,3,5,0,4,4,4,6,2,2,7,3,4,2,7,6],
       "screen": [
         "",
@@ -34,6 +35,7 @@
     },
     {
       "key": "\u0005",
+      "cursor": [11,9],
       "rng": [0,0,3,5,8,4,5,9,2,"^cmd[ch=8 no_cmd=0 after=1]"],
       "screen": [
         "Welcome to level 10",
@@ -64,6 +66,7 @@
     },
     {
       "key": "\u0001",
+      "cursor": [11,9],
       "rng": ["^cmd[ch=5 no_cmd=0 after=1]"],
       "screen": [
         "food left: 1300",
@@ -94,6 +97,7 @@
     },
     {
       "key": "@",
+      "cursor": [11,9],
       "rng": ["^cmd[ch=1 no_cmd=0 after=1]"],
       "screen": [
         "7 things in your pack",
@@ -124,6 +128,7 @@
     },
     {
       "key": "\u0018",
+      "cursor": [11,9],
       "rng": ["^cmd[ch=64 no_cmd=0 after=1]"],
       "screen": [
         "@ 11,9",
@@ -154,6 +159,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": ["^cmd[ch=24 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -184,6 +190,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -214,6 +221,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -244,6 +252,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a vermilion potion (b)",
@@ -274,6 +283,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -304,6 +314,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [2,1,1,4,0,7,7,2,6,5],
       "screen": [
         "You begin to feel much better.",
@@ -334,6 +345,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -364,6 +376,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -394,6 +407,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -424,6 +438,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -454,6 +469,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [5,0,4,3,3,6,2,1,1,4],
       "screen": [
         "You begin to feel much better.",
@@ -484,6 +500,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -514,6 +531,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -544,6 +562,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -574,6 +593,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -604,6 +624,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [0,7,7,2,6,5,5,0,4,3,1],
       "screen": [
         "You begin to feel much better.",
@@ -634,6 +655,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -664,6 +686,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -694,6 +717,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -724,6 +748,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -754,6 +779,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [6,2,1,1,4,0,7,7,2,6],
       "screen": [
         "You begin to feel much better.",
@@ -784,6 +810,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -814,6 +841,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -844,6 +872,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -874,6 +903,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -904,6 +934,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [5,5,0,4,3,3,6,2,1,1],
       "screen": [
         "You begin to feel much better.",
@@ -934,6 +965,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -964,6 +996,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -994,6 +1027,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -1024,6 +1058,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -1054,6 +1089,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [4,0,7,7,2,6,5,5,0,4,2],
       "screen": [
         "You begin to feel much better.",
@@ -1084,6 +1120,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -1114,6 +1151,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -1144,6 +1182,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -1174,6 +1213,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -1204,6 +1244,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [3,6,2,1,1,4,0,7,7,2],
       "screen": [
         "You begin to feel much better.",
@@ -1234,6 +1275,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -1264,6 +1306,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -1294,6 +1337,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -1324,6 +1368,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -1354,6 +1399,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [6,5,5,0,4,3,3,6,2,1],
       "screen": [
         "You begin to feel much better.",
@@ -1384,6 +1430,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -1414,6 +1461,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -1444,6 +1492,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -1474,6 +1523,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -1504,6 +1554,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [1,4,0,7,7,2,6,5,5,0,1],
       "screen": [
         "You begin to feel much better.",
@@ -1534,6 +1585,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -1564,6 +1616,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -1594,6 +1647,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -1624,6 +1678,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -1654,6 +1709,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [3,3,6,2,1,1,4,0,7,7],
       "screen": [
         "You begin to feel much better.",
@@ -1684,6 +1740,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -1714,6 +1771,7 @@
     },
     {
       "key": "3",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -1744,6 +1802,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a silver potion (b)",
@@ -1774,6 +1833,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -1804,6 +1864,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You feel stronger, now.  What bulging muscles!",
@@ -1834,6 +1895,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -1864,6 +1926,7 @@
     },
     {
       "key": "5",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -1894,6 +1957,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a clear potion (b)",
@@ -1924,6 +1988,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -1954,6 +2019,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [2,2,1,1,0,0,3,3,2,2,2],
       "screen": [
         "You begin to feel better.",
@@ -1984,6 +2050,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -2014,6 +2081,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -2044,6 +2112,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -2074,6 +2143,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -2104,6 +2174,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [1,4,0,7,7,2,6,5,5,0],
       "screen": [
         "You begin to feel much better.",
@@ -2134,6 +2205,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -2164,6 +2236,7 @@
     },
     {
       "key": "8",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -2194,6 +2267,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a black potion (b)",
@@ -2224,6 +2298,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -2254,6 +2329,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [8],
       "screen": [
         "Welcome to level 11",
@@ -2284,6 +2360,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -2314,6 +2391,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -2344,6 +2422,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a green potion (b)",
@@ -2374,6 +2453,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -2404,6 +2484,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [3],
       "screen": [
         "Hey, this tastes great.  It make you feel warm all over.",
@@ -2434,6 +2515,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -2464,6 +2546,7 @@
     },
     {
       "key": "4",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -2494,6 +2577,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have an amber potion (b)",
@@ -2524,6 +2608,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -2554,6 +2639,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "This potion tastes like papaya juice.",
@@ -2584,6 +2670,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -2614,6 +2701,7 @@
     },
     {
       "key": "6",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -2644,6 +2732,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a white potion (b)",
@@ -2674,6 +2763,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -2704,6 +2794,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You have a strange feeling for a moment, then it passes.",
@@ -2734,6 +2825,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -2764,6 +2856,7 @@
     },
     {
       "key": "7",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -2794,6 +2887,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a blue potion (b)",
@@ -2824,6 +2918,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -2854,6 +2949,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [3],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -2884,6 +2980,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -2914,6 +3011,7 @@
     },
     {
       "key": "0",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -2944,6 +3042,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a brown potion (b)",
@@ -2974,6 +3073,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -3004,6 +3104,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [6],
       "screen": [
         "Wait, what's going on here. Huh? What? Who?",
@@ -3034,6 +3135,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -3064,6 +3166,7 @@
     },
     {
       "key": "a",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -3094,6 +3197,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a pink potion (b)",
@@ -3124,6 +3228,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -3154,6 +3259,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [2],
       "screen": [
         "You feel yourself moving much faster.",
@@ -3184,6 +3290,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -3214,6 +3321,7 @@
     },
     {
       "key": "c",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -3244,6 +3352,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a tan potion (b)",
@@ -3274,6 +3383,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -3304,6 +3414,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "A cloak of darkness falls around you.",
@@ -3334,6 +3445,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -3364,6 +3476,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -3394,6 +3507,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -3424,6 +3538,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -3454,6 +3569,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [1,1,4,0,7,7,2,6,5,5,0,0],
       "screen": [
         "The veil of darkness lifts",
@@ -3484,6 +3600,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -3514,6 +3631,7 @@
     },
     {
       "key": "1",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -3544,6 +3662,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have an ecru potion (b)",
@@ -3574,6 +3693,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -3604,6 +3724,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": ["^cmd[ch=32 no_cmd=2 after=1]","^cmd[ch=32 no_cmd=1 after=1]"],
       "screen": [
         "You can move again.",
@@ -3634,6 +3755,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -3664,6 +3786,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -3694,6 +3817,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -3724,6 +3848,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -3754,6 +3879,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [3,3,6,2,1,1,4,0,7,7,2],
       "screen": [
         "You begin to feel much better.",
@@ -3784,6 +3910,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -3814,6 +3941,7 @@
     },
     {
       "key": "2",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -3844,6 +3972,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a gold potion (b)",
@@ -3874,6 +4003,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -3904,6 +4034,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [0],
       "screen": [
         "You feel very sick now.",
@@ -3934,6 +4065,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -3964,6 +4096,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -3994,6 +4127,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -4024,6 +4158,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -4054,6 +4189,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [5,5,0,4,3,3,6,2,1,1,4,0],
       "screen": [
         "You begin to feel much better.",
@@ -4084,6 +4220,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -4114,6 +4251,7 @@
     },
     {
       "key": "d",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -4144,6 +4282,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a plaid potion (b)",
@@ -4174,6 +4313,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -4204,6 +4344,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "This potion tastes extremely dull.",
@@ -4234,6 +4375,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -4264,6 +4406,7 @@
     },
     {
       "key": "5",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -4294,6 +4437,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'nepsan xoblu me' (b)",
@@ -4324,6 +4468,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -4354,6 +4499,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You feel yourself slowing down.",
@@ -4384,6 +4530,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -4414,6 +4561,7 @@
     },
     {
       "key": "a",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -4444,6 +4592,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'vomargfri ur mungabsan' (b)",
@@ -4474,6 +4623,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -4504,6 +4654,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [35],
       "screen": [
         "Your two handed sword glows blue for a moment.",
@@ -4534,6 +4685,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -4564,6 +4716,7 @@
     },
     {
       "key": "c",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -4594,6 +4747,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'um ninzebash ski ashgan zebbinala' (b)",
@@ -4624,6 +4778,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -4654,6 +4809,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [3],
       "screen": [
         "You feel as if somebody is watching over you.",
@@ -4684,6 +4840,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -4714,6 +4871,7 @@
     },
     {
       "key": "2",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -4744,6 +4902,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'anmi umabnes' (b)",
@@ -4774,6 +4933,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -4804,6 +4964,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "The room is lit by a shimmering blue light.",
@@ -4834,6 +4995,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -4864,6 +5026,7 @@
     },
     {
       "key": "1",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -4894,6 +5057,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'snikelblu sol' (b)",
@@ -4924,6 +5088,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -4954,6 +5119,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "Oh, now this scroll has a map on it.",
@@ -4984,6 +5150,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -5014,6 +5181,7 @@
     },
     {
       "key": "0",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -5044,6 +5212,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'wahyotbjor snedalf i sat' (b)",
@@ -5074,6 +5243,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -5104,6 +5274,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [2],
       "screen": [
         "Your hands begin to glow red",
@@ -5134,6 +5305,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -5164,6 +5336,7 @@
     },
     {
       "key": "3",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -5194,6 +5367,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'unibytzok anwedzant' (b)",
@@ -5224,6 +5398,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -5254,6 +5429,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "As you read the scroll, it vanishes.",
@@ -5284,6 +5460,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -5314,6 +5491,7 @@
     },
     {
       "key": "7",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -5344,6 +5522,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'lechmur comp tabgre' (b)",
@@ -5374,6 +5553,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -5404,6 +5584,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You hear maniacal laughter in the distance.",
@@ -5434,6 +5615,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -5464,6 +5646,7 @@
     },
     {
       "key": "e",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -5494,6 +5677,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'yalaarg jomicjo e' (b)",
@@ -5524,6 +5708,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -5554,6 +5739,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [2],
       "screen": [
         "This scroll seems to be blank.",
@@ -5584,6 +5770,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -5614,6 +5801,7 @@
     },
     {
       "key": "d",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -5644,6 +5832,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'apptem fribitblu garbjorulk eepheish domungrhov' (",
@@ -5674,6 +5863,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -5704,6 +5894,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You hear a high pitched humming noise.",
@@ -5734,6 +5925,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -5764,6 +5956,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -5794,6 +5987,7 @@
     },
     {
       "key": "q",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -5824,6 +6018,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -5854,6 +6049,7 @@
     },
     {
       "key": "C",
+      "cursor": [11,9],
       "rng": [5,5,0,4,3,3,6,2,1,1,4],
       "screen": [
         "You begin to feel much better.",
@@ -5884,6 +6080,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -5914,6 +6111,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -5944,6 +6142,7 @@
     },
     {
       "key": "r",
+      "cursor": [11,9],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'ala fa petnin' (b)",
@@ -5974,6 +6173,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -6004,6 +6204,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [8,1,1,2],
       "screen": [
         "As you read the scroll, it vanishes.",
@@ -6034,6 +6235,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -6064,6 +6266,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -6094,6 +6297,7 @@
     },
     {
       "key": "r",
+      "cursor": [18,66],
       "rng": [],
       "screen": [
         "You now have a scroll titled 'dalfdoviv barsaere' (b)",
@@ -6124,6 +6328,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -6154,6 +6359,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [0,1,0,0,3,1,2,6,2,1,1,4,76],
       "screen": [
         "As you read the scroll, it vanishes.",
@@ -6184,6 +6390,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -6214,6 +6421,7 @@
     },
     {
       "key": "4",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -6244,6 +6452,7 @@
     },
     {
       "key": "r",
+      "cursor": [18,66],
       "rng": [95],
       "screen": [
         "You now have a scroll titled 'aks batden' (b)",
@@ -6274,6 +6483,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -6304,6 +6514,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [2,82,6,1,29,8,0,83,3,2,62,17,1,80,16,3,79,10,2,25,5,0,44,"^cmd[ch=32 no_cmd=6 after=1]","^cmd[ch=32 no_cmd=5 after=1]","^cmd[ch=32 no_cmd=4 after=1]","^cmd[ch=32 no_cmd=3 after=1]","^cmd[ch=32 no_cmd=2 after=1]","^cmd[ch=32 no_cmd=1 after=1]"],
       "screen": [
         "You feel less confused now",
@@ -6334,6 +6545,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -6364,6 +6576,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -6394,6 +6607,7 @@
     },
     {
       "key": "q",
+      "cursor": [18,66],
       "rng": [91],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -6424,6 +6638,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -6454,6 +6669,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [3,6,2,1,1,4,0,7,7,2,6,13,1,76],
       "screen": [
         "The jackal swings and misses you",
@@ -6484,6 +6700,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -6514,6 +6731,7 @@
     },
     {
       "key": "6",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -6544,6 +6762,7 @@
     },
     {
       "key": "r",
+      "cursor": [18,66],
       "rng": [84],
       "screen": [
         "You now have a scroll titled 'erkmon mungtue' (b)",
@@ -6574,6 +6793,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -6604,6 +6824,7 @@
     },
     {
       "key": "a",
+      "cursor": [0,52],
       "rng": [],
       "screen": [
         "Which object do you want to identify? (* for list):",
@@ -6634,6 +6855,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [7,11,2,86],
       "screen": [
         "The jackal barely misses you",
@@ -6664,6 +6886,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -6694,6 +6917,7 @@
     },
     {
       "key": "f",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ? do you want? (0-f)",
@@ -6724,6 +6948,7 @@
     },
     {
       "key": "r",
+      "cursor": [18,66],
       "rng": [5],
       "screen": [
         "You now have a scroll titled 'sacon klis' (b)",
@@ -6754,6 +6979,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
@@ -6784,6 +7010,7 @@
     },
     {
       "key": "D",
+      "cursor": [0,39],
       "rng": [],
       "screen": [
         "Which monster do you wish to wipe out?",
@@ -6814,6 +7041,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [53,0,0,43],
       "screen": [
         "The jackal misses you",
@@ -6844,6 +7072,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -6874,6 +7103,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -6904,6 +7134,7 @@
     },
     {
       "key": "q",
+      "cursor": [18,66],
       "rng": [71],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -6934,6 +7165,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -6964,6 +7196,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [2,6,5,5,0,4,3,3,6,2,1,1,0,20],
       "screen": [
         "The jackal misses you",
@@ -6994,6 +7227,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -7024,6 +7258,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -7054,6 +7289,7 @@
     },
     {
       "key": "q",
+      "cursor": [18,66],
       "rng": [91],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -7084,6 +7320,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -7114,6 +7351,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [7,2,6,5,5,0,4,3,3,6,2,1,1,88],
       "screen": [
         "The jackal swings and misses you",
@@ -7144,6 +7382,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -7174,6 +7413,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -7204,6 +7444,7 @@
     },
     {
       "key": "q",
+      "cursor": [18,66],
       "rng": [60],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -7234,6 +7475,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -7264,6 +7506,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [7,7,2,6,5,5,0,4,3,3,6,2,1,53],
       "screen": [
         "The jackal swings and misses you",
@@ -7294,6 +7537,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -7324,6 +7568,7 @@
     },
     {
       "key": "0",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -7354,6 +7599,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,66],
       "rng": [2,2,11],
       "screen": [
         "You now have a maple staff (b)",
@@ -7384,6 +7630,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -7414,6 +7661,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,66],
       "rng": [2,0,74,17,1,56],
       "screen": [
         "The jackal swings and misses you",
@@ -7444,6 +7692,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,66],
       "rng": [44,11,5,2,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "You have defeated the jackal.",
@@ -7474,6 +7723,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -7504,6 +7754,7 @@
     },
     {
       "key": "a",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -7534,6 +7785,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,66],
       "rng": [3],
       "screen": [
         "You now have a cedar staff (c)",
@@ -7564,6 +7816,7 @@
     },
     {
       "key": "c",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -7594,6 +7847,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,66],
       "rng": [1,2],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -7624,6 +7878,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,67],
       "rng": [80,0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -7654,6 +7909,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -7684,6 +7940,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -7714,6 +7971,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,67],
       "rng": [4],
       "screen": [
         "You now have a tin wand (d)",
@@ -7744,6 +8002,7 @@
     },
     {
       "key": "d",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -7774,6 +8033,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,67],
       "rng": [2,1],
       "screen": [
         "You have a tingling feeling",
@@ -7804,6 +8064,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,68],
       "rng": [98,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7834,6 +8095,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -7864,6 +8126,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -7894,6 +8157,7 @@
     },
     {
       "key": "q",
+      "cursor": [18,68],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -7924,6 +8188,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -7954,6 +8219,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,68],
       "rng": [5,5,0,4,3,3,6,2,1,1,4,0],
       "screen": [
         "You begin to feel much better.",
@@ -7984,6 +8250,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -8014,6 +8281,7 @@
     },
     {
       "key": "6",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -8044,6 +8312,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,68],
       "rng": [4],
       "screen": [
         "You now have a rosewood staff (e)",
@@ -8074,6 +8343,7 @@
     },
     {
       "key": "e",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -8104,6 +8374,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,68],
       "rng": [1,1,2,2],
       "screen": [
         "The missile vanishes with a puff of smoke",
@@ -8134,6 +8405,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [41,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8164,6 +8436,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -8194,6 +8467,7 @@
     },
     {
       "key": "1",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -8224,6 +8498,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [4],
       "screen": [
         "You now have a redwood staff (f)",
@@ -8254,6 +8529,7 @@
     },
     {
       "key": "f",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -8284,6 +8560,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [2,1,3],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -8314,6 +8591,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [78,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -8344,6 +8622,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -8374,6 +8653,7 @@
     },
     {
       "key": "2",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -8404,6 +8684,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [4],
       "screen": [
         "You now have a hemlock staff (g)",
@@ -8434,6 +8715,7 @@
     },
     {
       "key": "g",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -8464,6 +8746,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [0,0,4,0,5,1,0,2,5],
       "screen": [
         "You are hit by the bolt",
@@ -8494,6 +8777,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [73,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8524,6 +8808,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -8554,6 +8839,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -8584,6 +8870,7 @@
     },
     {
       "key": "q",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -8614,6 +8901,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -8644,6 +8932,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [0,4,3,3,6,2,1,1,4,0,7],
       "screen": [
         "You begin to feel much better.",
@@ -8674,6 +8963,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -8704,6 +8994,7 @@
     },
     {
       "key": "3",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -8734,6 +9025,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [0],
       "screen": [
         "You now have a bronze wand (h)",
@@ -8764,6 +9056,7 @@
     },
     {
       "key": "h",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -8794,6 +9087,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [1,2,9,3,0,0,5,5,0,2],
       "screen": [
         "You are hit by the flame",
@@ -8824,6 +9118,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [69,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8854,6 +9149,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -8884,6 +9180,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -8914,6 +9211,7 @@
     },
     {
       "key": "q",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -8944,6 +9242,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -8974,6 +9273,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [1,4,0,7,7,2,6,5,5,0,4],
       "screen": [
         "You begin to feel much better.",
@@ -9004,6 +9304,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -9034,6 +9335,7 @@
     },
     {
       "key": "4",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -9064,6 +9366,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [3],
       "screen": [
         "You now have a bone wand (i)",
@@ -9094,6 +9397,7 @@
     },
     {
       "key": "i",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9124,6 +9428,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [1,0],
       "screen": [
         "The bolt bounces",
@@ -9154,6 +9459,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [98,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -9184,6 +9490,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -9214,6 +9521,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -9244,6 +9552,7 @@
     },
     {
       "key": "q",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You now have a potion of extra healing(vermilion) (b)",
@@ -9274,6 +9583,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,49],
       "rng": ["^cmd[ch=113 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to quaff? (* for list):",
@@ -9304,6 +9614,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [1,1,4,0,7,7,2,6,5,5,0,0],
       "screen": [
         "You begin to feel much better.",
@@ -9334,6 +9645,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -9364,6 +9676,7 @@
     },
     {
       "key": "5",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -9394,6 +9707,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [2],
       "screen": [
         "You now have a balsa staff (j)",
@@ -9424,6 +9738,7 @@
     },
     {
       "key": "j",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9454,6 +9769,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [1,0],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9484,6 +9800,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [14,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9514,6 +9831,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -9544,6 +9862,7 @@
     },
     {
       "key": "7",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -9574,6 +9893,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [3],
       "screen": [
         "You now have a driftwood staff (k)",
@@ -9604,6 +9924,7 @@
     },
     {
       "key": "k",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9634,6 +9955,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [0,1],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9664,6 +9986,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [20,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9694,6 +10017,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -9724,6 +10048,7 @@
     },
     {
       "key": "8",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -9754,6 +10079,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [2],
       "screen": [
         "You now have a banyan staff (l)",
@@ -9784,6 +10110,7 @@
     },
     {
       "key": "l",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9814,6 +10141,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [0,0,2],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9844,6 +10172,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9874,6 +10203,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -9904,6 +10234,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -9934,6 +10265,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [3],
       "screen": [
         "You now have a zebra wood staff (m)",
@@ -9964,6 +10296,7 @@
     },
     {
       "key": "m",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -9994,6 +10327,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [1,2],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -10024,6 +10358,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [95,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -10054,6 +10389,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -10084,6 +10420,7 @@
     },
     {
       "key": "c",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -10114,6 +10451,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [0],
       "screen": [
         "You now have a aluminium wand (n)",
@@ -10144,6 +10482,7 @@
     },
     {
       "key": "n",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -10174,6 +10513,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [1,0],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -10204,6 +10544,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [93,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -10234,6 +10575,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -10264,6 +10606,7 @@
     },
     {
       "key": "d",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -10294,6 +10637,7 @@
     },
     {
       "key": "z",
+      "cursor": [18,69],
       "rng": [1],
       "screen": [
         "You now have a brass wand (o)",
@@ -10324,6 +10668,7 @@
     },
     {
       "key": "o",
+      "cursor": [0,52],
       "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -10354,6 +10699,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [2,1,3],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -10384,6 +10730,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [11,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
@@ -10414,6 +10761,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -10444,6 +10792,7 @@
     },
     {
       "key": "1",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -10474,6 +10823,7 @@
     },
     {
       "key": "+",
+      "cursor": [0,17],
       "rng": [],
       "screen": [
         "Blessing? (+,-,n)",
@@ -10504,6 +10854,7 @@
     },
     {
       "key": "P",
+      "cursor": [18,69],
       "rng": [0],
       "screen": [
         "You now have a kryptonite ring (b)",
@@ -10534,6 +10885,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,50],
       "rng": ["^cmd[ch=80 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to put on? (* for list):",
@@ -10564,6 +10916,7 @@
     },
     {
       "key": "l",
+      "cursor": [0,25],
       "rng": [],
       "screen": [
         "Left hand or right hand?",
@@ -10594,6 +10947,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": [2],
       "screen": [
         "Left hand or right hand?",
@@ -10624,6 +10978,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "Was wearing a kryptonite ring",
@@ -10654,6 +11009,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [93,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -10684,6 +11040,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -10714,6 +11071,7 @@
     },
     {
       "key": "0",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -10744,6 +11102,7 @@
     },
     {
       "key": "+",
+      "cursor": [0,17],
       "rng": [],
       "screen": [
         "Blessing? (+,-,n)",
@@ -10774,6 +11133,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [1],
       "screen": [
         "You can't carry anything else.",
@@ -10804,6 +11164,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -10834,6 +11195,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [0,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -10864,6 +11226,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [56,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -10894,6 +11257,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -10924,6 +11288,7 @@
     },
     {
       "key": "4",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -10954,6 +11319,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -10984,6 +11350,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -11014,6 +11381,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -11044,6 +11412,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [71,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -11074,6 +11443,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -11104,6 +11474,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -11134,6 +11505,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -11164,6 +11536,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -11194,6 +11567,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [1,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -11224,6 +11598,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [46,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -11254,6 +11629,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -11284,6 +11660,7 @@
     },
     {
       "key": "2",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -11314,6 +11691,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -11344,6 +11722,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -11374,6 +11753,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [2,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -11404,6 +11784,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [89,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -11434,6 +11815,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -11464,6 +11846,7 @@
     },
     {
       "key": "3",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -11494,6 +11877,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -11524,6 +11908,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -11554,6 +11939,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -11584,6 +11970,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [81,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -11614,6 +12001,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -11644,6 +12032,7 @@
     },
     {
       "key": "5",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -11674,6 +12063,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -11704,6 +12094,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -11734,6 +12125,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -11764,6 +12156,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [96,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -11794,6 +12187,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -11824,6 +12218,7 @@
     },
     {
       "key": "7",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -11854,6 +12249,7 @@
     },
     {
       "key": "+",
+      "cursor": [0,17],
       "rng": [],
       "screen": [
         "Blessing? (+,-,n)",
@@ -11884,6 +12280,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [0],
       "screen": [
         "You can't carry anything else.",
@@ -11914,6 +12311,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -11944,6 +12342,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [3,3,5,16,2,7,0,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "Started a wandering bat",
@@ -11974,6 +12373,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -12004,6 +12404,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -12034,6 +12435,7 @@
     },
     {
       "key": "8",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -12064,6 +12466,7 @@
     },
     {
       "key": "+",
+      "cursor": [0,17],
       "rng": [],
       "screen": [
         "Blessing? (+,-,n)",
@@ -12094,6 +12497,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [1],
       "screen": [
         "You can't carry anything else.",
@@ -12124,6 +12528,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -12154,6 +12559,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [19,0,0,1,1,660,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -12184,6 +12590,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [20,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -12214,6 +12621,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -12244,6 +12652,7 @@
     },
     {
       "key": "a",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -12274,6 +12683,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -12304,6 +12714,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -12334,6 +12745,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [79,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -12364,6 +12776,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [35,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -12394,6 +12807,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -12424,6 +12838,7 @@
     },
     {
       "key": "b",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -12454,6 +12869,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -12484,6 +12900,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -12514,6 +12931,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [2,90,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -12544,6 +12962,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [25,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -12574,6 +12993,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -12604,6 +13024,7 @@
     },
     {
       "key": "c",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -12634,6 +13055,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -12664,6 +13086,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -12694,6 +13117,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [37,0,0,347,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -12724,6 +13148,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [7,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -12754,6 +13179,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -12784,6 +13210,7 @@
     },
     {
       "key": "6",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which = do you want? (0-f)",
@@ -12814,6 +13241,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -12844,6 +13272,7 @@
     },
     {
       "key": "R",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -12874,6 +13303,7 @@
     },
     {
       "key": "l",
+      "cursor": [18,69],
       "rng": [70,"^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
@@ -12904,6 +13334,7 @@
     },
     {
       "key": "/",
+      "cursor": [18,69],
       "rng": [42,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -12934,6 +13365,7 @@
     },
     {
       "key": "@",
+      "cursor": [0,29],
       "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
@@ -12964,6 +13396,7 @@
     },
     {
       "key": "/",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "'@' : you",
@@ -12994,6 +13427,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,29],
       "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
@@ -13024,6 +13458,7 @@
     },
     {
       "key": "/",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "'!' : potion",
@@ -13054,6 +13489,7 @@
     },
     {
       "key": "?",
+      "cursor": [0,29],
       "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
@@ -13084,6 +13520,7 @@
     },
     {
       "key": "/",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "'?' : scroll",
@@ -13114,6 +13551,7 @@
     },
     {
       "key": "=",
+      "cursor": [0,29],
       "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
@@ -13144,6 +13582,7 @@
     },
     {
       "key": "/",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "'=' : ring",
@@ -13174,6 +13613,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,29],
       "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
@@ -13204,6 +13644,7 @@
     },
     {
       "key": "s",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "'/' : wand or staff",
@@ -13234,6 +13675,7 @@
     },
     {
       "key": "s",
+      "cursor": [18,69],
       "rng": [1,49,0,0,79,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -13264,6 +13706,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [39,0,0,349,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -13294,6 +13737,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -13324,6 +13768,7 @@
     },
     {
       "key": "d",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -13354,6 +13799,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -13384,6 +13830,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -13414,6 +13861,7 @@
     },
     {
       "key": ")",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -13444,6 +13892,7 @@
     },
     {
       "key": "0",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ) do you want? (0-f)",
@@ -13474,6 +13923,7 @@
     },
     {
       "key": "+",
+      "cursor": [0,17],
       "rng": [],
       "screen": [
         "Blessing? (+,-,n)",
@@ -13504,6 +13954,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [0],
       "screen": [
         "You can't carry anything else.",
@@ -13534,6 +13985,7 @@
     },
     {
       "key": ")",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -13564,6 +14016,7 @@
     },
     {
       "key": "1",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ) do you want? (0-f)",
@@ -13594,6 +14047,7 @@
     },
     {
       "key": "-",
+      "cursor": [0,17],
       "rng": [],
       "screen": [
         "Blessing? (+,-,n)",
@@ -13624,6 +14078,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [1],
       "screen": [
         "You can't carry anything else.",
@@ -13654,6 +14109,7 @@
     },
     {
       "key": "]",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -13684,6 +14140,7 @@
     },
     {
       "key": "0",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ] do you want? (0-f)",
@@ -13714,6 +14171,7 @@
     },
     {
       "key": "+",
+      "cursor": [0,17],
       "rng": [],
       "screen": [
         "Blessing? (+,-,n)",
@@ -13744,6 +14202,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [0],
       "screen": [
         "You can't carry anything else.",
@@ -13774,6 +14233,7 @@
     },
     {
       "key": "]",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -13804,6 +14264,7 @@
     },
     {
       "key": "1",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ] do you want? (0-f)",
@@ -13834,6 +14295,7 @@
     },
     {
       "key": "-",
+      "cursor": [0,17],
       "rng": [],
       "screen": [
         "Blessing? (+,-,n)",
@@ -13864,6 +14326,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": [2],
       "screen": [
         "You can't carry anything else.",
@@ -13894,6 +14357,7 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -13924,6 +14388,7 @@
     },
     {
       "key": "0",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which / do you want? (0-f)",
@@ -13954,6 +14419,7 @@
     },
     {
       "key": "\u000e",
+      "cursor": [18,69],
       "rng": [0,0],
       "screen": [
         "You can't carry anything else.",
@@ -13984,6 +14450,7 @@
     },
     {
       "key": "c",
+      "cursor": [0,50],
       "rng": ["^cmd[ch=14 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to charge? (* for list):",
@@ -14014,6 +14481,7 @@
     },
     {
       "key": "Z",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "Which object do you want to charge? (* for list):",
@@ -14044,6 +14512,7 @@
     },
     {
       "key": "\u0009",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=90 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'Z'.",
@@ -14074,6 +14543,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=9 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14104,6 +14574,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -14134,6 +14605,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -14164,6 +14636,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -14194,6 +14667,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -14224,6 +14698,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -14254,6 +14729,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -14284,6 +14760,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -14314,6 +14791,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -14344,6 +14822,7 @@
     },
     {
       "key": "C",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -14374,6 +14853,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -14404,6 +14884,7 @@
     },
     {
       "key": "5",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -14434,6 +14915,7 @@
     },
     {
       "key": ".",
+      "cursor": [18,69],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -14464,6 +14946,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,69],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -14494,6 +14977,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,68],
       "rng": [74,73,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14524,6 +15008,7 @@
     },
     {
       "key": "j",
+      "cursor": [18,67],
       "rng": [21,0,56,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14554,6 +15039,7 @@
     },
     {
       "key": "j",
+      "cursor": [19,67],
       "rng": [87,99,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14584,6 +15070,7 @@
     },
     {
       "key": "k",
+      "cursor": [19,67],
       "rng": [38,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14614,6 +15101,7 @@
     },
     {
       "key": "k",
+      "cursor": [18,67],
       "rng": [62,5,0,0,524,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14644,6 +15132,7 @@
     },
     {
       "key": "l",
+      "cursor": [17,67],
       "rng": [87,3,58,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14674,6 +15163,7 @@
     },
     {
       "key": "l",
+      "cursor": [17,68],
       "rng": [82,33,0,0,368,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14704,6 +15194,7 @@
     },
     {
       "key": "y",
+      "cursor": [17,69],
       "rng": [19,31,0,0,861,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14734,6 +15225,7 @@
     },
     {
       "key": "y",
+      "cursor": [17,69],
       "rng": [61,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14764,6 +15256,7 @@
     },
     {
       "key": "u",
+      "cursor": [17,69],
       "rng": [76,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14794,6 +15287,7 @@
     },
     {
       "key": "u",
+      "cursor": [17,69],
       "rng": [8,"^cmd[ch=117 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14824,6 +15318,7 @@
     },
     {
       "key": "b",
+      "cursor": [17,69],
       "rng": [19,"^cmd[ch=117 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14854,6 +15349,7 @@
     },
     {
       "key": "b",
+      "cursor": [18,68],
       "rng": [91,2,34,0,1,420,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14884,6 +15380,7 @@
     },
     {
       "key": "n",
+      "cursor": [19,67],
       "rng": [48,59,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14914,6 +15411,7 @@
     },
     {
       "key": "n",
+      "cursor": [19,67],
       "rng": [19,"^cmd[ch=110 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14944,6 +15442,7 @@
     },
     {
       "key": ".",
+      "cursor": [19,67],
       "rng": [54,"^cmd[ch=110 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -14974,6 +15473,7 @@
     },
     {
       "key": "\u0004",
+      "cursor": [19,67],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -15004,6 +15504,7 @@
     },
     {
       "key": "s",
+      "cursor": [20,7],
       "rng": [2,7,0,0,4,9,7,2,7,1,37,26,8,3,79,6,2,5,5,16,6,13,3,8,0,9,1,9,2,79,95,8,16,1,5,0,84,95,3,20,2,1,1,28,68,19,3,10,8,1,7,0,24,1,9,2,3,1,97,88,4,21,3,0,0,33,9,0,2,79,17,3,0,1,1,52,16,5,1,20,2,1,1,56,8,3,3,4,2,41,5,0,0,0,0,6,0,5,3,0,0,3,3,2,2,1,0,10,9,0,1,6,1,1,1,4,0,1,0,18,4,3,0,0,0,3,0,8,6,0,4,0,0,7,1,7,0,0,8,0,56,5,5,2,6,6,1,0,0,17,1,0,94,13,13,92,7,8,15,2,42,9,49,76,6,1,3,46,38,17,1,44,5,8,3,58,70,7,4,6,0,7,6,5,3,37,"^cmd[ch=4 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15034,6 +15535,7 @@
     },
     {
       "key": "\u0015",
+      "cursor": [20,7],
       "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15064,6 +15566,7 @@
     },
     {
       "key": "s",
+      "cursor": [13,73],
       "rng": [1,2,8,3,3,12,0,3,1,18,2,27,15,0,1,57,4,0,2,0,7,2,2,19,1,2,2,35,31,12,2,93,1,2,4,1,3,19,0,21,57,2,3,51,0,2,2,0,1,56,4,15,3,4,0,85,61,0,8,3,13,0,22,53,9,0,76,3,2,2,3,5,5,6,12,3,7,0,42,41,7,4,16,13,4,8,6,29,7,2,0,15,3,98,38,1,13,0,2,3,47,46,12,1,53,5,0,5,3,46,0,0,1,2,1,1,7,6,0,2,1,4,6,8,8,8,6,7,4,1,0,1,2,0,6,0,17,6,2,9,2,0,0,0,1,6,5,0,1,7,2,3,9,1,6,1,1,2,3,0,2,6,6,7,7,5,8,0,1,0,0,1,3,2,3,0,2,3,2,3,1,4,0,1,2,0,9,7,3,50,58,73,25,88,56,27,0,6,6,2,1,56,20,1,4,2,90,53,93,8,92,79,4,6,1,8,0,0,4,3,0,2,1,4,2,5,6,4,31,"^cmd[ch=21 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15094,6 +15597,7 @@
     },
     {
       "key": ".",
+      "cursor": [13,73],
       "rng": [2,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15124,6 +15628,7 @@
     },
     {
       "key": ".",
+      "cursor": [13,73],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -15154,6 +15659,7 @@
     },
     {
       "key": "C",
+      "cursor": [13,73],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -15184,6 +15690,7 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -15214,6 +15721,7 @@
     },
     {
       "key": "9",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which ! do you want? (0-f)",
@@ -15244,6 +15752,7 @@
     },
     {
       "key": ".",
+      "cursor": [13,73],
       "rng": [],
       "screen": [
         "You can't carry anything else.",
@@ -15274,6 +15783,7 @@
     },
     {
       "key": ".",
+      "cursor": [13,73],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -15304,6 +15814,7 @@
     },
     {
       "key": ".",
+      "cursor": [13,73],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -15334,6 +15845,7 @@
     },
     {
       "key": "d",
+      "cursor": [13,73],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -15364,6 +15876,7 @@
     },
     {
       "key": "a",
+      "cursor": [0,48],
       "rng": ["^cmd[ch=100 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to drop? (* for list):",
@@ -15394,6 +15907,7 @@
     },
     {
       "key": ".",
+      "cursor": [13,73],
       "rng": [],
       "screen": [
         "Dropped some food",
@@ -15424,6 +15938,7 @@
     },
     {
       "key": "C",
+      "cursor": [13,73],
       "rng": ["^cmd[ch=46 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '.'.",
@@ -15454,6 +15969,7 @@
     },
     {
       "key": ",",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Type of item:",
@@ -15484,6 +16000,7 @@
     },
     {
       "key": "0",
+      "cursor": [0,26],
       "rng": [],
       "screen": [
         "Which , do you want? (0-f)",
@@ -15514,6 +16031,7 @@
     },
     {
       "key": "y",
+      "cursor": [13,73],
       "rng": [],
       "screen": [
         "You now have the Amulet of Yendor (a)",
@@ -15544,6 +16062,7 @@
     },
     {
       "key": "y",
+      "cursor": [12,72],
       "rng": [26,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15574,6 +16093,7 @@
     },
     {
       "key": "h",
+      "cursor": [11,71],
       "rng": [41,1,28,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15604,6 +16124,7 @@
     },
     {
       "key": "b",
+      "cursor": [11,71],
       "rng": [36,19,1,2,18,1,5,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "The snake swings and misses you",
@@ -15634,6 +16155,7 @@
     },
     {
       "key": "b",
+      "cursor": [12,70],
       "rng": [92,12,3,7,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "The snake doesn't hit you",
@@ -15664,6 +16186,7 @@
     },
     {
       "key": "j",
+      "cursor": [13,69],
       "rng": [54,62,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15694,6 +16217,7 @@
     },
     {
       "key": "j",
+      "cursor": [13,69],
       "rng": [49,73,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15724,6 +16248,7 @@
     },
     {
       "key": "j",
+      "cursor": [13,69],
       "rng": [28,80,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15754,6 +16279,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,69],
       "rng": [99,47,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15784,6 +16310,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,68],
       "rng": [2,10,1,65,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "The snake swings and misses you",
@@ -15814,6 +16341,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [56,76,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15844,6 +16372,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [15,55,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15874,6 +16403,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [78,58,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15904,6 +16434,7 @@
     },
     {
       "key": "j",
+      "cursor": [13,67],
       "rng": [73,53,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15934,6 +16465,7 @@
     },
     {
       "key": "j",
+      "cursor": [13,67],
       "rng": [48,76,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15964,6 +16496,7 @@
     },
     {
       "key": "j",
+      "cursor": [13,67],
       "rng": [91,19,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -15994,6 +16527,7 @@
     },
     {
       "key": "j",
+      "cursor": [13,67],
       "rng": [70,18,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16024,6 +16558,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [85,73,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16054,6 +16589,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [24,68,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16084,6 +16620,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [15,59,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16114,6 +16651,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [98,14,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16144,6 +16682,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [97,97,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16174,6 +16713,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [72,56,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16204,6 +16744,7 @@
     },
     {
       "key": "h",
+      "cursor": [13,67],
       "rng": [7,47,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16234,6 +16775,7 @@
     },
     {
       "key": "<",
+      "cursor": [13,67],
       "rng": [50,50,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -16264,6 +16806,7 @@
     },
     {
       "key": "S",
+      "cursor": [13,67],
       "rng": [13,"^cmd[ch=60 no_cmd=0 after=1]"],
       "screen": [
         "I see no way up.",
@@ -16294,6 +16837,7 @@
     },
     {
       "key": "y",
+      "cursor": [0,29],
       "rng": ["^cmd[ch=83 no_cmd=0 after=1]"],
       "screen": [
         "Save file (/tmp/rogue.save)?",
@@ -16324,6 +16868,7 @@
     },
     {
       "key": "\u0000",
+      "cursor": [23,0],
       "rng": [],
       "screen": [
         "File name: /tmp/rogue.save",

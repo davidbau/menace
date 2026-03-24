@@ -71,7 +71,7 @@ import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KI
 import { MZ_LARGE, MZ_HUMAN, PM_GRID_BUG, AT_WEAP,
          PM_WIZARD, PM_VALKYRIE, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN,
          PM_ORACLE, S_NYMPH,
-         M1_TUNNEL, M1_NEEDPICK, M1_WALLWALK } from './monsters.js';
+         M1_TUNNEL, M1_NEEDPICK, M1_WALLWALK, mons } from './monsters.js';
 import { stackobj } from './invent.js';
 import { thitu } from './mthrowu.js';
 import { dmgval } from './weapon.js';
@@ -3136,9 +3136,13 @@ function monstinroom(mdat_pmid, roomno, map) {
     if (!map || !map.monsters) return null;
     for (const mon of map.monsters) {
         if (mon.dead) continue;
-        if (mon.mnum === mdat_pmid
+        // C ref: monstinroom checks pm == &mons[mdat_pmid].
+        // JS monsters may lack mnum/mndx; fall back to name match.
+        const matchesPm = mon.mnum === mdat_pmid
             || (mon.data && mon.data.mndx === mdat_pmid)
-            || (mon.type && mon.type.mndx === mdat_pmid)) {
+            || (mon.type && mon.type.mndx === mdat_pmid)
+            || (mons[mdat_pmid] && mon.data && mon.data.mname === mons[mdat_pmid].mname);
+        if (matchesPm) {
             const rooms = in_rooms(mon.mx, mon.my, 0, map);
             if (rooms.includes(roomno + ROOMOFFSET)) return mon;
         }
