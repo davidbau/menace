@@ -284,6 +284,52 @@ function buildActions() {
   a(() => { const l = findPackLetter('!', 7); return l ? 'q' + l : '.'; });
 
   // ================================================================
+  // SEARCH ADJACENT TO TRAP (misc.js:371-379)
+  // Traps are '^' in stdscr. Teleport until adjacent, then search.
+  // ================================================================
+  // Go MUCH deeper for guaranteed traps (rnd(10) < level means 100% at level 10+)
+  for (let i = 0; i < 9; i++) a(() => '\x04');
+  heal();
+
+  // Check if adjacent to a trap; if not, teleport
+  for (let attempt = 0; attempt < 15; attempt++) {
+    a(() => {
+      const g = game();
+      const py = g.player.t_pos.y, px = g.player.t_pos.x;
+      // Check if we're already adjacent to a trap
+      for (let i = 0; i < g.ntraps; i++) {
+        const t = g.traps[i];
+        if (t.tr_flags & 0o000010) continue;  // ISFOUND — skip already found
+        const dy = Math.abs(t.tr_pos.y - py), dx = Math.abs(t.tr_pos.x - px);
+        if (dy <= 1 && dx <= 1 && !(dy === 0 && dx === 0)) {
+          return 'ssssssssssssssssssssssssss';
+        }
+      }
+      return '\x14';
+    });
+  }
+  heal();
+
+  // Try next level
+  a(() => '\x04');
+  for (let attempt = 0; attempt < 10; attempt++) {
+    a(() => {
+      const g = game();
+      const py = g.player.t_pos.y, px = g.player.t_pos.x;
+      for (let i = 0; i < g.ntraps; i++) {
+        const t = g.traps[i];
+        if (t.tr_flags & 0o000010) continue;
+        const dy = Math.abs(t.tr_pos.y - py), dx = Math.abs(t.tr_pos.x - px);
+        if (dy <= 1 && dx <= 1 && !(dy === 0 && dx === 0)) {
+          return 'ssssssssssssssssssssssssss';
+        }
+      }
+      return '\x14';
+    });
+  }
+  heal();
+
+  // ================================================================
   // QUIT
   // ================================================================
   a(() => 'Qy');
