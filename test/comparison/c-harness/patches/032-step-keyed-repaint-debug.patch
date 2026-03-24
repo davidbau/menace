@@ -6,6 +6,8 @@ diff --git a/include/extern.h b/include/extern.h
  extern void repaint_debug_clear_scope(void);
  extern const char *repaint_debug_get_scope(void);
 +extern long repaint_debug_get_step_index(void);
++extern const char *repaint_debug_get_step_path(void);
++extern int repaint_debug_get_step_key(void);
  
  /* ### role.c ### */
  
@@ -17,13 +19,18 @@ diff --git a/src/allmain.c b/src/allmain.c
  static int mvl_wtcap = 0;
  static int mvl_change = 0;
 +static long repaint_debug_key_step_index = -1L;
++static const char *repaint_debug_step_path = (const char *) 0;
++static int repaint_debug_step_keyarg = -1;
 +
 +staticfn void
-+repaint_debug_note_runstep(const char *pathstr)
++repaint_debug_note_runstep(const char *pathstr, int keyarg)
 +{
-+    if (!pathstr || strcmp(pathstr, "fresh_cmd"))
-+        return;
-+    ++repaint_debug_key_step_index;
++    if (!pathstr || !*pathstr)
++        pathstr = "unknown";
++    if (!strcmp(pathstr, "fresh_cmd"))
++        ++repaint_debug_key_step_index;
++    repaint_debug_step_path = pathstr;
++    repaint_debug_step_keyarg = keyarg;
 +}
  
  staticfn boolean
@@ -58,13 +65,25 @@ diff --git a/src/allmain.c b/src/allmain.c
 +{
 +    return repaint_debug_key_step_index;
 +}
- 
- #define RUNSTEP_EVENT(pathstr, keyarg)                                         \
-     do {                                                                       \
-+        repaint_debug_note_runstep((pathstr));                                 \
-         runstep_maybe_auto_dumpsnap((pathstr), (keyarg));                      \
-         if (runstep_event_enabled())                                           \
-             event_log("runstep[path=%s keyarg=%d cmd=%d cc=%d moves=%ld multi=%d run=%d mv=%d move=%d occ=%d umoved=%d ux=%d uy=%d]", \
++
++const char *
++repaint_debug_get_step_path(void)
++{
++    return repaint_debug_step_path;
++}
++
++int
++repaint_debug_get_step_key(void)
++{
++    return repaint_debug_step_keyarg;
++}
+
+#define RUNSTEP_EVENT(pathstr, keyarg)                                         \
+    do {                                                                       \
++        repaint_debug_note_runstep((pathstr), (keyarg));                        \
+        runstep_maybe_auto_dumpsnap((pathstr), (keyarg));                      \
+        if (runstep_event_enabled())                                           \
+            event_log("runstep[path=%s keyarg=%d cmd=%d cc=%d moves=%ld multi=%d run=%d mv=%d move=%d occ=%d umoved=%d ux=%d uy=%d]", \
 diff --git a/src/rnd.c b/src/rnd.c
 --- a/src/rnd.c
 +++ b/src/rnd.c
@@ -73,6 +92,8 @@ diff --git a/src/rnd.c b/src/rnd.c
      va_list ap;
      FILE *out;
 +    long step_index;
++    const char *step_path;
++    int step_key;
      if (!repaint_debug_enabled)
          return;
      out = repaint_debug_file ? repaint_debug_file : stderr;
@@ -80,6 +101,12 @@ diff --git a/src/rnd.c b/src/rnd.c
 +    step_index = repaint_debug_get_step_index();
 +    if (step_index >= 0L)
 +        fprintf(out, "step=%ld ", step_index + 1L);
++    step_path = repaint_debug_get_step_path();
++    if (step_path && *step_path)
++        fprintf(out, "path=%s ", step_path);
++    step_key = repaint_debug_get_step_key();
++    if (step_key >= 0)
++        fprintf(out, "key=%d ", step_key);
      va_start(ap, fmt);
      vfprintf(out, fmt, ap);
      va_end(ap);
