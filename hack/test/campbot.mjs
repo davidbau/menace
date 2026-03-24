@@ -158,6 +158,13 @@ input.getKey = async function () {
   if (stepCount >= maxSteps) throw new BotDone();
   stepCount++;
 
+  // Dismiss --More-- prompts (pline waits for space; non-space keys are discarded)
+  const row1 = display.grid[1]?.slice(1, 80).join('') || '';
+  if (row1.includes('--More--')) { keyLog.push(' '); return ' '; }
+
+  // Wait out paralysis
+  if (game.multi < 0) { keyLog.push(' '); return ' '; }
+
   const u = game.u;
   const depth = game.dlevel;
   let key;
