@@ -1120,12 +1120,7 @@ function hasPendingCommandBoundaryDismiss(game) {
     // clear the old topline and continue with command parsing; stale
     // rendered "--More--" text must not keep owning further keys.
     if (!display?.messageNeedsMore) return false;
-    if (typeof display.getScreenLines === 'function') {
-        const lines = display.getScreenLines() || [];
-        if ((lines[0] || '').includes('--More--') || (lines[1] || '').includes('--More--')) {
-            return true;
-        }
-    }
+    if (typeof display.getScreenLines !== 'function') return false;
     const lines = display.getScreenLines() || [];
     return (lines[0] || '').includes('--More--') || (lines[1] || '').includes('--More--');
 }
