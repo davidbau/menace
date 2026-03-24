@@ -4,8 +4,6 @@
  */
 
 import { game } from './gstate.js';
-import { wclear, mvwaddstr, draw } from './curses.js';
-import { LINES } from './const.js';
 
 const SCORE_KEY = 'rogue-scores';
 const GAMEOVER_KEY = 'menace-gameover';
@@ -69,37 +67,4 @@ export function storeGameover(lines) {
     const rows = lines.map(text => ({ text, color: 7 })); // 7 = CLR_GRAY / white
     localStorage.setItem(GAMEOVER_KEY, JSON.stringify(rows));
   } catch (e) {}
-}
-
-/**
- * showScores(): display the top-10 score list on cw, wait for space.
- */
-export async function showScores() {
-  const g = game();
-  const { wait_for } = await import('./io.js');
-  const scores = getScores();
-
-  wclear(g.cw);
-  mvwaddstr(g.cw, 0, 0, 'Top Ten Rogues');
-  mvwaddstr(g.cw, 1, 0, '  Rank      Gold  Level  Name');
-  mvwaddstr(g.cw, 2, 0, '  ----  --------  -----  --------------------');
-
-  for (let i = 0; i < scores.length && i < MAX_SCORES; i++) {
-    const s = scores[i];
-    const rank  = String(i + 1).padStart(5);
-    const gold  = String(s.gold).padStart(9);
-    const level = String(s.level).padStart(6);
-    const won   = s.won ? '*' : ' ';
-    mvwaddstr(g.cw, 3 + i, 0, `${rank}  ${gold}  ${level}  ${won}${s.name}`);
-  }
-
-  if (scores.length === 0) {
-    mvwaddstr(g.cw, 3, 2, '(no scores yet)');
-  }
-
-  mvwaddstr(g.cw, LINES - 1, 0, '--Press space to continue--');
-  draw(g.cw);
-  await wait_for(' ');
-  wclear(g.cw);
-  draw(g.cw);
 }
