@@ -300,10 +300,19 @@ int wrefresh(WINDOW *win)
         return OK;
     }
 
-    /* For cw: copy cw->_data directly to harness_display. */
+    /* For cw: composite via _overlay — non-'\0' chars are opaque.
+     * This matches Berkeley curses semantics where wrefresh composites
+     * the window onto the terminal.
+     */
     for (i = 0; i < LINES; i++) {
-        memcpy(harness_display[i], cw->_data[i], COLS);
+        memset(harness_display[i], ' ', COLS);
         harness_display[i][COLS] = '\0';
+        if (cw) {
+            for (j = 0; j < COLS; j++) {
+                char cc = cw->_overlay[i][j];
+                if (cc) harness_display[i][j] = cc;
+            }
+        }
     }
 
     return OK;

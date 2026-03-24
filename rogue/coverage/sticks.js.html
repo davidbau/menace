@@ -1026,12 +1026,12 @@ export async function do_zap(gotdir) {
 <span class="cstat-no" title="statement not covered" >        if (!_save_throw(3 /* VS_MAGIC */, bitem.l_data)) {</span>
 <span class="cstat-no" title="statement not covered" >          await _hit_monster({ y: bolt.o_pos.y, x: bolt.o_pos.x }, bolt);</span>
 <span class="cstat-no" title="statement not covered" >        } else if (bmon !== 'M' || mvwinch(g.cw, bolt.o_pos.y, bolt.o_pos.x) === 'M') {</span>
-<span class="cstat-no" title="statement not covered" >          if (g.terse) await _msg('Missle vanishes');</span>
-<span class="cstat-no" title="statement not covered" >          else await _msg('The missle vanishes with a puff of smoke');</span>
+<span class="cstat-no" title="statement not covered" >          if (g.terse) await _msg('Missile vanishes');</span>
+<span class="cstat-no" title="statement not covered" >          else await _msg('The missile vanishes with a puff of smoke');</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
       } else {
-        if (g.terse) <span class="branch-0 cbranch-no" title="branch not covered" >await _msg('Missle vanishes');</span>
-        else await _msg('The missle vanishes with a puff of smoke');
+        if (g.terse) <span class="branch-0 cbranch-no" title="branch not covered" >await _msg('Missile vanishes');</span>
+        else await _msg('The missile vanishes with a puff of smoke');
       }
       g.ws_know[WS_MISSILE] = true;
       break;
@@ -1200,7 +1200,7 @@ function drain(ymin, ymax, xmin, xmax) {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-24T19:20:31.636Z
+                at 2026-03-24T21:23:55.711Z
             </div>
         <script src="prettify.js"></script>
         <script>
