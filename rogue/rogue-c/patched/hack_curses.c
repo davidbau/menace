@@ -321,7 +321,6 @@ int wrefresh(WINDOW *win)
     }
     harness_cursor_y = cw->_cury;
     harness_cursor_x = cw->_curx;
-
     return OK;
 }
 

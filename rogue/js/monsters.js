@@ -256,8 +256,9 @@ export async function genocide() {
   if (!g.terse) addmsg_helper(" do you wish to wipe out");
   await _msg("? ");
 
+  const { readchar } = await import('./io.js');
   while (true) {
-    c = await g.input.getKey();
+    c = await readchar();
     if (c === '\x1b') return;
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) break;
     g.mpos = 0;

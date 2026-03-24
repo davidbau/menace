@@ -77,7 +77,9 @@ endmsg()
     {
 	wmove(cw, 0, mpos);
 	waddstr(cw, "--More--");
+#ifndef HARNESS
 	draw(cw);
+#endif
 	wait_for(cw,' ');
     }
     mvwaddstr(cw, 0, 0, msgbuf);
