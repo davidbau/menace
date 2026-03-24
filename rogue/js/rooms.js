@@ -29,8 +29,9 @@ export function do_rooms() {
   const g = game();
   const rooms = g.rooms;
 
-  const bszeX = Math.floor((COLS - 2) / 3);
-  const bszeY = Math.floor((LINES - 4) / 3);
+  // C ref: rooms.c — bsze = {COLS/3, LINES/3}
+  const bszeX = Math.floor(COLS / 3);
+  const bszeY = Math.floor(LINES / 3);
 
   for (const rp of rooms) {
     rp.r_goldval = rp.r_nexits = rp.r_flags = 0;
@@ -43,15 +44,16 @@ export function do_rooms() {
 
   for (let i = 0; i < MAXROOMS; i++) {
     const rp = rooms[i];
-    const topX = (i % 3) * (bszeX + 1);
-    const topY = Math.floor(i / 3) * (bszeY + 1) + 1;
+    // C ref: rooms.c — top.x = (i%3)*bsze.x + 1; top.y = i/3*bsze.y;
+    const topX = (i % 3) * bszeX + 1;
+    const topY = Math.floor(i / 3) * bszeY;
 
     if (rp.r_flags & ISGONE) {
       do {
         rp.r_pos.x = topX + rnd(bszeX - 2) + 1;
         rp.r_pos.y = topY + rnd(bszeY - 2) + 1;
         rp.r_max.x = -COLS;
-        rp.r_max.y = -(LINES - 1);
+        rp.r_max.y = -LINES;
       } while (rp.r_pos.y <= 0 || rp.r_pos.y >= LINES - 1);
       continue;
     }
@@ -59,10 +61,13 @@ export function do_rooms() {
     if (rnd(10) < g.level - 1)
       rp.r_flags |= ISDARK;
 
-    rp.r_max.x = rnd(bszeX - 3) + 4;
-    rp.r_max.y = rnd(bszeY - 3) + 4;
-    rp.r_pos.x = topX + rnd(bszeX + 1 - rp.r_max.x);
-    rp.r_pos.y = topY + rnd(bszeY + 1 - rp.r_max.y);
+    // C ref: rooms.c — room size and position (retry if y == 0)
+    do {
+      rp.r_max.x = rnd(bszeX - 4) + 4;
+      rp.r_max.y = rnd(bszeY - 4) + 4;
+      rp.r_pos.x = topX + rnd(bszeX - rp.r_max.x);
+      rp.r_pos.y = topY + rnd(bszeY - rp.r_max.y);
+    } while (rp.r_pos.y === 0);
 
     if (rnd(100) < 50 && (!g.amulet || g.level >= g.max_level)) {
       rp.r_goldval = goldcalc();
