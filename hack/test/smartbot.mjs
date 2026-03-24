@@ -174,12 +174,34 @@ function nearestSDOOR() {
   return best;
 }
 
+// Find nearest reachable monster to fight (for XP grinding).
+// Avoids DEADLY monsters. Returns movement key toward the monster, or null.
+function findHuntTarget() {
+  const dz = dangerZone();
+  let best = null, bestDist = Infinity;
+  for (let m = game.fmon; m; m = m.nmon) {
+    if (!m.data || m.data.mlet === ' ') continue;
+    if (DEADLY.has(m.data.mlet)) continue; // never fight eyes
+    if (m.mx === 0 && m.my === 0) continue;
+    const pk = `${m.mx},${m.my}`;
+    if (dz.has(pk)) continue;
+    // Check if reachable
+    const r = bfsTo(m.mx, m.my, { dzone: dz });
+    if (r) {
+      const dist = Math.abs(m.mx - game.u.ux) + Math.abs(m.my - game.u.uy);
+      if (dist < bestDist) { bestDist = dist; best = r.key; }
+    }
+  }
+  return best;
+}
+
 // ===== Parse args =====
 const args = process.argv.slice(2);
 function getArg(name, def) { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : def; }
 const seed = parseInt(getArg('--seed', '47'));
 const targetDepth = parseInt(getArg('--depth', '26'));
 const maxSteps = parseInt(getArg('--maxsteps', '200000'));
+const grindXP = parseInt(getArg('--grind', '0')); // target XP per dlevel before descending (0=no grinding)
 
 // ===== Run =====
 wireDeps();
@@ -273,6 +295,26 @@ input.getKey = async function () {
         if (o.olet === '[' && armorRating(o) > bestR) { bestR = armorRating(o); best = o; }
       if (best) { keyQueue.push(invLetter(best)); key = 'W'; keyLog.push(key); return key; }
     }
+  }
+
+  // ===== XP Grinding: fight monsters before descending =====
+  if (grindXP > 0 && depth < targetDepth && u.uexp < grindXP * depth) {
+    // Need more XP before descending. Hunt monsters on this level.
+    const huntKey = findHuntTarget();
+    if (huntKey) {
+      key = huntKey;
+      keyLog.push(key); return key;
+    }
+    // No reachable monsters — search for SDOORs to reveal new areas
+    const sd = nearestSDOOR();
+    if (sd) {
+      if (u.ux === sd.x && u.uy === sd.y) {
+        keyLog.push('s'); return 's';
+      }
+      const sk = nav(sd.x, sd.y);
+      if (sk) { keyLog.push(sk); return sk; }
+    }
+    // No SDOORs either — descend (monsters on this level are exhausted)
   }
 
   // ===== Navigate to stairs and descend =====
