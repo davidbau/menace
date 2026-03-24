@@ -14,7 +14,7 @@ import { new_item, _attach } from './list.js';
 // Injected deps
 let _msg = null;
 let _add_pack = null;
-let _check_level = null;
+let _raise_level = null;
 let _teleport = null;
 let _new_level = null;
 let _status = null;
@@ -29,7 +29,7 @@ let _get_item = null;
 export function _setWizardDeps(deps) {
   _msg = deps.msg;
   _add_pack = deps.add_pack;
-  _check_level = deps.check_level;
+  _raise_level = deps.raise_level;
   _teleport = deps.teleport;
   _new_level = deps.new_level;
   _status = deps.status;
@@ -182,7 +182,7 @@ export async function wizard_cmds(ch) {
     case '\x08': {
       // Ctrl-H: raise 9 levels + give two-handed sword and plate mail
       for (let i = 0; i < 9; i++) {
-        if (_check_level) _check_level();
+        if (_raise_level) await _raise_level();
       }
       // Two-handed sword (+1,+1)
       {

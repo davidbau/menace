@@ -1196,7 +1196,11 @@ export class HeadlessDisplay {
             // C ref: wintty.c — end_menu(prompt) title (line 0) and category headers
             // use inverse video.  add_menu_str() content lines at line 0 do NOT.
             // Callers pass opts.noTitleInverse when line 0 is add_menu_str content.
-            const isHeader = (i === 0 && !opts?.noTitleInverse && line.trim().length > 0) || isCategoryHeader(line);
+            // C ref: windows.c add_menu_heading() — program_state.gameover
+            // suppresses ALL heading highlights (attr=ATR_NONE, color=NO_COLOR).
+            // Callers pass opts.noHeaderInverse for endgame disclosure.
+            const isHeader = !opts?.noHeaderInverse
+                && ((i === 0 && !opts?.noTitleInverse && line.trim().length > 0) || isCategoryHeader(line));
             if (isHeader) {
                 // C ref: wintty.c — category headers have a single leading
                 // space that is part of the pre-cleared region, not inverse video.
@@ -1258,7 +1262,7 @@ export class HeadlessDisplay {
         rip.push('        _________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______');
         const startRow = 1;
         for (let i = 0; i < rip.length && startRow + i < this.rows; i++) {
-            this.putstr(0, startRow + i, rip[i], CLR_WHITE);
+            this.putstr(0, startRow + i, rip[i]);
         }
     }
 

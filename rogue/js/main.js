@@ -258,7 +258,7 @@ export function wireGameDeps(g) {
   });
 
   _setWizardDeps({
-    msg, add_pack, check_level, teleport,
+    msg, add_pack, raise_level, teleport,
     new_level, status, inv_name, readchar,
     fix_stick, init_weapon,
     a_class: game().a_class,

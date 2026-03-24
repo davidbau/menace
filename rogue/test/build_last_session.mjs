@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 /**
- * build_last_session.mjs — Final coverage session.
+ * build_last_session.mjs — Comprehensive final coverage session.
  *
- * Targets:
- *   sticks.js:247-259 — haste/slow wand hitting monster in line-of-sight
- *   misc.js:393-396   — add_haste exhaustion (drink haste twice)
- *   fight.js:492-503  — is_magic() all branches (via P_TFIND)
- *   rings.js:147-159  — get_str() backspace/ESC in ring naming
- *   fight.js:468-474  — thunk() for non-weapon thrown
- *   fight.js:480-486  — bounce() for non-weapon miss
+ * Targets all remaining gaps with reliable strategies:
+ *   misc.js:371-379  — search finding trap (walk adjacent, avoid stepping on it)
+ *   sticks.js:247-259 — haste/slow wand hitting monster
+ *   rings.js:147-159  — get_str backspace/ESC in naming
+ *   fight.js:468-486  — thunk/bounce for bare-fist attacks
+ *   fight.js:492-503  — is_magic via P_TFIND
  */
 
 {
@@ -35,12 +34,11 @@ import { MockDisplay } from './mock_display.mjs';
 import { MockInput } from './mock_input.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SEED = 222;
+const SEED = 111;
 
 class SessionDone extends Error {}
 
 function hexChar(n) { return n < 10 ? String(n) : String.fromCharCode(97 + n - 10); }
-const PASSABLE = '.#:+!?/=)*]^,%*>{$}~`&';
 
 function findPackLetter(type, which) {
   const g = game();
@@ -53,11 +51,14 @@ function findPackLetter(type, which) {
   return found;
 }
 
-function walkTo(ty, tx) {
+// BFS walkTo with optional set of excluded cells
+function walkTo(ty, tx, exclude) {
+  const PASSABLE = '.#:+!?/=)*]^,%*>{$}~`&';
   const g = game();
   const sy = g.player.t_pos.y, sx = g.player.t_pos.x;
   if (sy === ty && sx === tx) return '';
   const visited = new Set();
+  if (exclude) for (const k of exclude) visited.add(k);
   const queue = [[sy, sx, []]];
   visited.add(sy * 80 + sx);
   while (queue.length > 0) {
@@ -82,20 +83,15 @@ function walkTo(ty, tx) {
   return '';
 }
 
-// Find a cardinal direction (h/j/k/l) with a monster in line-of-sight.
-// For haste/slow wands: scan from player in direction until non-step_ok,
-// check if that cell has a monster on mw.
 function findCardinalMonsterDir() {
   const g = game();
   const py = g.player.t_pos.y, px = g.player.t_pos.x;
   for (const [dy, dx, ch] of [[-1,0,'k'],[1,0,'j'],[0,-1,'h'],[0,1,'l']]) {
     let y = py + dy, x = px + dx;
-    // Scan until non-passable
     while (y >= 1 && y < 23 && x >= 0 && x < 80) {
-      const mch = g.mw[y]?.[x];
-      if (mch >= 'A' && mch <= 'Z') return ch;  // Monster found in line
-      const sch = g.stdscr[y][x];
-      if (sch === '|' || sch === '-' || sch === ' ' || sch === '+') break;
+      if (g.mw[y]?.[x] >= 'A' && g.mw[y]?.[x] <= 'Z') return ch;
+      const s = g.stdscr[y][x];
+      if (s === '|' || s === '-' || s === ' ' || s === '+') break;
       y += dy; x += dx;
     }
   }
@@ -107,8 +103,7 @@ function adjacentMonsterDir() {
   const py = g.player.t_pos.y, px = g.player.t_pos.x;
   for (const [dy,dx,ch] of [[-1,0,'k'],[1,0,'j'],[0,-1,'h'],[0,1,'l'],[-1,-1,'y'],[-1,1,'u'],[1,-1,'b'],[1,1,'n']]) {
     const ny = py+dy, nx = px+dx;
-    if (ny>=0 && ny<24 && nx>=0 && nx<80 && g.mw[ny]?.[nx] >= 'A' && g.mw[ny]?.[nx] <= 'Z')
-      return ch;
+    if (g.mw[ny]?.[nx] >= 'A' && g.mw[ny]?.[nx] <= 'Z') return ch;
   }
   return null;
 }
@@ -131,7 +126,7 @@ function buildActions() {
   // ================================================================
   // SETUP
   // ================================================================
-  a(() => '\x08');  // Ctrl-H
+  a(() => '\x08');
   for (let i = 0; i < 12; i++) {
     a(() => createItem('!', 8));
     a(() => { const l = findPackLetter('!', 8); return l ? 'q' + l : '.'; });
@@ -139,149 +134,147 @@ function buildActions() {
   for (let i = 0; i < 6; i++) heal();
 
   // ================================================================
-  // HASTE EXHAUSTION (misc.js:393-396)
-  // Drink P_HASTE, then immediately drink another P_HASTE.
-  // Second one while ISHASTE is active → "You faint from exhaustion."
+  // 1. HASTE EXHAUSTION (misc.js:393-396)
   // ================================================================
-  a(() => createItem('!', 10));  // P_HASTE #1
+  a(() => createItem('!', 10));
   a(() => { const l = findPackLetter('!', 10); return l ? 'q' + l : '.'; });
-  // Immediately create and drink second haste potion (ISHASTE still active)
-  a(() => createItem('!', 10));  // P_HASTE #2
+  a(() => createItem('!', 10));
   a(() => { const l = findPackLetter('!', 10); return l ? 'q' + l : '.'; });
   heal();
 
   // ================================================================
-  // RINGS get_str (rings.js:147-159)
-  // Enable askme, put on unknown ring → naming prompt → exercise get_str
+  // 2. RINGS get_str — backspace and ESC (rings.js:147-159)
   // ================================================================
-  a(() => { game().askme = true; return '.'; });
-  // Ring with backspace in naming
-  a(() => createItem('=', 12));  // R_STEALTH
+
+  a(() => createItem('=', 12));  // R_STEALTH (unknown)
   a(() => {
     const l = findPackLetter('=', 12);
-    if (!l) return '.';
-    // Put on left, then naming: type "xy", backspace, "z", Enter → "xz"
-    return 'P' + l + 'l' + 'xy\x7fz\n';
-  });
-  a(() => 'Rl');  // Remove
-  // Ring with ESC in naming (returns null, no name set)
-  a(() => createItem('=', 3));  // R_SEARCH
-  a(() => {
-    const l = findPackLetter('=', 3);
-    if (!l) return '.';
-    return 'P' + l + 'l' + '\x1b';  // ESC cancels naming
+    return l ? 'P' + l + 'l' + 'xy\x7fz\n' : '.';  // backspace test
   });
   a(() => 'Rl');
-  a(() => { game().askme = false; return '.'; });
+  a(() => createItem('=', 3));  // R_SEARCH (unknown)
+  a(() => {
+    const l = findPackLetter('=', 3);
+    return l ? 'P' + l + 'l' + '\x1b' : '.';  // ESC test
+  });
+  a(() => 'Rl');
+
 
   // ================================================================
-  // HASTE/SLOW WAND AT MONSTER (sticks.js:247-259)
-  // Go to level with monsters, find one in cardinal direction, zap.
-  // Need to be in same room/corridor with clear line of sight.
+  // 3. SEARCH FINDING TRAP (misc.js:371-379)
+  // Go deep (level 10+), find trap, walk ADJACENT (excluding trap cell
+  // from BFS to avoid stepping on it), search repeatedly.
   // ================================================================
-  // Go to level 5 for more monsters
-  a(() => '\x04'); a(() => '\x04'); a(() => '\x04'); a(() => '\x04');
+  for (let i = 0; i < 9; i++) a(() => '\x04');
   heal();
 
-  // Walk close to a monster first, then zap
-  a(() => {
-    const g = game();
-    for (let m = g.mlist; m; m = m.l_next) {
-      const my = m.l_data.t_pos.y, mx = m.l_data.t_pos.x;
-      // Try to get into same row or column as monster, 2-5 cells away
-      for (const [dy, dx] of [[0,1],[0,-1],[1,0],[-1,0]]) {
-        for (let dist = 2; dist <= 5; dist++) {
-          const ty = my + dy * dist, tx = mx + dx * dist;
-          if (ty < 1 || ty >= 23 || tx < 1 || tx >= 79) continue;
-          if (!'.#'.includes(g.stdscr[ty][tx])) continue;
-          const path = walkTo(ty, tx);
-          if (path.length > 0 && path.length <= 20) return path;
+  // Try across multiple levels
+  for (let levelTry = 0; levelTry < 4; levelTry++) {
+    a(() => {
+      const g = game();
+      for (let i = 0; i < g.ntraps; i++) {
+        const t = g.traps[i];
+        if (t.tr_flags & 0o000010) continue;  // ISFOUND
+        const ty = t.tr_pos.y, tx = t.tr_pos.x;
+        const trapKey = ty * 80 + tx;
+        // Find adjacent floor cell, walk there AVOIDING the trap cell
+        for (const [dy,dx] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+          const ay = ty+dy, ax = tx+dx;
+          if (ay < 1 || ay >= 23 || ax < 1 || ax >= 79) continue;
+          const ch = g.stdscr[ay][ax];
+          if (ch === '.' || ch === '#') {
+            const path = walkTo(ay, ax, new Set([trapKey]));
+            if (path.length > 0 && path.length <= 25) {
+              console.error(`  Found unfound trap at ${ty},${tx}, walking to ${ay},${ax} (${path.length} steps)`);
+              return path + 'ssssssssssssssssssssssssssssssssss';
+            }
+          }
         }
       }
-    }
-    return '\x14';  // teleport if no good position
-  });
+      console.error(`  No reachable unfound trap on level ${g.level}`);
+      return '\x04';  // go deeper
+    });
+    heal();
+  }
 
-  // Now zap haste wand — findCardinalMonsterDir should find it
-  a(() => createItem('/', 7));  // WS_HASTE_M
-  a(() => {
-    const l = findPackLetter('/', 7);
-    const d = findCardinalMonsterDir();
-    if (l && d) return 'z' + l + d;
-    return '.';
-  });
-
-  // Zap slow wand at same or different monster
-  a(() => createItem('/', 8));  // WS_SLOW_M
-  a(() => {
-    const l = findPackLetter('/', 8);
-    const d = findCardinalMonsterDir();
-    if (l && d) return 'z' + l + d;
-    return '.';
-  });
-  heal();
-
-  // Try on next level too
+  // ================================================================
+  // 4. HASTE/SLOW WAND AT MONSTER (sticks.js:247-259)
+  // Position in same row/column as monster, then zap.
+  // ================================================================
   a(() => '\x04');
   heal();
-  a(() => {
-    const g = game();
-    for (let m = g.mlist; m; m = m.l_next) {
-      const my = m.l_data.t_pos.y, mx = m.l_data.t_pos.x;
-      for (const [dy, dx] of [[0,1],[0,-1],[1,0],[-1,0]]) {
-        for (let dist = 2; dist <= 5; dist++) {
-          const ty = my + dy * dist, tx = mx + dx * dist;
-          if (ty < 1 || ty >= 23 || tx < 1 || tx >= 79) continue;
-          if (!'.#'.includes(g.stdscr[ty][tx])) continue;
-          const path = walkTo(ty, tx);
-          if (path.length > 0 && path.length <= 20) return path;
+
+  for (let attempt = 0; attempt < 4; attempt++) {
+    a(() => {
+      const g = game();
+      // Find a monster and position in same row or column, 2-5 cells away
+      for (let m = g.mlist; m; m = m.l_next) {
+        const my = m.l_data.t_pos.y, mx = m.l_data.t_pos.x;
+        for (const [dy, dx] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+          for (let dist = 2; dist <= 6; dist++) {
+            const ty = my + dy * dist, tx = mx + dx * dist;
+            if (ty < 1 || ty >= 23 || tx < 1 || tx >= 79) continue;
+            if (!'.#'.includes(g.stdscr[ty][tx])) continue;
+            const path = walkTo(ty, tx);
+            if (path.length > 0 && path.length <= 18) return path;
+          }
         }
       }
+      return '\x14';  // teleport
+    });
+    a(() => createItem('/', 7));
+    a(() => {
+      const l = findPackLetter('/', 7);
+      const d = findCardinalMonsterDir();
+      return (l && d) ? 'z' + l + d : '.';
+    });
+    a(() => createItem('/', 8));
+    a(() => {
+      const l = findPackLetter('/', 8);
+      const d = findCardinalMonsterDir();
+      return (l && d) ? 'z' + l + d : '.';
+    });
+  }
+  heal();
+
+  // ================================================================
+  // 5. P_TFIND for is_magic (fight.js:492-503)
+  // ================================================================
+  a(() => createItem('!', 7));
+  a(() => { const l = findPackLetter('!', 7); return l ? 'q' + l : '.'; });
+
+  // ================================================================
+  // 6. BARE-FIST COMBAT (fight.js thunk/bounce non-weapon)
+  // Drop weapon, fight monster with bare hands
+  // ================================================================
+  a(() => {
+    const g = game();
+    if (g.cur_weapon) {
+      let letter = 'a';
+      for (let item = g.pack; item; item = item.l_next) {
+        if (item.l_data === g.cur_weapon) return 'd' + letter;
+        letter = String.fromCharCode(letter.charCodeAt(0) + 1);
+      }
+    }
+    return '.';
+  });
+  // Walk to nearest monster and punch it
+  a(() => {
+    const g = game();
+    let best = null, bestDist = Infinity;
+    for (let m = g.mlist; m; m = m.l_next) {
+      const d = Math.abs(m.l_data.t_pos.y - g.player.t_pos.y) + Math.abs(m.l_data.t_pos.x - g.player.t_pos.x);
+      if (d < bestDist) { bestDist = d; best = m.l_data; }
+    }
+    if (!best) return '.';
+    const path = walkTo(best.t_pos.y, best.t_pos.x);
+    if (path.length > 0 && path.length <= 20) {
+      const last = path[path.length - 1];
+      return path + last.repeat(15);
     }
     return '\x14';
   });
-  a(() => createItem('/', 7));
-  a(() => {
-    const l = findPackLetter('/', 7);
-    const d = findCardinalMonsterDir();
-    return (l && d) ? 'z' + l + d : '.';
-  });
-  a(() => createItem('/', 8));
-  a(() => {
-    const l = findPackLetter('/', 8);
-    const d = findCardinalMonsterDir();
-    return (l && d) ? 'z' + l + d : '.';
-  });
   heal();
-
-  // Third attempt with teleport
-  for (let attempt = 0; attempt < 3; attempt++) {
-    a(() => {
-      const d = findCardinalMonsterDir();
-      if (d) return '.';
-      return '\x14';  // teleport until we have line-of-sight
-    });
-  }
-  a(() => createItem('/', 7));
-  a(() => {
-    const l = findPackLetter('/', 7);
-    const d = findCardinalMonsterDir();
-    return (l && d) ? 'z' + l + d : '.';
-  });
-  a(() => createItem('/', 8));
-  a(() => {
-    const l = findPackLetter('/', 8);
-    const d = findCardinalMonsterDir();
-    return (l && d) ? 'z' + l + d : '.';
-  });
-  heal();
-
-  // ================================================================
-  // P_TFIND — treasure find potion (fight.js is_magic coverage)
-  // Need magic items on floor or in monster packs
-  // ================================================================
-  a(() => createItem('!', 7));  // P_TFIND
-  a(() => { const l = findPackLetter('!', 7); return l ? 'q' + l : '.'; });
 
   // ================================================================
   // QUIT

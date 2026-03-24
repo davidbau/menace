@@ -57,6 +57,9 @@ typedef struct {
 static HarnessStep harness_steps[MAX_STEPS];
 static int harness_nsteps = 0;
 
+/* wizard is a global bool in rogue.h / main.c */
+extern int wizard;
+
 /* ===== JSON output ===== */
 
 static void json_escape_str(FILE *out, const char *s)
@@ -79,6 +82,7 @@ static void emit_session_json(FILE *out, unsigned int seed)
     int i, r, j;
     fprintf(out, "{\n");
     fprintf(out, "  \"seed\": %u,\n", seed);
+    if (wizard) fprintf(out, "  \"wizard\": true,\n");
     fprintf(out, "  \"steps\": [\n");
     for (i = 0; i < harness_nsteps; i++) {
         HarnessStep *s = &harness_steps[i];
@@ -217,9 +221,6 @@ int md_readchar(WINDOW *win)
 
 /* game_main is the renamed main() from main.c */
 extern void game_main(int argc, char **argv, char **envp);
-
-/* wizard is a global bool in rogue.h / main.c */
-extern int wizard;
 
 int main(int argc, char **argv)
 {
