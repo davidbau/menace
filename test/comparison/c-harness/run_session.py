@@ -263,19 +263,42 @@ def repaint_debug_env(log_path=None):
         out += f'NETHACK_REPAINT_DEBUG_LOG={log_path} '
     return out
 
-def dumpsnap_env():
-    """Pass harness dumpsnap controls through to the C binary if set."""
-    out = ''
-    for key in (
-        'NETHACK_DUMPSNAP_EVERY_KEY',
-        'NETHACK_DUMPSNAP_KEY_STEPS',
-        'NETHACK_DUMPSNAP_EVERY_INPUT',
-        'NETHACK_DUMPSNAP_INPUT_EVERY',
-        'NETHACK_DUMPSNAP_STEPS',
-    ):
+def first_nonempty_env(*keys):
+    """Return the first non-empty environment value from `keys`, or '' if none."""
+    for key in keys:
         value = os.environ.get(key, '')
         if value:
-            out += f'{key}={value} '
+            return value
+    return ''
+
+def dumpsnap_env(default_every_key=False, step_index=None):
+    """Pass harness dumpsnap controls through to the C binary.
+
+    Parameters:
+        default_every_key: Force NETHACK_DUMPSNAP_EVERY_KEY when no explicit
+            every-key env var is set.
+        step_index: Optional override for NETHACK_DUMPSNAP_STEPS.
+    """
+    out = ''
+    every_key = first_nonempty_env(
+        'NETHACK_DUMPSNAP_EVERY_KEY',
+        'NETHACK_DUMPSNAP_EVERY_INPUT',
+        'NETHACK_DUMPSNAP_INPUT_EVERY',
+    )
+    if every_key:
+        out += f'NETHACK_DUMPSNAP_EVERY_KEY={every_key} '
+    elif default_every_key:
+        out += 'NETHACK_DUMPSNAP_EVERY_KEY=1 '
+    if step_index is not None:
+        out += f'NETHACK_DUMPSNAP_STEPS={int(step_index)} '
+    else:
+        for key in (
+            'NETHACK_DUMPSNAP_KEY_STEPS',
+            'NETHACK_DUMPSNAP_STEPS',
+        ):
+            value = os.environ.get(key, '')
+            if value:
+                out += f'{key}={value} '
     return out
 
 def rnglog_disp_env():

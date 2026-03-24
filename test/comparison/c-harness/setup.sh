@@ -146,14 +146,28 @@ cd "$NETHACK_DIR"
 # Reset any previous patches (idempotent)
 git checkout -- . 2>/dev/null || true
 
+apply_patch_file() {
+    local patch="$1"
+    local patch_name
+    patch_name="$(basename "$patch")"
+    echo "     Applying $patch_name..."
+    git apply --recount "$patch"
+    echo "     [OK] $patch_name applied"
+}
+
+DEFERRED_PATCH="007-keylog-input-tracing.patch"
 for patch in "$PATCHES_DIR"/*.patch; do
-    if [ -f "$patch" ]; then
-        PATCH_NAME=$(basename "$patch")
-        echo "     Applying $PATCH_NAME..."
-        git apply --recount "$patch"
-        echo "     [OK] $PATCH_NAME applied"
+    patch_name="$(basename "$patch")"
+    if [[ "$patch_name" == "$DEFERRED_PATCH" ]]; then
+        continue
     fi
+    apply_patch_file "$patch"
 done
+if [[ -f "$PATCHES_DIR/$DEFERRED_PATCH" ]]; then
+    # 007 depends on earlier harness symbols (cmd.c/wintty.c support), so it is
+    # applied after the rest for deterministic patch positioning.
+    apply_patch_file "$PATCHES_DIR/$DEFERRED_PATCH"
+fi
 echo ""
 
 # --- Step 2b: Verify critical instrumentation hooks ---

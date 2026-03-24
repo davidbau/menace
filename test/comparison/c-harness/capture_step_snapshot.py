@@ -37,6 +37,7 @@ from run_session import (
     tmux_capture,
     tmux_send,
     tmux_send_special,
+    dumpsnap_env,
     wait_for_game_ready,
 )
 
@@ -335,10 +336,7 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         monmove_debug_env = (
             f"NETHACK_MONMOVE_DEBUG={monmove_debug} " if monmove_debug else ""
         )
-        key_steps_env = os.environ.get("NETHACK_DUMPSNAP_KEY_STEPS")
-        key_steps_clause = (
-            f"NETHACK_DUMPSNAP_KEY_STEPS={key_steps_env} " if key_steps_env else ""
-        )
+        snapshot_dumpsnap_env = dumpsnap_env(default_every_key=True, step_index=step_index)
         # For interactive chargen, pass empty name so the game prompts for it.
         # Match keylog_to_session.py: -u '' for interactive, -u Name for preset.
         name_arg = "''" if chargen_in_keys else char["name"]
@@ -354,9 +352,7 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             f"NETHACK_SEED={seed} "
             f"NETHACK_RNGLOG={rng_log_file} "
             f"NETHACK_DUMPSNAP={checkpoint_file} "
-            f"NETHACK_DUMPSNAP_STEPS={step_index} "
-            f"{key_steps_clause}"
-            f"NETHACK_DUMPSNAP_INPUT_EVERY=1 "
+            f"{snapshot_dumpsnap_env}"
             f"HOME={RESULTS_DIR} "
             f"TERM=xterm-256color "
             f"{NETHACK_BINARY} -u {name_arg}"
