@@ -20,6 +20,7 @@ import { doname, next_ident, xname, weight, costly_alteration } from './mkobj.js
 import { corpse_xname, singular, the, an, obj_is_pname, safe_qbuf, makeplural } from './objnam.js';
 import { pmname } from './do_name.js';
 import { ART_ORB_OF_DETECTION } from './artifacts.js';
+import { newsym } from './display.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
          PM_ACID_BLOB, PM_COCKATRICE, PM_CHICKATRICE,
          PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG,
@@ -221,7 +222,7 @@ export function eatmdone(player) {
     // Update display if player had monster appearance
     if (player.m_ap_type) {
         player.m_ap_type = 0; // M_AP_NOTHING
-        // newsym(player.x, player.y) — display update
+        newsym(player.x, player.y, _gstate?.map);
     }
     return 0;
 }
