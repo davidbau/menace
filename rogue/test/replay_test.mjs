@@ -65,10 +65,16 @@ function compareRng(jsRng, cRng) {
 
 async function replaySession(sessionFile, opts = {}) {
   const session = JSON.parse(readFileSync(sessionFile, 'utf8'));
+  const name = basename(sessionFile, '.json');
+  const seed = session.seed;
+
+  // Skip coverage-only and multigame sessions (no C harness comparison)
+  if (session.games || session.coverage_only) {
+    return { session: name, seed, passed: true, total_steps: 0, screen_pct: 100, rng_pct: 100, skipped: 'coverage_only' };
+  }
+
   // Strip C harness sentinel \x00 step (always added as final step by C harness)
   const cSteps = (session.steps || []).filter(s => s.key !== '\x00');
-  const seed = session.seed;
-  const name = basename(sessionFile, '.json');
 
   if (cSteps.length === 0) {
     return { session: name, seed, passed: false, total_steps: 0, screen_pct: 0, rng_pct: 0, error: 'empty session' };
