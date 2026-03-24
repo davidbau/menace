@@ -305,10 +305,10 @@
       "key": "h",
       "rng": [54,18,1,1,0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "You have defeated the jackal.",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?..@...].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -328,17 +328,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "j",
-      "rng": [],
+      "rng": [96,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -358,18 +358,18 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": [67,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
-        "                                |...*........+",
+        "                                |...?......].|",
+        "                                |...*.@......+",
         "                                +............|",
         "                                -----+--------",
         "",
@@ -388,17 +388,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": [63,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -418,17 +418,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "h",
-      "rng": [],
+      "rng": [38,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?..@...].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -448,17 +448,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "j",
-      "rng": [],
+      "rng": [42,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -478,18 +478,18 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": [17,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
-        "                                |...*........+",
+        "                                |...?......].|",
+        "                                |...*.@......+",
         "                                +............|",
         "                                -----+--------",
         "",
@@ -508,17 +508,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": [93,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -538,17 +538,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "h",
-      "rng": [],
+      "rng": [76,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?..@...].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -568,17 +568,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "j",
-      "rng": [],
+      "rng": [60,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -598,18 +598,18 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": [47,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
-        "                                |...*........+",
+        "                                |...?......].|",
+        "                                |...*.@......+",
         "                                +............|",
         "                                -----+--------",
         "",
@@ -628,17 +628,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": [95,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -658,17 +658,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "h",
-      "rng": [],
+      "rng": [54,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?..@...].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -688,17 +688,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "j",
-      "rng": [],
+      "rng": [58,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -718,18 +718,18 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": [41,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
-        "                                |...*........+",
+        "                                |...?......].|",
+        "                                |...*.@......+",
         "                                +............|",
         "                                -----+--------",
         "",
@@ -748,17 +748,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": [73,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -778,17 +778,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "h",
-      "rng": [],
+      "rng": [52,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?..@...].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -808,17 +808,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "j",
-      "rng": [],
+      "rng": [0,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -838,18 +838,18 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": [91,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
-        "                                |...*........+",
+        "                                |...?......].|",
+        "                                |...*.@......+",
         "                                +............|",
         "                                -----+--------",
         "",
@@ -868,17 +868,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp: 10(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": [87,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?.@....].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -898,17 +898,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp: 10(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "Q",
-      "rng": [],
+      "rng": [90,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?..@...].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -928,17 +928,17 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp: 10(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "y",
-      "rng": [],
+      "rng": ["^cmd[ch=81 no_cmd=0 after=1]"],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
+        "Really quit?",
         "",
         "                                --------------",
-        "                                |...?..@J..].|",
+        "                                |...?..@...].|",
         "                                |...*........+",
         "                                +............|",
         "                                -----+--------",
@@ -958,20 +958,13 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp: 10(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "\u0000",
       "rng": [],
       "screen": [
-        "You scored an excellent hit on the jackal--More--",
-        "",
-        "                                --------------",
-        "                                |...?..@J..].|",
-        "                                |...*........+",
-        "                                +............|",
-        "                                -----+--------",
         "",
         "",
         "",
@@ -988,7 +981,14 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp:  9(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ]
     }
   ]

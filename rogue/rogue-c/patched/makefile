@@ -62,6 +62,11 @@ t = re.sub(r'(int\nroll\(int number, int sides\)\n\{[^}]*\})', r'#ifndef HARNESS
 open('main.c','w').write(t)"
 	@# Fix missing semicolon in mdport.c (upstream bug)
 	@sed -i.bak 's/return(1)$$/return(1);/' mdport.c && rm -f mdport.c.bak
+	@# Suppress --More-- in io.c: make wait_for return immediately when HARNESS
+	@python3 -c "\
+import re; t = open('io.c').read(); \
+t = re.sub(r'(wait_for\(WINDOW \*win, int ch\)\n\{)', r'\1\n#ifdef HARNESS\n    (void)win; (void)ch; return;\n#endif', t); \
+open('io.c','w').write(t)"
 	@# Add parity trace logging to command.c (after readchar, log no_command/after state)
 	@python3 -c "\
 t = open('command.c').read(); \

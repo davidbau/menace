@@ -305,12 +305,12 @@
       "key": "k",
       "rng": [80,11,3,2,2,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
-        "You have injured the jackal--More--",
+        "You have defeated the jackal.",
         "                                    --------",
         "                                    +......|",
         "                                    |...%./|",
         "                                    |.....*+",
-        "                                    --J-----",
+        "                                    --+-----",
         "                                      @",
         "                                     ##",
         "",
@@ -328,20 +328,20 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": [57,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
-        "You have injured the jackal--More--",
+        "",
         "                                    --------",
         "                                    +......|",
         "                                    |...%./|",
         "                                    |.....*+",
-        "                                    --J-----",
-        "                                      @",
+        "                                    --@-----",
+        "                                      #",
         "                                     ##",
         "",
         "",
@@ -358,20 +358,20 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "Q",
-      "rng": [],
+      "rng": [33,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
-        "You have injured the jackal--More--",
+        "",
         "                                    --------",
         "                                    +......|",
         "                                    |...%./|",
-        "                                    |.....*+",
-        "                                    --J-----",
-        "                                      @",
+        "                                    |.@...*+",
+        "                                    --+-----",
+        "                                      #",
         "                                     ##",
         "",
         "",
@@ -388,20 +388,20 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "y",
-      "rng": [],
+      "rng": ["^cmd[ch=81 no_cmd=0 after=1]"],
       "screen": [
-        "You have injured the jackal--More--",
+        "Really quit?",
         "                                    --------",
         "                                    +......|",
         "                                    |...%./|",
-        "                                    |.....*+",
-        "                                    --J-----",
-        "                                      @",
+        "                                    |.@...*+",
+        "                                    --+-----",
+        "                                      #",
         "                                     ##",
         "",
         "",
@@ -418,21 +418,13 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/2"
       ]
     },
     {
       "key": "\u0000",
       "rng": [],
       "screen": [
-        "You have injured the jackal--More--",
-        "                                    --------",
-        "                                    +......|",
-        "                                    |...%./|",
-        "                                    |.....*+",
-        "                                    --J-----",
-        "                                      @",
-        "                                     ##",
         "",
         "",
         "",
@@ -448,7 +440,15 @@
         "",
         "",
         "",
-        "Level: 1  Gold: 0      Hp: 12(12)  Str: 16  Ac: 6   Exp: 1/0"
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
       ]
     }
   ]

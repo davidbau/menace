@@ -31,4 +31,8 @@ extern int harness_next_key(void);
 /* Disable score file operations (harness doesn't use them).
  * Can't use function-like macro because rogue.h declares open_score(void). */
 
+/* --More-- suppression: the Makefile setup target patches io.c to make
+ * wait_for a no-op when HARNESS is defined, preventing --More-- from
+ * consuming harness keys. */
+
 #endif /* ROGUE_PATCH_H */
