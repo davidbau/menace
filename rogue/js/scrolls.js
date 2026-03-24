@@ -142,8 +142,8 @@ export async function read_scroll() {
       // Create a monster near player
       let appear = 0;
       let mp = null;
-      for (let y = g.player.t_pos.y; y <= g.player.t_pos.y + 1; y++) {
-        for (let x = g.player.t_pos.x; x <= g.player.t_pos.x + 1; x++) {
+      for (let y = g.player.t_pos.y - 1; y <= g.player.t_pos.y + 1; y++) {
+        for (let x = g.player.t_pos.x - 1; x <= g.player.t_pos.x + 1; x++) {
           if (y === g.player.t_pos.y && x === g.player.t_pos.x) continue;
           if (_step_ok(winat(y, x))) {
             if (rnd(++appear) === 0) mp = { y, x };

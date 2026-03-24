@@ -27,6 +27,13 @@ function normalizeC(row) {
   return out;
 }
 
+// Normalize save file paths for comparison — C uses /tmp/rogue.save, JS uses /home/rodney/rogue.sav
+function normalizeSavePath(row) {
+  return row
+    .replace(/Save file \([^)]*\)/, 'Save file (...)')
+    .replace(/File name: .*/, 'File name: ...');
+}
+
 function compareScreens(jsScreen, cScreen) {
   const COLS = 80;
   let matches = 0;
@@ -34,8 +41,8 @@ function compareScreens(jsScreen, cScreen) {
   const rowDiffs = [];
 
   for (let r = 0; r < 24; r++) {
-    const jsRow = (jsScreen[r] || '').padEnd(COLS);
-    const cRow = normalizeC(cScreen[r] || '').padEnd(COLS);
+    const jsRow = normalizeSavePath(jsScreen[r] || '').padEnd(COLS);
+    const cRow = normalizeSavePath(normalizeC(cScreen[r] || '')).padEnd(COLS);
     let rowMatches = 0;
     for (let c = 0; c < COLS; c++) {
       if (jsRow[c] === cRow[c]) { matches++; rowMatches++; }

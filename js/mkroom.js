@@ -313,7 +313,7 @@ export function invalid_shop_shape(sroom, map) {
 
 export function mkshop(map) {
     for (const sroom of map.rooms) {
-        if (sroom.hx < 0) return;
+        if (!sroom || sroom.hx < 0) return;
         if (sroom.rtype !== OROOM) continue;
         if (has_dnstairs(sroom, map) || has_upstairs(sroom, map)) continue;
         if (sroom.doorct !== 1) continue;

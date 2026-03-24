@@ -6139,7 +6139,7 @@ export function random_corridors() {
     // Mark all rooms as needing joining
     // (Special levels create rooms but don't set needjoining)
     for (const room of levelState.map.rooms) {
-        if (room.needjoining === undefined) {
+        if (room && room.needjoining === undefined) {
             room.needjoining = true;
         }
     }

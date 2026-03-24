@@ -300,10 +300,9 @@ int wrefresh(WINDOW *win)
         return OK;
     }
 
-    /* For cw: copy cw directly to harness_display.
-     * mw tracks monster positions for winat() but is never shown directly —
-     * visible monsters are drawn to cw explicitly via mvwaddch(cw,...) only
-     * when cansee() is true.  Compositing mw would reveal all monsters.
+    /* For cw: composite via _overlay — non-'\0' chars are opaque.
+     * This matches Berkeley curses semantics where wrefresh composites
+     * the window onto the terminal.
      */
     for (i = 0; i < LINES; i++) {
         memset(harness_display[i], ' ', COLS);

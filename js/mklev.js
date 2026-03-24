@@ -219,9 +219,13 @@ export function add_subroom(map, proom, lowx, lowy, hix, hiy, lit, rtype, specia
     croom.needjoining = false;
     const nsubroom = map.nsubroom || 0;
     const roomStoreIdx = map.nroom + nsubroom;
+    // C ref: gs.subrooms = &svr.rooms[MAXNROFROOMS + 1] — sub-rooms must be
+    // stored at MAXNROFROOMS+1+n so in_rooms() can find them by cell roomno.
+    // Also keep at roomStoreIdx for backward-compatible room iterations.
     const roomnoIdx = MAXNROFROOMS + 1 + nsubroom;
     map.nsubroom = nsubroom + 1;
     map.rooms[roomStoreIdx] = croom;
+    map.rooms[roomnoIdx] = croom;  // alias for in_rooms() lookup
     do_room_or_subroom(map, croom, lowx, lowy, hix, hiy, lit, rtype, special, false, roomnoIdx);
     if (!proom.sbrooms) proom.sbrooms = [];
     if (!Number.isInteger(proom.nsubrooms)) proom.nsubrooms = 0;
@@ -887,7 +891,7 @@ export function level_finalize_topology(map, depth) {
     }
     set_wall_state(map);
     for (let i = 0; i < map.rooms.length; i++) {
-        map.rooms[i].orig_rtype = map.rooms[i].rtype;
+        if (map.rooms[i]) map.rooms[i].orig_rtype = map.rooms[i].rtype;
     }
 }
 
