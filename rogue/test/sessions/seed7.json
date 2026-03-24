@@ -1,8 +1,10 @@
 {
   "seed": 7,
+  "wizard": true,
   "steps": [
     {
       "key": "k",
+      "cursor": [19,38],
       "rng": [38,2,0,26,0,152,1,16,21,0,148,1,1,7,64,1,132,123,0,9,0,0,57,2,53,127,71,1,0,52,1,22,147,1,135,46,0,2,122,89,127,2,67,90,74,0,1,71,31,2,50,144,39,0,1,6,70,2,136,87,158,0,0,98,2,103,38,130,0,0,84,0,48,2,2,145,35,138,0,96,1,73,99,2,35,117,133,3,1,102,23,2,30,88,83,0,59,2,81,112,44,0,27,3,1,134,0,0,136,1,3,19,0,54,0,108,0,0,63,2,33,23,50,1,2,112,86,103,2,72,98,151,1,115,103,3,1,80,14,2,52,27,0,0,84,0,147,0,129,0,1,103,145,1,51,132,16,20,19,3,6,10,1,17,20,0,7,7,18,6,21,13,16,20,19,11,14,14,9,13,0,0,11,3,18,6,17,5,4,12,7,43,16,70,9,53,5,36,1,83,10,86,4,85,1,36,13,3,4,42,5,57,6,20,13,75,5,26,13,25,10,92,7,19,20,2,3,8,2,6,3,15,0,16,1,1,0,0,3,11,0,10,1,1,1,60,83,3,8,2,9,1,24,12,1,3,38,6,1,1,0,0,67,9,10,2,9,1,24,36,11,3,94,18,5,1,14,0,7,3,62,18,13,1,4,3,3,39,2,20,1,1,2,48,39,3,2,74,11,2,8,4,43,7,14,2,1,1,0,52,15,3,30,6,1,9,0,60,7,17,2,0,1,97,92,16,3,8,0,0,1,3,0,0,15,3,8,6,3,6,7,0,1,7,18,0,1,1,0,0,3,1,0,6,1,6,0,8,0,1,6,6,8,5,0,0,21,1,8,4,6,0,8,5,5,6,3,0,5,2,2,1,1,2,0,2,1,3,2,0,0,99,2,18,1,1,4,0,71,87,90,50,65,37,72,5,1,2,2,7,10,1,0,8],
       "screen": [
         "",
@@ -33,6 +35,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,38],
       "rng": [75,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -63,6 +66,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,37],
       "rng": [71,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -93,6 +97,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,36],
       "rng": [70,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -123,6 +128,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,35],
       "rng": [18,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -153,6 +159,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,34],
       "rng": [89,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -183,6 +190,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,33],
       "rng": [41,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -213,6 +221,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,32],
       "rng": [36,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -243,6 +252,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,31],
       "rng": [8,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -273,6 +283,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,30],
       "rng": [55,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -303,6 +314,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,29],
       "rng": [59,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -333,6 +345,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [38,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -363,6 +376,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [62,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -393,6 +407,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [57,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -423,6 +438,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [29,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -453,6 +469,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [40,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -483,6 +500,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [44,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -513,6 +531,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [87,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -543,6 +562,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [95,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -573,6 +593,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [46,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -603,6 +624,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [62,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -633,6 +655,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [29,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -663,6 +686,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [25,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -693,6 +717,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [20,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -723,6 +748,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [64,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -753,6 +779,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [59,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -783,6 +810,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [15,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -813,6 +841,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [82,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -843,6 +872,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [90,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -873,6 +903,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [93,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -903,6 +934,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [33,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -933,6 +965,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [80,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -963,6 +996,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [72,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -993,6 +1027,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [7,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1023,6 +1058,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [91,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1053,6 +1089,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [34,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1083,6 +1120,7 @@
     },
     {
       "key": "j",
+      "cursor": [18,28],
       "rng": [50,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1113,6 +1151,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,28],
       "rng": [69,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1143,6 +1182,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,28],
       "rng": [57,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1173,6 +1213,7 @@
     },
     {
       "key": " ",
+      "cursor": [19,28],
       "rng": [24,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1203,6 +1244,7 @@
     },
     {
       "key": "j",
+      "cursor": [19,28],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1233,6 +1275,7 @@
     },
     {
       "key": "j",
+      "cursor": [20,28],
       "rng": [72,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1263,6 +1306,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,28],
       "rng": [3,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1293,6 +1337,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,28],
       "rng": [43,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1323,6 +1368,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,29],
       "rng": [22,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1353,6 +1399,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,30],
       "rng": [62,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1383,6 +1430,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,31],
       "rng": [61,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1413,6 +1461,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,32],
       "rng": [1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1443,6 +1492,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,33],
       "rng": [40,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1473,6 +1523,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,34],
       "rng": [68,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1503,6 +1554,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,35],
       "rng": [35,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1533,6 +1585,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,36],
       "rng": [59,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1563,6 +1616,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,37],
       "rng": [50,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1593,6 +1647,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,38],
       "rng": [14,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1623,6 +1678,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,39],
       "rng": [41,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1653,6 +1709,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,40],
       "rng": [53,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1683,6 +1740,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,41],
       "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1713,6 +1771,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,42],
       "rng": [48,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1743,6 +1802,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,42],
       "rng": [39,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1773,6 +1833,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,42],
       "rng": [43,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1803,6 +1864,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,42],
       "rng": [90,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1833,6 +1895,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,42],
       "rng": [10,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1863,6 +1926,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,42],
       "rng": [29,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1893,6 +1957,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,43],
       "rng": [33,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1923,6 +1988,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,44],
       "rng": [4,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1953,6 +2019,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,45],
       "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -1983,6 +2050,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,45],
       "rng": [87,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2013,6 +2081,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,45],
       "rng": [83,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2043,6 +2112,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,45],
       "rng": [62,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2073,6 +2143,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,44],
       "rng": [38,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2103,6 +2174,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,43],
       "rng": [13,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2133,6 +2205,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,43],
       "rng": [29,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2163,6 +2236,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,43],
       "rng": [60,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2193,6 +2267,7 @@
     },
     {
       "key": " ",
+      "cursor": [21,43],
       "rng": [92,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2223,6 +2298,7 @@
     },
     {
       "key": " ",
+      "cursor": [21,43],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2253,6 +2329,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,43],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2283,6 +2360,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,42],
       "rng": [99,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2313,6 +2391,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,41],
       "rng": [83,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2343,6 +2422,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,41],
       "rng": [70,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2373,6 +2453,7 @@
     },
     {
       "key": ">",
+      "cursor": [21,41],
       "rng": [18,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2403,6 +2484,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,41],
       "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
@@ -2433,6 +2515,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,41],
       "rng": [13,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2463,6 +2546,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,41],
       "rng": [29,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2493,6 +2577,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,40],
       "rng": [88,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2523,6 +2608,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,39],
       "rng": [48,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2553,6 +2639,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,38],
       "rng": [47,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2583,6 +2670,7 @@
     },
     {
       "key": "k",
+      "cursor": [21,37],
       "rng": [63,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2613,6 +2701,7 @@
     },
     {
       "key": "k",
+      "cursor": [20,37],
       "rng": [86,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2643,6 +2732,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,37],
       "rng": [22,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2673,6 +2763,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,36],
       "rng": [1,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2703,6 +2794,7 @@
     },
     {
       "key": "k",
+      "cursor": [19,35],
       "rng": [53,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2733,6 +2825,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,35],
       "rng": [92,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2763,6 +2856,7 @@
     },
     {
       "key": " ",
+      "cursor": [18,34],
       "rng": [88,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2793,6 +2887,7 @@
     },
     {
       "key": "j",
+      "cursor": [18,34],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2823,6 +2918,7 @@
     },
     {
       "key": "k",
+      "cursor": [19,34],
       "rng": [67,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2853,6 +2949,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,34],
       "rng": [11,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2883,6 +2980,7 @@
     },
     {
       "key": " ",
+      "cursor": [18,33],
       "rng": [46,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2913,6 +3011,7 @@
     },
     {
       "key": "j",
+      "cursor": [18,33],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2943,6 +3042,7 @@
     },
     {
       "key": "k",
+      "cursor": [19,33],
       "rng": [86,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -2973,6 +3073,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,33],
       "rng": [97,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3003,6 +3104,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,32],
       "rng": [89,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3033,6 +3135,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,31],
       "rng": [76,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3063,6 +3166,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,30],
       "rng": [32,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3093,6 +3197,7 @@
     },
     {
       "key": ">",
+      "cursor": [18,29],
       "rng": [15,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3123,6 +3228,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,29],
       "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
@@ -3153,6 +3259,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [15,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3183,6 +3290,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [38,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3213,6 +3321,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [82,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3243,6 +3352,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [5,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3273,6 +3383,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [41,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3303,6 +3414,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [28,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3333,6 +3445,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [52,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3363,6 +3476,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [43,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3393,6 +3507,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [79,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3423,6 +3538,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [50,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3453,6 +3569,7 @@
     },
     {
       "key": "k",
+      "cursor": [18,28],
       "rng": [14,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3483,6 +3600,7 @@
     },
     {
       "key": "k",
+      "cursor": [18,28],
       "rng": [13,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3513,6 +3631,7 @@
     },
     {
       "key": "k",
+      "cursor": [18,28],
       "rng": [97,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3543,6 +3662,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [68,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3573,6 +3693,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [84,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3603,6 +3724,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [7,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3633,6 +3755,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [23,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3663,6 +3786,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,28],
       "rng": [86,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3693,6 +3817,7 @@
     },
     {
       "key": "j",
+      "cursor": [18,28],
       "rng": [86,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3723,6 +3848,7 @@
     },
     {
       "key": "j",
+      "cursor": [19,28],
       "rng": [25,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3753,6 +3879,7 @@
     },
     {
       "key": "j",
+      "cursor": [20,28],
       "rng": [93,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3783,6 +3910,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,28],
       "rng": [0,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3813,6 +3941,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,28],
       "rng": [84,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3843,6 +3972,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,28],
       "rng": [27,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3873,6 +4003,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,28],
       "rng": [35,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3903,6 +4034,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,27],
       "rng": [66,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3933,6 +4065,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,26],
       "rng": [2,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3963,6 +4096,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [29,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -3993,6 +4127,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [85,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4023,6 +4158,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [96,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4053,6 +4189,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [88,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4083,6 +4220,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [7,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4113,6 +4251,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [3,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4143,6 +4282,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [62,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4173,6 +4313,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [66,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4203,6 +4344,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [45,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4233,6 +4375,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [93,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4263,6 +4406,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,25],
       "rng": [60,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4293,6 +4437,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,25],
       "rng": [84,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4323,6 +4468,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,25],
       "rng": [35,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4353,6 +4499,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,25],
       "rng": [31,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4383,6 +4530,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,25],
       "rng": [94,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4413,6 +4561,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,26],
       "rng": [66,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4443,6 +4592,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,27],
       "rng": [61,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4473,6 +4623,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,28],
       "rng": [37,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4503,6 +4654,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,29],
       "rng": [12,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4533,6 +4685,7 @@
     },
     {
       "key": " ",
+      "cursor": [21,30],
       "rng": [60,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4563,6 +4716,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,30],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4593,6 +4747,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,30],
       "rng": [15,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4623,6 +4778,7 @@
     },
     {
       "key": "k",
+      "cursor": [21,30],
       "rng": [39,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4653,6 +4809,7 @@
     },
     {
       "key": "j",
+      "cursor": [20,30],
       "rng": [50,0,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4683,6 +4840,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,30],
       "rng": [81,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4713,6 +4871,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,31],
       "rng": [73,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4743,6 +4902,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,32],
       "rng": [56,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4773,6 +4933,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,33],
       "rng": [36,5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4803,6 +4964,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,34],
       "rng": [99,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4833,6 +4995,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,35],
       "rng": [18,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4863,6 +5026,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,36],
       "rng": [74,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4893,6 +5057,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,37],
       "rng": [9,5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4923,6 +5088,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,38],
       "rng": [64,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4953,6 +5119,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,39],
       "rng": [84,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -4983,6 +5150,7 @@
     },
     {
       "key": "l",
+      "cursor": [21,40],
       "rng": [47,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5013,6 +5181,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,41],
       "rng": [31,4,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5043,6 +5212,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,41],
       "rng": [6,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5073,6 +5243,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,41],
       "rng": [33,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5103,6 +5274,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,40],
       "rng": [17,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5133,6 +5305,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,39],
       "rng": [40,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5163,6 +5336,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,39],
       "rng": [40,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5193,6 +5367,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,39],
       "rng": [75,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5223,6 +5398,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,38],
       "rng": [23,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5253,6 +5429,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,37],
       "rng": [70,2,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5283,6 +5460,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,36],
       "rng": [73,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5313,6 +5491,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,35],
       "rng": [1,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5343,6 +5522,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,34],
       "rng": [4,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5373,6 +5553,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,33],
       "rng": [92,5,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5403,6 +5584,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,32],
       "rng": [95,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5433,6 +5615,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,31],
       "rng": [46,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5463,6 +5646,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,30],
       "rng": [66,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5493,9 +5677,10 @@
     },
     {
       "key": "h",
+      "cursor": [21,29],
       "rng": [1,3,5,18,2,9,2,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
-        "",
+        "Started a wandering hobgoblin",
         "",
         "",
         "",
@@ -5523,6 +5708,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,28],
       "rng": [2,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5553,6 +5739,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,27],
       "rng": [37,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5583,6 +5770,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,26],
       "rng": [45,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5613,6 +5801,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [80,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5643,6 +5832,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [52,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5673,6 +5863,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [19,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5703,6 +5894,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [15,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5733,6 +5925,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [54,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5763,6 +5956,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,25],
       "rng": [86,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5793,6 +5987,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,25],
       "rng": [69,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5823,6 +6018,7 @@
     },
     {
       "key": "j",
+      "cursor": [21,25],
       "rng": [81,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5853,6 +6049,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [84,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5883,6 +6080,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,25],
       "rng": [52,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5913,6 +6111,7 @@
     },
     {
       "key": " ",
+      "cursor": [21,25],
       "rng": [79,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5943,6 +6142,7 @@
     },
     {
       "key": " ",
+      "cursor": [21,25],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -5973,6 +6173,7 @@
     },
     {
       "key": "k",
+      "cursor": [21,25],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6003,6 +6204,7 @@
     },
     {
       "key": "k",
+      "cursor": [20,25],
       "rng": [71,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6033,6 +6235,7 @@
     },
     {
       "key": "l",
+      "cursor": [19,25],
       "rng": [10,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6063,6 +6266,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [6,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6093,6 +6297,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [17,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6123,6 +6328,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [37,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6153,6 +6359,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [60,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6183,6 +6390,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [64,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6213,6 +6421,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [91,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6243,6 +6452,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [91,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6273,6 +6483,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [90,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6303,6 +6514,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [66,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6333,6 +6545,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [69,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6363,6 +6576,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [1,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6393,6 +6607,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [12,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6423,6 +6638,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [60,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6453,6 +6669,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [43,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6483,6 +6700,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [79,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6513,6 +6731,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,25],
       "rng": [98,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6543,6 +6762,7 @@
     },
     {
       "key": "k",
+      "cursor": [19,25],
       "rng": [70,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6573,6 +6793,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,25],
       "rng": [13,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6603,6 +6824,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,24],
       "rng": [93,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6633,6 +6855,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,23],
       "rng": [44,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6663,6 +6886,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,22],
       "rng": [44,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6693,6 +6917,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,21],
       "rng": [55,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6723,6 +6948,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,20],
       "rng": [39,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6753,6 +6979,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,19],
       "rng": [38,22,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6783,6 +7010,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,18],
       "rng": [69,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6813,6 +7041,7 @@
     },
     {
       "key": ">",
+      "cursor": [18,17],
       "rng": [85,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6843,6 +7072,7 @@
     },
     {
       "key": "k",
+      "cursor": [18,17],
       "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
@@ -6873,6 +7103,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,17],
       "rng": [60,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6903,6 +7134,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,16],
       "rng": [20,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6933,6 +7165,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,15],
       "rng": [31,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6963,6 +7196,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,14],
       "rng": [59,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -6993,6 +7227,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,13],
       "rng": [98,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7023,6 +7258,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,12],
       "rng": [10,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7053,6 +7289,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,11],
       "rng": [25,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7083,6 +7320,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,10],
       "rng": [13,48,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7113,6 +7351,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,9],
       "rng": [92,3,3,98,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin doesn't hit you",
@@ -7143,6 +7382,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,8],
       "rng": [38,5,1,12,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin swings and misses you",
@@ -7173,6 +7413,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,7],
       "rng": [48,11,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7203,6 +7444,7 @@
     },
     {
       "key": ">",
+      "cursor": [18,6],
       "rng": [11,10,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7233,6 +7475,7 @@
     },
     {
       "key": "j",
+      "cursor": [18,6],
       "rng": [94,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
@@ -7263,6 +7506,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,6],
       "rng": [37,17,0,0,39,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin scored an excellent hit on you",
@@ -7293,6 +7537,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,5],
       "rng": [19,54,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7323,6 +7568,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,4],
       "rng": [98,1,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7353,6 +7599,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,3],
       "rng": [61,84,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7383,6 +7630,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,3],
       "rng": [44,15,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7413,6 +7661,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,3],
       "rng": [3,34,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7443,6 +7692,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,3],
       "rng": [54,81,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7473,6 +7723,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,3],
       "rng": [29,84,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7503,6 +7754,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,3],
       "rng": [76,59,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7533,6 +7785,7 @@
     },
     {
       "key": "h",
+      "cursor": [19,3],
       "rng": [67,38,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7563,6 +7816,7 @@
     },
     {
       "key": "k",
+      "cursor": [19,3],
       "rng": [50,49,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7593,6 +7847,7 @@
     },
     {
       "key": "k",
+      "cursor": [18,3],
       "rng": [37,16,0,3,83,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin swings and hits you",
@@ -7623,6 +7878,7 @@
     },
     {
       "key": "k",
+      "cursor": [18,3],
       "rng": [70,74,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7653,6 +7909,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [25,41,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7683,6 +7940,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [32,12,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7713,6 +7971,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [71,55,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7743,6 +8002,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [34,46,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7773,6 +8033,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [97,61,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7803,6 +8064,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [72,8,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7833,6 +8095,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [63,3,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7863,6 +8126,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [18,54,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7893,6 +8157,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [85,17,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7923,6 +8188,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [84,0,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7953,6 +8219,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [7,15,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -7983,6 +8250,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [42,2,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8013,6 +8281,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [61,65,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8043,6 +8312,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [72,92,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8073,6 +8343,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [7,95,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8103,6 +8374,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [78,94,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8133,6 +8405,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [45,41,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8163,6 +8436,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [56,56,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8193,6 +8467,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [67,47,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8223,6 +8498,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [62,34,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8253,6 +8529,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [41,33,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8283,6 +8560,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [92,28,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8313,6 +8591,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [59,43,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8343,6 +8622,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [66,94,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8373,6 +8653,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [37,29,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8403,6 +8684,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [32,80,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8433,6 +8715,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [19,19,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8463,6 +8746,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [94,10,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8493,6 +8777,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [21,49,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8523,6 +8808,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [32,32,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8553,6 +8839,7 @@
     },
     {
       "key": "h",
+      "cursor": [18,3],
       "rng": [35,63,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8583,6 +8870,7 @@
     },
     {
       "key": "j",
+      "cursor": [18,3],
       "rng": [50,70,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8613,6 +8901,7 @@
     },
     {
       "key": "j",
+      "cursor": [19,3],
       "rng": [29,17,0,0,95,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin scored an excellent hit on you",
@@ -8643,6 +8932,7 @@
     },
     {
       "key": "j",
+      "cursor": [20,3],
       "rng": [79,18,2,1,45,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin hit you",
@@ -8673,6 +8963,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [76,88,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8703,6 +8994,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [3,39,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8733,6 +9025,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [46,90,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8763,6 +9056,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [37,13,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8793,6 +9087,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [28,16,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8823,6 +9118,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [79,79,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8853,6 +9149,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [94,74,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8883,6 +9180,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [45,89,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8913,6 +9211,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [40,28,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8943,6 +9242,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [95,87,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -8973,6 +9273,7 @@
     },
     {
       "key": "h",
+      "cursor": [21,3],
       "rng": [54,86,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -9003,6 +9304,7 @@
     },
     {
       "key": "Q",
+      "cursor": [21,3],
       "rng": [45,93,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
@@ -9033,6 +9335,7 @@
     },
     {
       "key": "y",
+      "cursor": [0,12],
       "rng": ["^cmd[ch=81 no_cmd=0 after=1]"],
       "screen": [
         "Really quit?",
@@ -9063,6 +9366,7 @@
     },
     {
       "key": "\u0000",
+      "cursor": [23,0],
       "rng": [],
       "screen": [
         "",
