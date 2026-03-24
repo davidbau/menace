@@ -151,7 +151,7 @@ export const a_chances = [20, 35, 50, 63, 75, 85, 95, 100];
 export const w_names = [
   "mace",
   "long sword",
-  "short bow",
+  "int bow",
   "arrow",
   "dagger",
   "rock",
