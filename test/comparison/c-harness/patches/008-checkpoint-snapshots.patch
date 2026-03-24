@@ -7,9 +7,9 @@ index 7954f033c..ca91f0cb0 100644
  extern void makemap_prepost(boolean, boolean);
  extern const char *ecname_from_fn(int (*)(void));
 +extern void harness_dump_checkpoint(const char *);
-
+ 
  /* ### date.c ### */
-
+ 
 @@ -2732,7 +2733,8 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
  /* PRNG call logging (004-prng-logging patch) */
  extern void rng_log_init(void);
@@ -31,10 +31,10 @@ index d77454878..843e21f50 100644
  staticfn int doherecmdmenu(void);
  staticfn int dotherecmdmenu(void);
  staticfn int doprev_message(void);
-@@ -150,6 +151,185 @@ staticfn int dummyfunction(void);
-
+@@ -150,6 +151,479 @@ staticfn int dummyfunction(void);
+ 
  static const char *readchar_queue = "";
-
+ 
 +staticfn void
 +json_write_escaped(FILE *fp, const char *s)
 +{
@@ -514,7 +514,7 @@ index d77454878..843e21f50 100644
 @@ -1130,6 +1310,23 @@ wiz_dumpobj(void)
      return ECMD_OK;
  }
-
+ 
 +/* #dumpsnap -- append one JSON snapshot entry for the current level.
 + * Filename comes from NETHACK_DUMPSNAP env var, defaults to "dumpsnap.jsonl". */
 +staticfn int
@@ -554,7 +554,7 @@ index 9c665a37e..fba2e0389 100644
      gn.num_lregions = 0;
 +    harness_dump_checkpoint("after_levregions_fixup");
  }
-
+ 
  staticfn void
 diff --git a/src/rnd.c b/src/rnd.c
 index 695c156f0..7ee563a04 100644
@@ -563,7 +563,7 @@ index 695c156f0..7ee563a04 100644
 @@ -52,6 +52,12 @@ rng_log_set_caller(const char *file, int line, const char *func)
      rng_caller_func = func;
  }
-
+ 
 +int
 +rng_log_get_call_count(void)
 +{
@@ -579,10 +579,10 @@ index 2e1b4ab65..117817159 100644
 +++ b/src/sp_lev.c
 @@ -3860,6 +3860,7 @@ lspo_level_init(lua_State *L)
          init_lev.bg = (init_lev.init_style == LVLINIT_SWAMP) ? MOAT : STONE;
-
+ 
      splev_initlev(&init_lev);
 +    harness_dump_checkpoint("after_level_init");
-
+ 
      return 0;
  }
 @@ -6026,6 +6027,7 @@ lspo_finalize_level(lua_State *L)
@@ -590,12 +590,12 @@ index 2e1b4ab65..117817159 100644
      if (!svl.level.flags.corrmaze)
          wallification(1, 0, COLNO - 1, ROWNO - 1);
 +    harness_dump_checkpoint("after_wallification");
-
+ 
      if (L)
          flip_level_rnd(gc.coder->allow_flips, FALSE);
 @@ -6049,6 +6051,7 @@ lspo_finalize_level(lua_State *L)
      }
-
+ 
      makemap_prepost(FALSE, wtower);
 +    harness_dump_checkpoint("after_finalize");
      iflags.lua_testing = FALSE;
@@ -606,7 +606,7 @@ index 2e1b4ab65..117817159 100644
      l_selection_push_copy(L, sel);
      selection_free(sel, TRUE);
 +    harness_dump_checkpoint("after_map");
-
+ 
      return 1;
  }
 @@ -6468,6 +6472,7 @@ load_special(const char *name)
@@ -614,13 +614,13 @@ index 2e1b4ab65..117817159 100644
      if (!svl.level.flags.corrmaze)
          wallification(1, 0, COLNO - 1, ROWNO - 1);
 +    harness_dump_checkpoint("after_wallification_special");
-
+ 
      flip_level_rnd(gc.coder->allow_flips, FALSE);
-
+ 
 @@ -6483,6 +6488,8 @@ load_special(const char *name)
      if (gc.coder->premapped)
          premap_detect();
-
+ 
 +    harness_dump_checkpoint("after_finalize_special");
 +
      result = TRUE;

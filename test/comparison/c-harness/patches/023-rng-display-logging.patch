@@ -2,16 +2,16 @@ diff --git a/src/rnd.c b/src/rnd.c
 index 71d4a978..3b0745b1 100644
 --- a/src/rnd.c
 +++ b/src/rnd.c
-@@ -35,6 +35,7 @@ static FILE *rng_logfile = NULL;
+@@ -35,7 +35,8 @@ static FILE *rng_logfile = NULL;
  static int rng_call_count = 0;
  static const char *rng_caller_file = NULL;
  static int rng_caller_line = 0;
  static const char *rng_caller_func = NULL;
 +static boolean rng_log_disp = FALSE;
-
+ 
  void
  rng_log_init(void)
-@@ -42,11 +43,13 @@ rng_log_init(void)
+@@ -42,10 +43,12 @@ rng_log_init(void)
  {
      const char *logpath = getenv("NETHACK_RNGLOG");
 +    const char *disp = getenv("NETHACK_RNGLOG_DISP");
@@ -22,9 +22,9 @@ index 71d4a978..3b0745b1 100644
      }
 +    rng_log_disp = (disp && *disp && *disp != '0') ? TRUE : FALSE;
  }
-
+ 
  boolean
-@@ -241,7 +244,26 @@ rn2_on_display_rng(int x)
+@@ -241,5 +244,22 @@ rn2_on_display_rng(int x)
  {
 -    return (isaac64_next_uint64(&rnglist[DISP].rng_state) % x);
 +    int result = (isaac64_next_uint64(&rnglist[DISP].rng_state) % x);
@@ -46,5 +46,5 @@ index 71d4a978..3b0745b1 100644
 +    }
 +    return result;
  }
-
+ 
  #else   /* USE_ISAAC64 */

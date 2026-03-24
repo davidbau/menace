@@ -10,17 +10,17 @@ index 899f72b4a..02b6ae642 100644
 +extern void rng_log_init(void);
 +extern boolean rng_log_enabled(void);
 +extern void rng_log_set_caller(const char *, int, const char *);
-
+ 
  /* ### role.c ### */
-
+ 
 diff --git a/include/hack.h b/include/hack.h
 index a52258a4e..d147e6fad 100644
 --- a/include/hack.h
 +++ b/include/hack.h
-@@ -1571,6 +1571,32 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
+@@ -1571,6 +1571,44 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
  #include "savefile.h"
  #include "decl.h"
-
+ 
 +/*
 + * PRNG call logging macros (004-prng-logging patch).
 + *
@@ -60,23 +60,23 @@ index a52258a4e..d147e6fad 100644
 +#endif /* RNGLOG_IN_RND_C */
 +
  #endif  /* RECOVER_C */
-
+ 
  #endif /* HACK_H */
 diff --git a/src/rnd.c b/src/rnd.c
 index beb4992ed..498999111 100644
 --- a/src/rnd.c
 +++ b/src/rnd.c
-@@ -2,8 +2,80 @@
+@@ -2,8 +2,86 @@
  /*      Copyright (c) 2004 by Robert Patrick Rankin               */
  /* NetHack may be freely redistributed.  See license for details. */
-
+ 
 +/* Suppress rng logging macros inside this file -- we define the real
 +   functions here, and add logging directly in each function body.
 +   Internal calls (e.g. rnz calling rn2) inherit the outer caller's
 +   context because the macros don't fire inside rnd.c. */
 +#define RNGLOG_IN_RND_C
  #include "hack.h"
-
+ 
 +/*
 + * PRNG call logging infrastructure.
 + * When NETHACK_RNGLOG is set, every rn2/rnd/rnl/d/rne/rnz call is logged
@@ -152,7 +152,7 @@ index beb4992ed..498999111 100644
 +
  #ifdef USE_ISAAC64
  #include "isaac64.h"
-
+ 
 @@ -94,16 +166,20 @@ rn2_on_display_rng(int x)
  int
  rn2(int x)
@@ -176,7 +176,7 @@ index beb4992ed..498999111 100644
 +    }
 +    return result;
  }
-
+ 
  /* 0 <= rnl(x) < x; sometimes subtracting Luck;
 @@ -112,6 +188,8 @@ int
  rnl(int x)
@@ -184,7 +184,7 @@ index beb4992ed..498999111 100644
      int i, adjustment;
 +    /* Internal rn2 call inherits caller context from the rnl macro --
 +       no save/clear needed. */
-
+ 
  #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
      if (x <= 0) {
 @@ -147,6 +225,11 @@ rnl(int x)
@@ -198,7 +198,7 @@ index beb4992ed..498999111 100644
 +    }
      return i;
  }
-
+ 
 @@ -154,14 +237,20 @@ rnl(int x)
  int
  rnd(int x)
@@ -220,14 +220,14 @@ index beb4992ed..498999111 100644
 +    }
 +    return result;
  }
-
+ 
  int
 @@ -175,6 +264,7 @@ int
  d(int n, int x)
  {
      int tmp = n;
 +    int orig_n = n;
-
+ 
  #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
      if (x < 0 || n < 0 || (x == 0 && n != 0)) {
 @@ -184,6 +274,11 @@ d(int n, int x)
@@ -241,14 +241,14 @@ index beb4992ed..498999111 100644
 +    }
      return tmp; /* Alea iacta est. -- J.C. */
  }
-
+ 
 @@ -192,11 +287,18 @@ int
  rne(int x)
  {
      int tmp, utmp;
 +    /* Internal rn2 calls inherit caller context from the rne macro --
 +       no save/clear needed. */
-
+ 
      utmp = (u.ulevel < 15) ? 5 : u.ulevel / 3;
      tmp = 1;
      while (tmp < utmp && !rn2(x))
@@ -259,7 +259,7 @@ index beb4992ed..498999111 100644
 +        rng_log_write("rne", buf, tmp);
 +    }
      return tmp;
-
+ 
      /* was:
 @@ -215,6 +317,8 @@ rnz(int i)
  {
@@ -267,7 +267,7 @@ index beb4992ed..498999111 100644
      long tmp = 1000L;
 +    /* Internal rn2/rne calls inherit caller context from the rnz macro --
 +       no save/clear needed. */
-
+ 
      tmp += rn2(1000);
      tmp *= rne(4);
 @@ -225,6 +329,11 @@ rnz(int i)
@@ -281,16 +281,16 @@ index beb4992ed..498999111 100644
 +    }
      return (int) x;
  }
-
+ 
 diff --git a/sys/unix/unixmain.c b/sys/unix/unixmain.c
 index 881c1666e..46ff058d2 100644
 --- a/sys/unix/unixmain.c
 +++ b/sys/unix/unixmain.c
 @@ -63,6 +63,7 @@ main(int argc, char *argv[])
      boolean plsel_once = FALSE;
-
+ 
      early_init(argc, argv);
 +    rng_log_init();  /* 004-prng-logging: open log if NETHACK_RNGLOG is set */
-
+ 
  #if defined(__APPLE__)
      {

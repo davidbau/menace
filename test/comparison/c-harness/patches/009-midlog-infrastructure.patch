@@ -2,7 +2,7 @@ diff --git a/include/extern.h b/include/extern.h
 index 959db5978..fdbd43f66 100644
 --- a/include/extern.h
 +++ b/include/extern.h
-@@ -2732,11 +2732,15 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
+@@ -2732,12 +2732,17 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
  /* PRNG call logging (004-prng-logging patch) */
  extern void rng_log_init(void);
  extern boolean rng_log_enabled(void);
@@ -17,16 +17,16 @@ index 959db5978..fdbd43f66 100644
 +extern void midlog_exit_int(const char *, int, const char *, int, const char *);
 +extern void midlog_exit_void(const char *, const char *, int, const char *);
 +extern void midlog_exit_ptr(const char *, const void *, const char *, int, const char *);
-
+ 
  /* ### role.c ### */
-
+ 
 diff --git a/include/hack.h b/include/hack.h
 index 4f6bf9353..26da07c3f 100644
 --- a/include/hack.h
 +++ b/include/hack.h
-@@ -1609,6 +1609,139 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
+@@ -1609,5 +1609,138 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
  #endif /* RNGLOG_IN_RND_C */
-
+ 
 +/*
 + * Mid-level function tracing macros (009-midlog-infrastructure patch).
 + *
@@ -161,7 +161,7 @@ index 4f6bf9353..26da07c3f 100644
 +#endif
 +
  #endif  /* RECOVER_C */
-
+ 
  #endif /* HACK_H */
 diff --git a/src/allmain.c b/src/allmain.c
 index 7a431ea27..00f7e5b1b 100644
@@ -181,7 +181,7 @@ index 7a431ea27..00f7e5b1b 100644
      cmdq_clear(CQ_CANNED);
 +    midlog_exit_void("stop_occupation", __FILE__, __LINE__, __func__);
  }
-
+ 
  void
 diff --git a/src/cmd.c b/src/cmd.c
 index d77454878..e98737f00 100644
@@ -201,7 +201,7 @@ index d77454878..e98737f00 100644
 +    midlog_exit_int("timed_occupation", result, __FILE__, __LINE__, __func__);
 +    return result;
  }
-
+ 
  /* If you have moved since initially setting some occupations, they
 @@ -203,6 +207,7 @@ reset_occupations(void)
  void
@@ -218,7 +218,7 @@ index d77454878..e98737f00 100644
 +    midlog_exit_void("set_occupation", __FILE__, __LINE__, __func__);
      return;
  }
-
+ 
 diff --git a/src/detect.c b/src/detect.c
 index bf536e127..22c543043 100644
 --- a/src/detect.c
@@ -226,11 +226,11 @@ index bf536e127..22c543043 100644
 @@ -8,6 +8,7 @@
   * command.
   */
-
+ 
 +#define MIDLOG_IN_DETECT_C
  #include "hack.h"
  #include "artifact.h"
-
+ 
 diff --git a/src/do.c b/src/do.c
 index 875d0c62f..bd275ff5f 100644
 --- a/src/do.c
@@ -242,9 +242,9 @@ index 875d0c62f..bd275ff5f 100644
 +    midlog_enter("cmd_safety_prevention", __FILE__, __LINE__, __func__);
      if (flags.safe_wait && !iflags.menu_requested && !gm.multi) {
          char buf[QBUFSZ];
-
+ 
 @@ -2324,13 +2325,19 @@ cmd_safety_prevention(const char *ucverb, const char *cmddesc,
-
+ 
          if (monster_nearby()) {
              Norep("%s%s", act, buf);
 +            midlog_exit_int("cmd_safety_prevention", TRUE,
@@ -262,7 +262,7 @@ index 875d0c62f..bd275ff5f 100644
 +                    __FILE__, __LINE__, __func__);
      return FALSE;
  }
-
+ 
 diff --git a/src/dogmove.c b/src/dogmove.c
 index c22eba74b..e3f96f262 100644
 --- a/src/dogmove.c
@@ -270,10 +270,10 @@ index c22eba74b..e3f96f262 100644
 @@ -3,6 +3,7 @@
  /*-Copyright (c) Robert Patrick Rankin, 2012. */
  /* NetHack may be freely redistributed.  See license for details. */
-
+ 
 +#define MIDLOG_IN_DOGMOVE_C
  #include "hack.h"
-
+ 
  #include "mfndpos.h"
 diff --git a/src/hack.c b/src/hack.c
 index c27e86357..9cd56e22e 100644
@@ -282,11 +282,11 @@ index c27e86357..9cd56e22e 100644
 @@ -3,6 +3,7 @@
  /*-Copyright (c) Derek S. Ray, 2015. */
  /* NetHack may be freely redistributed.  See license for details. */
-
+ 
 +#define MIDLOG_IN_HACK_C
  #include "hack.h"
  #include "extern.h"
-
+ 
 diff --git a/src/mhitu.c b/src/mhitu.c
 index 79b12a737..93affd89f 100644
 --- a/src/mhitu.c
@@ -294,11 +294,11 @@ index 79b12a737..93affd89f 100644
 @@ -3,6 +3,7 @@
  /*-Copyright (c) Robert Patrick Rankin, 2012. */
  /* NetHack may be freely redistributed.  See license for details. */
-
+ 
 +#define MIDLOG_IN_MHITU_C
  #include "hack.h"
  #include "artifact.h"
-
+ 
 diff --git a/src/mkobj.c b/src/mkobj.c
 index f2adf2185..648448d53 100644
 --- a/src/mkobj.c
@@ -306,10 +306,10 @@ index f2adf2185..648448d53 100644
 @@ -3,6 +3,7 @@
  /*-Copyright (c) Derek S. Ray, 2015. */
  /* NetHack may be freely redistributed.  See license for details. */
-
+ 
 +#define MIDLOG_IN_MKOBJ_C
  #include "hack.h"
-
+ 
  staticfn boolean may_generate_eroded(struct obj *);
 diff --git a/src/mkroom.c b/src/mkroom.c
 index c859b1c0e..3c7fc0f90 100644
@@ -318,10 +318,10 @@ index c859b1c0e..3c7fc0f90 100644
 @@ -15,6 +15,7 @@
   *      cmap_to_type() -- convert S_xxx symbol to XXX topology code
   */
-
+ 
 +#define MIDLOG_IN_MKROOM_C
  #include "hack.h"
-
+ 
  #ifndef SFCTOOL
 diff --git a/src/mon.c b/src/mon.c
 index 883db340c..fb9dab42a 100644
@@ -330,11 +330,11 @@ index 883db340c..fb9dab42a 100644
 @@ -3,6 +3,7 @@
  /*-Copyright (c) Derek S. Ray, 2015. */
  /* NetHack may be freely redistributed.  See license for details. */
-
+ 
 +#define MIDLOG_IN_MON_C
  #include "hack.h"
  #include "mfndpos.h"
-
+ 
 diff --git a/src/monmove.c b/src/monmove.c
 index 3830e3713..d60962dcb 100644
 --- a/src/monmove.c
@@ -342,14 +342,14 @@ index 3830e3713..d60962dcb 100644
 @@ -3,6 +3,7 @@
  /*-Copyright (c) Michael Allison, 2006. */
  /* NetHack may be freely redistributed.  See license for details. */
-
+ 
 +#define MIDLOG_IN_MONMOVE_C
  #include "hack.h"
  #include "mfndpos.h"
  #include "artifact.h"
-@@ -908,8 +909,13 @@ dochug(struct monst *mtmp)
+@@ -908,7 +909,11 @@ dochug(struct monst *mtmp)
          }
-
+ 
 -        if (!status)
 -            status = m_move(mtmp, 0);
 +        if (!status) {
@@ -368,10 +368,10 @@ index 613150656..e40e850bd 100644
 @@ -3,6 +3,7 @@
  /*-Copyright (c) Pasi Kallinen, 2016. */
  /* NetHack may be freely redistributed.  See license for details. */
-
+ 
 +#define MIDLOG_IN_MTHROWU_C
  #include "hack.h"
-
+ 
  staticfn int monmulti(struct monst *, struct obj *, struct obj *);
 diff --git a/src/rnd.c b/src/rnd.c
 index 695c156f0..c7e6c2429 100644
@@ -380,7 +380,7 @@ index 695c156f0..c7e6c2429 100644
 @@ -76,6 +76,74 @@ rng_log_write(const char *func, const char *args, int result)
      }
  }
-
+ 
 +/*
 + * Mid-level function tracing (009-midlog-infrastructure patch).
 + *
@@ -451,26 +451,26 @@ index 695c156f0..c7e6c2429 100644
 +
  #ifdef USE_ISAAC64
  #include "isaac64.h"
-
+ 
 diff --git a/src/makemon.c b/src/makemon.c
 --- a/src/makemon.c
 +++ b/src/makemon.c
 @@ -5,2 +5,3 @@
-
+ 
 +#define MIDLOG_IN_MAKEMON_C
  #include "hack.h"
 diff --git a/src/sp_lev.c b/src/sp_lev.c
 --- a/src/sp_lev.c
 +++ b/src/sp_lev.c
 @@ -4,2 +4,3 @@
-
+ 
 +#define MIDLOG_IN_SP_LEV_C
  /*
 diff --git a/src/mklev.c b/src/mklev.c
 --- a/src/mklev.c
 +++ b/src/mklev.c
 @@ -5,2 +5,3 @@
-
+ 
 +#define MIDLOG_IN_MKLEV_C
  #include "hack.h"
 @@ -434,53 +435,56 @@ join(int a, int b, boolean nxcor)
@@ -478,19 +478,19 @@ diff --git a/src/mklev.c b/src/mklev.c
      int npoints;
      boolean dig_result;
 +    boolean entered = FALSE;
-
+ 
 +    midlog_enter("join", __FILE__, __LINE__, __func__);
 +    entered = TRUE;
      croom = &svr.rooms[a];
      troom = &svr.rooms[b];
-
+ 
      if (!croom->needjoining || !troom->needjoining)
 -        return;
 +        goto join_done;
-
+ 
      /* find positions cc and tt for doors in croom and troom
         and direction for a corridor between them */
-
+ 
      if (troom->hx < 0 || croom->hx < 0)
 -        return;
 +        goto join_done;
@@ -538,19 +538,19 @@ diff --git a/src/mklev.c b/src/mklev.c
      if (nxcor && levl[xx + dx][yy + dy].typ != STONE)
 -        return;
 +        goto join_done;
-
+ 
      org.x = xx + dx;
      org.y = yy + dy;
 @@ -495,7 +499,7 @@ join(int a, int b, boolean nxcor)
          dodoor(xx, yy, croom);
-
+ 
      if (!dig_result)
 -        return;
 +        goto join_done;
-
+ 
      /* we succeeded in digging the corridor */
      if (okdoor(tt.x, tt.y) || !nxcor)
-@@ -505,6 +509,9 @@ join(int a, int b, boolean nxcor)
+@@ -505,5 +509,8 @@ join(int a, int b, boolean nxcor)
          gs.smeq[b] = gs.smeq[a];
      else
          gs.smeq[a] = gs.smeq[b];
@@ -558,7 +558,7 @@ diff --git a/src/mklev.c b/src/mklev.c
 +    if (entered)
 +        midlog_exit_void("join", __FILE__, __LINE__, __func__);
  }
-
+ 
 diff --git a/src/sp_lev.c b/src/sp_lev.c
 --- a/src/sp_lev.c
 +++ b/src/sp_lev.c
@@ -567,7 +567,7 @@ diff --git a/src/sp_lev.c b/src/sp_lev.c
      struct rm *crm;
      int tx, ty, xx, yy;
 +    boolean result = FALSE;
-
+ 
 +    midlog_enter("dig_corridor", __FILE__, __LINE__, __func__);
      if (npoints)
          *npoints = 0;
@@ -587,14 +587,14 @@ diff --git a/src/sp_lev.c b/src/sp_lev.c
          if (cct++ > 500 || (nxcor && !rn2(35)))
 -            return FALSE;
 +            goto dig_done;
-
+ 
          xx += dx;
          yy += dy;
-
+ 
          if (xx >= COLNO - 1 || xx <= 0 || yy <= 0 || yy >= ROWNO - 1)
 -            return FALSE; /* impossible */
 +            goto dig_done; /* impossible */
-
+ 
          crm = &levl[xx][yy];
          if (crm->typ == btyp) {
 @@ -2598,7 +2601,7 @@ dig_corridor(
@@ -604,9 +604,9 @@ diff --git a/src/sp_lev.c b/src/sp_lev.c
 -            return FALSE;
 +            goto dig_done;
          }
-
+ 
          /* find next corridor position */
-@@ -2651,7 +2654,10 @@ dig_corridor(
+@@ -2651,5 +2654,8 @@ dig_corridor(
          dy = -dy;
          dx = -dx;
      }

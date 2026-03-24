@@ -3,17 +3,17 @@ index 61338542b..51e3e3ea5 100644
 --- a/win/tty/wintty.c
 +++ b/win/tty/wintty.c
 @@ -14,6 +14,7 @@
-
+ 
  #include "hack.h"
-
+ 
 +#include <sys/time.h>
  #ifdef TTY_GRAPHICS
  #include "dlb.h"
-
-@@ -94,6 +95,102 @@ extern void msmsg(const char *, ...);
+ 
+@@ -94,6 +95,106 @@ extern void msmsg(const char *, ...);
  #define HUPSKIP_RESULT(RES) /*empty*/
  #endif /* ?HANGUPHANDLING */
-
+ 
 +/* Optional input event logging for deterministic replay/testing.
 + * Enable by setting NETHACK_KEYLOG to a writable file path.
 + * Optionally set NETHACK_KEYLOG_DELAY_MS to skip initial keypresses.
@@ -117,7 +117,7 @@ index 61338542b..51e3e3ea5 100644
  /* Interface definition, for windows.c */
  struct window_procs tty_procs = {
      WPID(tty),
-@@ -4106,6 +4189,7 @@ tty_nhgetch(void)
+@@ -4106,5 +4189,6 @@ tty_nhgetch(void)
          print_vt_code2(AVTC_SELECT_WINDOW, tmp);
      }
  #endif /* TTY_TILES_ESCCODES */

@@ -8,7 +8,7 @@ diff --git a/include/extern.h b/include/extern.h
 +extern void exp_log(const char *, ...) PRINTF_F(1, 2);
  extern void repaint_debug_clear_scope(void);
  extern const char *repaint_debug_get_scope(void);
-
+ 
 diff --git a/src/rnd.c b/src/rnd.c
 --- a/src/rnd.c
 +++ b/src/rnd.c
@@ -39,7 +39,7 @@ diff --git a/src/rnd.c b/src/rnd.c
 @@ -220,6 +223,19 @@ repaint_debug_log(const char *fmt, ...)
      fputs("]\n", out);
  }
-
+ 
 +void
 +exp_log(const char *fmt, ...)
 +{
@@ -59,7 +59,7 @@ diff --git a/src/rnd.c b/src/rnd.c
 diff --git a/src/exper.c b/src/exper.c
 --- a/src/exper.c
 +++ b/src/exper.c
-@@ -198,6 +198,8 @@ more_experienced(int exper, int rexp)
+@@ -198,6 +198,9 @@ more_experienced(int exper, int rexp)
              disp.botl = TRUE;
  #endif
      }
@@ -84,14 +84,14 @@ diff --git a/src/exper.c b/src/exper.c
          pluslvl(TRUE);
 +    }
  }
-
+ 
  void
 diff --git a/src/do.c b/src/do.c
 --- a/src/do.c
 +++ b/src/do.c
 @@ -1949,6 +1949,9 @@ goto_level(
          livelog_printf(major ? LL_ACHIEVE : LL_DEBUG, "entered %s", dloc);
-
+ 
          if (Role_if(PM_TOURIST)) {
 +            exp_log("owner=goto_level move=%ld level_difficulty=%d depth=%d oldexp=%ld level=%d",
 +                    svm.moves, level_difficulty(), depth(newlevel), u.uexp,
@@ -115,13 +115,13 @@ diff --git a/src/hack.c b/src/hack.c
 diff --git a/src/mon.c b/src/mon.c
 --- a/src/mon.c
 +++ b/src/mon.c
-@@ -5970,7 +5970,7 @@ see_monster_closeup(struct monst *mtmp, boolean photo)
+@@ -5970,3 +5970,3 @@ see_monster_closeup(struct monst *mtmp, boolean photo)
  {
 -    int mndx;
 +    int mndx, tmp;
-
-@@ -3672,6 +3672,8 @@ killed(struct monst *mtmp)
-
+ 
+@@ -3672,6 +3672,9 @@ killed(struct monst *mtmp)
+ 
      /* give experience points */
      tmp = experience(mtmp, (int) svm.mvitals[mndx].died);
 +    exp_log("owner=xkilled move=%ld mndx=%d nk=%d level=%d exp=%ld gain=%d",
@@ -129,8 +129,8 @@ diff --git a/src/mon.c b/src/mon.c
 +            u.uexp, tmp);
      more_experienced(tmp, 0);
      newexplevel(); /* will decide if you go up */
-
-@@ -6015,7 +6017,10 @@ mon_to_camera(struct monst *mtmp, boolean photo)
+ 
+@@ -6015,8 +6017,11 @@ mon_to_camera(struct monst *mtmp, boolean photo)
                  /* monsndx() check covers worm tail and also disguised
                     Wizard of Yendor; experienced() won't yield a reasonable
                     value for those */

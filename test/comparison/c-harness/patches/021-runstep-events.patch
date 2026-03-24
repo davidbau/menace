@@ -1,7 +1,7 @@
 diff --git a/src/allmain.c b/src/allmain.c
 --- a/src/allmain.c
 +++ b/src/allmain.c
-@@ -162,6 +162,93 @@ static int mvl_abort_lev;
+@@ -162,6 +162,107 @@ static int mvl_abort_lev;
  #endif
  static int mvl_wtcap = 0;
  static int mvl_change = 0;
@@ -106,18 +106,18 @@ diff --git a/src/allmain.c b/src/allmain.c
 +                      svc.context.move, go.occupation ? 1 : 0,                 \
 +                      u.umoved ? 1 : 0, u.ux, u.uy);                           \
 +    } while (0)
-
+ 
  void
  moveloop_core(void)
 @@ -523,6 +538,7 @@ moveloop_core(void)
      u.umoved = FALSE;
-
+ 
      if (gm.multi > 0) {
 +        RUNSTEP_EVENT(svc.context.mv ? "repeat_mv" : "repeat_cmd", gc.cmd_key);
          lookaround();
          runmode_delay_output();
          if (!gm.multi) {
-@@ -543,10 +559,12 @@ moveloop_core(void)
+@@ -543,11 +559,13 @@ moveloop_core(void)
              --gm.multi;
              nhassert(gc.command_count != 0);
              rhack(gc.cmd_key);
@@ -136,6 +136,6 @@ diff --git a/src/allmain.c b/src/allmain.c
      }
  }
 +#undef RUNSTEP_EVENT
-
+ 
  staticfn void
  maybe_do_tutorial(void)

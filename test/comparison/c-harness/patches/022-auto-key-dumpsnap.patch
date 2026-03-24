@@ -1,10 +1,10 @@
 diff --git a/src/cmd.c b/src/cmd.c
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -151,6 +151,77 @@ staticfn int dummyfunction(void);
-
+@@ -151,6 +151,83 @@ staticfn int dummyfunction(void);
+ 
  static const char *readchar_queue = "";
-
+ 
 +static const char *harness_dumpsnap_key_steps = (const char *) 0;
 +static int harness_dumpsnap_every_key = 0;
 +static int harness_dumpsnap_key_cfg_init = 0;
@@ -88,7 +88,7 @@ diff --git a/src/cmd.c b/src/cmd.c
 @@ -5600,6 +5671,8 @@ readchar_core(coordxy *x, coordxy *y, int *mod)
          click_to_cmd(*x, *y, *mod);
      }
-
+ 
 +    harness_maybe_auto_key_dumpsnap(sym);
 +
   readchar_done:

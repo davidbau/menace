@@ -12,14 +12,14 @@ index c27e86357..6544c8f7b 100644
 +        boolean tm_rv = (rv_expr);                                             \
 +        if (log_test_move)                                                     \
 +            event_log("test_move[mode=%d from=%d,%d dir=%d,%d to=%d,%d rv=%d]", \
-+                      mode, ux, uy, dx, dy, x, y, tm_rv ? 1 : 0);             \
++                      mode, ux, uy, dx, dy, x, y, tm_rv ? TRUE : FALSE);             \
 +        return tm_rv;                                                          \
 +    } while (0)
 
      svc.context.door_opened = FALSE;
 +    if (log_test_move < 0) {
 +        const char *ev = getenv("NETHACK_EVENT_TEST_MOVE");
-+        log_test_move = (ev && *ev && *ev != '0') ? 1 : 0;
++        log_test_move = (ev && *ev && *ev != '0') ? TRUE : FALSE;
 +    }
 
      if (!isok(x, y))

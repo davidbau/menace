@@ -1,7 +1,7 @@
 diff --git a/src/mklev.c b/src/mklev.c
 --- a/src/mklev.c
 +++ b/src/mklev.c
-@@ -49,6 +49,11 @@ staticfn void makerooms(void);
+@@ -49,5 +49,11 @@ staticfn void makerooms(void);
  staticfn boolean good_rm_wall_doorpos(coordxy, coordxy, int, struct mkroom *);
  staticfn boolean finddpos_shift(coordxy *, coordxy *, int, struct mkroom *);
 +staticfn void harness_auto_mapdump(void);
@@ -10,19 +10,19 @@ diff --git a/src/mklev.c b/src/mklev.c
 +staticfn void harness_mapdump_rle_grid(FILE *, int);
 +staticfn void harness_mapdump_sparse_lists(FILE *);
 +staticfn int harness_mapdump_minvent_count(struct monst *);
-
+ 
  staticfn boolean finddpos(coord *, int, struct mkroom *);
-
+ 
 @@ -1585,6 +1589,8 @@ mklev(void)
-
+ 
      level_finalize_topology();
-
+ 
 +    harness_auto_mapdump();
 +
      reseed_random(rn2);
      reseed_random(rn2_on_display_rng);
  }
-@@ -2918,4 +2924,129 @@ mk_knox_portal(coordxy x, coordxy y)
+@@ -2918,5 +2924,252 @@ mk_knox_portal(coordxy x, coordxy y)
      debugpline0("Made knox portal.");
      place_branch(br, x, y);
  }
@@ -273,5 +273,5 @@ diff --git a/src/mklev.c b/src/mklev.c
 +
 +    event_log("mapdump[%s]", dump_id);
 +}
-
+ 
  /*mklev.c*/

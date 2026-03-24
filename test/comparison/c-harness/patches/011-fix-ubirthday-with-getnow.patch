@@ -2,10 +2,10 @@ diff --git a/src/u_init.c b/src/u_init.c
 index c9d8245ad..30f10b580 100644
 --- a/src/u_init.c
 +++ b/src/u_init.c
-@@ -1004,11 +1004,8 @@ u_init(void)
+@@ -1004,11 +1004,9 @@ u_init(void)
      u.ualignbase[A_CURRENT] = u.ualignbase[A_ORIGINAL] = u.ualign.type =
          aligns[flags.initalign].value;
-
+ 
 -#if defined(BSD) && !defined(POSIX_TYPES)
 -    (void) time((long *) &ubirthday);
 -#else
@@ -14,6 +14,6 @@ index c9d8245ad..30f10b580 100644
 +    /* Deterministic harness parity: route through getnow() so
 +       NETHACK_FIXED_DATETIME controls ubirthday the same as calendar logic. */
 +    ubirthday = getnow();
-
+ 
      /*
       *  For now, everyone starts out with a night vision range of 1 and

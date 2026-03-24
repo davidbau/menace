@@ -1,7 +1,7 @@
 diff --git a/src/end.c b/src/end.c
 --- a/src/end.c
 +++ b/src/end.c
-@@ -1030,7 +1030,8 @@ done(int how)
+@@ -1030,6 +1030,7 @@ done(int how)
          }
          if (wizard) {
 -            You("are a very tricky wizard, it seems.");

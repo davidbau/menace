@@ -1,7 +1,7 @@
 diff --git a/src/monmove.c b/src/monmove.c
 --- a/src/monmove.c
 +++ b/src/monmove.c
-@@ -669,6 +669,10 @@
+@@ -669,7 +669,11 @@
      if (mtmp->data == &mons[PM_FOG_CLOUD]) {
          /* don't leave a vapor cloud if some other gas cloud is already
             present, or when flowing under closed doors so that visibility
@@ -16,7 +16,7 @@ diff --git a/src/monmove.c b/src/monmove.c
 diff --git a/src/region.c b/src/region.c
 --- a/src/region.c
 +++ b/src/region.c
-@@ -300,6 +300,12 @@
+@@ -300,4 +300,10 @@
      gr.regions[svn.n_regions] = reg;
      svn.n_regions++;
 +    /* 029-fog-cloud-trace: log every region addition to find where

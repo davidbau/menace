@@ -1,6 +1,6 @@
 --- a/include/unixconf.h
 +++ b/include/unixconf.h
-@@ -114,7 +114,7 @@
+@@ -114,5 +114,5 @@
  /* #define TIMED_DELAY */ /* usleep() */
  #endif
 -#if defined(MACOS) && !defined(TIMED_DELAY)
