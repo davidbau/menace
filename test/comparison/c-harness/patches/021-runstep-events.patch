@@ -139,3 +139,17 @@ diff --git a/src/allmain.c b/src/allmain.c
  
  staticfn void
  maybe_do_tutorial(void)
+
+diff --git a/src/allmain.c b/src/allmain.c
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -155,6 +159,10 @@
+     }
+
+     u.umovement += moveamt;
++    /* Log hero movement allocation for parity comparison.
++     * Do NOT call inv_weight() — it sets gw.wc as a side effect. */
++    event_log("moveamt[wtcap=%d moveamt=%d umovement=%d pos=%d,%d]",
++              wtcap, moveamt, u.umovement, u.ux, u.uy);
+     if (u.umovement < 0)
+         u.umovement = 0;

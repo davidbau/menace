@@ -14,6 +14,7 @@ diff --git a/include/wintty.h b/include/wintty.h
 +extern nomux_cell nomux_buf[24][80];
 +extern void nomux_clear_screen(void);
 +extern void nomux_clear_to_eol(int row, int col);
++extern void nomux_capture_write_screen(void);
 +extern void nomux_putch(int ch);
 +extern void nomux_set_attr(int attr);
 +extern void nomux_end_attr(void);
@@ -34,6 +35,44 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
  }
 
 +#ifdef NOMUX_CAPTURE
++static const char *
++nomux_capture_path(void)
++{
++    static const char *path = (const char *) 0;
++    static int path_checked = 0;
++
++    if (!path_checked) {
++        /* Preferred: NETHACK_NOMUX_SCREEN_FILE.
++         * Legacy: NOMUX_SCREEN_FILE */
++        path = getenv("NETHACK_NOMUX_SCREEN_FILE");
++        if (path == NULL)
++            path = getenv("NOMUX_SCREEN_FILE");
++        path_checked = 1;
++    }
++
++    return path;
++}
++
++void
++nomux_capture_write_screen(void)
++{
++    const char *nomux_path = nomux_capture_path();
++    if (!nomux_path)
++        return;
++
++    {
++        FILE *nf = fopen(nomux_path, "w");
++        if (!nf)
++            return;
++
++        char *scr = nomux_capture_screen();
++        int cx, cy;
++        nomux_get_cursor(&cx, &cy);
++        fprintf(nf, "%s\n---CURSOR:%d,%d\n", scr, cx, cy);
++        fclose(nf);
++    }
++}
++
 +/* NOMUX shadow frame buffer implementation */
 +nomux_cell nomux_buf[24][80];
 +static unsigned char nomux_fg_cur = 7;
@@ -346,7 +385,7 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
      term_curs_set(1);
      (void) fflush(stdout);
 +#ifdef NOMUX_CAPTURE
-+    { static const char *nomux_path = NULL; static int nomux_checked = 0; if (!nomux_checked) { nomux_path = getenv("NOMUX_SCREEN_FILE"); nomux_checked = 1; } if (nomux_path) { FILE *nf = fopen(nomux_path, "w"); if (nf) { char *scr = nomux_capture_screen(); int cx, cy; nomux_get_cursor(&cx, &cy); fprintf(nf, "%s\n---CURSOR:%d,%d\n", scr, cx, cy); fclose(nf); } } }
++    nomux_capture_write_screen();
 +#endif
      /* Note: if raw_print() and wait_synch() get called to report terminal
       * initialization problems, then wins[] and ttyDisplay might not be
@@ -356,7 +395,7 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
  #if defined(WIN32CON)
      (void) fflush(stdout);
 +#ifdef NOMUX_CAPTURE
-+    { static const char *nomux_path = NULL; static int nomux_checked = 0; if (!nomux_checked) { nomux_path = getenv("NOMUX_SCREEN_FILE"); nomux_checked = 1; } if (nomux_path) { FILE *nf = fopen(nomux_path, "w"); if (nf) { char *scr = nomux_capture_screen(); int cx, cy; nomux_get_cursor(&cx, &cy); fprintf(nf, "%s\n---CURSOR:%d,%d\n", scr, cx, cy); fclose(nf); } } }
++    nomux_capture_write_screen();
 +#endif
      /* Note: if raw_print() and wait_synch() get called to report terminal
       * initialization problems, then wins[] and ttyDisplay might not be
