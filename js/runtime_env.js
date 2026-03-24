@@ -19,6 +19,11 @@ export function envFlag(name) {
     return getEnv(name) === '1';
 }
 
+export function envFlagTruth(name) {
+    const raw = String(getEnv(name) || '').trim().toLowerCase();
+    return raw === '1' || raw === 'true' || raw === 'on' || raw === 'yes';
+}
+
 export function hasEnv(name) {
     const value = getEnv(name);
     return value !== undefined && value !== null && value !== '';

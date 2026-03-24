@@ -1,13 +1,8 @@
-import { getEnv } from './runtime_env.js';
+import { envFlagTruth } from './runtime_env.js';
 import { pushRngLogEntry } from './rng.js';
 
-function normalizeRunstepEnv(value) {
-    const raw = String(value || '').trim().toLowerCase();
-    return raw === '1' || raw === 'true' || raw === 'on' || raw === 'yes';
-}
-
 export function isRunstepEventEnabled() {
-    return normalizeRunstepEnv(getEnv('WEBHACK_EVENT_RUNSTEP'));
+    return envFlagTruth('WEBHACK_EVENT_RUNSTEP');
 }
 
 export function emitRunstepEvent(game, keyarg, path, cmdOverride = null, opts = {}) {
@@ -23,4 +18,3 @@ export function emitRunstepEvent(game, keyarg, path, cmdOverride = null, opts = 
         `^runstep[path=${path} keyarg=${keyarg | 0} cmd=${cmd} cc=${cc} moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
     );
 }
-
