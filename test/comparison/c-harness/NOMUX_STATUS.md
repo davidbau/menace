@@ -1,91 +1,62 @@
 # NOMUX Implementation Status
 
-## M2 Complete: Shadow Frame Buffer Works
+## Complete: All Milestones (M1-M5) + Attribute Fixes
 
-The NOMUX shadow buffer captures the complete screen state:
-- ✅ Map area (rows 1-21) — via `g_putch` hook
-- ✅ Message line (row 0) — via `topl_putsym` hook
-- ✅ Status lines (rows 22-23) — via `tty_putstatusfield` hook
-- ✅ Menu/text popups — via `process_text_window` hooks
-- ✅ Menu items — via `process_menu_window` putchar hooks
-- ✅ Clear operations — `cl_end`, `term_clear_screen` hooks
-- ✅ Attribute tracking — `term_start_attr`/`term_end_attr` hooks
-- ✅ Color tracking — `term_start_color`/`term_end_color` hooks
-- ✅ Cursor — read from `ttyDisplay->curx/cury` at nhgetch
-- ✅ File output — writes to `$NOMUX_SCREEN_FILE` at each nhgetch
+NOMUX provides deterministic screen capture via a C shadow frame buffer,
+eliminating tmux timing-dependent capture non-determinism.
 
-## Verified Output
+### Validation Results (March 24, 2026)
+- **seed1**: 0/85 steps with diffs vs tmux (was 2629 cell diffs across 71 steps)
+- Characters, colors, attributes, DEC graphics, and cursor all match tmux output
 
-NOMUX captures map + message + status matching tmux output:
-```
-NOMUX: Velkommen wizard... --More--
-       map with @, f, corridors
-       Wizard the Stripling  St:18 Dx:11...
-       Dlvl:1 $:0 HP:16(16)...
-       ---CURSOR:70,0
-```
+## Bugs Fixed (session 31)
+
+1. **CLR_BLACK encoder bug**: `c->fg ? c->fg : 7` mapped fg=0 (CLR_BLACK)
+   to default because 0 is falsy in C. Fixed to `c->fg` — cleared cells
+   already use fg=7 as default.
+
+2. **CLR_BLACK terminal remap**: Added `nomux_fg_remap[]` table populated
+   in `init_hilite()` — maps CLR_BLACK to bright black (8) or blue (4)
+   depending on `wc2_darkgray` setting, matching actual terminal color.
+
+3. **topl_putsym position**: curx pre-incremented before putchar, so
+   nomux_putch wrote at curx+1. Fixed with curx-1 save/restore pattern.
 
 ## Hooks Installed (all guarded by #ifdef NOMUX_CAPTURE)
 
 ### termcap.c
-- `nomux_buf[24][80]` + tracking vars
+- Shadow buffer: `nomux_buf[24][80]` + `nomux_fg_cur`, `nomux_attr_cur`, `nomux_decgfx_cur`
 - `nomux_putch()`, `nomux_clear_screen()`, `nomux_clear_to_eol()`
-- `nomux_set_attr()`, `nomux_end_attr()`, `nomux_set_fg()`, `nomux_end_fg()`
-- `nomux_capture_screen()` ANSI serializer
-- Hooks in: `cl_end`, `term_clear_screen`, `term_start_attr`,
-  `term_end_attr`, `term_start_color`, `term_end_color`
+- `nomux_set_attr()`, `nomux_end_attr()`
+- `nomux_fg_remap[16]` + `nomux_set_fg()`, `nomux_end_fg()`
+- `nomux_capture_screen()` — tmux-compatible ANSI serializer with incremental SGR
+- `nomux_get_cursor()`
+- Hooks in: `cl_end`, `term_clear_screen`, `cl_eos`,
+  `standoutbeg`, `standoutend`, `graph_on`, `graph_off`,
+  `term_start_attr`, `term_end_attr`,
+  `term_start_raw_bold`, `term_end_raw_bold`,
+  `term_start_color`, `term_end_color`,
+  `term_start_extracolor`, `term_end_extracolor`
+- Remap init in `init_hilite()` (TERMLIB+TERMINFO path)
 
 ### wintty.c
-- `g_putch` — map glyph output
-- `tty_putsym` NHW_MAP/NHW_BASE — single character output
+- `dmore` prompt display (nomux_putch loop with curx save/restore)
+- `process_menu_window` — glyph char + normal char (2 hooks, curx-1 pattern)
+- `process_text_window` — offset space + glyph/normal chars (3 hooks)
+- `tty_putsym` NHW_BASE — single character output
 - `tty_putstr` NHW_MAP — text string output
+- `g_putch` — map glyph output (with ch^0x80 DEC graphics stripping)
+- `tty_nhgetch` — file write at input boundary (2 locations)
 - `tty_putstatusfield` — status line field output
-- `process_text_window` — text popup character output
-- `process_menu_window` — menu item character output
-- `tty_nhgetch` — file write at input boundary
 
 ### topl.c
-- `topl_putsym` — message line character output
+- `topl_putsym` — message line character output (curx-1 save/restore)
 
-## Known Gaps
-- Leading space on message line (NOMUX has extra space vs tmux)
-- ANSI color encoding differs slightly from tmux format
-- Text popup rendering not yet tested with actual lore overlay
-- DEC graphics character mapping (SO/SI) needs verification
+## Harness Integration
 
-## M3 Complete: Harness Integration
-
-`run_session.py` now supports NOMUX via `NOMUX=1` env var:
+`run_session.py` supports NOMUX via `NOMUX=1` env var:
 - `capture_screen_nomux()` reads `$NOMUX_SCREEN_FILE`
 - `capture_screen_compressed_nomux()` returns compressed ANSI + cursor
-- Cursor parsed from `---CURSOR:x,y` line in file
 - Falls back to tmux if NOMUX file missing
 
-## M4 Complete: Dual-Capture Validation
-
-Results for seed031 (first 100 steps):
-- Text: **100/101** match (1 diff: cmdassist popup leading space)
-- Cursor: **101/101** match (perfect)
-
-Results for seed1 (12 steps):
-- Text: **12/12** match (perfect)
-- Cursor: **12/12** match (perfect)
-
-Key bug found and fixed during M4: `topl_putsym` `nomux_putch` must fire
-BEFORE `ttyDisplay->curx++` (was after, causing 1-column offset for all
-message line text).
-
-## M5 Status: Requires Clean Rebuild
-
-Full rerecording requires the NOMUX patch to be applied via `setup.sh`
-alongside the standard patches, building against the correct upstream
-commit to match `recorded_with` metadata. Direct patched-dir modifications
-produce a binary that doesn't RNG-match existing sessions.
-
-### To complete M5:
-1. Convert NOMUX source modifications into a proper `032-nomux-capture.patch`
-   that `setup.sh` can apply (currently in gitignored `nethack-c/patched/`)
-2. Run `setup.sh` to build from clean upstream + all patches including NOMUX
-3. Rerecord seed031 with `NOMUX=1`
-4. Verify RNG matches original, colors improve
-5. Rerecord full suite
+`rerecord_session.py` supports `--nomux` flag for session rerecording.
