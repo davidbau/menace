@@ -50,15 +50,22 @@ function wireDeps() {
 const SDOOR = 2, DOOR = 3, CORR = 4, ROOM = 5;
 const dirs = [['h',-1,0],['l',1,0],['k',0,-1],['j',0,1],['y',-1,-1],['u',1,-1],['b',-1,1],['n',1,1]];
 
-// BFS that can optionally traverse secret doors (typ=SDOOR).
+// Build set of monster-occupied cells (to avoid in pathfinding)
+function monsterCells() {
+  const s = new Set();
+  for (let m = game.fmon; m; m = m.nmon) if (m.mx > 0 || m.my > 0) s.add(`${m.mx},${m.my}`);
+  return s;
+}
+
+// BFS that can optionally traverse secret doors (typ=SDOOR) and avoid monsters.
 // Returns { key, needsSearch, searchX, searchY } where:
 //   key = first movement key toward target
 //   needsSearch = true if the path crosses an unrevealed SDOOR
 //   searchX/Y = position of the SDOOR to search from (adjacent cell)
-function bfsPath(tx, ty, allowSecretDoors) {
+function bfsPath(tx, ty, allowSecretDoors, avoidMonsters = true) {
   const { ux, uy } = game.u;
+  const blocked = avoidMonsters ? monsterCells() : new Set();
   const visited = new Set();
-  // Each node: { x, y, firstKey, crossesSDoor, sdoorAdjacentX/Y }
   const queue = [{ x: ux, y: uy, firstKey: null, crossesSDoor: false, sdx: 0, sdy: 0 }];
   visited.add(`${ux},${uy}`);
   while (queue.length) {
@@ -70,24 +77,21 @@ function bfsPath(tx, ty, allowSecretDoors) {
       const cell = game.levl[nx]?.[ny];
       if (!cell) continue;
       const t = cell.typ;
-      // Normal passable: DOOR(3), CORR(4), ROOM(5)
-      // With allowSecretDoors: also SDOOR(2)
       if (t < SDOOR) continue;
       if (t === SDOOR && !allowSecretDoors) continue;
       if (t < DOOR && !allowSecretDoors) continue;
-      // No diagonal through doors
       if (dx && dy && (t === DOOR || srcTyp === DOOR)) continue;
       if (dx && dy && (t === SDOOR || srcTyp === SDOOR)) continue;
       const pk = `${nx},${ny}`;
       if (visited.has(pk)) continue;
+      // Skip monster-occupied cells (except the target itself)
+      if (blocked.has(pk) && !(nx === tx && ny === ty)) continue;
       visited.add(pk);
       const fk = node.firstKey || key;
-      // Track if we cross an SDOOR
       let crossesSDoor = node.crossesSDoor;
       let sdx = node.sdx, sdy = node.sdy;
       if (t === SDOOR && !crossesSDoor) {
         crossesSDoor = true;
-        // The cell adjacent to the SDOOR that we'd search from is the current node
         sdx = node.x; sdy = node.y;
       }
       if (nx === tx && ny === ty) {
@@ -99,9 +103,9 @@ function bfsPath(tx, ty, allowSecretDoors) {
   return null;
 }
 
-// Simple BFS for movement (no secret doors)
+// Simple BFS for movement (no secret doors, no monster avoidance)
 function bfsKey(tx, ty) {
-  const result = bfsPath(tx, ty, false);
+  const result = bfsPath(tx, ty, false, false);
   return result ? result.key : null;
 }
 
@@ -164,27 +168,34 @@ input.getKey = async function () {
     campCount = 0;
   }
 
+  // If stuck (grabbed by monster), attack it to break free
+  if (game.u.ustuck) {
+    const sm = game.u.ustuck;
+    const dx = Math.sign(sm.mx - u.ux), dy = Math.sign(sm.my - u.uy);
+    const dkey = dirs.find(([,ddx,ddy]) => ddx === dx && ddy === dy);
+    key = dkey ? dkey[0] : 'h';
+    keyLog.push(key);
+    return key;
+  }
+
   if (depth < targetDepth) {
     // Navigate to downstairs — use map-aware path (crosses secret doors)
     if (u.ux === game.xdnstair && u.uy === game.ydnstair) {
       key = '>';
     } else {
-      // Try direct path first, then path through secret doors
       let k = bfsKey(game.xdnstair, game.ydnstair);
       if (!k) {
-        const path = bfsPath(game.xdnstair, game.ydnstair, true);
+        const path = bfsPath(game.xdnstair, game.ydnstair, true, false);
         if (path) {
           if (path.needsSearch) {
-            // Navigate to the cell adjacent to the secret door, then search
             const sk = bfsKey(path.searchX, path.searchY);
-            k = sk || 's'; // search if already there, or navigate to search position
-            if (u.ux === path.searchX && u.uy === path.searchY) k = 's';
+            k = (sk && !(u.ux === path.searchX && u.uy === path.searchY)) ? sk : 's';
           } else {
             k = path.key;
           }
         }
       }
-      key = k || 's'; // search if completely stuck
+      key = k || 's';
     }
   } else {
     // At target depth: find monster, camp adjacent to it
@@ -305,11 +316,11 @@ input.getKey = async function () {
     }
   }
 
-  // Stuck detection — but don't override search ('s') or camp (' ')
+  // Stuck detection — don't override search/camp/descend
   const pos = `${u.ux},${u.uy}`;
   if (pos === lastPos) {
     stuckCount++;
-    if (stuckCount > 30 && key !== 's' && key !== ' ') key = 'hjklyubn'[stepCount%8];
+    if (stuckCount > 50 && key !== 's' && key !== ' ' && key !== '>') key = 'hjklyubn'[stepCount%8];
   } else { stuckCount = 0; lastPos = pos; }
 
   keyLog.push(key);
