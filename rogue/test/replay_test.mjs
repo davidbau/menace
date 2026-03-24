@@ -31,6 +31,7 @@ function normalizeC(row) {
 function normalizeSavePath(row) {
   return row
     .replace(/Save file \([^)]*\)/, 'Save file (...)')
+    .replace(/Save file: .*/, 'Save file: ...')
     .replace(/File name: .*/, 'File name: ...');
 }
 

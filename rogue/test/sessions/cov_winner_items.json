@@ -1,8 +1,10 @@
 {
   "seed": 3,
+  "wizard": true,
   "steps": [
     {
       "key": "C",
+      "cursor": [12,22],
       "rng": [4,0,1,69,24,0,21,1,2,113,106,30,2,154,136,64,2,81,114,27,2,0,112,1,10,117,1,98,72,0,153,1,0,93,1,122,79,0,124,1,0,61,0,144,0,84,1,0,143,0,107,0,152,2,2,131,9,90,2,2,149,73,0,86,1,89,99,3,0,115,1,103,99,0,93,0,81,0,158,1,1,66,88,1,99,7,2,129,148,127,3,0,48,0,156,2,151,135,74,0,118,2,121,50,149,0,0,73,2,129,61,131,0,0,50,2,20,157,21,1,1,62,157,1,80,23,1,95,147,0,2,22,116,90,2,54,21,95,3,2,152,85,104,2,80,127,145,0,81,1,61,137,0,61,3,2,100,4,76,2,124,101,112,0,88,2,35,122,33,2,7,85,83,2,1,17,4,8,15,7,18,22,21,13,0,12,19,15,6,18,9,1,4,0,19,19,10,6,13,5,0,0,3,3,6,2,53,0,64,3,15,17,62,4,29,13,60,4,55,4,62,5,93,8,48,2,35,1,90,4,65,2,0,10,75,4,50,2,49,3,36,18,63,3,46,6,1,4,0,16,3,5,0,18,1,1,0,6,3,7,0,0,1,3,1,24,55,1,0,42,1,2,2,2,7,39,8,2,1,5,2,40,35,3,2,26,1,0,4,3,7,51,0,12,1,5,2,24,59,1,1,70,13,1,6,0,3,5,18,2,1,1,88,76,3,5,8,14,1,1,0,84,3,7,1,8,5,21,6,16,3,5,0,54,9,7,3,8,7,71,2,8,1,7,2,52,83,1,18,2,1,1,68,20,7,3,2,0,5,73,1,0,1,2,0,1,4,1,8,0,1,1,1,6,9,3,0,0,5,7,2,0,3,1,2,2,6,5,0,6,9,1,0,4,7,1,6,2,6,3,5,5,1,2,8,0,0,1,2,6,9,2,4,0,1,5,4,7,0,0,1,5,5,9,4,6,0,7,6,0,3,7,0,0,1,5,5,0,2,7,8,5,11,91,14,0,3,17,0,48,87,51,34,90,9,2,1,0,0,67,86,2,81,5,12,1,0,1,1,50,1,1,1,8,3,19,2,2,13],
       "screen": [
         "",
@@ -33,9 +35,10 @@
     },
     {
       "key": ",",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
-        "Illegal command 'C'.",
+        "Type of item:",
         "",
         "",
         "",
@@ -63,9 +66,10 @@
     },
     {
       "key": "0",
-      "rng": ["^cmd[ch=44 no_cmd=0 after=1]"],
+      "cursor": [0,26],
+      "rng": [],
       "screen": [
-        "Illegal command ','.",
+        "Which , do you want? (0-f)",
         "",
         "",
         "",
@@ -93,9 +97,10 @@
     },
     {
       "key": "C",
-      "rng": ["^cmd[ch=48 no_cmd=0 after=1]"],
+      "cursor": [12,22],
+      "rng": [],
       "screen": [
-        "Illegal command ','.",
+        "You now have the Amulet of Yendor (b)",
         "",
         "",
         "",
@@ -123,9 +128,10 @@
     },
     {
       "key": "?",
-      "rng": [],
+      "cursor": [0,14],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
-        "Illegal command 'C'.",
+        "Type of item:",
         "",
         "",
         "",
@@ -153,9 +159,10 @@
     },
     {
       "key": "0",
-      "rng": ["^cmd[ch=63 no_cmd=0 after=1]"],
+      "cursor": [0,26],
+      "rng": [],
       "screen": [
-        "Character you want help for (* for all):",
+        "Which ? do you want? (0-f)",
         "",
         "",
         "",
@@ -183,9 +190,10 @@
     },
     {
       "key": "C",
+      "cursor": [12,22],
       "rng": [],
       "screen": [
-        "Unknown character '0'",
+        "You now have a scroll titled 'mecon bu' (b)",
         "",
         "",
         "",
@@ -213,9 +221,10 @@
     },
     {
       "key": "!",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
-        "Illegal command 'C'.",
+        "Type of item:",
         "",
         "",
         "",
@@ -243,9 +252,10 @@
     },
     {
       "key": "0",
-      "rng": ["^cmd[ch=33 no_cmd=0 after=1]"],
+      "cursor": [0,26],
+      "rng": [],
       "screen": [
-        "",
+        "Which ! do you want? (0-f)",
         "",
         "",
         "",
@@ -273,9 +283,10 @@
     },
     {
       "key": "C",
-      "rng": ["^cmd[ch=48 no_cmd=0 after=1]"],
+      "cursor": [12,22],
+      "rng": [],
       "screen": [
-        "",
+        "You now have a green potion (b)",
         "",
         "",
         "",
@@ -303,9 +314,10 @@
     },
     {
       "key": "=",
-      "rng": [],
+      "cursor": [0,14],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
-        "Illegal command 'C'.",
+        "Type of item:",
         "",
         "",
         "",
@@ -333,9 +345,10 @@
     },
     {
       "key": "9",
-      "rng": ["^cmd[ch=61 no_cmd=0 after=1]"],
+      "cursor": [0,26],
+      "rng": [],
       "screen": [
-        "Illegal command '='.",
+        "Which = do you want? (0-f)",
         "",
         "",
         "",
@@ -363,9 +376,10 @@
     },
     {
       "key": "C",
-      "rng": ["^cmd[ch=57 no_cmd=0 after=1]"],
+      "cursor": [12,22],
+      "rng": [],
       "screen": [
-        "Illegal command '='.",
+        "You now have an opal ring (b)",
         "",
         "",
         "",
@@ -393,9 +407,10 @@
     },
     {
       "key": "=",
-      "rng": [],
+      "cursor": [0,14],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
-        "Illegal command 'C'.",
+        "Type of item:",
         "",
         "",
         "",
@@ -423,9 +438,10 @@
     },
     {
       "key": "0",
-      "rng": ["^cmd[ch=61 no_cmd=0 after=1]"],
+      "cursor": [0,26],
+      "rng": [],
       "screen": [
-        "Illegal command '='.",
+        "Which = do you want? (0-f)",
         "",
         "",
         "",
@@ -453,9 +469,10 @@
     },
     {
       "key": "+",
-      "rng": ["^cmd[ch=48 no_cmd=0 after=1]"],
+      "cursor": [0,17],
+      "rng": [],
       "screen": [
-        "Illegal command '='.",
+        "Blessing? (+,-,n)",
         "",
         "",
         "",
@@ -483,9 +500,10 @@
     },
     {
       "key": "C",
-      "rng": [],
+      "cursor": [12,22],
+      "rng": [1],
       "screen": [
-        "Illegal command '+'.",
+        "You now have a ruby ring (c)",
         "",
         "",
         "",
@@ -513,9 +531,10 @@
     },
     {
       "key": "=",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
-        "Illegal command 'C'.",
+        "Type of item:",
         "",
         "",
         "",
@@ -543,9 +562,10 @@
     },
     {
       "key": "0",
-      "rng": ["^cmd[ch=61 no_cmd=0 after=1]"],
+      "cursor": [0,26],
+      "rng": [],
       "screen": [
-        "Illegal command '='.",
+        "Which = do you want? (0-f)",
         "",
         "",
         "",
@@ -573,9 +593,10 @@
     },
     {
       "key": "-",
-      "rng": ["^cmd[ch=48 no_cmd=0 after=1]"],
+      "cursor": [0,17],
+      "rng": [],
       "screen": [
-        "Illegal command '='.",
+        "Blessing? (+,-,n)",
         "",
         "",
         "",
@@ -603,9 +624,10 @@
     },
     {
       "key": "C",
+      "cursor": [12,22],
       "rng": [],
       "screen": [
-        "Illegal command '-'.",
+        "You now have a ruby ring (c)",
         "",
         "",
         "",
@@ -633,9 +655,10 @@
     },
     {
       "key": "/",
+      "cursor": [0,14],
       "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
-        "Illegal command 'C'.",
+        "Type of item:",
         "",
         "",
         "",
@@ -663,9 +686,10 @@
     },
     {
       "key": "0",
-      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
+      "cursor": [0,26],
+      "rng": [],
       "screen": [
-        "What do you want identified?",
+        "Which / do you want? (0-f)",
         "",
         "",
         "",
@@ -693,9 +717,10 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "cursor": [12,22],
+      "rng": [3,2],
       "screen": [
-        "'0' : unknown character",
+        "You now have a aluminium wand (b)",
         "",
         "",
         "",
@@ -723,7 +748,8 @@
     },
     {
       "key": "<",
-      "rng": [81,"^cmd[ch=108 no_cmd=0 after=1]"],
+      "cursor": [12,22],
+      "rng": [3,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -753,6 +779,7 @@
     },
     {
       "key": " ",
+      "cursor": [12,22],
       "rng": ["^cmd[ch=60 no_cmd=0 after=1]"],
       "screen": [
         "I see no way up.",
@@ -783,6 +810,7 @@
     },
     {
       "key": "\u0000",
+      "cursor": [12,22],
       "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
