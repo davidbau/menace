@@ -77,6 +77,14 @@ t = t.replace(\
 open('command.c','w').write(t)"
 	@# Rename md_readchar in mdport.c so harness can override it
 	@sed -i.bak 's/md_readchar/md_readchar_original/g' mdport.c && rm -f mdport.c.bak
+	@# Override md_gethomedir to return /tmp/ so save files go to known location
+	@python3 -c "\
+t = open('mdport.c').read(); \
+t = t.replace(\
+    'char *\nmd_gethomedir(void)\n{',\
+    'char *\nmd_gethomedir(void)\n{\n#ifdef HARNESS\n    static char hdir[] = \"/tmp/\";\n    return hdir;\n#endif',\
+    1); \
+open('mdport.c','w').write(t)"
 	@echo "Done. Run 'make' to build."
 
 rogue_harness: $(ALL_OBJS)
