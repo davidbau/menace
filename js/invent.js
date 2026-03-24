@@ -326,6 +326,7 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         let offx = null;
         const menuOpts = {};
         if (options?.noTitleInverse) menuOpts.noTitleInverse = true;
+        if (options?.noHeaderInverse) menuOpts.noHeaderInverse = true;
         if (forceFullScreen || (paginate && pages.length > 1)) menuOpts.forceFullScreen = true;
         if (typeof display.renderOverlayMenu === 'function') {
             offx = display.renderOverlayMenu(currentLines, Object.keys(menuOpts).length ? menuOpts : null);

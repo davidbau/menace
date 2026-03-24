@@ -215,10 +215,13 @@ export async function showGameOver(game) {
     for (let i = showStart; i < showEnd; i++) {
         const lines = formatTopTenEntry(scores[i], i + 1);
         const isPlayer = (i === playerIdx);
-        const color = isPlayer ? 10 : 7; // CLR_YELLOW : CLR_GRAY
+        // C ref: topten.c topten_print_bold() uses standoutbeg/end (inverse)
+        // for the player's own entry; other entries use default color.
+        const color = 7; // CLR_GRAY (default)
+        const attr = isPlayer ? 1 : 0; // inverse for player's entry
         for (const line of lines) {
             if (row < game.display.rows - 2) {
-                await game.display.putstr(0, row++, line.substring(0, game.display.cols), color);
+                await game.display.putstr(0, row++, line.substring(0, game.display.cols), color, attr);
             }
         }
     }

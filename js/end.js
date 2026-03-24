@@ -656,7 +656,9 @@ async function maybeInstallPossessionsPrompt(how, game) {
                     fullyIdentify: true,
                     includeSyntheticGold: false,
                 });
-                await renderOverlayMenuUntilDismiss(gameCtx.display, lines, '');
+                // C ref: windows.c add_menu_heading() — program_state.gameover
+                // suppresses all heading highlights (inverse, color).
+                await renderOverlayMenuUntilDismiss(gameCtx.display, lines, '', { noHeaderInverse: true });
                 await installDisclosurePrompt(gameCtx, 0);
             } else if (ch === 'q') {
                 gameCtx.done_stopprint = (gameCtx.done_stopprint || 0) + 1;
