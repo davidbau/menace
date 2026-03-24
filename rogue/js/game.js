@@ -148,7 +148,7 @@ export class GameState {
     this.huh = "";
     this.whoami = "rogue";
     this.fruit = "papaya";
-    this.file_name = "/tmp/rogue.sav";
+    this.file_name = "/home/rodney/rogue.sav";
 
     // ---- Coordinates ----
     this.oldpos = { x: 0, y: 0 };

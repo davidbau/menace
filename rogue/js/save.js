@@ -193,13 +193,14 @@ export async function saveGame() {
   const { msg } = await import('./io.js');
   const { readchar } = await import('./io.js');
   const { draw } = await import('./curses.js');
-  await msg('Save game? ');
+  await msg(`Save file (${g.file_name})? `);
   draw(g.cw);
   const ch = await readchar();
   if (ch !== 'y' && ch !== 'Y') {
     await msg('');
     return false;
   }
+  await msg(`File name: ${g.file_name}`);
 
   // Build pack index for back-references
   const packNodes = packListToArray(g.pack);
