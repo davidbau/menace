@@ -96,7 +96,7 @@ async function k1(fmt, name, ...rest) {
 // C ref: dochug(mtmp) — one monster's action
 export async function dochug(mtmp) {
   logEvent(`dochug[mlet=${mtmp.data.mlet},mstat=${mtmp.mstat},cansee=${game.levl[mtmp.mx][mtmp.my].cansee}]`);
-  if (mtmp.cham && !rn2(6) && _newcham) _newcham(mtmp, mon[rn1(6, 2)][rn2(8)]);
+  if (mtmp.cham && !rn2(6) && _newcham) await _newcham(mtmp, mon[rn1(6, 2)][rn2(8)]);
   const mdat = mtmp.data;
   // Regenerate monsters
   if ((!game.moves % 20 || mregen.includes(mdat.mlet)) && mtmp.mhp < mtmp.orig_hp)
@@ -518,11 +518,24 @@ export function mnexto(mtmp) {
 }
 
 // C ref: newcham(mon,pmonst) — change monster form
-export function newcham(mtmp, new_mdat) {
+export async function newcham(mtmp, new_mdat) {
   if (!new_mdat || !new_mdat.mlet) return;
-  if (game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
+  if (mtmp.invis && game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
+  mtmp.invis = false;
+  // C: while(!mdat->mlet) mdat-- — walk back to find valid mdat
+  while (!new_mdat.mlet) { /* shouldn't happen with our data, but match C */ }
+  // C uses float arithmetic and %g format (6 sig digits)
+  const mp = mtmp.mhp / mtmp.data.mhd;
+  const gfmt = (v) => parseFloat(v.toPrecision(6));
+  await pline('hp=%d--hd=%d--mp=%s', mtmp.mhp, mtmp.data.mhd, gfmt(mp));
+  // C: mtmp->mhp = (int)((float)mdat->mhd * mp) — float arithmetic
+  mtmp.mhp = Math.trunc(Math.fround(new_mdat.mhd) * Math.fround(mp));
+  await pline('new=%d', mtmp.mhp);
   mtmp.data = new_mdat;
-  if (game.levl[mtmp.mx][mtmp.my].cansee) atl(mtmp.mx, mtmp.my, new_mdat.mlet);
+  const mp2 = mtmp.orig_hp / mtmp.data.mhd;
+  await pline('orig=%d--mp=%s', mtmp.orig_hp, gfmt(mp2));
+  mtmp.orig_hp = Math.trunc(Math.fround(new_mdat.mhd) * Math.fround(mp2));
+  await pline('new=%d', mtmp.orig_hp);
 }
 
 // C ref: killed(mtmp) — monster killed
