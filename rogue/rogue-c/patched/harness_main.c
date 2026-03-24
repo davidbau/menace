@@ -22,7 +22,7 @@
 
 /* ===== Shared with rng_log.c ===== */
 #include "harness_events.h"
-extern int harness_rng_buf[];
+extern int *harness_rng_buf;
 extern int harness_rng_count;
 void harness_srand(unsigned int seed);
 void harness_set_forced_seed(unsigned int seed);
@@ -197,6 +197,19 @@ void harness_exit(int code)
     emit_session_json(out, g_harness_seed);
     if (harness_outfile && out != stdout) fclose(out);
     _exit(0);  /* skip atexit handlers that may crash on game teardown */
+}
+
+/* ===== md_readchar replacement ===== */
+/*
+ * The game's md_readchar(WINDOW*) in mdport.c is renamed to
+ * md_readchar_original by the setup patch.  We provide md_readchar()
+ * here as the keystroke injection point.
+ */
+typedef struct _win_st WINDOW;
+int md_readchar(WINDOW *win)
+{
+    (void)win;
+    return harness_next_key();
 }
 
 /* ===== main ===== */

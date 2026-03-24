@@ -1,0 +1,164 @@
+diff --git a/include/wintty.h b/include/wintty.h
+--- a/include/wintty.h
++++ b/include/wintty.h
+@@ -2,6 +2,26 @@
+ #ifndef WINTTY_H
+ #define WINTTY_H
+
++#ifdef NOMUX_CAPTURE
++/* Shadow frame buffer for direct screen capture (no tmux needed).
++ * Updated at every visible character write; serialized at nhgetch(). */
++typedef struct {
++    char ch;
++    unsigned char fg;    /* 0-15 NH color, 7=default gray */
++    unsigned char attr;  /* bit0=inverse, bit1=bold, bit2=underline */
++} nomux_cell;
++
++extern nomux_cell nomux_buf[24][80];
++extern void nomux_clear_screen(void);
++extern void nomux_clear_to_eol(int row, int col);
++extern void nomux_set_attr(int attr);   /* ATR_INVERSE etc */
++extern void nomux_end_attr(void);
++extern void nomux_set_fg(int color);
++extern void nomux_end_fg(void);
++extern char *nomux_capture_screen(void);
++extern void nomux_get_cursor(int *cx, int *cy);
++/* Macro: write visible char to shadow buffer at current cursor pos */
++#define NOMUX_CH(ch) do { if (ttyDisplay && (ch) >= 32 && ttyDisplay->cury >= 0 && ttyDisplay->cury < 24 && ttyDisplay->curx >= 0 && ttyDisplay->curx < 80) { nomux_buf[ttyDisplay->cury][ttyDisplay->curx].ch = (char)(ch); nomux_buf[ttyDisplay->cury][ttyDisplay->curx].fg = nomux_buf[0][0].fg; /* uses current fg from last nomux_set_fg */ nomux_buf[ttyDisplay->cury][ttyDisplay->curx].attr = nomux_buf[0][0].attr; } } while(0)
++#endif /* NOMUX_CAPTURE */
++
+ /* NetHack may be built with a tty/console interface as the only
+    supported window port, or as one of multiple window ports */
+
+diff --git a/win/tty/termcap.c b/win/tty/termcap.c
+--- a/win/tty/termcap.c
++++ b/win/tty/termcap.c
+@@ -614,6 +614,68 @@ nocmov(int x, int y)
+
+ /* See note above.  xputc() is a special function for overlays. */
+ int
++xputc(int c)
++{
++    return putchar(c);
++}
++
++#ifdef NOMUX_CAPTURE
++/* ================================================================
++ * NOMUX shadow frame buffer
++ * ================================================================ */
++nomux_cell nomux_buf[24][80];
++static unsigned char nomux_fg = 7;
++static unsigned char nomux_attr = 0;
++
++void nomux_clear_screen(void) {
++    int r, c;
++    for (r = 0; r < 24; r++)
++        for (c = 0; c < 80; c++) {
++            nomux_buf[r][c].ch = ' ';
++            nomux_buf[r][c].fg = 7;
++            nomux_buf[r][c].attr = 0;
++        }
++}
++
++void nomux_clear_to_eol(int row, int col) {
++    int c;
++    if (row < 0 || row >= 24) return;
++    for (c = (col < 0 ? 0 : col); c < 80; c++) {
++        nomux_buf[row][c].ch = ' ';
++        nomux_buf[row][c].fg = 7;
++        nomux_buf[row][c].attr = 0;
++    }
++}
++
++void nomux_set_attr(int attr) {
++    if (attr == ATR_INVERSE) nomux_attr |= 1;
++    else if (attr == ATR_BOLD) nomux_attr |= 2;
++    else if (attr == ATR_ULINE) nomux_attr |= 4;
++}
++void nomux_end_attr(void) { nomux_attr = 0; }
++
++void nomux_set_fg(int color) {
++    nomux_fg = (color == NO_COLOR) ? 7 : (unsigned char)(color & 0xf);
++}
++void nomux_end_fg(void) { nomux_fg = 7; }
++
++/* Write one visible char to shadow buffer at ttyDisplay cursor */
++void nomux_putch(int ch) {
++    int row, col;
++    if (!ttyDisplay) return;
++    if (ch < 32) return;
++    row = ttyDisplay->cury;
++    col = ttyDisplay->curx;
++    if (row >= 0 && row < 24 && col >= 0 && col < 80) {
++        nomux_buf[row][col].ch = (char) ch;
++        nomux_buf[row][col].fg = nomux_fg;
++        nomux_buf[row][col].attr = nomux_attr;
++    }
++}
++#endif /* NOMUX_CAPTURE */
++
+-xputc(int c) /* actually char, but explicitly specify its widened type */
+-{
+-    return putchar(c);
+-}
+
+ void
+ xputs(const char *s)
+@@ -645,6 +707,9 @@ cl_end(void)
+ {
+     if (CE) {
+         xputs(CE);
++#ifdef NOMUX_CAPTURE
++        nomux_clear_to_eol(ttyDisplay->cury, ttyDisplay->curx);
++#endif
+     } else { /* no-CE fix - free after Harold Rynes */
+         int cx = ttyDisplay->curx + 1;
+
+@@ -668,6 +733,9 @@ term_clear_screen(void)
+         xputs(CL);
+         home();
+         /* set remembered data to all spaces */
++#ifdef NOMUX_CAPTURE
++        nomux_clear_screen();
++#endif
+         erase_tty_screen();
+     }
+ }
+@@ -1428,6 +1496,9 @@ void
+ term_start_attr(int attr)
+ {
+     if (attr) {
++#ifdef NOMUX_CAPTURE
++        nomux_set_attr(attr);
++#endif
+         const char *astr = s_atr2str(attr);
+
+         if (astr && *astr)
+@@ -1440,6 +1511,9 @@ void
+ term_end_attr(int attr)
+ {
+     if (attr) {
++#ifdef NOMUX_CAPTURE
++        nomux_end_attr();
++#endif
+         const char *astr = e_atr2str(attr);
+
+         if (astr && *astr)
+@@ -1471,11 +1545,17 @@ void
+ term_end_color(void)
+ {
+     xputs(nh_HE);
++#ifdef NOMUX_CAPTURE
++    nomux_end_fg();
++#endif
+ }
+
+ void
+ term_start_color(int color)
+ {
++#ifdef NOMUX_CAPTURE
++    nomux_set_fg(color);
++#endif
+     if (color == NO_COLOR)
+         xputs(nh_HE); /* inline term_end_color() */
+     else if (color < CLR_MAX && hilites[color] && *hilites[color])

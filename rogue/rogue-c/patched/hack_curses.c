@@ -427,6 +427,53 @@ int setterm(char *type)
     return OK;
 }
 
+/* RRP 3.6 additional stubs */
+void delwin(WINDOW *win)
+{
+    if (win && win != stdscr && win != curscr)
+        free(win);
+}
+
+int keypad(WINDOW *win, int bf)
+{
+    (void)win; (void)bf;
+    return OK;
+}
+
+int scrollok(WINDOW *win, int bf)
+{
+    (void)win; (void)bf;
+    return OK;
+}
+
+int scroll(WINDOW *win)
+{
+    if (!win) return ERR;
+    /* Scroll up: shift rows 1..LINES-1 to 0..LINES-2, clear last row */
+    int i;
+    for (i = 0; i < LINES - 1; i++) {
+        memcpy(win->_data[i], win->_data[i + 1], COLS + 1);
+        memcpy(win->_overlay[i], win->_overlay[i + 1], COLS + 1);
+    }
+    memset(win->_data[LINES - 1], ' ', COLS);
+    win->_data[LINES - 1][COLS] = '\0';
+    memset(win->_overlay[LINES - 1], '\0', COLS + 1);
+    return OK;
+}
+
+int nonl(void) { return OK; }
+int cbreak(void) { return OK; }
+int nocbreak(void) { return OK; }
+int nodelay(WINDOW *win, int bf) { (void)win; (void)bf; return OK; }
+
+/* wgetch: read a character from window.
+ * In harness, keystroke injection is handled by readchar override. */
+int wgetch(WINDOW *win)
+{
+    (void)win;
+    return ERR; /* should not be called directly in harness */
+}
+
 /* ===== unctrl ===== */
 
 static char unctrl_buf[8];
@@ -447,3 +494,5 @@ char *unctrl(int ch)
     }
     return unctrl_buf;
 }
+int flushinp(void) { return OK; }
+int beep(void) { return OK; }

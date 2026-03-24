@@ -110,5 +110,47 @@ int erasechar(void);
 int killchar(void);
 int gettmode(void);
 int setterm(char *type);
+void delwin(WINDOW *win);
+int keypad(WINDOW *win, int bf);
+int scrollok(WINDOW *win, int bf);
+int scroll(WINDOW *win);
+int nonl(void);
+int cbreak(void);
+int nocbreak(void);
+int nodelay(WINDOW *win, int bf);
+int wgetch(WINDOW *win);
+
+/* getmaxx/getmaxy — query window dimensions */
+#define getmaxx(win) ((win)->_cols)
+#define getmaxy(win) ((win)->_lines)
+
+/* A_STANDOUT etc. for compatibility */
+#define A_STANDOUT 0x00010000
+
+/* Key codes for mdport.c keypad handling */
+#define KEY_LEFT   0x104
+#define KEY_RIGHT  0x105
+#define KEY_UP     0x103
+#define KEY_DOWN   0x102
+#define KEY_HOME   0x106
+#define KEY_PPAGE  0x153
+#define KEY_NPAGE  0x152
+#define KEY_END    0x168
+#define KEY_BACKSPACE 0x107
+#define KEY_DC     0x14a
+#define KEY_IC     0x14b
+#define KEY_F0     0x109
+
+#define KEY_A1     0x1c1
+#define KEY_A3     0x1c3
+#define KEY_B2     0x1c5
+#define KEY_C1     0x1c7
+#define KEY_C3     0x1c9
+
+/* CE terminal capability — not used in harness */
+#define CE ""
+
+/* chtype for compatibility */
+typedef int chtype;
 
 #endif /* CURSES_H */
