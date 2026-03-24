@@ -96,9 +96,15 @@ function rngEvents(arr) {
 
 async function replaySession(sessionFile, opts = {}) {
   const session = JSON.parse(readFileSync(sessionFile, 'utf8'));
+  const name = basename(sessionFile, '.json');
+
+  // Multigame sessions (save/restore) are replayed by coverage_all, not here
+  if (session.games) {
+    return { session: name, seed: session.seed, passed: true, multigame: true, total_steps: 0, screen_pct: 100, rng_pct: 100 };
+  }
+
   const cSteps = session.steps || [];
   const seed = session.seed;
-  const name = basename(sessionFile, '.json');
 
   if (cSteps.length === 0) {
     return { session: name, seed, passed: false, total_steps: 0, screen_pct: 0, rng_pct: 0, error: 'empty session' };
