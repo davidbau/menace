@@ -134,3 +134,66 @@ export async function runSession(seed, keys) {
 
   return steps;
 }
+
+/**
+ * Run a multigame session: game 1 plays and saves, game 2 restores and continues.
+ * localStorage persists across games (save/restore vehicle).
+ *
+ * @param {Array} games - Array of { seed, keys, restore? } specs
+ * @returns {Promise<Array<Array>>} array of step arrays, one per game
+ */
+export async function runMultigameSession(games) {
+  wireDeps();
+
+  // Import dorecover for restore games
+  const { dorecover } = await import('../js/do1.js');
+
+  const monSave = mon.map(tier => tier.map(m => m ? { ...m } : null));
+  const allGameSteps = [];
+
+  for (let gi = 0; gi < games.length; gi++) {
+    const { seed, keys, restore } = games[gi];
+    const display = new MockDisplay();
+    const input = new MockInput();
+    const g = new GameState();
+    g.display = display;
+    g.input = input;
+    g.rawRngLog = [];
+    setGame(g);
+
+    const steps = [];
+    let keyIndex = 0;
+
+    input.getKey = async function () {
+      const screen = display.getRows();
+      const rng = [...g.rawRngLog];
+      g.rawRngLog = [];
+      if (keyIndex >= keys.length) throw new SessionDone();
+      const key = keys[keyIndex];
+      steps.push({ key, rng, screen });
+      return keys[keyIndex++];
+    };
+
+    try {
+      if (restore) {
+        // Restore from previous game's save (in localStorage)
+        const ok = await dorecover();
+        if (!ok) throw new Error(`Game ${gi}: dorecover failed — no save in localStorage`);
+        await gameLoop(seed, true); // skipInit=true — state restored by dorecover
+      } else {
+        await gameLoop(seed);
+      }
+    } catch (e) {
+      if (!(e instanceof SessionDone) && !(e instanceof GameOver)) throw e;
+    }
+
+    allGameSteps.push(steps);
+  }
+
+  // Restore mon table
+  for (let i = 0; i < mon.length; i++)
+    for (let j = 0; j < mon[i].length; j++)
+      if (monSave[i][j]) Object.assign(mon[i][j], monSave[i][j]);
+
+  return allGameSteps;
+}

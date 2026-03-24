@@ -101,13 +101,26 @@ const sessionFiles = (await readdir(sessionsDir))
   .filter(f => f.endsWith('.json'))
   .sort();
 
+// Also import multigame support from node_runner
+import { runMultigameSession } from './node_runner.mjs';
+
 let passed = 0, total = 0;
 for (const file of sessionFiles) {
   const sessionData = JSON.parse(await readFile(join(sessionsDir, file), 'utf8'));
-  const { seed, steps: cSteps } = sessionData;
-  const keys = cSteps.map(s => s.key).join('');
   try {
-    await runSession(seed, keys);
+    if (sessionData.games) {
+      // Multigame session: array of games with save/restore
+      const gameSpecs = sessionData.games.map(g => ({
+        seed: g.seed || sessionData.seed,
+        keys: (g.steps || []).map(s => s.key).join(''),
+        restore: !!g.restore,
+      }));
+      await runMultigameSession(gameSpecs);
+    } else {
+      // Single-game session
+      const keys = (sessionData.steps || []).map(s => s.key).join('');
+      await runSession(sessionData.seed, keys);
+    }
     passed++;
   } catch (e) {
     // ignore, just for coverage
