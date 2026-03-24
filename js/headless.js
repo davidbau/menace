@@ -161,6 +161,112 @@ function traceCaller() {
     return stack[0] ? stack[0].trim().replace(/^at\s+/, '') : '';
 }
 
+function maybeTraceMessage(display, msg) {
+    const needle = String(process?.env?.WEBHACK_TRACE_MESSAGE || '').trim().toLowerCase();
+    if (!needle) return;
+    const text = String(msg || '');
+    if (!text.toLowerCase().includes(needle)) return;
+    const step = traceStepForDisplay(display);
+    const stack = String(new Error().stack || '').split('\n').slice(2, 8)
+        .map((line) => line.trim().replace(/^at\s+/, ''))
+        .join(' <= ');
+    console.error(`^msgtrace[step=${step === null ? '?' : step} msg=${JSON.stringify(text)} stack=${stack}]`);
+}
+
+function maybeTraceMoreFallback(display, phase, msg, err) {
+    const enabled = String(process?.env?.WEBHACK_TRACE_MORE_FALLBACK || '').trim() === '1';
+    if (!enabled) return;
+    const step = traceStepForDisplay(display);
+    const text = String(msg || '');
+    const errText = err ? String(err.message || err) : '';
+    console.error(
+        `^morefallback[step=${step === null ? '?' : step}`
+        + ` phase=${phase}`
+        + ` msg=${JSON.stringify(text)}`
+        + ` top=${JSON.stringify(display?.topMessage || '')}`
+        + ` more=${display?.messageNeedsMore ? 1 : 0}`
+        + ` toplin=${Number(display?.toplin || 0)}`
+        + ` err=${JSON.stringify(errText)}]`
+    );
+}
+
+function maybeTraceMessageState(display, msg, inputWaiting) {
+    const needle = String(process?.env?.WEBHACK_TRACE_MESSAGE_STATE || '').trim().toLowerCase();
+    if (!needle) return;
+    const text = String(msg || '');
+    if (!text.toLowerCase().includes(needle)) return;
+    const step = traceStepForDisplay(display);
+    console.error(
+        `^msgstate[step=${step === null ? '?' : step}`
+        + ` msg=${JSON.stringify(text)}`
+        + ` top=${JSON.stringify(display?.topMessage || '')}`
+        + ` more=${display?.messageNeedsMore ? 1 : 0}`
+        + ` toplin=${Number(display?.toplin || 0)}`
+        + ` inputWaiting=${inputWaiting ? 1 : 0}]`
+    );
+}
+
+function maybeTraceToplineConcat(display, gameRef, msg, combined, extra = '') {
+    const enabled = String(process?.env?.WEBHACK_TRACE_TOPLINE_CONCAT || '').trim() === '1';
+    if (!enabled) return;
+    const step = traceStepForDisplay(display);
+    console.error(
+        `^topconcat[step=${step === null ? '?' : step}`
+        + ` msg=${JSON.stringify(String(msg || ''))}`
+        + ` top=${JSON.stringify(display?.topMessage || '')}`
+        + ` combined=${JSON.stringify(String(combined || ''))}`
+        + ` travel=${gameRef?.context?.travel ? 1 : 0}`
+        + ` run=${Number(gameRef?.context?.run || 0)}`
+        + ` multi=${Number(gameRef?.multi || 0)}`
+        + ` topStep=${Number.isInteger(display?._topMessageStepIndex) ? display._topMessageStepIndex + 1 : '?'}`
+        + ` curStep=${Number.isInteger(display?._lastMapState?.gameMap?._replayStepIndex) ? display._lastMapState.gameMap._replayStepIndex + 1 : '?'}`
+        + `${extra ? ` ${extra}` : ''}]`
+    );
+}
+
+function maybeTraceRenderMessageWindow(display, label = '') {
+    const enabled = String(process?.env?.WEBHACK_TRACE_RENDER_MESSAGE || '').trim() === '1';
+    if (!enabled) return;
+    const step = traceStepForDisplay(display);
+    console.error(
+        `^rendermsg[step=${step === null ? '?' : step}`
+        + ` label=${label}`
+        + ` top=${JSON.stringify(display?.topMessage || '')}`
+        + ` more=${display?.messageNeedsMore ? 1 : 0}`
+        + ` toplin=${Number(display?.toplin || 0)}]`
+    );
+}
+
+function maybeTraceRenderMoreMarker(display) {
+    const enabled = String(process?.env?.WEBHACK_TRACE_RENDER_MORE || '').trim() === '1';
+    if (!enabled) return;
+    const step = traceStepForDisplay(display);
+    const stack = String(new Error().stack || '').split('\n').slice(2, 8)
+        .map((line) => line.trim().replace(/^at\s+/, ''))
+        .join(' <= ');
+    console.error(
+        `^rendermore[step=${step === null ? '?' : step}`
+        + ` top=${JSON.stringify(display?.topMessage || '')}`
+        + ` more=${display?.messageNeedsMore ? 1 : 0}`
+        + ` toplin=${Number(display?.toplin || 0)}`
+        + ` stack=${stack}]`
+    );
+}
+
+function maybeTraceRepaintOwner(display, owner, extra = '') {
+    const enabled = String(process?.env?.WEBHACK_REPAINT_DEBUG || '').trim() === '1';
+    if (!enabled) return;
+    const step = traceStepForDisplay(display);
+    console.error(
+        `^repaint[step=${step === null ? '?' : step}`
+        + ` owner=${owner}`
+        + ` top=${JSON.stringify(display?.topMessage || '')}`
+        + ` more=${display?.messageNeedsMore ? 1 : 0}`
+        + ` toplin=${Number(display?.toplin || 0)}`
+        + `${extra ? ` ${extra}` : ''}]`
+    );
+}
+
 function maybeTraceCellWrite(display, col, row, prev, next, kind = 'write') {
     if (!TRACE_CELL_SPEC) return;
     if (TRACE_CELL_SPEC.col !== col || TRACE_CELL_SPEC.row !== row) return;
@@ -249,6 +355,7 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
     let waitEpoch = 0;
     let waitStack = null;
     let waitContext = null;
+    let waitMeta = null;
     const waitListeners = [];
     let onWaitStarted = null;
 
@@ -288,6 +395,7 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
                 resolver = null;
                 waitStack = null;
                 waitContext = null;
+                waitMeta = null;
                 resolve(ch);
             } else {
                 queue.push(ch);
@@ -308,8 +416,15 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
         pushKey(ch) {
             this.pushInput(ch);
         },
-        setWaitContext(stack) {
-            waitContext = stack || null;
+        setWaitContext(context) {
+            if (context && typeof context === 'object' && !Array.isArray(context)) {
+                waitMeta = { ...context };
+                waitContext = waitMeta.stack || null;
+                waitStack = waitContext;
+                return;
+            }
+            waitMeta = null;
+            waitContext = context || null;
             waitStack = waitContext;
         },
         async nhgetch() {
@@ -341,6 +456,9 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
                 waitEpoch,
                 waitStack,
                 waitContext,
+                waitMeta,
+                waitKind: waitMeta?.kind || null,
+                preserveAcknowledgedTopline: !!waitMeta?.preserveAcknowledgedTopline,
             };
         },
         waitForInputWait({ afterEpoch = 0, signal = null } = {}) {
@@ -638,6 +756,7 @@ export class HeadlessDisplay {
         this._topMessageStatusHp = null;
         this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
+        this._topMessageTravelOwned = false;
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
@@ -748,6 +867,7 @@ export class HeadlessDisplay {
     }
 
     async putstr_message(msg) {
+        maybeTraceMessage(this, msg);
         let freshAfterMore = false;
         const encumberRefreshMsg =
             msg === 'Your movements are slowed slightly because of your load.'
@@ -770,6 +890,9 @@ export class HeadlessDisplay {
 
         const isDeathMessage = msg.startsWith('You die...');
         const gameRef = this._gameRef();
+        const inputWaiting = !!(typeof gameRef?.input?.isWaitingInput === 'function'
+            && gameRef.input.isWaitingInput());
+        maybeTraceMessageState(this, msg, inputWaiting);
         const sleepWakeBoundary = !!(
             Number(gameRef?.player?.usleep || 0) > 0
             || gameRef?.multi_reason === 'sleeping'
@@ -779,6 +902,12 @@ export class HeadlessDisplay {
             && Number(gameRef?.multi || 0) < 0
             && !sleepWakeBoundary);
         if (this.topMessage && this.messageNeedsMore) {
+            // Once a topline message has already blocked for input, later
+            // same-window messages should still enter history but must not
+            // repaint the visible slice until that wait is resolved.
+            if (!isDeathMessage && inputWaiting) {
+                return;
+            }
             // C ref: flush_screen(1) here mirrors C's vpline() which fires
             // flush_screen before the new message replaces the old one.
             // At that point C's bot() recomputes encumbrance from the CURRENT
@@ -820,6 +949,7 @@ export class HeadlessDisplay {
                         refreshStatus: !suppressDeathStagingStatus,
                     });
                 } catch (e) {
+                    maybeTraceMoreFallback(this, 'death-staging', msg, e);
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
                 } finally {
                     if (_morePlayer && this._topMessageEncumbrance != null) {
@@ -833,6 +963,7 @@ export class HeadlessDisplay {
             this._topMessageStatusHp = null;
             this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
+            this._topMessageTravelOwned = false;
             this._topMessageEncumbrance = null;
             this.moreMarkerActive = false;
             freshAfterMore = true;
@@ -849,13 +980,19 @@ export class HeadlessDisplay {
         const toplinesRef = (this.topMessage && this.messageNeedsMore)
             ? this.topMessage
             : (this.toplines || '');
+        const currentStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+            ? this._lastMapState.gameMap._replayStepIndex
+            : null;
+        const sameStepPendingMessage = Number.isInteger(this._topMessageStepIndex)
+            && this._topMessageStepIndex === currentStepIndex;
+        const pendingTravelOwned = !!this._topMessageTravelOwned;
         if (!this.noConcatenateMessages && toplinesRef.length > 0
             && (this.messageNeedsMore || this.toplines.length > 0)) {
             const combined = toplinesRef + '  ' + msg;
+            maybeTraceToplineConcat(this, gameRef, msg, combined,
+                `sameStep=${sameStepPendingMessage ? 1 : 0} pendingTravel=${pendingTravelOwned ? 1 : 0} inputWaiting=${inputWaiting ? 1 : 0}`);
             // C ref: win/tty/topl.c update_topl() uses strict '<' for fit check.
             if (combined.length + 9 < this.cols) {
-                this.clearRow(0);
-                this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
                 const statusPlayer = gameRef?.player || this._lastMapState?.player || null;
                 this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
@@ -869,14 +1006,19 @@ export class HeadlessDisplay {
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
+                this._topMessageTravelOwned = pendingTravelOwned || !!gameRef?.context?.travel;
                 this.messageNeedsMore = true;
                 // C ref: topl_puts() sets toplin=2 for concat-fit (no --More--
                 // needed).  Mark this so renderAndAutosave doesn't render the
                 // --More-- marker — only toplin=1 (single/fresh message) needs it.
                 this.messageConcatFit = true;
-                this.messageCursorCol = Math.min(combined.length, this.cols - 1);
-                this.messageCursorRow = 0;
-                this.setCursor(this.messageCursorCol, 0);
+                if (!(pendingTravelOwned && sameStepPendingMessage && !inputWaiting)) {
+                    this.clearRow(0);
+                    this.putstr(0, 0, combined.substring(0, this.cols));
+                    this.messageCursorCol = Math.min(combined.length, this.cols - 1);
+                    this.messageCursorRow = 0;
+                    this.setCursor(this.messageCursorCol, 0);
+                }
                 return;
             }
             // C ref: win/tty/topl.c update_topl():
@@ -885,7 +1027,21 @@ export class HeadlessDisplay {
             // C ref: update_topl()/more() leaves one more visible flush
             // boundary before the explicit --More-- dismissal.
             flush_screen(1);
-            this.renderMoreMarker();
+            const suppressTravelConcatMarker = !!(
+                pendingTravelOwned && sameStepPendingMessage && !inputWaiting
+            );
+            maybeTraceRepaintOwner(
+                this,
+                'headless.putstr_message.concat_overflow.enter',
+                `msg=${JSON.stringify(String(msg || ''))}`
+                + ` sameStep=${sameStepPendingMessage ? 1 : 0}`
+                + ` pendingTravel=${pendingTravelOwned ? 1 : 0}`
+                + ` inputWaiting=${inputWaiting ? 1 : 0}`
+                + ` suppressMarker=${suppressTravelConcatMarker ? 1 : 0}`
+            );
+            if (!suppressTravelConcatMarker) {
+                this.renderMoreMarker();
+            }
             if (this._nhgetch) {
                 // Temporarily restore the encumbrance that was current when
                 // the pending topMessage was stored, so renderStatus inside
@@ -897,6 +1053,14 @@ export class HeadlessDisplay {
                     _morePlayer.encumbrance = this._topMessageEncumbrance;
                 }
                 try {
+                    maybeTraceRepaintOwner(
+                        this,
+                        'headless.putstr_message.concat_overflow.await_more',
+                        `msg=${JSON.stringify(String(msg || ''))}`
+                        + ` sameStep=${sameStepPendingMessage ? 1 : 0}`
+                        + ` pendingTravel=${pendingTravelOwned ? 1 : 0}`
+                        + ` inputWaiting=${inputWaiting ? 1 : 0}`
+                    );
                     await more(this, {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
@@ -910,8 +1074,17 @@ export class HeadlessDisplay {
                     // If another nhgetch is already pending (e.g., makemon
                     // appear message during a command cycle), skip the
                     // --More-- and fall through to replace the message.
+                    maybeTraceMoreFallback(this, 'concat-overflow', msg, e);
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
                 } finally {
+                    maybeTraceRepaintOwner(
+                        this,
+                        'headless.putstr_message.concat_overflow.after_more',
+                        `msg=${JSON.stringify(String(msg || ''))}`
+                        + ` sameStep=${sameStepPendingMessage ? 1 : 0}`
+                        + ` pendingTravel=${pendingTravelOwned ? 1 : 0}`
+                        + ` inputWaiting=${inputWaiting ? 1 : 0}`
+                    );
                     if (_morePlayer && this._topMessageEncumbrance != null) {
                         _morePlayer.encumbrance = _savedEnc;
                     }
@@ -924,6 +1097,7 @@ export class HeadlessDisplay {
             this._topMessageStatusHp = null;
             this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
+            this._topMessageTravelOwned = false;
             this._topMessageEncumbrance = null;
             this.moreMarkerActive = false;
             freshAfterMore = true;
@@ -945,6 +1119,7 @@ export class HeadlessDisplay {
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
+            this._topMessageTravelOwned = !!gameRef?.context?.travel;
             // C ref: snapshot encumbrance when this message becomes the
             // pending topMessage.  If a deferred more() fires later (when
             // the NEXT message overflows), renderStatus should show the
@@ -978,6 +1153,7 @@ export class HeadlessDisplay {
                             refreshStatus: !(gameRef?.context?.mon_moving && gameRef?.multi < 0),
                         });
                     } catch (e) {
+                        maybeTraceMoreFallback(this, 'death-single', msg, e);
                         if (!e.message?.includes('Concurrent nhgetch')) throw e;
                     }
                     this.clearRow(0);
@@ -986,6 +1162,7 @@ export class HeadlessDisplay {
                     this._topMessageStatusHp = null;
                     this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
+                    this._topMessageTravelOwned = false;
                     this._topMessageEncumbrance = null;
                     this.moreMarkerActive = false;
                 } else {
@@ -998,6 +1175,7 @@ export class HeadlessDisplay {
                     this._topMessageStatusHp = null;
                     this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
+                    this._topMessageTravelOwned = false;
                     this._topMessageEncumbrance = null;
                     this.moreMarkerActive = false;
                 }
@@ -1031,6 +1209,7 @@ export class HeadlessDisplay {
         this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
             ? this._lastMapState.gameMap._replayStepIndex
             : null;
+        this._topMessageTravelOwned = !!gameRef?.context?.travel;
         this.messageNeedsMore = true;
         this.messageConcatFit = false; // long/wrapped single message: toplin==1
         this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
@@ -1067,6 +1246,7 @@ export class HeadlessDisplay {
                     readKey: this._nhgetch,
                 });
             } catch (e) {
+                maybeTraceMoreFallback(this, 'wrapped', msg, e);
                 if (!e.message?.includes('Concurrent nhgetch')) throw e;
             }
         }
@@ -1077,6 +1257,7 @@ export class HeadlessDisplay {
         this._topMessageStatusHp = null;
         this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
+        this._topMessageTravelOwned = false;
         this._topMessageEncumbrance = null;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {
@@ -1090,6 +1271,7 @@ export class HeadlessDisplay {
     // Callers who need the visual marker (e.g. dolook engraving display) call
     // this before morePrompt so that screen comparisons match C captures.
     renderMoreMarker() {
+        maybeTraceRenderMoreMarker(this);
         const moreStr = '--More--';
         this.moreMarkerActive = true;
         const msgLen = (this.topMessage || '').length;
@@ -1318,7 +1500,7 @@ export class HeadlessDisplay {
         offx = Math.max(0, offx);
         const clearRows = fullScreenText ? this.rows : renderRows;
         const hasMoreLine = (renderLines[renderRows - 1] || '').endsWith('--More--');
-        const left = hasMoreLine ? Math.max(0, offx - 1) : offx;
+        const left = (fullScreenText || opts.isTextWindow) ? offx : Math.max(0, offx - 1);
         const savedCells = [];
         for (let r = 0; r < clearRows; r++) {
             savedCells[r] = [];
@@ -1332,7 +1514,7 @@ export class HeadlessDisplay {
         }
         // Clear the popup area
         for (let r = 0; r < clearRows; r++) {
-            for (let c = Math.max(0, offx); c < this.cols; c++) {
+            for (let c = left; c < this.cols; c++) {
                 this.grid[r][c] = ' ';
                 this.colors[r][c] = CLR_GRAY;
                 this.attrs[r][c] = 0;
@@ -1613,7 +1795,15 @@ export class HeadlessDisplay {
             for (let x = 1; x < COLNO; x++) {
                 const loc = gameMap.at?.(x, y);
                 const cached = getCachedMapCell(loc, gameMap);
-                if (cached && !(player && x === player.x && y === player.y && !player.usteed)) {
+                const bypassCachedVisibleWall = !!(cached
+                    && loc
+                    && fov?.canSee?.(x, y)
+                    && !loc.displayGlyph
+                    && !loc.mem_magic_trap
+                    && (IS_WALL(loc.typ) || loc.typ === SDOOR));
+                if (cached
+                    && !bypassCachedVisibleWall
+                    && !(player && x === player.x && y === player.y && !player.usteed)) {
                     this.setCell(x - 1, row, cached.ch, cached.color, cached.attr || 0);
                 } else {
                     newsym(x, y, renderCtx);
@@ -1781,6 +1971,7 @@ export class HeadlessDisplay {
 
     // Render message window (for testing msg_window option)
     renderMessageWindow() {
+        maybeTraceRenderMessageWindow(this, 'headless.renderMessageWindow');
         // Clear message window area (row 0 = topline only; rows 1-2 are part of
         // the map in headless/tty mode, not a multi-line message buffer).
         this.clearRow(0);

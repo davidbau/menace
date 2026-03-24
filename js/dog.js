@@ -42,7 +42,7 @@ import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
          POOL, LAVAPOOL,
          MM_EDOG, MM_NOMSG, MM_IGNOREWATER, MM_FEMALE, MM_MALE,
          DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, POISON, UNDEF, TABU,
-         MON_ARRIVE_WITH_YOU } from './const.js';
+         MON_ARRIVE_WITH_YOU, LARGEST_INT } from './const.js';
 import { SADDLE } from './objects.js';
 import { roles } from './player.js';
 import { makemon, makemon_appear, mbirth_limit, set_malign } from './makemon.js';
@@ -52,7 +52,7 @@ import { mpickobj } from './steal.js';
 import { mark_vision_dirty } from './display.js';
 import { place_monster } from './steed.js';
 import { pline, pline_The, pline_mon, You, There, impossible } from './pline.js';
-import { helpless } from './mon.js';
+import { helpless, healmon } from './mon.js';
 import { Monnam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
 import { body_part } from './polyself.js';
@@ -60,13 +60,14 @@ import { acurr } from './attrib.js';
 import { A_CHA } from './const.js';
 import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies,
          is_rider, resists_poison, resists_acid, resists_ston, likes_fire,
-         mon_hates_silver } from './mondata.js';
+         mon_hates_silver, regenerates } from './mondata.js';
 import { EYE, has_oname, ONAME, EDOG, ESHK, W_SADDLE } from './const.js';
 import { Has_contents } from './objnam.js';
 import { wake_nearto } from './mon.js';
 import { finish_meating, dog_eat } from './dogmove.js';
 import { newsym } from './display.js';
 import { m_unleash } from './apply.js';
+import { game as _gstate } from './gstate.js';
 
 // Re-export dogmove.c functions that were previously defined here
 export { can_carry, dog_eat } from './dogmove.js';

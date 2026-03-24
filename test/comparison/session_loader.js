@@ -101,6 +101,21 @@ function deriveType(raw, fileName) {
     return 'gameplay';
 }
 
+function getManualDirectChargenBoundary(raw) {
+    const steps = Array.isArray(raw?.steps) ? raw.steps : [];
+    let firstBurst = -1;
+    let lastBurst = -1;
+    for (let i = 1; i < steps.length; i++) {
+        if ((steps[i].rng || []).length > 100) {
+            if (firstBurst < 0) firstBurst = i;
+            lastBurst = i;
+        }
+        if (firstBurst >= 0 && i > firstBurst + 10) break;
+    }
+    if (firstBurst < 0) return -1;
+    return lastBurst;
+}
+
 function normalizeStep(step, index) {
     const row = step || {};
     const rng = Array.isArray(row.rng) ? row.rng : [];
@@ -337,7 +352,13 @@ export function normalizeSession(raw, meta = {}) {
         }
         : null;
 
-    const replaySteps = step0 ? sourceSteps.slice(1) : sourceSteps;
+    let replaySteps = step0 ? sourceSteps.slice(1) : sourceSteps;
+    if (raw?.regen?.mode === 'manual-direct-live') {
+        const boundary = getManualDirectChargenBoundary(raw);
+        if (boundary >= 0) {
+            replaySteps = sourceSteps.slice(boundary + 1);
+        }
+    }
     const steps = replaySteps.map((step, index) => normalizeStep(step, index));
 
     // Compact mapdump checkpoints: { id: "file contents", ... }

@@ -15,10 +15,13 @@ import { CRYSTAL_BALL } from '../../js/objects.js';
 import { PM_ROGUE } from '../../js/monsters.js';
 import { ART_MASTER_KEY_OF_THIEVERY } from '../../js/artifacts.js';
 import { dodip, dip_into } from '../../js/potion.js';
-import { seffect_charging, seffect_taming, seffect_punishment } from '../../js/read.js';
+import { seffect_charging, seffect_taming, seffect_punishment, punish } from '../../js/read.js';
 import { maybe_explode_trap } from '../../js/zap.js';
 import { MAGIC_TRAP } from '../../js/const.js';
 import { WAN_CANCELLATION } from '../../js/objects.js';
+import { setGame } from '../../js/gstate.js';
+import { OBJ_FLOOR, ROOM } from '../../js/const.js';
+import { domove_core } from '../../js/hack.js';
 
 test('artifact.count_surround_traps counts hidden trap/door/container but not shown trap', () => {
     const map = new GameMap();
@@ -314,6 +317,88 @@ test('read.seffect_punishment applies punishment when not blessed/confused', asy
     assert.equal(!!player.Punished, true);
     assert.equal(!!player.punished, true);
     assert.equal(!!player.uball, true);
+});
+
+test('read.seffect_punishment places ball and chain using live game map fallback', async () => {
+    const display = { putstr_message: async () => {} };
+    const map = new GameMap();
+    const player = {
+        confused: 0,
+        data: {},
+        Punished: false,
+        punished: false,
+        uswallow: false,
+        x: 10,
+        y: 10,
+        map: null,
+        lev: null,
+    };
+
+    setGame({ map, u: player });
+    try {
+        const consumed = await seffect_punishment({ blessed: 0, cursed: 0 }, player, display);
+        assert.equal(consumed, false);
+        assert.equal(player.Punished, true);
+        assert.equal(player.punished, true);
+        assert.equal(player.uball?.where, OBJ_FLOOR);
+        assert.equal(player.uchain?.where, OBJ_FLOOR);
+        assert.equal(player.uball?.ox, player.x);
+        assert.equal(player.uball?.oy, player.y);
+        assert.equal(player.uchain?.ox, player.x);
+        assert.equal(player.uchain?.oy, player.y);
+        const floorIds = map.objectsAt(player.x, player.y).map((obj) => obj.otyp);
+        assert.equal(floorIds.includes(player.uball.otyp), true);
+        assert.equal(floorIds.includes(player.uchain.otyp), true);
+    } finally {
+        setGame(null);
+    }
+});
+
+test('hack.domove_core advances punishment objects during ordinary movement', async () => {
+    const map = new GameMap();
+    for (let y = 9; y <= 13; y++) {
+        map.at(10, y).typ = ROOM;
+    }
+
+    const player = {
+        x: 10,
+        y: 10,
+        inventory: [],
+        data: {},
+        punished: false,
+        Punished: false,
+        blind: false,
+        Blind: false,
+        hallucinating: false,
+        Hallucination: false,
+        confused: false,
+        stunned: false,
+        fumbling: false,
+        uswallow: false,
+        uprops: {},
+    };
+    const display = {
+        async putstr_message() {},
+        renderStatus() {},
+    };
+    const game = {
+        flags: {},
+        context: { run: 0, travel: 0, travel1: 0, nopick: 0, move: 0, door_opened: 0 },
+        display,
+        disp: { botl: false },
+        fov: null,
+    };
+
+    await punish(null, player, map);
+    await domove_core([0, 1], player, map, display, game);
+    await domove_core([0, 1], player, map, display, game);
+
+    assert.equal(player.x, 10);
+    assert.equal(player.y, 12);
+    assert.equal(player.uball?.ox, 10);
+    assert.equal(player.uball?.oy, 10);
+    assert.equal(player.uchain?.ox, 10);
+    assert.equal(player.uchain?.oy, 11);
 });
 
 test('zap.maybe_explode_trap removes magical trap on cancellation', () => {

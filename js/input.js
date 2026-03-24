@@ -75,6 +75,7 @@ export function createInputQueue({ throwOnEmpty = false } = {}) {
     let waitEpoch = 0;
     let waitStack = null;
     let waitContext = null;
+    let waitMeta = null;
     const waitListeners = [];
 
     function abortError() {
@@ -109,13 +110,21 @@ export function createInputQueue({ throwOnEmpty = false } = {}) {
                 inputResolver = null;
                 waitStack = null;
                 waitContext = null;
+                waitMeta = null;
                 resolve(ch);
             } else {
                 inputQueue.push(ch);
             }
         },
-        setWaitContext(stack) {
-            waitContext = stack || null;
+        setWaitContext(context) {
+            if (context && typeof context === 'object' && !Array.isArray(context)) {
+                waitMeta = { ...context };
+                waitContext = waitMeta.stack || null;
+                waitStack = waitContext;
+                return;
+            }
+            waitMeta = null;
+            waitContext = context || null;
             waitStack = waitContext;
         },
         nhgetch() {
@@ -147,6 +156,9 @@ export function createInputQueue({ throwOnEmpty = false } = {}) {
                 waitEpoch,
                 waitStack,
                 waitContext,
+                waitMeta,
+                waitKind: waitMeta?.kind || null,
+                preserveAcknowledgedTopline: !!waitMeta?.preserveAcknowledgedTopline,
             };
         },
         waitForInputWait({ afterEpoch = 0, signal = null } = {}) {
@@ -521,7 +533,7 @@ function nhgetch_raw() {
 // Command boundary --More-- handling belongs in callers (_gameLoopStep),
 // not here — matching C where tty_clearmsg handles --More-- in parse(),
 // not inside nhgetch.
-export async function nhgetch() {
+export async function nhgetch({ waitKind = 'generic', preserveAcknowledgedTopline = false } = {}) {
     const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
     if (Number.isFinite(queuedKey)) {
         ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
@@ -547,7 +559,11 @@ export async function nhgetch() {
     }
 
     if (typeof activeInputRuntime?.setWaitContext === 'function') {
-        activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
+        activeInputRuntime.setWaitContext({
+            stack: new Error('input wait context').stack || null,
+            kind: waitKind,
+            preserveAcknowledgedTopline,
+        });
     }
 
     const ch = await nhgetch_raw();
@@ -573,7 +589,7 @@ export async function more(display, {
     const ctxGame = game ?? activeGame ?? null;
     const readMoreKey = (typeof readKey === 'function')
         ? readKey
-        : () => nhgetch();
+        : () => nhgetch({ waitKind: 'more', preserveAcknowledgedTopline: true });
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.

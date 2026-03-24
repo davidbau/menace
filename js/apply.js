@@ -77,7 +77,7 @@ import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { pline, You, Your, You_cant, You_hear,
          pline_The, There, pline_mon, verbalize, impossible } from './pline.js';
-import { Monnam, mon_nam } from './do_name.js';
+import { Monnam, mon_nam, l_monnam, noit_mon_nam } from './do_name.js';
 import { nolimbs, has_head, unsolid, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
@@ -102,6 +102,7 @@ import { Blindf_off, clearWornItemEffects } from './do_wear.js';
 import { dropx } from './do.js';
 import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
+import { envFlag } from './runtime_env.js';
 import { dry_a_towel } from './weapon.js';
 import { dowrite } from './write.js';
 import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname, yname } from './objnam.js';
@@ -109,7 +110,7 @@ import { shk_your } from './shk.js';
 import { useupall, update_inventory, sobj_at, compactInvletPromptChars,
          buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { cansee } from './vision.js';
-import { cmap_to_glyph } from './display.js';
+import { cmap_to_glyph, canspotmon, map_invisible } from './display.js';
 import { S_flashbeam, S_goodpos } from './symbols.js';
 import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';
@@ -345,11 +346,110 @@ export function leashable(mtmp) {
   return  (mtmp.mnum !== PM_LONG_WORM && !unsolid(mtmp.data) && (!nolimbs(mtmp.data) || has_head(mtmp.data)));
 }
 
-// cf. apply.c:765 -- STUB: use_leash
-export async function use_leash() { await pline("You need to get closer to use a leash."); }
+// cf. apply.c:765 -- use_leash
+export async function use_leash(obj, player, map, display, game = null) {
+    if (player.uswallow) {
+        await You_cant((!obj.leashmon
+            ? 'leash %s from inside.'
+            : (obj.leashmon === Number(player?.ustuck?.m_id || 0))
+                ? 'unleash %s from inside.'
+                : 'unleash anything from inside %s.'),
+        noit_mon_nam(player.ustuck));
+        return false;
+    }
+    if (!obj.leashmon && number_leashed(player) >= MAXLEASHED) {
+        await You('cannot leash any more pets.');
+        return false;
+    }
 
-// cf. apply.c:817 -- STUB: use_leash_core
-export function use_leash_core() {}
+    await display.putstr_message('In what direction? ');
+    let dir = null;
+    while (!dir) {
+        const dirCh = await nhgetch();
+        if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            if ('topMessage' in display) display.topMessage = null;
+            if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+            return false;
+        }
+        const dch = String.fromCharCode(dirCh);
+        dir = DIRECTION_KEYS[dch] || null;
+        if (dir) break;
+        if (game?.flags?.cmdassist !== false) {
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            if ('topMessage' in display) display.topMessage = null;
+            if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+            await show_invalid_direction_cmdassist_help(display);
+            return false;
+        }
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        if ('topMessage' in display) display.topMessage = null;
+        if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+        await display.putstr_message('What a strange direction!  Never mind.');
+        return false;
+    }
+
+    const cc = { x: player.x + dir[0], y: player.y + dir[1] };
+    if (u_at(player, cc.x, cc.y)) {
+        if (player.usteed && player.dz > 0) {
+            await use_leash_core(obj, player.usteed, cc, true, player, map);
+            return true;
+        }
+        await pline('Leash yourself?  Very funny...');
+        return false;
+    }
+
+    const mtmp = m_at(cc.x, cc.y, map);
+    if (!mtmp) {
+        await There('is no creature there.');
+        return true;
+    }
+
+    await use_leash_core(obj, mtmp, cc, canspotmon(mtmp, player, game?.fov || null, map), player, map);
+    return true;
+}
+
+// cf. apply.c:817 -- use_leash_core
+export async function use_leash_core(obj, mtmp, cc, spotmon, player, map) {
+    if (!spotmon) {
+        await You(`fail to ${obj.leashmon ? 'un' : ''}leash something.`);
+        map_invisible(map, cc.x, cc.y, player);
+        return;
+    }
+    if (!mtmp.mtame) {
+        await pline(`${Monnam(mtmp)} ${(!obj.leashmon) ? 'cannot be' : 'is not'} leashed!`);
+        return;
+    }
+    if (!obj.leashmon) {
+        if (mtmp.mleashed) {
+            await pline(`This ${l_monnam(mtmp)} is already leashed.`);
+        } else if (unsolid(mtmp.data || mons[mtmp.mnum])) {
+            await pline('The leash would just fall off.');
+        } else if (nolimbs(mtmp.data || mons[mtmp.mnum]) && !has_head(mtmp.data || mons[mtmp.mnum])) {
+            await pline(`${Monnam(mtmp)} has no extremities the leash would fit.`);
+        } else if (!leashable(mtmp)) {
+            await pline(`The leash won't fit onto your ${l_monnam(mtmp)}.`);
+        } else {
+            await You(`slip the leash around your ${l_monnam(mtmp)}.`);
+            mtmp.mleashed = 1;
+            obj.leashmon = Number(mtmp.m_id || 0);
+            mtmp.msleeping = 0;
+            update_inventory(player);
+        }
+        return;
+    }
+    if (obj.leashmon !== Number(mtmp.m_id || 0)) {
+        await pline('This leash is not attached to that creature.');
+    } else if (obj.cursed) {
+        await pline_The('leash would not come off!');
+        obj.bknown = 1;
+    } else {
+        mtmp.mleashed = 0;
+        obj.leashmon = 0;
+        update_inventory(player);
+        await You(`remove the leash from your ${l_monnam(mtmp)}.`);
+    }
+}
 
 
 // cf. apply.c:927 -- check_leash: leash range enforcement
@@ -1026,6 +1126,9 @@ export function isApplyDownplay(obj) {
 // ====================================================================
 
 export async function handleApply(player, map, display, game) {
+    const replayStep = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : null;
+    const traceApply = envFlag('WEBHACK_TRACE_APPLY_032')
+        && replayStep != null && replayStep >= 392 && replayStep <= 397;
     const inventory = player.inventory || [];
     if (inventory.length === 0) {
         await display.putstr_message("You don't have anything to use or apply.");
@@ -1048,6 +1151,12 @@ export async function handleApply(player, map, display, game) {
     const prompt = letters.length > 0
         ? `What do you want to use or apply? [${letters} or ?*] `
         : 'What do you want to use or apply? [*] ';
+    if (traceApply) {
+        console.log('[APPLY_TRACE]',
+            `step=${replayStep}`,
+            `letters=${letters}`,
+            `items=${inventory.map((item) => `${item.invlet}:${item.otyp}${isApplyCandidate(item) ? '*' : ''}`).join(',')}`);
+    }
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -1232,6 +1341,11 @@ export async function handleApply(player, map, display, game) {
             return await use_trap(selected, player, map, display, game);
         }
 
+        if (selected.otyp === LEASH) {
+            const tookTime = await use_leash(selected, player, map, display, game);
+            return { moved: false, tookTime };
+        }
+
         if (selected.otyp === MAGIC_MARKER) {
             // C ref: apply.c — case MAGIC_MARKER: res = dowrite(obj);
             const res = await dowrite(selected, player);
@@ -1265,6 +1379,13 @@ export async function handleApply(player, map, display, game) {
     while (true) {
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
+        if (traceApply) {
+            const traced = inventory.find((obj) => obj.invlet === c);
+            console.log('[APPLY_TRACE]',
+                `step=${replayStep}`,
+                `key=${JSON.stringify(c)}`,
+                `candidate=${traced ? `${traced.invlet}:${traced.otyp}${isApplyCandidate(traced) ? '*' : ''}` : 'none'}`);
+        }
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
@@ -1304,10 +1425,20 @@ export async function handleApply(player, map, display, game) {
                 menuLines,
                 showList.map((item) => String(item.invlet)).join('')
             );
+            if (traceApply) {
+                console.log('[APPLY_TRACE]',
+                    `step=${replayStep}`,
+                    `menuSelection=${JSON.stringify(menuSelection)}`);
+            }
             await showApplyPrompt();
             if (menuSelection) {
                 const selectedFromMenu = inventory.find((obj) => obj.invlet === menuSelection);
                 if (selectedFromMenu) {
+                    if (traceApply) {
+                        console.log('[APPLY_TRACE]',
+                            `step=${replayStep}`,
+                            `menuSelected=${selectedFromMenu.invlet}:${selectedFromMenu.otyp}${isApplyCandidate(selectedFromMenu) ? '*' : ''}`);
+                    }
                     return await resolveApplySelection(selectedFromMenu);
                 }
             }
@@ -1328,6 +1459,11 @@ export async function handleApply(player, map, display, game) {
             });
             await showApplyPrompt();
             continue;
+        }
+        if (traceApply) {
+            console.log('[APPLY_TRACE]',
+                `step=${replayStep}`,
+                `selected=${selected.invlet}:${selected.otyp}${isApplyCandidate(selected) ? '*' : ''}`);
         }
         return await resolveApplySelection(selected);
     }

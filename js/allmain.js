@@ -15,7 +15,7 @@
 //   newgame(): full new-game setup (role selection, dungeon gen, startup).
 //   welcome(): display character description at game start or restore.
 
-import { movemon, settrack, mon_regen } from './monmove.js';
+import { movemon, settrack, mon_regen, initrack } from './monmove.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { nh_timeout, do_storms, fall_asleep } from './timeout.js';
@@ -64,6 +64,7 @@ import {
 } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, IS_DOOR } from './const.js';
 import { initFirstLevel } from './u_init.js';
+import { reset_justpicked } from './pickup.js';
 import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
          playerSelection as _playerSelection, maybeDoTutorial as _maybeDoTutorial,
          enterTutorial as _enterTutorial, showGameOver as _showGameOver,
@@ -71,7 +72,7 @@ import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
 import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { encumber_msg } from './pickup.js';
-import { nhimport, nhload, display_sync } from './origin_awaits.js';
+import { nhimport, nhload } from './origin_awaits.js';
 import { phase_of_the_moon, friday_13th, night, setFixedDatetime, yyyymmddhhmmss } from './calendar.js';
 import { change_luck, acurr } from './attrib.js';
 import { invault } from './vault.js';
@@ -836,6 +837,9 @@ async function repeatLoop(game, {
                 coreOpts,
                 bumpHeroSeqN,
             });
+            if (game.display?.messageNeedsMore && hasPendingCommandBoundaryDismiss(game)) {
+                break;
+            }
             if (!moveRepeated) break;
         } else {
             if (mode === 'movement_only') {
@@ -904,6 +908,10 @@ async function runMovementRepeatSlice(game, {
     // Step 2: turn-end (if move took time)
     if (moveResult && moveResult.tookTime) {
         bumpHeroSeqN();
+        if (game.display?.messageNeedsMore && hasPendingCommandBoundaryDismiss(game)) {
+            game._pendingRunAdvanceTurn = { coreOpts };
+            return false;
+        }
         await advanceTimedTurn(game, coreOpts);
     } else {
         // Move didn't take time — travel path exhaustion gets one more turn
@@ -1043,7 +1051,15 @@ async function syncTimedTurnPreInputState(game) {
             see_monsters(game.map);
         }
     }
-    await display_sync();
+    if (game.display && player) {
+        if (typeof game.display.renderStatus === 'function' && player._botl) {
+            game.display.renderStatus(player);
+            player._botl = false;
+        }
+        if (typeof game.display.cursorOnPlayer === 'function') {
+            game.display.cursorOnPlayer(player);
+        }
+    }
 }
 
 // C ref: allmain.c moveloop_core() lines 296-545 (monster turn) + 547-588 (pre-input).
@@ -1099,11 +1115,38 @@ function hasPendingCommandBoundaryDismiss(game) {
     if (!display) return false;
     const hasQueuedCannedBoundary = !!(cmdq_peek(CQ_CANNED) && display?.topMessage);
     if (hasQueuedCannedBoundary) return true;
-    if (!display?.messageNeedsMore) return false;
     if (display.moreMarkerActive || display.messageNeedsMoreBoundary) return true;
-    if (typeof display.getScreenLines !== 'function') return false;
+    // C ref: tty_nhgetch() transitions toplin 1 -> 2 after the next key
+    // acknowledges a pending message. At that point tty_clearmsg() should
+    // clear the old topline and continue with command parsing; stale
+    // rendered "--More--" text must not keep owning further keys.
+    if (!display?.messageNeedsMore) return false;
+    if (typeof display.getScreenLines === 'function') {
+        const lines = display.getScreenLines() || [];
+        if ((lines[0] || '').includes('--More--') || (lines[1] || '').includes('--More--')) {
+            return true;
+        }
+    }
     const lines = display.getScreenLines() || [];
     return (lines[0] || '').includes('--More--') || (lines[1] || '').includes('--More--');
+}
+
+function clearAcknowledgedTopline(display) {
+    if (!display?.topMessage) return;
+    if (display?.messageNeedsMore) return;
+    if (Number(display?.toplin || 0) !== 2) return;
+    if (typeof display.clearRow === 'function') {
+        display.clearRow(0);
+        if (Object.hasOwn(display, '_topMessageRow1') && display._topMessageRow1 !== undefined) {
+            display.clearRow(1);
+            display._topMessageRow1 = undefined;
+        }
+    }
+    display.topMessage = null;
+    if (Object.hasOwn(display, 'toplines')) display.toplines = '';
+    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+    if (Object.hasOwn(display, 'messageNeedsMoreBoundary')) display.messageNeedsMoreBoundary = false;
+    display.toplin = 0;
 }
 
 async function finalizeTimedCommand(game, result, coreOpts) {
@@ -1112,18 +1155,14 @@ async function finalizeTimedCommand(game, result, coreOpts) {
     if (typeof result.onAfterTurn === 'function') {
         await result.onAfterTurn(game);
     }
-    let safety = 0;
-    while (game.multi < 0 && !(game?.playerDied)) {
-        await runNegativeMultiStep(game, coreOpts);
-        if (++safety > 5000) break;
-    }
     await _drainOccupation(game, coreOpts);
 }
 
 function postRender(game, result) {
     // C ref: bot() + curs_on_u() — update status line and cursor position
-    // after all command processing. In C, bot() runs at end-of-turn and
-    // curs_on_u() runs before waiting for the next key.
+    // after all command processing. In C this tail does not perform a full
+    // docrt(); map repaint owners are the gameplay paths themselves
+    // (newsym/see_monsters/vision_recalc/etc).
     const player = game.u || game.u;
     if (!game.display || !player || result?.terminalScreenOwned || game?._terminalScreenOwnedByInput) return;
     if (game.display.messageNeedsMore) {
@@ -1134,10 +1173,6 @@ function postRender(game, result) {
     // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
     // because docrt() internally calls cursorOnPlayer and would clobber it.
     if (result?.isCountDigitWithDisplay) return;
-    const mapReady = !!(game?.lev || game?.map);
-    if (typeof game.docrt === 'function' && mapReady) {
-        game.docrt();
-    }
     if (typeof game.display.renderStatus === 'function') {
         game.display.renderStatus(player);
     }
@@ -1393,6 +1428,21 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, opts = {}) 
         async onKey(ch, g) {
             if (!isDismiss(ch)) return { handled: true, tookTime: false, moved: false, prompt: true };
             if (stage === 'lore') {
+                if (g?._pendingNewGamePreamble) {
+                    g.svc.context.rndencode = rnd(9000);
+                    if (g?.u) {
+                        await set_wear(g.u, null);
+                        const inv = Array.isArray(g.u.inventory) ? g.u.inventory : [];
+                        for (const obj of inv) {
+                            if (obj) obj.pickup_prev = 0;
+                        }
+                        reset_justpicked(g.u.invHead || null);
+                    }
+                    g.seerTurn = rnd(30);
+                    if (g?.u) g.u.umovement = NORMAL_SPEED;
+                    initrack();
+                    g._pendingNewGamePreamble = false;
+                }
                 clearLoreOverlay(g?.display);
                 // Re-render the map that was underneath the lore overlay.
                 if (g?.display && g.map && g.u && g.fov && typeof g.display.renderMap === 'function') {
@@ -1421,9 +1471,6 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, opts = {}) 
                     if ('toplines' in g.display) g.display.toplines = '';
                     if ('messageNeedsMore' in g.display) g.display.messageNeedsMore = false;
                     if ('messageNeedsMoreBoundary' in g.display) g.display.messageNeedsMoreBoundary = false;
-                }
-                if (g?.u) {
-                    await set_wear(g.u, null);
                 }
                 if (g?.display && typeof g.display.renderStatus === 'function' && g.u) {
                     g.display.renderStatus(g.u);
@@ -1745,6 +1792,10 @@ export class NetHackGame {
         }
         if (this.input && typeof this.input.setOnWaitStarted === 'function') {
             this.input.setOnWaitStarted(() => {
+                const inputState = this.input?.getInputState?.() || null;
+                if (!inputState?.preserveAcknowledgedTopline) {
+                    clearAcknowledgedTopline(this.display);
+                }
                 if (typeof this.renderInputBlockedState === 'function') {
                     this.renderInputBlockedState();
                 }
@@ -1811,7 +1862,9 @@ export class NetHackGame {
         if (urlOpts.nethackrc) {
             const rcParsed = parseNethackrcFull(urlOpts.nethackrc);
             if (rcParsed.wizard) this.wizard = true;
-            urlOpts.character = urlOpts.character || rcParsed.character;
+            if (!urlOpts.interactiveCharacterSelection) {
+                urlOpts.character = urlOpts.character || rcParsed.character;
+            }
             // Apply flags from nethackrc that aren't already set
             if (rcParsed.flags && this.flags) {
                 for (const [k, v] of Object.entries(rcParsed.flags)) {
@@ -2022,6 +2075,7 @@ export class NetHackGame {
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
 
             this.display.renderLoreText(loreLines, loreOffx);
+            this._pendingNewGamePreamble = true;
             this.pendingPrompt = buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, {
                 tutorial: this.flags.tutorial,
             });
@@ -2455,6 +2509,7 @@ export class NetHackGame {
 
     async _gameLoopStep() {
         while (true) {
+            const hasPendingRunAdvanceTurn = !!this._pendingRunAdvanceTurn;
             const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
 
             // Travel continuation fallback. Keep this behind the positive-move
@@ -2475,6 +2530,7 @@ export class NetHackGame {
             }
 
             const hasTimedContinuation = hasPositiveMoveContinuation
+                || hasPendingRunAdvanceTurn
                 || (this.context?.move && this.multi < 0 && !(this?.playerDied))
                 || (this.multi >= 0 && this.occupation);
 
@@ -2486,8 +2542,29 @@ export class NetHackGame {
                 await more(this.display, {
                     forceVisual: true,
                     clearAfter: true,
-                    readKey: () => nhgetch(),
+                    readKey: () => nhgetch({
+                        waitKind: 'more',
+                        preserveAcknowledgedTopline: true,
+                    }),
                 });
+                // The dismiss key owns this replay step.  Defer the no-input
+                // continuation work to the following step rather than
+                // batching it into the same key-owned capture boundary.
+                this.renderAndAutosave({ autosave: false, forceRender: true });
+                return;
+            }
+            if (hasTimedContinuation) {
+                // C ref: tty_clearmsg() with toplin==TOPLINE_NON_EMPTY clears
+                // the acknowledged message window before any no-input
+                // continuation work runs.
+                clearAcknowledgedTopline(this.display);
+            }
+
+            if (hasPendingRunAdvanceTurn) {
+                const pending = this._pendingRunAdvanceTurn;
+                this._pendingRunAdvanceTurn = null;
+                await advanceTimedTurn(this, pending?.coreOpts || {});
+                this.renderAndAutosave({ autosave: true });
                 continue;
             }
 
@@ -2498,8 +2575,10 @@ export class NetHackGame {
             }
 
             if (this.multi >= 0 && this.occupation) {
-                await advanceTimedTurn(this, {});
-                await runOccupationStep(this);
+                const occStep = await runOccupationStep(this);
+                if (occStep.ran) {
+                    await advanceTimedTurn(this, {});
+                }
                 this.renderAndAutosave({ autosave: true });
                 continue;
             }
@@ -2514,6 +2593,9 @@ export class NetHackGame {
                     bumpHeroSeqN,
                 });
                 this.renderAndAutosave({ autosave: true });
+                if (this.display?.messageNeedsMore && hasPendingCommandBoundaryDismiss(this)) {
+                    return;
+                }
                 // C ref: moveloop_core loops without reading a new key for
                 // both run and travel continuation. Use `continue` to batch
                 // all continuation steps within this _gameLoopStep call,
@@ -2521,17 +2603,32 @@ export class NetHackGame {
                 continue;
             }
 
-            // C ref: tty_clearmsg() — dismiss pending --More-- before command.
-            if (this.display?.messageNeedsMore && hasActiveMoreBoundary(this.display)) {
+            // C ref: tty_clearmsg() — dismiss pending command-boundary message
+            // acknowledgment before reading a fresh command key. Some paths
+            // leave a live `--More--` boundary without the narrower
+            // active-more marker set.
+            if (this.display?.messageNeedsMore && hasPendingCommandBoundaryDismiss(this)) {
                 const pendingPromptOwnsInput = !!(
                     this.pendingPrompt && typeof this.pendingPrompt.onKey === 'function'
                 );
                 if (!pendingPromptOwnsInput) {
+                    const wasBoundary = !!(
+                        this.display?.messageNeedsMoreBoundary || hasActiveMoreBoundary(this.display)
+                    );
+                    const hasQueuedCannedBoundary = !!(cmdq_peek(CQ_CANNED) && this.display?.topMessage);
                     await more(this.display, {
                         forceVisual: !!(this.display?.messageNeedsMoreBoundary),
                         clearAfter: true,
-                        readKey: () => nhgetch(),
+                        readKey: () => nhgetch({
+                            waitKind: 'more',
+                            preserveAcknowledgedTopline: true,
+                        }),
                     });
+                    if (wasBoundary && !hasQueuedCannedBoundary
+                        && !this.display.messageNeedsMore
+                        && !this.display.topMessage) {
+                        this.renderAndAutosave({ autosave: false, forceRender: true });
+                    }
                     // After --More-- dismiss, check for canned commands
                     if (cmdq_peek(CQ_CANNED)) {
                         const commandResult = await this.runOneCommandCycle(0);
@@ -2541,7 +2638,7 @@ export class NetHackGame {
                     }
                     if (this.u?.Hallucination) return;
                     this.renderAndAutosave({ autosave: false, forceRender: true });
-                    continue;
+                    return;
                 }
             }
             // Also handle canned-command-with-topline boundary (no --More-- but
@@ -2550,7 +2647,10 @@ export class NetHackGame {
                 await more(this.display, {
                     forceVisual: true,
                     clearAfter: true,
-                    readKey: () => nhgetch(),
+                    readKey: () => nhgetch({
+                        waitKind: 'more',
+                        preserveAcknowledgedTopline: true,
+                    }),
                 });
                 const commandResult = await this.runOneCommandCycle(0);
                 if (!commandResult) return;
@@ -2561,6 +2661,16 @@ export class NetHackGame {
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
             this.renderAndAutosave({ commandResult, autosave: true });
+            // C key ownership: if a timed command arms negative multi (for
+            // example, dragging the iron ball), the continuation belongs to
+            // the next key-owned replay step rather than being drained inside
+            // this same _gameLoopStep call.
+            if (commandResult.tookTime
+                && this.context?.move
+                && this.multi < 0
+                && !(this?.playerDied)) {
+                return;
+            }
             // C ref: moveloop loops for: negative multi, occupation,
             // AND positive-multi movement (run/travel continuation).
             if (!(this.context?.move && this.multi < 0 && !(this?.playerDied))
@@ -2621,15 +2731,21 @@ export class NetHackGame {
             return;
         }
         if (!forceRender && !terminalScreenOwned && this.display?.messageNeedsMore) {
-            // C ref: tty_clearmsg() shows --More-- at command boundary when the
-            // previous command took no time but left a topline message pending.
-            // Only commands that explicitly set needsMoreBoundary trigger this,
-            // since most tookTime=false commands should not show --More--.
+            // C ref: tty_clearmsg() only shows the visual --More-- marker at an
+            // explicit command-boundary ownership point. Timed command captures
+            // can legitimately retain a pending topline without forcing
+            // flush_screen(1) before the replay snapshot.
             if (commandResult?.needsMoreBoundary && this.display.messageNeedsMore) {
                 this.display.messageNeedsMoreBoundary = true;
+                flush_screen(1);
+                return;
             }
-            flush_screen(1);
-            return;
+        }
+        if (!terminalScreenOwned) {
+            // C ref: tty_clearmsg() clears TOPLINE_NON_EMPTY before the next
+            // ordinary command-frame repaint. If we leave it in place, replay
+            // captures can retain an acknowledged stale topline one step too long.
+            clearAcknowledgedTopline(this.display);
         }
         if (forceRender || !terminalScreenOwned) {
             this.docrt();

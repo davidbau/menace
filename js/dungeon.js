@@ -41,6 +41,7 @@ import { getbones } from './bones.js';
 import { make_engr_at, wipe_engr_at, make_grave } from './engrave.js';
 import { game as _gstate } from './gstate.js';
 import { impossible, You } from './pline.js';
+import { see_nearby_objects } from './display.js';
 import {
     mkobj,
     mksobj,
@@ -51,6 +52,7 @@ import {
 } from './mkobj.js';
 import { makemon, mkclass, rndmonnum_adj, set_malign } from './makemon.js';
 import { create_nhwindow, start_menu, add_menu, end_menu, select_menu, destroy_nhwindow } from './windows.js';
+import { hup_cliparound as cliparound } from './windows.js';
 import { NO_MM_FLAGS, SIZE, nul_glyphinfo,
          LR_DOWNSTAIR, LR_UPSTAIR, LR_PORTAL, LR_BRANCH,
          LR_TELE, LR_UPTELE, LR_DOWNTELE, SHARED } from './const.js';
@@ -5547,7 +5549,8 @@ export async function u_on_newpos(x, y, map, player) {
   cliparound(player.x, player.y);
   player.uundetected = 0;
   if (player.usteed) player.usteed.mx = player.x, player.usteed.my = player.y;
-  if (!on_level(map.uz, map.uz0)) player.x0 = player.x, player.y0 = player.y;
+  const hasLevelContext = !!(map?.uz && map?.uz0);
+  if (hasLevelContext && !on_level(map.uz, map.uz0)) player.x0 = player.x, player.y0 = player.y;
   else if (!(player?.Blind || player?.blind || false) && !(player?.Hallucination || player?.hallucinating || false) && !player.uswallow) see_nearby_objects();
   earth_sense();
 }

@@ -33,8 +33,8 @@ function makeGame() {
     const door = map.at(11, 10);
     door.typ = DOOR;
     door.flags = D_ISOPEN;
-    door.roomno = 0;
-    door.edge = false;
+    door.roomno = ROOMOFFSET;
+    door.edge = true;
 
     const shopTile = map.at(12, 10);
     shopTile.typ = ROOM;

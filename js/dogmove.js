@@ -33,7 +33,8 @@ import { is_animal, is_mindless, nohands, nolimbs, unsolid,
          resists_fire, resists_cold, resists_elec, resists_poison, resists_acid, resists_ston,
          completelyburns, completelyrots, completelyrusts,
          monsndx, flesh_petrifies, touch_petrifies,
-         likes_fire, mon_hates_silver, has_head, haseyes, M_AP_TYPE, ismnum } from './mondata.js';
+         likes_fire, mon_hates_silver, has_head, haseyes, M_AP_TYPE, ismnum,
+         is_flyer, is_floater, locomotion } from './mondata.js';
 import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE, PM_LONG_WORM, PM_COCKATRICE, PM_CHICKATRICE, PM_MEDUSA, PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG, PM_KITTEN, PM_HOUSECAT, PM_LARGE_CAT, PM_GIANT_RAT, NUMMONS, mons, AT_NONE, AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP, AT_ENGL, AT_HUGS, AT_TENT, AT_BOOM, AD_PHYS, AD_FIRE, AD_COLD, AD_ELEC, AD_ACID, AD_DCAY, AD_RUST, MR_POISON, MR_ACID, MR_STONE, MR_FIRE, M1_SWIM, M1_NEEDPICK, M1_TUNNEL, M1_SEE_INVIS, M1_NOTAKE, M1_NOHANDS, M1_UNSOLID, M1_NOHEAD, M1_NOLIMBS, M2_STRONG, M2_ROCKTHROW, S_DOG, S_MIMIC, S_DRAGON, S_NYMPH, MS_GUARDIAN, MS_LEADER, MZ_HUMAN, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC, G_FREQ } from './monsters.js';
 import { MAGIC_PORTAL, WT_HUMAN, MAX_CARR_CAP } from './const.js';
 import { gettrack } from './track.js';
@@ -55,6 +56,9 @@ import { ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, MTSZ, SQSRCHRADIUS, FARAWAY
 import { newsym, canspotmon, glyph_at } from './display.js';
 import { pline, You, Your } from './pline.js';
 import { an } from './objnam.js';
+import { distant_name, vtense } from './objnam.js';
+import { noit_Monnam } from './do_name.js';
+import { distu } from './hacklib.js';
 
 // C macro: #define something "something"
 const something = "something";
@@ -1043,7 +1047,6 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
 
     // C ref: in_masters_sight = couldsee(omx, omy)
     const inMastersSight = couldsee(map, player, omx, omy);
-
     // C ref: dogmove.c:498 — dog_has_minvent = (droppables(mtmp) != 0)
     const dogHasMinvent = !!droppables(mon);
 
@@ -1331,8 +1334,9 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
             `allowMDisp=${positions[i].allowMDisp ? 1 : 0}`,
             `allowTraps=${positions[i].allowTraps ? 1 : 0}`,
             `allowU=${positions[i].allowU ? 1 : 0}`);
-        // C ref: dogmove.c:1086-1088 — if leashed, we drag the pet along.
-        if (mon.mleashed && dist2(nx, ny, player.x, player.y) > 4) {
+        // C ref: dogmove.c:1174-1175 — leash range uses distu(nx, ny),
+        // which is squared distance from the live hero position.
+        if (mon.mleashed && distu(player, nx, ny) > 4) {
             dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=leash');
             continue;
         }
@@ -1507,14 +1511,29 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         if (edog) {
             let foundFood = false;
             const canReachFood = could_reach_item(map, mon, nx, ny);
+            dogmoveOwnerTrace(map, mon, 'candidate-food-scan',
+                `idx=${i}`,
+                `pos=${nx},${ny}`,
+                `reach=${canReachFood ? 1 : 0}`);
             for (let oi = map.objects.length - 1; oi >= 0; oi--) {
                 const obj = map.objects[oi];
                 if (obj.buried) continue;
                 if (obj.ox !== nx || obj.oy !== ny) continue;
+                dogmoveOwnerTrace(map, mon, 'candidate-food-obj',
+                    `idx=${i}`,
+                    `pos=${nx},${ny}`,
+                    `obj=${obj.o_id ?? '?'}`,
+                    `otyp=${obj.otyp ?? '?'}`,
+                    `cursed=${obj.cursed ? 1 : 0}`);
                 if (obj.cursed) {
                     cursemsg[i] = true;
                 } else if (canReachFood) {
                     const otyp = dogfood(mon, obj, turnCount);
+                    dogmoveOwnerTrace(map, mon, 'candidate-food-eval',
+                        `idx=${i}`,
+                        `pos=${nx},${ny}`,
+                        `obj=${obj.o_id ?? '?'}`,
+                        `food=${otyp}`);
                     if (otyp < MANFOOD
                         && (otyp < ACCFOOD || turnCount >= edog.hungrytime)) {
                         nix = nx; niy = ny; chi = i;
@@ -1638,19 +1657,9 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
             return 0; // MMOVE_DONE
         }
 
-        // C ref: dogmove.c:1292-1306 — reluctant step on cursed item
-        // JS vs C: C uses noit_Monnam() with locomotion() verb ("steps"),
-        // checks is_flyer/is_floater for "over" vs "onto", and describes the
-        // top item via distant_name(). JS simplified to generic message.
-        if (chi >= 0 && cursemsg[chi]) {
-            const canSeePet = display && player && (
-                fov?.canSee ? fov.canSee(mon.mx, mon.my) || fov.canSee(nix, niy)
-                    : couldsee(map, player, mon.mx, mon.my) || couldsee(map, player, nix, niy)
-            );
-            if (canSeePet && display) {
-                await display.putstr_message(`${YMonnam(mon)} moves reluctantly.`);
-            }
-        }
+        const wasSeen = !!(display && player && (
+            fov?.canSee ? fov.canSee(mon.mx, mon.my) : cansee(map, player, fov, mon.mx, mon.my)
+        ));
 
         // Update track history (shift old positions, add current)
         // C ref: dogmove.c:1319 — mon_track_add(mtmp, omx, omy)
@@ -1659,6 +1668,23 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         // monster placement; display refresh is handled by monmove.c postmov().
         mon.mx = nix;
         mon.my = niy;
+        // C ref: dogmove.c:1363-1375 — reluctant step message after movement.
+        if (chi >= 0 && cursemsg[chi] && display) {
+            const nowSeen = !!(player && (
+                fov?.canSee ? fov.canSee(mon.mx, mon.my) : cansee(map, player, fov, mon.mx, mon.my)
+            ));
+            if (wasSeen || nowSeen) {
+                const pile = map.objectsAt ? map.objectsAt(nix, niy) : [];
+                const topObj = pile.length ? pile[pile.length - 1] : null;
+                const what = topObj ? await distant_name(topObj, doname) : something;
+                const over = (is_flyer(mon.data || mon.type || {}) || is_floater(mon.data || mon.type || {}))
+                    ? 'over'
+                    : 'onto';
+                await display.putstr_message(
+                    `${noit_Monnam(mon)} ${vtense(null, locomotion(mon.data || mon.type || {}, 'step'))} reluctantly ${over} ${what}.`
+                );
+            }
+        }
 
         // C ref: dogmove.c:1324-1327 — eat after moving
         if (do_eat && eatObj) {

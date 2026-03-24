@@ -5,7 +5,7 @@
 
 import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
-         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT,
+         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT, OBJ_FREE,
          ESHK, MAXULEV,
          FIRE_RES, SLEEP_RES, COLD_RES, DISINT_RES, SHOCK_RES,
          POISON_RES, ACID_RES, STONE_RES,
@@ -43,6 +43,7 @@ import { currency, o_on } from './invent.js';
 import { Hello } from './player.js';
 import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';
 import { rn2, rnd } from './rng.js';
+import { ynFunction } from './input.js';
 import { pline, You, Your, You_hear, You_cant, pline_The, There,
          verbalize, Norep, impossible, livelog_printf } from './pline.js';
 import { s_suffix, strchr, plur, sgn } from './hacklib.js';
@@ -58,7 +59,8 @@ import { book_disappears } from './spell.js';
 import { makemon } from './makemon.js';
 import { enexto } from './teleport.js';
 import { depth } from './dungeon.js';
-import { money_cnt } from './hack.js';
+import { money_cnt, in_rooms as hero_in_rooms } from './hack.js';
+import { getEnv } from './runtime_env.js';
 import {
     NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE, nul_glyphinfo,
 } from './const.js';
@@ -446,7 +448,7 @@ function getCost(obj, player, shkp) {
 
 // C ref: shk.c set_cost() -- price shk will pay when buying (selling to player)
 // Autotranslated from shk.c:3088
-export function set_cost(obj, shkp, player) {
+export function set_cost(obj, shkp, player = _gstate?.u || null) {
   let tmp, unit_price = getprice(obj, true), multiplier = 1, divisor = 1;
   tmp = get_pricing_units(obj) * unit_price;
   if (player.helmet && player.helmet.otyp === DUNCE_CAP) {
@@ -1636,21 +1638,20 @@ export function describeGroundObjectForPlayer(obj, player, map) {
 
 export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
     const { map, u: player, display } = game;
-    const oldShops = in_rooms(map, oldX, oldY, SHOPBASE);
-    const newShops = in_rooms(map, player.x, player.y, SHOPBASE);
+    // C ref: hack.c check_special_room() / move_update() compares hack.c
+    // in_rooms() results, which do not treat corridor adjacency as already
+    // being inside a shop. Use the gameplay room tracker here, not shk.c's
+    // broader shop-adjacency helper.
+    const oldShops = hero_in_rooms(oldX, oldY, SHOPBASE, map);
+    const newShops = hero_in_rooms(player.x, player.y, SHOPBASE, map);
     game._ushops = newShops;
     const entered = newShops.filter((r) => !oldShops.includes(r));
-    if (entered.length === 0) {
-        return;
-    }
-
+    if (entered.length === 0) return null;
     const shoproom = entered[0];
     const shkp = findShopkeeper(map, shoproom);
-    if (!shkp) return;
-    if (!residentShopkeeperAvailableForGreeting(shkp, shoproom, map)) {
-        return;
-    }
-    if (shkp.following) return;
+    if (!shkp) return null;
+    if (!residentShopkeeperAvailableForGreeting(shkp, shoproom, map)) return null;
+    if (shkp.following) return null;
 
     const room = map.rooms?.[shoproom - ROOMOFFSET];
     const rtype = Number(room?.rtype || SHOPBASE);
@@ -1660,15 +1661,15 @@ export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
 
     if (shkp.mpeaceful === false) {
         await display.putstr_message(`"So, ${plname}, you dare return to ${sSuffix(shkName)} ${shopTypeName}?!"`);
-        return;
+        return null;
     }
     if (shkp.surcharge) {
         await display.putstr_message(`"Back again, ${plname}?  I've got my eye on you."`);
-        return;
+        return null;
     }
     if (shkp.robbed) {
         await display.putstr_message(`${capitalizeWord(shkName)} mutters imprecations against shoplifters.`);
-        return;
+        return null;
     }
 
     const visitct = Number(shkp.visitct || 0);
@@ -1676,8 +1677,80 @@ export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
     const greeting = Hello(shkp, player.roleIndex);
     await display.putstr_message(`"${greeting}, ${plname}!  Welcome${visitct ? ' again' : ''} to ${sSuffix(shkName)} ${shopTypeName}!"`);
     shkp.visitct = visitct + 1;
+    return null;
 }
 
+// Narrow shop-entry greeting path driven by hack.c move_update() state.
+// This is intentionally smaller than a full u_entered_shop() port:
+// use the exact entered-shop marker, emit the visible greeting, and avoid
+// broader shopkeeper state mutations until they are validated separately.
+export async function maybeHandleEnteredShopGreeting(enterroom, map, player, display) {
+    if (!enterroom || !map || !player || !display) return false;
+    const ch = (typeof enterroom === 'string' && enterroom.length > 0)
+        ? enterroom[0]
+        : String.fromCharCode(Number(enterroom || 0));
+    if (!ch) return false;
+    const roomno = ch.charCodeAt(0);
+    const shkp = findShopkeeper(map, roomno);
+    if (!shkp) return false;
+    if (!residentShopkeeperAvailableForGreeting(shkp, roomno, map)) return false;
+    if (shkp.following) return false;
+
+    const room = map.rooms?.[roomno - ROOMOFFSET];
+    const rtype = Number(room?.rtype || SHOPBASE);
+    const shopTypeName = shtypes[rtype - SHOPBASE]?.name || 'shop';
+    const plname = String(player?.name || 'customer');
+    const shkName = shopkeeperName(shkp);
+
+    const cols = Number.isInteger(display?.cols) ? display.cols : 80;
+    const priorTopline = (display?.topMessage && display?.messageNeedsMore)
+        ? String(display.topMessage || '')
+        : String(display?.toplines || '');
+    const markBoundaryIfConcatOverflows = (msg) => {
+        const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : null;
+        if (getEnv('WEBHACK_REPLAY_PENDING_TRACE') && step != null && step >= 302 && step <= 392) {
+            console.log('[SHOP_GREET_TRACE]',
+                `step=${step}`,
+                `prior=${JSON.stringify(priorTopline)}`,
+                `cols=${cols}`,
+                `msg=${JSON.stringify(msg)}`,
+                `combined=${priorTopline ? priorTopline.length + 2 + msg.length : 0}`);
+        }
+        if (!Object.hasOwn(display, 'messageNeedsMoreBoundary')) return;
+        if (!priorTopline) return;
+        const combined = `${priorTopline}  ${msg}`;
+        if (combined.length + 9 >= cols) {
+            display.messageNeedsMoreBoundary = true;
+        }
+    };
+
+    if (shkp.mpeaceful === false) {
+        const msg = `"So, ${plname}, you dare return to ${sSuffix(shkName)} ${shopTypeName}?!"`;
+        await display.putstr_message(msg);
+        markBoundaryIfConcatOverflows(msg);
+        return true;
+    }
+    if (shkp.surcharge) {
+        const msg = `"Back again, ${plname}?  I've got my eye on you."`;
+        await display.putstr_message(msg);
+        markBoundaryIfConcatOverflows(msg);
+        return true;
+    }
+    if (shkp.robbed) {
+        const msg = `${capitalizeWord(shkName)} mutters imprecations against shoplifters.`;
+        await display.putstr_message(msg);
+        markBoundaryIfConcatOverflows(msg);
+        return true;
+    }
+
+    const visitct = Number(shkp.visitct || 0);
+    const greeting = Hello(shkp, player.roleIndex);
+    const msg = `"${greeting}, ${plname}!  Welcome${visitct ? ' again' : ''} to ${sSuffix(shkName)} ${shopTypeName}!"`;
+    await display.putstr_message(msg);
+    markBoundaryIfConcatOverflows(msg);
+    shkp.visitct = visitct + 1;
+    return true;
+}
 // ============================================================
 // dopay -- the #pay command (C: shk.c dopay)
 // ============================================================
@@ -2223,7 +2296,7 @@ export function sellobj_state(deliberate) {
 }
 
 // C ref: shk.c sellobj()
-export function sellobj(obj, x, y, map) {
+export async function sellobj(obj, x, y, map) {
     if (!map) return;
     const rooms = in_rooms(map, x, y, SHOPBASE);
     if (rooms.length === 0) return;
@@ -2236,10 +2309,34 @@ export function sellobj(obj, x, y, map) {
         return;
     }
     if (!saleable(shkp, obj) || !shkp.mpeaceful) return;
-    const value = Math.max(0, Number(set_cost(obj, shkp) || 0) * Number(get_pricing_units(obj) || 1));
-    if (!value) return;
-    shkp.credit = Number(shkp.credit || 0) + value;
-    obj.no_charge = 1;
+    const offer = Math.max(0, Number(set_cost(obj, shkp) || 0) * Number(get_pricing_units(obj) || 1));
+    if (!offer) return;
+
+    let response = sell_response;
+    if (!response) {
+        const one = Number(obj?.quan || 1) === 1;
+        const qbuf = `${Shknam(shkp)} offers ${offer} gold piece${plur(offer)} for your ${xname(obj)}.  Sell ${one ? 'it' : 'them'}?`;
+        response = String.fromCharCode(
+            await ynFunction(qbuf, 'ynaq', 'n'.charCodeAt(0), _gstate?.display)
+        );
+    }
+
+    switch (response) {
+    case 'a':
+        sell_response = 'y';
+        // fall through
+    case 'y':
+        await pay(-offer, shkp, _gstate || null);
+        obj.no_charge = 1;
+        return;
+    case 'q':
+        sell_response = 'n';
+        // fall through
+    case 'n':
+    default:
+        obj.no_charge = 1;
+        return;
+    }
 }
 
 // ============================================================

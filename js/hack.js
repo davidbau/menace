@@ -34,25 +34,26 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BOULDER,
          ARROW, DART, SCR_SCARE_MONSTER } from './objects.js';
 import { more, nhgetch } from './input.js';
+import { check_leash } from './apply.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
 import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks, strongmonst } from './mondata.js';
 import { x_monnam, y_monnam, YMonnam, Monnam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
+import { describeGroundObjectForPlayer, maybeHandleEnteredShopGreeting, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, is_safemon, mon_visible, sensemon, feel_location as display_feel_location, see_nearby_objects } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, is_safemon, mon_visible, sensemon, feel_location as display_feel_location, see_nearby_objects, flush_screen } from './display.js';
 import { couldsee, recalc_block_point } from './vision.js';
 import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
-import { Invocation_lev, find_level, deltrap } from './dungeon.js';
+import { Invocation_lev, find_level, deltrap, u_on_newpos } from './dungeon.js';
 import { tmp_at, nh_delay_output, nh_delay_output_nowait } from './animation.js';
 import { DISP_ALL, DISP_END } from './const.js';
 import { getpos_async } from './getpos.js';
@@ -62,6 +63,7 @@ import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap, domagicportal } from './teleport.js';
 import { trapeffect_bear_trap_you, trapeffect_rust_trap_you, trapeffect_web_you, dotrap } from './trap.js';
+import { drag_ball, move_bc } from './ball.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
@@ -84,6 +86,10 @@ import { notake } from './mondata.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
+}
+
+function swapStepTraceEnabled() {
+    return envFlag('WEBHACK_TRACE_SWAP_STEP');
 }
 
 function traceStepWindow() {
@@ -239,6 +245,10 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
             }
         }
 
+        if (objs.length > 0) {
+            flush_screen(1);
+        }
+
         if (objs.length === 1) {
             const dfeature = dfeature_at(player.x, player.y, map, {
                 depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
@@ -257,6 +267,23 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
                 }
             } else {
                 observeObject(seen);
+                if (String(process?.env?.WEBHACK_TRACE_FLOOR_FEEDBACK || '').trim() === '1') {
+                    const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : null;
+                    const ctx = game?.context || {};
+                    console.error(
+                        `^floortrace[step=${step === null ? '?' : step}`
+                        + ` pos=${player.x},${player.y}`
+                        + ` run=${Number(ctx.run || 0)}`
+                        + ` travel=${ctx.travel ? 1 : 0}`
+                        + ` mv=${ctx.mv ? 1 : 0}`
+                        + ` multi=${Number(game?.multi || 0)}`
+                        + ` nopick=${nopick ? 1 : 0}`
+                        + ` suppressAutopick=${suppressAutopick ? 1 : 0}`
+                        + ` pickedUp=${pickedUp ? 1 : 0}`
+                        + ` obj=${seen?.otyp ?? '?'}:${seen?.oclass ?? '?'}:${seen?.quan ?? '?'}`
+                        + ` msg=${JSON.stringify(describeGroundObjectForPlayer(seen, player, map))}]`
+                    );
+                }
                 await display.putstr_message(`You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`);
             }
         } else {
@@ -670,22 +697,12 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     const petOldX = mon.mx, petOldY = mon.my;
     mon.mx = oldPlayerX;
     mon.my = oldPlayerY;
-    player.x = nx;
-    player.y = ny;
-    if (player.usteed) {
-        player.usteed.mx = player.x;
-        player.usteed.my = player.y;
-    }
+    await u_on_newpos(nx, ny, map, player);
     player.moved = true;
     player.umoved = true;
     game.lastMoveDir = dir;
     player.displacedPetThisTurn = true;
     await maybeHandleShopEntryMessage(game, oldPlayerX, oldPlayerY);
-
-    // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() (stale FOV).
-    if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
-        see_nearby_objects();
-    }
     // C ref: player moved — recompute FOV immediately (see domove_core comment).
     if (game.fov) {
         mark_vision_dirty();
@@ -1166,6 +1183,23 @@ export async function domove_core(dir, player, map, display, game) {
         domoveNotime('swim-move-danger');
         return { moved: false, tookTime: false };
     }
+    let bc_control = 0;
+    let ballx = 0;
+    let bally = 0;
+    let chainx = 0;
+    let chainy = 0;
+    let cause_delay = false;
+    const punished = !!(player?.Punished || player?.punished || player?.uchain);
+    if (punished) {
+        const dragState = await drag_ball(nx, ny, true, player, map, game);
+        if (!dragState.ret) {
+            return {
+                moved: player.x !== oldX || player.y !== oldY,
+                tookTime: true,
+            };
+        }
+        ({ bc_control, ballx, bally, chainx, chainy, cause_delay } = dragState);
+    }
     loc = map.at(nx, ny);
     const steppingTrap = map.trapAt(nx, ny);
     // C ref: hack.c:2533-2561 — paranoid trap confirmation for known traps.
@@ -1202,30 +1236,31 @@ export async function domove_core(dir, player, map, display, game) {
         swappedWithPet = true;
         ctx.move = 1;
     }
+    if (swapStepTraceEnabled()) {
+        const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : null;
+        if (step >= 147 && step <= 149) {
+            console.error(
+                `^swapstep[phase=post-swap-check step=${step}`
+                + ` from=${oldX},${oldY} to=${nx},${ny}`
+                + ` actual=${player.x},${player.y}`
+                + ` swapped=${swappedWithPet ? 1 : 0}`
+                + ` run=${Number(ctx.run || 0)}`
+                + ` travel=${ctx.travel ? 1 : 0}`
+                + ` mv=${ctx.mv ? 1 : 0}`
+                + ` multi=${Number(game?.multi || 0)}]`
+            );
+        }
+    }
 
     if (!swappedWithPet) {
-        // Normal move: update player position and FOV.
-        player.x = nx;
-        player.y = ny;
-        if (player.usteed) {
-            player.usteed.mx = player.x;
-            player.usteed.my = player.y;
-        }
+        // Normal move: update player position and run the C-faithful helper.
+        await u_on_newpos(nx, ny, map, player);
         player.moved = true;
         player.umoved = true;
         ctx.move = 1;
         game.lastMoveDir = moveDir;
         // Clear force-fight prefix after successful movement.
         clear_forcefight_prefix(game, ctx);
-        await maybeHandleShopEntryMessage(game, oldX, oldY);
-
-        // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() — uses stale
-        // FOV (old player position). This matches C where see_nearby_objects runs inside
-        // u_on_newpos at hack.c:2915, and vision_recalc() is called later at hack.c:2953.
-        if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
-            see_nearby_objects();
-        }
-
         // C ref: player moved — recompute FOV immediately so newsym sees correct visibility.
         if (game.fov) {
             mark_vision_dirty();
@@ -1498,7 +1533,7 @@ export async function domove_core(dir, player, map, display, game) {
     // C ref: hack.c spoteffects() runs check_special_room() immediately after
     // pool/terrain handling and before trap/pickup work. The current domove()
     // inlines the post-move flow, so refresh room-entry state here.
-    await check_special_room(false, player, map, display, game?.fov || null);
+    const specialRoomResult = await check_special_room(false, player, map, display, game?.fov || null);
 
     // C ref: pickup.c pickup() — running into objects stops running before
     // autopick processing (which can suppress pickup on this step).
@@ -1507,11 +1542,27 @@ export async function domove_core(dir, player, map, display, game) {
         nomul(0, game);
         suppressAutopickThisStep = true;
     }
-    await postMoveFloorCheck(player, map, display, game, {
-        trap,
-        nopick,
-        suppressAutopick: suppressAutopickThisStep,
-    });
+    if (swapStepTraceEnabled()) {
+        const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : null;
+        if (step >= 147 && step <= 149) {
+            console.error(
+                `^swapstep[phase=pre-floor-check step=${step}`
+                + ` pos=${player.x},${player.y}`
+                + ` swapped=${swappedWithPet ? 1 : 0}`
+                + ` run=${Number(ctx.run || 0)}`
+                + ` travel=${ctx.travel ? 1 : 0}`
+                + ` mv=${ctx.mv ? 1 : 0}`
+                + ` multi=${Number(game?.multi || 0)}]`
+            );
+        }
+    }
+    if (!specialRoomResult?.suppressFloorFeedback) {
+        await postMoveFloorCheck(player, map, display, game, {
+            trap,
+            nopick,
+            suppressAutopick: suppressAutopickThisStep,
+        });
+    }
 
     if (!pitTrap && trap) {
         const trapResult = await applySteppedTrap(trap);
@@ -1530,12 +1581,20 @@ export async function domove_core(dir, player, map, display, game) {
         await maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
     }
 
-    // C ref: hack.c:2961 — spoteffects(TRUE) after u.umoved
-    // JS inlines most spoteffects above (traps, pickup), but check_special_room
-    // (room entry/exit tracking) was missing. This updates player.urooms so that
-    // invault() can detect when the player enters a vault.
-    if (player.umoved) {
-        await check_special_room(false, player, map, display, game?.fov || null);
+    if (punished) {
+        move_bc(0, bc_control, ballx, bally, chainx, chainy, player, map);
+    }
+
+    // C ref: hack.c:2959-2960 — enforce leash pull/snap after movement using
+    // the hero's previous square as the comparison point.
+    await check_leash(player, oldX, oldY, map);
+
+    if (cause_delay) {
+        nomul(-2, game);
+        if (game) {
+            game.multi_reason = 'dragging an iron ball';
+            game.nomovemsg = '';
+        }
     }
 
     await runmode_delay_output(game, display);
@@ -2993,10 +3052,22 @@ export async function runmode_delay_output(game, display) {
     if (!game) return;
     const ctx = ensure_context(game);
     const runmode = game?.flags?.runmode || 'leap';
+    const traceEnabled = String(process?.env?.WEBHACK_TRACE_RUNMODE_DELAY || '').trim() === '1';
+    const step = Number.isInteger(game?.map?._replayStepIndex) ? game.map._replayStepIndex + 1 : null;
     if (ctx.run || game.multi) {
         if (runmode === 'tport') return;
         if (runmode === 'leap' && ((Number(game.moves) || 0) % 7 !== 0)) return;
-        if (display?.renderMessageWindow) display.renderMessageWindow();
+        if (traceEnabled) {
+            console.error(`^runmode_delay[step=${step === null ? '?' : step} run=${Number(ctx.run || 0)} multi=${Number(game.multi || 0)} top=${JSON.stringify(display?.topMessage || '')}]`);
+        }
+        const freezeTravelTopline = !!(
+            display?.messageNeedsMore
+            && display?._topMessageTravelOwned
+            && Number.isInteger(display?._topMessageStepIndex)
+            && Number.isInteger(game?.map?._replayStepIndex)
+            && display._topMessageStepIndex === game.map._replayStepIndex
+        );
+        if (display?.renderMessageWindow && !freezeTravelTopline) display.renderMessageWindow();
         await nh_delay_output();
         if (runmode === 'crawl') {
             await nh_delay_output();
@@ -3038,7 +3109,7 @@ export async function unmul(msg_override, player, display, game) {
     game.multi = 0;
     if (msg_override !== undefined && msg_override !== null) {
         game.nomovemsg = msg_override;
-    } else if (!game.nomovemsg) {
+    } else if (game.nomovemsg === undefined || game.nomovemsg === null) {
         game.nomovemsg = 'You can move again.';
     }
     const msg = game.nomovemsg || '';
@@ -3201,6 +3272,7 @@ export function move_update(newlev, player, map) {
 
 // C ref: hack.c check_special_room() — room entry messages
 export async function check_special_room(newlev, player, map, display, fov) {
+    let suppressFloorFeedback = false;
     move_update(newlev, player, map);
 
     if (player.ushops_left) {
@@ -3209,12 +3281,16 @@ export async function check_special_room(newlev, player, map, display, fov) {
         }
     }
 
-    if (!player.uentered && !player.ushops_entered) return;
+    if (!player.uentered && !player.ushops_entered) return { suppressFloorFeedback };
 
-    // Shop entry handled by maybeHandleShopEntryMessage elsewhere
+    if (player.ushops_entered) {
+        suppressFloorFeedback = await maybeHandleEnteredShopGreeting(
+            player.ushops_entered, map, player, display
+        ) || suppressFloorFeedback;
+    }
 
-    if (!player.uentered) return;
-    if (!map || !map.rooms) return;
+    if (!player.uentered) return { suppressFloorFeedback };
+    if (!map || !map.rooms) return { suppressFloorFeedback };
 
     for (const ch of player.uentered) {
         const roomno = ch.charCodeAt(0) - ROOMOFFSET;
@@ -3285,6 +3361,7 @@ export async function check_special_room(newlev, player, map, display, fov) {
             map.rooms[roomno].rtype = OROOM;
         }
     }
+    return { suppressFloorFeedback };
 }
 
 // --------------------------------------------------------------------

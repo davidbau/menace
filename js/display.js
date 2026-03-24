@@ -48,7 +48,7 @@ import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_O
          BEAR_TRAP, WEB, is_pit } from './const.js';
 import { cansee, couldsee, clear_vision_full_recalc, block_point, unblock_point } from './vision.js';
 import { do_light_sources } from './light.js';
-import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
+import { emits_light, infravisible, is_mindless, is_pet, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
 import {
     rn2,
@@ -169,6 +169,20 @@ function maybeTraceCellWrite(display, col, row, prev, next, kind = 'write') {
     );
 }
 
+function maybeTraceNewsymBranch(map, x, y, branch) {
+    const spec = String(_env.WEBHACK_TRACE_NEWSYM_CELL || '').trim();
+    if (!spec) return;
+    const m = spec.match(/^(\d+)\s*,\s*(\d+)$/);
+    if (!m) return;
+    if ((x | 0) !== (Number(m[1]) | 0) || (y | 0) !== (Number(m[2]) | 0)) return;
+    const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : null;
+    if (TRACE_CELL_STEPS && (step === null || step < TRACE_CELL_STEPS.from || step > TRACE_CELL_STEPS.to)) return;
+    const stack = String(new Error().stack || '').split('\n').slice(2, 8)
+        .map((line) => line.trim().replace(/^at\s+/, ''))
+        .join(' <= ');
+    console.error(`^newsymtrace[step=${step === null ? '?' : step} x=${x} y=${y} branch=${branch} stack=${stack}]`);
+}
+
 function replayStepIndex(map) {
     return Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex : null;
 }
@@ -186,9 +200,22 @@ export function cacheMapCell(loc, map, ch, color, attr = 0) {
     loc._displayCellStepIndex = replayStepIndex(map);
 }
 
+function preserveJustHiddenMonster(loc, map, mon, player) {
+    if (!loc || !mon || !is_pet(mon)) return null;
+    const step = replayStepIndex(map);
+    if (!Number.isInteger(step)) return null;
+    if (loc._justHiddenStepIndex !== step) return null;
+    return monsterMapGlyph(mon, !!(player?.Hallucination || player?.hallucinating));
+}
+
 function putMapCell(display, loc, map, col, row, ch, color, attr = 0) {
     cacheMapCell(loc, map, ch, color, attr);
     display.setCell(col, row, ch, color, attr);
+}
+
+function fovCanSeeCell(map, player, fov, x, y) {
+    if (typeof fov?.canSee === 'function') return !!fov.canSee(x, y);
+    return cansee(map, player, fov, x, y);
 }
 
 
@@ -817,12 +844,19 @@ span.nh-cursor {
                 }
 
                 const cached = getCachedMapCell(loc, gameMap);
-                if (cached) {
+                const visibleNow = !!(loc && fovCanSeeCell(gameMap, player, fov, x, y));
+                const bypassCachedVisibleWall = !!(cached
+                    && loc
+                    && visibleNow
+                    && !loc.displayGlyph
+                    && !loc.mem_magic_trap
+                    && (IS_WALL(loc.typ) || loc.typ === SDOOR));
+                if (cached && !bypassCachedVisibleWall) {
                     this.setCell(col, row, cached.ch, cached.color, cached.attr || 0);
                     continue;
                 }
 
-                if (!fov || !fov.canSee(x, y)) {
+                if (!visibleNow) {
                     const mon = gameMap.monsterAt(x, y);
                     const monVisibleByOwnLight = !!(mon
                         && emits_light(mon.data || mon.type || {}) > 0
@@ -1428,7 +1462,7 @@ span.nh-cursor {
 
         const clearRows = fullScreenText ? this.rows : renderRows;
         const hasMoreLine = (renderLines[renderRows - 1] || '').endsWith('--More--');
-        const left = hasMoreLine ? Math.max(0, offx - 1) : offx;
+        const left = (fullScreenText || opts.isTextWindow) ? offx : Math.max(0, offx - 1);
         const savedCells = [];
         for (let r = 0; r < clearRows; r++) {
             savedCells[r] = [];
@@ -1443,7 +1477,7 @@ span.nh-cursor {
         }
         // Clear the popup area
         for (let r = 0; r < clearRows; r++) {
-            for (let c = Math.max(0, offx); c < this.cols; c++) {
+            for (let c = left; c < this.cols; c++) {
                 this.setCell(c, r, ' ', CLR_GRAY);
             }
         }
@@ -2610,10 +2644,11 @@ export function newsym(x, y, ctxOrMap = null) {
     }
 
     // --- Not visible (out of FOV) ---
-    if (!fov || !fov.canSee(x, y)) {
+    if (!fovCanSeeCell(map, player, fov, x, y)) {
         const mon = map.monsterAt(x, y);
         const detectMonsters = hasPlayerProp(player, DETECT_MONSTERS, 'detectMonsters', 'Detect_monsters');
         if (mon && detectMonsters) {
+            maybeTraceNewsymBranch(map, x, y, 'oos-sensed-mon');
             cosmic_display_log_newsym(x, y, 'oos-sensed-mon', false);
             // C ref: display.c newsym() out-of-sight branch shows monsters
             // when Detect_monsters is active; glyph is inverse-video.
@@ -2626,33 +2661,33 @@ export function newsym(x, y, ctxOrMap = null) {
             cosmic_display_clear_cell();
             return;
         }
-        // C ref: display.c:1039-1040 — infravision: see warm-blooded monsters
-        if (mon && see_with_infrared(mon, player) && monVisibleForMap(mon, player)) {
-            cosmic_display_log_newsym(x, y, 'oos-sensed-mon', false);
-            const hallu = !!(player?.Hallucination || player?.hallucinating);
-            const glyph = monsterMapGlyph(mon, hallu);
-            putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
-            mon.meverseen = 1;
-            cosmic_display_clear_newsym_branch();
-            cosmic_display_clear_maploc_branch();
-            cosmic_display_clear_cell();
-            return;
-        }
         const monVisibleByOwnLight = !!(mon
             && emits_light(mon.data || mon.type || {}) > 0
             && couldsee(map, player, x, y)
             && monVisibleForMap(mon, player));
         if (monVisibleByOwnLight) {
+            maybeTraceNewsymBranch(map, x, y, 'oos-sensed-mon');
             cosmic_display_log_newsym(x, y, 'oos-sensed-mon', false);
             const hallu = !!(player?.Hallucination || player?.hallucinating);
             const glyph = monsterMapGlyph(mon, hallu);
             putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
+            return;
+        }
+        const justHidden = preserveJustHiddenMonster(loc, map, mon, player);
+        if (justHidden) {
+            maybeTraceNewsymBranch(map, x, y, 'oos-just-hidden');
+            cosmic_display_log_newsym(x, y, 'oos-remembered', false);
+            putMapCell(display, loc, map, col, row, justHidden.ch, justHidden.color, justHidden.attr || 0);
             cosmic_display_clear_newsym_branch();
             cosmic_display_clear_maploc_branch();
             cosmic_display_clear_cell();
             return;
         }
         if (loc.mem_invis) {
+            maybeTraceNewsymBranch(map, x, y, 'oos-remembered');
             cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
             cosmic_display_clear_newsym_branch();
@@ -2661,6 +2696,7 @@ export function newsym(x, y, ctxOrMap = null) {
             return;
         }
         if (loc.mem_obj && !loc.mem_magic_trap) {
+            maybeTraceNewsymBranch(map, x, y, 'oos-remembered');
             cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
                 ? loc.mem_obj_color : 0;
@@ -2671,6 +2707,7 @@ export function newsym(x, y, ctxOrMap = null) {
             return;
         }
         if (loc.mem_trap) {
+            maybeTraceNewsymBranch(map, x, y, 'oos-remembered');
             cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             const memTrapColor = Number.isInteger(loc.mem_trap_color)
                 ? loc.mem_trap_color : 0;
@@ -2685,6 +2722,7 @@ export function newsym(x, y, ctxOrMap = null) {
             return;
         }
         if (loc.seenv) {
+            maybeTraceNewsymBranch(map, x, y, 'oos-remembered');
             cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             if (typeof loc.mem_terrain_ch === 'string') {
                 const rememberedColor = Number.isInteger(loc.mem_terrain_color)
@@ -2696,6 +2734,7 @@ export function newsym(x, y, ctxOrMap = null) {
                 putMapCell(display, loc, map, col, row, remembered.ch, remembered.color);
             }
         } else {
+            maybeTraceNewsymBranch(map, x, y, 'oos-remembered');
             cosmic_display_log_newsym(x, y, 'oos-remembered', false);
             putMapCell(display, loc, map, col, row, ' ', CLR_GRAY);
         }
@@ -2904,6 +2943,7 @@ export function vision_recalc() {
     const ctx = _getDisplayCtx();
     if (!ctx || !ctx.fov || !ctx.fov.visible || !ctx.map || !ctx.player) return;
     const { fov, map, player } = ctx;
+    const step = replayStepIndex(map);
     const oldVisible = [];
     for (let x = 0; x < COLNO; x++) {
         oldVisible[x] = fov.visible[x].slice();
@@ -2913,6 +2953,18 @@ export function vision_recalc() {
         for (let x = 1; x < COLNO; x++) {
             for (let y = 0; y < ROWNO; y++) {
                 if (oldVisible[x][y] !== fov.visible[x][y]) {
+                    const loc = map.at?.(x, y);
+                    if (loc) {
+                        if (oldVisible[x][y] && !fov.visible[x][y] && Number.isInteger(step)) {
+                            loc._justHiddenStepIndex = step;
+                            loc._justHiddenDisplayCell = loc._displayCell
+                                ? { ...loc._displayCell }
+                                : null;
+                        } else {
+                            delete loc._justHiddenStepIndex;
+                            delete loc._justHiddenDisplayCell;
+                        }
+                    }
                     newsym(x, y);
                 }
             }

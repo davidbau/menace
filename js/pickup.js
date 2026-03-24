@@ -1153,19 +1153,7 @@ async function handlePickup(player, map, display, game = null) {
     const deferTimedPickupUntilMore = (pickedObj, inventoryObj, gameCtx = game, displayCtx = display) => {
         if (!(pickedObj?.unpaid || inventoryObj?.unpaid)) return null;
         if (!gameCtx || !displayCtx?.messageNeedsMore) return null;
-        gameCtx.pendingPrompt = {
-            type: 'pickup_more_ack',
-            onKey: async (chCode, nextGameCtx) => {
-                if (chCode !== 32 && chCode !== 10 && chCode !== 13
-                    && chCode !== 27 && chCode !== 16) {
-                    return { handled: true, moved: false, tookTime: false, prompt: true };
-                }
-                dismissOwnedMore(nextGameCtx);
-                nextGameCtx.pendingPrompt = null;
-                return { handled: true, moved: false, tookTime: true, prompt: true };
-            },
-        };
-        return { moved: false, tookTime: false, prompt: true };
+        return { moved: false, tookTime: true };
     };
 
     const dismissOwnedMore = (gameCtx) => {

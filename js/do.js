@@ -6,11 +6,12 @@ import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
          I_SPECIAL, TIMEOUT, WOUNDED_LEGS, is_pit, is_hole,
-         W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED, STRAT_WAITFORU } from './const.js';
+         W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED, STRAT_WAITFORU,
+         UNENCUMBERED, DISMOUNT_FELL } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair, depth as dungeonDepth, level_difficulty, In_mines } from './dungeon.js';
 import { mon_arrive } from './dog.js';
-import { initrack } from './monmove.js';
+import { initrack, save_track, rest_track } from './track.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          BOULDER, CORPSE, LOADSTONE, LEASH, CRYSKNIFE, WORM_TOOTH,
          MEAT_RING, MEATBALL, MEAT_STICK, ENORMOUS_MEATBALL,
@@ -27,9 +28,10 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          RIN_INVISIBILITY, RIN_SEE_INVISIBLE,
          RIN_PROTECTION_FROM_SHAPE_CHAN,
          objectData, CLASS_SYMBOLS } from './objects.js';
-import { doname, xname, splitobj, set_bknown, set_corpsenm, add_to_buried } from './mkobj.js';
-import { placeFloorObject, look_here, dfeature_at } from './invent.js';
+import { doname, xname, splitobj, set_bknown, set_corpsenm, add_to_buried, place_object } from './mkobj.js';
+import { placeFloorObject, look_here, dfeature_at, freeinv, stackobj, carried } from './invent.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
+import { welded } from './wield.js';
 import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, pline_The, You, Your, You_hear, You_see, You_feel, There, Norep } from './pline.js';
@@ -44,7 +46,8 @@ import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly, levl_follower } from './mondata.js';
 import { mons, S_ZOMBIE, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
          PM_GREEN_SLIME, PM_WRAITH, PM_NURSE, PM_TOURIST } from './monsters.js';
-import { zombie_form, monnear, helpless } from './mon.js';
+import { zombie_form, monnear, helpless, hide_monst, restore_cham } from './mon.js';
+import { mon_catchup_elapsed_time } from './dog.js';
 import { revive } from './zap.js';
 import { cansee } from './vision.js';
 import { canseemon } from './display.js';
@@ -53,16 +56,18 @@ import { more_experienced, newexplevel } from './exper.js';
 import { setCurrentLevelStairs, stairway_at } from './stairs.js';
 import { float_down, t_at } from './trap.js';
 import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
-import { describeGroundObjectForPlayer } from './shk.js';
+import { Maybe_Half_Phys } from './hack.js';
+import { describeGroundObjectForPlayer, sellobj } from './shk.js';
 import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
 import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
 import { finesse_ahriman } from './artifact.js';
-import { freeinv } from './invent.js';
 import { ship_object } from './dokick.js';
 import { game as _gstate } from './gstate.js';
 import { record_achievement } from './insight.js';
 import { ACH_MINE } from './const.js';
+import { drag_down, ballrelease } from './ball.js';
+import { dismount_steed } from './steed.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
 const gd = {};
@@ -258,6 +263,10 @@ async function drop_single(obj, player, map) {
 // cf. do.c dropx() — take dropped item out of inventory;
 // may produce output (eg altar identification).
 export async function dropx(obj, player, map, game = null) {
+    if (obj?.where === OBJ_INVENT
+        || (Array.isArray(player?.inventory) && player.inventory.includes(obj))) {
+        freeinv(obj, player);
+    }
     if (!player.uswallow) {
         const loc = map.at(player.x, player.y);
         if (loc && IS_ALTAR(loc.typ))
@@ -293,7 +302,11 @@ export async function dropz(obj, with_impact, player, map, game = null) {
         // Place on floor
         obj.ox = player.x;
         obj.oy = player.y;
-        placeFloorObject(map, obj);
+        place_object(obj, obj.ox, obj.oy, map);
+        if (map?.flags?.has_shop) {
+            await sellobj(obj, player.x, player.y, map);
+        }
+        stackobj(obj, map);
         newsym(player.x, player.y);
     }
 }
@@ -1137,7 +1150,11 @@ export async function handleDropTypes(player, map, display) {
         return { moved: false, tookTime: false };
     }
     const invlet = String.fromCharCode(sel);
-    const picked = candidates.find((o) => o.invlet === invlet);
+    const accelIndex = invlet.charCodeAt(0) - 'a'.charCodeAt(0);
+    const accelPicked = (accelIndex >= 0 && accelIndex < candidates.length)
+        ? candidates[accelIndex]
+        : null;
+    const picked = candidates.find((o) => o.invlet === invlet) || accelPicked;
     if (!picked) {
         await showDropCandidates(candidates, display);
         return { moved: false, tookTime: false };
@@ -1190,8 +1207,14 @@ export async function handleDownstairs(player, map, display, game) {
         game.travelY = 0;
     }
 
-    // C ref: do.c goto_level() ordinary descent message when verbose.
-    await display.putstr_message('You descend the stairs.');
+    const punished = !!(player?.Punished || player?.punished || player?.uchain);
+    const flying = !!(player?.Flying || player?.flying);
+    const fumbling = !!(player?.Fumbling || player?.fumbling);
+    const greatEffort = near_capacity(player) > UNENCUMBERED || punished || fumbling;
+    if (!flying && !greatEffort) {
+        // C ref: do.c ordinary descent message when verbose.
+        await display.putstr_message('You descend the stairs.');
+    }
 
     const currentDnum = Number.isInteger(game?.dnum)
         ? game.dnum
@@ -1205,7 +1228,10 @@ export async function handleDownstairs(player, map, display, game) {
             false
         );
         if (branchDest) {
-            await game.changeLevel(branchDest.dlevel, 'down', { targetDnum: branchDest.dnum });
+            await game.changeLevel(branchDest.dlevel, 'down', {
+                targetDnum: branchDest.dnum,
+                arrivalDescent: { flying, greatEffort, punished },
+            });
             return { moved: false, tookTime: true };
         }
     }
@@ -1216,7 +1242,9 @@ export async function handleDownstairs(player, map, display, game) {
         player.maxDungeonLevel = newDepth;
     }
     // Generate new level (changeLevel sets player.dungeonLevel)
-    await game.changeLevel(newDepth, 'down');
+    await game.changeLevel(newDepth, 'down', {
+        arrivalDescent: { flying, greatEffort, punished },
+    });
     return { moved: false, tookTime: true };
 }
 
@@ -1749,6 +1777,16 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
 
     // Cache current level
     if (currentMap) {
+        // C ref: do.c goto_level() calls update_mlstmv() before savelev() so
+        // revisited monsters know when they became inactive.
+        const inactiveAtMove = Number.isInteger(game.moves)
+            ? game.moves
+            : Number(game.turnCount || 0);
+        for (const mon of (currentMap.monsters || [])) {
+            if (!mon || mon.dead) continue;
+            mon.mlstmv = inactiveAtMove;
+        }
+        save_track(currentMap);
         game.levels[(game.u || game.u).dungeonLevel] = currentMap;
         game.levelsByBranch[levelKey(currentDnum, (game.u || game.u).dungeonLevel)] = currentMap;
     }
@@ -1758,6 +1796,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         : (Number.isInteger(game.dnum) ? game.dnum : currentDnum);
     const branchCacheKey = levelKey(targetDnum, depth);
     let nextMap = null;
+    let revisitingCachedLevel = false;
 
     // Use pre-generated map if provided, otherwise check cache or generate new.
     if (opts.map) {
@@ -1766,6 +1805,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         game.levelsByBranch[branchCacheKey] = opts.map;
     } else if (game.levelsByBranch[branchCacheKey]) {
         nextMap = game.levelsByBranch[branchCacheKey];
+        revisitingCachedLevel = true;
     } else if (targetDnum === currentDnum && game.levels[depth]) {
         const cachedDepthMap = game.levels[depth];
         const cachedDnum = Number.isInteger(cachedDepthMap?._genDnum)
@@ -1776,6 +1816,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
             : (Number.isInteger(cachedDepthMap?.uz?.dlevel) ? cachedDepthMap.uz.dlevel : null);
         if (cachedDnum === targetDnum && cachedDlevel === depth) {
             nextMap = cachedDepthMap;
+            revisitingCachedLevel = true;
         }
     }
     if (!nextMap) {
@@ -1832,9 +1873,57 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     (game.u || game.u).x = pos.x;
     (game.u || game.u).y = pos.y;
 
-    // C ref: cmd.c goto_level() clears hero track history on level change.
-    if (Number.isInteger(previousDepth) && depth !== previousDepth) {
+    // C ref: restore.c getlev() catch-up pass for revisited levels. Before
+    // migrating followers from the old level, already-present monsters on the
+    // restored destination level get elapsed-time recovery plus a chance to
+    // hide again, which consumes rnd(10) when elapsed > 0.
+    if (revisitingCachedLevel) {
+        const currentMoves = Number.isInteger(game.moves) ? game.moves : Number(game.turnCount || 0);
+        for (const mon of ((game.map || game.map).monsters || [])) {
+            if (!mon || mon.dead) continue;
+            const elapsed = Number.isInteger(mon.mlstmv) ? (currentMoves - mon.mlstmv) : 0;
+            if (elapsed <= 0) continue;
+            await mon_catchup_elapsed_time(mon, elapsed, game);
+            restore_cham(mon);
+            if (elapsed > rnd(10)) {
+                hide_monst(mon, game.map || game.map);
+            }
+        }
+    }
+
+    // C ref: save.c savelev() / restore.c getlev() persist hero tracks per level.
+    // New levels start with an empty track buffer; revisited levels restore theirs.
+    if ((game.map || game.map)?.trackState) {
+        rest_track(game.map || game.map);
+    } else {
         initrack();
+    }
+
+    if (transitionDir === 'down' && opts?.arrivalDescent) {
+        const { flying, greatEffort, punished } = opts.arrivalDescent;
+        if (flying) {
+            await You('fly down the stairs.');
+        } else if (greatEffort) {
+            await You('fall down the stairs.');
+            if (punished) {
+                await drag_down(game.u || game.u, game.map || game.map, game.display, game);
+                if ((game.u || game.u)?.uball && !welded((game.u || game.u).uball, game.u || game.u)) {
+                    await ballrelease(false, game.u || game.u, game.map || game.map);
+                }
+            }
+            if ((game.u || game.u)?.usteed) {
+                await dismount_steed(game.u || game.u, game.map || game.map, game.display, DISMOUNT_FELL);
+            } else {
+                await losehp(
+                    Maybe_Half_Phys(rnd(3), game.u || game.u),
+                    'tumbling down a flight of stairs',
+                    KILLED_BY,
+                    game.u || game.u,
+                    game.display,
+                    game
+                );
+            }
+        }
     }
 
     // C ref: do.c goto_level() -> losedogs() -> mon_arrive()

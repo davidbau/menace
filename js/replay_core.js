@@ -124,6 +124,28 @@ function replayPendingTrace(...args) {
     console.log('[REPLAY_PENDING_TRACE]', ...args);
 }
 
+function replayCaptureTraceEnabled() {
+    return envFlag('WEBHACK_REPLAY_CAPTURE_TRACE');
+}
+
+function replayCaptureTrace(step, game, display, label = 'pre-capture') {
+    if (!replayCaptureTraceEnabled()) return;
+    if (!stepInTraceWindow(step)) return;
+    const lines = (typeof display?.getScreenLines === 'function')
+        ? (display.getScreenLines() || [])
+        : [];
+    // eslint-disable-next-line no-console
+    console.log('[REPLAY_CAPTURE_TRACE]',
+        `step=${step}`,
+        `label=${label}`,
+        `top=${JSON.stringify(display?.topMessage || '')}`,
+        `row0=${JSON.stringify(lines[0] || '')}`,
+        `more=${display?.messageNeedsMore ? 1 : 0}`,
+        `toplin=${Number(display?.toplin || 0)}`,
+        replayBoundaryState(game, game?.input)
+    );
+}
+
 function replayBoundaryState(game, inputRuntime) {
     const boundary = game ? inputSnap(game) : null;
     if (boundary) {
@@ -181,21 +203,9 @@ function emitStartupRunstepIfEnabled(game) {
     );
 }
 
-// No-op: legacy startup prompt settlement removed (V4 key-driven startup).
 async function settleStartupInputBoundaries(game, opts = {}) {
-    if (!opts?.initOpts?.simulateManualDirectChargen) return;
-    if (game?.pendingPrompt?.source !== 'startup_lore') return;
-
-    game.pendingPrompt = null;
-    if (game.display) {
-        game.display.toplin = 0;
-        game.display.topMessage = null;
-        game.display.messageNeedsMore = false;
-        game.display.messageNeedsMoreBoundary = false;
-    }
-    if (typeof game.docrt === 'function') {
-        game.docrt();
-    }
+    void game;
+    void opts;
 }
 
 // ---------------------------------------------------------------------------
@@ -420,6 +430,7 @@ export async function replaySession(seed, opts, keys) {
                 }
             }
         }
+        replayCaptureTrace(i + 1, game, display);
         const screenCapture = opts.captureScreens ? captureScreen(display) : '';
         const cursorCapture = captureCursor(display);
 

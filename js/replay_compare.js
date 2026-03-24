@@ -262,16 +262,11 @@ function getManualDirectChargenInfo(rawSession) {
     }
     if (firstBurst < 0) return null;
     const hasTutorial = lastBurst > firstBurst;
-    let boundary = lastBurst;
-    for (let j = lastBurst + 1; j < steps.length && j <= lastBurst + 10; j++) {
-        if ((steps[j].rng || []).length > 3) break;
-        boundary = j;
-    }
-    return { boundary, hasTutorial, firstBurst, lastBurst };
+    return { hasTutorial, firstBurst, lastBurst };
 }
 
 function getManualDirectChargenBoundary(rawSession) {
-    return getManualDirectChargenInfo(rawSession)?.boundary ?? -1;
+    return getManualDirectChargenInfo(rawSession)?.lastBurst ?? -1;
 }
 
 export function getGameplayRawStepBase(session) {
@@ -349,15 +344,35 @@ export function prepareReplayArgs(seed, session, opts = {}) {
     }
 
     let chargenKeys = null;
+    let startupRngStripCount = 0;
     const sessionChargenKeys = getChargenKeys(session);
     if (sessionChargenKeys.length > 0) chargenKeys = sessionChargenKeys;
 
+    // Flatten gameplay step keys after any folded startup prefix.
+    let steps = getSessionGameplaySteps(session);
     if (rawSession?.regen?.mode === 'manual-direct-live') {
-        chargenKeys = null;
+        const chargenInfo = getManualDirectChargenInfo(rawSession);
+        const lastBurst = chargenInfo?.lastBurst ?? -1;
+        if (lastBurst >= 1) {
+            chargenKeys = [];
+            initOpts.character = null;
+            initOpts.interactiveCharacterSelection = true;
+            initOpts.simulateManualDirectChargen = {
+                hasTutorial: !!chargenInfo?.hasTutorial,
+                hasPickAlign: true,
+            };
+            for (let i = 1; i <= lastBurst; i++) {
+                if (typeof rawSession.steps?.[i]?.key === 'string') {
+                    chargenKeys.push(rawSession.steps[i].key);
+                }
+                startupRngStripCount += Array.isArray(rawSession.steps?.[i]?.rng)
+                    ? rawSession.steps[i].rng.length
+                    : 0;
+            }
+            steps = (rawSession.steps || []).slice(lastBurst + 1);
+        }
     }
 
-    // Flatten gameplay step keys after any folded startup prefix.
-    const steps = getSessionGameplaySteps(session);
     let maxKeys = opts.maxSteps;
     let keys = '';
     for (let i = 0; i < steps.length; i++) {
@@ -378,6 +393,7 @@ export function prepareReplayArgs(seed, session, opts = {}) {
             initOpts,
             displayFlags,
             chargenKeys,
+            startupRngStripCount,
             captureScreens: opts.captureScreens,
             onKey: opts.onKey,
         },

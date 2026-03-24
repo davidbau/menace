@@ -13,9 +13,8 @@
 //   3. com_pager("legacy")     — NHCORE_START_NEW_GAME lua shuffle
 //   4. welcome(TRUE)           — rndencode + seer_turn
 
-import { rn2, rnd, rn1, rne, d, getRngLog } from './rng.js';
+import { rn2, rn1, rne, d, getRngLog } from './rng.js';
 import { newhp, newpw } from './exper.js';
-import { initrack } from './monmove.js';
 import { resetPlineState } from './pline.js';
 import { resetNoisesState } from './mhitm.js';
 import { resetHungerState } from './eat.js';
@@ -1280,13 +1279,7 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     // C ref: nhlua.c NHCORE_START_NEW_GAME triggers shuffle
     rn2(3); rn2(2);
 
-    // 4. welcome(TRUE) — timing init
-    // C ref: allmain.c:74 rnd(9000) for rndencode
-    // C ref: allmain.c:81 rnd(30) for seer_turn
-    rnd(9000);
-    const seerTurn = rnd(30);
-
-    return { seerTurn };
+    return {};
 }
 
 // ========================================================================
@@ -1301,7 +1294,6 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     const captureSpecialLevelCheckpoints = opts.captureSpecialLevelCheckpoints === true;
     setCheckpointCaptureEnabled(captureSpecialLevelCheckpoints);
     if (captureSpecialLevelCheckpoints) clearLevelCheckpoints();
-    initrack();
     resetPlineState();
     resetNoisesState();
     resetHungerState();

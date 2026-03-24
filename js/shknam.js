@@ -517,6 +517,7 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     shk.isshk = true;
     shk.shoptype = shp_indx + SHOPBASE; // C ref: shknam.c:672 eshkp->shoptype = sroom->rtype
     shk.shoproom = (map.rooms || []).indexOf(sroom) + ROOMOFFSET;
+    sroom.resident = shk;
     eshkp.shoptype = shk.shoptype;
     eshkp.shoproom = shk.shoproom;
     // Minimal ESHK-like state used by shk_move/move_special parity.

@@ -21,7 +21,7 @@ import { ynFunction } from './input.js';
 import { mons } from './monsters.js';
 import { def_monsyms } from './symbols.js';
 import { CLASS_SYMBOLS } from './objects.js';
-import { COLNO, ROWNO } from './const.js';
+import { COLNO, ROWNO, ROOMOFFSET } from './const.js';
 import { Player } from './player.js';
 import { CONFUSION, STUNNED, BLINDED, HALLUC, SICK,
          TIMEOUT, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
@@ -293,6 +293,14 @@ export function restLev(data) {
     if (data.flags) map.flags = { ...map.flags, ...data.flags };
     // Monsters
     map.monsters = restMonChn(data.monsters);
+    for (const mon of map.monsters) {
+        if (!mon || mon.dead || !mon.isshk) continue;
+        const roomno = Number(mon.shoproom || 0);
+        if (roomno >= ROOMOFFSET) {
+            const room = map.rooms?.[roomno - ROOMOFFSET];
+            if (room) room.resident = mon;
+        }
+    }
     // Objects
     map.objects = restObjChn(data.objects);
     // Traps

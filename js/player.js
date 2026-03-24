@@ -12,7 +12,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          SLEEP_RES, ANTIMAGIC, LEVITATION, FLYING,
          HALF_PHDAM, HALF_SPDAM, CONFLICT,
          POLYMORPH, POLYMORPH_CONTROL, AGGRAVATE_MONSTER, WARNING,
-         WARN_OF_MON, NOT_HUNGRY } from './const.js';
+         WARN_OF_MON, NOT_HUNGRY, OBJ_FREE, OBJ_INVENT } from './const.js';
 import { COIN_CLASS } from './objects.js';
 import { NORMAL_SPEED } from './const.js';
 import { weight, mergable } from './mkobj.js';
@@ -297,6 +297,7 @@ export class Player {
                     : existingCoin;
             }
             obj.invlet = '$';
+            obj.where = OBJ_INVENT;
             this.inventory.push(obj);
             return withMeta
                 ? { item: obj, merged: false, discoveredByCompare: false }
@@ -323,6 +324,7 @@ export class Player {
             if (!!existing.bknown !== !!obj.bknown) existing.bknown = true;
             existing.quan = (existing.quan || 1) + (obj.quan || 1);
             existing.owt = weight(existing);
+            obj.where = OBJ_FREE;
             return withMeta
                 ? { item: existing, merged: true, discoveredByCompare }
                 : existing;
@@ -339,6 +341,7 @@ export class Player {
         const isAlphabeticInvlet = /^[a-zA-Z]$/.test(currentInvlet);
         if (isAlphabeticInvlet && !usedLetters.has(currentInvlet)) {
             obj.invlet = currentInvlet;
+            obj.where = OBJ_INVENT;
             this.inventory.push(obj);
             return withMeta
                 ? { item: obj, merged: false, discoveredByCompare: false }
@@ -363,6 +366,7 @@ export class Player {
         } else {
             obj.invlet = '?';
         }
+        obj.where = OBJ_INVENT;
         this.inventory.push(obj);
         return withMeta
             ? { item: obj, merged: false, discoveredByCompare: false }
@@ -377,6 +381,7 @@ export class Player {
                 this.gold = Math.max(0, this.gold - (obj.quan || 1));
             }
             this.inventory.splice(idx, 1);
+            obj.where = OBJ_FREE;
         }
     }
 

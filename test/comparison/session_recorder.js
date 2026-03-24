@@ -100,6 +100,7 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
 
     let jsSession;
     let stepBoundaries;
+    let startupRngStripCount = 0;
     await withRecorderFixedDatetime(session, async () => {
         const flags = opts.flags || buildGameplayReplayFlags(session);
         const emitProgress = (typeof globalThis.__SESSION_PROGRESS_EMIT === 'function')
@@ -126,6 +127,7 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
             }
         );
         stepBoundaries = args.stepBoundaries;
+        startupRngStripCount = Number(args?.opts?.startupRngStripCount || 0);
         jsSession = await replaySession(args.seed, args.opts, args.keys);
     });
 
@@ -134,7 +136,7 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
     // Group per-keystroke steps using stepBoundaries to align with C session steps.
     const startupScreen = splitScreen(jsSession.steps[0].screen);
     const startup = {
-        rng: jsSession.steps[0].rng,
+        rng: jsSession.steps[0].rng.slice(startupRngStripCount),
         screen: startupScreen.plain,
         screenAnsi: startupScreen.ansi,
         cursor: jsSession.steps[0].cursor,

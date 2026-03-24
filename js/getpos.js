@@ -731,7 +731,10 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 cursorState = putCursor(display, cx, cy);
                 continue;
             }
-            const ch = await nhgetch();
+            const ch = await nhgetch({
+                waitKind: 'getpos',
+                preserveAcknowledgedTopline: true,
+            });
             const c = String.fromCharCode(ch);
 
             // C ref: getpos.c:889-890 — reset msg_given after reading key

@@ -11,12 +11,13 @@ import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARL
          FORTUNE_COOKIE, CREAM_PIE, CANDY_BAR, PANCAKE, SPRIG_OF_WOLFSBANE,
          CARROT, K_RATION, C_RATION, SLIME_MOLD,
          RIN_SLOW_DIGESTION, RIN_PROTECTION,
+         TIN_OPENER,
          FAKE_AMULET_OF_YENDOR, AMULET_OF_STRANGULATION,
          FLESH, VEGGY,
          BALL_CLASS, CHAIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS, SCR_MAIL,
          WAX, PAPER, LEATHER, BONE, DRAGON_HIDE } from './objects.js';
 import { doname, next_ident, xname, weight, costly_alteration } from './mkobj.js';
-import { corpse_xname, singular, the, an, obj_is_pname, safe_qbuf } from './objnam.js';
+import { corpse_xname, singular, the, an, obj_is_pname, safe_qbuf, makeplural } from './objnam.js';
 import { pmname } from './do_name.js';
 import { ART_ORB_OF_DETECTION } from './artifacts.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
@@ -52,7 +53,8 @@ import { RACE_ORC, RACE_ELF, RACE_DWARF,
          W_RINGL, W_RINGR, W_ARTI, W_WEP, FROMFORM,
          CHOKING, A_LAWFUL,
          STARVING, KILLED_BY, KILLED_BY_AN,
-         BY_COOKIE, LL_CONDUCT, ECMD_TIME, SICK_VOMITABLE, BLINDED } from './const.js';
+         BY_COOKIE, LL_CONDUCT, ECMD_TIME, SICK_VOMITABLE, BLINDED,
+         GLIB, COST_OPEN, NON_PM } from './const.js';
 import { game as _gstate } from './gstate.js';
 import { sa_victual } from './decl.js';
 import { applyMonflee } from './mhitu.js';
@@ -62,9 +64,10 @@ import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlay
 import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
+import { acurrstr } from './attrib.js';
 import { nomul, end_running, near_capacity, rounddiv, losehp } from './hack.js';
 import { losestr } from './attrib.js';
-import { incr_itimeout, make_stoned, make_sick, make_blinded, make_stunned } from './potion.js';
+import { incr_itimeout, make_stoned, make_sick, make_blinded, make_stunned, make_vomiting, make_glib } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
@@ -76,8 +79,13 @@ import { is_rider, is_giant, acidic, poisonous, flesh_petrifies,
          vegan, vegetarian, carnivorous, herbivorous,
          is_humanoid, is_undead, attacktype, dmgtype,
          telepathic, can_teleport, control_teleport,
-         noncorporeal, slimeproof, is_orc, is_elf, is_dwarf,
+         noncorporeal, slimeproof, is_orc, is_elf, is_dwarf, cantwield, is_metallivore,
          type_is_pname, ismnum } from './mondata.js';
+import { splitobj } from './mkobj.js';
+import { dropx } from './do.js';
+import { stackobj } from './invent.js';
+import { fingers_or_gloves } from './do_wear.js';
+import { observeObject } from './o_init.js';
 
 
 // ============================================================
@@ -1599,14 +1607,191 @@ export function use_up_tin(tin, game) {
 
 // cf. eat.c consume_tin() — eat the contents of an opened tin
 async function consume_tin(player, tin, mesg) {
-    // Stub: would handle full tin consumption with variety effects
+    const game = _gstate;
+    const display = game?.display;
+    const youmonst = player?.data || player?.type || null;
+    const alwaysEat = !!(youmonst && is_metallivore(youmonst));
+    let r = tin_variety(tin, false);
+    let mnum = Number.isInteger(tin?.corpsenm) ? tin.corpsenm : NON_PM;
+    let nutamt = 0;
+
     await pline(mesg || 'You succeed in opening the tin.');
+
+    if (r !== SPINACH_TIN) {
+        if (mnum === NON_PM) {
+            await pline('It turns out to be empty.');
+            observeObject(tin);
+            tin.known = 1;
+            tin = costly_tin(COST_OPEN, game);
+            use_up_tin(tin, game);
+            if (alwaysEat) {
+                await lesshungry(player, 5);
+            }
+            return;
+        }
+
+        let what = pmname(mons[mnum], 'neutral') || mons[mnum]?.mname || 'something';
+        if (!type_is_pname(mons[mnum])) {
+            what = makeplural(what);
+        }
+
+        if (!alwaysEat) {
+            await pline(`It smells like ${what}.`);
+            const ans = String.fromCharCode(
+                await ynFunction('Eat it?', 'yn', 'n'.charCodeAt(0), display)
+            ).toLowerCase();
+            if (ans === 'n') {
+                if (game?.flags?.verbose !== false) {
+                    await You('discard the open tin.');
+                }
+                observeObject(tin);
+                tin.known = 1;
+                tin = costly_tin(COST_OPEN, game);
+                use_up_tin(tin, game);
+                return;
+            }
+        }
+
+        if (game?.svc?.context) {
+            game.svc.context.victual = {
+                piece: null,
+                o_id: 0,
+                eating: 0,
+                fullwarn: 0,
+                doreset: 0,
+                usedtime: 0,
+                reqtime: 0,
+                nmod: 0,
+                canchoke: 0,
+            };
+        }
+
+        await You(`consume ${tintxts[r].txt} ${pmname(mons[mnum], 'neutral') || mons[mnum]?.mname}.`);
+        await eating_conducts(mons[mnum], player);
+
+        observeObject(tin);
+        tin.known = 1;
+        tin = game.svc.context.tin.tin = costly_tin(COST_OPEN, game);
+
+        await cprefx(player, mnum);
+        if (game?.svc?.context?.tin?.tin) {
+            await cpostfx(player, mnum, display);
+        }
+        if (!game?.svc?.context?.tin?.tin) {
+            return;
+        }
+
+        if (tintxts[r].nut < 0) {
+            await make_vomiting(player, rn1(15, 10), false);
+        } else {
+            nutamt = tintxts[r].nut;
+            if (r === HOMEMADE_TIN && nutamt > (mons[mnum]?.cnutrit || 0)) {
+                nutamt = mons[mnum]?.cnutrit || nutamt;
+            }
+            if (alwaysEat) {
+                nutamt += 5;
+            }
+            use_up_tin(tin, game);
+            tin = null;
+            await lesshungry(player, nutamt);
+        }
+
+        if (tintxts[r].greasy) {
+            const alreadyGlib = player.getPropTimeout ? (player.getPropTimeout(GLIB) || 0) : 0;
+            make_glib(player, alreadyGlib + rn1(11, 5), false);
+            await pline(`Eating ${tintxts[r].txt} food made your ${fingers_or_gloves(player, true)} ${alreadyGlib ? 'even more' : 'very'} slippery.`);
+        }
+    } else {
+        if (tin.cursed) {
+            await pline('It contains some decaying substance.');
+        } else {
+            await pline('It contains spinach.');
+            observeObject(tin);
+            tin.known = 1;
+        }
+
+        if (!alwaysEat) {
+            const ans = String.fromCharCode(
+                await ynFunction('Eat it?', 'yn', 'n'.charCodeAt(0), display)
+            ).toLowerCase();
+            if (ans === 'n') {
+                if (game?.flags?.verbose !== false) {
+                    await You('discard the open tin.');
+                }
+                tin = costly_tin(COST_OPEN, game);
+                use_up_tin(tin, game);
+                return;
+            }
+        }
+
+        if (!player.uconduct.food++) {
+            livelog_printf(LL_CONDUCT, 'ate for the first time (spinach)');
+        }
+        if (!tin.cursed) {
+            await pline(`This makes you feel like ${game?.flags?.female ? 'Olive Oyl' : 'Popeye'}!`);
+        }
+        await gainstr(player, tin, 0, false);
+        tin = game.svc.context.tin.tin = costly_tin(COST_OPEN, game);
+        nutamt = tin.blessed ? 600 : (!tin.cursed ? (400 + rnd(200)) : (200 + rnd(400)));
+        if (alwaysEat) {
+            nutamt += 5;
+        }
+        use_up_tin(tin, game);
+        tin = null;
+        await lesshungry(player, nutamt);
+    }
+
+    if (tin) {
+        use_up_tin(tin, game);
+    }
 }
 
 // cf. eat.c start_tin() — begin opening a tin
 async function start_tin(player, otmp, game) {
-    // Stub: would set up tin-opening occupation
-    await pline('It is not so easy to open this tin.');
+    let mesg = null;
+    let tmp;
+    const youmonst = player?.data || player?.type || null;
+    const uwep = player?.weapon || null;
+    if (youmonst && is_metallivore(youmonst)) {
+        mesg = 'You bite right into the metal tin...';
+        tmp = 0;
+    } else if (youmonst && cantwield(youmonst)) {
+        await You('cannot handle the tin properly to open it.');
+        return;
+    } else if (otmp?.blessed) {
+        tmp = (uwep && uwep.blessed && uwep.otyp === TIN_OPENER) ? 0 : rn2(2);
+        if (!tmp) mesg = 'The tin opens like magic!';
+        else await pline_The('tin seems easy to open.');
+    } else if (uwep && uwep.otyp === TIN_OPENER) {
+        mesg = 'You easily open the tin.';
+        tmp = rn2(uwep.cursed ? 3 : (!uwep.blessed ? 2 : 1));
+    } else {
+        await pline('It is not so easy to open this tin.');
+        if (player?.glib || player?.Glib) {
+            await pline_The('tin slips from your %s.', fingers_or_gloves(player, false));
+            if ((otmp?.quan || 1) > 1) {
+                otmp = splitobj(otmp, 1);
+            }
+            if (carried(otmp)) await dropx(otmp, player, game?.map, game);
+            else stackobj(otmp, game?.map);
+            return;
+        }
+        tmp = rn1(1 + Math.floor(500 / Math.max(1, acurr(player, A_DEX) + acurrstr(player))), 10);
+    }
+    if (!game?.svc?.context?.tin) game.svc.context.tin = {};
+    game.svc.context.tin.tin = otmp;
+    game.svc.context.tin.o_id = otmp?.o_id || 0;
+    if (!tmp) {
+        await consume_tin(player, otmp, mesg);
+        return;
+    }
+    game.svc.context.tin.reqtime = tmp;
+    game.svc.context.tin.usedtime = 0;
+    game.occupation = {
+        fn: async () => opentin(game, player),
+        occtxt: 'opening the tin',
+        txt: 'opening the tin',
+    };
 }
 
 
@@ -1983,6 +2168,13 @@ async function handleEat(player, display, game) {
         return { moved: false, tookTime: true };
     }
 
+    // C ref: eat.c doeat() — tins route through start_tin() before food conduct
+    // or generic eating setup.
+    if (item?.otyp === TIN) {
+        await start_tin(player, item, game);
+        return { moved: false, tookTime: true };
+    }
+
         // cf. eat.c doesplit() path — splitobj() for stacked comestibles:
         // splitobj() creates a single-item object and consumes next_ident() (rnd(2)).
         const eatingFromStack = !fromFloor && ((item.quan || 1) > 1 && item.oclass === FOOD_CLASS);
@@ -2335,7 +2527,7 @@ export async function opentin(game, player) {
           || !can_reach_floor(player, game?.map, true))) return 0;
   if (game.svc.context.tin.usedtime++ >= 50) { await You("give up your attempt to open the tin."); return 0; }
   if (game.svc.context.tin.usedtime < game.svc.context.tin.reqtime) return 1;
-  await consume_tin("You succeed in opening the tin.");
+  await consume_tin(player, game.svc.context.tin.tin, "You succeed in opening the tin.");
   return 0;
 }
 

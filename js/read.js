@@ -1625,12 +1625,13 @@ export async function seffect_punishment(sobj, player, display) {
     if (_gstate) _gstate.known = true;
     const sblessed = sobj.blessed;
     const confused = !!player.confused;
+    const map = player?.map || player?.lev || _gstate?.map || _gstate?.lev || null;
 
     if (confused || sblessed) {
         await display.putstr_message('You feel guilty.');
         return false;
     }
-    await punish(sobj, player, player?.map || null);
+    await punish(sobj, player, map);
     return false;
 }
 
