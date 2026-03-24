@@ -90,32 +90,47 @@ function dirChar(dy, dx) {
   return '.';
 }
 
+const PASSABLE = '.#:+!?/=)*]^,%*';
+
 function walkTo(ty, tx) {
   const g = game();
-  const keys = [];
-  let cy = g.player.t_pos.y, cx = g.player.t_pos.x;
-  let limit = 35;
-  while ((cy !== ty || cx !== tx) && limit-- > 0) {
-    const dy = Math.sign(ty - cy), dx = Math.sign(tx - cx);
-    const candidates = [];
-    if (dy !== 0 && dx !== 0) candidates.push([dy, dx]);
-    if (dy !== 0) candidates.push([dy, 0]);
-    if (dx !== 0) candidates.push([0, dx]);
-    let moved = false;
-    for (const [my, mx] of candidates) {
-      const ny = cy + my, nx = cx + mx;
+  const sy = g.player.t_pos.y, sx = g.player.t_pos.x;
+  if (sy === ty && sx === tx) return '';
+
+  // BFS to find shortest path
+  const visited = new Set();
+  const queue = [[sy, sx, []]];
+  visited.add(sy * 80 + sx);
+
+  while (queue.length > 0) {
+    const [cy, cx, path] = queue.shift();
+    if (path.length > 60) continue;
+
+    const moves = [
+      [-1,-1,'y'],[-1,0,'k'],[-1,1,'u'],
+      [0,-1,'h'],[0,1,'l'],
+      [1,-1,'b'],[1,0,'j'],[1,1,'n'],
+    ];
+    for (const [dy, dx, ch] of moves) {
+      const ny = cy + dy, nx = cx + dx;
       if (ny < 1 || ny >= 23 || nx < 1 || nx >= 79) continue;
-      const ch = g.stdscr[ny][nx];
-      if ('.#:+!?/=)*]^,'.includes(ch)) {
-        keys.push(dirChar(my, mx));
-        cy = ny; cx = nx;
-        moved = true;
-        break;
+      const key = ny * 80 + nx;
+      if (visited.has(key)) continue;
+      const cell = g.stdscr[ny][nx];
+      if (!PASSABLE.includes(cell)) continue;
+      // Check diagonal movement legality
+      if (dy !== 0 && dx !== 0) {
+        const s1 = g.stdscr[cy + dy]?.[cx];
+        const s2 = g.stdscr[cy]?.[cx + dx];
+        if (!PASSABLE.includes(s1) || !PASSABLE.includes(s2)) continue;
       }
+      visited.add(key);
+      const newPath = [...path, ch];
+      if (ny === ty && nx === tx) return newPath.join('');
+      queue.push([ny, nx, newPath]);
     }
-    if (!moved) break;
   }
-  return keys.join('');
+  return '';  // No path found
 }
 
 /**
@@ -302,7 +317,89 @@ function buildActions() {
     return '.';
   });
 
-  // === SAVE & QUIT ===
+  // === FIGHT: walk to monster and kill it (exercises killed() in fight.js) ===
+  a(() => {
+    const g = game();
+    if (!g.mlist) return '.';
+    const m = g.mlist.l_data;
+    const path = walkTo(m.t_pos.y, m.t_pos.x);
+    if (path.length > 0 && path.length <= 12) {
+      const last = path[path.length - 1];
+      // Keep attacking in same direction to kill the monster
+      return path + last.repeat(8);
+    }
+    return '.';
+  });
+  heal();
+
+  // === VICTORY: create Amulet, go to level 1, walk to stairs, press '<' ===
+  // Ensure we're on level 1 using Ctrl-U if needed
+  a(() => {
+    const g = game();
+    // If on higher level, use Ctrl-U to go up
+    if (g.level > 1) return '\x15';
+    return '.';
+  });
+  a(() => {
+    const g = game();
+    if (g.level > 1) return '\x15';
+    return '.';
+  });
+  // Create the Amulet of Yendor — type char ',' which 0
+  // MAXPACK is 23, pack full when inpack >= 22. Drop items to make room.
+  a(() => {
+    const g = game();
+    if (g.inpack >= 22) {
+      // Drop items until we have room — find a non-equipped item to drop
+      let letter = 'a';
+      for (let item = g.pack; item; item = item.l_next) {
+        const obj = item.l_data;
+        if (obj !== g.cur_weapon && obj !== g.cur_armor &&
+            obj !== g.cur_ring[0] && obj !== g.cur_ring[1]) {
+          return 'd' + letter;  // drop this item
+        }
+        letter = String.fromCharCode(letter.charCodeAt(0) + 1);
+      }
+    }
+    return '.';
+  });
+  // Drop more if still full
+  a(() => {
+    const g = game();
+    if (g.inpack >= 22) {
+      let letter = 'a';
+      for (let item = g.pack; item; item = item.l_next) {
+        const obj = item.l_data;
+        if (obj !== g.cur_weapon && obj !== g.cur_armor &&
+            obj !== g.cur_ring[0] && obj !== g.cur_ring[1]) {
+          return 'd' + letter;
+        }
+        letter = String.fromCharCode(letter.charCodeAt(0) + 1);
+      }
+    }
+    return '.';
+  });
+  a(() => {
+    // Create: C then type char then which char
+    return 'C' + ',' + '0';
+  });
+  // Find stairs and walk to them
+  a(() => {
+    const g = game();
+    for (let y = 1; y < 23; y++) {
+      for (let x = 1; x < 79; x++) {
+        if (g.stdscr[y][x] === '%') {
+          const path = walkTo(y, x);
+          if (path.length > 0) return path;
+        }
+      }
+    }
+    return '.';
+  });
+  // Go up stairs with Amulet → total_winner()!
+  a(() => '<');
+
+  // === SAVE & QUIT (fallback if victory doesn't end the game) ===
   a(() => 'Sy');
   a(() => 'Qy');
 
