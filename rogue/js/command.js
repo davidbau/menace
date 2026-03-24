@@ -306,6 +306,9 @@ async function dispatch(g, ch) {
       g.count = 0;
       g.after = false;
       break;
+    case '!': // Shell escape — no-op in JS (C: shell())
+      g.after = false;
+      break;
     default:
       g.after = false;
       if (g.wizard && _wizard_cmds) {

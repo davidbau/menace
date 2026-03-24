@@ -126,12 +126,19 @@ async function replaySession(sessionFile, opts = {}) {
     if (!rngComp.match && firstRngDiverge < 0) firstRngDiverge = i;
 
     // Cursor comparison (if both have cursor data)
+    // Skip cursor on save-prompt steps (path length differs C vs JS)
     if (js.cursor && c.cursor) {
-      cursorTotal++;
-      if (js.cursor[0] === c.cursor[0] && js.cursor[1] === c.cursor[1]) {
-        cursorMatches++;
-      } else if (firstCursorDiverge < 0) {
-        firstCursorDiverge = i;
+      const jsR0 = js.screen?.[0] || '';
+      const cR0 = c.screen?.[0] || '';
+      const isSavePrompt = jsR0.includes('Save file') || cR0.includes('Save file') ||
+                           jsR0.includes('File name:') || cR0.includes('File name:');
+      if (!isSavePrompt) {
+        cursorTotal++;
+        if (js.cursor[0] === c.cursor[0] && js.cursor[1] === c.cursor[1]) {
+          cursorMatches++;
+        } else if (firstCursorDiverge < 0) {
+          firstCursorDiverge = i;
+        }
       }
     }
   }

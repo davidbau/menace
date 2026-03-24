@@ -24,16 +24,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">74.73% </span>
+                <span class="strong">74.54% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>281/376</span>
+                <span class='fraction'>284/381</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80.61% </span>
+                <span class="strong">79.79% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>79/98</span>
+                <span class='fraction'>79/99</span>
             </div>
         
             
@@ -45,15 +45,15 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">74.73% </span>
+                <span class="strong">74.54% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>281/376</span>
+                <span class='fraction'>284/381</span>
             </div>
         
             
         </div>
         <p class="quiet">
-        <div class="nh-fortune nh-mediocre"><span class="nh-bracket">[</span> You sense that many paths remain in shadow.  You feel worried. <span class="nh-bracket">]</span></div>
+        <div class="nh-fortune nh-mediocre"><span class="nh-bracket">[</span> The Wizard of Yendor laughs at your coverage.  Ha ha ha! <span class="nh-bracket">]</span></div>
         
             Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
         </p>
@@ -442,7 +442,12 @@
 <a name='L374'></a><a href='#L374'>374</a>
 <a name='L375'></a><a href='#L375'>375</a>
 <a name='L376'></a><a href='#L376'>376</a>
-<a name='L377'></a><a href='#L377'>377</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -775,6 +780,11 @@
 <span class="cline-any cline-yes">76x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">76x</span>
+<span class="cline-any cline-yes">76x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">73x</span>
 <span class="cline-any cline-yes">73x</span>
 <span class="cline-any cline-yes">76x</span>
@@ -828,7 +838,7 @@ import { rnd, roll } from './rng.js';
 import { mvwaddch, mvwinch, winat } from './curses.js';
 import {
   WS_LIGHT, WS_HIT, WS_DRAIN, WS_POLYMORPH, WS_TELAWAY, WS_TELTO,
-  WS_CANCEL, WS_MISSILE, WS_HASTE_M, WS_SLOW_M, WS_ELECT, WS_FIRE, WS_COLD,
+  WS_CANCEL, WS_MISSILE, WS_HASTE_M, WS_SLOW_M, WS_ELECT, WS_FIRE, WS_COLD, WS_NOP,
   STICK, PLAYER, FLOOR, BOLT_LENGTH,
   ISRUN, ISHELD, ISHASTE, ISSLOW, ISCANC, ISINVIS,
 } from './const.js';
@@ -1148,9 +1158,14 @@ export async function do_zap(gotdir) {
       break;
     }
 &nbsp;
-    default:
-      await _msg('What a bizarre schtick!');
-  }
+    case WS_NOP:
+      // C: when WS_NOP: otherwise: — the when macro inserts break before
+      // the case, so WS_NOP is a silent no-op (does NOT fall to default).
+      break;
+&nbsp;
+<span class="branch-0 cbranch-no" title="branch not covered" >    default:</span>
+<span class="cstat-no" title="statement not covered" >      await _msg('What a bizarre schtick!');</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   obj.o_charges--;
 }
@@ -1200,7 +1215,7 @@ function drain(ymin, ymax, xmin, xmax) {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-24T22:46:22.484Z
+                at 2026-03-24T23:10:02.163Z
             </div>
         <script src="prettify.js"></script>
         <script>
