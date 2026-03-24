@@ -42,6 +42,9 @@ do_run(int ch)
 void
 do_move(int dy, int dx)
 {
+#ifdef HARNESS
+    { char buf[64]; snprintf(buf,sizeof(buf),"do_move(%d,%d)",dy,dx); harness_log_event(buf); }
+#endif
     int ch;
 
     firstmove = FALSE;
