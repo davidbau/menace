@@ -5,7 +5,7 @@
  */
 
 import { game } from './gstate.js';
-import { sprintf, mvwaddstr, wclrtoeol, wmove, waddstr, getCwyx, setCwyx, draw } from './curses.js';
+import { sprintf, mvwaddstr, wclrtoeol, wmove, waddstr, getCwyx, setCwyx, draw, _cwState } from './curses.js';
 import { LINES, COLS, LEFT, RIGHT } from './const.js';
 
 // Internal message buffer (corresponds to C's msgbuf and newpos)
@@ -66,22 +66,12 @@ export async function endmsg() {
     }
   }
 
-  // Display the new message
-  // Clear row 0 of cw
-  for (let c = 0; c < COLS; c++) g.cw[0][c] = ' ';
-  // Write message — expand tabs to spaces (matching C curses waddch tab handling)
-  let col = 0;
-  for (let i = 0; i < _msgbuf.length && col < COLS; i++) {
-    const ch = _msgbuf[i];
-    if (ch === '\t') {
-      const nextTab = (Math.floor(col / 8) + 1) * 8;
-      while (col < nextTab && col < COLS) g.cw[0][col++] = ' ';
-    } else {
-      g.cw[0][col++] = ch;
-    }
-  }
+  // Display the new message using curses functions (matching C's
+  // mvwaddstr(cw, 0, 0, msgbuf) + wclrtoeol(cw) which advances the cursor)
+  mvwaddstr(g.cw, 0, 0, _msgbuf);
+  wclrtoeol(g.cw);
 
-  g.mpos = col;  // actual display column after tab expansion
+  g.mpos = _cwState.x;  // cursor column after message write
   _newpos = 0;
   _msgbuf = "";
 
