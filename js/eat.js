@@ -19,6 +19,7 @@ import { doname, next_ident, xname, weight, costly_alteration } from './mkobj.js
 import { corpse_xname, singular, the, an, obj_is_pname, safe_qbuf } from './objnam.js';
 import { pmname } from './do_name.js';
 import { ART_ORB_OF_DETECTION } from './artifacts.js';
+import { newsym } from './display.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
          PM_ACID_BLOB, PM_COCKATRICE, PM_CHICKATRICE,
          PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG,
@@ -61,7 +62,7 @@ import { costly_spot } from './shk.js';
 import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, obj_here } from './invent.js';
 import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
+import { acurr, ensureAttrArrays, gainstr, poison_strdmg, change_luck } from './attrib.js';
 import { nomul, end_running, near_capacity, rounddiv, losehp } from './hack.js';
 import { losestr } from './attrib.js';
 import { incr_itimeout, make_stoned, make_sick, make_blinded, make_stunned } from './potion.js';
@@ -213,7 +214,7 @@ export function eatmdone(player) {
     // Update display if player had monster appearance
     if (player.m_ap_type) {
         player.m_ap_type = 0; // M_AP_NOTHING
-        // newsym(player.x, player.y) — display update
+        newsym(player.x, player.y, _gstate?.map);
     }
     return 0;
 }
@@ -923,9 +924,8 @@ async function maybe_cannibal(player, pm, allowmsg) {
             await You('cannibal!  You will regret this!');
         }
         // C: HAggravate_monster |= FROMOUTSIDE
-        // C: change_luck(-rn1(4, 2)) — luck penalty (-5..-2)
-        const luckPenalty = -rn1(4, 2);
-        if (player.luck !== undefined) player.luck += luckPenalty;
+        // C ref: eat.c — change_luck(-rn1(4, 2)) for luck penalty (-5..-2)
+        change_luck(-rn1(4, 2), player);
         return true;
     }
     return false;

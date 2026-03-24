@@ -62,6 +62,14 @@ t = re.sub(r'(int\nroll\(int number, int sides\)\n\{[^}]*\})', r'#ifndef HARNESS
 open('main.c','w').write(t)"
 	@# Fix missing semicolon in mdport.c (upstream bug)
 	@sed -i.bak 's/return(1)$$/return(1);/' mdport.c && rm -f mdport.c.bak
+	@# Add parity trace logging to command.c (after readchar, log no_command/after state)
+	@python3 -c "\
+t = open('command.c').read(); \
+t = t.replace(\
+    'if (no_command)',\
+    '{ extern void harness_log_event(const char*); extern int harness_rng_call_count; char _buf[80]; snprintf(_buf,sizeof(_buf),\"^cmd[ch=%d no_cmd=%d after=%d]\",ch,no_command,after); harness_log_event(_buf); }\n\tif (no_command)',\
+    1); \
+open('command.c','w').write(t)"
 	@# Rename md_readchar in mdport.c so harness can override it
 	@sed -i.bak 's/md_readchar/md_readchar_original/g' mdport.c && rm -f mdport.c.bak
 	@echo "Done. Run 'make' to build."

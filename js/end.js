@@ -627,10 +627,28 @@ async function maybeInstallPossessionsPrompt(how, game) {
                             terminalScreenOwned: true,
                         };
                     }
-                    await installDisclosurePrompt(innerGame, idx + 1);
-                    if (!innerGame.pendingPrompt) {
-                        await finishEndgameDisplay(innerGame);
-                    }
+                    // C ref: disclosure loop shows next prompt on the NEXT
+                    // nhgetch, not immediately. Clear current prompt and
+                    // defer via bridge prompt so the current step captures
+                    // blank screen (matching C).
+                    clearEndPrompt(innerGame.display);
+                    const nextIdx = idx + 1;
+                    innerGame.pendingPrompt = {
+                        type: 'disclosure_bridge',
+                        onKey: async (_ch, bridgeGame) => {
+                            bridgeGame.pendingPrompt = null;
+                            await installDisclosurePrompt(bridgeGame, nextIdx);
+                            if (!bridgeGame.pendingPrompt) {
+                                await finishEndgameDisplay(bridgeGame);
+                            }
+                            return {
+                                handled: true,
+                                moved: false,
+                                tookTime: false,
+                                terminalScreenOwned: true,
+                            };
+                        },
+                    };
                     return {
                         handled: true,
                         moved: false,
@@ -671,8 +689,23 @@ async function maybeInstallPossessionsPrompt(how, game) {
                 };
             }
             if (ch !== 'y') {
-                gameCtx.pendingPrompt = null;
-                await installDisclosurePrompt(gameCtx, 0);
+                // C ref: disclosure prompts show on the NEXT nhgetch.
+                // Defer via bridge prompt so current step captures blank.
+                clearEndPrompt(gameCtx.display);
+                gameCtx.pendingPrompt = {
+                    type: 'disclosure_bridge',
+                    onKey: async (_ch, bridgeGame) => {
+                        bridgeGame.pendingPrompt = null;
+                        await installDisclosurePrompt(bridgeGame, 0);
+                        if (!bridgeGame.pendingPrompt) {
+                            await finishEndgameDisplay(bridgeGame);
+                        }
+                        return {
+                            handled: true, moved: false,
+                            tookTime: false, terminalScreenOwned: true,
+                        };
+                    },
+                };
             }
             if (!gameCtx.pendingPrompt) {
                 await finishEndgameDisplay(gameCtx);

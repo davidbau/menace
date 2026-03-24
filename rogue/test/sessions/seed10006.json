@@ -33,7 +33,7 @@
     },
     {
       "key": "h",
-      "rng": [13],
+      "rng": [13,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "h",
-      "rng": [69,32],
+      "rng": [69,32,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "h",
-      "rng": [20],
+      "rng": [20,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": ">",
-      "rng": [79],
+      "rng": [79,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -423,7 +423,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": ">",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -483,7 +483,7 @@
     },
     {
       "key": "j",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -513,7 +513,7 @@
     },
     {
       "key": "j",
-      "rng": [7],
+      "rng": [7,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -543,7 +543,7 @@
     },
     {
       "key": "j",
-      "rng": [26],
+      "rng": [26,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -573,7 +573,7 @@
     },
     {
       "key": "j",
-      "rng": [54],
+      "rng": [54,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -603,7 +603,7 @@
     },
     {
       "key": ">",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -633,7 +633,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -663,7 +663,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -693,7 +693,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -723,7 +723,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -753,7 +753,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -783,7 +783,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -813,7 +813,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -843,7 +843,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -873,7 +873,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -903,7 +903,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -933,7 +933,7 @@
     },
     {
       "key": ">",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -963,7 +963,7 @@
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -993,7 +993,7 @@
     },
     {
       "key": "k",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1023,7 +1023,7 @@
     },
     {
       "key": "k",
-      "rng": [76],
+      "rng": [76,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1053,7 +1053,7 @@
     },
     {
       "key": "k",
-      "rng": [60],
+      "rng": [60,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1083,7 +1083,7 @@
     },
     {
       "key": ">",
-      "rng": [19],
+      "rng": [19,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1113,7 +1113,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -1143,7 +1143,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1173,7 +1173,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1203,7 +1203,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1233,7 +1233,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1263,7 +1263,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1293,7 +1293,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1323,7 +1323,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1353,7 +1353,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1383,7 +1383,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1413,7 +1413,7 @@
     },
     {
       "key": ">",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1443,7 +1443,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -1473,7 +1473,7 @@
     },
     {
       "key": "l",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1503,7 +1503,7 @@
     },
     {
       "key": "l",
-      "rng": [18],
+      "rng": [18,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1533,7 +1533,7 @@
     },
     {
       "key": "l",
-      "rng": [94,85],
+      "rng": [94,85,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1563,7 +1563,7 @@
     },
     {
       "key": ">",
-      "rng": [5],
+      "rng": [5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1593,7 +1593,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -1623,7 +1623,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1653,7 +1653,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1683,7 +1683,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1713,7 +1713,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1743,7 +1743,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1773,7 +1773,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1803,7 +1803,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1833,7 +1833,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1863,7 +1863,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1893,7 +1893,7 @@
     },
     {
       "key": ">",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1923,7 +1923,7 @@
     },
     {
       "key": "h",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -1953,7 +1953,7 @@
     },
     {
       "key": "h",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1983,7 +1983,7 @@
     },
     {
       "key": "h",
-      "rng": [88,35],
+      "rng": [88,35,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2013,7 +2013,7 @@
     },
     {
       "key": "h",
-      "rng": [19],
+      "rng": [19,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2043,7 +2043,7 @@
     },
     {
       "key": ">",
-      "rng": [42],
+      "rng": [42,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2073,7 +2073,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -2103,7 +2103,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2133,7 +2133,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2163,7 +2163,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2193,7 +2193,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2223,7 +2223,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2253,7 +2253,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2283,7 +2283,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2313,7 +2313,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2343,7 +2343,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2373,7 +2373,7 @@
     },
     {
       "key": ">",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2403,7 +2403,7 @@
     },
     {
       "key": "j",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -2433,7 +2433,7 @@
     },
     {
       "key": "j",
-      "rng": [82],
+      "rng": [82,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2463,7 +2463,7 @@
     },
     {
       "key": "j",
-      "rng": [37],
+      "rng": [37,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2493,7 +2493,7 @@
     },
     {
       "key": "j",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2523,7 +2523,7 @@
     },
     {
       "key": ">",
-      "rng": [8],
+      "rng": [8,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2553,7 +2553,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -2583,7 +2583,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2613,7 +2613,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2643,7 +2643,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2673,7 +2673,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2703,7 +2703,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2733,7 +2733,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2763,7 +2763,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2793,7 +2793,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2823,7 +2823,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2853,7 +2853,7 @@
     },
     {
       "key": ">",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2883,7 +2883,7 @@
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -2913,7 +2913,7 @@
     },
     {
       "key": "k",
-      "rng": [8],
+      "rng": [8,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2943,7 +2943,7 @@
     },
     {
       "key": "k",
-      "rng": [83],
+      "rng": [83,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2973,7 +2973,7 @@
     },
     {
       "key": "k",
-      "rng": [79],
+      "rng": [79,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3003,7 +3003,7 @@
     },
     {
       "key": ">",
-      "rng": [86],
+      "rng": [86,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3033,7 +3033,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -3063,7 +3063,7 @@
     },
     {
       "key": "s",
-      "rng": [2],
+      "rng": [2,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3093,7 +3093,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3123,7 +3123,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3153,7 +3153,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3183,7 +3183,7 @@
     },
     {
       "key": "s",
-      "rng": [3,5,1,0,3,4,6],
+      "rng": [3,5,1,0,3,4,6,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3213,7 +3213,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3243,7 +3243,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3273,7 +3273,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3303,7 +3303,7 @@
     },
     {
       "key": "s",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3333,7 +3333,7 @@
     },
     {
       "key": ">",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3363,7 +3363,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -3393,7 +3393,7 @@
     },
     {
       "key": "l",
-      "rng": [54,13,1,0,8],
+      "rng": [54,13,1,0,8,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin scored an excellent hit on you",
         "",
@@ -3423,7 +3423,7 @@
     },
     {
       "key": "l",
-      "rng": [55,15,2,2,1],
+      "rng": [55,15,2,2,1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "You hit the hobgoblin--More--",
         "",
@@ -14373,7 +14373,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [53],
+      "rng": [53,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

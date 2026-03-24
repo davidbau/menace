@@ -33,7 +33,7 @@
     },
     {
       "key": "]",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "1",
-      "rng": [],
+      "rng": ["^cmd[ch=93 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command ']'.",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "n",
-      "rng": [],
+      "rng": ["^cmd[ch=49 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command ']'.",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "W",
-      "rng": [],
+      "rng": ["^cmd[ch=84 no_cmd=0 after=1]"],
       "screen": [
         "You used to be  wearing b) +1 ring mail",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "c",
-      "rng": [],
+      "rng": ["^cmd[ch=87 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to wear? (* for list):",
         "",

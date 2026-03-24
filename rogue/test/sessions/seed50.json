@@ -33,7 +33,7 @@
     },
     {
       "key": "l",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "l",
-      "rng": [52],
+      "rng": [52,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "l",
-      "rng": [19],
+      "rng": [19,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "l",
-      "rng": [11],
+      "rng": [11,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "k",
-      "rng": [86],
+      "rng": [86,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "k",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "k",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "k",
-      "rng": [41],
+      "rng": [41,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "k",
-      "rng": [84],
+      "rng": [84,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "j",
-      "rng": [12],
+      "rng": [12,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "j",
-      "rng": [15],
+      "rng": [15,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "j",
-      "rng": [11],
+      "rng": [11,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "j",
-      "rng": [94],
+      "rng": [94,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -423,7 +423,7 @@
     },
     {
       "key": "j",
-      "rng": [38],
+      "rng": [38,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": "Q",
-      "rng": [29],
+      "rng": [29,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -483,7 +483,7 @@
     },
     {
       "key": "y",
-      "rng": [],
+      "rng": ["^cmd[ch=81 no_cmd=0 after=1]"],
       "screen": [
         "Really quit?",
         "",

@@ -33,7 +33,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=16 no_cmd=0 after=1]"],
       "screen": [
         "Wizard's Password:",
         "",

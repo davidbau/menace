@@ -33,7 +33,7 @@
     },
     {
       "key": "j",
-      "rng": [8,20],
+      "rng": [8,20,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "k",
-      "rng": [87,3],
+      "rng": [87,3,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "l",
-      "rng": [38,2],
+      "rng": [38,2,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "h",
-      "rng": [93],
+      "rng": [93,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "j",
-      "rng": [17,8],
+      "rng": [17,8,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "k",
-      "rng": [32,43],
+      "rng": [32,43,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "l",
-      "rng": [71,10,2,21],
+      "rng": [71,10,2,21,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "The kobold barely misses you",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "s",
-      "rng": [85,96],
+      "rng": [85,96,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "s",
-      "rng": [0,3,87],
+      "rng": [0,3,87,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The kobold doesn't hit you",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "s",
-      "rng": [2,2,69],
+      "rng": [2,2,69,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The kobold barely misses you",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "s",
-      "rng": [5,0,32],
+      "rng": [5,0,32,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The kobold misses you",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "Q",
-      "rng": [19,3,2,90],
+      "rng": [19,3,2,90,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The kobold has injured you",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "y",
-      "rng": [],
+      "rng": ["^cmd[ch=81 no_cmd=0 after=1]"],
       "screen": [
         "Really quit?",
         "",

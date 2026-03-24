@@ -33,7 +33,7 @@
     },
     {
       "key": "h",
-      "rng": [],
+      "rng": ["^cmd[ch=63 no_cmd=0 after=1]"],
       "screen": [
         "Character you want help for (* for all):",
         "",

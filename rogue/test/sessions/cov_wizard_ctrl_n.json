@@ -33,7 +33,7 @@
     },
     {
       "key": "/",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "0",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "b",
-      "rng": [],
+      "rng": ["^cmd[ch=14 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '^N'.",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": " ",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

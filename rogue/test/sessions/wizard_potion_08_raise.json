@@ -33,7 +33,7 @@
     },
     {
       "key": "!",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "8",
-      "rng": [],
+      "rng": ["^cmd[ch=33 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

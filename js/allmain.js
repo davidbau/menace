@@ -1392,16 +1392,17 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, opts = {}) 
         async onKey(ch, g) {
             if (!isDismiss(ch)) return { handled: true, tookTime: false, moved: false, prompt: true };
             if (stage === 'lore') {
-                clearLoreOverlay(g?.display);
-                // Re-render the map that was underneath the lore overlay.
-                if (g?.display && g.map && g.u && g.fov && typeof g.display.renderMap === 'function') {
-                    g.display.renderMap(g.map, g.u, g.fov, g.flags);
-                }
-                if (g?.display && typeof g.display.renderStatus === 'function' && g.u) {
-                    g.display.renderStatus(g.u);
-                }
-                if (g?.display && typeof g.display.cursorOnPlayer === 'function' && g.u) {
-                    g.display.cursorOnPlayer(g.u);
+                // C ref: after lore dismiss, welcome() does NOT call docrt()
+                // or clear the lore overlay. The lore text persists on the
+                // terminal until gameplay redraws those cells via newsym().
+                // Only clear row 0 (message line) for the welcome message,
+                // and update status/cursor. Leave lore on map rows.
+                if (g?.display && typeof g.display.clearRow === 'function') {
+                    g.display.clearRow(0);
+                    if (g.display._topMessageRow1 !== undefined) {
+                        g.display.clearRow(1);
+                        g.display._topMessageRow1 = undefined;
+                    }
                 }
                 // C ref: welcome() shows the message via pline() without --More--.
                 // The welcome is visible on the message line; the NEXT key processes
@@ -1993,7 +1994,10 @@ export class NetHackGame {
             for (const line of loreLines) {
                 if (line.length > maxLoreWidth) maxLoreWidth = line.length;
             }
-            const loreOffx = Math.max(0, TERMINAL_COLS - maxLoreWidth - 1);
+            // C ref: tty_display_nhwindow always sets offx=0 for NHW_TEXT
+            // windows (wintty.c: "cw->offx = (cw->type == NHW_TEXT) ? 0 : ...")
+            // Lore is displayed via NHW_TEXT, so offx is always 0.
+            const loreOffx = 0;
             loreLines.push('--More--');
             this.display.renderLoreText(loreLines, loreOffx);
 

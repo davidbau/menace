@@ -33,7 +33,7 @@
     },
     {
       "key": "b",
-      "rng": [],
+      "rng": ["^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any rings",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

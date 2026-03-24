@@ -33,7 +33,7 @@
     },
     {
       "key": "h",
-      "rng": [],
+      "rng": ["^cmd[ch=116 no_cmd=0 after=1]"],
       "screen": [
         "Which direction?",
         "",

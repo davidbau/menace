@@ -33,7 +33,7 @@
     },
     {
       "key": "T",
-      "rng": [],
+      "rng": ["^cmd[ch=84 no_cmd=0 after=1]"],
       "screen": [
         "You used to be  wearing b) +1 ring mail",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=84 no_cmd=0 after=1]"],
       "screen": [
         "You aren't wearing any armor",
         "",
