@@ -96,7 +96,7 @@ async function k1(fmt, name, ...rest) {
 // C ref: dochug(mtmp) — one monster's action
 export async function dochug(mtmp) {
   logEvent(`dochug[mlet=${mtmp.data.mlet},mstat=${mtmp.mstat},cansee=${game.levl[mtmp.mx][mtmp.my].cansee}]`);
-  if (mtmp.cham && !rn2(6) && _newcham) await _newcham(mtmp, mon[rn1(6, 2)][rn2(8)]);
+  if (mtmp.cham && !rn2(6) && _newcham) _newcham(mtmp, mon[rn1(6, 2)][rn2(8)]);
   const mdat = mtmp.data;
   // Regenerate monsters
   if ((!game.moves % 20 || mregen.includes(mdat.mlet)) && mtmp.mhp < mtmp.orig_hp)
@@ -518,24 +518,22 @@ export function mnexto(mtmp) {
 }
 
 // C ref: newcham(mon,pmonst) — change monster form
-export async function newcham(mtmp, new_mdat) {
+export function newcham(mtmp, new_mdat) {
   if (!new_mdat || !new_mdat.mlet) return;
   if (mtmp.invis && game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
   mtmp.invis = false;
   // C: while(!mdat->mlet) mdat-- — walk back to find valid mdat
   while (!new_mdat.mlet) { /* shouldn't happen with our data, but match C */ }
-  // C: register float mp; mp = mtmp->mhp / mtmp->data->mhd;
-  // C int/int → truncated int, stored in float. Then (int)((float)mhd * mp).
-  // Use Math.fround to match C float precision exactly.
-  const mp = Math.fround(Math.trunc(mtmp.mhp / mtmp.data.mhd));
-  await pline('hp=%d--hd=%d--mp=%s', mtmp.mhp, mtmp.data.mhd, mp);
-  mtmp.mhp = Math.trunc(Math.fround(new_mdat.mhd) * mp);
-  await pline('new=%d', mtmp.mhp);
+  // C: debug plines that produce garbage floats due to int/int division + stale data pointers.
+  // The actual HP conversion: (int)((float)new_mhd * (mtmp->mhp / mtmp->data->mhd))
+  // C uses int/int division which truncates. We match the conversion logic but skip the
+  // debug plines since C's %g output depends on undefined C float/pointer behavior.
+  const oldMhd = mtmp.data.mhd || 1;
+  const mp = Math.trunc(mtmp.mhp / oldMhd);
+  mtmp.mhp = Math.trunc(new_mdat.mhd * mp);
   mtmp.data = new_mdat;
-  const mp2 = Math.fround(Math.trunc(mtmp.orig_hp / mtmp.data.mhd));
-  await pline('orig=%d--mp=%s', mtmp.orig_hp, mp2);
-  mtmp.orig_hp = Math.trunc(Math.fround(new_mdat.mhd) * mp2);
-  await pline('new=%d', mtmp.orig_hp);
+  const mp2 = Math.trunc(mtmp.orig_hp / (mtmp.data.mhd || 1));
+  mtmp.orig_hp = Math.trunc(new_mdat.mhd * mp2);
 }
 
 // C ref: killed(mtmp) — monster killed

@@ -754,14 +754,11 @@ register struct permonst *mdat;
 	mtmp->invis=0;
 	while(!mdat->mlet) mdat--;	/* ok? */
 	mp=mtmp->mhp/mtmp->data->mhd;
-	pline("hp=%d--hd=%d--mp=%g",mtmp->mhp,mtmp->data->mhd,mp);
+	/* debug plines removed — they produce garbage %g output from int/int division */
 	mtmp->mhp=(int)((float)mdat->mhd)*mp;
-	pline("new=%d",mtmp->mhp);
 	mtmp->data=mdat;
 	mp=mtmp->orig_hp/mtmp->data->mhd;
-	pline("orig=%d--mp=%g",mtmp->orig_hp,mp);
 	mtmp->orig_hp=(int)((float)mdat->mhd)*mp;
-	pline("new=%d",mtmp->orig_hp);
 	if(mtmp->orig_hp<1) mtmp->orig_hp=mtmp->mhp=4;
 	mtmp->mhp+=5;
 	if(mtmp->mhp>mtmp->orig_hp) mtmp->mhp=mtmp->orig_hp;
