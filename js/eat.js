@@ -62,7 +62,7 @@ import { costly_spot } from './shk.js';
 import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, obj_here } from './invent.js';
 import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
+import { acurr, ensureAttrArrays, gainstr, poison_strdmg, change_luck } from './attrib.js';
 import { nomul, end_running, near_capacity, rounddiv, losehp } from './hack.js';
 import { losestr } from './attrib.js';
 import { incr_itimeout, make_stoned, make_sick, make_blinded, make_stunned } from './potion.js';
@@ -924,9 +924,8 @@ async function maybe_cannibal(player, pm, allowmsg) {
             await You('cannibal!  You will regret this!');
         }
         // C: HAggravate_monster |= FROMOUTSIDE
-        // C: change_luck(-rn1(4, 2)) — luck penalty (-5..-2)
-        const luckPenalty = -rn1(4, 2);
-        if (player.luck !== undefined) player.luck += luckPenalty;
+        // C ref: eat.c — change_luck(-rn1(4, 2)) for luck penalty (-5..-2)
+        change_luck(-rn1(4, 2), player);
         return true;
     }
     return false;
