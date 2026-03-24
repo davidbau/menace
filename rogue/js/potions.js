@@ -9,10 +9,11 @@ import {
   P_CONFUSE, P_POISON, P_HEALING, P_STRENGTH, P_MFIND, P_TFIND,
   P_PARALYZE, P_SEEINVIS, P_RAISE, P_XHEAL, P_HASTE, P_RESTORE,
   P_BLIND, P_NOP,
-  POTION, STICK, RING, SCROLL, AMULET,
+  POTION, STICK, RING, SCROLL, AMULET, MAGIC,
   AFTER, ISHUH, ISBLIND, CANSEE,
   R_SUSTSTR, HOLDTIME, HUHDURATION, SEEDURATION,
 } from './const.js';
+import { wclear, mvwaddch, overwrite, show_win } from './curses.js';
 
 // Injected deps
 let _msg = null;
@@ -111,7 +112,10 @@ export async function quaff() {
 
     case P_MFIND:
       if (g.mlist !== null) {
-        await _msg('You begin to sense the presence of monsters.');
+        wclear(g.hw);
+        overwrite(g.mw, g.hw);
+        await show_win(g.hw,
+          'You begin to sense the presence of monsters.--More--');
         g.p_know[P_MFIND] = true;
       } else {
         await _msg('You have a strange feeling for a moment, then it passes.');
@@ -120,20 +124,32 @@ export async function quaff() {
 
     case P_TFIND: {
       let show = false;
-      for (let mobj = g.lvl_obj; mobj !== null; mobj = mobj.l_next) {
-        if (is_magic(mobj.l_data)) { show = true; g.p_know[P_TFIND] = true; }
-      }
-      for (let titem = g.mlist; titem !== null; titem = titem.l_next) {
-        const th = titem.l_data;
-        for (let pitem = th.t_pack; pitem !== null; pitem = pitem.l_next) {
-          if (is_magic(pitem.l_data)) { show = true; g.p_know[P_TFIND] = true; }
+      if (g.lvl_obj !== null) {
+        wclear(g.hw);
+        for (let mobj = g.lvl_obj; mobj !== null; mobj = mobj.l_next) {
+          if (is_magic(mobj.l_data)) {
+            show = true;
+            mvwaddch(g.hw, mobj.l_data.o_pos.y, mobj.l_data.o_pos.x, MAGIC);
+          }
+          g.p_know[P_TFIND] = true;
+        }
+        for (let titem = g.mlist; titem !== null; titem = titem.l_next) {
+          const th = titem.l_data;
+          for (let pitem = th.t_pack; pitem !== null; pitem = pitem.l_next) {
+            if (is_magic(pitem.l_data)) {
+              show = true;
+              mvwaddch(g.hw, th.t_pos.y, th.t_pos.x, MAGIC);
+            }
+            g.p_know[P_TFIND] = true;
+          }
+        }
+        if (show) {
+          await show_win(g.hw,
+            'You sense the presence of magic on this level.--More--');
+          break;
         }
       }
-      if (show) {
-        await _msg('You sense the presence of magic on this level.');
-      } else {
-        await _msg('You have a strange feeling for a moment, then it passes.');
-      }
+      await _msg('You have a strange feeling for a moment, then it passes.');
       break;
     }
 

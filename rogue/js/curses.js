@@ -226,10 +226,19 @@ export function draw(win) {
   const g = game();
   if (!g.display) return;
 
-  // mw is never displayed directly
-  if (win === g.mw || win === 'mw') return;
-
   const display = g.display;
+
+  // mw is normally never displayed directly (only via show_win for wizard Ctrl-X)
+  if (win === g.mw) {
+    for (let r = 0; r < LINES; r++) {
+      for (let c = 0; c < COLS; c++) {
+        display.putChar(c + 1, r + 1, g.mw[r][c]);
+      }
+    }
+    display.moveCursor(_cwState.x + 1, _cwState.y + 1);
+    display.flush();
+    return;
+  }
 
   // hw (help/inventory window) is drawn as a full overlay (like C's touchwin+draw(hw))
   if (win === g.hw) {
@@ -303,6 +312,38 @@ export function sprintf(fmt, args) {
     }
     return String(arg || '');
   });
+}
+
+// ---- overwrite / show_win ----
+
+/**
+ * overwrite(src, dst): copy non-space chars from src window to dst window.
+ * Matches C curses overwrite() semantics.
+ */
+export function overwrite(src, dst) {
+  for (let r = 0; r < LINES; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const ch = src[r][c];
+      if (ch !== ' ') dst[r][c] = ch;
+    }
+  }
+}
+
+/**
+ * show_win(scr, message): display a window with a message and wait.
+ * C: mvwaddstr(scr,0,0,message); touchwin(scr); wmove(scr,hero.y,hero.x);
+ *    draw(scr); wait_for(scr,' '); clearok(cw,TRUE); touchwin(cw);
+ */
+export async function show_win(scr, message) {
+  const g = game();
+  const { wait_for } = await import('./io.js');
+  mvwaddstr(scr, 0, 0, message);
+  // touchwin(scr) — no-op in JS
+  wmove(scr, g.player.t_pos.y, g.player.t_pos.x);
+  draw(scr);
+  await wait_for(' ');
+  // clearok(cw, TRUE) — no-op in JS
+  // touchwin(cw) — no-op in JS
 }
 
 // ---- Misc curses no-ops ----
