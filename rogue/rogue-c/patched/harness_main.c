@@ -32,6 +32,7 @@ int  harness_rand(void);
 #define SCRROWS 24
 #define SCRCOLS 80
 extern char harness_display[SCRROWS][SCRCOLS + 1];
+extern int harness_cursor_y, harness_cursor_x;
 
 /* ===== Keystroke injection ===== */
 static const char *harness_keys = NULL;
@@ -47,6 +48,7 @@ static unsigned int g_harness_seed = 42;  /* our forced seed for JSON output */
 typedef struct {
     char key;
     char screen[SCRROWS][SCRCOLS + 1];
+    int  cursor_y, cursor_x;
     int  rng[MAX_RNG_PER_STEP];
     int  rng_count;
     int  event_pos[MAX_EVENTS_PER_STEP];
@@ -95,6 +97,8 @@ static void emit_session_json(FILE *out, unsigned int seed)
         else if (k >= 32 && k < 127) { fputc(k, out); }
         else                 { fprintf(out, "\\u%04x", (unsigned char)k); }
         fprintf(out, "\",\n");
+        /* cursor */
+        fprintf(out, "      \"cursor\": [%d,%d],\n", s->cursor_y, s->cursor_x);
         /* rng — interleave event strings with integer RNG values */
         fprintf(out, "      \"rng\": [");
         {
@@ -145,8 +149,10 @@ static void capture_step(char key)
     if (harness_nsteps >= MAX_STEPS) return;
     HarnessStep *s = &harness_steps[harness_nsteps++];
     s->key = key;
-    /* copy current screen from harness_display */
+    /* copy current screen and cursor from harness_display */
     memcpy(s->screen, harness_display, sizeof(s->screen));
+    s->cursor_y = harness_cursor_y;
+    s->cursor_x = harness_cursor_x;
     /* copy and reset RNG buffer */
     int n = harness_rng_count;
     if (n > MAX_RNG_PER_STEP) n = MAX_RNG_PER_STEP;

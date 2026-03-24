@@ -16,6 +16,10 @@ WINDOW *curscr = NULL;
 /* Harness display snapshot — copied from cw on wrefresh(cw) */
 char harness_display[LINES][COLS + 1];
 
+/* Harness cursor position — updated on each wrefresh */
+int harness_cursor_y = 0;
+int harness_cursor_x = 0;
+
 /* ===== Window allocation ===== */
 
 static WINDOW *alloc_win(void)
@@ -288,15 +292,16 @@ int wrefresh(WINDOW *win)
         /* Help window replaces entire display */
         for (i = 0; i < LINES; i++)
             memcpy(harness_display[i], hw->_data[i], COLS + 1);
+        harness_cursor_y = hw->_cury;
+        harness_cursor_x = hw->_curx;
         return OK;
     }
 
     if (win == stdscr || win == curscr) {
-        /* stdscr is used by death/winner screens (clear+addstr+draw(stdscr)).
-         * In 1980 Berkeley curses, wrefresh(stdscr) copies stdscr directly to
-         * the terminal — no compositing with cw/mw overlays. */
         for (i = 0; i < LINES; i++)
             memcpy(harness_display[i], stdscr->_data[i], COLS + 1);
+        harness_cursor_y = stdscr->_cury;
+        harness_cursor_x = stdscr->_curx;
         return OK;
     }
 
@@ -314,6 +319,8 @@ int wrefresh(WINDOW *win)
             }
         }
     }
+    harness_cursor_y = cw->_cury;
+    harness_cursor_x = cw->_curx;
 
     return OK;
 }
