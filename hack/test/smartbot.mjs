@@ -82,13 +82,13 @@ function armorRating(o) {
 
 // ===== Monster knowledge =====
 function dangerZone() {
+  // Only block the exact cell of deadly monsters (not neighbors).
+  // Walking adjacent is safe — paralysis only happens when you ATTACK the eye.
   const zone = new Set();
   for (let m = game.fmon; m; m = m.nmon) {
     if (!m.data) continue;
     if (DEADLY.has(m.data.mlet)) {
-      for (let dx = -1; dx <= 1; dx++)
-        for (let dy = -1; dy <= 1; dy++)
-          zone.add(`${m.mx+dx},${m.my+dy}`);
+      zone.add(`${m.mx},${m.my}`);
     }
   }
   return zone;
@@ -142,8 +142,7 @@ function nav(tx, ty) {
 // Find nearest SDOOR position from current player position that has an adjacent
 // reachable cell. Returns {searchX, searchY} or null.
 function nearestSDOOR() {
-  const dz = dangerZone();
-  // BFS reachable area
+  // BFS reachable area — NO danger zone restriction (we need to find ALL SDOORs)
   const { ux, uy } = game.u;
   const reachable = new Set([`${ux},${uy}`]);
   const rq = [{x: ux, y: uy}];
@@ -156,7 +155,7 @@ function nearestSDOOR() {
       if (!c || c.typ < DOOR) continue;
       if (dx && dy && (c.typ === DOOR || st === DOOR)) continue;
       const pk = `${nx},${ny}`;
-      if (!reachable.has(pk) && !dz.has(pk)) { reachable.add(pk); rq.push({x:nx,y:ny}); }
+      if (!reachable.has(pk)) { reachable.add(pk); rq.push({x:nx,y:ny}); }
     }
   }
   // Find closest SDOOR adjacent to reachable cell
@@ -204,6 +203,17 @@ input.getKey = async function () {
   if (stepCount >= maxSteps) throw new BotDone();
   stepCount++;
 
+  // Detect --More-- prompt: pline waits for SPACE specifically.
+  // If we return a non-space key, it's silently discarded in an infinite loop.
+  // Check the display for "--More--" on the message line (row 1).
+  {
+    const row1 = display.grid[1]?.slice(1, 80).join('') || '';
+    if (row1.includes('--More--')) {
+      keyLog.push(' ');
+      return ' ';
+    }
+  }
+
   // Drain key queue (for multi-key commands)
   if (keyQueue.length > 0) {
     const k = keyQueue.shift();
@@ -217,11 +227,18 @@ input.getKey = async function () {
   if (depth !== lastDepth) {
     let ms = []; for (let m = game.fmon; m; m = m.nmon) if (m.data) ms.push(m.data.mlet);
     process.stderr.write(`  Level ${depth} [${ms.join(',')}]\n`);
+    }
     lastDepth = depth;
     equipped = false;
   }
 
   let key;
+
+  // ===== Wait out paralysis =====
+  if (game.multi < 0) {
+    stuckCount = 0; // reset so navigation retries after paralysis
+    keyLog.push(' '); return ' ';
+  }
 
   // ===== Break free if grabbed =====
   if (u.ustuck) {
@@ -264,32 +281,47 @@ input.getKey = async function () {
     if (u.ux === game.xdnstair && u.uy === game.ydnstair) {
       key = '>';
     } else {
-      // Direct nav to stairs
-      let k = nav(game.xdnstair, game.ydnstair);
+      // Try progressively relaxed pathfinding to stairs:
+      // 1. Avoid danger zones + avoid monsters
+      // 2. Avoid danger zones only
+      // 3. No restrictions
+      // 4. Through SDOORs (with search)
+      let k = null;
+      const dz = dangerZone();
+      k = bfsTo(game.xdnstair, game.ydnstair, { dzone: dz, avoidMon: true })?.key;
+      if (!k) k = bfsTo(game.xdnstair, game.ydnstair, { dzone: dz })?.key;
+      if (!k) k = bfsTo(game.xdnstair, game.ydnstair)?.key; // last resort: walk through danger
       if (!k) {
-        // Stairs behind SDOOR — use inside knowledge to find it
-        const dz = dangerZone();
+        // Stairs behind SDOOR — find path through secret doors
+        // Try with danger zone first, then without
         const path = bfsTo(game.xdnstair, game.ydnstair, { sdoor: true, dzone: dz })
                   || bfsTo(game.xdnstair, game.ydnstair, { sdoor: true });
         if (path && path.needsSearch) {
-          // Navigate to search position OR search if already there
           if (u.ux === path.searchX && u.uy === path.searchY) {
             key = 's';
           } else {
-            // Navigate to search position — bypass stuck detection entirely
-            const sk = nav(path.searchX, path.searchY);
-            key = sk || 's';
+            // Navigate to search position — try BFS
+            let sk = bfsTo(path.searchX, path.searchY, { dzone: dz, avoidMon: true })?.key;
+            if (!sk) sk = bfsTo(path.searchX, path.searchY)?.key;
+            if (sk) {
+              key = sk;
+              keyLog.push(key); return key;
+            }
+            // Search position unreachable — fall through to nearestSDOOR
           }
-          keyLog.push(key); return key; // bypass stuck detection
         }
-        k = path ? path.key : null;
       }
+      // Find nearest SDOOR adjacent to reachable area and search there
       if (!k) {
-        // Completely stuck — find nearest SDOOR and search toward it
         const sd = nearestSDOOR();
         if (sd) {
-          if (u.ux === sd.x && u.uy === sd.y) { key = 's'; keyLog.push(key); return key; }
-          key = nav(sd.x, sd.y) || 's';
+          if (u.ux === sd.x && u.uy === sd.y) {
+            key = 's';
+          } else {
+            let sk = bfsTo(sd.x, sd.y, { dzone: dz, avoidMon: true })?.key;
+            if (!sk) sk = bfsTo(sd.x, sd.y)?.key;
+            key = sk || 's';
+          }
           keyLog.push(key); return key;
         }
         k = 's';
