@@ -18,7 +18,7 @@ import { GameMap } from './game.js';
 import { initLevelGeneration, mklev, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { depth } from './dungeon.js';
 import { runWithSplevPlayerSnapshot } from './sp_lev.js';
-import { monsterNearby } from './hack.js';
+import { monsterNearby, postMoveFloorCheck } from './hack.js';
 import { simulatePostLevelInit, initFirstLevel } from './u_init.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { loadSave, deleteSave, hasSave, saveGame,
@@ -33,6 +33,7 @@ import { init_nhwindows, create_nhwindow, destroy_nhwindow,
        } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
 import { find_ac } from './do_wear.js';
+import { set_moreluck } from './attrib.js';
 
 function endgameDungeonName(dnum) {
     switch (dnum) {
@@ -301,12 +302,11 @@ export async function maybeDoTutorial(game) {
 
 export async function enterTutorial(game, opts = {}) {
     const { direct = false, deferRender = false } = opts;
-    if (!direct) {
-        await game.display.putstr_message('Entering the tutorial.');
-        await more(game.display, { game,
-            site: 'chargen.enterTutorial.morePrompt',
-        });
-    }
+    // C ref: deferred_goto → pline1("Entering the tutorial.") stores the message
+    // but does NOT block at --More-- yet.  goto_level() runs mklev first, then
+    // pickup(1) → read_engr_at triggers the first nhgetch which shows the
+    // "Entering" message.  So mklev RNG must be consumed BEFORE the --More--.
+    const showEnteringMessage = !direct;
 
     const player = game.u || game.u;
     const applyTutorialStrip = () => {
@@ -352,6 +352,8 @@ export async function enterTutorial(game, opts = {}) {
         // Reset letter allocation so first tutorial pickup is 'a'.
         player.lastInvlet = null;
         find_ac(player);
+        // C ref: freeinv → set_moreluck when removing luckstone
+        set_moreluck(player);
     };
     game._applyTutorialStrip = applyTutorialStrip;
     if (game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
@@ -369,15 +371,33 @@ export async function enterTutorial(game, opts = {}) {
     (game.u || game.u).showExp = !!game.flags.showexp;
     if ((game.map || game.map)?.flags?.lit_corridor) game.flags.lit_corridor = true;
     game.placePlayerOnLevel('teleport');
-    const entryEngr = (game.map || game.map)?.engravingAt?.((game.u || game.u).x, (game.u || game.u).y);
-    if (entryEngr) entryEngr.erevealed = true;
 
     if (!deferRender) {
         game.fov.compute((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y);
         game.display.renderMap((game.map || game.map), (game.u || game.u), game.fov, game.flags);
+        if (typeof game.display?.renderStatus === 'function') {
+            game.display.renderStatus(game.u || game.u);
+        }
         await game.maybeShowQuestLocateHint((game.u || game.u).dungeonLevel);
     }
 
+    // C ref: deferred_goto → pline1("Entering the tutorial.") was stored before
+    // goto_level.  After mklev + player placement, pickup(1) calls nhgetch at
+    // the --More-- for "Entering" (which also shows the engraving messages).
+    // We display the "Entering" message NOW (after mklev/render) and let
+    // postMoveFloorCheck show the engraving messages, matching C's --More--
+    // boundaries at the nhgetch points.
+    if (showEnteringMessage) {
+        await game.display.putstr_message('Entering the tutorial.');
+        await more(game.display, { game,
+            site: 'chargen.enterTutorial.morePrompt',
+        });
+    }
+
+    // C ref: do.c goto_level() line 1989 — pickup(1) after level change.
+    // read_engr_at() shows engraving messages with --More--.
+    await postMoveFloorCheck(game.u || game.u, game.map || game.map,
+        game.display, game, { nopick: true });
 }
 
 // Handle ?reset=1 — list saved data and prompt for deletion
