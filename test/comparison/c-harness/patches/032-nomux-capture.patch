@@ -4,7 +4,7 @@ diff --git a/include/wintty.h b/include/wintty.h
 @@ -5,6 +5,24 @@
  #ifndef WINTTY_H
  #define WINTTY_H
- 
+
 +/* NOMUX: shadow frame buffer for direct screen capture without tmux */
 +#ifndef NO_NOMUX_CAPTURE
 +#define NOMUX_CAPTURE
@@ -25,14 +25,14 @@ diff --git a/include/wintty.h b/include/wintty.h
 +
  #ifndef WINDOW_STRUCTS
  #define WINDOW_STRUCTS
- 
+
 diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 --- a/win/tty/termcap.c
 +++ b/win/tty/termcap.c
 @@ -634,6 +634,135 @@
      return putchar(c);
  }
- 
+
 +#ifdef NOMUX_CAPTURE
 +/* NOMUX shadow frame buffer implementation */
 +nomux_cell nomux_buf[24][80];
@@ -174,7 +174,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 +#endif
      } else { /* no-CE fix - free after Harold Rynes */
          int cx = ttyDisplay->curx + 1;
- 
+
 @@ -673,6 +805,9 @@
          xputs(CL);
          home();
@@ -214,7 +214,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 +#endif
      } else {
          int cy = ttyDisplay->cury + 1;
- 
+
 @@ -1439,6 +1583,9 @@
  term_start_attr(int attr)
  {
@@ -223,7 +223,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 +        nomux_set_attr(attr);
 +#endif
          const char *astr = s_atr2str(attr);
- 
+
          if (astr && *astr)
 @@ -1450,6 +1597,9 @@
  term_end_attr(int attr)
@@ -233,7 +233,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 +        nomux_end_attr();
 +#endif
          const char *astr = e_atr2str(attr);
- 
+
          if (astr && *astr)
 @@ -1482,11 +1632,18 @@
  term_end_color(void)
@@ -244,7 +244,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 +    nomux_end_attr();
 +#endif
  }
- 
+
  void
  term_start_color(int color)
  {
@@ -340,7 +340,7 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
 +#endif
      return;
  }
- 
+
 @@ -4200,6 +4228,9 @@
      print_vt_code1(AVTC_INLINE_SYNC);
      term_curs_set(1);

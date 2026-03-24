@@ -11,9 +11,9 @@ index c8ee05bb..7954f033 100644
 +extern void nh_deterministic_qsort(void *, size_t, size_t,
 +                                   int (QSORTCALLBACK *)(const void *,
 +                                                         const void *));
- 
+
  /* ### role.c ### */
- 
+
 diff --git a/include/hack.h b/include/hack.h
 index 094b02f8..63be3d43 100644
 --- a/include/hack.h
@@ -21,7 +21,7 @@ index 094b02f8..63be3d43 100644
 @@ -1571,6 +1571,16 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
  #include "savefile.h"
  #include "decl.h"
- 
+
 +/*
 + * Harness determinism: replace libc qsort() with deterministic variant.
 + * This removes implementation-dependent equal-key ordering drift.
@@ -42,10 +42,10 @@ index 50be4169..1d872fcb 100644
 @@ -4,8 +4,65 @@
  /* Copyright (c) Robert Patrick Rankin, 1991                      */
  /* NetHack may be freely redistributed.  See license for details. */
- 
+
 +#define DETERMINISTIC_QSORT_IMPL
  #include "hack.h" /* for config.h+extern.h */
- 
+
 +struct nh_qsort_index {
 +    size_t idx;
 +};

@@ -150,7 +150,7 @@ diff --git a/src/trap.c b/src/trap.c
 @@ -6438,6 +6439,7 @@ deltrap(struct trap *trap)
  {
      struct trap *ttmp;
- 
+
 +    event_log("dtrap[%d,%d,%d]", trap->ttyp, trap->tx, trap->ty);
      clear_conjoined_pits(trap);
      if (trap == gf.ftrap) {

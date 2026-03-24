@@ -8,14 +8,14 @@ diff --git a/src/dogmove.c b/src/dogmove.c
 -    int carryamt = 0;
 +    int carryamt = 0, diag_act = 0, diag_otyp = -1, diag_carry = 0;
      struct obj *obj, *otmp;
- 
+
 -    if (helpless(mtmp) || mtmp->meating)
 +    if (helpless(mtmp) || mtmp->meating) {
 +        event_log("dog_invent_decision[%d@%d,%d ud=%d act=%d otyp=%d carry=%d rv=%d]",
 +                  monsndx(mtmp->data), mtmp->mx, mtmp->my, udist, -1, -1, 0, 0);
          return 0;
 +    }
- 
+
      omx = mtmp->mx;
      omy = mtmp->my;
 @@ -413,6 +416,7 @@
@@ -39,7 +39,7 @@ diff --git a/src/dogmove.c b/src/dogmove.c
 +                          monsndx(mtmp->data), omx, omy, udist, 2, obj->otyp, 0, rv);
 +                return rv;
 +            }
- 
+
              carryamt = can_carry(mtmp, obj);
              if (carryamt > 0 && !obj->cursed
 @@ -458,6 +467,9 @@
@@ -62,7 +62,7 @@ diff --git a/src/dogmove.c b/src/dogmove.c
  }
 @@ -1274,6 +1288,8 @@
          return i;
- 
+
   newdogpos:
 +    event_log("dog_move_choice[%d@%d,%d pick=%d,%d chi=%d do_eat=%d cnt=%d appr=%d]",
 +              monsndx(mtmp->data), omx, omy, nix, niy, chi, do_eat ? 1 : 0, cnt, appr);
@@ -77,12 +77,12 @@ diff --git a/src/monmove.c b/src/monmove.c
      int seescaryx, seescaryy;
      boolean sawscary = FALSE, bravegremlin = (rn2(5) == 0);
 +    boolean fleelight = FALSE, sanctuary = FALSE;
- 
+
      *inrange = (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy)
                  <= (BOLT_LIM * BOLT_LIM));
 @@ -558,13 +559,23 @@
      }
- 
+
      sawscary = onscary(seescaryx, seescaryy, mtmp);
 -    if (*nearby && (sawscary
 -                    || (flees_light(mtmp) && !bravegremlin)
@@ -106,5 +106,5 @@ diff --git a/src/monmove.c b/src/monmove.c
 +              bravegremlin ? 1 : 0, sawscary ? 1 : 0, fleelight ? 1 : 0,
 +              sanctuary ? 1 : 0);
  }
- 
+
  #undef flees_light

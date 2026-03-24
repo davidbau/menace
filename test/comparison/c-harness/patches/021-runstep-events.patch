@@ -106,12 +106,12 @@ diff --git a/src/allmain.c b/src/allmain.c
 +                      svc.context.move, go.occupation ? 1 : 0,                 \
 +                      u.umoved ? 1 : 0, u.ux, u.uy);                           \
 +    } while (0)
- 
+
  void
  moveloop_core(void)
 @@ -523,6 +538,7 @@ moveloop_core(void)
      u.umoved = FALSE;
- 
+
      if (gm.multi > 0) {
 +        RUNSTEP_EVENT(svc.context.mv ? "repeat_mv" : "repeat_cmd", gc.cmd_key);
          lookaround();
@@ -136,6 +136,6 @@ diff --git a/src/allmain.c b/src/allmain.c
      }
  }
 +#undef RUNSTEP_EVENT
- 
+
  staticfn void
  maybe_do_tutorial(void)

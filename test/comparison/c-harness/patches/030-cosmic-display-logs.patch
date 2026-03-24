@@ -13,7 +13,7 @@ index fc52eac41..f03dfa731 100644
 +#define random_object(rng) \
 +    (cosmic_display_prepare_rng_kind("obj"), \
 +     (*rng)(NUM_OBJECTS - FIRST_OBJECT) + FIRST_OBJECT)
- 
+
  /*
   * what_obj()
 diff --git a/include/extern.h b/include/extern.h
@@ -60,7 +60,7 @@ index 072d33b29..e2cd10079 100644
              see_traps();
 +            cosmic_display_pop_owner("make_hallucinated");
          }
- 
+
          /* for perm_inv and anything similar
 diff --git a/src/display.c b/src/display.c
 index fa05f7834..1adbc321c 100644
@@ -92,12 +92,12 @@ index fa05f7834..1adbc321c 100644
              show_region(_ml_reg, x, y);                                 \
 +        cosmic_display_clear_maploc_branch();                           \
      } while (0)
- 
+
  void
 @@ -923,21 +928,38 @@ newsym(coordxy x, coordxy y)
      struct rm *lev = &(levl[x][y]);
      struct engr *ep;
- 
+
 +    cosmic_display_set_cell(x, y);
 +    cosmic_display_clear_newsym_branch();
 +    cosmic_display_clear_maploc_branch();
@@ -110,7 +110,7 @@ index fa05f7834..1adbc321c 100644
 +        cosmic_display_clear_cell();
          return;
 +    }
- 
+
      /* only permit updating the hero when swallowed */
      if (u.uswallow) {
 -        if (u_at(x, y))
@@ -134,7 +134,7 @@ index fa05f7834..1adbc321c 100644
              return;
 +        }
      }
- 
+
      /* Can physically see the location. */
 @@ -984,13 +1006,21 @@ newsym(coordxy x, coordxy y)
          if (reg && (ACCESSIBLE(lev->typ)
@@ -148,14 +148,14 @@ index fa05f7834..1adbc321c 100644
                  return;
              }
          }
- 
+
          if (u_at(x, y)) {
              int see_self = canspotself();
 +            cosmic_display_log_newsym(x, y,
 +                                      see_self ? "hero-visible"
 +                                               : "hero-map-location",
 +                                      1);
- 
+
              /* update map information for <u.ux,u.uy> (remembered topology
                 and object/known trap/terrain glyph) but only display it if
 @@ -1005,6 +1035,7 @@ newsym(coordxy x, coordxy y)
@@ -186,7 +186,7 @@ index fa05f7834..1adbc321c 100644
          if (u_at(x, y)) {
 +            cosmic_display_log_newsym(x, y, "oos-self", 0);
              feel_location(u.ux, u.uy); /* forces an update */
- 
+
              if (canspotself())
 @@ -1039,11 +1074,13 @@ newsym(coordxy x, coordxy y)
                                    || (see_with_infrared(mon)
@@ -200,7 +200,7 @@ index fa05f7834..1adbc321c 100644
          } else if (mon && mon_warning(mon) && !is_worm_tail(mon)) {
 +            cosmic_display_log_newsym(x, y, "oos-warning", 0);
              display_warning(mon);
- 
+
          /*
 @@ -1068,6 +1105,7 @@ newsym(coordxy x, coordxy y)
           * They are dependent on the position being out of sight.
@@ -231,14 +231,14 @@ index fa05f7834..1adbc321c 100644
 +    cosmic_display_clear_maploc_branch();
 +    cosmic_display_clear_cell();
  }
- 
+
  #undef is_worm_tail
 @@ -1485,6 +1528,7 @@ see_monsters(void)
- 
+
      if (gd.defer_see_monsters)
          return;
 +    cosmic_display_push_owner("see_monsters");
- 
+
      /* steed and unseen engulfer/holder/holdee are recognized via touch
         even if they aren't going to be rendered; other monsters
 @@ -1518,6 +1562,7 @@ see_monsters(void)
@@ -247,12 +247,12 @@ index fa05f7834..1adbc321c 100644
          newsym(u.ux, u.uy);
 +    cosmic_display_pop_owner("see_monsters");
  }
- 
+
  staticfn void
 @@ -1551,6 +1596,8 @@ see_objects(void)
  {
      struct obj *obj;
- 
+
 +    cosmic_display_push_owner("see_objects");
 +
      for (obj = fobj; obj; obj = obj->nobj)
@@ -264,12 +264,12 @@ index fa05f7834..1adbc321c 100644
      update_inventory();
 +    cosmic_display_pop_owner("see_objects");
  }
- 
+
  /* mark the top object of nearby stacks as having been seen, and if
 @@ -1605,11 +1653,14 @@ see_traps(void)
      struct trap *trap;
      int glyph;
- 
+
 +    cosmic_display_push_owner("see_traps");
 +
      for (trap = gf.ftrap; trap; trap = trap->ntrap) {
@@ -279,23 +279,23 @@ index fa05f7834..1adbc321c 100644
      }
 +    cosmic_display_pop_owner("see_traps");
  }
- 
+
  /*  glyph, ttychar, framecolor,
 @@ -1710,6 +1761,7 @@ docrt_flags(int refresh_flags)
          return; /* display isn't ready yet */
- 
+
      program_state.in_docrt = TRUE;
 +    cosmic_display_push_owner("docrt_flags");
- 
+
      if (redrawonly) {
          redraw_map(FALSE);
 @@ -1752,7 +1804,7 @@ docrt_flags(int refresh_flags)
      /* overlay with monsters */
      see_monsters();
- 
+
 - post_map:
 +post_map:
- 
+
      if (!maponly) {
          /* perm_invent */
 @@ -1761,6 +1813,7 @@ docrt_flags(int refresh_flags)
@@ -305,7 +305,7 @@ index fa05f7834..1adbc321c 100644
 +    cosmic_display_pop_owner("docrt_flags");
      program_state.in_docrt = FALSE;
  }
- 
+
 diff --git a/src/rnd.c b/src/rnd.c
 index a09ee62c4..b6f3bc2b4 100644
 --- a/src/rnd.c
@@ -327,7 +327,7 @@ index a09ee62c4..b6f3bc2b4 100644
 +
 +staticfn void cosmic_display_logf(const char *, ...);
 +staticfn const char *cosmic_display_current_owner(void);
- 
+
  void
  rng_log_init(void)
 @@ -48,6 +61,7 @@ rng_log_init(void)
@@ -344,12 +344,12 @@ index a09ee62c4..b6f3bc2b4 100644
      rng_log_disp = (disp && *disp && *disp != '0') ? TRUE : FALSE;
 +    cosmic_display_logs = (cosmic && *cosmic && *cosmic != '0') ? TRUE : FALSE;
  }
- 
+
  boolean
 @@ -84,6 +99,190 @@ rng_log_get_call_count(void)
      return rng_call_count;
  }
- 
+
 +boolean
 +cosmic_display_log_enabled(void)
 +{
@@ -589,7 +589,7 @@ index a09ee62c4..b6f3bc2b4 100644
 +    cosmic_rng_kind = (const char *) 0;
      return result;
  }
- 
+
 diff --git a/win/tty/wintty.c b/win/tty/wintty.c
 index 710ed7237..9c6ef674d 100644
 --- a/win/tty/wintty.c
@@ -633,7 +633,7 @@ index 710ed7237..9c6ef674d 100644
 @@ -1642,6 +1660,10 @@ process_menu_window(winid window, struct WinDesc *cw)
              else
                  Strcpy(cw->morestr, defmorestr);
- 
+
 +            cosmic_display_log_tty_menu_draw(
 +                window, "NHW_MENU", 0, page_lines, page_lines,
 +                cw->npages, curr_page, cw->morestr);
@@ -646,7 +646,7 @@ index 710ed7237..9c6ef674d 100644
      struct WinDesc *cw = 0;
      short s_maxcol;
 +    int fullscreen_menu;
- 
+
      HUPSKIP();
      if (window == WIN_ERR || (cw = wins[window]) == (struct WinDesc *) 0)
 @@ -2021,11 +2044,13 @@ tty_display_nhwindow(
@@ -670,7 +670,7 @@ index 710ed7237..9c6ef674d 100644
 @@ -2040,6 +2065,11 @@ tty_display_nhwindow(
                  tty_clear_nhwindow(WIN_MESSAGE);
          }
- 
+
 +        cosmic_display_log_tty_menu_show(
 +            window, (cw->type == NHW_TEXT) ? "NHW_TEXT" : "NHW_MENU",
 +            cw->offx, cw->offy, cw->maxrow, cw->maxcol,
@@ -682,7 +682,7 @@ index 710ed7237..9c6ef674d 100644
 @@ -2096,6 +2126,12 @@ tty_dismiss_nhwindow(winid window)
                  if (program_state.in_role_selection)
                      clearscreen = TRUE;
- 
+
 +                cosmic_display_log_tty_menu_hide(
 +                    window,
 +                    (cw->type == NHW_TEXT) ? "NHW_TEXT"

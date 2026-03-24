@@ -5,7 +5,7 @@ index 2dbc788ef..55c0edb65 100644
 @@ -227,7 +227,15 @@ more(void)
      if (flags.standout)
          standoutend();
- 
+
 +    repaint_debug_log("owner=tty.topl.more.await hp=%d topl=%d row=%d col=%d prompt=%s",
 +                      (int) u.uhp, (int) ttyDisplay->toplin,
 +                      cw ? cw->cury : -1, cw ? cw->curx : -1, "\033 ");
@@ -15,7 +15,7 @@ index 2dbc788ef..55c0edb65 100644
 +                      cw ? cw->cury : -1, cw ? cw->curx : -1,
 +                      (int) (unsigned char) morc,
 +                      (morc == '\033' || morc == ' ') ? 1 : 0);
- 
+
      if (morc == '\033') {
          if (!(cw->flags & WIN_NOSTOP))
 @@ -243,6 +251,10 @@ more(void)
