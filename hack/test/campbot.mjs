@@ -103,10 +103,12 @@ function bfsPath(tx, ty, allowSecretDoors, avoidMonsters = true) {
   return null;
 }
 
-// Simple BFS for movement (no secret doors, no monster avoidance)
+// Simple BFS for movement — tries avoiding monsters first, falls back to direct path
 function bfsKey(tx, ty) {
-  const result = bfsPath(tx, ty, false, false);
-  return result ? result.key : null;
+  const result = bfsPath(tx, ty, false, true);
+  if (result) return result.key;
+  const fallback = bfsPath(tx, ty, false, false);
+  return fallback ? fallback.key : null;
 }
 
 function findMonster(mlet) {
@@ -185,14 +187,25 @@ input.getKey = async function () {
     } else {
       let k = bfsKey(game.xdnstair, game.ydnstair);
       if (!k) {
+        // Stairs behind SDOOR. Find it, navigate adjacent, search.
         const path = bfsPath(game.xdnstair, game.ydnstair, true, false);
-        if (path) {
-          if (path.needsSearch) {
-            const sk = bfsKey(path.searchX, path.searchY);
-            k = (sk && !(u.ux === path.searchX && u.uy === path.searchY)) ? sk : 's';
+        if (path && path.needsSearch) {
+          let skey;
+          if (u.ux === path.searchX && u.uy === path.searchY) {
+            skey = 's';
           } else {
-            k = path.key;
+            const navKey = bfsKey(path.searchX, path.searchY);
+            // If stuck (same position as last step), search from here instead of navigating
+            if (navKey && `${u.ux},${u.uy}` === lastPos && stuckCount > 3) {
+              skey = 's';
+            } else {
+              skey = navKey || 's';
+            }
           }
+          keyLog.push(skey);
+          return skey;
+        } else if (path) {
+          k = path.key;
         }
       }
       key = k || 's';
