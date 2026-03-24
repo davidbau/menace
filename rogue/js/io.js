@@ -141,7 +141,7 @@ export function status() {
   }
 
   // Build status line
-  let buf = `Level: ${g.level}  Gold: ${String(g.purse).padEnd(5)}  Hp: ${String(ps.s_hpt).padStart(_hpwidth)}(${String(g.max_hp).padStart(_hpwidth)})  Str: ${ps.s_str.st_str}`;
+  let buf = `Level: ${g.level}  Gold: ${String(g.purse).padEnd(5)}  Hp: ${String(ps.s_hpt).padStart(_hpwidth)}(${String(g.max_hp).padStart(_hpwidth)})  Str: ${String(ps.s_str.st_str).padEnd(2)}`;
   if (ps.s_str.st_add !== 0) {
     buf += `/${ps.s_str.st_add}`;
   }
