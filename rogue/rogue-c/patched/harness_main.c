@@ -199,6 +199,7 @@ void harness_exit(int code)
     _exit(0);  /* skip atexit handlers that may crash on game teardown */
 }
 
+
 /* ===== md_readchar replacement ===== */
 /*
  * The game's md_readchar(WINDOW*) in mdport.c is renamed to
@@ -225,6 +226,7 @@ int main(int argc, char **argv)
     unsigned int seed_val = 42;
     const char *keys = "";
     const char *outfile = NULL;
+    const char *restore_file = NULL;
     int i;
 
     /* Check env vars (as specified in design) */
@@ -232,12 +234,14 @@ int main(int argc, char **argv)
         char *h_seed = getenv("HARNESS_SEED");
         char *h_keys = getenv("HARNESS_KEYS");
         char *h_out  = getenv("HARNESS_OUT");
+        char *h_rest = getenv("HARNESS_RESTORE");
         if (h_seed) seed_val = (unsigned int)atoi(h_seed);
         if (h_keys) keys = h_keys;
         if (h_out)  outfile = h_out;
+        if (h_rest) restore_file = h_rest;
     }
 
-    /* Also support command-line args: --seed N --keys "..." --out file */
+    /* Also support command-line args: --seed N --keys "..." --out file --restore file */
     for (i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc)
             seed_val = (unsigned int)atoi(argv[++i]);
@@ -245,6 +249,8 @@ int main(int argc, char **argv)
             keys = argv[++i];
         else if (strcmp(argv[i], "--out") == 0 && i + 1 < argc)
             outfile = argv[++i];
+        else if (strcmp(argv[i], "--restore") == 0 && i + 1 < argc)
+            restore_file = argv[++i];
         else if (strcmp(argv[i], "--wizard") == 0)
             wizard = 1;
     }
@@ -255,24 +261,28 @@ int main(int argc, char **argv)
     harness_outfile = outfile;
 
     g_harness_seed = seed_val;
-    /* Set forced seed — this overrides any srand() call the game makes */
-    harness_set_forced_seed(seed_val);
 
     /* Set ROGUEOPTS and USER env to avoid interactive prompts */
     setenv("ROGUEOPTS", "name=rogue,fruit=papaya", 1);
     setenv("USER", "rogue", 1);
     setenv("HOME", "/tmp", 1);
-    /* Provide SEED env var so wizard mode seed works if needed */
-    {
+
+    if (!restore_file) {
+        /* New game: set forced seed */
+        harness_set_forced_seed(seed_val);
+        /* Provide SEED env var so wizard mode seed works if needed */
         char seedbuf[32];
         snprintf(seedbuf, sizeof(seedbuf), "%u", seed_val);
         setenv("SEED", seedbuf, 1);
+
+        char *game_argv[2] = { "rogue_harness", NULL };
+        game_main(1, game_argv, NULL);
+    } else {
+        /* Restore from save file: pass save file as argv[1] to trigger restore() */
+        /* Do NOT set forced seed — restore() loads the RNG state from the save */
+        char *game_argv[3] = { "rogue_harness", (char *)restore_file, NULL };
+        game_main(2, game_argv, NULL);
     }
-
-    /* Build a minimal argv for game_main */
-    char *game_argv[2] = { "rogue_harness", NULL };
-
-    game_main(1, game_argv, NULL);
 
     /* Should not reach here */
     harness_exit(0);
