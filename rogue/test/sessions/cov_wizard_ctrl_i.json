@@ -33,7 +33,7 @@
     },
     {
       "key": "\u001b",
-      "rng": [],
+      "rng": ["^cmd[ch=9 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '^I'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=27 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

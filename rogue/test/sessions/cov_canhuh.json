@@ -33,7 +33,7 @@
     },
     {
       "key": "?",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "0",
-      "rng": [],
+      "rng": ["^cmd[ch=63 no_cmd=0 after=1]"],
       "screen": [
         "Character you want help for (* for all):",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "b",
-      "rng": [],
+      "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": " ",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "l",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": " ",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "l",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "l",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "l",
-      "rng": [90],
+      "rng": [90,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -423,7 +423,7 @@
     },
     {
       "key": "l",
-      "rng": [93],
+      "rng": [93,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": "l",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -483,7 +483,7 @@
     },
     {
       "key": "l",
-      "rng": [52],
+      "rng": [52,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -513,7 +513,7 @@
     },
     {
       "key": " ",
-      "rng": [72],
+      "rng": [72,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -543,7 +543,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -573,7 +573,7 @@
     },
     {
       "key": "l",
-      "rng": [87],
+      "rng": [87,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -603,7 +603,7 @@
     },
     {
       "key": " ",
-      "rng": [67],
+      "rng": [67,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -633,7 +633,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -663,7 +663,7 @@
     },
     {
       "key": "l",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -693,7 +693,7 @@
     },
     {
       "key": " ",
-      "rng": [14],
+      "rng": [14,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -723,7 +723,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -753,7 +753,7 @@
     },
     {
       "key": "l",
-      "rng": [1],
+      "rng": [1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -783,7 +783,7 @@
     },
     {
       "key": " ",
-      "rng": [93],
+      "rng": [93,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -813,7 +813,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -843,7 +843,7 @@
     },
     {
       "key": "l",
-      "rng": [60],
+      "rng": [60,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -873,7 +873,7 @@
     },
     {
       "key": " ",
-      "rng": [16],
+      "rng": [16,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -903,7 +903,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -933,7 +933,7 @@
     },
     {
       "key": "l",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -963,7 +963,7 @@
     },
     {
       "key": " ",
-      "rng": [3],
+      "rng": [3,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -993,7 +993,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1023,7 +1023,7 @@
     },
     {
       "key": "l",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1053,7 +1053,7 @@
     },
     {
       "key": " ",
-      "rng": [66],
+      "rng": [66,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1083,7 +1083,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1113,7 +1113,7 @@
     },
     {
       "key": "l",
-      "rng": [1],
+      "rng": [1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1143,7 +1143,7 @@
     },
     {
       "key": " ",
-      "rng": [33],
+      "rng": [33,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1173,7 +1173,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1203,7 +1203,7 @@
     },
     {
       "key": "l",
-      "rng": [32],
+      "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1233,7 +1233,7 @@
     },
     {
       "key": " ",
-      "rng": [64],
+      "rng": [64,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1263,7 +1263,7 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1293,7 +1293,7 @@
     },
     {
       "key": "l",
-      "rng": [63],
+      "rng": [63,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1323,7 +1323,7 @@
     },
     {
       "key": " ",
-      "rng": [11],
+      "rng": [11,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1353,7 +1353,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

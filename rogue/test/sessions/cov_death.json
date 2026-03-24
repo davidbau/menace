@@ -33,7 +33,7 @@
     },
     {
       "key": "j",
-      "rng": [82],
+      "rng": [82,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "k",
-      "rng": [97],
+      "rng": [97,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "l",
-      "rng": [5],
+      "rng": [5,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "h",
-      "rng": [32],
+      "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "j",
-      "rng": [40],
+      "rng": [40,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "k",
-      "rng": [55],
+      "rng": [55,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "l",
-      "rng": [75],
+      "rng": [75,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "h",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "j",
-      "rng": [42],
+      "rng": [42,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "k",
-      "rng": [33],
+      "rng": [33,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "l",
-      "rng": [69],
+      "rng": [69,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "h",
-      "rng": [84],
+      "rng": [84,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "j",
-      "rng": [36],
+      "rng": [36,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -423,7 +423,7 @@
     },
     {
       "key": "k",
-      "rng": [23],
+      "rng": [23,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": "l",
-      "rng": [63],
+      "rng": [63,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -483,7 +483,7 @@
     },
     {
       "key": "h",
-      "rng": [70],
+      "rng": [70,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -513,7 +513,7 @@
     },
     {
       "key": "j",
-      "rng": [46],
+      "rng": [46,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -543,7 +543,7 @@
     },
     {
       "key": "k",
-      "rng": [93],
+      "rng": [93,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -573,7 +573,7 @@
     },
     {
       "key": "l",
-      "rng": [61],
+      "rng": [61,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -603,7 +603,7 @@
     },
     {
       "key": "h",
-      "rng": [16],
+      "rng": [16,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -633,7 +633,7 @@
     },
     {
       "key": "j",
-      "rng": [20],
+      "rng": [20,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -663,7 +663,7 @@
     },
     {
       "key": "k",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -693,7 +693,7 @@
     },
     {
       "key": "l",
-      "rng": [23],
+      "rng": [23,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -723,7 +723,7 @@
     },
     {
       "key": "h",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -753,7 +753,7 @@
     },
     {
       "key": "j",
-      "rng": [98],
+      "rng": [98,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -783,7 +783,7 @@
     },
     {
       "key": "k",
-      "rng": [49],
+      "rng": [49,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -813,7 +813,7 @@
     },
     {
       "key": "l",
-      "rng": [69],
+      "rng": [69,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -843,7 +843,7 @@
     },
     {
       "key": "h",
-      "rng": [32],
+      "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -873,7 +873,7 @@
     },
     {
       "key": "j",
-      "rng": [96],
+      "rng": [96,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -903,7 +903,7 @@
     },
     {
       "key": "k",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -933,7 +933,7 @@
     },
     {
       "key": "l",
-      "rng": [43],
+      "rng": [43,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -963,7 +963,7 @@
     },
     {
       "key": "h",
-      "rng": [70],
+      "rng": [70,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -993,7 +993,7 @@
     },
     {
       "key": "j",
-      "rng": [86],
+      "rng": [86,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1023,7 +1023,7 @@
     },
     {
       "key": "k",
-      "rng": [89],
+      "rng": [89,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1053,7 +1053,7 @@
     },
     {
       "key": "l",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1083,7 +1083,7 @@
     },
     {
       "key": "h",
-      "rng": [20],
+      "rng": [20,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1113,7 +1113,7 @@
     },
     {
       "key": "j",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1143,7 +1143,7 @@
     },
     {
       "key": "k",
-      "rng": [23],
+      "rng": [23,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1173,7 +1173,7 @@
     },
     {
       "key": "l",
-      "rng": [27],
+      "rng": [27,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1203,7 +1203,7 @@
     },
     {
       "key": "h",
-      "rng": [70],
+      "rng": [70,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1233,7 +1233,7 @@
     },
     {
       "key": "j",
-      "rng": [14],
+      "rng": [14,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1263,7 +1263,7 @@
     },
     {
       "key": "k",
-      "rng": [49],
+      "rng": [49,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1293,7 +1293,7 @@
     },
     {
       "key": "l",
-      "rng": [17],
+      "rng": [17,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1323,7 +1323,7 @@
     },
     {
       "key": "h",
-      "rng": [84],
+      "rng": [84,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1353,7 +1353,7 @@
     },
     {
       "key": "j",
-      "rng": [24],
+      "rng": [24,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1383,7 +1383,7 @@
     },
     {
       "key": "k",
-      "rng": [91],
+      "rng": [91,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1413,7 +1413,7 @@
     },
     {
       "key": "l",
-      "rng": [79],
+      "rng": [79,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1443,7 +1443,7 @@
     },
     {
       "key": "h",
-      "rng": [82],
+      "rng": [82,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1473,7 +1473,7 @@
     },
     {
       "key": "j",
-      "rng": [70],
+      "rng": [70,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1503,7 +1503,7 @@
     },
     {
       "key": "k",
-      "rng": [17],
+      "rng": [17,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1533,7 +1533,7 @@
     },
     {
       "key": "l",
-      "rng": [65],
+      "rng": [65,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1563,7 +1563,7 @@
     },
     {
       "key": "h",
-      "rng": [44],
+      "rng": [44,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1593,7 +1593,7 @@
     },
     {
       "key": "j",
-      "rng": [84],
+      "rng": [84,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1623,7 +1623,7 @@
     },
     {
       "key": "k",
-      "rng": [19],
+      "rng": [19,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1653,7 +1653,7 @@
     },
     {
       "key": "l",
-      "rng": [3],
+      "rng": [3,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1683,7 +1683,7 @@
     },
     {
       "key": "h",
-      "rng": [42],
+      "rng": [42,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1713,7 +1713,7 @@
     },
     {
       "key": "j",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1743,7 +1743,7 @@
     },
     {
       "key": "k",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1773,7 +1773,7 @@
     },
     {
       "key": "l",
-      "rng": [29],
+      "rng": [29,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1803,7 +1803,7 @@
     },
     {
       "key": "h",
-      "rng": [56],
+      "rng": [56,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1833,7 +1833,7 @@
     },
     {
       "key": "j",
-      "rng": [20],
+      "rng": [20,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1863,7 +1863,7 @@
     },
     {
       "key": "k",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1893,7 +1893,7 @@
     },
     {
       "key": "l",
-      "rng": [87],
+      "rng": [87,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1923,7 +1923,7 @@
     },
     {
       "key": "h",
-      "rng": [6],
+      "rng": [6,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1953,7 +1953,7 @@
     },
     {
       "key": "j",
-      "rng": [30],
+      "rng": [30,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1983,7 +1983,7 @@
     },
     {
       "key": "k",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2013,7 +2013,7 @@
     },
     {
       "key": "l",
-      "rng": [13],
+      "rng": [13,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2043,7 +2043,7 @@
     },
     {
       "key": "h",
-      "rng": [72],
+      "rng": [72,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2073,7 +2073,7 @@
     },
     {
       "key": "j",
-      "rng": [52],
+      "rng": [52,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2103,7 +2103,7 @@
     },
     {
       "key": "k",
-      "rng": [23],
+      "rng": [23,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2133,7 +2133,7 @@
     },
     {
       "key": "l",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2163,7 +2163,7 @@
     },
     {
       "key": "h",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2193,7 +2193,7 @@
     },
     {
       "key": "j",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2223,7 +2223,7 @@
     },
     {
       "key": "k",
-      "rng": [13,5],
+      "rng": [13,5,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2253,7 +2253,7 @@
     },
     {
       "key": "l",
-      "rng": [48],
+      "rng": [48,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2283,7 +2283,7 @@
     },
     {
       "key": "h",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2313,7 +2313,7 @@
     },
     {
       "key": "j",
-      "rng": [7],
+      "rng": [7,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2343,7 +2343,7 @@
     },
     {
       "key": "k",
-      "rng": [51,2],
+      "rng": [51,2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2373,7 +2373,7 @@
     },
     {
       "key": "l",
-      "rng": [50],
+      "rng": [50,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2403,7 +2403,7 @@
     },
     {
       "key": "h",
-      "rng": [89],
+      "rng": [89,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2433,7 +2433,7 @@
     },
     {
       "key": "j",
-      "rng": [9],
+      "rng": [9,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2463,7 +2463,7 @@
     },
     {
       "key": "k",
-      "rng": [4,2],
+      "rng": [4,2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2493,7 +2493,7 @@
     },
     {
       "key": "l",
-      "rng": [51],
+      "rng": [51,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2523,7 +2523,7 @@
     },
     {
       "key": "h",
-      "rng": [39],
+      "rng": [39,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2553,7 +2553,7 @@
     },
     {
       "key": "j",
-      "rng": [6],
+      "rng": [6,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2583,7 +2583,7 @@
     },
     {
       "key": "k",
-      "rng": [22,5],
+      "rng": [22,5,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2613,7 +2613,7 @@
     },
     {
       "key": "l",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2643,7 +2643,7 @@
     },
     {
       "key": "h",
-      "rng": [44],
+      "rng": [44,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2673,7 +2673,7 @@
     },
     {
       "key": "j",
-      "rng": [84],
+      "rng": [84,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2703,7 +2703,7 @@
     },
     {
       "key": "k",
-      "rng": [43,5],
+      "rng": [43,5,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2733,7 +2733,7 @@
     },
     {
       "key": "l",
-      "rng": [6],
+      "rng": [6,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2763,7 +2763,7 @@
     },
     {
       "key": "h",
-      "rng": [30],
+      "rng": [30,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2793,7 +2793,7 @@
     },
     {
       "key": "j",
-      "rng": [49],
+      "rng": [49,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2823,7 +2823,7 @@
     },
     {
       "key": "k",
-      "rng": [85,4],
+      "rng": [85,4,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2853,7 +2853,7 @@
     },
     {
       "key": "l",
-      "rng": [76],
+      "rng": [76,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2883,7 +2883,7 @@
     },
     {
       "key": "h",
-      "rng": [87],
+      "rng": [87,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2913,7 +2913,7 @@
     },
     {
       "key": "j",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2943,7 +2943,7 @@
     },
     {
       "key": "k",
-      "rng": [14,4],
+      "rng": [14,4,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -2973,7 +2973,7 @@
     },
     {
       "key": "l",
-      "rng": [41],
+      "rng": [41,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3003,7 +3003,7 @@
     },
     {
       "key": "h",
-      "rng": [49],
+      "rng": [49,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3033,7 +3033,7 @@
     },
     {
       "key": "j",
-      "rng": [60],
+      "rng": [60,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3063,7 +3063,7 @@
     },
     {
       "key": "k",
-      "rng": [68,1],
+      "rng": [68,1,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3093,7 +3093,7 @@
     },
     {
       "key": "l",
-      "rng": [79],
+      "rng": [79,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3123,7 +3123,7 @@
     },
     {
       "key": "h",
-      "rng": [66],
+      "rng": [66,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3153,7 +3153,7 @@
     },
     {
       "key": "j",
-      "rng": [70],
+      "rng": [70,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3183,7 +3183,7 @@
     },
     {
       "key": "k",
-      "rng": [25,5],
+      "rng": [25,5,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3213,7 +3213,7 @@
     },
     {
       "key": "l",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3243,7 +3243,7 @@
     },
     {
       "key": "h",
-      "rng": [32],
+      "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3273,7 +3273,7 @@
     },
     {
       "key": "j",
-      "rng": [31],
+      "rng": [31,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3303,7 +3303,7 @@
     },
     {
       "key": "k",
-      "rng": [15,2],
+      "rng": [15,2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3333,7 +3333,7 @@
     },
     {
       "key": "l",
-      "rng": [94],
+      "rng": [94,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3363,7 +3363,7 @@
     },
     {
       "key": "h",
-      "rng": [5],
+      "rng": [5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3393,7 +3393,7 @@
     },
     {
       "key": "j",
-      "rng": [1],
+      "rng": [1,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3423,7 +3423,7 @@
     },
     {
       "key": "k",
-      "rng": [80,2],
+      "rng": [80,2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3453,7 +3453,7 @@
     },
     {
       "key": "l",
-      "rng": [39],
+      "rng": [39,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3483,7 +3483,7 @@
     },
     {
       "key": "h",
-      "rng": [27],
+      "rng": [27,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3513,7 +3513,7 @@
     },
     {
       "key": "j",
-      "rng": [38],
+      "rng": [38,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3543,7 +3543,7 @@
     },
     {
       "key": "k",
-      "rng": [70,5],
+      "rng": [70,5,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3573,7 +3573,7 @@
     },
     {
       "key": "l",
-      "rng": [13],
+      "rng": [13,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3603,7 +3603,7 @@
     },
     {
       "key": "h",
-      "rng": [4],
+      "rng": [4,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3633,7 +3633,7 @@
     },
     {
       "key": "j",
-      "rng": [56],
+      "rng": [56,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3663,7 +3663,7 @@
     },
     {
       "key": "k",
-      "rng": [99,1],
+      "rng": [99,1,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3693,7 +3693,7 @@
     },
     {
       "key": "l",
-      "rng": [66],
+      "rng": [66,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3723,7 +3723,7 @@
     },
     {
       "key": "h",
-      "rng": [86],
+      "rng": [86,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3753,7 +3753,7 @@
     },
     {
       "key": "j",
-      "rng": [1],
+      "rng": [1,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3783,7 +3783,7 @@
     },
     {
       "key": "k",
-      "rng": [33,4],
+      "rng": [33,4,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3813,7 +3813,7 @@
     },
     {
       "key": "l",
-      "rng": [8],
+      "rng": [8,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3843,7 +3843,7 @@
     },
     {
       "key": "h",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3873,7 +3873,7 @@
     },
     {
       "key": "j",
-      "rng": [47],
+      "rng": [47,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3903,7 +3903,7 @@
     },
     {
       "key": "k",
-      "rng": [22,2],
+      "rng": [22,2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3933,7 +3933,7 @@
     },
     {
       "key": "l",
-      "rng": [93],
+      "rng": [93,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3963,7 +3963,7 @@
     },
     {
       "key": "h",
-      "rng": [65],
+      "rng": [65,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -3993,7 +3993,7 @@
     },
     {
       "key": "j",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4023,7 +4023,7 @@
     },
     {
       "key": "k",
-      "rng": [48,3,5,3,5,1,3,3,0],
+      "rng": [48,3,5,3,5,1,3,3,0,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4053,7 +4053,7 @@
     },
     {
       "key": "l",
-      "rng": [83],
+      "rng": [83,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4083,7 +4083,7 @@
     },
     {
       "key": "h",
-      "rng": [23],
+      "rng": [23,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4113,7 +4113,7 @@
     },
     {
       "key": "j",
-      "rng": [18],
+      "rng": [18,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4143,7 +4143,7 @@
     },
     {
       "key": "k",
-      "rng": [66],
+      "rng": [66,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4173,7 +4173,7 @@
     },
     {
       "key": "l",
-      "rng": [1],
+      "rng": [1,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4203,7 +4203,7 @@
     },
     {
       "key": "h",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4233,7 +4233,7 @@
     },
     {
       "key": "j",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4263,7 +4263,7 @@
     },
     {
       "key": "k",
-      "rng": [92],
+      "rng": [92,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4293,7 +4293,7 @@
     },
     {
       "key": "l",
-      "rng": [59],
+      "rng": [59,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4323,7 +4323,7 @@
     },
     {
       "key": "h",
-      "rng": [63],
+      "rng": [63,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4353,7 +4353,7 @@
     },
     {
       "key": "j",
-      "rng": [66],
+      "rng": [66,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4383,7 +4383,7 @@
     },
     {
       "key": "k",
-      "rng": [50],
+      "rng": [50,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4413,7 +4413,7 @@
     },
     {
       "key": "l",
-      "rng": [9],
+      "rng": [9,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4443,7 +4443,7 @@
     },
     {
       "key": "h",
-      "rng": [73],
+      "rng": [73,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4473,7 +4473,7 @@
     },
     {
       "key": "j",
-      "rng": [12],
+      "rng": [12,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4503,7 +4503,7 @@
     },
     {
       "key": "k",
-      "rng": [88],
+      "rng": [88,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4533,7 +4533,7 @@
     },
     {
       "key": "l",
-      "rng": [75],
+      "rng": [75,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4563,7 +4563,7 @@
     },
     {
       "key": "h",
-      "rng": [55],
+      "rng": [55,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4593,7 +4593,7 @@
     },
     {
       "key": "j",
-      "rng": [42],
+      "rng": [42,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4623,7 +4623,7 @@
     },
     {
       "key": "k",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4653,7 +4653,7 @@
     },
     {
       "key": "l",
-      "rng": [25],
+      "rng": [25,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4683,7 +4683,7 @@
     },
     {
       "key": "h",
-      "rng": [77],
+      "rng": [77,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4713,7 +4713,7 @@
     },
     {
       "key": "j",
-      "rng": [4],
+      "rng": [4,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4743,7 +4743,7 @@
     },
     {
       "key": "k",
-      "rng": [88],
+      "rng": [88,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4773,7 +4773,7 @@
     },
     {
       "key": "l",
-      "rng": [51],
+      "rng": [51,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4803,7 +4803,7 @@
     },
     {
       "key": "h",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4833,7 +4833,7 @@
     },
     {
       "key": "j",
-      "rng": [34],
+      "rng": [34,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4863,7 +4863,7 @@
     },
     {
       "key": "k",
-      "rng": [22],
+      "rng": [22,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4893,7 +4893,7 @@
     },
     {
       "key": "l",
-      "rng": [37],
+      "rng": [37,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4923,7 +4923,7 @@
     },
     {
       "key": "h",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4953,7 +4953,7 @@
     },
     {
       "key": "j",
-      "rng": [80],
+      "rng": [80,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -4983,7 +4983,7 @@
     },
     {
       "key": "k",
-      "rng": [80],
+      "rng": [80,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5013,7 +5013,7 @@
     },
     {
       "key": "l",
-      "rng": [75],
+      "rng": [75,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5043,7 +5043,7 @@
     },
     {
       "key": "h",
-      "rng": [59],
+      "rng": [59,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5073,7 +5073,7 @@
     },
     {
       "key": "j",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5103,7 +5103,7 @@
     },
     {
       "key": "k",
-      "rng": [18],
+      "rng": [18,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5133,7 +5133,7 @@
     },
     {
       "key": "l",
-      "rng": [65],
+      "rng": [65,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5163,7 +5163,7 @@
     },
     {
       "key": "h",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5193,7 +5193,7 @@
     },
     {
       "key": "j",
-      "rng": [44],
+      "rng": [44,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5223,7 +5223,7 @@
     },
     {
       "key": "k",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5253,7 +5253,7 @@
     },
     {
       "key": "l",
-      "rng": [67],
+      "rng": [67,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5283,7 +5283,7 @@
     },
     {
       "key": "h",
-      "rng": [63],
+      "rng": [63,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5313,7 +5313,7 @@
     },
     {
       "key": "j",
-      "rng": [14],
+      "rng": [14,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5343,7 +5343,7 @@
     },
     {
       "key": "k",
-      "rng": [54],
+      "rng": [54,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5373,7 +5373,7 @@
     },
     {
       "key": "l",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5403,7 +5403,7 @@
     },
     {
       "key": "h",
-      "rng": [53],
+      "rng": [53,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5433,7 +5433,7 @@
     },
     {
       "key": "j",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5463,7 +5463,7 @@
     },
     {
       "key": "k",
-      "rng": [40],
+      "rng": [40,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5493,7 +5493,7 @@
     },
     {
       "key": "l",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5523,7 +5523,7 @@
     },
     {
       "key": "h",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5553,7 +5553,7 @@
     },
     {
       "key": "j",
-      "rng": [94],
+      "rng": [94,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5583,7 +5583,7 @@
     },
     {
       "key": "k",
-      "rng": [34],
+      "rng": [34,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5613,7 +5613,7 @@
     },
     {
       "key": "l",
-      "rng": [5],
+      "rng": [5,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5643,7 +5643,7 @@
     },
     {
       "key": "h",
-      "rng": [13],
+      "rng": [13,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5673,7 +5673,7 @@
     },
     {
       "key": "j",
-      "rng": [72],
+      "rng": [72,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5703,7 +5703,7 @@
     },
     {
       "key": "k",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5733,7 +5733,7 @@
     },
     {
       "key": "l",
-      "rng": [91],
+      "rng": [91,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5763,7 +5763,7 @@
     },
     {
       "key": "h",
-      "rng": [63],
+      "rng": [63,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5793,7 +5793,7 @@
     },
     {
       "key": "j",
-      "rng": [6],
+      "rng": [6,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5823,7 +5823,7 @@
     },
     {
       "key": "k",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5853,7 +5853,7 @@
     },
     {
       "key": "l",
-      "rng": [25],
+      "rng": [25,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5883,7 +5883,7 @@
     },
     {
       "key": "h",
-      "rng": [5],
+      "rng": [5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5913,7 +5913,7 @@
     },
     {
       "key": "j",
-      "rng": [60],
+      "rng": [60,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5943,7 +5943,7 @@
     },
     {
       "key": "k",
-      "rng": [52],
+      "rng": [52,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -5973,7 +5973,7 @@
     },
     {
       "key": "l",
-      "rng": [31],
+      "rng": [31,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6003,7 +6003,7 @@
     },
     {
       "key": "h",
-      "rng": [67],
+      "rng": [67,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6033,7 +6033,7 @@
     },
     {
       "key": "j",
-      "rng": [54],
+      "rng": [54,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6063,7 +6063,7 @@
     },
     {
       "key": "k",
-      "rng": [26],
+      "rng": [26,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6093,7 +6093,7 @@
     },
     {
       "key": "l",
-      "rng": [61],
+      "rng": [61,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6123,7 +6123,7 @@
     },
     {
       "key": "h",
-      "rng": [85],
+      "rng": [85,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6153,7 +6153,7 @@
     },
     {
       "key": "j",
-      "rng": [36],
+      "rng": [36,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6183,7 +6183,7 @@
     },
     {
       "key": "k",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6213,7 +6213,7 @@
     },
     {
       "key": "l",
-      "rng": [23,3,3,4,1,5,4],
+      "rng": [23,3,3,4,1,5,4,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6243,7 +6243,7 @@
     },
     {
       "key": "h",
-      "rng": [32],
+      "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6273,7 +6273,7 @@
     },
     {
       "key": "j",
-      "rng": [71],
+      "rng": [71,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6303,7 +6303,7 @@
     },
     {
       "key": "k",
-      "rng": [55],
+      "rng": [55,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6333,7 +6333,7 @@
     },
     {
       "key": "l",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6363,7 +6363,7 @@
     },
     {
       "key": "h",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6393,7 +6393,7 @@
     },
     {
       "key": "j",
-      "rng": [33],
+      "rng": [33,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6423,7 +6423,7 @@
     },
     {
       "key": "k",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6453,7 +6453,7 @@
     },
     {
       "key": "l",
-      "rng": [4],
+      "rng": [4,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6483,7 +6483,7 @@
     },
     {
       "key": "h",
-      "rng": [52],
+      "rng": [52,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6513,7 +6513,7 @@
     },
     {
       "key": "j",
-      "rng": [79],
+      "rng": [79,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6543,7 +6543,7 @@
     },
     {
       "key": "k",
-      "rng": [47],
+      "rng": [47,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6573,7 +6573,7 @@
     },
     {
       "key": "l",
-      "rng": [26],
+      "rng": [26,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6603,7 +6603,7 @@
     },
     {
       "key": "h",
-      "rng": [42],
+      "rng": [42,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6633,7 +6633,7 @@
     },
     {
       "key": "j",
-      "rng": [77],
+      "rng": [77,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6663,7 +6663,7 @@
     },
     {
       "key": "k",
-      "rng": [53],
+      "rng": [53,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6693,7 +6693,7 @@
     },
     {
       "key": "l",
-      "rng": [4],
+      "rng": [4,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6723,7 +6723,7 @@
     },
     {
       "key": "h",
-      "rng": [64],
+      "rng": [64,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6753,7 +6753,7 @@
     },
     {
       "key": "j",
-      "rng": [19],
+      "rng": [19,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6783,7 +6783,7 @@
     },
     {
       "key": "k",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6813,7 +6813,7 @@
     },
     {
       "key": "l",
-      "rng": [78],
+      "rng": [78,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6843,7 +6843,7 @@
     },
     {
       "key": "h",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6873,7 +6873,7 @@
     },
     {
       "key": "j",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6903,7 +6903,7 @@
     },
     {
       "key": "k",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6933,7 +6933,7 @@
     },
     {
       "key": "l",
-      "rng": [76],
+      "rng": [76,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6963,7 +6963,7 @@
     },
     {
       "key": "h",
-      "rng": [72],
+      "rng": [72,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -6993,7 +6993,7 @@
     },
     {
       "key": "j",
-      "rng": [27],
+      "rng": [27,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7023,7 +7023,7 @@
     },
     {
       "key": "k",
-      "rng": [31],
+      "rng": [31,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7053,7 +7053,7 @@
     },
     {
       "key": "l",
-      "rng": [70],
+      "rng": [70,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7083,7 +7083,7 @@
     },
     {
       "key": "h",
-      "rng": [30],
+      "rng": [30,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7113,7 +7113,7 @@
     },
     {
       "key": "j",
-      "rng": [69],
+      "rng": [69,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7143,7 +7143,7 @@
     },
     {
       "key": "k",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7173,7 +7173,7 @@
     },
     {
       "key": "l",
-      "rng": [40],
+      "rng": [40,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7203,7 +7203,7 @@
     },
     {
       "key": "h",
-      "rng": [64],
+      "rng": [64,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7233,7 +7233,7 @@
     },
     {
       "key": "j",
-      "rng": [91],
+      "rng": [91,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7263,7 +7263,7 @@
     },
     {
       "key": "k",
-      "rng": [15],
+      "rng": [15,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7293,7 +7293,7 @@
     },
     {
       "key": "l",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7323,7 +7323,7 @@
     },
     {
       "key": "h",
-      "rng": [30],
+      "rng": [30,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7353,7 +7353,7 @@
     },
     {
       "key": "j",
-      "rng": [9],
+      "rng": [9,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7383,7 +7383,7 @@
     },
     {
       "key": "k",
-      "rng": [69],
+      "rng": [69,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7413,7 +7413,7 @@
     },
     {
       "key": "l",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7443,7 +7443,7 @@
     },
     {
       "key": "h",
-      "rng": [60],
+      "rng": [60,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7473,7 +7473,7 @@
     },
     {
       "key": "j",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7503,7 +7503,7 @@
     },
     {
       "key": "k",
-      "rng": [71],
+      "rng": [71,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7533,7 +7533,7 @@
     },
     {
       "key": "l",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7563,7 +7563,7 @@
     },
     {
       "key": "h",
-      "rng": [78],
+      "rng": [78,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7593,7 +7593,7 @@
     },
     {
       "key": "j",
-      "rng": [61],
+      "rng": [61,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7623,7 +7623,7 @@
     },
     {
       "key": "k",
-      "rng": [73],
+      "rng": [73,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7653,7 +7653,7 @@
     },
     {
       "key": "l",
-      "rng": [80],
+      "rng": [80,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7683,7 +7683,7 @@
     },
     {
       "key": "h",
-      "rng": [32],
+      "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7713,7 +7713,7 @@
     },
     {
       "key": "j",
-      "rng": [71],
+      "rng": [71,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7743,7 +7743,7 @@
     },
     {
       "key": "k",
-      "rng": [3],
+      "rng": [3,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7773,7 +7773,7 @@
     },
     {
       "key": "l",
-      "rng": [66],
+      "rng": [66,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7803,7 +7803,7 @@
     },
     {
       "key": "h",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7833,7 +7833,7 @@
     },
     {
       "key": "j",
-      "rng": [13],
+      "rng": [13,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7863,7 +7863,7 @@
     },
     {
       "key": "k",
-      "rng": [97],
+      "rng": [97,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7893,7 +7893,7 @@
     },
     {
       "key": "l",
-      "rng": [64],
+      "rng": [64,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7923,7 +7923,7 @@
     },
     {
       "key": "h",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7953,7 +7953,7 @@
     },
     {
       "key": "j",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -7983,7 +7983,7 @@
     },
     {
       "key": "k",
-      "rng": [83],
+      "rng": [83,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8013,7 +8013,7 @@
     },
     {
       "key": "l",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8043,7 +8043,7 @@
     },
     {
       "key": "h",
-      "rng": [86],
+      "rng": [86,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8073,7 +8073,7 @@
     },
     {
       "key": "j",
-      "rng": [69],
+      "rng": [69,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8103,7 +8103,7 @@
     },
     {
       "key": "k",
-      "rng": [29],
+      "rng": [29,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8133,7 +8133,7 @@
     },
     {
       "key": "l",
-      "rng": [40],
+      "rng": [40,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8163,7 +8163,7 @@
     },
     {
       "key": "h",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8193,7 +8193,7 @@
     },
     {
       "key": "j",
-      "rng": [59],
+      "rng": [59,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8223,7 +8223,7 @@
     },
     {
       "key": "k",
-      "rng": [47],
+      "rng": [47,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8253,7 +8253,7 @@
     },
     {
       "key": "l",
-      "rng": [86],
+      "rng": [86,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8283,7 +8283,7 @@
     },
     {
       "key": "h",
-      "rng": [54],
+      "rng": [54,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8313,7 +8313,7 @@
     },
     {
       "key": "j",
-      "rng": [33],
+      "rng": [33,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8343,7 +8343,7 @@
     },
     {
       "key": "k",
-      "rng": [73],
+      "rng": [73,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8373,7 +8373,7 @@
     },
     {
       "key": "l",
-      "rng": [80],
+      "rng": [80,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8403,7 +8403,7 @@
     },
     {
       "key": "h",
-      "rng": [8,1],
+      "rng": [8,1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8433,7 +8433,7 @@
     },
     {
       "key": "j",
-      "rng": [67],
+      "rng": [67,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8463,7 +8463,7 @@
     },
     {
       "key": "k",
-      "rng": [26],
+      "rng": [26,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8493,7 +8493,7 @@
     },
     {
       "key": "l",
-      "rng": [70],
+      "rng": [70,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8523,7 +8523,7 @@
     },
     {
       "key": "h",
-      "rng": [9,5],
+      "rng": [9,5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8553,7 +8553,7 @@
     },
     {
       "key": "j",
-      "rng": [4],
+      "rng": [4,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8583,7 +8583,7 @@
     },
     {
       "key": "k",
-      "rng": [56],
+      "rng": [56,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8613,7 +8613,7 @@
     },
     {
       "key": "l",
-      "rng": [71],
+      "rng": [71,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8643,7 +8643,7 @@
     },
     {
       "key": "h",
-      "rng": [47,0],
+      "rng": [47,0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8673,7 +8673,7 @@
     },
     {
       "key": "j",
-      "rng": [6],
+      "rng": [6,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8703,7 +8703,7 @@
     },
     {
       "key": "k",
-      "rng": [69],
+      "rng": [69,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8733,7 +8733,7 @@
     },
     {
       "key": "l",
-      "rng": [13],
+      "rng": [13,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8763,7 +8763,7 @@
     },
     {
       "key": "h",
-      "rng": [16,4],
+      "rng": [16,4,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8793,7 +8793,7 @@
     },
     {
       "key": "j",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8823,7 +8823,7 @@
     },
     {
       "key": "k",
-      "rng": [91],
+      "rng": [91,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8853,7 +8853,7 @@
     },
     {
       "key": "l",
-      "rng": [18],
+      "rng": [18,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8883,7 +8883,7 @@
     },
     {
       "key": "h",
-      "rng": [98,1],
+      "rng": [98,1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8913,7 +8913,7 @@
     },
     {
       "key": "j",
-      "rng": [17],
+      "rng": [17,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8943,7 +8943,7 @@
     },
     {
       "key": "k",
-      "rng": [88],
+      "rng": [88,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -8973,7 +8973,7 @@
     },
     {
       "key": "l",
-      "rng": [12],
+      "rng": [12,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9003,7 +9003,7 @@
     },
     {
       "key": "h",
-      "rng": [91,5],
+      "rng": [91,5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9033,7 +9033,7 @@
     },
     {
       "key": "j",
-      "rng": [46],
+      "rng": [46,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9063,7 +9063,7 @@
     },
     {
       "key": "k",
-      "rng": [34],
+      "rng": [34,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9093,7 +9093,7 @@
     },
     {
       "key": "l",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9123,7 +9123,7 @@
     },
     {
       "key": "h",
-      "rng": [17,2],
+      "rng": [17,2,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9153,7 +9153,7 @@
     },
     {
       "key": "j",
-      "rng": [12],
+      "rng": [12,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9183,7 +9183,7 @@
     },
     {
       "key": "k",
-      "rng": [31],
+      "rng": [31,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9213,7 +9213,7 @@
     },
     {
       "key": "l",
-      "rng": [87],
+      "rng": [87,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9243,7 +9243,7 @@
     },
     {
       "key": "h",
-      "rng": [6,4],
+      "rng": [6,4,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9273,7 +9273,7 @@
     },
     {
       "key": "j",
-      "rng": [89],
+      "rng": [89,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9303,7 +9303,7 @@
     },
     {
       "key": "k",
-      "rng": [49],
+      "rng": [49,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9333,7 +9333,7 @@
     },
     {
       "key": "l",
-      "rng": [92],
+      "rng": [92,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9363,7 +9363,7 @@
     },
     {
       "key": "h",
-      "rng": [20,5],
+      "rng": [20,5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9393,7 +9393,7 @@
     },
     {
       "key": "j",
-      "rng": [47],
+      "rng": [47,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9423,7 +9423,7 @@
     },
     {
       "key": "k",
-      "rng": [2],
+      "rng": [2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9453,7 +9453,7 @@
     },
     {
       "key": "l",
-      "rng": [6],
+      "rng": [6,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9483,7 +9483,7 @@
     },
     {
       "key": "h",
-      "rng": [73,5],
+      "rng": [73,5,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9513,7 +9513,7 @@
     },
     {
       "key": "j",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9543,7 +9543,7 @@
     },
     {
       "key": "k",
-      "rng": [8],
+      "rng": [8,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9573,7 +9573,7 @@
     },
     {
       "key": "l",
-      "rng": [59],
+      "rng": [59,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9603,7 +9603,7 @@
     },
     {
       "key": "h",
-      "rng": [55,0],
+      "rng": [55,0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9633,7 +9633,7 @@
     },
     {
       "key": "j",
-      "rng": [66],
+      "rng": [66,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9663,7 +9663,7 @@
     },
     {
       "key": "k",
-      "rng": [61],
+      "rng": [61,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9693,7 +9693,7 @@
     },
     {
       "key": "l",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9723,7 +9723,7 @@
     },
     {
       "key": "h",
-      "rng": [0,4],
+      "rng": [0,4,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9753,7 +9753,7 @@
     },
     {
       "key": "j",
-      "rng": [55],
+      "rng": [55,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9783,7 +9783,7 @@
     },
     {
       "key": "k",
-      "rng": [31],
+      "rng": [31,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9813,7 +9813,7 @@
     },
     {
       "key": "l",
-      "rng": [54],
+      "rng": [54,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9843,7 +9843,7 @@
     },
     {
       "key": "h",
-      "rng": [54,1],
+      "rng": [54,1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9873,7 +9873,7 @@
     },
     {
       "key": "j",
-      "rng": [33],
+      "rng": [33,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9903,7 +9903,7 @@
     },
     {
       "key": "k",
-      "rng": [64],
+      "rng": [64,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9933,7 +9933,7 @@
     },
     {
       "key": "l",
-      "rng": [72],
+      "rng": [72,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9963,7 +9963,7 @@
     },
     {
       "key": "h",
-      "rng": [11,3,0,0,1,1,3,0],
+      "rng": [11,3,0,0,1,1,3,0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -9993,7 +9993,7 @@
     },
     {
       "key": "j",
-      "rng": [15],
+      "rng": [15,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10023,7 +10023,7 @@
     },
     {
       "key": "k",
-      "rng": [87],
+      "rng": [87,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10053,7 +10053,7 @@
     },
     {
       "key": "l",
-      "rng": [34],
+      "rng": [34,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10083,7 +10083,7 @@
     },
     {
       "key": "h",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10113,7 +10113,7 @@
     },
     {
       "key": "j",
-      "rng": [25],
+      "rng": [25,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10143,7 +10143,7 @@
     },
     {
       "key": "k",
-      "rng": [13],
+      "rng": [13,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10173,7 +10173,7 @@
     },
     {
       "key": "l",
-      "rng": [48],
+      "rng": [48,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10203,7 +10203,7 @@
     },
     {
       "key": "h",
-      "rng": [88],
+      "rng": [88,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10233,7 +10233,7 @@
     },
     {
       "key": "j",
-      "rng": [71],
+      "rng": [71,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10263,7 +10263,7 @@
     },
     {
       "key": "k",
-      "rng": [59],
+      "rng": [59,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10293,7 +10293,7 @@
     },
     {
       "key": "l",
-      "rng": [58],
+      "rng": [58,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10323,7 +10323,7 @@
     },
     {
       "key": "h",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10353,7 +10353,7 @@
     },
     {
       "key": "j",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10383,7 +10383,7 @@
     },
     {
       "key": "k",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10413,7 +10413,7 @@
     },
     {
       "key": "l",
-      "rng": [60],
+      "rng": [60,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10443,7 +10443,7 @@
     },
     {
       "key": "h",
-      "rng": [36],
+      "rng": [36,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10473,7 +10473,7 @@
     },
     {
       "key": "j",
-      "rng": [83],
+      "rng": [83,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10503,7 +10503,7 @@
     },
     {
       "key": "k",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10533,7 +10533,7 @@
     },
     {
       "key": "l",
-      "rng": [26],
+      "rng": [26,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10563,7 +10563,7 @@
     },
     {
       "key": "h",
-      "rng": [30],
+      "rng": [30,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10593,7 +10593,7 @@
     },
     {
       "key": "j",
-      "rng": [25],
+      "rng": [25,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10623,7 +10623,7 @@
     },
     {
       "key": "k",
-      "rng": [73],
+      "rng": [73,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10653,7 +10653,7 @@
     },
     {
       "key": "l",
-      "rng": [36],
+      "rng": [36,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10683,7 +10683,7 @@
     },
     {
       "key": "h",
-      "rng": [72],
+      "rng": [72,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10713,7 +10713,7 @@
     },
     {
       "key": "j",
-      "rng": [39],
+      "rng": [39,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10743,7 +10743,7 @@
     },
     {
       "key": "k",
-      "rng": [11],
+      "rng": [11,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10773,7 +10773,7 @@
     },
     {
       "key": "l",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10803,7 +10803,7 @@
     },
     {
       "key": "h",
-      "rng": [18],
+      "rng": [18,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10833,7 +10833,7 @@
     },
     {
       "key": "j",
-      "rng": [25],
+      "rng": [25,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10863,7 +10863,7 @@
     },
     {
       "key": "k",
-      "rng": [33],
+      "rng": [33,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10893,7 +10893,7 @@
     },
     {
       "key": "l",
-      "rng": [96],
+      "rng": [96,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10923,7 +10923,7 @@
     },
     {
       "key": "h",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10953,7 +10953,7 @@
     },
     {
       "key": "j",
-      "rng": [59],
+      "rng": [59,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -10983,7 +10983,7 @@
     },
     {
       "key": "k",
-      "rng": [83],
+      "rng": [83,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11013,7 +11013,7 @@
     },
     {
       "key": "l",
-      "rng": [14],
+      "rng": [14,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11043,7 +11043,7 @@
     },
     {
       "key": "h",
-      "rng": [58],
+      "rng": [58,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11073,7 +11073,7 @@
     },
     {
       "key": "j",
-      "rng": [25],
+      "rng": [25,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11103,7 +11103,7 @@
     },
     {
       "key": "k",
-      "rng": [97],
+      "rng": [97,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11133,7 +11133,7 @@
     },
     {
       "key": "l",
-      "rng": [44],
+      "rng": [44,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11163,7 +11163,7 @@
     },
     {
       "key": "h",
-      "rng": [24],
+      "rng": [24,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11193,7 +11193,7 @@
     },
     {
       "key": "j",
-      "rng": [31],
+      "rng": [31,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11223,7 +11223,7 @@
     },
     {
       "key": "k",
-      "rng": [19],
+      "rng": [19,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11253,7 +11253,7 @@
     },
     {
       "key": "l",
-      "rng": [58],
+      "rng": [58,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11283,7 +11283,7 @@
     },
     {
       "key": "h",
-      "rng": [38],
+      "rng": [38,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11313,7 +11313,7 @@
     },
     {
       "key": "j",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11343,7 +11343,7 @@
     },
     {
       "key": "k",
-      "rng": [85],
+      "rng": [85,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11373,7 +11373,7 @@
     },
     {
       "key": "l",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11403,7 +11403,7 @@
     },
     {
       "key": "h",
-      "rng": [32],
+      "rng": [32,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11433,7 +11433,7 @@
     },
     {
       "key": "j",
-      "rng": [43],
+      "rng": [43,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11463,7 +11463,7 @@
     },
     {
       "key": "k",
-      "rng": [23],
+      "rng": [23,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11493,7 +11493,7 @@
     },
     {
       "key": "l",
-      "rng": [30],
+      "rng": [30,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11523,7 +11523,7 @@
     },
     {
       "key": "h",
-      "rng": [46],
+      "rng": [46,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11553,7 +11553,7 @@
     },
     {
       "key": "j",
-      "rng": [57],
+      "rng": [57,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11583,7 +11583,7 @@
     },
     {
       "key": "k",
-      "rng": [85],
+      "rng": [85,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11613,7 +11613,7 @@
     },
     {
       "key": "l",
-      "rng": [56],
+      "rng": [56,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11643,7 +11643,7 @@
     },
     {
       "key": "h",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11673,7 +11673,7 @@
     },
     {
       "key": "j",
-      "rng": [31],
+      "rng": [31,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11703,7 +11703,7 @@
     },
     {
       "key": "k",
-      "rng": [83],
+      "rng": [83,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11733,7 +11733,7 @@
     },
     {
       "key": "l",
-      "rng": [34],
+      "rng": [34,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11763,7 +11763,7 @@
     },
     {
       "key": "h",
-      "rng": [2],
+      "rng": [2,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11793,7 +11793,7 @@
     },
     {
       "key": "j",
-      "rng": [65],
+      "rng": [65,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11823,7 +11823,7 @@
     },
     {
       "key": "k",
-      "rng": [85],
+      "rng": [85,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11853,7 +11853,7 @@
     },
     {
       "key": "l",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11883,7 +11883,7 @@
     },
     {
       "key": "h",
-      "rng": [16],
+      "rng": [16,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11913,7 +11913,7 @@
     },
     {
       "key": "j",
-      "rng": [51],
+      "rng": [51,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11943,7 +11943,7 @@
     },
     {
       "key": "k",
-      "rng": [19],
+      "rng": [19,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -11973,7 +11973,7 @@
     },
     {
       "key": "l",
-      "rng": [58],
+      "rng": [58,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12003,7 +12003,7 @@
     },
     {
       "key": "h",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12033,7 +12033,7 @@
     },
     {
       "key": "j",
-      "rng": [89],
+      "rng": [89,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12063,7 +12063,7 @@
     },
     {
       "key": "k",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12093,7 +12093,7 @@
     },
     {
       "key": "l",
-      "rng": [88],
+      "rng": [88,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12123,7 +12123,7 @@
     },
     {
       "key": "h",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12153,7 +12153,7 @@
     },
     {
       "key": "j",
-      "rng": [39,5],
+      "rng": [39,5,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12183,7 +12183,7 @@
     },
     {
       "key": "k",
-      "rng": [6],
+      "rng": [6,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12213,7 +12213,7 @@
     },
     {
       "key": "l",
-      "rng": [42],
+      "rng": [42,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12243,7 +12243,7 @@
     },
     {
       "key": "h",
-      "rng": [1],
+      "rng": [1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12273,7 +12273,7 @@
     },
     {
       "key": "j",
-      "rng": [65,0],
+      "rng": [65,0,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12303,7 +12303,7 @@
     },
     {
       "key": "k",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12333,7 +12333,7 @@
     },
     {
       "key": "l",
-      "rng": [67],
+      "rng": [67,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12363,7 +12363,7 @@
     },
     {
       "key": "h",
-      "rng": [87],
+      "rng": [87,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12393,7 +12393,7 @@
     },
     {
       "key": "j",
-      "rng": [98,4],
+      "rng": [98,4,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12423,7 +12423,7 @@
     },
     {
       "key": "k",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12453,7 +12453,7 @@
     },
     {
       "key": "l",
-      "rng": [37],
+      "rng": [37,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12483,7 +12483,7 @@
     },
     {
       "key": "h",
-      "rng": [24],
+      "rng": [24,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12513,7 +12513,7 @@
     },
     {
       "key": "j",
-      "rng": [40,3,7,2,0,3,4,4],
+      "rng": [40,3,7,2,0,3,4,4,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12543,7 +12543,7 @@
     },
     {
       "key": "k",
-      "rng": [88],
+      "rng": [88,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12573,7 +12573,7 @@
     },
     {
       "key": "l",
-      "rng": [7],
+      "rng": [7,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12603,7 +12603,7 @@
     },
     {
       "key": "h",
-      "rng": [27],
+      "rng": [27,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12633,7 +12633,7 @@
     },
     {
       "key": "j",
-      "rng": [50],
+      "rng": [50,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12663,7 +12663,7 @@
     },
     {
       "key": "k",
-      "rng": [2],
+      "rng": [2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12693,7 +12693,7 @@
     },
     {
       "key": "l",
-      "rng": [85],
+      "rng": [85,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12723,7 +12723,7 @@
     },
     {
       "key": "h",
-      "rng": [1],
+      "rng": [1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12753,7 +12753,7 @@
     },
     {
       "key": "j",
-      "rng": [80],
+      "rng": [80,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12783,7 +12783,7 @@
     },
     {
       "key": "k",
-      "rng": [32],
+      "rng": [32,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12813,7 +12813,7 @@
     },
     {
       "key": "l",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12843,7 +12843,7 @@
     },
     {
       "key": "h",
-      "rng": [75],
+      "rng": [75,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12873,7 +12873,7 @@
     },
     {
       "key": "j",
-      "rng": [18],
+      "rng": [18,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12903,7 +12903,7 @@
     },
     {
       "key": "k",
-      "rng": [2],
+      "rng": [2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12933,7 +12933,7 @@
     },
     {
       "key": "l",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12963,7 +12963,7 @@
     },
     {
       "key": "h",
-      "rng": [1],
+      "rng": [1,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -12993,7 +12993,7 @@
     },
     {
       "key": "j",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13023,7 +13023,7 @@
     },
     {
       "key": "k",
-      "rng": [60],
+      "rng": [60,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13053,7 +13053,7 @@
     },
     {
       "key": "l",
-      "rng": [39],
+      "rng": [39,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13083,7 +13083,7 @@
     },
     {
       "key": "h",
-      "rng": [7],
+      "rng": [7,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13113,7 +13113,7 @@
     },
     {
       "key": "j",
-      "rng": [98],
+      "rng": [98,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13143,7 +13143,7 @@
     },
     {
       "key": "k",
-      "rng": [46],
+      "rng": [46,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13173,7 +13173,7 @@
     },
     {
       "key": "l",
-      "rng": [49],
+      "rng": [49,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13203,7 +13203,7 @@
     },
     {
       "key": "h",
-      "rng": [29],
+      "rng": [29,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13233,7 +13233,7 @@
     },
     {
       "key": "j",
-      "rng": [40],
+      "rng": [40,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13263,7 +13263,7 @@
     },
     {
       "key": "k",
-      "rng": [92],
+      "rng": [92,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13293,7 +13293,7 @@
     },
     {
       "key": "l",
-      "rng": [43],
+      "rng": [43,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13323,7 +13323,7 @@
     },
     {
       "key": "h",
-      "rng": [11],
+      "rng": [11,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13353,7 +13353,7 @@
     },
     {
       "key": "j",
-      "rng": [26],
+      "rng": [26,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13383,7 +13383,7 @@
     },
     {
       "key": "k",
-      "rng": [22],
+      "rng": [22,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13413,7 +13413,7 @@
     },
     {
       "key": "l",
-      "rng": [89],
+      "rng": [89,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13443,7 +13443,7 @@
     },
     {
       "key": "h",
-      "rng": [73],
+      "rng": [73,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13473,7 +13473,7 @@
     },
     {
       "key": "j",
-      "rng": [52],
+      "rng": [52,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13503,7 +13503,7 @@
     },
     {
       "key": "k",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13533,7 +13533,7 @@
     },
     {
       "key": "l",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13563,7 +13563,7 @@
     },
     {
       "key": "h",
-      "rng": [59],
+      "rng": [59,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13593,7 +13593,7 @@
     },
     {
       "key": "j",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13623,7 +13623,7 @@
     },
     {
       "key": "k",
-      "rng": [50],
+      "rng": [50,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13653,7 +13653,7 @@
     },
     {
       "key": "l",
-      "rng": [45],
+      "rng": [45,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13683,7 +13683,7 @@
     },
     {
       "key": "h",
-      "rng": [21],
+      "rng": [21,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13713,7 +13713,7 @@
     },
     {
       "key": "j",
-      "rng": [20],
+      "rng": [20,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13743,7 +13743,7 @@
     },
     {
       "key": "k",
-      "rng": [4],
+      "rng": [4,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13773,7 +13773,7 @@
     },
     {
       "key": "l",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13803,7 +13803,7 @@
     },
     {
       "key": "h",
-      "rng": [87],
+      "rng": [87,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13833,7 +13833,7 @@
     },
     {
       "key": "j",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13863,7 +13863,7 @@
     },
     {
       "key": "k",
-      "rng": [18],
+      "rng": [18,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13893,7 +13893,7 @@
     },
     {
       "key": "l",
-      "rng": [89],
+      "rng": [89,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13923,7 +13923,7 @@
     },
     {
       "key": "h",
-      "rng": [93],
+      "rng": [93,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13953,7 +13953,7 @@
     },
     {
       "key": "j",
-      "rng": [80],
+      "rng": [80,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -13983,7 +13983,7 @@
     },
     {
       "key": "k",
-      "rng": [8],
+      "rng": [8,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14013,7 +14013,7 @@
     },
     {
       "key": "l",
-      "rng": [59],
+      "rng": [59,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14043,7 +14043,7 @@
     },
     {
       "key": "h",
-      "rng": [83],
+      "rng": [83,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14073,7 +14073,7 @@
     },
     {
       "key": "j",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14103,7 +14103,7 @@
     },
     {
       "key": "k",
-      "rng": [14],
+      "rng": [14,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14133,7 +14133,7 @@
     },
     {
       "key": "l",
-      "rng": [25],
+      "rng": [25,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14163,7 +14163,7 @@
     },
     {
       "key": "h",
-      "rng": [77],
+      "rng": [77,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14193,7 +14193,7 @@
     },
     {
       "key": "j",
-      "rng": [20],
+      "rng": [20,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14223,7 +14223,7 @@
     },
     {
       "key": "k",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14253,7 +14253,7 @@
     },
     {
       "key": "l",
-      "rng": [79],
+      "rng": [79,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14283,7 +14283,7 @@
     },
     {
       "key": "h",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14313,7 +14313,7 @@
     },
     {
       "key": "j",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14343,7 +14343,7 @@
     },
     {
       "key": "k",
-      "rng": [58],
+      "rng": [58,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14373,7 +14373,7 @@
     },
     {
       "key": "l",
-      "rng": [89],
+      "rng": [89,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14403,7 +14403,7 @@
     },
     {
       "key": "h",
-      "rng": [77],
+      "rng": [77,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14433,7 +14433,7 @@
     },
     {
       "key": "j",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14463,7 +14463,7 @@
     },
     {
       "key": "k",
-      "rng": [68],
+      "rng": [68,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14493,7 +14493,7 @@
     },
     {
       "key": "l",
-      "rng": [47],
+      "rng": [47,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14523,7 +14523,7 @@
     },
     {
       "key": "h",
-      "rng": [63],
+      "rng": [63,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14553,7 +14553,7 @@
     },
     {
       "key": "j",
-      "rng": [62],
+      "rng": [62,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14583,7 +14583,7 @@
     },
     {
       "key": "k",
-      "rng": [54],
+      "rng": [54,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14613,7 +14613,7 @@
     },
     {
       "key": "l",
-      "rng": [37],
+      "rng": [37,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14643,7 +14643,7 @@
     },
     {
       "key": "h",
-      "rng": [97],
+      "rng": [97,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14673,7 +14673,7 @@
     },
     {
       "key": "j",
-      "rng": [24],
+      "rng": [24,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14703,7 +14703,7 @@
     },
     {
       "key": "k",
-      "rng": [32,5],
+      "rng": [32,5,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14733,7 +14733,7 @@
     },
     {
       "key": "l",
-      "rng": [55],
+      "rng": [55,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14763,7 +14763,7 @@
     },
     {
       "key": "h",
-      "rng": [54],
+      "rng": [54,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14793,7 +14793,7 @@
     },
     {
       "key": "j",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14823,7 +14823,7 @@
     },
     {
       "key": "k",
-      "rng": [5,1],
+      "rng": [5,1,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14853,7 +14853,7 @@
     },
     {
       "key": "l",
-      "rng": [80],
+      "rng": [80,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14883,7 +14883,7 @@
     },
     {
       "key": "h",
-      "rng": [96],
+      "rng": [96,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14913,7 +14913,7 @@
     },
     {
       "key": "j",
-      "rng": [43],
+      "rng": [43,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14943,7 +14943,7 @@
     },
     {
       "key": "k",
-      "rng": [99,0],
+      "rng": [99,0,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -14973,7 +14973,7 @@
     },
     {
       "key": "l",
-      "rng": [38],
+      "rng": [38,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15003,7 +15003,7 @@
     },
     {
       "key": "h",
-      "rng": [65],
+      "rng": [65,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15033,7 +15033,7 @@
     },
     {
       "key": "j",
-      "rng": [81],
+      "rng": [81,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15063,7 +15063,7 @@
     },
     {
       "key": "k",
-      "rng": [32,2],
+      "rng": [32,2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15093,7 +15093,7 @@
     },
     {
       "key": "l",
-      "rng": [63],
+      "rng": [63,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15123,7 +15123,7 @@
     },
     {
       "key": "h",
-      "rng": [15],
+      "rng": [15,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15153,7 +15153,7 @@
     },
     {
       "key": "j",
-      "rng": [26],
+      "rng": [26,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15183,7 +15183,7 @@
     },
     {
       "key": "k",
-      "rng": [50,5],
+      "rng": [50,5,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15213,7 +15213,7 @@
     },
     {
       "key": "l",
-      "rng": [53],
+      "rng": [53,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15243,7 +15243,7 @@
     },
     {
       "key": "h",
-      "rng": [52],
+      "rng": [52,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15273,7 +15273,7 @@
     },
     {
       "key": "j",
-      "rng": [92],
+      "rng": [92,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15303,7 +15303,7 @@
     },
     {
       "key": "k",
-      "rng": [47,1],
+      "rng": [47,1,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15333,7 +15333,7 @@
     },
     {
       "key": "l",
-      "rng": [98],
+      "rng": [98,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15363,7 +15363,7 @@
     },
     {
       "key": "h",
-      "rng": [98],
+      "rng": [98,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15393,7 +15393,7 @@
     },
     {
       "key": "j",
-      "rng": [93],
+      "rng": [93,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15423,7 +15423,7 @@
     },
     {
       "key": "k",
-      "rng": [29,4],
+      "rng": [29,4,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15453,7 +15453,7 @@
     },
     {
       "key": "l",
-      "rng": [16],
+      "rng": [16,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15483,7 +15483,7 @@
     },
     {
       "key": "h",
-      "rng": [67],
+      "rng": [67,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15513,7 +15513,7 @@
     },
     {
       "key": "j",
-      "rng": [47],
+      "rng": [47,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15543,7 +15543,7 @@
     },
     {
       "key": "k",
-      "rng": [10,2],
+      "rng": [10,2,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15573,7 +15573,7 @@
     },
     {
       "key": "l",
-      "rng": [69],
+      "rng": [69,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15603,7 +15603,7 @@
     },
     {
       "key": "h",
-      "rng": [29],
+      "rng": [29,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15633,7 +15633,7 @@
     },
     {
       "key": "j",
-      "rng": [44],
+      "rng": [44,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15663,7 +15663,7 @@
     },
     {
       "key": "k",
-      "rng": [40,3,3,5,2,7,5],
+      "rng": [40,3,3,5,2,7,5,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15693,7 +15693,7 @@
     },
     {
       "key": "l",
-      "rng": [8,52],
+      "rng": [8,52,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15723,7 +15723,7 @@
     },
     {
       "key": "h",
-      "rng": [95,51],
+      "rng": [95,51,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15753,7 +15753,7 @@
     },
     {
       "key": "j",
-      "rng": [6,82],
+      "rng": [6,82,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15783,7 +15783,7 @@
     },
     {
       "key": "k",
-      "rng": [17,69],
+      "rng": [17,69,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15813,7 +15813,7 @@
     },
     {
       "key": "l",
-      "rng": [40,56],
+      "rng": [40,56,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15843,7 +15843,7 @@
     },
     {
       "key": "h",
-      "rng": [79,7,0,0,997],
+      "rng": [79,7,0,0,997,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15873,7 +15873,7 @@
     },
     {
       "key": "j",
-      "rng": [1,60],
+      "rng": [1,60,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15903,7 +15903,7 @@
     },
     {
       "key": "k",
-      "rng": [40,31,0,0,554],
+      "rng": [40,31,0,0,554,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15933,7 +15933,7 @@
     },
     {
       "key": "l",
-      "rng": [81,57],
+      "rng": [81,57,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15963,7 +15963,7 @@
     },
     {
       "key": "h",
-      "rng": [40,24,0,1,258],
+      "rng": [40,24,0,1,258,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -15993,7 +15993,7 @@
     },
     {
       "key": "j",
-      "rng": [38,73],
+      "rng": [38,73,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16023,7 +16023,7 @@
     },
     {
       "key": "k",
-      "rng": [41,16,0,1,827],
+      "rng": [41,16,0,1,827,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16053,7 +16053,7 @@
     },
     {
       "key": "l",
-      "rng": [34,70],
+      "rng": [34,70,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16083,7 +16083,7 @@
     },
     {
       "key": "h",
-      "rng": [61,25,0,0,375],
+      "rng": [61,25,0,0,375,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16113,7 +16113,7 @@
     },
     {
       "key": "j",
-      "rng": [47,30,0,1,29],
+      "rng": [47,30,0,1,29,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16143,7 +16143,7 @@
     },
     {
       "key": "k",
-      "rng": [92,20,0,1,566],
+      "rng": [92,20,0,1,566,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16173,7 +16173,7 @@
     },
     {
       "key": "l",
-      "rng": [62,41,0,0,880],
+      "rng": [62,41,0,0,880,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16203,7 +16203,7 @@
     },
     {
       "key": "h",
-      "rng": [51,67],
+      "rng": [51,67,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16233,7 +16233,7 @@
     },
     {
       "key": "j",
-      "rng": [14,14,0,1,88],
+      "rng": [14,14,0,1,88,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16263,7 +16263,7 @@
     },
     {
       "key": "k",
-      "rng": [12,19,0,0,114],
+      "rng": [12,19,0,0,114,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16293,7 +16293,7 @@
     },
     {
       "key": "l",
-      "rng": [53,37,0,0,535],
+      "rng": [53,37,0,0,535,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16323,7 +16323,7 @@
     },
     {
       "key": "h",
-      "rng": [43,10,0,1,13],
+      "rng": [43,10,0,1,13,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16353,7 +16353,7 @@
     },
     {
       "key": "j",
-      "rng": [88,56],
+      "rng": [88,56,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16383,7 +16383,7 @@
     },
     {
       "key": "k",
-      "rng": [3,75],
+      "rng": [3,75,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16413,7 +16413,7 @@
     },
     {
       "key": "l",
-      "rng": [66,10,0,1,708],
+      "rng": [66,10,0,1,708,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16443,7 +16443,7 @@
     },
     {
       "key": "h",
-      "rng": [60,27,0,0,630],
+      "rng": [60,27,0,0,630,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16473,7 +16473,7 @@
     },
     {
       "key": "j",
-      "rng": [73,93],
+      "rng": [73,93,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16503,7 +16503,7 @@
     },
     {
       "key": "k",
-      "rng": [8,68],
+      "rng": [8,68,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16533,7 +16533,7 @@
     },
     {
       "key": "l",
-      "rng": [95,47,0,0,193],
+      "rng": [95,47,0,0,193,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16563,7 +16563,7 @@
     },
     {
       "key": "h",
-      "rng": [5,76],
+      "rng": [5,76,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16593,7 +16593,7 @@
     },
     {
       "key": "j",
-      "rng": [52,27,0,0,886],
+      "rng": [52,27,0,0,886,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16623,7 +16623,7 @@
     },
     {
       "key": "k",
-      "rng": [97,37,0,0,11],
+      "rng": [97,37,0,0,11,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16653,7 +16653,7 @@
     },
     {
       "key": "l",
-      "rng": [91,14,0,1,977],
+      "rng": [91,14,0,1,977,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16683,7 +16683,7 @@
     },
     {
       "key": "h",
-      "rng": [64,12,0,1,786],
+      "rng": [64,12,0,1,786,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16713,7 +16713,7 @@
     },
     {
       "key": "j",
-      "rng": [2,53],
+      "rng": [2,53,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16743,7 +16743,7 @@
     },
     {
       "key": "k",
-      "rng": [45,76],
+      "rng": [45,76,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16773,7 +16773,7 @@
     },
     {
       "key": "l",
-      "rng": [64,35,0,0,522],
+      "rng": [64,35,0,0,522,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16803,7 +16803,7 @@
     },
     {
       "key": "h",
-      "rng": [81,13,0,0,767],
+      "rng": [81,13,0,0,767,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16833,7 +16833,7 @@
     },
     {
       "key": "j",
-      "rng": [71,46,0,1,701],
+      "rng": [71,46,0,1,701,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16863,7 +16863,7 @@
     },
     {
       "key": "k",
-      "rng": [24,64],
+      "rng": [24,64,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16893,7 +16893,7 @@
     },
     {
       "key": "l",
-      "rng": [67,47,0,0,441],
+      "rng": [67,47,0,0,441,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16923,7 +16923,7 @@
     },
     {
       "key": "h",
-      "rng": [13,68],
+      "rng": [13,68,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16953,7 +16953,7 @@
     },
     {
       "key": "j",
-      "rng": [4,7,0,0,630],
+      "rng": [4,7,0,0,630,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -16983,7 +16983,7 @@
     },
     {
       "key": "k",
-      "rng": [81,37,0,0,123],
+      "rng": [81,37,0,0,123,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17013,7 +17013,7 @@
     },
     {
       "key": "l",
-      "rng": [59,26,0,1,777],
+      "rng": [59,26,0,1,777,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17043,7 +17043,7 @@
     },
     {
       "key": "h",
-      "rng": [84,36,0,1,770],
+      "rng": [84,36,0,1,770,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17073,7 +17073,7 @@
     },
     {
       "key": "j",
-      "rng": [42,53],
+      "rng": [42,53,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17103,7 +17103,7 @@
     },
     {
       "key": "k",
-      "rng": [37,64],
+      "rng": [37,64,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17133,7 +17133,7 @@
     },
     {
       "key": "l",
-      "rng": [36,71],
+      "rng": [36,71,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17163,7 +17163,7 @@
     },
     {
       "key": "h",
-      "rng": [43,54],
+      "rng": [43,54,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17193,7 +17193,7 @@
     },
     {
       "key": "j",
-      "rng": [6,9,0,420],
+      "rng": [6,9,0,420,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17223,7 +17223,7 @@
     },
     {
       "key": "k",
-      "rng": [36,43,0,0,1,1,685],
+      "rng": [36,43,0,0,1,1,685,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17253,7 +17253,7 @@
     },
     {
       "key": "l",
-      "rng": [56,24,0,1,894],
+      "rng": [56,24,0,1,894,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17283,7 +17283,7 @@
     },
     {
       "key": "h",
-      "rng": [54,1,0,0,904],
+      "rng": [54,1,0,0,904,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17313,7 +17313,7 @@
     },
     {
       "key": "j",
-      "rng": [23,23,0,0,461],
+      "rng": [23,23,0,0,461,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17343,7 +17343,7 @@
     },
     {
       "key": "k",
-      "rng": [13,68],
+      "rng": [13,68,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17373,7 +17373,7 @@
     },
     {
       "key": "l",
-      "rng": [80,39,0,662],
+      "rng": [80,39,0,662,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17403,7 +17403,7 @@
     },
     {
       "key": "h",
-      "rng": [62,25,0,0,0,3,967],
+      "rng": [62,25,0,0,0,3,967,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17433,7 +17433,7 @@
     },
     {
       "key": "j",
-      "rng": [78,22,0,789],
+      "rng": [78,22,0,789,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17463,7 +17463,7 @@
     },
     {
       "key": "k",
-      "rng": [84,88],
+      "rng": [84,88,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17493,7 +17493,7 @@
     },
     {
       "key": "l",
-      "rng": [27,79],
+      "rng": [27,79,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17523,7 +17523,7 @@
     },
     {
       "key": "h",
-      "rng": [26,30,0,57],
+      "rng": [26,30,0,57,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17553,7 +17553,7 @@
     },
     {
       "key": "j",
-      "rng": [0,28,0,1,1,2,117],
+      "rng": [0,28,0,1,1,2,117,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17583,7 +17583,7 @@
     },
     {
       "key": "k",
-      "rng": [29,4,0,1,19],
+      "rng": [29,4,0,1,19,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17613,7 +17613,7 @@
     },
     {
       "key": "l",
-      "rng": [2,74],
+      "rng": [2,74,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17643,7 +17643,7 @@
     },
     {
       "key": "h",
-      "rng": [89,25,0,0,127],
+      "rng": [89,25,0,0,127,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17673,7 +17673,7 @@
     },
     {
       "key": "j",
-      "rng": [23,38,0,1,1,0,692],
+      "rng": [23,38,0,1,1,0,692,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17703,7 +17703,7 @@
     },
     {
       "key": "k",
-      "rng": [75,15,0,0,345],
+      "rng": [75,15,0,0,345,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17733,7 +17733,7 @@
     },
     {
       "key": "l",
-      "rng": [73,88],
+      "rng": [73,88,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17763,7 +17763,7 @@
     },
     {
       "key": "h",
-      "rng": [92,55],
+      "rng": [92,55,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17793,7 +17793,7 @@
     },
     {
       "key": "j",
-      "rng": [51,94],
+      "rng": [51,94,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17823,7 +17823,7 @@
     },
     {
       "key": "k",
-      "rng": [74,21,0,0,588],
+      "rng": [74,21,0,0,588,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17853,7 +17853,7 @@
     },
     {
       "key": "l",
-      "rng": [3,67,2],
+      "rng": [3,67,2,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17883,7 +17883,7 @@
     },
     {
       "key": "h",
-      "rng": [26,1,0,0,568],
+      "rng": [26,1,0,0,568,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17913,7 +17913,7 @@
     },
     {
       "key": "j",
-      "rng": [7,51],
+      "rng": [7,51,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17943,7 +17943,7 @@
     },
     {
       "key": "k",
-      "rng": [46,22,0,1,568],
+      "rng": [46,22,0,1,568,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -17973,7 +17973,7 @@
     },
     {
       "key": "l",
-      "rng": [36,55,3,3,2,1,9,4],
+      "rng": [36,55,3,3,2,1,9,4,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18003,7 +18003,7 @@
     },
     {
       "key": "h",
-      "rng": [12,51],
+      "rng": [12,51,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18033,7 +18033,7 @@
     },
     {
       "key": "j",
-      "rng": [7,26,0,1,245],
+      "rng": [7,26,0,1,245,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18063,7 +18063,7 @@
     },
     {
       "key": "k",
-      "rng": [36,68],
+      "rng": [36,68,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18093,7 +18093,7 @@
     },
     {
       "key": "l",
-      "rng": [15,71],
+      "rng": [15,71,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18123,7 +18123,7 @@
     },
     {
       "key": "h",
-      "rng": [58,34,0,1,556],
+      "rng": [58,34,0,1,556,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18153,7 +18153,7 @@
     },
     {
       "key": "j",
-      "rng": [8,19,0,0,798],
+      "rng": [8,19,0,0,798,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18183,7 +18183,7 @@
     },
     {
       "key": "k",
-      "rng": [73,89],
+      "rng": [73,89,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18213,7 +18213,7 @@
     },
     {
       "key": "l",
-      "rng": [40,52],
+      "rng": [40,52,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18243,7 +18243,7 @@
     },
     {
       "key": "h",
-      "rng": [83,23,0,0,65],
+      "rng": [83,23,0,0,65,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18273,7 +18273,7 @@
     },
     {
       "key": "j",
-      "rng": [41,92],
+      "rng": [41,92,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18303,7 +18303,7 @@
     },
     {
       "key": "k",
-      "rng": [72,95],
+      "rng": [72,95,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18333,7 +18333,7 @@
     },
     {
       "key": "l",
-      "rng": [3,6,0,1,613],
+      "rng": [3,6,0,1,613,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18363,7 +18363,7 @@
     },
     {
       "key": "h",
-      "rng": [32,88],
+      "rng": [32,88,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18393,7 +18393,7 @@
     },
     {
       "key": "j",
-      "rng": [75,31,0,0,785],
+      "rng": [75,31,0,0,785,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18423,7 +18423,7 @@
     },
     {
       "key": "k",
-      "rng": [93,48,0,1,743],
+      "rng": [93,48,0,1,743,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18453,7 +18453,7 @@
     },
     {
       "key": "l",
-      "rng": [22,14,0,1,160],
+      "rng": [22,14,0,1,160,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18483,7 +18483,7 @@
     },
     {
       "key": "h",
-      "rng": [92,75],
+      "rng": [92,75,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18513,7 +18513,7 @@
     },
     {
       "key": "j",
-      "rng": [11,18,0,1,809],
+      "rng": [11,18,0,1,809,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18543,7 +18543,7 @@
     },
     {
       "key": "k",
-      "rng": [24,88],
+      "rng": [24,88,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18573,7 +18573,7 @@
     },
     {
       "key": "l",
-      "rng": [3,39,0,0,221],
+      "rng": [3,39,0,0,221,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18603,7 +18603,7 @@
     },
     {
       "key": "h",
-      "rng": [37,76],
+      "rng": [37,76,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18633,7 +18633,7 @@
     },
     {
       "key": "j",
-      "rng": [64,83],
+      "rng": [64,83,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18663,7 +18663,7 @@
     },
     {
       "key": "k",
-      "rng": [47,6,0,1,289],
+      "rng": [47,6,0,1,289,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18693,7 +18693,7 @@
     },
     {
       "key": "l",
-      "rng": [4,40,0,1,490],
+      "rng": [4,40,0,1,490,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18723,7 +18723,7 @@
     },
     {
       "key": "h",
-      "rng": [86,69],
+      "rng": [86,69,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18753,7 +18753,7 @@
     },
     {
       "key": "j",
-      "rng": [53,28,0,1,339],
+      "rng": [53,28,0,1,339,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18783,7 +18783,7 @@
     },
     {
       "key": "k",
-      "rng": [6,18,0,1,204],
+      "rng": [6,18,0,1,204,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18813,7 +18813,7 @@
     },
     {
       "key": "l",
-      "rng": [60,43,0,0,270],
+      "rng": [60,43,0,0,270,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18843,7 +18843,7 @@
     },
     {
       "key": "h",
-      "rng": [33,17,0,0,939],
+      "rng": [33,17,0,0,939,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18873,7 +18873,7 @@
     },
     {
       "key": "j",
-      "rng": [3,2,0,1,25],
+      "rng": [3,2,0,1,25,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18903,7 +18903,7 @@
     },
     {
       "key": "k",
-      "rng": [24,32,0,1,506],
+      "rng": [24,32,0,1,506,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18933,7 +18933,7 @@
     },
     {
       "key": "l",
-      "rng": [14,97],
+      "rng": [14,97,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18963,7 +18963,7 @@
     },
     {
       "key": "h",
-      "rng": [45,44,0,1,723],
+      "rng": [45,44,0,1,723,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -18993,7 +18993,7 @@
     },
     {
       "key": "j",
-      "rng": [26,98],
+      "rng": [26,98,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19023,7 +19023,7 @@
     },
     {
       "key": "k",
-      "rng": [45,81],
+      "rng": [45,81,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19053,7 +19053,7 @@
     },
     {
       "key": "l",
-      "rng": [32,72],
+      "rng": [32,72,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19083,7 +19083,7 @@
     },
     {
       "key": "h",
-      "rng": [47,79],
+      "rng": [47,79,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19113,7 +19113,7 @@
     },
     {
       "key": "j",
-      "rng": [82,18,0,1,824],
+      "rng": [82,18,0,1,824,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19143,7 +19143,7 @@
     },
     {
       "key": "k",
-      "rng": [84,43,0,0,978],
+      "rng": [84,43,0,0,978,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19173,7 +19173,7 @@
     },
     {
       "key": "l",
-      "rng": [29,17,0,0,911],
+      "rng": [29,17,0,0,911,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19203,7 +19203,7 @@
     },
     {
       "key": " ",
-      "rng": [3,54],
+      "rng": [3,54,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19233,7 +19233,7 @@
     },
     {
       "key": " ",
-      "rng": [82],
+      "rng": [82,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19263,7 +19263,7 @@
     },
     {
       "key": " ",
-      "rng": [73],
+      "rng": [73,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19293,7 +19293,7 @@
     },
     {
       "key": " ",
-      "rng": [93],
+      "rng": [93,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19323,7 +19323,7 @@
     },
     {
       "key": " ",
-      "rng": [8,0,1,963],
+      "rng": [8,0,1,963,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19353,7 +19353,7 @@
     },
     {
       "key": " ",
-      "rng": [94],
+      "rng": [94,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19383,7 +19383,7 @@
     },
     {
       "key": " ",
-      "rng": [34,0,1,724],
+      "rng": [34,0,1,724,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19413,7 +19413,7 @@
     },
     {
       "key": " ",
-      "rng": [40,0,1,754],
+      "rng": [40,0,1,754,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19443,7 +19443,7 @@
     },
     {
       "key": " ",
-      "rng": [22,0,1,312],
+      "rng": [22,0,1,312,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19473,7 +19473,7 @@
     },
     {
       "key": " ",
-      "rng": [12,0,1,654],
+      "rng": [12,0,1,654,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19503,7 +19503,7 @@
     },
     {
       "key": " ",
-      "rng": [50],
+      "rng": [50,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19533,7 +19533,7 @@
     },
     {
       "key": " ",
-      "rng": [45,0,0,368],
+      "rng": [45,0,0,368,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19563,7 +19563,7 @@
     },
     {
       "key": " ",
-      "rng": [79],
+      "rng": [79,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19593,7 +19593,7 @@
     },
     {
       "key": " ",
-      "rng": [19,0,0,597],
+      "rng": [19,0,0,597,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19623,7 +19623,7 @@
     },
     {
       "key": " ",
-      "rng": [97],
+      "rng": [97,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19653,7 +19653,7 @@
     },
     {
       "key": " ",
-      "rng": [20,0,1,443],
+      "rng": [20,0,1,443,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19683,7 +19683,7 @@
     },
     {
       "key": " ",
-      "rng": [26,0,1,561],
+      "rng": [26,0,1,561,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19713,7 +19713,7 @@
     },
     {
       "key": " ",
-      "rng": [48,0,1,127],
+      "rng": [48,0,1,127,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19743,7 +19743,7 @@
     },
     {
       "key": " ",
-      "rng": [6,0,1,445],
+      "rng": [6,0,1,445,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19773,7 +19773,7 @@
     },
     {
       "key": " ",
-      "rng": [48,0,1,475],
+      "rng": [48,0,1,475,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19803,7 +19803,7 @@
     },
     {
       "key": " ",
-      "rng": [10,0,1,137],
+      "rng": [10,0,1,137,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19833,7 +19833,7 @@
     },
     {
       "key": " ",
-      "rng": [40,0,1,1,842],
+      "rng": [40,0,1,1,842,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19863,7 +19863,7 @@
     },
     {
       "key": " ",
-      "rng": [86],
+      "rng": [86,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19893,7 +19893,7 @@
     },
     {
       "key": " ",
-      "rng": [85],
+      "rng": [85,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19923,7 +19923,7 @@
     },
     {
       "key": " ",
-      "rng": [57],
+      "rng": [57,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19953,7 +19953,7 @@
     },
     {
       "key": " ",
-      "rng": [96],
+      "rng": [96,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -19983,7 +19983,7 @@
     },
     {
       "key": " ",
-      "rng": [16,0,1,990],
+      "rng": [16,0,1,990,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -20013,7 +20013,7 @@
     },
     {
       "key": " ",
-      "rng": [58],
+      "rng": [58,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -20043,7 +20043,7 @@
     },
     {
       "key": " ",
-      "rng": [57],
+      "rng": [57,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -20073,7 +20073,7 @@
     },
     {
       "key": " ",
-      "rng": [77],
+      "rng": [77,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -20103,7 +20103,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [36,0,1,311],
+      "rng": [36,0,1,311,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

@@ -33,7 +33,7 @@
     },
     {
       "key": ",",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "0",
-      "rng": [],
+      "rng": ["^cmd[ch=44 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command ','.",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "C",
-      "rng": [],
+      "rng": ["^cmd[ch=48 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command ','.",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "0",
-      "rng": [],
+      "rng": ["^cmd[ch=63 no_cmd=0 after=1]"],
       "screen": [
         "Character you want help for (* for all):",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "!",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "0",
-      "rng": [],
+      "rng": ["^cmd[ch=33 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

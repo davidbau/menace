@@ -33,7 +33,7 @@
     },
     {
       "key": "k",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "k",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "You now have a topaz potion (b)",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "k",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "k",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "C",
-      "rng": [90],
+      "rng": [90,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "?",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "2",
-      "rng": [],
+      "rng": ["^cmd[ch=63 no_cmd=0 after=1]"],
       "screen": [
         "Character you want help for (* for all):",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "b",
-      "rng": [],
+      "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

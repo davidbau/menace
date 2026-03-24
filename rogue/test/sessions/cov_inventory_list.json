@@ -33,7 +33,7 @@
     },
     {
       "key": " ",
-      "rng": [],
+      "rng": ["^cmd[ch=105 no_cmd=0 after=1]"],
       "screen": [
         "a) Some food.",
         "b) +1 ring mail (being worn).",

@@ -33,7 +33,7 @@
     },
     {
       "key": "z",
-      "rng": [],
+      "rng": ["^cmd[ch=73 no_cmd=0 after=1]"],
       "screen": [
         "Which item do you wish to inventory:",
         "",

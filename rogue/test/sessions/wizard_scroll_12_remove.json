@@ -33,7 +33,7 @@
     },
     {
       "key": "?",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "c",
-      "rng": [],
+      "rng": ["^cmd[ch=63 no_cmd=0 after=1]"],
       "screen": [
         "Character you want help for (* for all):",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "b",
-      "rng": [],
+      "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
         "",

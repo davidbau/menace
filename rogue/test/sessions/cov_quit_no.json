@@ -33,7 +33,7 @@
     },
     {
       "key": "n",
-      "rng": [],
+      "rng": ["^cmd[ch=81 no_cmd=0 after=1]"],
       "screen": [
         "Really quit?",
         "",

@@ -33,7 +33,7 @@
     },
     {
       "key": "Y",
-      "rng": [63,70,10,1,97],
+      "rng": [63,70,10,1,97,"^cmd[ch=89 no_cmd=0 after=1]","^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "The jackal swings and misses you",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "Y",
-      "rng": [56,28,55],
+      "rng": [56,28,55,"^cmd[ch=89 no_cmd=0 after=1]","^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "Y",
-      "rng": [71,70,42],
+      "rng": [71,70,42,"^cmd[ch=89 no_cmd=0 after=1]","^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "Y",
-      "rng": [57,5,92],
+      "rng": [57,5,92,"^cmd[ch=89 no_cmd=0 after=1]","^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "Y",
-      "rng": [76,11,43],
+      "rng": [76,11,43,"^cmd[ch=89 no_cmd=0 after=1]","^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "Y",
-      "rng": [94,54,53],
+      "rng": [94,54,53,"^cmd[ch=89 no_cmd=0 after=1]","^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "Y",
-      "rng": [21,88,24],
+      "rng": [21,88,24,"^cmd[ch=89 no_cmd=0 after=1]","^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": ">",
-      "rng": [23,83,62],
+      "rng": [23,83,62,"^cmd[ch=89 no_cmd=0 after=1]","^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "h",
-      "rng": [10],
+      "rng": [10,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "j",
-      "rng": [57,65],
+      "rng": [57,65,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "k",
-      "rng": [80,0,3,95],
+      "rng": [80,0,3,95,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "The jackal doesn't hit you",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "l",
-      "rng": [46,14,1,1,40],
+      "rng": [46,14,1,1,40,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "The jackal hit you",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "s",
-      "rng": [88,19,3,2,2],
+      "rng": [88,19,3,2,2,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "You have injured the jackal--More--",
         "",
@@ -12573,7 +12573,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [73],
+      "rng": [73,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

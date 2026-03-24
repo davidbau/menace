@@ -33,7 +33,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=87 no_cmd=0 after=1]"],
       "screen": [
         "You are already wearing some.  You'll have to take it off first",
         "",

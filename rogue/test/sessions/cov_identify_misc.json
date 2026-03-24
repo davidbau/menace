@@ -33,7 +33,7 @@
     },
     {
       "key": "+",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": ".",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "]",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": " ",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": ",",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "=",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "/",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=120 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'x'.",
         "",

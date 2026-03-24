@@ -33,7 +33,7 @@
     },
     {
       "key": "k",
-      "rng": [],
+      "rng": ["^cmd[ch=116 no_cmd=0 after=1]"],
       "screen": [
         "Which direction?",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "k",
-      "rng": [99],
+      "rng": [99,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "You now have 30 +0 arrows (e)",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [74],
+      "rng": [74,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

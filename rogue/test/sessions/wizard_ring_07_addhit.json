@@ -33,7 +33,7 @@
     },
     {
       "key": "=",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "7",
-      "rng": [],
+      "rng": ["^cmd[ch=61 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '='.",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "n",
-      "rng": [],
+      "rng": ["^cmd[ch=55 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '='.",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "P",
-      "rng": [28,35,99,74,90,93,81],
+      "rng": [28,35,99,74,90,93,81,"^cmd[ch=110 no_cmd=0 after=1]","^cmd[ch=110 no_cmd=0 after=1]","^cmd[ch=110 no_cmd=0 after=1]","^cmd[ch=110 no_cmd=0 after=1]","^cmd[ch=110 no_cmd=0 after=1]","^cmd[ch=110 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "b",
-      "rng": [],
+      "rng": ["^cmd[ch=80 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to put on? (* for list):",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to read? (* for list):",
         "",

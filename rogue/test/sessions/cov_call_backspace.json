@@ -33,7 +33,7 @@
     },
     {
       "key": "=",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "2",
-      "rng": [],
+      "rng": ["^cmd[ch=61 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '='.",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "c",
-      "rng": [],
+      "rng": ["^cmd[ch=50 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command '='.",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": " ",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "x",
-      "rng": [],
+      "rng": ["^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "y",
-      "rng": [],
+      "rng": ["^cmd[ch=120 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'x'.",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "z",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "You now have a topaz potion (b)",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "\u0008",
-      "rng": [],
+      "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
         "",
