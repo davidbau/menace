@@ -709,7 +709,7 @@ def capture_screen_nomux(nomux_file):
     """
     if not os.path.exists(nomux_file):
         return None, None
-    with open(nomux_file, 'r') as f:
+    with open(nomux_file, 'r', errors='replace') as f:
         content = f.read()
     if not content.strip():
         return None, None
