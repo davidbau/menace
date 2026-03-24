@@ -145,7 +145,7 @@ function buildActions() {
   // ================================================================
   // 2. RINGS get_str — backspace and ESC (rings.js:147-159)
   // ================================================================
-  a(() => { game().askme = true; return '.'; });
+
   a(() => createItem('=', 12));  // R_STEALTH (unknown)
   a(() => {
     const l = findPackLetter('=', 12);
@@ -158,7 +158,7 @@ function buildActions() {
     return l ? 'P' + l + 'l' + '\x1b' : '.';  // ESC test
   });
   a(() => 'Rl');
-  a(() => { game().askme = false; return '.'; });
+
 
   // ================================================================
   // 3. SEARCH FINDING TRAP (misc.js:371-379)

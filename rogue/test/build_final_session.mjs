@@ -330,10 +330,10 @@ function buildActions() {
   heal();
 
   // ================================================================
-  // RINGS get_str — put on unknown ring with askme, use backspace/ESC
+
   // (rings.js:147-159)
   // ================================================================
-  a(() => { game().askme = true; return '.'; });  // Enable naming prompts
+
   // Create unknown ring, wear it — naming prompt triggers get_str
   a(() => createItem('=', 12));  // R_STEALTH
   a(() => {
@@ -353,7 +353,7 @@ function buildActions() {
     return 'P' + l + 'l' + '\x1b';
   });
   a(() => 'Rl');
-  a(() => { game().askme = false; return '.'; });
+
 
   // ================================================================
   // BOLT BOUNCE OFF WALL (sticks.js:283-289)

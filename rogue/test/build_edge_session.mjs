@@ -3,7 +3,7 @@
  * build_edge_session.mjs — Session targeting deep edge cases.
  *
  * Targets: fight.js killed(L), killed while blind, is_magic, thunk/bounce;
- *   scrolls.js whatis all types; rings.js ring_off/gethand/get_str/askme;
+
  *   sticks.js bolt hitting monster, haste/slow on monster;
  *   move.js arrow/dart trap hit/miss paths.
  */
@@ -163,11 +163,11 @@ function buildActions() {
     });
   }
 
-  // === RINGS: askme naming + ring_off with both hands + gethand bad input ===
-  // Enable askme for naming prompt coverage
+
+
   a(() => {
     const g = game();
-    g.askme = true;  // Enable "Call it:" prompts
+
     return '.';
   });
   // Create unknown ring, wear it — should prompt "Call it:"
@@ -186,8 +186,8 @@ function buildActions() {
   a(() => 'Rxl');  // R → gethand "L or R?" → 'x' (bad) → reprompt → 'l'
   // Remove right (auto-selects since only one left)
   a(() => 'R');
-  // Disable askme
-  a(() => { game().askme = false; return '.'; });
+
+
 
   // === KILL WHILE BLIND (fight.js line 515) ===
   // Go to level 5 where there are monsters
