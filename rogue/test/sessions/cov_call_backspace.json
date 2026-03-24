@@ -335,7 +335,7 @@
       "key": "t",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'f'--More--",
+        "Which object do you want to zap with? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -365,7 +365,7 @@
       "key": "e",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'f'--More--",
+        "Which object do you want to zap with? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -395,7 +395,7 @@
       "key": "s",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'f'--More--",
+        "You can't zap with that!",
         "",
         "",
         "                            -----------------------",
@@ -423,9 +423,9 @@
     },
     {
       "key": "t",
-      "rng": [],
+      "rng": ["^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'f'--More--",
+        "",
         "",
         "",
         "                            -----------------------",
@@ -453,9 +453,9 @@
     },
     {
       "key": "\u000d",
-      "rng": [],
+      "rng": ["^cmd[ch=116 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'f'--More--",
+        "Which direction?",
         "",
         "",
         "                            -----------------------",
@@ -485,7 +485,7 @@
       "key": "\u0000",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'f'--More--",
+        "Which direction?",
         "",
         "",
         "                            -----------------------",

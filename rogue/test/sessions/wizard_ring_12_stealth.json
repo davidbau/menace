@@ -125,7 +125,7 @@
       "key": "b",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to call? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -155,7 +155,7 @@
       "key": "r",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "You can't call that anything",
         "",
         "",
         "                            -----------------------",
@@ -183,9 +183,9 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": ["^cmd[ch=114 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",

@@ -215,7 +215,7 @@
       "key": "=",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -245,7 +245,7 @@
       "key": "2",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -275,7 +275,7 @@
       "key": "P",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -305,7 +305,7 @@
       "key": "c",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -335,7 +335,7 @@
       "key": "C",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "There is nothing on it to read",
         "",
         "",
         "                            -----------------------",
@@ -363,9 +363,9 @@
     },
     {
       "key": "=",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Illegal command 'C'.",
         "",
         "",
         "                            -----------------------",
@@ -393,9 +393,9 @@
     },
     {
       "key": "4",
-      "rng": [],
+      "rng": ["^cmd[ch=61 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Illegal command '='.",
         "",
         "",
         "                            -----------------------",
@@ -423,9 +423,9 @@
     },
     {
       "key": "P",
-      "rng": [],
+      "rng": ["^cmd[ch=52 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Illegal command '='.",
         "",
         "",
         "                            -----------------------",
@@ -455,7 +455,7 @@
       "key": "d",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to put on? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -485,7 +485,7 @@
       "key": "\u0000",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "It would be difficult to wrap that around a finger",
         "",
         "",
         "                            -----------------------",

@@ -215,7 +215,7 @@
       "key": "=",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -245,7 +245,7 @@
       "key": "3",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -275,7 +275,7 @@
       "key": "P",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -305,7 +305,7 @@
       "key": "c",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
@@ -335,7 +335,7 @@
       "key": "R",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "There is nothing on it to read",
         "",
         "",
         "                            -----------------------",
@@ -363,9 +363,9 @@
     },
     {
       "key": "l",
-      "rng": [],
+      "rng": ["^cmd[ch=82 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "You aren't wearing any rings",
         "",
         "",
         "                            -----------------------",
@@ -393,14 +393,14 @@
     },
     {
       "key": "\u0000",
-      "rng": [],
+      "rng": [28,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "",
         "",
         "",
         "                            -----------------------",
         "                            |.!...................|",
-        "                            +..@..................|",
+        "                            +...@.................|",
         "                            ------+----------------",
         "",
         "",

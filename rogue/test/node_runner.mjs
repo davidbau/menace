@@ -89,6 +89,7 @@ export async function runSession(seed, keys, opts = {}) {
 
   const g = new GameState();
   g.display = display; g.input = input; g.rawRngLog = [];
+  g.suppressMore = true;  // Match C harness: auto-dismiss --More--
   if (opts.wizard) { g.wizard = true; g.waswizard = true; }
   setGame(g);
 

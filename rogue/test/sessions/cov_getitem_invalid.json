@@ -155,7 +155,7 @@
       "key": " ",
       "rng": [],
       "screen": [
-        "Please specify a letter between 'a' and 'e'--More--",
+        "Which object do you want to read? (* for list):",
         "",
         "",
         "                            -----------------------",
