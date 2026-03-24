@@ -206,12 +206,12 @@ export async function do_zap(gotdir) {
         if (!_save_throw(3 /* VS_MAGIC */, bitem.l_data)) {
           await _hit_monster({ y: bolt.o_pos.y, x: bolt.o_pos.x }, bolt);
         } else if (bmon !== 'M' || mvwinch(g.cw, bolt.o_pos.y, bolt.o_pos.x) === 'M') {
-          if (g.terse) await _msg('Missle vanishes');
-          else await _msg('The missle vanishes with a puff of smoke');
+          if (g.terse) await _msg('Missile vanishes');
+          else await _msg('The missile vanishes with a puff of smoke');
         }
       } else {
-        if (g.terse) await _msg('Missle vanishes');
-        else await _msg('The missle vanishes with a puff of smoke');
+        if (g.terse) await _msg('Missile vanishes');
+        else await _msg('The missile vanishes with a puff of smoke');
       }
       g.ws_know[WS_MISSILE] = true;
       break;

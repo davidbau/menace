@@ -85,7 +85,8 @@ export async function endmsg() {
   _newpos = 0;
   _msgbuf = "";
 
-  draw(g.cw);
+  // C endmsg does NOT call draw(cw) here — the command loop's draw(cw) handles it.
+  // Calling draw here would update the display out-of-sync with C's harness capture timing.
 }
 
 /**

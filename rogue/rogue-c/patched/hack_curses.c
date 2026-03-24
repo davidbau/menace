@@ -300,20 +300,10 @@ int wrefresh(WINDOW *win)
         return OK;
     }
 
-    /* For cw: copy cw directly to harness_display.
-     * mw tracks monster positions for winat() but is never shown directly —
-     * visible monsters are drawn to cw explicitly via mvwaddch(cw,...) only
-     * when cansee() is true.  Compositing mw would reveal all monsters.
-     */
+    /* For cw: copy cw->_data directly to harness_display. */
     for (i = 0; i < LINES; i++) {
-        memset(harness_display[i], ' ', COLS);
+        memcpy(harness_display[i], cw->_data[i], COLS);
         harness_display[i][COLS] = '\0';
-        if (cw) {
-            for (j = 0; j < COLS; j++) {
-                char cc = cw->_overlay[i][j];
-                if (cc) harness_display[i][j] = cc;
-            }
-        }
     }
 
     return OK;
