@@ -1412,7 +1412,14 @@ export function make_corpse(mon, corpseflags, map) {
 
 // C ref: mon.c wake_msg() — display wake message
 export function wake_msg(mon, via_attack) {
-    // Simplified: message output not fully ported
+    // C ref: mon.c wake_msg() — "X wakes up." when visible sleeping monster wakes
+    if (mon.msleeping && canseemon(mon, _gstate?.u, null, _gstate?.map)) {
+        const golem = (mon.data === mons[PM_FLESH_GOLEM] || mon.mnum === PM_FLESH_GOLEM);
+        pline_mon(mon, "%s wakes up%s%s",
+            Monnam(mon),
+            via_attack ? "!" : ".",
+            golem ? " It's alive!" : "");
+    }
 }
 
 // C ref: mon.c wakeup() — wake monster, possibly anger
