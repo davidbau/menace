@@ -2,37 +2,20 @@
  * machine dependicies
  *
  * %G% (Berkeley) %W%
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
-/*
- * where scorefile should live
- */
-#define SCOREFILE	"lib/rogueroll3.6"
 
 /*
  * Variables for checking to make sure the system isn't too loaded
  * for people to play
  */
 
-#undef	MAXUSERS	25	/* max number of users for this game */
-#undef	MAXLOAD		40	/* 10 * max 15 minute load average */
-
-#if MAXUSERS|MAXLOAD
+#define AUTHORUID        0
+#define	MAXUSERS	25	/* max number of users for this game */
+#define	MAXLOAD		40	/* 10 * max 15 minute load average */
 #define	CHECKTIME	15	/* number of minutes between load checks */
-				/* if not defined checks are only on startup */
-#endif
-
-#ifdef MAXLOAD
-#define	LOADAV			/* defined if rogue should provide loadav() */
-
-#ifdef LOADAV
-#define	NAMELIST	"/vmunix"	/* where the system namelist lives */
-#endif
-#endif
-
-#ifdef MAXUSERS
-#define	UCOUNT			/* defined if rogue should provide ucount() */
-
-#ifdef UCOUNT
-#define UTMP	"/etc/utmp"	/* where utmp file lives */
-#endif
-#endif

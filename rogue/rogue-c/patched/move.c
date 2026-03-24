@@ -1,9 +1,13 @@
-/* DBM	2/12/82	Got rid of bogus arrow bug. */
-
 /*
  * Hero movement commands
  *
  * @(#)move.c	3.26 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
 #include "curses.h"
@@ -21,8 +25,8 @@ coord nh;
  *	Start the hero running
  */
 
-do_run(ch)
-char ch;
+void
+do_run(int ch)
 {
     running = TRUE;
     after = FALSE;
@@ -35,10 +39,10 @@ char ch;
  * consequences (fighting, picking up, etc.)
  */
 
-do_move(dy, dx)
-int dy, dx;
+void
+do_move(int dy, int dx)
 {
-    register char ch;
+    int ch;
 
     firstmove = FALSE;
     if (no_move)
@@ -133,13 +137,14 @@ move_stuff:
  * If it is dark, remove anything that might move.
  */
 
-light(cp)
-coord *cp;
+void
+light(coord *cp)
 {
-    register struct room *rp;
-    register int j, k;
-    register char ch, rch;
-    register struct linked_list *item;
+    struct room *rp;
+    int j, k;
+    int ch;
+    int rch;
+    struct linked_list *item;
 
     if ((rp = roomin(cp)) != NULL && !on(player, ISBLIND))
     {
@@ -177,7 +182,7 @@ coord *cp;
 		    rch = mvwinch(cw, rp->r_pos.y+j, rp->r_pos.x+k);
 		    switch (rch)
 		    {
-			when DOOR:
+			case DOOR:
 			case STAIRS:
 			case TRAP:
 			case '|':
@@ -201,19 +206,19 @@ coord *cp;
  *	returns what a certain thing will display as to the un-initiated
  */
 
-show(y, x)
-register int y, x;
+int
+show(int y, int x)
 {
-    register char ch = winat(y, x);
-    register struct linked_list *it;
-    register struct thing *tp;
+    int ch = winat(y, x);
+    struct linked_list *it;
+    struct thing *tp;
 
     if (ch == TRAP)
 	return (trap_at(y, x)->tr_flags & ISFOUND) ? TRAP : FLOOR;
     else if (ch == 'M' || ch == 'I')
     {
 	if ((it = find_mons(y, x)) == NULL)
-	    msg("Can't find monster in show");
+	    fatal("Can't find monster in show");
 	tp = (struct thing *) ldata(it);
 	if (ch == 'M')
 	    ch = tp->t_disguise;
@@ -231,11 +236,11 @@ register int y, x;
  *	The guy stepped on a trap.... Make him pay.
  */
 
-be_trapped(tc)
-register coord *tc;
+int
+be_trapped(coord *tc)
 {
-    register struct trap *tp;
-    register char ch;
+    struct trap *tp;
+    int ch;
 
     tp = trap_at(tc->y, tc->x);
     count = running = FALSE;
@@ -243,7 +248,7 @@ register coord *tc;
     tp->tr_flags |= ISFOUND;
     switch (ch = tp->tr_type)
     {
-	when TRAPDOOR:
+	case TRAPDOOR:
 	    level++;
 	    new_level();
 	    msg("You fell into a trap!");
@@ -265,8 +270,8 @@ register coord *tc;
 	    }
 	    else
 	    {
-		register struct linked_list *item;
-		register struct object *arrow;
+		struct linked_list *item;
+		struct object *arrow;
 
 		msg("An arrow shoots past you.");
 		item = new_item(sizeof *arrow);
@@ -276,10 +281,7 @@ register coord *tc;
 		init_weapon(arrow, ARROW);
 		arrow->o_count = 1;
 		arrow->o_pos = hero;
-# ifdef NOGOODARROWS
-		arrow->o_hplus = 0;		/* DBM: Get rid of bogus */
-		arrow->o_dplus = 0;		/* DBM: arrows. */
-# endif
+		arrow->o_hplus = arrow->o_dplus = 0; /* "arrow bug" FIX */
 		fall(item, FALSE);
 	    }
 	when TELTRAP:
@@ -299,8 +301,7 @@ register coord *tc;
 	    else
 		msg("A small dart whizzes by your ear and vanishes.");
     }
-    raw();	/* flush typeahead */
-    noraw();
+    flush_type();	/* flush typeahead */
     return(ch);
 }
 
@@ -310,17 +311,19 @@ register coord *tc;
  */
 
 struct trap *
-trap_at(y, x)
-register int y, x;
+trap_at(int y, int x)
 {
-    register struct trap *tp, *ep;
+    struct trap *tp, *ep;
 
     ep = &traps[ntraps];
     for (tp = traps; tp < ep; tp++)
 	if (tp->tr_pos.y == y && tp->tr_pos.x == x)
 	    break;
     if (tp == ep)
-	debug(sprintf(prbuf, "Trap at %d,%d not in array", y, x));
+    {
+	sprintf(prbuf, "Trap at %d,%d not in array", y, x);
+	fatal(prbuf);
+    }
     return tp;
 }
 
@@ -330,14 +333,13 @@ register int y, x;
  */
 
 coord *
-rndmove(who)
-struct thing *who;
+rndmove(struct thing *who)
 {
-    register int x, y;
-    register char ch;
-    register int ex, ey, nopen = 0;
-    register struct linked_list *item;
-    register struct object *obj;
+    int x, y;
+    int ch;
+    int ex, ey, nopen = 0;
+    struct linked_list *item;
+    struct object *obj;
     static coord ret;  /* what we will be returning */
     static coord dest;
 

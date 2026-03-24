@@ -1,26 +1,30 @@
-#include "curses.h"
-#include <ctype.h>
-#include "rogue.h"
-
 /*
  * Routines to deal with the pack
  *
  * @(#)pack.c	3.6 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
+
+#include "curses.h"
+#include <ctype.h>
+#include "rogue.h"
 
 /*
  * add_pack:
  *	Pick up an object and add it to the pack.  If the argument is non-null
  * use it as the linked_list pointer instead of gettting it off the ground.
  */
-add_pack(item, silent)
-register struct linked_list *item;
-bool silent;
+void
+add_pack(struct linked_list *item, int silent)
 {
-    register struct linked_list *ip, *lp;
-    register struct object *obj, *op;
-    register char ch;
-    register bool exact, from_floor;
+    struct linked_list *ip, *lp;
+    struct object *obj, *op;
+    int exact, from_floor;
 
     if (item == NULL)
     {
@@ -185,13 +189,12 @@ picked_up:
  * inventory:
  *	list what is in the pack
  */
-inventory(list, type)
-struct linked_list *list;
-int type;
+int
+inventory(struct linked_list *list, int type)
 {
-    register struct object *obj;
-    register char ch;
-    register int n_objs;
+    struct object *obj;
+    int ch;
+    int n_objs;
     char inv_temp[80];
 
     n_objs = 0;
@@ -253,7 +256,7 @@ int type;
     {
 	mvwaddstr(hw, LINES-1, 0, "--Press space to continue--");
 	draw(hw);
-	wait_for(' ');
+	wait_for(hw,' ');
 	clearok(cw, TRUE);
 	touchwin(cw);
     }
@@ -264,8 +267,8 @@ int type;
  * pick_up:
  *	Add something to characters pack.
  */
-pick_up(ch)
-char ch;
+void
+pick_up(int ch)
 {
     switch(ch)
     {
@@ -291,10 +294,11 @@ char ch;
  * picky_inven:
  *	Allow player to inventory a single item
  */
+void
 picky_inven()
 {
-    register struct linked_list *item;
-    register char ch, mch;
+    struct linked_list *item;
+    int ch, mch;
 
     if (pack == NULL)
 	msg("You aren't carrying anything");
@@ -304,7 +308,7 @@ picky_inven()
     {
 	msg(terse ? "Item: " : "Which item do you wish to inventory: ");
 	mpos = 0;
-	if ((mch = readchar()) == ESCAPE)
+	if ((mch = readchar(cw)) == ESCAPE)
 	{
 	    msg("");
 	    return;
@@ -326,12 +330,10 @@ picky_inven()
  *	pick something out of a pack for a purpose
  */
 struct linked_list *
-get_item(purpose, type)
-char *purpose;
-int type;
+get_item(char *purpose, int type)
 {
-    register struct linked_list *obj;
-    register char ch, och;
+    struct linked_list *obj;
+    int ch, och;
 
     if (pack == NULL)
 	msg("You aren't carrying anything.");
@@ -345,7 +347,7 @@ int type;
 	    if (terse)
 		addmsg(" what");
 	    msg("? (* for list): ");
-	    ch = readchar();
+	    ch = readchar(cw);
 	    mpos = 0;
 	    /*
 	     * Give the poor player a chance to abort the command
@@ -381,11 +383,11 @@ int type;
     return NULL;
 }
 
-pack_char(obj)
-register struct object *obj;
+int
+pack_char(struct object *obj)
 {
-    register struct linked_list *item;
-    register char c;
+    struct linked_list *item;
+    int c;
 
     c = 'a';
     for (item = pack; item != NULL; item = next(item))

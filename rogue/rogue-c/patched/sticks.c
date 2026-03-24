@@ -3,41 +3,48 @@
  * while wandering around the dungeon.
  *
  * @(#)sticks.c	3.14 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
 #include "curses.h"
 #include <ctype.h>
+#include <string.h>
 #include "rogue.h"
 
-fix_stick(cur)
-register struct object *cur;
+void
+fix_stick(struct object *cur)
 {
     if (strcmp(ws_type[cur->o_which], "staff") == 0)
-	cur->o_damage = "2d3";
+	strcpy(cur->o_damage,"2d3");
     else
-	cur->o_damage = "1d1";
-    cur->o_hurldmg = "1d1";
+	strcpy(cur->o_damage,"1d1");
+    strcpy(cur->o_hurldmg,"1d1");
 
     cur->o_charges = 3 + rnd(5);
     switch (cur->o_which)
     {
-	when WS_HIT:
+	case WS_HIT:
 	    cur->o_hplus = 3;
 	    cur->o_dplus = 3;
-	    cur->o_damage = "1d8";
+	    strcpy(cur->o_damage,"1d8");
 	when WS_LIGHT:
 	    cur->o_charges = 10 + rnd(10);
     }
 }
 
-do_zap(gotdir)
-bool gotdir;
+void
+do_zap(int gotdir)
 {
-    register struct linked_list *item;
-    register struct object *obj;
-    register struct room *rp;
-    register struct thing *tp;
-    register int y, x;
+    struct linked_list *item;
+    struct object *obj;
+    struct room *rp;
+    struct thing *tp;
+    int y, x;
 
     if ((item = get_item("zap with", STICK)) == NULL)
 	return;
@@ -60,7 +67,7 @@ bool gotdir;
 	} while (delta.y == 0 && delta.x == 0);
     switch (obj->o_which)
     {
-	when WS_LIGHT:
+	case WS_LIGHT:
 	    /*
 	     * Reddy Kilowat wand.  Light up the room
 	     */
@@ -101,8 +108,9 @@ bool gotdir;
 	case WS_TELTO:
 	case WS_CANCEL:
 	{
-	    register char monster, oldch;
-	    register int rm;
+	    int monster;
+	    int oldch;
+	    int rm;
 
 	    y = hero.y;
 	    x = hero.x;
@@ -113,7 +121,7 @@ bool gotdir;
 	    }
 	    if (isupper(monster = mvwinch(mw, y, x)))
 	    {
-		register char omonst = monster;
+		int omonst = monster;
 
 		if (monster == 'F')
 		    player.t_flags &= ~ISHELD;
@@ -168,22 +176,22 @@ bool gotdir;
 	{
 	    static struct object bolt =
 	    {
-		'*' , {0, 0}, "", 0, 0, "1d4" , 0, 0, 100, 1
+		'*' , {0, 0}, 0, "", "1d4" , 0, 0, 100, 1, 0, 0, 0
 	    };
 
 	    do_motion(&bolt, delta.y, delta.x);
 	    if (isupper(mvwinch(mw, bolt.o_pos.y, bolt.o_pos.x))
-		&& !save_throw(VS_MAGIC, ldata(find_mons(unc(bolt.o_pos)))))
+		&& !save_throw(VS_MAGIC, THINGPTR(find_mons(unc(bolt.o_pos)))))
 		    hit_monster(unc(bolt.o_pos), &bolt);
 	    else if (terse)
-		msg("Missle vanishes");
+		msg("Missile vanishes");
 	    else
-		msg("The missle vanishes with a puff of smoke");
+		msg("The missile vanishes with a puff of smoke");
 	    ws_know[WS_MISSILE] = TRUE;
 	}
 	when WS_HIT:
 	{
-	    register char ch;
+	    int ch;
 
 	    delta.y += hero.y;
 	    delta.x += hero.x;
@@ -192,12 +200,12 @@ bool gotdir;
 	    {
 		if (rnd(20) == 0)
 		{
-		    obj->o_damage = "3d8";
+		    strcpy(obj->o_damage,"3d8");
 		    obj->o_dplus = 9;
 		}
 		else
 		{
-		    obj->o_damage = "1d8";
+		    strcpy(obj->o_damage,"1d8");
 		    obj->o_dplus = 3;
 		}
 		fight(&delta, ch, obj, FALSE);
@@ -239,19 +247,21 @@ bool gotdir;
 	case WS_FIRE:
 	case WS_COLD:
 	{
-	    register char dirch, ch, *name;
-	    register bool bounced, used;
+	    int dirch;
+	    char *name;
+	    int ch;
+	    int bounced, used;
 	    coord pos;
 	    coord spotpos[BOLT_LENGTH];
 	    static struct object bolt =
 	    {
-		'*' , {0, 0}, "", 0, 0, "6d6" , 0, 0, 100, 0
+		'*' , {0, 0}, 0, "", "6d6" , 0, 0, 100, 0, 0, 0 ,0
 	    };
 
 
 	    switch (delta.y + delta.x)
 	    {
-		when 0: dirch = '/';
+		case 0: dirch = '/';
 		when 1: case -1: dirch = (delta.y == 0 ? '-' : '|');
 		when 2: case -2: dirch = '\\';
 	    }
@@ -284,7 +294,7 @@ bool gotdir;
 		    default:
 			if (!bounced && isupper(ch))
 			{
-			    if (!save_throw(VS_MAGIC, ldata(find_mons(unc(pos)))))
+			    if (!save_throw(VS_MAGIC, THINGPTR(find_mons(unc(pos)))))
 			    {
 				bolt.o_pos = pos;
 				hit_monster(unc(pos), &bolt);
@@ -325,6 +335,7 @@ bool gotdir;
 		mvwaddch(cw, spotpos[x].y, spotpos[x].x, show(spotpos[x].y, spotpos[x].x));
 	    ws_know[obj->o_which] = TRUE;
 	}
+	when WS_NOP:
 	otherwise:
 	    msg("What a bizarre schtick!");
     }
@@ -336,27 +347,27 @@ bool gotdir;
  *	Do drain hit points from player shtick
  */
 
-drain(ymin, ymax, xmin, xmax)
-int ymin, ymax, xmin, xmax;
+void
+drain(int ymin, int ymax, int xmin, int xmax)
 {
-    register int i, j, count;
-    register struct thing *ick;
-    register struct linked_list *item;
+    int i, j, cnt;
+    struct thing *ick;
+    struct linked_list *item;
 
     /*
      * First count how many things we need to spread the hit points among
      */
-    count = 0;
+    cnt = 0;
     for (i = ymin; i <= ymax; i++)
 	for (j = xmin; j <= xmax; j++)
 	    if (isupper(mvwinch(mw, i, j)))
-		count++;
-    if (count == 0)
+		cnt++;
+    if (cnt == 0)
     {
 	msg("You have a tingling feeling");
 	return;
     }
-    count = pstats.s_hpt / count;
+    cnt = pstats.s_hpt / cnt;
     pstats.s_hpt /= 2;
     /*
      * Now zot all of the monsters
@@ -367,7 +378,7 @@ int ymin, ymax, xmin, xmax;
 	        ((item = find_mons(i, j)) != NULL))
 	    {
 		ick = (struct thing *) ldata(item);
-		if ((ick->t_stats.s_hpt -= count) < 1)
+		if ((ick->t_stats.s_hpt -= cnt) < 1)
 		    killed(item, cansee(i, j) && !on(*ick, ISINVIS));
 	    }
 }
@@ -376,8 +387,7 @@ int ymin, ymax, xmin, xmax;
  * charge a wand for wizards.
  */
 char *
-charge_str(obj)
-register struct object *obj;
+charge_str(struct object *obj)
 {
     static char buf[20];
 

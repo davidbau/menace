@@ -2,8 +2,15 @@
  * Draw the connecting passages
  *
  * @(#)passages.c	3.4 (Berkeley) 6/15/81
+ *
+ * Rogue: Exploring the Dungeons of Doom
+ * Copyright (C) 1980, 1981 Michael Toy, Ken Arnold and Glenn Wichman
+ * All rights reserved.
+ *
+ * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
+#include <stdlib.h>
 #include "curses.h"
 #include "rogue.h"
 
@@ -12,11 +19,12 @@
  *	Draw all the passages on a level.
  */
 
+void
 do_passages()
 {
-    register struct rdes *r1, *r2;
-    register int i, j;
-    register int roomcount;
+    struct rdes *r1, *r2;
+    int i, j;
+    int roomcount;
     static struct rdes
     {
 	bool	conn[MAXROOMS];		/* possible to connect to room i? */
@@ -37,7 +45,7 @@ do_passages()
     /*
      * reinitialize room graph description
      */
-    for (r1 = rdes; r1 < &rdes[MAXROOMS]; r1++)
+    for (r1 = rdes; r1 <= &rdes[MAXROOMS-1]; r1++)
     {
 	for (j = 0; j < MAXROOMS; j++)
 	    r1->isconn[j] = FALSE;
@@ -77,8 +85,8 @@ do_passages()
 	else
 	{
 	    r2->ingraph = TRUE;
-	    i = r1 - rdes;
-	    j = r2 - rdes;
+	    i = (int)(r1 - rdes);
+	    j = (int)(r2 - rdes);
 	    conn(i, j);
 	    r1->isconn[j] = TRUE;
 	    r2->isconn[i] = TRUE;
@@ -106,8 +114,8 @@ do_passages()
 	 */
 	if (j != 0)
 	{
-	    i = r1 - rdes;
-	    j = r2 - rdes;
+	    i = (int)(r1 - rdes);
+	    j = (int)(r2 - rdes);
 	    conn(i, j);
 	    r1->isconn[j] = TRUE;
 	    r2->isconn[i] = TRUE;
@@ -120,15 +128,15 @@ do_passages()
  *	Draw a corridor from a room in a certain direction.
  */
 
-conn(r1, r2)
-int r1, r2;
+void
+conn(int r1, int r2)
 {
-    register struct room *rpf, *rpt;
-    register char rmt;
-    register int distance, turn_spot, turn_distance;
-    register int rm;
-    register char direc;
-    coord delta, curr, turn_delta, spos, epos;
+    struct room *rpf, *rpt;
+    int rmt;
+    int distance, turn_spot, turn_distance;
+    int rm;
+    int direc;
+    coord pdelta, curr, turn_delta, spos, epos;
 
     if (r1 < r2)
     {
@@ -155,8 +163,8 @@ int r1, r2;
     {
 	rmt = rm + 3;				/* room # of dest */
 	rpt = &rooms[rmt];			/* room pointer of dest */
-	delta.x = 0;				/* direction of move */
-	delta.y = 1;
+	pdelta.x = 0;				/* direction of move */
+	pdelta.y = 1;
 	spos.x = rpf->r_pos.x;			/* start of move */
 	spos.y = rpf->r_pos.y;
 	epos.x = rpt->r_pos.x;			/* end of move */
@@ -178,8 +186,8 @@ int r1, r2;
     {
 	rmt = rm + 1;
 	rpt = &rooms[rmt];
-	delta.x = 1;
-	delta.y = 0;
+	pdelta.x = 1;
+	pdelta.y = 0;
 	spos.x = rpf->r_pos.x;
 	spos.y = rpf->r_pos.y;
 	epos.x = rpt->r_pos.x;
@@ -198,7 +206,7 @@ int r1, r2;
 	turn_spot = rnd(distance-1) + 1;
     }
     else
-	debug("error in connection tables");
+	fatal("error in connection tables");
     /*
      * Draw in the doors on either side of the passage or just put #'s
      * if the rooms are gone.
@@ -225,8 +233,8 @@ int r1, r2;
 	/*
 	 * Move to new position
 	 */
-	curr.x += delta.x;
-	curr.y += delta.y;
+	curr.x += pdelta.x;
+	curr.y += pdelta.y;
 	/*
 	 * Check if we are at the turn place, if so do the turn
 	 */
@@ -245,8 +253,8 @@ int r1, r2;
 	addch(PASSAGE);
 	distance--;
     }
-    curr.x += delta.x;
-    curr.y += delta.y;
+    curr.x += pdelta.x;
+    curr.y += pdelta.y;
     if (!ce(curr, epos))
 	msg("Warning, connectivity problem on this level.");
 }
@@ -256,22 +264,23 @@ int r1, r2;
  * also enters the door in the exits array of the room.
  */
 
-door(rm, cp)
-register struct room *rm;
-register coord *cp;
+void
+door(struct room *rm, coord *cp)
 {
     cmov(*cp);
-    addch(rnd(10) < level - 1 && rnd(100) < 20 ? SECRETDOOR : DOOR);
+    addch( (rnd(10) < level - 1 && rnd(100) < 20 ? SECRETDOOR : DOOR) );
     rm->r_exit[rm->r_nexits++] = *cp;
 }
+
 /*
  * add_pass:
  *	add the passages to the current window (wizard command)
  */
 
+void
 add_pass()
 {
-    register int y, x, ch;
+    int y, x, ch;
 
     for (y = 1; y < LINES - 2; y++)
 	for (x = 0; x < COLS; x++)
