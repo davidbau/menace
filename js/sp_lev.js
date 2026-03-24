@@ -20,6 +20,7 @@ import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM, STRAT_WAITFORU, MM_NOTAIL, NO_INVEN
          M_AP_OBJECT, M_AP_FURNITURE, M_AP_MONSTER } from './const.js';
 import { rn2, rnd, rn1, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight, place_object } from './mkobj.js';
+import { get_rnd_toptenentry, classmon } from './topten.js';
 import { game as _gstate } from './gstate.js';
 import { newsym } from './display.js';
 import { create_room, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, link_doors_rooms, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, fill_special_room, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, mktrap, deltrap, enexto, sp_create_door, floodFillAndRegister, repair_irregular_room_boundaries, resolveBranchPlacementForLevel, induced_align, enterMklevContext, leaveMklevContext } from './dungeon.js';
@@ -1372,9 +1373,14 @@ function medusa_fixup(map) {
         const otmp = mksobj(STATUE, false, false);
         if (!otmp) return null;
         placeObjectAt(otmp, x, y);
-        // C ref: mk_tt_object() tt_oname path (scoreboard RNG) + fallback role.
-        rnd(10);
-        set_corpsenm(otmp, rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST));
+        // C ref: tt_oname() → get_rnd_toptenentry() (consumes rnd(10))
+        const tt = get_rnd_toptenentry();
+        if (!tt) {
+            // Empty scoreboard — random player class fallback
+            set_corpsenm(otmp, rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST));
+        } else {
+            set_corpsenm(otmp, classmon(tt.plrole));
+        }
         return otmp;
     };
 

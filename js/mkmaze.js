@@ -24,6 +24,7 @@ import {
 } from './dungeon.js';
 import { placeFloorObject } from './invent.js';
 import { mkobj, mksobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
+import { get_rnd_toptenentry, classmon } from './topten.js';
 import { GEM_CLASS, RANDOM_CLASS, BOULDER, GOLD_PIECE, STATUE } from './objects.js';
 import { makemon, rndmonnum, getMakemonRoleIndex } from './makemon.js';
 import { NO_MM_FLAGS,
@@ -1557,9 +1558,13 @@ function medusa_fixup(map, depth = 1) {
         const otmp = mksobj(STATUE, false, false);
         if (!otmp) return null;
         placeObjectAt(otmp, x, y);
-        // C ref: mk_tt_object() tt_oname path (scoreboard RNG) + fallback role.
-        rnd(10);
-        set_corpsenm(otmp, rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST));
+        // C ref: tt_oname() → get_rnd_toptenentry() (consumes rnd(10))
+        const tt = get_rnd_toptenentry();
+        if (!tt) {
+            set_corpsenm(otmp, rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST));
+        } else {
+            set_corpsenm(otmp, classmon(tt.plrole));
+        }
         return otmp;
     };
 

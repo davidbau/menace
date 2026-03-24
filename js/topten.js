@@ -1,5 +1,5 @@
 import { COLNO } from './const.js';
-import { rn2, rn1 } from './rng.js';
+import { rn2, rn1, rnd } from './rng.js';
 import { canseemon } from './display.js';
 import { depth } from './dungeon.js';
 // topten.js -- High score list persistence and display
@@ -395,11 +395,27 @@ export function classmon(roleAbbr) {
     return idx >= 0 ? idx : 0;
 }
 
+// C ref: topten.c get_rnd_toptenentry() — always consumes rnd(sysopt.tt_oname_maxrank).
+// Returns a random scoreboard entry, or null if empty.
+// C's scoreboard accumulates entries across test runs, so tt_oname returns
+// non-NULL for most recorded sessions. The _assumeNonEmptyScoreboard flag
+// lets the test harness match this behavior when localStorage is unavailable.
+let _assumeNonEmptyScoreboard = false;
+export function setAssumeNonEmptyScoreboard(val) { _assumeNonEmptyScoreboard = !!val; }
 export function get_rnd_toptenentry() {
     const scores = loadScores();
-    if (!scores.length) return null;
-    const idx = Math.floor(Math.random() * scores.length);
-    return scores[idx] || null;
+    // C: rnd(sysopt.tt_oname_maxrank) — always consumed regardless of scoreboard state.
+    // sysopt.tt_oname_maxrank defaults to 10.
+    const rank = rnd(10);
+    if (scores.length > 0) {
+        const idx = Math.min(rank - 1, scores.length - 1);
+        return scores[idx] || null;
+    }
+    if (_assumeNonEmptyScoreboard) {
+        // Return a synthetic entry so rn1(13) fallback is skipped, matching C.
+        return { plrole: 'Val', plgend: 'F', name: 'topten' };
+    }
+    return null;
 }
 
 export function encode_extended_achievements(secondlong, player) {
