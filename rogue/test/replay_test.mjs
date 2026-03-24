@@ -149,9 +149,10 @@ async function replaySession(sessionFile, opts = {}) {
       ? (totalRngComp.firstDiverge / Math.max(allJsRng.length, allCRng.length) * 100)
       : 100);
 
-  // Pass if: total RNG matches (ignoring step boundaries) AND screen ≥93% AND step count matches.
-  // Per-step RNG can differ due to C/JS screen capture timing differences.
-  const passed = (totalRngMatch || totalRngPct >= 93.0) && screenPct >= 93.0 && jsSteps.length === cSteps.length;
+  // Pass requires: total RNG 100% match, screen ≥98%, step count match.
+  // Screen allows for: endmsg display timing (row 0), options hw overlay diffs.
+  // TODO: fix remaining display timing to reach 100% screen.
+  const passed = totalRngMatch && screenPct >= 98.0 && jsSteps.length === cSteps.length;
 
   const result = {
     session: name,
