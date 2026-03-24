@@ -217,9 +217,12 @@ void harness_exit(int code)
  * here as the keystroke injection point.
  */
 typedef struct _win_st WINDOW;
+extern int wrefresh(WINDOW *win);
 int md_readchar(WINDOW *win)
 {
-    (void)win;
+    /* Real curses wgetch() calls wrefresh(win) before waiting for input.
+     * We must match this so harness_display is up-to-date when captured. */
+    wrefresh(win);
     return harness_next_key();
 }
 
