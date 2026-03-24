@@ -524,17 +524,17 @@ export async function newcham(mtmp, new_mdat) {
   mtmp.invis = false;
   // C: while(!mdat->mlet) mdat-- — walk back to find valid mdat
   while (!new_mdat.mlet) { /* shouldn't happen with our data, but match C */ }
-  // C uses float arithmetic and %g format (6 sig digits)
-  const mp = mtmp.mhp / mtmp.data.mhd;
-  const gfmt = (v) => parseFloat(v.toPrecision(6));
-  await pline('hp=%d--hd=%d--mp=%s', mtmp.mhp, mtmp.data.mhd, gfmt(mp));
-  // C: mtmp->mhp = (int)((float)mdat->mhd * mp) — float arithmetic
-  mtmp.mhp = Math.trunc(Math.fround(new_mdat.mhd) * Math.fround(mp));
+  // C: register float mp; mp = mtmp->mhp / mtmp->data->mhd;
+  // C int/int → truncated int, stored in float. Then (int)((float)mhd * mp).
+  // Use Math.fround to match C float precision exactly.
+  const mp = Math.fround(Math.trunc(mtmp.mhp / mtmp.data.mhd));
+  await pline('hp=%d--hd=%d--mp=%s', mtmp.mhp, mtmp.data.mhd, mp);
+  mtmp.mhp = Math.trunc(Math.fround(new_mdat.mhd) * mp);
   await pline('new=%d', mtmp.mhp);
   mtmp.data = new_mdat;
-  const mp2 = mtmp.orig_hp / mtmp.data.mhd;
-  await pline('orig=%d--mp=%s', mtmp.orig_hp, gfmt(mp2));
-  mtmp.orig_hp = Math.trunc(Math.fround(new_mdat.mhd) * Math.fround(mp2));
+  const mp2 = Math.fround(Math.trunc(mtmp.orig_hp / mtmp.data.mhd));
+  await pline('orig=%d--mp=%s', mtmp.orig_hp, mp2);
+  mtmp.orig_hp = Math.trunc(Math.fround(new_mdat.mhd) * mp2);
   await pline('new=%d', mtmp.orig_hp);
 }
 
