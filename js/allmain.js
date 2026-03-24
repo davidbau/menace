@@ -1442,8 +1442,7 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, opts = {}) 
                     initrack();
                     g._pendingNewGamePreamble = false;
                 }
-                // The lore overlay is cleared and the map/status/cursor are
-                // re-rendered on dismiss, matching observed C behavior.
+                // Re-render lore-dismissal baseline visuals.
                 clearLoreOverlay(g?.display);
                 if (g?.display && g.map && g.u && g.fov && typeof g.display.renderMap === 'function') {
                     g.display.renderMap(g.map, g.u, g.fov, g.flags);
