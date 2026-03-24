@@ -35,11 +35,18 @@ export class GameState {
     this.cw = [];
     // hw: help/inventory overlay window (24×80), drawn on top of all when active
     this.hw = [];
+    // Attribute planes: 0=normal, 1=standout (inverse video)
+    this.stdscr_attr = [];
+    this.cw_attr = [];
+    this.hw_attr = [];
     for (let r = 0; r < 24; r++) {
       this.stdscr[r] = new Array(80).fill(' ');
       this.mw[r] = new Array(80).fill(' ');
       this.cw[r] = new Array(80).fill(' ');
       this.hw[r] = new Array(80).fill(' ');
+      this.stdscr_attr[r] = new Array(80).fill(0);
+      this.cw_attr[r] = new Array(80).fill(0);
+      this.hw_attr[r] = new Array(80).fill(0);
     }
 
     // ---- Player ----

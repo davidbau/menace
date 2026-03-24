@@ -44,6 +44,31 @@ class SessionDone extends Error {
   constructor() { super('session complete'); }
 }
 
+// Extract standout ranges from the current display attr state.
+// Returns array of [row, startCol, endCol] or null if no standout.
+function captureStandout(g) {
+  // Check the attr plane that was last drawn (depends on which window draw() rendered)
+  // For simplicity, check all attr planes and merge
+  const ranges = [];
+  for (const attrPlane of [g.cw_attr, g.stdscr_attr, g.hw_attr]) {
+    if (!attrPlane) continue;
+    for (let r = 0; r < 24; r++) {
+      let c = 0;
+      while (c < 80) {
+        if (attrPlane[r][c]) {
+          const start = c;
+          while (c < 80 && attrPlane[r][c]) c++;
+          ranges.push([r, start, c]);
+        } else {
+          c++;
+        }
+      }
+    }
+    if (ranges.length > 0) break;  // use first plane with standout
+  }
+  return ranges.length > 0 ? ranges : undefined;
+}
+
 /**
  * Run one game session driven by an AI callback.
  * keyProvider(screen, stepNum, display) => string | null
@@ -114,7 +139,10 @@ export async function runSession(seed, keys, opts = {}) {
     if (keyIndex >= keys.length) throw new SessionDone();
 
     const key = keys[keyIndex];
-    steps.push({ key, rng, screen, cursor });
+    const standout = captureStandout(g);
+    const step = { key, rng, screen, cursor };
+    if (standout) step.standout = standout;
+    steps.push(step);
     return keys[keyIndex++];
   };
 

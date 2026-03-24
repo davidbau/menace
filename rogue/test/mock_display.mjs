@@ -31,9 +31,18 @@ export class MockDisplay {
     this.curx++;
   }
 
-  putChar(x, y, ch) {
+  putChar(x, y, ch, attr) {
     if (y >= 1 && y <= this.ROWS && x >= 1 && x <= this.COLS) {
       this.grid[y][x] = typeof ch === 'number' ? String.fromCharCode(ch) : ch;
+      if (attr) {
+        if (!this._attrGrid) {
+          this._attrGrid = [];
+          for (let r = 0; r <= this.ROWS; r++) this._attrGrid[r] = new Array(this.COLS + 1).fill(0);
+        }
+        this._attrGrid[y][x] = attr;
+      } else if (this._attrGrid) {
+        this._attrGrid[y][x] = 0;
+      }
     }
   }
 

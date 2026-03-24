@@ -108,6 +108,7 @@ async function replaySession(sessionFile, opts = {}) {
   let totalRngMatches = 0, totalRngCells = 0;
   let firstScreenDiverge = -1, firstRngDiverge = -1;
   let cursorMatches = 0, cursorTotal = 0, firstCursorDiverge = -1;
+  let firstStandoutDiverge = -1;
 
   for (let i = 0; i < totalSteps; i++) {
     const js = jsSteps[i];
@@ -126,6 +127,13 @@ async function replaySession(sessionFile, opts = {}) {
     if (!rngComp.match && firstRngDiverge < 0) firstRngDiverge = i;
 
     // Cursor comparison (if both have cursor data)
+    // Standout comparison
+    const jsStandout = JSON.stringify(js.standout || null);
+    const cStandout = JSON.stringify(c.standout || null);
+    if (jsStandout !== cStandout && firstStandoutDiverge < 0) {
+      firstStandoutDiverge = i;
+    }
+
     // Skip cursor on save-prompt steps (path length differs C vs JS)
     if (js.cursor && c.cursor) {
       const jsR0 = js.screen?.[0] || '';
@@ -175,6 +183,7 @@ async function replaySession(sessionFile, opts = {}) {
     first_rng_diverge: firstRngDiverge,
     cursor_pct: cursorTotal > 0 ? Math.round(cursorMatches / cursorTotal * 1000) / 10 : null,
     first_cursor_diverge: firstCursorDiverge,
+    first_standout_diverge: firstStandoutDiverge,
   };
 
   if (opts.diagnose && (firstScreenDiverge >= 0 || firstRngDiverge >= 0)) {

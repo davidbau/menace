@@ -31,9 +31,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.23% </span>
+                <span class="strong">71.76% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>59/84</span>
+                <span class='fraction'>61/85</span>
             </div>
         
             
@@ -1505,7 +1505,7 @@ export async function saveGame() {
     // Write a visible save-file entry to the shell VFS (shows up in `ls`)
     try {
       const fsRaw = localStorage.getItem('menace-fs');
-      const fs = fsRaw <span class="branch-0 cbranch-no" title="branch not covered" >? JSON.parse(fsRaw) </span>: {};
+      const fs = fsRaw ? JSON.parse(fsRaw) : {};
       fs['home/rogue.sav'] = `Rogue save: level ${g.level}, gold ${g.purse}, HP ${g.player.t_stats.s_hpt}/${g.max_hp}\n`;
       localStorage.setItem('menace-fs', JSON.stringify(fs));
     } <span class="branch-0 cbranch-no" title="branch not covered" >catch (e) { /* VFS not available */ }</span>
@@ -1668,7 +1668,7 @@ export function loadGameState(g) {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-24T23:10:02.163Z
+                at 2026-03-24T23:52:56.927Z
             </div>
         <script src="prettify.js"></script>
         <script>

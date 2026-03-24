@@ -24,9 +24,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.55% </span>
+                <span class="strong">98.56% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>204/207</span>
+                <span class='fraction'>206/209</span>
             </div>
         
             
@@ -45,15 +45,15 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.55% </span>
+                <span class="strong">98.56% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>204/207</span>
+                <span class='fraction'>206/209</span>
             </div>
         
             
         </div>
         <p class="quiet">
-        <div class="nh-fortune nh-excellent"><span class="nh-bracket">[</span> A small voice whispers: thou art close to perfection, but a few dark rooms remain. <span class="nh-bracket">]</span></div>
+        <div class="nh-fortune nh-excellent"><span class="nh-bracket">[</span> You feel mostly enlightened.  The Oracle peers at you with mild approval. <span class="nh-bracket">]</span></div>
         
             Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
         </p>
@@ -273,7 +273,9 @@
 <a name='L205'></a><a href='#L205'>205</a>
 <a name='L206'></a><a href='#L206'>206</a>
 <a name='L207'></a><a href='#L207'>207</a>
-<a name='L208'></a><a href='#L208'>208</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -372,6 +374,8 @@
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -486,7 +490,7 @@
  */
 &nbsp;
 import { game } from './gstate.js';
-import { clear, wclear, draw, mvwaddstr } from './curses.js';
+import { clear, wclear, draw, mvwaddstr, standout, standend } from './curses.js';
 import { wait_for } from './io.js';
 import { addScore, scoreLines, storeGameover } from './score.js';
 import {
@@ -590,7 +594,8 @@ export async function total_winner() {
   wclear(g.mw);
   wclear(g.cw);
 &nbsp;
-  // "YOU MADE IT" banner
+  // "YOU MADE IT" banner — displayed in standout (inverse video)
+  standout();
   mvwaddstr(g.stdscr, 0,  0, '                                                               ');
   mvwaddstr(g.stdscr, 1,  0, '  @   @               @   @           @          @@@  @     @  ');
   mvwaddstr(g.stdscr, 2,  0, '  @   @               @@ @@           @           @   @     @  ');
@@ -601,6 +606,7 @@ export async function total_winner() {
   mvwaddstr(g.stdscr, 7,  0, '   @@@   @@@   @@ @   @   @  @@@@  @@@@  @@@     @@@   @@   @  ');
   mvwaddstr(g.stdscr, 8,  0, '                                                               ');
   mvwaddstr(g.stdscr, 9,  0, '     Congratulations, you have made it to the light of day!    ');
+  standend();
   mvwaddstr(g.stdscr, 11, 0, 'You have joined the elite ranks of those who have escaped the');
   mvwaddstr(g.stdscr, 12, 0, 'Dungeons of Doom alive.  You journey home and sell all your loot at');
   mvwaddstr(g.stdscr, 13, 0, 'a great profit and are admitted to the fighters guild.');
@@ -693,7 +699,7 @@ export async function total_winner() {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-24T23:10:02.163Z
+                at 2026-03-24T23:52:56.927Z
             </div>
         <script src="prettify.js"></script>
         <script>
