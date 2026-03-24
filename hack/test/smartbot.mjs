@@ -227,7 +227,6 @@ input.getKey = async function () {
   if (depth !== lastDepth) {
     let ms = []; for (let m = game.fmon; m; m = m.nmon) if (m.data) ms.push(m.data.mlet);
     process.stderr.write(`  Level ${depth} [${ms.join(',')}]\n`);
-    }
     lastDepth = depth;
     equipped = false;
   }
