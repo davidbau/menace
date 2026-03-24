@@ -8,7 +8,7 @@ import { rnd, roll } from './rng.js';
 import { mvwaddch, mvwinch, winat } from './curses.js';
 import {
   WS_LIGHT, WS_HIT, WS_DRAIN, WS_POLYMORPH, WS_TELAWAY, WS_TELTO,
-  WS_CANCEL, WS_MISSILE, WS_HASTE_M, WS_SLOW_M, WS_ELECT, WS_FIRE, WS_COLD,
+  WS_CANCEL, WS_MISSILE, WS_HASTE_M, WS_SLOW_M, WS_ELECT, WS_FIRE, WS_COLD, WS_NOP,
   STICK, PLAYER, FLOOR, BOLT_LENGTH,
   ISRUN, ISHELD, ISHASTE, ISSLOW, ISCANC, ISINVIS,
 } from './const.js';
@@ -327,6 +327,11 @@ export async function do_zap(gotdir) {
       g.ws_know[obj.o_which] = true;
       break;
     }
+
+    case WS_NOP:
+      // C: when WS_NOP: otherwise: — the when macro inserts break before
+      // the case, so WS_NOP is a silent no-op (does NOT fall to default).
+      break;
 
     default:
       await _msg('What a bizarre schtick!');

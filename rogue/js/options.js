@@ -73,7 +73,7 @@ async function get_bool(field, win) {
   }
   wmove(win, oy, ox);
   waddstr(win, g[field] ? 'True' : 'False');
-  wclrtoeol(win);  // clear any leftover chars (e.g. 'e' when switching False→True)
+  // C does NOT call wclrtoeol here — "(T or F)" hint persists if it was shown
   waddch(win, '\n');
   return NORM;
 }

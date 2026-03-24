@@ -479,7 +479,7 @@ async function get_bool(field, win) {
   }
   wmove(win, oy, ox);
   waddstr(win, g[field] <span class="branch-0 cbranch-no" title="branch not covered" >? 'True' </span>: 'False');
-  wclrtoeol(win);  // clear any leftover chars (e.g. 'e' when switching False→True)
+  // C does NOT call wclrtoeol here — "(T or F)" hint persists if it was shown
   waddch(win, '\n');
   return NORM;
 }
@@ -579,7 +579,7 @@ export async function option() {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-24T22:46:22.484Z
+                at 2026-03-24T23:10:02.163Z
             </div>
         <script src="prettify.js"></script>
         <script>
