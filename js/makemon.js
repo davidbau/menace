@@ -461,8 +461,13 @@ function align_shift(ptr) {
     return 0;
 }
 
-// C ref: makemon.c temperature_shift() — no temperature at standard depths
+// C ref: makemon.c temperature_shift() — bonus for fire/cold resistant monsters
+// on levels with non-zero temperature (Gehennom fire/ice levels)
 function temperature_shift(ptr) {
+    const map = _gstate?.map;
+    const temp = map?.levelFlags?.temperature ?? map?.flags?.temperature ?? 0;
+    if (temp && pm_resistance(ptr, temp > 0 ? MR_FIRE : MR_COLD))
+        return 3;
     return 0;
 }
 
