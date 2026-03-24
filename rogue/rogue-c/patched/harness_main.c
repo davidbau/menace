@@ -22,7 +22,7 @@
 
 /* ===== Shared with rng_log.c ===== */
 #include "harness_events.h"
-extern int harness_rng_buf[];
+extern int *harness_rng_buf;
 extern int harness_rng_count;
 void harness_srand(unsigned int seed);
 void harness_set_forced_seed(unsigned int seed);
