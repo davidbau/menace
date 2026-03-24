@@ -9,10 +9,10 @@ import {
   S_CONFUSE, S_MAP, S_LIGHT, S_HOLD, S_SLEEP, S_ARMOR, S_IDENT,
   S_SCARE, S_GFIND, S_TELEP, S_ENCH, S_CREATE, S_REMOVE, S_AGGR,
   S_NOP, S_GENOCIDE,
-  SCROLL, ISDARK, FLOOR, PLAYER, CANHUH, ISHELD, ISRUN, ISCURSED,
-  SLEEPTIME, LINES, COLS,
+  SCROLL, ISDARK, FLOOR, PLAYER, GOLD, CANHUH, ISHELD, ISRUN, ISCURSED,
+  SLEEPTIME, LINES, COLS, MAXROOMS,
 } from './const.js';
-import { mvwinch, mvwaddch, winat } from './curses.js';
+import { mvwinch, mvwaddch, winat, wclear, show_win } from './curses.js';
 
 // Injected deps
 let _msg = null;
@@ -192,14 +192,20 @@ export async function read_scroll() {
     }
 
     case S_GFIND: {
-      // Gold detection
+      // Gold detection — show gold positions on hw overlay (matches C)
       let gtotal = 0;
-      for (let i = 0; i < g.rooms.length; i++) {
+      wclear(g.hw);
+      for (let i = 0; i < MAXROOMS; i++) {
         gtotal += g.rooms[i].r_goldval;
+        if (g.rooms[i].r_goldval !== 0 &&
+            mvwinch(g.stdscr, g.rooms[i].r_gold.y, g.rooms[i].r_gold.x) === GOLD) {
+          mvwaddch(g.hw, g.rooms[i].r_gold.y, g.rooms[i].r_gold.x, GOLD);
+        }
       }
       if (gtotal) {
         g.s_know[S_GFIND] = true;
-        await _msg('You begin to feel greedy and you sense gold.');
+        await show_win(g.hw,
+          'You begin to feel greedy and you sense gold.--More--');
       } else {
         await _msg('You begin to feel a pull downward');
       }

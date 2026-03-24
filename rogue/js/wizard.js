@@ -4,7 +4,7 @@
  */
 
 import { game } from './gstate.js';
-import { mvwaddch, draw } from './curses.js';
+import { mvwaddch, draw, show_win } from './curses.js';
 import { PLAYER, WEAPON, ARMOR, RING, STICK, ISCURSED,
          R_PROTECT, R_ADDSTR, R_ADDHIT, R_ADDDAM,
          TWOSWORD, SWORD, PLATE_MAIL, ISKNOW } from './const.js';
@@ -146,9 +146,15 @@ export async function wizard_cmds(ch) {
       break;
     }
 
+    case '\x06': {
+      // Ctrl-F: show level map (C: show_win(stdscr, ...))
+      await show_win(g.stdscr, '--More (level map)--');
+      break;
+    }
+
     case '\x18': {
-      // Ctrl-X: show all monsters on mw
-      draw(g.mw);
+      // Ctrl-X: show all monsters on mw (C: show_win(mw, ...))
+      await show_win(g.mw, '--More (monsters)--');
       break;
     }
 
