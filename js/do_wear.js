@@ -77,7 +77,7 @@ import { float_vs_flight } from './polyself.js';
 import { mark_vision_dirty } from './vision.js';
 import { nohands, nolimbs, cantweararm, slithy, has_horns, has_head, is_humanoid } from './mondata.js';
 import { MZ_SMALL, S_CENTAUR } from './monsters.js';
-import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
+import { envFlagTruth, writeStderr } from './runtime_env.js';
 import { setuwep, setuswapwep, setuqwep, empty_handed, welded } from './wield.js';
 
 // W_* flags imported from const.js
@@ -188,8 +188,7 @@ export function toggle_displacement(player, on, obj, oldprop) {
 // Helper: adjust a single extrinsic flag by +1 or -1
 function toggle_extrinsic(player, prop, on) {
     const entry = player.ensureUProp(prop);
-    if (prop === 28 && hasEnv('WEBHACK_RUN_DEBUG')
-        && getEnv('WEBHACK_RUN_DEBUG') !== '0') {
+    if (prop === 28 && envFlagTruth('WEBHACK_RUN_DEBUG')) {
         const e = new Error();
         writeStderr(`DBG toggle_extrinsic FAST on=${on} turns=${player?.turns} stack=${e.stack.split('\n').slice(1,8).join('|')}\n`);
     }

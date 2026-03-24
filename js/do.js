@@ -1228,10 +1228,11 @@ export async function handleDownstairs(player, map, display, game) {
             false
         );
         if (branchDest) {
-            await game.changeLevel(branchDest.dlevel, 'down', {
-                targetDnum: branchDest.dnum,
-                arrivalDescent: { flying, greatEffort, punished },
-            });
+            const transitionOpts = { targetDnum: branchDest.dnum };
+            if (flying || greatEffort || punished) {
+                transitionOpts.arrivalDescent = { flying, greatEffort, punished };
+            }
+            await game.changeLevel(branchDest.dlevel, 'down', transitionOpts);
             return { moved: false, tookTime: true };
         }
     }
@@ -1242,9 +1243,11 @@ export async function handleDownstairs(player, map, display, game) {
         player.maxDungeonLevel = newDepth;
     }
     // Generate new level (changeLevel sets player.dungeonLevel)
-    await game.changeLevel(newDepth, 'down', {
-        arrivalDescent: { flying, greatEffort, punished },
-    });
+    const descentOpts = {};
+    if (flying || greatEffort || punished) {
+        descentOpts.arrivalDescent = { flying, greatEffort, punished };
+    }
+    await game.changeLevel(newDepth, 'down', descentOpts);
     return { moved: false, tookTime: true };
 }
 

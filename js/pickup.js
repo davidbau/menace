@@ -54,7 +54,7 @@ import { count_unpaid } from './invent.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
 import { obfree, costly_spot, dopay, addtobill } from './shk.js';
-import { getEnv, writeStderr } from './runtime_env.js';
+import { envFlagTruth, writeStderr } from './runtime_env.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -76,8 +76,7 @@ const moderateloadpfx = 'You have trouble';
 const nearloadpfx = 'You have much trouble';
 const overloadpfx = 'You have extreme difficulty';
 const diagEncumber = (() => {
-    const v = getEnv('WEBHACK_DIAG_ENCUMBER');
-    return v === '1' || v === 'true';
+    return envFlagTruth('WEBHACK_DIAG_ENCUMBER');
 })();
 
 // ---------------------------------------------------------------------------

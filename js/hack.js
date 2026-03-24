@@ -82,7 +82,7 @@ import { poisoned, acurr, acurrstr } from './attrib.js';
 import { intemple } from './priest.js';
 import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto, floor_trigger,
          trapnote } from './trap.js';
-import { envFlag, getEnv } from './runtime_env.js';
+import { envFlag, envFlagTruth, getEnv } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
 import { is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall } from './dbridge.js';
 import { game as _gstate } from './gstate.js';
@@ -271,7 +271,7 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
                 }
             } else {
                 observeObject(seen);
-                if (String(process?.env?.WEBHACK_TRACE_FLOOR_FEEDBACK || '').trim() === '1') {
+                if (envFlagTruth('WEBHACK_TRACE_FLOOR_FEEDBACK')) {
                     const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : null;
                     const ctx = game?.context || {};
                     console.error(
@@ -3056,7 +3056,7 @@ export async function runmode_delay_output(game, display) {
     if (!game) return;
     const ctx = ensure_context(game);
     const runmode = game?.flags?.runmode || 'leap';
-    const traceEnabled = String(process?.env?.WEBHACK_TRACE_RUNMODE_DELAY || '').trim() === '1';
+    const traceEnabled = envFlagTruth('WEBHACK_TRACE_RUNMODE_DELAY');
     const step = Number.isInteger(game?.map?._replayStepIndex) ? game.map._replayStepIndex + 1 : null;
     if (ctx.run || game.multi) {
         if (runmode === 'tport') return;

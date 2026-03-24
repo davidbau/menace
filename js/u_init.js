@@ -13,7 +13,7 @@
 //   3. com_pager("legacy")     — NHCORE_START_NEW_GAME lua shuffle
 //   4. welcome(TRUE)           — rndencode + seer_turn
 
-import { rn2, rn1, rne, d, getRngLog } from './rng.js';
+import { rn2, rn1, rnd, rne, d, getRngLog } from './rng.js';
 import { newhp, newpw } from './exper.js';
 import { resetPlineState } from './pline.js';
 import { resetNoisesState } from './mhitm.js';

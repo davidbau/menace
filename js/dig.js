@@ -78,10 +78,10 @@ import { t_at, conjoined_pits } from './trap.js';
 import { On_ladder, On_stairs } from './stairs.js';
 import { s_suffix } from './hacklib.js';
 import { in_rooms, may_dig, losehp, Maybe_Half_Phys, confdir } from './hack.js';
-import { getEnv } from './runtime_env.js';
+import { envFlagTruth } from './runtime_env.js';
 
 function digTraceEnabled() {
-    return getEnv('WEBHACK_MONMOVE_TRACE') === '1';
+    return envFlagTruth('WEBHACK_MONMOVE_TRACE');
 }
 
 function digTrace(...args) {

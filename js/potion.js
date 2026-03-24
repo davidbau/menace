@@ -76,13 +76,12 @@ import { glyph_is_invisible } from './symbols.js';
 import { delayed_killer, find_delayed_killer, dealloc_killer } from './end.js';
 import { aggravate } from './wizard.js';
 import { Role_if } from './role.js';
-import { getEnv, writeStderr } from './runtime_env.js';
+import { envFlagTruth, writeStderr } from './runtime_env.js';
 
 // Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
 const gp = { potion_nothing: 0, potion_unkn: 0 };
 const diagQuaff = (() => {
-    const v = getEnv('WEBHACK_DIAG_QUAFF');
-    return v === '1' || v === 'true';
+    return envFlagTruth('WEBHACK_DIAG_QUAFF');
 })();
 
 function activeMap(mapArg = null) {

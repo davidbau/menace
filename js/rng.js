@@ -4,7 +4,7 @@
 // C ref: rnd.c, isaac64.c
 
 import { isaac64_init, isaac64_next_uint64 } from './isaac64.js';
-import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
+import { getEnv, envFlag } from './runtime_env.js';
 
 let coreCtx = null; // CORE ISAAC64 context (C rn2)
 let dispCtx = null; // DISP ISAAC64 context (C rn2_on_display_rng)
@@ -44,8 +44,7 @@ let cosmicMaplocBranch = null;
 let cosmicRngKind = null;
 
 function cosmicDisplayEnabled() {
-    const env = getEnvObject();
-    return !!(rngLog && env?.WEBHACK_COSMIC_DISPLAY_LOGS === '1');
+    return !!(rngLog && envFlag('WEBHACK_COSMIC_DISPLAY_LOGS'));
 }
 
 function cosmicCurrentOwner() {
@@ -470,11 +469,10 @@ export function rn2(x) {
 export function rn2_on_display_rng(x) {
     if (x <= 0) return 0;
     const result = DRND(x);
-    const processEnv = getEnvObject();
-    const dispLogEnabled = processEnv?.RNG_LOG_DISP === '1';
+    const dispLogEnabled = envFlag('RNG_LOG_DISP');
     if (rngLog && dispLogEnabled) {
         let tag = rngCallerTag ? ` @ ${rngCallerTag}` : '';
-        if (!tag && rngLogWithTags && processEnv?.RNG_LOG_DISP_CALLERS === '1') {
+        if (!tag && rngLogWithTags && envFlag('RNG_LOG_DISP_CALLERS')) {
             const holder = {};
             const prevLimit = Error.stackTraceLimit;
             Error.stackTraceLimit = rngLogWithParent ? 6 : 4;
@@ -509,7 +507,7 @@ export function rn2_on_display_rng(x) {
                 tag = ` @ ${callerTag}`;
             }
         }
-        if (processEnv?.WEBHACK_COSMIC_DISPLAY_LOGS === '1') {
+        if (envFlag('WEBHACK_COSMIC_DISPLAY_LOGS')) {
             const xCoord = cosmicCell?.x ?? -1;
             const yCoord = cosmicCell?.y ?? -1;
             rngLog.push(`~drn2_disp[n=${x} idx=${result} owner=${cosmicCurrentOwner() || '?'} kind=${cosmicRngKind || '?'} x=${xCoord} y=${yCoord}${cosmicNewsymBranch ? ` newsym=${cosmicNewsymBranch}` : ''}${cosmicMaplocBranch ? ` maploc=${cosmicMaplocBranch}` : ''}]${tag}`);
@@ -622,8 +620,7 @@ export function c_d(n, x) {
 export function advanceRngRaw(count = 1) {
     if (!coreCtx) return;
     const n = Math.max(0, Number.isInteger(count) ? count : 0);
-    const processEnv = getEnvObject();
-    const rawAdvanceLogEnabled = processEnv?.WEBHACK_LOG_RAW_ADVANCES === '1';
+    const rawAdvanceLogEnabled = envFlag('WEBHACK_LOG_RAW_ADVANCES');
     if (rngLog && rawAdvanceLogEnabled) {
         let tag = '';
         if (rngLogWithTags) {

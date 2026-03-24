@@ -17,7 +17,7 @@
 
 import { movemon, settrack, mon_regen, initrack } from './monmove.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
-import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
+import { envFlagTruth, writeStderr } from './runtime_env.js';
 import { emitRunstepEvent } from './runstep_trace.js';
 import { nh_timeout, do_storms, fall_asleep } from './timeout.js';
 import { pline, Norep } from './pline.js';
@@ -560,8 +560,7 @@ function u_calc_moveamt(player) {
         const formSpeed = Number(player?.type?.mmove);
         moveamt = Number.isFinite(formSpeed) ? formSpeed : (player.speed || NORMAL_SPEED);
         if (player.veryFast) {
-            if (hasEnv('WEBHACK_RUN_DEBUG')
-                && getEnv('WEBHACK_RUN_DEBUG') !== '0') {
+            if (envFlagTruth('WEBHACK_RUN_DEBUG')) {
                 const e = player.uprops[28];
                 const rngIdx = readRngLog().length;
                 writeStderr(`DBG u_calc_moveamt veryFast turns=${player.turns} rngIdx=${rngIdx} intr=${e?.intrinsic} extr=${e?.extrinsic}\n`);
@@ -1459,7 +1458,6 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, opts = {}) 
             return { handled: true, tookTime: false, moved: false, prompt: true };
         },
     };
-}
 }
 
 // ============================================================================

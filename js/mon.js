@@ -159,7 +159,8 @@ export async function allocateMonsterMovement(map) {
         // includes both explicit death flag and non-positive hp.
         if (mon.dead || Number(mon.mhp || 0) <= 0) continue;
         const oldMv = mon.movement;
-        mon.movement += await withRngTag('allocateMonsterMovement(mon.js:145)', () => mcalcmove(mon));
+        // Align RNG stack tags with C event logging (mon.c:1146 mcalcmove).
+        mon.movement += await withRngTag('mcalcmove(mon.js:145)', () => mcalcmove(mon));
         const mmove = Number.isFinite(mon?.data?.mmove)
             ? mon.data.mmove
             : (Number.isFinite(mon?.type?.mmove)

@@ -89,7 +89,7 @@ import { mons, PM_LONG_WORM, MS_SILENT,
 import { dist2, distu, s_suffix } from './hacklib.js';
 import { u_at, confdir } from './hack.js';
 import { mstatusline, ustatusline } from './insight.js';
-import { newsym, canspotmon } from './display.js';
+import { cmap_to_glyph, canspotmon, map_invisible, newsym } from './display.js';
 import { setnotworn } from './worn.js';
 import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
@@ -113,7 +113,6 @@ import { shk_your } from './shk.js';
 import { useupall, update_inventory, sobj_at, compactInvletPromptChars,
          buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { cansee } from './vision.js';
-import { cmap_to_glyph, canspotmon, map_invisible } from './display.js';
 import { S_flashbeam, S_goodpos } from './symbols.js';
 import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';

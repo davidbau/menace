@@ -74,6 +74,7 @@ import {
     repaintBotlx,
     repaintTimeBotl,
 } from './repaint_trace.js';
+import { envFlagTruth } from './runtime_env.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -128,7 +129,7 @@ function parseTraceStepSpec(raw) {
 const _env = typeof process !== 'undefined' ? process.env : {};
 const TRACE_CELL_SPEC = parseTraceCellSpec(_env.WEBHACK_TRACE_CELL);
 const TRACE_CELL_STEPS = parseTraceStepSpec(_env.WEBHACK_TRACE_CELL_STEPS);
-const TRACE_CELL_STACK = _env.WEBHACK_TRACE_CELL_STACK === '1';
+const TRACE_CELL_STACK = envFlagTruth('WEBHACK_TRACE_CELL_STACK');
 
 function traceStepForDisplay(display) {
     const stepIndex = Number.isInteger(display?._lastMapState?.gameMap?._replayStepIndex)

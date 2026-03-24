@@ -6733,8 +6733,7 @@ async function createScriptTrap(deferred) {
         pushRngLogEntry(`<mktrap #${start + 1}-${end} @ create_trap(sp_lev.js)`);
     };
     const maybeTrapContextLog = (ttyp, flags, x, y, depth) => {
-        const trapContextEnv = getEnvObject();
-        if (trapContextEnv?.WEBHACK_LOG_TRAP_CONTEXT !== '1') return;
+        if (!envFlag('WEBHACK_LOG_TRAP_CONTEXT')) return;
         pushRngLogEntry(`~create_trap type=${ttyp} flags=${flags} at=${x},${y} depth=${depth}`);
     };
     let ttyp;
@@ -6985,7 +6984,7 @@ export async function finalize_level() {
         levelState.deferredFinalizeRequested = true;
         return levelState.map;
     }
-    const extraPhaseTrace = (getProcessEnv('WEBHACK_EXTRA_PHASE_CHECKPOINTS') === '1');
+    const extraPhaseTrace = envFlag('WEBHACK_EXTRA_PHASE_CHECKPOINTS');
     if (extraPhaseTrace) {
         captureCheckpoint('after_script');
     }
