@@ -1031,11 +1031,15 @@ export function start_corpse_timeout(body, opts = {}) {
     if (corpsenm < 0 || !mons[corpsenm]) return;
     const zombify = !!opts?.zombify || _zombifyContext;
     const norevive = !!opts?.norevive || !!body.norevive;
-    // Lizards and lichen don't rot or revive
-    if (corpsenm === PM_LIZARD || corpsenm === PM_LICHEN) return;
+    // Always cancel existing timers first — set_corpsenm may change a
+    // timed corpse (random monster) to a nonrotting one (lizard/lichen).
+    // C ref: mkobj.c start_corpse_timeout() cancels before the nonrot check
+    // because set_corpsenm calls it unconditionally after changing corpsenm.
     stop_timer(TIMER_FUNC.ROT_CORPSE, body);
     stop_timer(TIMER_FUNC.REVIVE_MON, body);
     stop_timer(TIMER_FUNC.ZOMBIFY_MON, body);
+    // Lizards and lichen don't rot or revive
+    if (corpsenm === PM_LIZARD || corpsenm === PM_LICHEN) return;
     let action = TIMER_FUNC.ROT_CORPSE;
     // C ref: mkobj.c start_corpse_timeout() — rot_adjust depends on gi.in_mklev.
     const rotAdjust = _getInMklev() ? 25 : 10;

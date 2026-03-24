@@ -41,6 +41,7 @@ import { AT_HUGS, MZ_HUGE, mons, PM_GHOUL } from './monsters.js';
 import { envFlag } from './runtime_env.js';
 import { random_epitaph_text } from './rumors.js';
 import { body_part } from './polyself.js';
+import { nomul } from './hack.js';
 
 function engrTraceEnabled() {
     return envFlag('WEBHACK_ENGR_TRACE');
@@ -428,8 +429,7 @@ export async function read_engr_at(map, x, y, player, game = null) {
             `read_engr_at stop-run at (${x},${y})`,
             `text=${JSON.stringify(String(ep.text || '').slice(0, 80))}`
         );
-        ctx.run = 0;
-        if (game) game.running = false;
+        nomul(0, game);
     }
 }
 

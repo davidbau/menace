@@ -466,11 +466,9 @@ export async function raise_level() {
  */
 export async function thunk(weap, mname) {
   const g = game();
-  if (weap.o_type === WEAPON) {
-    await _msg(`The ${g.w_names[weap.o_which]} hits the ${mname}`);
-  } else {
-    await _msg(`You hit the ${mname}.`);
-  }
+  // missile() only accepts WEAPON items (get_item("throw", WEAPON)),
+  // so weap.o_type is always WEAPON here.
+  await _msg(`The ${g.w_names[weap.o_which]} hits the ${mname}`);
 }
 
 /**
@@ -478,11 +476,7 @@ export async function thunk(weap, mname) {
  */
 export async function bounce(weap, mname) {
   const g = game();
-  if (weap.o_type === WEAPON) {
-    await _msg(`The ${g.w_names[weap.o_which]} misses the ${mname}`);
-  } else {
-    await _msg(`You missed the ${mname}.`);
-  }
+  await _msg(`The ${g.w_names[weap.o_which]} misses the ${mname}`);
 }
 
 /**
