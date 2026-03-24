@@ -276,3 +276,32 @@ source-level instrumentation that tmux can't provide.
 | 2C | Parity validation | 1 hour |
 | 3A-3C | JS fixes | 1-2 hours |
 | **Total** | | **8-10 hours** |
+
+## Results (2026-03-23)
+
+### Phase 1: C Harness — COMPLETE ✅
+- Submodule: RoguelikeRestorationProject/rogue3.6
+- C harness builds with `make setup && make`
+- RNG logging correct (rnd() → harness_rnd, verified seed42 rnd(100)=37)
+- Keystroke injection via md_readchar override
+
+### Phase 2: JS Parity — MOSTLY COMPLETE ✅
+- RNG algorithm: LCG 11109+13849 (was Park-Miller 16807)
+- Monster stats: all 4 DBM changes reverted
+- Strength init: 1% exceptional (was 100%)
+- Color/stone/material init: used[] arrays (was duplicates allowed)
+- Room generation: bszeX/Y, topX/Y, room size formulas all match C
+
+### Parity Results
+- **211 sessions total** (seed, cov_, wizard_ sessions)
+- **128 pass (60.7%)** at 100% on both RNG and screen
+- **Average RNG parity: 95.9%**
+- **Average screen parity: 99.3%**
+- **29/36 seed-based sessions pass** (long gameplay tests)
+- Screen failures are mostly display timing (wizard mode overlays)
+- RNG failures in 7 long sessions are deep gameplay divergences (monster AI)
+
+### Known Remaining Issues
+1. **Display timing**: Wizard command overlays captured at different moments (C vs JS)
+2. **Monster AI parity**: 7 long sessions diverge at monster movement/combat (steps 100-268)
+3. **Coverage**: Needs verification against previous 100% coverage baseline
