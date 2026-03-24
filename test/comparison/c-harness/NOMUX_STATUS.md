@@ -53,7 +53,39 @@ NOMUX: Velkommen wizard... --More--
 - Text popup rendering not yet tested with actual lore overlay
 - DEC graphics character mapping (SO/SI) needs verification
 
-## Next Steps (M3-M5)
-- M3: Wire into Python `run_session.py` as alternative to tmux capture
-- M4: Dual-capture validation (record same session both ways, diff)
-- M5: Full suite rerecording + parity measurement
+## M3 Complete: Harness Integration
+
+`run_session.py` now supports NOMUX via `NOMUX=1` env var:
+- `capture_screen_nomux()` reads `$NOMUX_SCREEN_FILE`
+- `capture_screen_compressed_nomux()` returns compressed ANSI + cursor
+- Cursor parsed from `---CURSOR:x,y` line in file
+- Falls back to tmux if NOMUX file missing
+
+## M4 Complete: Dual-Capture Validation
+
+Results for seed031 (first 100 steps):
+- Text: **100/101** match (1 diff: cmdassist popup leading space)
+- Cursor: **101/101** match (perfect)
+
+Results for seed1 (12 steps):
+- Text: **12/12** match (perfect)
+- Cursor: **12/12** match (perfect)
+
+Key bug found and fixed during M4: `topl_putsym` `nomux_putch` must fire
+BEFORE `ttyDisplay->curx++` (was after, causing 1-column offset for all
+message line text).
+
+## M5 Status: Requires Clean Rebuild
+
+Full rerecording requires the NOMUX patch to be applied via `setup.sh`
+alongside the standard patches, building against the correct upstream
+commit to match `recorded_with` metadata. Direct patched-dir modifications
+produce a binary that doesn't RNG-match existing sessions.
+
+### To complete M5:
+1. Convert NOMUX source modifications into a proper `032-nomux-capture.patch`
+   that `setup.sh` can apply (currently in gitignored `nethack-c/patched/`)
+2. Run `setup.sh` to build from clean upstream + all patches including NOMUX
+3. Rerecord seed031 with `NOMUX=1`
+4. Verify RNG matches original, colors improve
+5. Rerecord full suite
