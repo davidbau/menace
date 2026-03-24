@@ -70,6 +70,7 @@ import { gulp_blnd_check } from './mhitu.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
+         SDOOR, SCORR, DOOR, CORR,
          SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
          TIMEOUT, HAND, FACE, HEAD, CQ_CANNED } from './const.js';
 import { rn2, rnd, rn1, d, c_d, shuffle_int_array } from './rng.js';
@@ -87,6 +88,8 @@ import { mons, PM_LONG_WORM, MS_SILENT,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
 import { dist2, distu, s_suffix } from './hacklib.js';
 import { u_at, confdir } from './hack.js';
+import { mstatusline, ustatusline } from './insight.js';
+import { newsym, canspotmon } from './display.js';
 import { setnotworn } from './worn.js';
 import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
@@ -264,8 +267,89 @@ export async function use_towel(obj, player) {
 }
 
 
-// cf. apply.c:318 -- STUB: depends on getdir, mstatusline
-async function use_stethoscope() { await You("hear nothing special."); }
+// cf. apply.c:318 — use_stethoscope(obj, player, map, display, game)
+// Direction already in player.dx/dy/dz (set by caller with confdir).
+async function use_stethoscope(obj, player, map, display, game) {
+    // C ref: apply.c:327-330 — basic checks
+    if (player.deaf || player.Deaf) {
+        await You_cant("hear anything!");
+        return false;
+    }
+
+    const dx = player.dx || 0, dy = player.dy || 0, dz = player.dz || 0;
+
+    // C ref: apply.c:352-358 — engulfed: examine engulfer
+    if (player.uswallow) {
+        if (player.ustuck) await mstatusline(player.ustuck, game);
+        return true;
+    }
+
+    // C ref: apply.c:359-373 — vertical: examine floor/ceiling
+    if (dz) {
+        if (dz < 0) {
+            await pline("You can't reach up there.");
+        } else {
+            await pline_The("%s seems healthy enough.", "floor");
+        }
+        return true;
+    }
+
+    // C ref: apply.c:374-378 — cursed: hear own heartbeat
+    if (obj.cursed && !rn2(2)) {
+        await You_hear("your heart beat.");
+        return true;
+    }
+
+    // C ref: apply.c:380-383 — self: examine self
+    if (!dx && !dy) {
+        await ustatusline(game);
+        return true;
+    }
+
+    const rx = player.x + dx;
+    const ry = player.y + dy;
+
+    if (!isok(rx, ry)) {
+        await You_hear("a faint typing noise.");
+        return false;
+    }
+
+    // C ref: apply.c:391-446 — monster at target
+    const mtmp = map.monsterAt ? map.monsterAt(rx, ry) : null;
+    if (mtmp && !mtmp.dead && mtmp.mhp > 0) {
+        if (mtmp.mundetected) {
+            if (!canspotmon(mtmp, player, null, map)) {
+                await There("is a monster hidden there.");
+            }
+            mtmp.mundetected = 0;
+            newsym(mtmp.mx, mtmp.my, map);
+        }
+        await mstatusline(mtmp, game);
+        return true;
+    }
+
+    // C ref: apply.c:450-464 — terrain detection (SDOOR, SCORR)
+    const loc = map.at ? map.at(rx, ry) : null;
+    if (loc) {
+        if (loc.typ === SDOOR) {
+            await You_hear("a hollow sound.  This must be a secret door!");
+            loc.typ = DOOR;
+            loc.flags = loc.flags || 0;
+            newsym(rx, ry, map);
+            return true;
+        }
+        if (loc.typ === SCORR) {
+            await You_hear("a hollow sound.  This must be a secret passage!");
+            loc.typ = CORR;
+            loc.flags = 0;
+            newsym(rx, ry, map);
+            return true;
+        }
+    }
+
+    await You("hear nothing special.");
+    return true;
+}
 
 // cf. apply.c:476 -- STUB: depends on wake_nearby
 async function use_whistle(obj) {
@@ -1219,6 +1303,10 @@ export async function handleApply(player, map, display, game) {
             if (selected.otyp === EXPENSIVE_CAMERA) {
                 await use_camera(selected, player, map);
                 return { moved: false, tookTime: true };
+            }
+            if (selected.otyp === STETHOSCOPE) {
+                const tookTime = await use_stethoscope(selected, player, map, display, game);
+                return { moved: false, tookTime: !!tookTime };
             }
             return { moved: false, tookTime: false };
         }
