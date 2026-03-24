@@ -322,13 +322,19 @@ input.getKey = async function () {
             }}}
         if (bestSD) {
           if (u.ux === bestSD.px && u.uy === bestSD.py) {
-            bestKey = 's';
+            keyLog.push('s'); return 's'; // at SDOOR — search
+          }
+          // Navigate to the SDOOR cell. Use BFS, but if stuck, explore
+          // to find alternate routes (search at every wall-adjacent cell).
+          const navKey = bfsKey(bestSD.px, bestSD.py);
+          if (navKey) {
+            key = navKey; // normal navigation
           } else {
-            const navKey = bfsKey(bestSD.px, bestSD.py);
-            bestKey = navKey || 's';
+            // Can't reach SDOOR directly. Explore + search: alternate
+            // between moving to unvisited cells and searching.
+            key = (stepCount % 2 === 0) ? 's' : 'hjklyubn'[stepCount % 8];
           }
         } else {
-          // No SDOOR found adjacent to reachable area — just search everywhere
           bestKey = 's';
         }
       }
