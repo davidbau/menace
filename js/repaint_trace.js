@@ -1,12 +1,12 @@
 import { pushRngLogEntry } from './rng.js';
-import { envFlag } from './runtime_env.js';
+import { envFlagTruth } from './runtime_env.js';
 
 export function repaintTraceEnabled() {
-    return envFlag('WEBHACK_REPAINT_TRACE');
+    return envFlagTruth('WEBHACK_REPAINT_TRACE');
 }
 
 export function repaintDebugEnabled() {
-    return envFlag('WEBHACK_REPAINT_DEBUG');
+    return envFlagTruth('WEBHACK_REPAINT_DEBUG');
 }
 
 export function repaintHp(player) {

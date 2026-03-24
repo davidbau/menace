@@ -64,6 +64,7 @@ import {
     D_ISOPEN, D_CLOSED, D_LOCKED,
 } from './const.js';
 import { more } from './input.js';
+import { envFlagTruth } from './runtime_env.js';
 
 
 const DEFAULT_GAME_FLAGS = {
@@ -136,7 +137,7 @@ function parseTraceStepSpec(raw) {
 
 const TRACE_CELL_SPEC = parseTraceCellSpec(process?.env?.WEBHACK_TRACE_CELL);
 const TRACE_CELL_STEPS = parseTraceStepSpec(process?.env?.WEBHACK_TRACE_CELL_STEPS);
-const TRACE_CELL_STACK = process?.env?.WEBHACK_TRACE_CELL_STACK === '1';
+const TRACE_CELL_STACK = envFlagTruth('WEBHACK_TRACE_CELL_STACK');
 
 function traceStepForDisplay(display) {
     const stepIndex = Number.isInteger(display?._lastMapState?.gameMap?._replayStepIndex)
@@ -174,7 +175,7 @@ function maybeTraceMessage(display, msg) {
 }
 
 function maybeTraceMoreFallback(display, phase, msg, err) {
-    const enabled = String(process?.env?.WEBHACK_TRACE_MORE_FALLBACK || '').trim() === '1';
+    const enabled = envFlagTruth('WEBHACK_TRACE_MORE_FALLBACK');
     if (!enabled) return;
     const step = traceStepForDisplay(display);
     const text = String(msg || '');
@@ -207,7 +208,7 @@ function maybeTraceMessageState(display, msg, inputWaiting) {
 }
 
 function maybeTraceToplineConcat(display, gameRef, msg, combined, extra = '') {
-    const enabled = String(process?.env?.WEBHACK_TRACE_TOPLINE_CONCAT || '').trim() === '1';
+    const enabled = envFlagTruth('WEBHACK_TRACE_TOPLINE_CONCAT');
     if (!enabled) return;
     const step = traceStepForDisplay(display);
     console.error(
@@ -225,7 +226,7 @@ function maybeTraceToplineConcat(display, gameRef, msg, combined, extra = '') {
 }
 
 function maybeTraceRenderMessageWindow(display, label = '') {
-    const enabled = String(process?.env?.WEBHACK_TRACE_RENDER_MESSAGE || '').trim() === '1';
+    const enabled = envFlagTruth('WEBHACK_TRACE_RENDER_MESSAGE');
     if (!enabled) return;
     const step = traceStepForDisplay(display);
     console.error(
@@ -238,7 +239,7 @@ function maybeTraceRenderMessageWindow(display, label = '') {
 }
 
 function maybeTraceRenderMoreMarker(display) {
-    const enabled = String(process?.env?.WEBHACK_TRACE_RENDER_MORE || '').trim() === '1';
+    const enabled = envFlagTruth('WEBHACK_TRACE_RENDER_MORE');
     if (!enabled) return;
     const step = traceStepForDisplay(display);
     const stack = String(new Error().stack || '').split('\n').slice(2, 8)
@@ -254,7 +255,7 @@ function maybeTraceRenderMoreMarker(display) {
 }
 
 function maybeTraceRepaintOwner(display, owner, extra = '') {
-    const enabled = String(process?.env?.WEBHACK_REPAINT_DEBUG || '').trim() === '1';
+    const enabled = envFlagTruth('WEBHACK_REPAINT_DEBUG');
     if (!enabled) return;
     const step = traceStepForDisplay(display);
     console.error(
