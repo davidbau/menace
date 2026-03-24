@@ -2541,14 +2541,18 @@ export async function altar_wrath(x, y, player, map) {
         await adjattrib(player, A_WIS, -1, false);
         player.alignmentRecord--;
     } else {
+        // C ref: pray.c:2661-2665 — Deaf variant
+        const deaf = !!(player.deaf || player.Deaf);
         await pline("%s %s%s:",
-              "A voice (could it be",
+              deaf ? "Despite your deafness, you seem to hear"
+                   : "A voice (could it be",
               align_gname(altaralign, player),
-              "?) whispers");
+              deaf ? " say" : "?) whispers");
         await verbalize("Thou shalt pay, infidel!");
+        // C ref: pray.c:2670-2671 — luck reduction via change_luck
         const luck = Luck(player);
         if (luck > -5 && rn2(luck + 6)) {
-            player.luck = luck + (rn2(20) ? -1 : -2);
+            change_luck(rn2(20) ? -1 : -2, player);
         }
     }
 }
