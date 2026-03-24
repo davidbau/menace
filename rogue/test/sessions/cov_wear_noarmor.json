@@ -33,7 +33,7 @@
     },
     {
       "key": "W",
-      "rng": [],
+      "rng": ["^cmd[ch=84 no_cmd=0 after=1]"],
       "screen": [
         "You used to be  wearing b) +1 ring mail",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "a",
-      "rng": [],
+      "rng": ["^cmd[ch=87 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to wear? (* for list):",
         "",

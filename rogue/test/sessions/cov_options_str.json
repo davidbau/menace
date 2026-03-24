@@ -33,7 +33,7 @@
     },
     {
       "key": "a",
-      "rng": [],
+      "rng": ["^cmd[ch=111 no_cmd=0 after=1]"],
       "screen": [
         "Terse output: False",
         "Flush typeahead during battle: False",

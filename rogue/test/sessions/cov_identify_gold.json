@@ -33,7 +33,7 @@
     },
     {
       "key": "$",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",

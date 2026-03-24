@@ -33,7 +33,7 @@
     },
     {
       "key": "L",
-      "rng": [7,62,6,33,37,56,92,91,67,26],
+      "rng": [7,62,6,33,37,56,92,91,67,26,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "L",
-      "rng": [18],
+      "rng": [18,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "L",
-      "rng": [65],
+      "rng": [65,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "L",
-      "rng": [49],
+      "rng": [49,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "L",
-      "rng": [0],
+      "rng": [0,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "L",
-      "rng": [16],
+      "rng": [16,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "l",
-      "rng": [47],
+      "rng": [47,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": ">",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "J",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "J",
-      "rng": [34,58,5],
+      "rng": [34,58,5,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "J",
-      "rng": [73],
+      "rng": [73,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "J",
-      "rng": [24],
+      "rng": [24,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "J",
-      "rng": [44],
+      "rng": [44,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -423,7 +423,7 @@
     },
     {
       "key": "J",
-      "rng": [47],
+      "rng": [47,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": "J",
-      "rng": [95],
+      "rng": [95,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -483,7 +483,7 @@
     },
     {
       "key": "j",
-      "rng": [58],
+      "rng": [58,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -513,7 +513,7 @@
     },
     {
       "key": ">",
-      "rng": [30],
+      "rng": [30,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -543,7 +543,7 @@
     },
     {
       "key": "H",
-      "rng": [],
+      "rng": ["^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -573,7 +573,7 @@
     },
     {
       "key": "H",
-      "rng": [41,97,16,4,3,15,0,2],
+      "rng": [41,97,16,4,3,15,0,2,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "You don't hit the jackal--More--",
         "",
@@ -9543,7 +9543,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [57,16,0,3,79],
+      "rng": [57,16,0,3,79,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "The jackal swings and hits you",
         "",

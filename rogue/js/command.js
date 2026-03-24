@@ -136,6 +136,8 @@ export async function command() {
     } else {
       ch = ' ';
     }
+    // Parity trace: log command state for C/JS comparison
+    if (g.rawRngLog) g.rawRngLog.push(`^cmd[ch=${ch.charCodeAt(0)} no_cmd=${g.no_command} after=${g.after?1:0}]`);
 
     if (g.no_command) {
       if (--g.no_command === 0) await _msg('You can move again.');

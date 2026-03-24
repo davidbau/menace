@@ -33,7 +33,7 @@
     },
     {
       "key": "H",
-      "rng": [80,24,11,3,90],
+      "rng": [80,24,11,3,90,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin doesn't hit you",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "H",
-      "rng": [34,25,53,8,80],
+      "rng": [34,25,53,8,80,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "H",
-      "rng": [75,87,22],
+      "rng": [75,87,22,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "H",
-      "rng": [54,29,77],
+      "rng": [54,29,77,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "H",
-      "rng": [12,20,79],
+      "rng": [12,20,79,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": ">",
-      "rng": [35,82,2],
+      "rng": [35,82,2,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "y",
-      "rng": [25],
+      "rng": [25,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "u",
-      "rng": [13,96],
+      "rng": [13,96,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "b",
-      "rng": [64,3,3,58],
+      "rng": [64,3,3,58,"^cmd[ch=117 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin doesn't hit you",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "n",
-      "rng": [98,13,1,0,84],
+      "rng": [98,13,1,0,84,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin scored an excellent hit on you",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "s",
-      "rng": [71,3],
+      "rng": [71,3,"^cmd[ch=110 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "s",
-      "rng": [10,2,41],
+      "rng": [10,2,41,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin barely misses you",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": ">",
-      "rng": [1,0,0],
+      "rng": [1,0,0,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin misses you",
         "",
@@ -423,7 +423,7 @@
     },
     {
       "key": "J",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": "J",
-      "rng": [47,22,18],
+      "rng": [47,22,18,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -483,7 +483,7 @@
     },
     {
       "key": "J",
-      "rng": [37,17,20],
+      "rng": [37,17,20,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -513,7 +513,7 @@
     },
     {
       "key": "J",
-      "rng": [16,55,59],
+      "rng": [16,55,59,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -543,7 +543,7 @@
     },
     {
       "key": "J",
-      "rng": [86,34,57],
+      "rng": [86,34,57,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -573,7 +573,7 @@
     },
     {
       "key": "J",
-      "rng": [9,16,4],
+      "rng": [9,16,4,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -603,7 +603,7 @@
     },
     {
       "key": ">",
-      "rng": [35,27,82],
+      "rng": [35,27,82,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -633,7 +633,7 @@
     },
     {
       "key": "y",
-      "rng": [82],
+      "rng": [82,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -663,7 +663,7 @@
     },
     {
       "key": "u",
-      "rng": [73,17],
+      "rng": [73,17,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -693,7 +693,7 @@
     },
     {
       "key": "b",
-      "rng": [96,0,3,55],
+      "rng": [96,0,3,55,"^cmd[ch=117 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin doesn't hit you",
         "",
@@ -723,7 +723,7 @@
     },
     {
       "key": "n",
-      "rng": [14,2,1,61],
+      "rng": [14,2,1,61,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin swings and misses you",
         "",
@@ -753,7 +753,7 @@
     },
     {
       "key": "s",
-      "rng": [48,76],
+      "rng": [48,76,"^cmd[ch=110 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -783,7 +783,7 @@
     },
     {
       "key": "s",
-      "rng": [3,3,70],
+      "rng": [3,3,70,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin doesn't hit you",
         "",
@@ -813,7 +813,7 @@
     },
     {
       "key": ">",
-      "rng": [2,1,97],
+      "rng": [2,1,97,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin swings and misses you",
         "",
@@ -843,7 +843,7 @@
     },
     {
       "key": "K",
-      "rng": [76],
+      "rng": [76,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -873,7 +873,7 @@
     },
     {
       "key": "K",
-      "rng": [52,79,3,2,6],
+      "rng": [52,79,3,2,6,"^cmd[ch=75 no_cmd=0 after=1]","^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin barely misses you",
         "",
@@ -903,7 +903,7 @@
     },
     {
       "key": "K",
-      "rng": [37,61,84,16,59,55,54],
+      "rng": [37,61,84,16,59,55,54,"^cmd[ch=75 no_cmd=0 after=1]","^cmd[ch=107 no_cmd=0 after=1]","^cmd[ch=107 no_cmd=0 after=1]","^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -933,7 +933,7 @@
     },
     {
       "key": "K",
-      "rng": [22,61,41],
+      "rng": [22,61,41,"^cmd[ch=75 no_cmd=0 after=1]","^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -963,7 +963,7 @@
     },
     {
       "key": "K",
-      "rng": [76,72,3],
+      "rng": [76,72,3,"^cmd[ch=75 no_cmd=0 after=1]","^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -993,7 +993,7 @@
     },
     {
       "key": "K",
-      "rng": [47,6,90],
+      "rng": [47,6,90,"^cmd[ch=75 no_cmd=0 after=1]","^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1023,7 +1023,7 @@
     },
     {
       "key": ">",
-      "rng": [85,25,40],
+      "rng": [85,25,40,"^cmd[ch=75 no_cmd=0 after=1]","^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1053,7 +1053,7 @@
     },
     {
       "key": "y",
-      "rng": [8],
+      "rng": [8,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -1083,7 +1083,7 @@
     },
     {
       "key": "u",
-      "rng": [99,19],
+      "rng": [99,19,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1113,7 +1113,7 @@
     },
     {
       "key": "b",
-      "rng": [66,82],
+      "rng": [66,82,"^cmd[ch=117 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1143,7 +1143,7 @@
     },
     {
       "key": "n",
-      "rng": [29,33],
+      "rng": [29,33,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1173,7 +1173,7 @@
     },
     {
       "key": "s",
-      "rng": [80,4,3,43],
+      "rng": [80,4,3,43,"^cmd[ch=110 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin doesn't hit you",
         "",
@@ -1203,7 +1203,7 @@
     },
     {
       "key": "s",
-      "rng": [14,6,1,69],
+      "rng": [14,6,1,69,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin hit you",
         "",
@@ -1233,7 +1233,7 @@
     },
     {
       "key": ">",
-      "rng": [0,0,47],
+      "rng": [0,0,47,"^cmd[ch=115 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin misses you",
         "",
@@ -1263,7 +1263,7 @@
     },
     {
       "key": "L",
-      "rng": [39],
+      "rng": [39,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -1293,7 +1293,7 @@
     },
     {
       "key": "L",
-      "rng": [90,2,97,5,4,84,7,95,30,38,45,61,80],
+      "rng": [90,2,97,5,4,84,7,95,30,38,45,61,80,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1323,7 +1323,7 @@
     },
     {
       "key": "L",
-      "rng": [96,3,15],
+      "rng": [96,3,15,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1353,7 +1353,7 @@
     },
     {
       "key": "L",
-      "rng": [10,98,97],
+      "rng": [10,98,97,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1383,7 +1383,7 @@
     },
     {
       "key": "L",
-      "rng": [25,32,92],
+      "rng": [25,32,92,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1413,7 +1413,7 @@
     },
     {
       "key": "L",
-      "rng": [71,19,18],
+      "rng": [71,19,18,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1443,7 +1443,7 @@
     },
     {
       "key": ">",
-      "rng": [2,41,17],
+      "rng": [2,41,17,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1473,7 +1473,7 @@
     },
     {
       "key": "y",
-      "rng": [64],
+      "rng": [64,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -1503,7 +1503,7 @@
     },
     {
       "key": "u",
-      "rng": [76,3,3,58],
+      "rng": [76,3,3,58,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin doesn't hit you",
         "",
@@ -1533,7 +1533,7 @@
     },
     {
       "key": "b",
-      "rng": [38,97],
+      "rng": [38,97,"^cmd[ch=117 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -1563,7 +1563,7 @@
     },
     {
       "key": "n",
-      "rng": [9,0,0,43],
+      "rng": [9,0,0,43,"^cmd[ch=98 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin misses you",
         "",
@@ -1593,7 +1593,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [83,18,6,1],
+      "rng": [83,18,6,1,"^cmd[ch=110 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

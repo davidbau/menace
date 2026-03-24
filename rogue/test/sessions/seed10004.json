@@ -33,7 +33,7 @@
     },
     {
       "key": "H",
-      "rng": [96,91,23],
+      "rng": [96,91,23,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "H",
-      "rng": [14,46,45],
+      "rng": [14,46,45,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "H",
-      "rng": [57,56,52],
+      "rng": [57,56,52,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "H",
-      "rng": [79,47,22],
+      "rng": [79,47,22,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "l",
-      "rng": [70,77,29],
+      "rng": [70,77,29,"^cmd[ch=72 no_cmd=0 after=1]","^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": ">",
-      "rng": [40,16,7,3,66],
+      "rng": [40,16,7,3,66,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin swings and hits you",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "J",
-      "rng": [30],
+      "rng": [30,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "J",
-      "rng": [9,21,12],
+      "rng": [9,21,12,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "J",
-      "rng": [60,19,11],
+      "rng": [60,19,11,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "J",
-      "rng": [34,30,45],
+      "rng": [34,30,45,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "J",
-      "rng": [37,44,88],
+      "rng": [37,44,88,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "j",
-      "rng": [63,43,30],
+      "rng": [63,43,30,"^cmd[ch=74 no_cmd=0 after=1]","^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": ">",
-      "rng": [74,73],
+      "rng": [74,73,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -423,7 +423,7 @@
     },
     {
       "key": "L",
-      "rng": [49],
+      "rng": [49,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": "L",
-      "rng": [72,20,67,31,58],
+      "rng": [72,20,67,31,58,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -483,7 +483,7 @@
     },
     {
       "key": "L",
-      "rng": [50,13,93],
+      "rng": [50,13,93,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -513,7 +513,7 @@
     },
     {
       "key": "L",
-      "rng": [68,28,19],
+      "rng": [68,28,19,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -543,7 +543,7 @@
     },
     {
       "key": "L",
-      "rng": [95,6,78],
+      "rng": [95,6,78,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -573,7 +573,7 @@
     },
     {
       "key": "l",
-      "rng": [69,57,52],
+      "rng": [69,57,52,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -603,7 +603,7 @@
     },
     {
       "key": ">",
-      "rng": [32,23],
+      "rng": [32,23,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -633,7 +633,7 @@
     },
     {
       "key": "L",
-      "rng": [7],
+      "rng": [7,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -663,7 +663,7 @@
     },
     {
       "key": "L",
-      "rng": [78,46,13],
+      "rng": [78,46,13,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -693,7 +693,7 @@
     },
     {
       "key": "L",
-      "rng": [13,12,36],
+      "rng": [13,12,36,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -723,7 +723,7 @@
     },
     {
       "key": "L",
-      "rng": [83,3,94],
+      "rng": [83,3,94,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -753,7 +753,7 @@
     },
     {
       "key": "L",
-      "rng": [42,65,13],
+      "rng": [42,65,13,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -783,7 +783,7 @@
     },
     {
       "key": "L",
-      "rng": [36,12,3],
+      "rng": [36,12,3,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -813,7 +813,7 @@
     },
     {
       "key": "L",
-      "rng": [55,26,86],
+      "rng": [55,26,86,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -843,7 +843,7 @@
     },
     {
       "key": ">",
-      "rng": [13,13,44],
+      "rng": [13,13,44,"^cmd[ch=76 no_cmd=0 after=1]","^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -873,7 +873,7 @@
     },
     {
       "key": "h",
-      "rng": [96],
+      "rng": [96,"^cmd[ch=62 no_cmd=0 after=1]"],
       "screen": [
         "I see no way down.",
         "",
@@ -903,7 +903,7 @@
     },
     {
       "key": "j",
-      "rng": [71,3,2,2,1],
+      "rng": [71,3,2,2,1,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "You barely miss the hobgoblin--More--",
         "",
@@ -11073,7 +11073,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [40,0,3,75],
+      "rng": [40,0,3,75,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "The hobgoblin doesn't hit you",
         "",

@@ -33,7 +33,7 @@
     },
     {
       "key": "b",
-      "rng": [],
+      "rng": ["^cmd[ch=99 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to call? (* for list):",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "y",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "You now have a topaz potion (b)",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [35],
+      "rng": [35,"^cmd[ch=121 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

@@ -33,7 +33,7 @@
     },
     {
       "key": "/",
-      "rng": [],
+      "rng": ["^cmd[ch=67 no_cmd=0 after=1]"],
       "screen": [
         "Illegal command 'C'.",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "7",
-      "rng": [],
+      "rng": ["^cmd[ch=47 no_cmd=0 after=1]"],
       "screen": [
         "What do you want identified?",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "b",
-      "rng": [],
+      "rng": ["^cmd[ch=122 no_cmd=0 after=1]"],
       "screen": [
         "Which object do you want to zap with? (* for list):",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "\u0000",
-      "rng": [28],
+      "rng": [28,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",

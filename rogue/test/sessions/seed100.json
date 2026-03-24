@@ -33,7 +33,7 @@
     },
     {
       "key": "j",
-      "rng": [79],
+      "rng": [79,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "h",
-      "rng": [82],
+      "rng": [82,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": " ",
-      "rng": [18,77],
+      "rng": [18,77,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": "h",
-      "rng": [17,2,0,43],
+      "rng": [17,2,0,43,"^cmd[ch=32 no_cmd=0 after=1]"],
       "screen": [
         "The snake scored an excellent hit on you",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "j",
-      "rng": [15,6,2,29],
+      "rng": [15,6,2,29,"^cmd[ch=104 no_cmd=0 after=1]"],
       "screen": [
         "The snake barely misses you",
         "",
@@ -183,7 +183,7 @@
     },
     {
       "key": "j",
-      "rng": [17,76],
+      "rng": [17,76,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -213,7 +213,7 @@
     },
     {
       "key": "j",
-      "rng": [80,11],
+      "rng": [80,11,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -243,7 +243,7 @@
     },
     {
       "key": "j",
-      "rng": [3,54],
+      "rng": [3,54,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -273,7 +273,7 @@
     },
     {
       "key": "l",
-      "rng": [82,73],
+      "rng": [82,73,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -303,7 +303,7 @@
     },
     {
       "key": "l",
-      "rng": [93,8,0,23],
+      "rng": [93,8,0,23,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "The snake misses you",
         "",
@@ -333,7 +333,7 @@
     },
     {
       "key": "l",
-      "rng": [63,94],
+      "rng": [63,94,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -363,7 +363,7 @@
     },
     {
       "key": "l",
-      "rng": [34,29],
+      "rng": [34,29,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -393,7 +393,7 @@
     },
     {
       "key": "l",
-      "rng": [1,24],
+      "rng": [1,24,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -423,7 +423,7 @@
     },
     {
       "key": "l",
-      "rng": [40,83],
+      "rng": [40,83,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -453,7 +453,7 @@
     },
     {
       "key": "l",
-      "rng": [83,54],
+      "rng": [83,54,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -483,7 +483,7 @@
     },
     {
       "key": "l",
-      "rng": [22,85],
+      "rng": [22,85,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "You found 18 gold pieces.",
         "",
@@ -513,7 +513,7 @@
     },
     {
       "key": "j",
-      "rng": [13,12],
+      "rng": [13,12,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -543,7 +543,7 @@
     },
     {
       "key": "j",
-      "rng": [12,11],
+      "rng": [12,11,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -573,7 +573,7 @@
     },
     {
       "key": "l",
-      "rng": [67,54],
+      "rng": [67,54,"^cmd[ch=106 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -603,7 +603,7 @@
     },
     {
       "key": "l",
-      "rng": [50,45],
+      "rng": [50,45,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -633,7 +633,7 @@
     },
     {
       "key": "l",
-      "rng": [49,76],
+      "rng": [49,76,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -663,7 +663,7 @@
     },
     {
       "key": "l",
-      "rng": [68,79],
+      "rng": [68,79,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -693,7 +693,7 @@
     },
     {
       "key": "l",
-      "rng": [19,66],
+      "rng": [19,66,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -723,7 +723,7 @@
     },
     {
       "key": "l",
-      "rng": [6,97],
+      "rng": [6,97,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -753,7 +753,7 @@
     },
     {
       "key": "l",
-      "rng": [97,20],
+      "rng": [97,20,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -783,7 +783,7 @@
     },
     {
       "key": "l",
-      "rng": [12,7],
+      "rng": [12,7,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -813,7 +813,7 @@
     },
     {
       "key": "l",
-      "rng": [43,26],
+      "rng": [43,26,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -843,7 +843,7 @@
     },
     {
       "key": "k",
-      "rng": [26,61],
+      "rng": [26,61,"^cmd[ch=108 no_cmd=0 after=1]"],
       "screen": [
         "",
         "",
@@ -873,7 +873,7 @@
     },
     {
       "key": "k",
-      "rng": [61,8,0],
+      "rng": [61,8,0,"^cmd[ch=107 no_cmd=0 after=1]"],
       "screen": [
         "You now have a clear potion (b)--More--",
         "",

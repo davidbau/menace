@@ -66,6 +66,7 @@ command()
 	    }
 	}
 	else ch = ' ';
+	{ extern void harness_log_event(const char*); extern int harness_rng_call_count; char _buf[80]; snprintf(_buf,sizeof(_buf),"^cmd[ch=%d no_cmd=%d after=%d]",ch,no_command,after); harness_log_event(_buf); }
 	if (no_command)
 	{
 	    if (--no_command == 0)
