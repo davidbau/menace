@@ -75,6 +75,14 @@ t = t.replace(\
     '{ extern void harness_log_event(const char*); extern int harness_rng_call_count; char _buf[80]; snprintf(_buf,sizeof(_buf),\"^cmd[ch=%d no_cmd=%d after=%d]\",ch,no_command,after); harness_log_event(_buf); }\n\tif (no_command)',\
     1); \
 open('command.c','w').write(t)"
+	@# Fix NULL deref in S_MAP: find_mons can return NULL for stale mw entries
+	@python3 -c "\
+t = open('scrolls.c').read(); \
+t = t.replace(\
+    'it = (struct thing *) ldata(find_mons(i, j));',\
+    '{ struct linked_list *_fm = find_mons(i, j); it = _fm ? (struct thing *) ldata(_fm) : NULL; }',\
+    1); \
+open('scrolls.c','w').write(t)"
 	@# Rename md_readchar in mdport.c so harness can override it
 	@sed -i.bak 's/md_readchar/md_readchar_original/g' mdport.c && rm -f mdport.c.bak
 	@# Override md_gethomedir to return /tmp/ so save files go to known location

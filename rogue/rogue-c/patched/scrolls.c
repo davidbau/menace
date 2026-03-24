@@ -183,7 +183,7 @@ read_scroll()
 			    {
 				struct thing *it;
 
-				it = (struct thing *) ldata(find_mons(i, j));
+				{ struct linked_list *_fm = find_mons(i, j); it = _fm ? (struct thing *) ldata(_fm) : NULL; }
 				if ((it != NULL) && (it->t_oldch == ' '))
 				    it->t_oldch = nch;
 			    }

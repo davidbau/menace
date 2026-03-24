@@ -1,0 +1,18 @@
+--- a/scrolls.c
++++ b/scrolls.c
+@@ -183,7 +183,12 @@
+ 			    if (mvwinch(mw, i, j) != ' ')
+ 			    {
+ 				struct thing *it;
+-
+-				it = (struct thing *) ldata(find_mons(i, j));
++				struct linked_list *_fm = find_mons(i, j);
++				/*
++				 * find_mons can return NULL if mw has a stale
++				 * monster entry (e.g. after wizard item creation).
++				 * Guard against NULL dereference.
++				 */
++				it = _fm ? (struct thing *) ldata(_fm) : NULL;
+ 				if ((it != NULL) && (it->t_oldch == ' '))
+ 				    it->t_oldch = nch;
+ 			    }

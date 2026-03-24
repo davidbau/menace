@@ -164,9 +164,9 @@ function buildActions() {
   // === POTIONS: create then quaff each type ===
   // Start with many heals to build up max_hp
   heal(); heal(); heal(); heal(); heal();
-  // P_MFIND(6), P_TFIND(7) skipped: show_win(hw) overlay causes screen capture
-  // timing divergence between C harness and JS. Covered by other sessions.
-  const potionOrder = [3, 5, 9, 8, 11, 4, 0, 10, 12, 1, 2, 13];
+  // P_MFIND(6), P_TFIND(7): use show_win(hw) overlay — may cause screen
+  // capture divergence but we test them for coverage.
+  const potionOrder = [3, 5, 9, 8, 11, 4, 6, 7, 0, 10, 12, 1, 2, 13];
   for (const p of potionOrder) {
     // Create
     a(() => 'C!' + hexChar(p));
@@ -180,10 +180,9 @@ function buildActions() {
   }
 
   // === SCROLLS: create then read each type ===
-  // S_MAP(1) skipped: C bug — stale mw entry causes SIGSEGV in find_mons.
-  // S_GFIND(8) skipped: show_win(hw) overlay causes harness capture divergence.
-  // Both covered by regular parity sessions.
-  const scrollOrder = [5, 10, 12, 2, 0, 3, 7, 14, 13, 9, 11, 4, 6, 15];
+  // S_GFIND(8) skipped: show_win(hw) overlay causes harness screen capture divergence.
+  // Covered by regular parity sessions.
+  const scrollOrder = [5, 10, 12, 2, 1, 0, 3, 7, 14, 13, 9, 11, 4, 6, 15];
   for (const s of scrollOrder) {
     a(() => 'C?' + hexChar(s));
     a(() => {
