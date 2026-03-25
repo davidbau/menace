@@ -48,7 +48,8 @@ describe('wizard mode init and commands', () => {
 
         assert.equal(game.wizard, true);
         assert.equal(game.u.wizard, true);
-        assert.equal(game.u.name, 'Wizard');
+        // C ref: set_playmode() overrides plname to lowercase "wizard".
+        assert.equal(game.u.name, 'wizard');
     });
 
     it('Ctrl+V level teleport moves through depths 2-5 in wizard mode', async () => {

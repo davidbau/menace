@@ -1841,7 +1841,7 @@ export class NetHackGame {
             }
 
             this.u.initRole(roleIndex);
-            this.u.name = char.name || 'Agent';
+            this.u.name = this.wizard ? 'wizard' : (char.name || 'Agent');
             this.u.race = selectedRace;
 
             // C ref: role.c rigid_role_checks() -- enforce forced gender.
@@ -1876,7 +1876,7 @@ export class NetHackGame {
         } else if (this.wizard) {
             // Wizard mode: auto-select Valkyrie (index 11)
             this.u.initRole(11); // PM_VALKYRIE
-            this.u.name = 'Wizard';
+            this.u.name = 'wizard';
             this.u.race = RACE_HUMAN;
             this.u.gender = FEMALE;
             this.u.alignment = A_NEUTRAL;
