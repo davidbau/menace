@@ -195,6 +195,11 @@ span.rogue-standout {
     }
   }
 
+  // Set a single cell — Shell uses 0-based coords, optional color (ignored for monochrome)
+  setCell(col, row, ch, color, attr) {
+    this.putChar(col + 1, row + 1, ch);
+  }
+
   // Write string at (col, row) with color — Shell uses 0-based coords
   putstr(col, row, str, color) {
     const r = row + 1;  // convert to 1-based
