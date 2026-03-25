@@ -44,7 +44,7 @@ import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly, levl_follower } from './mondata.js';
 import { mons, S_ZOMBIE, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
          PM_GREEN_SLIME, PM_WRAITH, PM_NURSE, PM_TOURIST } from './monsters.js';
-import { zombie_form, monnear, helpless } from './mon.js';
+import { zombie_form, monnear, helpless, hide_monst } from './mon.js';
 import { revive } from './zap.js';
 import { cansee } from './vision.js';
 import { canseemon } from './display.js';
@@ -1760,8 +1760,10 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         }
     }
 
-    // Cache current level
+    // Cache current level; record move count for elapsed-time monster processing
+    // on return.  C ref: restore.c getlev() uses (svm.moves - svo.omoves).
     if (currentMap) {
+        currentMap._omoves = game.moves || game.turnCount || 0;
         game.levels[(game.u || game.u).dungeonLevel] = currentMap;
         game.levelsByBranch[levelKey(currentDnum, (game.u || game.u).dungeonLevel)] = currentMap;
     }
@@ -1773,12 +1775,14 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     let nextMap = null;
 
     // Use pre-generated map if provided, otherwise check cache or generate new.
+    let isRestoredCachedLevel = false;
     if (opts.map) {
         nextMap = opts.map;
         game.levels[depth] = opts.map;
         game.levelsByBranch[branchCacheKey] = opts.map;
     } else if (game.levelsByBranch[branchCacheKey]) {
         nextMap = game.levelsByBranch[branchCacheKey];
+        isRestoredCachedLevel = true;
     } else if (targetDnum === currentDnum && game.levels[depth]) {
         const cachedDepthMap = game.levels[depth];
         const cachedDnum = Number.isInteger(cachedDepthMap?._genDnum)
@@ -1789,6 +1793,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
             : (Number.isInteger(cachedDepthMap?.uz?.dlevel) ? cachedDepthMap.uz.dlevel : null);
         if (cachedDnum === targetDnum && cachedDlevel === depth) {
             nextMap = cachedDepthMap;
+            isRestoredCachedLevel = true;
         }
     }
     if (!nextMap) {
@@ -1820,6 +1825,28 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         game.levelsByBranch[branchCacheKey] = nextMap;
     }
     game.map = nextMap;
+
+    // C ref: restore.c getlev() lines 1192-1213 — monster restore processing
+    // when returning to a cached level.  For each monster: restore_cham,
+    // hide_monst if elapsed > rnd(10).
+    if (isRestoredCachedLevel && nextMap) {
+        const elapsed = (game.moves || game.turnCount || 0)
+            - (Number.isFinite(nextMap._omoves) ? nextMap._omoves : 0);
+        // C iterates fmon linked list (newest-first / reverse creation order).
+        // JS's monsters array is typically in creation order, so iterate
+        // in reverse to match C's fmon traversal.
+        const monsters = nextMap.monsters || [];
+        for (let mi = monsters.length - 1; mi >= 0; mi--) {
+            const mtmp = monsters[mi];
+            if (!mtmp || mtmp.dead) continue;
+            // C ref: restore.c:1209 restore_cham(mtmp) — update shape-changers.
+            // (JS doesn't have full restore_cham yet; skip for now.)
+            // C ref: restore.c:1211-1212 — give hiders a chance to hide.
+            if (elapsed > 0 && elapsed > rnd(10)) {
+                hide_monst(mtmp, nextMap);
+            }
+        }
+    }
 
     if (Number.isInteger((game.map || game.map)?._genDnum)) {
         game.dnum = (game.map || game.map)._genDnum;
