@@ -12,7 +12,7 @@ import {
 describe('door symbols', () => {
 
 test('door symbols: vertical open door uses - (walls N/S)', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     // Create a vertical door (walls to north and south)
@@ -31,7 +31,7 @@ test('door symbols: vertical open door uses - (walls N/S)', () => {
 });
 
 test('door symbols: horizontal open door uses | (walls E/W)', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     // Create a horizontal door (walls to east and west)
@@ -48,7 +48,7 @@ test('door symbols: horizontal open door uses | (walls E/W)', () => {
 });
 
 test('door symbols: closed door always uses +', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     const x = 10, y = 10;
@@ -61,7 +61,7 @@ test('door symbols: closed door always uses +', () => {
 });
 
 test('door symbols: locked door uses +', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     const x = 10, y = 10;
@@ -74,7 +74,7 @@ test('door symbols: locked door uses +', () => {
 });
 
 test('door symbols: doorway (no door) uses .', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     const x = 10, y = 10;
@@ -87,7 +87,7 @@ test('door symbols: doorway (no door) uses .', () => {
 });
 
 test('door symbols: DECgraphics uses checkerboard for open doors', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     display.flags = { DECgraphics: true };
     const map = new GameMap();
 

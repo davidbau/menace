@@ -9,7 +9,7 @@ import { SDOOR, HWALL, VWALL } from '../../js/const.js';
 describe('secret door symbols', () => {
 
 test('secret door symbols: vertical secret door uses - (walls E/W)', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     // Create a vertical secret door (walls to east and west)
@@ -27,7 +27,7 @@ test('secret door symbols: vertical secret door uses - (walls E/W)', () => {
 });
 
 test('secret door symbols: horizontal secret door uses | (walls N/S)', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     // Create a horizontal secret door (walls to north and south)
@@ -47,7 +47,7 @@ test('secret door symbols: horizontal secret door uses | (walls N/S)', () => {
 });
 
 test('secret door symbols: DECgraphics uses Unicode box-drawing', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     display.flags = { DECgraphics: true };
     const map = new GameMap();
 

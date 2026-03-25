@@ -23,8 +23,8 @@ test('headless renderMap keeps remembered terrain color', () => {
     const fov = { canSee: () => false };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: false, color: true });
 
-    assert.equal(display.grid[row][col], '+');
-    assert.equal(display.colors[row][col], 3);
+    assert.equal(display.grid[row][col].ch, '+');
+    assert.equal(display.grid[row][col].color, 3);
 });
 
 test('headless remembered room floors use NO_COLOR tone', () => {
@@ -42,8 +42,8 @@ test('headless remembered room floors use NO_COLOR tone', () => {
     const fov = { canSee: () => false };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: true, color: true });
 
-    assert.equal(display.grid[row][col], '·');
-    assert.equal(display.colors[row][col], 8);
+    assert.equal(display.grid[row][col].ch, '·');
+    assert.equal(display.grid[row][col].color, 8);
     assert.match(display.getScreenAnsiLines()[row], /\u001b\[0;90;40m/);
 });
 
@@ -63,8 +63,8 @@ test('headless remembered objects keep remembered object color', () => {
     const fov = { canSee: () => false };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: false, color: true });
 
-    assert.equal(display.grid[row][col], '$');
-    assert.equal(display.colors[row][col], 11);
+    assert.equal(display.grid[row][col].ch, '$');
+    assert.equal(display.grid[row][col].color, 11);
 });
 
 test('headless remembered invisible marker overrides remembered objects', () => {
@@ -84,7 +84,7 @@ test('headless remembered invisible marker overrides remembered objects', () => 
     const fov = { canSee: () => false };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: false, color: true });
 
-    assert.equal(display.grid[row][col], 'I');
+    assert.equal(display.grid[row][col].ch, 'I');
 });
 
 test('headless visible monsters clear remembered invisible marker', () => {
@@ -112,7 +112,7 @@ test('headless visible monsters clear remembered invisible marker', () => {
     const fov = { canSee: (cx, cy) => cx === x && cy === y };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: false, color: true });
 
-    assert.notEqual(display.grid[row][col], 'I');
+    assert.notEqual(display.grid[row][col].ch, 'I');
     assert.equal(loc.mem_invis, false);
 });
 
@@ -142,14 +142,14 @@ test('headless keeps remembered engraving under visible monster in wizard mode',
     const fov = { canSee: (cx, cy) => visible && cx === x && cy === y };
 
     display.renderMap(map, player, fov, { msg_window: false, DECgraphics: true, color: true });
-    assert.equal(display.grid[row][col], 'f');
+    assert.equal(display.grid[row][col].ch, 'f');
     assert.equal(loc.mem_obj, '`');
     assert.equal(loc.mem_obj_color, 12);
 
     visible = false;
     display.renderMap(map, player, fov, { msg_window: false, DECgraphics: true, color: true });
-    assert.equal(display.grid[row][col], '`');
-    assert.equal(display.colors[row][col], 12);
+    assert.equal(display.grid[row][col].ch, '`');
+    assert.equal(display.grid[row][col].color, 12);
 });
 
 }); // describe
