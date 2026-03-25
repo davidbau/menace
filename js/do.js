@@ -10,6 +10,7 @@ import { COLNO, ROWNO, STAIRS,
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair, depth as dungeonDepth, level_difficulty, In_mines } from './dungeon.js';
 import { mon_arrive, mon_catchup_elapsed_time } from './dog.js';
+import { encumber_msg } from './pickup.js';
 import { initrack } from './monmove.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          BOULDER, CORPSE, LOADSTONE, LEASH, CRYSKNIFE, WORM_TOOTH,
@@ -2132,7 +2133,7 @@ export async function legs_in_no_shape(for_what, by_steed, player) {
 // cf. do.c set_wounded_legs() — set wounded legs condition.
 // side: LEFT_SIDE or RIGHT_SIDE or BOTH_SIDES
 // timex: duration of the condition
-export function set_wounded_legs(side, timex, player) {
+export async function set_wounded_legs(side, timex, player) {
     if (!player.woundedLegs) {
         // First time getting wounded legs: reduce DEX temp (C: ATEMP(A_DEX) -= 1)
         if (!player.atemp || player.atemp.length < 6) player.atemp = new Array(6).fill(0);
@@ -2151,6 +2152,11 @@ export function set_wounded_legs(side, timex, player) {
     player.eWoundedLegs = (player.eWoundedLegs || 0) | side;
     player.woundedLegs = true;
     player._botl = true;
+    // C ref: do.c set_wounded_legs() calls encumber_msg() at the end.
+    // The wound reduces carrying capacity (via weight_cap), so encumbrance
+    // may increase.  Calling encumber_msg here updates go.oldcap and
+    // prints the transition message at the right time (matching C).
+    await encumber_msg(player);
 }
 
 // cf. do.c heal_legs() — heal wounded legs.
@@ -2176,6 +2182,12 @@ export async function heal_legs(how, player) {
         if (typeof player.ensureUProp === 'function') {
             const entry = player.ensureUProp(WOUNDED_LEGS);
             entry.intrinsic = Number(entry?.intrinsic || 0) & ~TIMEOUT;
+        }
+        // C ref: do.c heal_legs() calls encumber_msg() when how != 1
+        // (skip during dismount because dismount_steed does its own check).
+        // Healing restores carrying capacity, so encumbrance may decrease.
+        if (how !== 1) {
+            await encumber_msg(player);
         }
     }
 }

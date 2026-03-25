@@ -1143,7 +1143,7 @@ export async function kick_dumb(x, y, map, player) {
   else {
     await pline("Dumb move!  You strain a muscle.");
     await exercise(player, A_STR, false);
-    set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
+    await set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
   }
   if ((Is_airlevel(player.uz) || player.levitating) && rn2(2)) {
       await hurtle(-player.dx, -player.dy, 1, true);
@@ -1169,7 +1169,7 @@ export async function kick_ouch(x, y, kickobjnam, game, map, player) {
     }
     wake_nearto(x, y, 5 * 5, map);
   }
-  if (!rn2(3)) set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
+  if (!rn2(3)) await set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
   dmg = rnd(ACURR(player, A_CON) > 15 ? 3 : 5);
   await losehp(Maybe_Half_Phys(dmg, player), kickstr(buf, kickobjnam), KILLED_BY, player, game?.display, game);
   if (Is_airlevel(player.uz) || player.levitating) {

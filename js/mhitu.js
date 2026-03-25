@@ -960,7 +960,7 @@ async function mhitu_ad_legs(monster, attack, player, mhm, ctx) {
         }
 
         // C ref: uhitm.c:4453-4455 — wound + exercise
-        set_wounded_legs(sideBit, rnd(Math.max(1, 60 - acurr(player, A_DEX))), player);
+        await set_wounded_legs(sideBit, rnd(Math.max(1, 60 - acurr(player, A_DEX))), player);
         await exercise(player, A_STR, false);
         await exercise(player, A_DEX, false);
     }

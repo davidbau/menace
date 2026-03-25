@@ -149,7 +149,7 @@ export async function handleKick(player, map, display, game) {
             } else {
                 await display.putstr_message("Dumb move!  You strain a muscle.");
                 await exercise(player, A_STR, false);
-                set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
+                await set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
             }
             return { moved: false, tookTime: true };
         }
@@ -158,7 +158,7 @@ export async function handleKick(player, map, display, game) {
         await exercise(player, A_STR, false);
         wake_nearto(nx, ny, 5 * 5, map);
         if (rn2(3) === 0) {
-            set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
+            await set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
         }
         const con = acurr(player, A_CON);
         const dmg = rnd(con > 15 ? 3 : 5);
@@ -180,9 +180,9 @@ export async function handleKick(player, map, display, game) {
         await exercise(player, A_STR, false);
         // C ref: dokick.c kick_ouch() wakes nearby monsters before wound-roll.
         wake_nearto(nx, ny, 5 * 5, map);
-        // C ref: if (!rn2(3)) set_wounded_legs(RIGHT_SIDE, 5 + rnd(5))
+        // C ref: if (!rn2(3)) await set_wounded_legs(RIGHT_SIDE, 5 + rnd(5))
         if (rn2(3) === 0) {
-            set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
+            await set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
         }
         // C ref: dmg = rnd(ACURR(A_CON) > 15 ? 3 : 5)
         const con = acurr(player, A_CON);
@@ -200,7 +200,7 @@ export async function handleKick(player, map, display, game) {
     } else {
         await display.putstr_message("Dumb move!  You strain a muscle.");
         await exercise(player, A_STR, false);
-        set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
+        await set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
     }
     return { moved: false, tookTime: true };
 }
