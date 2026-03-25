@@ -45,7 +45,7 @@ import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vi
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
-import { mklev, setGameSeed, setGameUbirthday, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty } from './dungeon.js';
+import { mklev, setGameSeed, setGameUbirthday, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty, strongholdDepth } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto, maybe_lvltport_feedback } from './do.js';
 import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          loadFlags, saveFlags, deserializeRng,
@@ -351,12 +351,12 @@ export async function moveloop_turnend(game) {
     // C ref: allmain.c:226-227 — reallocate movement to monsters via mcalcmove
     await allocateMonsterMovement((game.map || game.map));
 
-    // C ref: allmain.c:235-242 — occasional random monster spawn.
+    // C ref: allmain.c:232-236 — occasional random monster spawn.
     // Rate depends on demigod state and depth relative to stronghold.
     // Spawn happens after movement allocation, so a new monster loses first turn.
-    const playerDepth = Number(player?.dungeonLevel || 0);
+    // C uses depth(&u.uz) > depth(&stronghold_level); stronghold is the Castle.
     const spawnRate = player?.uevent?.udemigod ? 25
-        : (playerDepth > 27 ? 50 : 70);
+        : (dungeonDepth(player?.uz) > strongholdDepth(game) ? 50 : 70);
     if (!rn2(spawnRate)) {
         await makemon_appear(
             null,
