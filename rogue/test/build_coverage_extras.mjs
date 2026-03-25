@@ -97,7 +97,8 @@ function keyProvider(screen, step, display) {
 
     case 'create_poly_wand':
       queue.push('C', '/', hexChar(WS_POLYMORPH));
-      phase = 'zap_poly';
+      phase = 'walk_to_monster_poly';
+      subStep = 0;
       return queue.shift();
 
     case 'zap_poly': {
