@@ -35,6 +35,7 @@ import {
     carnivorous, herbivorous, is_undead, is_elf,
     is_humanoid, acidic, poisonous, is_metallivore,
     slimeproof, DEADMONSTER, is_domestic, ismnum,
+    regenerates,
 } from './mondata.js';
 import { canseemon } from './display.js';
 import { rn2, rn1 } from './rng.js';
@@ -46,13 +47,13 @@ import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
 import { SADDLE } from './objects.js';
 import { roles } from './player.js';
 import { makemon, makemon_appear, mbirth_limit, set_malign } from './makemon.js';
-import { NO_MINVENT, MAXMONNO } from './const.js';
+import { NO_MINVENT, MAXMONNO, LARGEST_INT } from './const.js';
 import { mksobj, xname } from './mkobj.js';
 import { mpickobj } from './steal.js';
 import { mark_vision_dirty } from './display.js';
 import { place_monster } from './steed.js';
 import { pline, pline_The, pline_mon, You, There, impossible } from './pline.js';
-import { helpless } from './mon.js';
+import { helpless, healmon } from './mon.js';
 import { Monnam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
 import { body_part } from './polyself.js';

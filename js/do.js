@@ -9,7 +9,7 @@ import { COLNO, ROWNO, STAIRS,
          W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED, STRAT_WAITFORU } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair, depth as dungeonDepth, level_difficulty, In_mines } from './dungeon.js';
-import { mon_arrive } from './dog.js';
+import { mon_arrive, mon_catchup_elapsed_time } from './dog.js';
 import { initrack } from './monmove.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          BOULDER, CORPSE, LOADSTONE, LEASH, CRYSKNIFE, WORM_TOOTH,
@@ -1832,13 +1832,15 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     if (isRestoredCachedLevel && nextMap) {
         const elapsed = (game.moves || game.turnCount || 0)
             - (Number.isFinite(nextMap._omoves) ? nextMap._omoves : 0);
-        // C iterates fmon linked list (newest-first / reverse creation order).
-        // JS's monsters array is typically in creation order, so iterate
-        // in reverse to match C's fmon traversal.
+        // C ref: restore.c:1173-1213 — getlev() post-restore monster loop.
+        // C iterates the fmon linked list in its native order.
         const monsters = nextMap.monsters || [];
-        for (let mi = monsters.length - 1; mi >= 0; mi--) {
-            const mtmp = monsters[mi];
+        for (const mtmp of monsters) {
             if (!mtmp || mtmp.dead) continue;
+            // C ref: restore.c:1204-1206 — monster elapsed-time catch-up.
+            if (elapsed > 0) {
+                await mon_catchup_elapsed_time(mtmp, elapsed, game);
+            }
             // C ref: restore.c:1209 restore_cham(mtmp) — update shape-changers.
             // (JS doesn't have full restore_cham yet; skip for now.)
             // C ref: restore.c:1211-1212 — give hiders a chance to hide.
