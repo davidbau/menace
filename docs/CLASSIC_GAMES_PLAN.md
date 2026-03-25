@@ -4,17 +4,66 @@
 
 Mazes of Menace already hosts three games from the roguelike lineage (Rogue
 1980, Hack 1982, NetHack 1987) plus Logo and BASIC interpreters, all sharing
-a unified Terminal display and Shell. Adding five more classic games fills
-out the historical canon: the foundational text adventure, the most popular
-mainframe game ever, three beloved BSD games, and the platform's first
-non-roguelike arcade-style titles.
+a unified Terminal display and Shell. Adding six more classic games fills
+out the historical canon: the very first video game, the foundational text
+adventure, the most popular mainframe game ever, three beloved BSD games,
+and the platform's first non-roguelike arcade-style titles.
 
-All five games run **inside the Shell** — you type `adventure`, `trek`,
-`larn`, `robots`, or `tetris` at the `$` prompt, just like on a 1980s Unix
-workstation. Each game uses the shared Terminal for display (text plane,
-optional graphics plane) and the shared Input for keyboard handling.
+All six games run **inside the Shell** — you type `spacewar`, `adventure`,
+`trek`, `larn`, `robots`, or `tetris` at the `$` prompt, just like on a
+1980s Unix workstation. Each game uses the shared Terminal for display
+(text plane, optional graphics plane) and the shared Input for keyboard
+handling.
 
-## The Five Games
+## The Six Games
+
+### 0. Spacewar! — 1962
+
+**Authors**: Steve Russell, Martin Graetz, Wayne Wiitanen (MIT)
+**Source**: ~500 lines of game logic (modern recreations)
+**License**: Public domain (freely shared since 1962)
+**I/O**: Graphics — vector display (canvas in our implementation)
+
+**Why this game**: It's the Big Bang. The first real video game, written on
+a PDP-1 — one of Ken Olsen's first DEC machines — at MIT. Two spaceships
+orbit a central star with Newtonian gravity, firing torpedoes at each
+other. It spread to every PDP installation in the world, making it the
+first software to propagate virally. Nolan Bushnell saw it at Stanford
+and founded Atari. Every video game traces its lineage back to Spacewar!.
+
+It's also the historically perfect bookend for this project: the first
+video game (1962) on the same platform as the roguelikes it eventually
+led to. The PDP-1 that ran Spacewar! was at MIT; DEC shipped PDP-11s
+that ran Unix; BSD Unix gave us Rogue, Hack, and NetHack.
+
+**Gameplay**:
+- Two ships in 2D space with Newtonian physics (momentum, gravity)
+- Central star provides gravitational pull — strategic hazard
+- Torpedoes follow ballistic arcs (affected by gravity)
+- Hyperspace jump — teleport randomly (risk: materialize inside the star)
+- Two-player simultaneous input, or AI opponent
+- ~30fps real-time rendering
+
+**Architecture**: This is the first game to use Terminal's **graphics
+canvas** for the primary display (not text). Ships, torpedoes, and the
+star are drawn as vector graphics on the `<canvas>` element using
+`ctx.moveTo()`/`ctx.lineTo()`. The text plane can overlay score/status.
+
+The original PDP-1 used a vector (calligraphic) display — points and
+lines drawn directly on a CRT phosphor. Our canvas renders the same
+vector aesthetics: wireframe ships, dot torpedoes, glowing star. The
+`image-rendering` CSS doesn't matter here since we're drawing vectors,
+not pixels — lines are sharp at any resolution.
+
+**Port approach**: Direct JS implementation. The physics (gravity,
+momentum, collision) is straightforward 2D vector math. Ship shapes are
+~10 vertices each. The game loop runs on `requestAnimationFrame` at
+~30fps. Two-player input via keyboard (left player: a/s/d/f/g, right
+player: j/k/l/;/') or single-player vs AI.
+
+**Estimated effort**: 1–2 days. Small game logic (~500 lines), well-
+understood physics. The main novelty is being our first graphics-canvas
+game (Logo's turtle is a library, not a game loop).
 
 ### 1. Adventure (Colossal Cave) — 1976
 
@@ -202,6 +251,7 @@ then returns control to the Shell prompt.
 
 | Game | Display mode | Colors | Real-time | Graphics plane |
 |------|-------------|--------|-----------|----------------|
+| Spacewar! | **Graphics canvas only** | Monochrome (green/white) | **Yes (30fps)** | **Yes** |
 | Adventure | Line-oriented text | No | No | No |
 | Star Trek | BASIC PRINT (line-oriented) | No | No | No |
 | Larn | Full curses (80×24 grid) | Yes (16 colors) | No | No |
@@ -210,16 +260,17 @@ then returns control to the Shell prompt.
 
 ### Shared Infrastructure
 
-| Component | Adventure | Trek | Larn | Robots | Tetris |
-|-----------|-----------|------|------|--------|--------|
-| Terminal text grid | Scroll only | Scroll only | Full grid | Full grid | Full grid |
-| Shell integration | Command | BASIC `RUN` | Command | Command | Command |
-| Input: blocking getKey | Yes | Via BASIC `INPUT` | Yes | Yes | No |
-| Input: timed/real-time | No | No | No | No | **Yes (new)** |
-| Curses emulation | No | No | Yes (reuse rogue's) | Minimal | Minimal |
-| Session recording | Optional | No (BASIC) | Yes (parity) | Optional | Optional |
-| C parity harness | Optional | N/A (BASIC) | Yes | Optional | Optional |
-| Save files | Yes (VFS) | No | Yes (VFS) | No | No |
+| Component | Spacewar! | Adventure | Trek | Larn | Robots | Tetris |
+|-----------|-----------|-----------|------|------|--------|--------|
+| Terminal text grid | Score only | Scroll only | Scroll only | Full grid | Full grid | Full grid |
+| Graphics canvas | **Primary** | No | No | No | No | No |
+| Shell integration | Command | Command | BASIC `RUN` | Command | Command | Command |
+| Input: blocking getKey | No | Yes | Via BASIC | Yes | Yes | No |
+| Input: real-time | **Yes (30fps)** | No | No | No | No | **Yes** |
+| Input: two-player | **Yes** | No | No | No | No | No |
+| Curses emulation | No | No | No | Yes | Minimal | Minimal |
+| Session recording | No | Optional | No | Yes (parity) | Optional | Optional |
+| Save files | No | Yes (VFS) | No | Yes (VFS) | No | No |
 
 ### Real-Time Input (New for Tetris)
 
@@ -244,6 +295,12 @@ polling.
 ## Directory Structure
 
 ```
+spacewar/
+├── js/spacewar.js           — game engine + physics (~500 lines)
+├── js/ships.js              — ship vertex definitions, rendering
+├── js/ai.js                 — single-player AI opponent
+└── test/
+
 adventure/
 ├── js/adventure.js          — game engine
 ├── js/data.js               — room/object/vocabulary data
@@ -293,7 +350,15 @@ save files. When done, you can type `robots` at the Shell prompt and play.
 grid). Tests the Shell's scroll/text output. Historically significant.
 When done, `adventure` works at the Shell prompt.
 
-### Phase 2: Star Trek in BASIC — ~1–2 days
+### Phase 2: Spacewar! + Star Trek — ~2–3 days
+
+**Spacewar!** (1–2 days): First graphics-canvas game. Tests the Terminal's
+graphics plane integration — `requestAnimationFrame` game loop, vector
+drawing on canvas, real-time keyboard input for two players. This is the
+proof-of-concept for the VT340-style dual-plane architecture. When done,
+`spacewar` launches from Shell with a working 2-player game (or vs AI).
+
+### Phase 3: Star Trek in BASIC — ~1–2 days
 
 Load the original Mayfield BASIC source and run it in our BASIC interpreter.
 This is primarily a BASIC interpreter compatibility exercise:
@@ -304,14 +369,14 @@ This is primarily a BASIC interpreter compatibility exercise:
 4. When it runs, add `trek` as a Shell command that launches BASIC with
    the Star Trek program auto-loaded
 
-### Phase 3: Tetris — ~1–2 days
+### Phase 4: Tetris — ~1–2 days
 
-First real-time game. Implement the timed input system
-(`readKeyWithTimeout`), then port the game logic. Piece definitions,
-rotation, collision, line clearing, scoring. Add per-piece colors for
-visual appeal (Tetris is much better in color).
+Second real-time game (after Spacewar!). Timed input system
+(`readKeyWithTimeout`) already proven by Spacewar!'s game loop. Port the
+game logic: piece definitions, rotation, collision, line clearing, scoring.
+Add per-piece colors for visual appeal (Tetris is much better in color).
 
-### Phase 4: Larn — ~3–5 days
+### Phase 5: Larn — ~3–5 days
 
 Full roguelike port following the Rogue/Hack methodology:
 
@@ -330,31 +395,40 @@ Full roguelike port following the Rogue/Hack methodology:
 |-----------|------|------|
 | Robots plays | `robots` at Shell prompt | Manual play test |
 | Adventure plays | `adventure` at Shell prompt | Compare output to known walkthrough |
+| Spacewar! plays | `spacewar` at Shell prompt | Two ships orbit, fire, collide |
+| Spacewar! graphics | Canvas renders under text | Text score overlay on vector game |
 | Trek runs | `trek` or `RUN "STARTREK"` in BASIC | Play through a game |
 | Tetris plays | `tetris` at Shell prompt | Timed input works, pieces fall |
 | Larn basic play | `larn` at Shell prompt | Explore town + cavern level 1 |
 | Larn parity | C harness matches JS | N parity sessions green |
 | Larn save/restore | Save in town, quit, resume | Multigame session test |
-| All in Shell | All 5 games + existing apps | `help` lists all commands |
+| All in Shell | All 6 games + existing apps | `help` lists all commands |
 
 ## Historical Context
 
-These five games span the golden age of terminal gaming:
+These six games span the entire history of interactive computing:
 
 ```
-1971  ┌─ Star Trek (Mayfield) ──── mainframe BASIC
-1976  ├─ Adventure (Crowther/Woods) ── the first adventure game
-1980  ├─ Rogue (Toy/Wichman/Arnold) ── the first roguelike     ✓ already ported
-1982  ├─ Hack (Langendoen/Struyf) ──── Rogue + complexity      ✓ already ported
-~1983 ├─ Robots (BSD) ──────────────── arcade puzzle
-1986  ├─ Larn (Morgan) ─────────────── roguelike + overworld
-1987  ├─ NetHack (DevTeam) ─────────── the roguelike            ✓ already ported
-1989  └─ Tetris (Torek/Provine) ────── arcade real-time
+1962  ┌─ Spacewar! (Russell/MIT) ──── the first video game      ★ NEW
+1971  ├─ Star Trek (Mayfield) ──────── mainframe BASIC           ★ NEW
+1976  ├─ Adventure (Crowther/Woods) ── the first adventure game  ★ NEW
+1980  ├─ Rogue (Toy/Wichman/Arnold) ── the first roguelike      ✓ already ported
+1982  ├─ Hack (Langendoen/Struyf) ──── Rogue + complexity       ✓ already ported
+~1983 ├─ Robots (BSD) ──────────────── arcade puzzle             ★ NEW
+1986  ├─ Larn (Morgan) ─────────────── roguelike + overworld     ★ NEW
+1987  ├─ NetHack (DevTeam) ─────────── the roguelike             ✓ already ported
+1989  └─ Tetris (Torek/Provine) ────── arcade real-time          ★ NEW
 ```
 
 Together with the Logo (1967) and BASIC (1964) interpreters, this gives
-the platform coverage from 1964 to 1989 — a quarter century of computing
-history, all running in a browser on the shared Terminal infrastructure.
+the platform coverage from 1962 to 1989 — from the PDP-1 to the VT340,
+from the first video game to the last great text-mode games, all running
+in a browser on the shared Terminal infrastructure.
+
+The Terminal's dual-plane architecture (text + graphics canvas) mirrors
+the hardware evolution: Spacewar! uses only the graphics plane (like the
+PDP-1's Type 30 display), the roguelikes use only the text plane (like
+the VT100), and Logo/BASIC use both (like the VT340).
 
 ## Relationship to Terminal Refactoring
 
@@ -362,6 +436,7 @@ These games are strong motivation for the Terminal refactoring
 (TERMINAL_REFACTOR.md). Currently, each game has its own Display class.
 After the refactoring:
 
+- **Spacewar!**: Uses `Terminal` graphics canvas — first canvas-only game
 - **Robots, Tetris**: Use `Terminal` directly — pure grid games
 - **Adventure, Trek**: Use `Terminal` in scroll/line mode via Shell
 - **Larn**: Uses `Terminal` + curses adapter (same pattern as Rogue/Hack)
