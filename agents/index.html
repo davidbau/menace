@@ -120,6 +120,15 @@
   .ev-subagent-work .detail { display: none; margin-top: 0.2em; }
   .ev-subagent-work.open .detail { display: block; }
 
+  .ev-watchdog {
+    padding: 0.15em 0.5em 0.15em 1.8em; font-size: 0.8em; color: var(--light);
+    border-left: 2px dashed var(--light); margin: 0.1em 0; position: relative;
+  }
+  .ev-watchdog::before {
+    content: '\u29d6'; position: absolute; left: 0.4em; top: 0.15em;
+    color: var(--light); font-size: 0.85em;
+  }
+
   .ev-commit {
     font-family: var(--mono); font-size: 0.82em; padding: 0.3em 0.6em 0.3em 1.8em; margin: 0.15em 0;
     border-left: 3px solid var(--commit); background: rgba(45,106,45,0.04);
@@ -197,6 +206,8 @@
   .fbtn[data-f="commit"].on { background: rgba(45,106,45,0.08); }
   .fbtn[data-f="lore"] { border-color: var(--lore); color: var(--lore); }
   .fbtn[data-f="lore"].on { background: rgba(139,105,20,0.08); }
+  .fbtn[data-f="watchdog"] { border-color: var(--light); color: var(--light); }
+  .fbtn[data-f="watchdog"].on { background: rgba(170,170,170,0.08); }
 
   /* --- Right search --- */
   .search-panel {
@@ -248,6 +259,7 @@
         <button class="fbtn on" data-f="human">Human</button>
         <button class="fbtn on" data-f="ai-work">AI work</button>
         <button class="fbtn on" data-f="agent-directive">Subagents</button>
+      <button class="fbtn" data-f="watchdog">Watchdog</button>
         <button class="fbtn on" data-f="commit">Commits</button>
         <button class="fbtn on" data-f="lore">LORE</button>
       </div>
@@ -265,7 +277,7 @@
   </div>
 </div>
 <script>
-let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,commit:true,lore:true};
+let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,lore:true};
 
 async function init() {
   // Load timeline data
@@ -410,6 +422,7 @@ function renderEvents(evts){
     if(e.type==='human') out.push(renderHuman(e));
     else if(e.type==='ai-work') out.push(renderAiWork(e));
     else if(e.type==='agent-directive') out.push(renderAgentDirective(e));
+    else if(e.type==='watchdog') out.push(renderWatchdog(e));
     else if(e.type==='subagent-work') out.push(renderSubagentWork(e));
     else if(e.type==='lore') out.push(renderLore(e));
   }
@@ -461,6 +474,14 @@ function renderLore(e){
   e._id=id;
   return`<div class="ev ev-lore" id="${id}">
     <span class="ev-time">LORE</span> ${esc(e.title)}
+  </div>`;
+}
+
+function renderWatchdog(e){
+  const id=stableId(e);
+  e._id=id;
+  return`<div class="ev ev-watchdog" id="${id}">
+    <span class="ev-time">${tm(e.timestamp)}</span> ${esc(e.text.substring(0, 100))}${e.text.length>100?'&hellip;':''}
   </div>`;
 }
 
