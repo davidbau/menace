@@ -3751,6 +3751,16 @@ export async function losehp(n, knam, k_format, player, display, game) {
         if (traceLosehp) {
             pushRngLogEntry(`^losehp_dead[hp=${(player.uhp || 0) | 0} knam=${String(knam || '')}]`);
         }
+        // Compute whether status refresh should be suppressed at the
+        // --More-- boundary before the death message. This is game logic:
+        // when a monster kills the player during the monster's turn while
+        // the player is incapacitated, C's bot() doesn't refresh status.
+        if (display) {
+            const sleepWake = !!(player.usleep > 0 || game?.multi_reason === 'sleeping'
+                || game?.nomovemsg === 'You wake up.');
+            display._urgentSuppressStatusRefresh = !!(game?.context?.mon_moving
+                && Number(game?.multi || 0) < 0 && !sleepWake);
+        }
         await urgent_pline('You die...');
         if (game) {
             const { done, setKillerName, setKillerFormat } = await import('./end.js');
