@@ -9,7 +9,7 @@
  * {
  *   "seed": N,
  *   "steps": [
- *     { "key": "h", "screen": ["...80 chars...", ...24 rows] }
+ *     { "key": "h", "cursor": [col, row], "screen": ["...80 chars...", ...24 rows] }
  *   ]
  * }
  */
@@ -222,8 +222,7 @@ static int key_pos = 0;
 
 int harness_getchar(void) {
   if (!keys_ptr || keys_ptr[key_pos] == '\0') {
-    /* No more keys: capture final screen and exit */
-    harness_capture_screen();
+    /* No more keys: exit without extra capture (matches JS SessionDone) */
     harness_exit(0);
     return 0;  /* unreachable */
   }
@@ -235,13 +234,26 @@ int harness_getchar(void) {
 
 void harness_getlin(char *buf) {
   /* Read characters until '\r' or '\n', matching JS getlin() behavior.
-   * This ensures that "Call it:" prompts consume the same keys as JS. */
+   * This ensures that "Call it:" prompts consume the same keys as JS.
+   * Echo each character to virtual screen + advance cursor (matching
+   * the real getlin's write(1,str,1)/curx++ behavior). */
   int len = 0;
   int ch;
   while ((ch = harness_getchar()) != '\r' && ch != '\n') {
     if (ch == '\x1b') { len = 0; break; }  /* ESC: clear input */
-    if (ch == '\b' || ch == '\x7f') { if (len > 0) len--; continue; }
+    if (ch == '\b' || ch == '\x7f') {
+      if (len > 0) {
+        len--;
+        /* Echo backspace: move back, overwrite with space, move back */
+        if (cursor_x > 0) cursor_x--;
+        screen_putch(' ');
+        if (cursor_x > 0) cursor_x--;
+      }
+      continue;
+    }
     if (len < 79) buf[len++] = (char)ch;
+    /* Echo character to virtual screen (matching real getlin's write(1,str,1)) */
+    screen_putch(ch);
   }
   buf[len] = '\0';
 }
@@ -322,6 +334,8 @@ static struct {
   char key;
   int  rng[MAX_RNG_PER_STEP];
   int  rng_count;
+  int  cursor_col;  /* 1-based column (matching C curx) */
+  int  cursor_row;  /* 1-based row (matching C cury) */
   char rows[SCRROWS][SCRCOLS + 1];
 } steps[MAX_STEPS];
 static int step_count = 0;
@@ -334,6 +348,9 @@ void harness_capture_screen(void) {
   memcpy(steps[step_count].rng, current_rng_buf, current_rng_count * sizeof(int));
   steps[step_count].rng_count = current_rng_count;
   current_rng_count = 0;
+  /* Capture cursor position as 1-based (matching C game's curx/cury) */
+  steps[step_count].cursor_col = cursor_x + 1;
+  steps[step_count].cursor_row = cursor_y + 1;
   for (r = 0; r < SCRROWS; r++) {
     memcpy(steps[step_count].rows[r], screen[r], SCRCOLS);
     steps[step_count].rows[r][SCRCOLS] = '\0';
@@ -374,6 +391,7 @@ static void emit_session_json(FILE *out, unsigned int seed) {
     else if (k >= 32 && k < 127) fputc(k, out);
     else                fprintf(out, "\\u%04x", (unsigned char)k);
     fprintf(out, "\",\n");
+    fprintf(out, "      \"cursor\": [%d, %d],\n", steps[i].cursor_col, steps[i].cursor_row);
     /* Emit rng array interleaved with ^events for this step */
     fprintf(out, "      \"rng\": [");
     ei = 0;

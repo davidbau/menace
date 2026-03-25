@@ -440,12 +440,12 @@ export function doname(obj) {
 // C sequence: curs(player), fflush, getchar (harness captures screen HERE), then clear topl, reset flags
 export async function parse() {
   // C ref: parse() — read command, consuming digit prefix as repeat count.
-  // C: home(); putchar('*'); cl_end(); fflush(); flags.topl=1; then getchar()
-  // Setting topl=1 before getchar prevents --More-- from firing on the next pline
-  // (topl=1 means "message line has content but only one message, no --More-- needed").
-  game.flags.topl = 1;
+  // C: curs(u.ux, u.uy+2); fflush(); then getchar()
+  // Position cursor at the player before waiting for input (matching C parse()).
+  curs(game.u.ux, game.u.uy + 2);
   game.display.flush();
-  let foo = await game.input.getKey();  // screen captured WITH message still visible
+  game.flags.topl = 1;
+  let foo = await game.input.getKey();
   // Consume digit prefix exactly as C does
   while (foo >= '0' && foo <= '9') {
     game.multi += 10 * game.multi + (foo.charCodeAt(0) - 48);

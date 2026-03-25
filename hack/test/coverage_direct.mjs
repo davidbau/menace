@@ -37,7 +37,7 @@ import { _setPriDeps, newsym, nosee, pmon, losehp, bot, panic } from '../js/pri.
 import { _setMonDeps, g_at, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned, steal, justswld, m_move, dochug, losexp, amon as amonMon, attmon as attmonMon } from '../js/mon.js';
 import { _setHackDeps, setsee, tele, nomul, amon, attmon, unsee, seeoff, gobj, doname } from '../js/hack.js';
 import { _setDo1Deps, dosearch, buzz, findit, hit, miss, bhit, zhit } from '../js/do1.js';
-import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup, alloc, getret } from '../js/main.js';
+import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup } from '../js/main.js';
 import { rhack } from '../js/do.js';
 import { docrt } from '../js/pri.js';
 import { mon } from '../js/data.js';
@@ -1393,8 +1393,7 @@ await testArmor();
 await testSave();
 await testRestore();
 await testQuit();
-await testAlloc();
-await testGetret();
+// alloc/getret removed — dead code pruned from main.js
 await testNdamincExtreme();
 await testGetobjStar();
 await testGetobjWrongType();
@@ -1427,27 +1426,7 @@ await testDropInvalid();
 
 // ===== Additional coverage: main.js/do.js/do1.js/mklev.js paths =====
 
-// alloc() — exported but never called in game; covers main.js lines 43-44
-async function testAlloc() {
-  const obj = alloc();
-  if (typeof obj !== 'object') throw new Error('alloc should return an object');
-  console.log('testAlloc: PASS (alloc() covered)');
-}
-
-// getret() — covers main.js lines 61-64
-async function testGetret() {
-  wireDeps();
-  const display = new MockDisplay();
-  const input = new MockInput();
-  const g = new GameState();
-  g.display = display; g.input = input; g.rawRngLog = [];
-  setGame(g);
-  let keyIdx = 0;
-  const keys = '  '; // two spaces — first triggers --More-- from pline, second confirms
-  input.getKey = async () => { if (keyIdx < keys.length) return keys[keyIdx++]; throw new SessionDone(); };
-  try { await getret(); } catch (e) { if (!(e instanceof SessionDone)) throw e; }
-  console.log('testGetret: PASS (getret() covered)');
-}
+// alloc/getret tests removed — dead code pruned from main.js
 
 // ndaminc with extreme strength (str >= 103) — covers main.js line 27
 async function testNdamincExtreme() {

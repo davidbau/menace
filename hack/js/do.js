@@ -389,7 +389,10 @@ async function nothin(obj) {
 async function more_fn() {
   if (game.flags.topl === 2) {
     // C: curs(savx,1); puts(MORE); curs(u.ux,u.uy+2); fflush(stdout);
-    // puts() bypasses the harness screen capture, so no display update here.
+    // puts(MORE) bypasses the harness screen capture, so no display update here.
+    // Position cursor at player before waiting, matching C more().
+    curs(game.u.ux, game.u.uy + 2);
+    game.display.flush();
     let ch;
     do { ch = await game.input.getKey(); } while (ch !== ' ');
     game.flags.topl = 0;

@@ -1116,7 +1116,9 @@ register char *str;	/* the standard output */
 		if(*str=='\177') {
 			if(str!=ostr) {
 				str--;
-#ifndef HARNESS
+#ifdef HARNESS
+				putchar('\b'); putchar(' '); putchar('\b');
+#else
 				write(1,"\b \b",3);
 #endif
 			}
@@ -1124,7 +1126,9 @@ register char *str;	/* the standard output */
 			*str=0;
 			return;
 		} else {
-#ifndef HARNESS
+#ifdef HARNESS
+			putchar(*str);
+#else
 			write(1,str,1);
 #endif
 			str++;

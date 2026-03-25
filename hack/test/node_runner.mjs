@@ -110,7 +110,9 @@ export async function runSession(seed, keys) {
     }
 
     const key = keys[keyIndex];
-    steps.push({ key, rng, screen });
+    // Capture cursor position (1-based, matching C curx/cury)
+    const cursor = [g.curx, g.cury];
+    steps.push({ key, rng, screen, cursor });
 
     return keys[keyIndex++];
   };
@@ -159,7 +161,7 @@ export async function runMultigameSession(games) {
     g.display = display;
     g.input = input;
     g.rawRngLog = [];
-    setGame(g);
+      setGame(g);
 
     const steps = [];
     let keyIndex = 0;
@@ -170,7 +172,8 @@ export async function runMultigameSession(games) {
       g.rawRngLog = [];
       if (keyIndex >= keys.length) throw new SessionDone();
       const key = keys[keyIndex];
-      steps.push({ key, rng, screen });
+      const cursor = [g.curx, g.cury];
+      steps.push({ key, rng, screen, cursor });
       return keys[keyIndex++];
     };
 

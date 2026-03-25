@@ -126,6 +126,7 @@ async function replaySession(sessionFile, opts = {}) {
   let totalRngCells = 0;
   let firstScreenDiverge = -1;
   let firstRngDiverge = -1;
+  let firstCursorDiverge = -1;
   const stepDetails = [];
 
   for (let i = 0; i < totalSteps; i++) {
@@ -151,6 +152,13 @@ async function replaySession(sessionFile, opts = {}) {
       firstRngDiverge = i;
     }
 
+    // Compare cursor position (if C session includes cursor data)
+    if (c.cursor && js.cursor && firstCursorDiverge < 0) {
+      if (js.cursor[0] !== c.cursor[0] || js.cursor[1] !== c.cursor[1]) {
+        firstCursorDiverge = i;
+      }
+    }
+
     if (opts.verbose || opts.diagnose) {
       stepDetails.push({ step: i, key: js.key, screen: screenComp, rng: rngComp });
     }
@@ -158,7 +166,10 @@ async function replaySession(sessionFile, opts = {}) {
 
   const screenPct = totalScreenCells > 0 ? (totalScreenMatches / totalScreenCells * 100) : 0;
   const rngPct = totalRngCells > 0 ? (totalRngMatches / totalRngCells * 100) : 0;
-  const passed = firstScreenDiverge < 0 && jsSteps.length === cSteps.length;
+  // Check if any C step has cursor data
+  const hasCursorData = cSteps.some(s => s.cursor);
+  const passed = firstScreenDiverge < 0 && jsSteps.length === cSteps.length
+    && (!hasCursorData || firstCursorDiverge < 0);
 
   const result = {
     session: name,
@@ -171,12 +182,14 @@ async function replaySession(sessionFile, opts = {}) {
     rng_pct: Math.round(rngPct * 10) / 10,
     first_screen_diverge: firstScreenDiverge,
     first_rng_diverge: firstRngDiverge,
+    first_cursor_diverge: firstCursorDiverge,
   };
 
   // Diagnose: show events around first RNG or screen divergence
   if (opts.diagnose) {
     const diagStep = firstRngDiverge >= 0 ? firstRngDiverge :
-                     firstScreenDiverge >= 0 ? firstScreenDiverge : -1;
+                     firstScreenDiverge >= 0 ? firstScreenDiverge :
+                     firstCursorDiverge >= 0 ? firstCursorDiverge : -1;
     if (diagStep >= 0) {
       const js = jsSteps[diagStep];
       const c  = cSteps[diagStep];
@@ -193,6 +206,7 @@ async function replaySession(sessionFile, opts = {}) {
       result.diagnose = {
         step: diagStep,
         key: js ? js.key : '?',
+        first_cursor_diverge: firstCursorDiverge,
         rng_diverge_pos: div,
         js_rng_at_div: div >= 0 ? rngNums(jsRng).slice(Math.max(0, div-2), div+3) : [],
         c_rng_at_div:  div >= 0 ? rngNums(cRng).slice(Math.max(0, div-2), div+3) : [],
@@ -200,6 +214,13 @@ async function replaySession(sessionFile, opts = {}) {
         c_events:  nearEvts(cEvts),
         screen_diffs: js && c ? compareScreens(js.screen || [], c.screen || []).rowDiffs : [],
       };
+      if (firstCursorDiverge >= 0) {
+        const jsCur = jsSteps[firstCursorDiverge];
+        const cCur = cSteps[firstCursorDiverge];
+        result.diagnose.cursor_step = firstCursorDiverge;
+        result.diagnose.js_cursor = jsCur ? jsCur.cursor : null;
+        result.diagnose.c_cursor = cCur ? cCur.cursor : null;
+      }
       if (firstScreenDiverge >= 0) {
         const sc = jsSteps[firstScreenDiverge];
         const sc_c = cSteps[firstScreenDiverge];

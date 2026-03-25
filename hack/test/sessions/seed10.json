@@ -3,7 +3,540 @@
   "steps": [
     {
       "key": "h",
-      "rng": [4543,28214,11245,8870,16887,2234,20162,27592,20255,30710,15445,15276,7136,13,1395,8096,25117,8506,16157,31174,19663,8827,30139,22947,21409,6909,6176,20838,13386,9798,5697,21496,9646,12068,12213,26567,8372,32089,11756,14930,23269,29187,1583,24693,20169,7885,8027,20338,28162,9176,14173,23235,22821,103,9324,17058,14684,16973,28169,8020,6076,4543,28214,11245,8870,16887,2234,20162,27592,20255,30710,15445,15276,7136,13,1395,8096,25117,8506,16157,31174,19663,8827,30139,22947,21409,6909,6176,20838,13386,9798,5697,21496,9646,12068,12213,26567,8372,32089,11756,14930,23269,29187,1583,24693,20169,7885,8027,20338,28162,9176,14173,23235,22821,103,9324,17058,14684,16973,28169,8020,6076,16406,31160,13625,20071,18936,18300,32149,28513,32120,31251,28700,15667,10204,9974,22847,4418,25428,10767,18745,19436,23271,31032,26584,10856,24862,13176,14604,7770,17779,26620,7729,825,5240,20695,8220,19809,11976,32121,19943,3831,25262,10481,15485,28288,29846,14306,29412,27456,16952,6727,20301,2900,27774,3302,12509,20367,13369,30357,29241,2324,30088,23856,212,27832,28164,11861,7416,"^mklev_rooms",21,14764,22502,"^mklev_dn[x=30,y=7]",3733,15469,12948,"^mklev_up[x=56,y=14]","^mklev_up",27708,23245,837,8012,20011,"^mon_pos[tier=0,idx=4,mx=5,my=9]",17979,16574,23569,8378,12295,22450,27318,30367,4522,13202,5456,32125,12162,7170,4004,8412,17941,9777,17234,24812,16421,24570,12990,22777,16760,4284,7874,12717,4708,11257,23316,31497,14364,20913,32121,10786,17853,30844,21415,"^mon_pos[tier=0,idx=3,mx=28,my=5]",13979,12824,7530,19451,5094,15933,5531,15583,570,14540,23965,14073,29523,10747,648,19988,32492,13414,219,1231,8957,13978,13589,18183,19380,31072,14867,7942,24373,30409,20781,4456,18706,1534,12302,"^mon_pos[tier=0,idx=2,mx=23,my=17]",19409,16777,30660,20567,4689,19584,28626,7411,6034,11329,1746,6456,11207,17397,313,24003,28244,9698,9927,1808,28221,18788,1757,29148,25936,9389,13698,24890,31250,"^mklev_populate","^rooms[0:3-8,4-11|1:5-12,16-18|2:12-20,3-6|3:19-24,15-18|4:28-39,5-10|5:43-53,3-6|6:49-58,14-17|7:64-70,4-10|8:64-68,15-17]",9788,19763,"^mkpos[x=6,y=12,dx=0,dy=1,tx=7,ty=15]",27255,"^makecor[stop,nx=6,ny=15,crm=1,x=6,y=14,dx=1,dy=0]",13419,"^newloc[seq,ci=1,ti=2]",18974,16750,"^mkpos[x=9,y=15,dx=0,dy=-1,tx=18,ty=7]",17071,4369,"^newloc[seq,ci=2,ti=3]",18152,19965,"^mkpos[x=12,y=7,dx=0,dy=1,tx=19,ty=14]",18988,"^makecor[stop,nx=18,ny=14,crm=1,x=18,y=13,dx=1,dy=0]",24500,"^newloc[seq,ci=3,ti=4]",3695,3843,"^mkpos[x=25,y=17,dx=1,dy=0,tx=27,ty=8]",29058,22510,"^newloc[seq,ci=4,ti=5]",7758,3528,"^mkpos[x=40,y=8,dx=1,dy=0,tx=42,ty=3]",21611,4329,"^newloc[seq,ci=5,ti=6]",23573,20036,"^mkpos[x=46,y=7,dx=0,dy=1,tx=51,ty=13]",9827,"^makecor[stop,nx=50,ny=13,crm=1,x=50,y=12,dx=1,dy=0]",18382,"^newloc[seq,ci=6,ti=7]",31057,10605,"^mkpos[x=59,y=15,dx=1,dy=0,tx=63,ty=7]",19714,8433,"^newloc[seq,ci=7,ti=8]",6976,64,"^mkpos[x=68,y=11,dx=0,dy=1,tx=64,ty=14]",17437,"^makecor[stop,nx=65,ny=14,crm=1,x=65,y=13,dx=-1,dy=0]",20413,16977,5009,10141,"^newloc[pick,nxcor=1,limit=7,a=5,b=7]",20833,11613,"^mkpos[x=54,y=4,dx=1,dy=0,tx=63,ty=7]",3220,32538,9783,13480,551,10047,13817,22678,1765,29917,19106,45,"^makecor[stop,nx=63,ny=6,crm=1,x=62,y=6,dx=0,dy=1]",3051,28107,20005,9038,9320,"^newloc[pick,nxcor=2,limit=11,a=2,b=5]",13189,14033,"^mkpos[x=21,y=4,dx=1,dy=0,tx=42,ty=5]",23731,30183,31616,20095,8104,24924,12622,"^makecor[redir,nx=27,ny=4,crm=1,x=26,y=4,dx=0,dy=-1]",16513,3465,"^makecor[dead_end,nx=27,ny=3]",12528,7798,6730,"^newloc[pick,nxcor=3,limit=4,a=4,b=7]",9983,22156,"^mkpos[x=40,y=8,dx=1,dy=0,tx=63,ty=8]",13329,10973,21753,"^newloc[pick,nxcor=4,limit=4,a=2,b=0]",1831,21028,"^mkpos[x=11,y=4,dx=-1,dy=0,tx=9,ty=4]",27895,1388,16080,10433,26619,22475,31098,3804,13217,5445,"^newloc[pick,nxcor=5,limit=10,a=5,b=0]",11403,27374,"^mkpos[x=42,y=3,dx=-1,dy=0,tx=9,ty=8]",2654,28866,19747,"^newloc[pick,nxcor=6,limit=12,a=3,b=1]",2380,5779,"^mkpos[x=18,y=16,dx=-1,dy=0,tx=13,ty=17]",19099,28460,31812,26229,29723,18726,"^makecor[stop,nx=13,ny=16,crm=1,x=14,y=16,dx=0,dy=1]",25084,12991,11962,10416,11275,25625,"^newloc[pick,nxcor=7,limit=7,a=7,b=2]",25363,9173,"^mkpos[x=63,y=5,dx=-1,dy=0,tx=21,ty=5]",17620,838,19370,4892,11943,17,3936,8270,30870,"^makecor[dead_end,nx=55,ny=5]",31477,1970,30213,"^newloc[pick,nxcor=8,limit=8,a=8,b=0]",9495,32143,"^mkpos[x=67,y=14,dx=0,dy=-1,tx=6,ty=12]",11957,23545,24158,19908,28882,19466,5239,18354,24129,19469,"^makecor[redir,nx=59,ny=13,crm=1,x=60,y=13,dx=0,dy=-1]",24871,27223,30790,6230,"^makecor[dead_end,nx=57,ny=12]",19841,772,5678,27402,21831,9088,7689,27681,17414,"^newloc[pick,nxcor=9,limit=9,a=6,b=8]",20219,3364,"^mkpos[x=59,y=16,dx=1,dy=0,tx=63,ty=15]",5694,18415,2489,3149,"^makecor[stop,nx=63,ny=16,crm=1,x=62,y=16,dx=0,dy=-1]",7214,22135,14202,3014,6978,16046,"^newloc[pick,nxcor=10,limit=12,a=3,b=8]",29867,8965,"^mkpos[x=25,y=17,dx=1,dy=0,tx=63,ty=16]",9805,"^newloc[sentinel,nxcor=10,limit=8]","^mklev_corridors",1376,22095,12338,"^turn[moves=0]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",30075],
+      "cursor": [
+        56,
+        16
+      ],
+      "rng": [
+        4543,
+        28214,
+        11245,
+        8870,
+        16887,
+        2234,
+        20162,
+        27592,
+        20255,
+        30710,
+        15445,
+        15276,
+        7136,
+        13,
+        1395,
+        8096,
+        25117,
+        8506,
+        16157,
+        31174,
+        19663,
+        8827,
+        30139,
+        22947,
+        21409,
+        6909,
+        6176,
+        20838,
+        13386,
+        9798,
+        5697,
+        21496,
+        9646,
+        12068,
+        12213,
+        26567,
+        8372,
+        32089,
+        11756,
+        14930,
+        23269,
+        29187,
+        1583,
+        24693,
+        20169,
+        7885,
+        8027,
+        20338,
+        28162,
+        9176,
+        14173,
+        23235,
+        22821,
+        103,
+        9324,
+        17058,
+        14684,
+        16973,
+        28169,
+        8020,
+        6076,
+        4543,
+        28214,
+        11245,
+        8870,
+        16887,
+        2234,
+        20162,
+        27592,
+        20255,
+        30710,
+        15445,
+        15276,
+        7136,
+        13,
+        1395,
+        8096,
+        25117,
+        8506,
+        16157,
+        31174,
+        19663,
+        8827,
+        30139,
+        22947,
+        21409,
+        6909,
+        6176,
+        20838,
+        13386,
+        9798,
+        5697,
+        21496,
+        9646,
+        12068,
+        12213,
+        26567,
+        8372,
+        32089,
+        11756,
+        14930,
+        23269,
+        29187,
+        1583,
+        24693,
+        20169,
+        7885,
+        8027,
+        20338,
+        28162,
+        9176,
+        14173,
+        23235,
+        22821,
+        103,
+        9324,
+        17058,
+        14684,
+        16973,
+        28169,
+        8020,
+        6076,
+        16406,
+        31160,
+        13625,
+        20071,
+        18936,
+        18300,
+        32149,
+        28513,
+        32120,
+        31251,
+        28700,
+        15667,
+        10204,
+        9974,
+        22847,
+        4418,
+        25428,
+        10767,
+        18745,
+        19436,
+        23271,
+        31032,
+        26584,
+        10856,
+        24862,
+        13176,
+        14604,
+        7770,
+        17779,
+        26620,
+        7729,
+        825,
+        5240,
+        20695,
+        8220,
+        19809,
+        11976,
+        32121,
+        19943,
+        3831,
+        25262,
+        10481,
+        15485,
+        28288,
+        29846,
+        14306,
+        29412,
+        27456,
+        16952,
+        6727,
+        20301,
+        2900,
+        27774,
+        3302,
+        12509,
+        20367,
+        13369,
+        30357,
+        29241,
+        2324,
+        30088,
+        23856,
+        212,
+        27832,
+        28164,
+        11861,
+        7416,
+        "^mklev_rooms",
+        21,
+        14764,
+        22502,
+        "^mklev_dn[x=30,y=7]",
+        3733,
+        15469,
+        12948,
+        "^mklev_up[x=56,y=14]",
+        "^mklev_up",
+        27708,
+        23245,
+        837,
+        8012,
+        20011,
+        "^mon_pos[tier=0,idx=4,mx=5,my=9]",
+        17979,
+        16574,
+        23569,
+        8378,
+        12295,
+        22450,
+        27318,
+        30367,
+        4522,
+        13202,
+        5456,
+        32125,
+        12162,
+        7170,
+        4004,
+        8412,
+        17941,
+        9777,
+        17234,
+        24812,
+        16421,
+        24570,
+        12990,
+        22777,
+        16760,
+        4284,
+        7874,
+        12717,
+        4708,
+        11257,
+        23316,
+        31497,
+        14364,
+        20913,
+        32121,
+        10786,
+        17853,
+        30844,
+        21415,
+        "^mon_pos[tier=0,idx=3,mx=28,my=5]",
+        13979,
+        12824,
+        7530,
+        19451,
+        5094,
+        15933,
+        5531,
+        15583,
+        570,
+        14540,
+        23965,
+        14073,
+        29523,
+        10747,
+        648,
+        19988,
+        32492,
+        13414,
+        219,
+        1231,
+        8957,
+        13978,
+        13589,
+        18183,
+        19380,
+        31072,
+        14867,
+        7942,
+        24373,
+        30409,
+        20781,
+        4456,
+        18706,
+        1534,
+        12302,
+        "^mon_pos[tier=0,idx=2,mx=23,my=17]",
+        19409,
+        16777,
+        30660,
+        20567,
+        4689,
+        19584,
+        28626,
+        7411,
+        6034,
+        11329,
+        1746,
+        6456,
+        11207,
+        17397,
+        313,
+        24003,
+        28244,
+        9698,
+        9927,
+        1808,
+        28221,
+        18788,
+        1757,
+        29148,
+        25936,
+        9389,
+        13698,
+        24890,
+        31250,
+        "^mklev_populate",
+        "^rooms[0:3-8,4-11|1:5-12,16-18|2:12-20,3-6|3:19-24,15-18|4:28-39,5-10|5:43-53,3-6|6:49-58,14-17|7:64-70,4-10|8:64-68,15-17]",
+        9788,
+        19763,
+        "^mkpos[x=6,y=12,dx=0,dy=1,tx=7,ty=15]",
+        27255,
+        "^makecor[stop,nx=6,ny=15,crm=1,x=6,y=14,dx=1,dy=0]",
+        13419,
+        "^newloc[seq,ci=1,ti=2]",
+        18974,
+        16750,
+        "^mkpos[x=9,y=15,dx=0,dy=-1,tx=18,ty=7]",
+        17071,
+        4369,
+        "^newloc[seq,ci=2,ti=3]",
+        18152,
+        19965,
+        "^mkpos[x=12,y=7,dx=0,dy=1,tx=19,ty=14]",
+        18988,
+        "^makecor[stop,nx=18,ny=14,crm=1,x=18,y=13,dx=1,dy=0]",
+        24500,
+        "^newloc[seq,ci=3,ti=4]",
+        3695,
+        3843,
+        "^mkpos[x=25,y=17,dx=1,dy=0,tx=27,ty=8]",
+        29058,
+        22510,
+        "^newloc[seq,ci=4,ti=5]",
+        7758,
+        3528,
+        "^mkpos[x=40,y=8,dx=1,dy=0,tx=42,ty=3]",
+        21611,
+        4329,
+        "^newloc[seq,ci=5,ti=6]",
+        23573,
+        20036,
+        "^mkpos[x=46,y=7,dx=0,dy=1,tx=51,ty=13]",
+        9827,
+        "^makecor[stop,nx=50,ny=13,crm=1,x=50,y=12,dx=1,dy=0]",
+        18382,
+        "^newloc[seq,ci=6,ti=7]",
+        31057,
+        10605,
+        "^mkpos[x=59,y=15,dx=1,dy=0,tx=63,ty=7]",
+        19714,
+        8433,
+        "^newloc[seq,ci=7,ti=8]",
+        6976,
+        64,
+        "^mkpos[x=68,y=11,dx=0,dy=1,tx=64,ty=14]",
+        17437,
+        "^makecor[stop,nx=65,ny=14,crm=1,x=65,y=13,dx=-1,dy=0]",
+        20413,
+        16977,
+        5009,
+        10141,
+        "^newloc[pick,nxcor=1,limit=7,a=5,b=7]",
+        20833,
+        11613,
+        "^mkpos[x=54,y=4,dx=1,dy=0,tx=63,ty=7]",
+        3220,
+        32538,
+        9783,
+        13480,
+        551,
+        10047,
+        13817,
+        22678,
+        1765,
+        29917,
+        19106,
+        45,
+        "^makecor[stop,nx=63,ny=6,crm=1,x=62,y=6,dx=0,dy=1]",
+        3051,
+        28107,
+        20005,
+        9038,
+        9320,
+        "^newloc[pick,nxcor=2,limit=11,a=2,b=5]",
+        13189,
+        14033,
+        "^mkpos[x=21,y=4,dx=1,dy=0,tx=42,ty=5]",
+        23731,
+        30183,
+        31616,
+        20095,
+        8104,
+        24924,
+        12622,
+        "^makecor[redir,nx=27,ny=4,crm=1,x=26,y=4,dx=0,dy=-1]",
+        16513,
+        3465,
+        "^makecor[dead_end,nx=27,ny=3]",
+        12528,
+        7798,
+        6730,
+        "^newloc[pick,nxcor=3,limit=4,a=4,b=7]",
+        9983,
+        22156,
+        "^mkpos[x=40,y=8,dx=1,dy=0,tx=63,ty=8]",
+        13329,
+        10973,
+        21753,
+        "^newloc[pick,nxcor=4,limit=4,a=2,b=0]",
+        1831,
+        21028,
+        "^mkpos[x=11,y=4,dx=-1,dy=0,tx=9,ty=4]",
+        27895,
+        1388,
+        16080,
+        10433,
+        26619,
+        22475,
+        31098,
+        3804,
+        13217,
+        5445,
+        "^newloc[pick,nxcor=5,limit=10,a=5,b=0]",
+        11403,
+        27374,
+        "^mkpos[x=42,y=3,dx=-1,dy=0,tx=9,ty=8]",
+        2654,
+        28866,
+        19747,
+        "^newloc[pick,nxcor=6,limit=12,a=3,b=1]",
+        2380,
+        5779,
+        "^mkpos[x=18,y=16,dx=-1,dy=0,tx=13,ty=17]",
+        19099,
+        28460,
+        31812,
+        26229,
+        29723,
+        18726,
+        "^makecor[stop,nx=13,ny=16,crm=1,x=14,y=16,dx=0,dy=1]",
+        25084,
+        12991,
+        11962,
+        10416,
+        11275,
+        25625,
+        "^newloc[pick,nxcor=7,limit=7,a=7,b=2]",
+        25363,
+        9173,
+        "^mkpos[x=63,y=5,dx=-1,dy=0,tx=21,ty=5]",
+        17620,
+        838,
+        19370,
+        4892,
+        11943,
+        17,
+        3936,
+        8270,
+        30870,
+        "^makecor[dead_end,nx=55,ny=5]",
+        31477,
+        1970,
+        30213,
+        "^newloc[pick,nxcor=8,limit=8,a=8,b=0]",
+        9495,
+        32143,
+        "^mkpos[x=67,y=14,dx=0,dy=-1,tx=6,ty=12]",
+        11957,
+        23545,
+        24158,
+        19908,
+        28882,
+        19466,
+        5239,
+        18354,
+        24129,
+        19469,
+        "^makecor[redir,nx=59,ny=13,crm=1,x=60,y=13,dx=0,dy=-1]",
+        24871,
+        27223,
+        30790,
+        6230,
+        "^makecor[dead_end,nx=57,ny=12]",
+        19841,
+        772,
+        5678,
+        27402,
+        21831,
+        9088,
+        7689,
+        27681,
+        17414,
+        "^newloc[pick,nxcor=9,limit=9,a=6,b=8]",
+        20219,
+        3364,
+        "^mkpos[x=59,y=16,dx=1,dy=0,tx=63,ty=15]",
+        5694,
+        18415,
+        2489,
+        3149,
+        "^makecor[stop,nx=63,ny=16,crm=1,x=62,y=16,dx=0,dy=-1]",
+        7214,
+        22135,
+        14202,
+        3014,
+        6978,
+        16046,
+        "^newloc[pick,nxcor=10,limit=12,a=3,b=8]",
+        29867,
+        8965,
+        "^mkpos[x=25,y=17,dx=1,dy=0,tx=63,ty=16]",
+        9805,
+        "^newloc[sentinel,nxcor=10,limit=8]",
+        "^mklev_corridors",
+        1376,
+        22095,
+        12338,
+        "^turn[moves=0]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        30075
+      ],
       "screen": [
         "",
         "",
@@ -33,7 +566,18 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=1]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",26350],
+      "cursor": [
+        55,
+        16
+      ],
+      "rng": [
+        "^turn[moves=1]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        26350
+      ],
       "screen": [
         "",
         "",
@@ -63,7 +607,18 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=2]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",15532],
+      "cursor": [
+        54,
+        16
+      ],
+      "rng": [
+        "^turn[moves=2]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        15532
+      ],
       "screen": [
         "",
         "",
@@ -93,7 +648,18 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=3]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",29533],
+      "cursor": [
+        53,
+        16
+      ],
+      "rng": [
+        "^turn[moves=3]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        29533
+      ],
       "screen": [
         "",
         "",
@@ -123,7 +689,18 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=4]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",18136],
+      "cursor": [
+        52,
+        16
+      ],
+      "rng": [
+        "^turn[moves=4]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        18136
+      ],
       "screen": [
         "",
         "",
@@ -153,7 +730,18 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=5]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",6889],
+      "cursor": [
+        51,
+        16
+      ],
+      "rng": [
+        "^turn[moves=5]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        6889
+      ],
       "screen": [
         "",
         "",
@@ -183,7 +771,18 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=6]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",9397],
+      "cursor": [
+        50,
+        16
+      ],
+      "rng": [
+        "^turn[moves=6]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        9397
+      ],
       "screen": [
         "",
         "",
@@ -213,7 +812,18 @@
     },
     {
       "key": "j",
-      "rng": ["^turn[moves=7]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",8578],
+      "cursor": [
+        49,
+        16
+      ],
+      "rng": [
+        "^turn[moves=7]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        8578
+      ],
       "screen": [
         "",
         "",
@@ -243,7 +853,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=8]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",15260],
+      "cursor": [
+        49,
+        17
+      ],
+      "rng": [
+        "^turn[moves=8]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        15260
+      ],
       "screen": [
         "",
         "",
@@ -273,7 +894,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=9]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",13684],
+      "cursor": [
+        50,
+        17
+      ],
+      "rng": [
+        "^turn[moves=9]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        13684
+      ],
       "screen": [
         "",
         "",
@@ -303,7 +935,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=10]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",9275],
+      "cursor": [
+        51,
+        17
+      ],
+      "rng": [
+        "^turn[moves=10]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        9275
+      ],
       "screen": [
         "",
         "",
@@ -333,7 +976,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=11]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",11071],
+      "cursor": [
+        52,
+        17
+      ],
+      "rng": [
+        "^turn[moves=11]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        11071
+      ],
       "screen": [
         "",
         "",
@@ -363,7 +1017,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=12]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",15928],
+      "cursor": [
+        53,
+        17
+      ],
+      "rng": [
+        "^turn[moves=12]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        15928
+      ],
       "screen": [
         "",
         "",
@@ -393,7 +1058,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=13]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",16982],
+      "cursor": [
+        54,
+        17
+      ],
+      "rng": [
+        "^turn[moves=13]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        16982
+      ],
       "screen": [
         "",
         "",
@@ -423,7 +1099,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=14]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",31954],
+      "cursor": [
+        55,
+        17
+      ],
+      "rng": [
+        "^turn[moves=14]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        31954
+      ],
       "screen": [
         "",
         "",
@@ -453,7 +1140,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=15]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",13135],
+      "cursor": [
+        56,
+        17
+      ],
+      "rng": [
+        "^turn[moves=15]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        13135
+      ],
       "screen": [
         "",
         "",
@@ -483,7 +1181,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=16]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",15649],
+      "cursor": [
+        57,
+        17
+      ],
+      "rng": [
+        "^turn[moves=16]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        15649
+      ],
       "screen": [
         "",
         "",
@@ -513,7 +1222,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=17]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",30178],
+      "cursor": [
+        58,
+        17
+      ],
+      "rng": [
+        "^turn[moves=17]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        30178
+      ],
       "screen": [
         "",
         "",
@@ -543,7 +1263,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=18]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",29060],
+      "cursor": [
+        59,
+        17
+      ],
+      "rng": [
+        "^turn[moves=18]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        29060
+      ],
       "screen": [
         "",
         "",
@@ -573,7 +1304,18 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=19]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",28878],
+      "cursor": [
+        60,
+        17
+      ],
+      "rng": [
+        "^turn[moves=19]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        28878
+      ],
       "screen": [
         "",
         "",
@@ -603,7 +1345,18 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=20]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",18015],
+      "cursor": [
+        60,
+        16
+      ],
+      "rng": [
+        "^turn[moves=20]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        18015
+      ],
       "screen": [
         "",
         "",
@@ -633,7 +1386,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=21]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",3975],
+      "cursor": [
+        60,
+        15
+      ],
+      "rng": [
+        "^turn[moves=21]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        3975
+      ],
       "screen": [
         "",
         "",
@@ -663,7 +1427,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=22]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",19256],
+      "cursor": [
+        61,
+        15
+      ],
+      "rng": [
+        "^turn[moves=22]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        19256
+      ],
       "screen": [
         "",
         "",
@@ -693,7 +1468,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=23]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",31019],
+      "cursor": [
+        62,
+        15
+      ],
+      "rng": [
+        "^turn[moves=23]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        31019
+      ],
       "screen": [
         "",
         "",
@@ -723,7 +1509,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=24]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",20436],
+      "cursor": [
+        63,
+        15
+      ],
+      "rng": [
+        "^turn[moves=24]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        20436
+      ],
       "screen": [
         "",
         "",
@@ -753,7 +1550,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=25]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",18997],
+      "cursor": [
+        64,
+        15
+      ],
+      "rng": [
+        "^turn[moves=25]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        18997
+      ],
       "screen": [
         "",
         "",
@@ -783,7 +1591,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=26]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",14304],
+      "cursor": [
+        65,
+        15
+      ],
+      "rng": [
+        "^turn[moves=26]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        14304
+      ],
       "screen": [
         "",
         "",
@@ -813,7 +1632,18 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=27]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",11756],
+      "cursor": [
+        66,
+        15
+      ],
+      "rng": [
+        "^turn[moves=27]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        11756
+      ],
       "screen": [
         "",
         "",
@@ -843,7 +1673,18 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=28]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",14413],
+      "cursor": [
+        67,
+        15
+      ],
+      "rng": [
+        "^turn[moves=28]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        14413
+      ],
       "screen": [
         "",
         "",
@@ -873,7 +1714,18 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=29]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",30327],
+      "cursor": [
+        67,
+        14
+      ],
+      "rng": [
+        "^turn[moves=29]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        30327
+      ],
       "screen": [
         "",
         "",
@@ -903,7 +1755,18 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=30]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",28774],
+      "cursor": [
+        66,
+        14
+      ],
+      "rng": [
+        "^turn[moves=30]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        28774
+      ],
       "screen": [
         "",
         "",
@@ -933,7 +1796,18 @@
     },
     {
       "key": "b",
-      "rng": ["^turn[moves=31]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",18981],
+      "cursor": [
+        65,
+        14
+      ],
+      "rng": [
+        "^turn[moves=31]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        18981
+      ],
       "screen": [
         "",
         "",
@@ -963,7 +1837,18 @@
     },
     {
       "key": "j",
-      "rng": ["^turn[moves=32]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",19786],
+      "cursor": [
+        64,
+        15
+      ],
+      "rng": [
+        "^turn[moves=32]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        19786
+      ],
       "screen": [
         "",
         "",
@@ -993,7 +1878,18 @@
     },
     {
       "key": "j",
-      "rng": ["^turn[moves=33]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",6729],
+      "cursor": [
+        64,
+        16
+      ],
+      "rng": [
+        "^turn[moves=33]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        6729
+      ],
       "screen": [
         "",
         "",
@@ -1023,7 +1919,25 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=34]","^movemon[n=3]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",20820,19382,24974,12990,21061,13383,16485,29523],
+      "cursor": [
+        64,
+        17
+      ],
+      "rng": [
+        "^turn[moves=34]",
+        "^movemon[n=3]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        20820,
+        19382,
+        24974,
+        12990,
+        21061,
+        13383,
+        16485,
+        29523
+      ],
       "screen": [
         "",
         "",
@@ -1053,7 +1967,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=35]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",2063,"^m_move_debug[mlet=L,mx=9,my=18,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=63,uy=15]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",24069],
+      "cursor": [
+        63,
+        17
+      ],
+      "rng": [
+        "^turn[moves=35]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        2063,
+        "^m_move_debug[mlet=L,mx=9,my=18,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=63,uy=15]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        24069
+      ],
       "screen": [
         "",
         "",
@@ -1083,7 +2011,21 @@
     },
     {
       "key": "j",
-      "rng": ["^turn[moves=36]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",2488,"^m_move_debug[mlet=L,mx=10,my=17,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=62,uy=15]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",7952],
+      "cursor": [
+        62,
+        17
+      ],
+      "rng": [
+        "^turn[moves=36]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        2488,
+        "^m_move_debug[mlet=L,mx=10,my=17,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=62,uy=15]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        7952
+      ],
       "screen": [
         "",
         "",
@@ -1113,7 +2055,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=37]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",7597,"^m_move_debug[mlet=L,mx=11,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=62,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",24601],
+      "cursor": [
+        62,
+        18
+      ],
+      "rng": [
+        "^turn[moves=37]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        7597,
+        "^m_move_debug[mlet=L,mx=11,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=62,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        24601
+      ],
       "screen": [
         "",
         "",
@@ -1143,7 +2099,23 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=38]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",17105,"^m_move_debug[mlet=L,mx=12,my=16,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=61,uy=16]",22372,28655,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",16109],
+      "cursor": [
+        61,
+        18
+      ],
+      "rng": [
+        "^turn[moves=38]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        17105,
+        "^m_move_debug[mlet=L,mx=12,my=16,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=61,uy=16]",
+        22372,
+        28655,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        16109
+      ],
       "screen": [
         "",
         "",
@@ -1173,7 +2145,22 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=39]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",10223,"^m_move_debug[mlet=L,mx=12,my=16,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=60,uy=16]",31934,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",14304],
+      "cursor": [
+        60,
+        18
+      ],
+      "rng": [
+        "^turn[moves=39]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        10223,
+        "^m_move_debug[mlet=L,mx=12,my=16,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=60,uy=16]",
+        31934,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        14304
+      ],
       "screen": [
         "",
         "",
@@ -1203,7 +2190,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=40]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",25630,"^m_move_debug[mlet=L,mx=12,my=17,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=60,uy=15]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",2697],
+      "cursor": [
+        60,
+        17
+      ],
+      "rng": [
+        "^turn[moves=40]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        25630,
+        "^m_move_debug[mlet=L,mx=12,my=17,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=60,uy=15]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        2697
+      ],
       "screen": [
         "",
         "",
@@ -1233,7 +2234,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=41]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",31979,"^m_move_debug[mlet=L,mx=13,my=17,dx=1,dy=-1,rfree=1,cell_typ=4,gat=-,ux=59,uy=15]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",28667],
+      "cursor": [
+        59,
+        17
+      ],
+      "rng": [
+        "^turn[moves=41]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        31979,
+        "^m_move_debug[mlet=L,mx=13,my=17,dx=1,dy=-1,rfree=1,cell_typ=4,gat=-,ux=59,uy=15]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        28667
+      ],
       "screen": [
         "",
         "",
@@ -1263,7 +2278,21 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=42]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",6719,"^m_move_debug[mlet=L,mx=14,my=17,dx=1,dy=-1,rfree=1,cell_typ=4,gat=-,ux=58,uy=15]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",18530],
+      "cursor": [
+        58,
+        17
+      ],
+      "rng": [
+        "^turn[moves=42]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        6719,
+        "^m_move_debug[mlet=L,mx=14,my=17,dx=1,dy=-1,rfree=1,cell_typ=4,gat=-,ux=58,uy=15]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        18530
+      ],
       "screen": [
         "",
         "",
@@ -1293,7 +2322,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=43]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",11058,"^m_move_debug[mlet=L,mx=15,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=58,uy=14]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",24589],
+      "cursor": [
+        58,
+        16
+      ],
+      "rng": [
+        "^turn[moves=43]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        11058,
+        "^m_move_debug[mlet=L,mx=15,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=58,uy=14]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        24589
+      ],
       "screen": [
         "",
         "",
@@ -1323,7 +2366,21 @@
     },
     {
       "key": "j",
-      "rng": ["^turn[moves=44]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",2132,"^m_move_debug[mlet=L,mx=16,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=57,uy=14]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",10066],
+      "cursor": [
+        57,
+        16
+      ],
+      "rng": [
+        "^turn[moves=44]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        2132,
+        "^m_move_debug[mlet=L,mx=16,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=57,uy=14]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        10066
+      ],
       "screen": [
         "",
         "",
@@ -1353,7 +2410,21 @@
     },
     {
       "key": "j",
-      "rng": ["^turn[moves=45]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",32305,"^m_move_debug[mlet=L,mx=17,my=16,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=57,uy=15]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",31720],
+      "cursor": [
+        57,
+        17
+      ],
+      "rng": [
+        "^turn[moves=45]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        32305,
+        "^m_move_debug[mlet=L,mx=17,my=16,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=57,uy=15]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        31720
+      ],
       "screen": [
         "",
         "",
@@ -1383,7 +2454,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=46]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",26889,"^m_move_debug[mlet=L,mx=18,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=57,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",8654],
+      "cursor": [
+        57,
+        18
+      ],
+      "rng": [
+        "^turn[moves=46]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        26889,
+        "^m_move_debug[mlet=L,mx=18,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=57,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        8654
+      ],
       "screen": [
         "",
         "",
@@ -1413,7 +2498,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=47]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",20342,"^m_move_debug[mlet=L,mx=19,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=56,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",204],
+      "cursor": [
+        56,
+        18
+      ],
+      "rng": [
+        "^turn[moves=47]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        20342,
+        "^m_move_debug[mlet=L,mx=19,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=56,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        204
+      ],
       "screen": [
         "",
         "",
@@ -1443,7 +2542,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=48]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",31157,"^m_move_debug[mlet=L,mx=20,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=55,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",28732],
+      "cursor": [
+        55,
+        18
+      ],
+      "rng": [
+        "^turn[moves=48]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        31157,
+        "^m_move_debug[mlet=L,mx=20,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=55,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        28732
+      ],
       "screen": [
         "",
         "",
@@ -1473,7 +2586,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=49]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",30941,"^m_move_debug[mlet=L,mx=21,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=54,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",32150],
+      "cursor": [
+        54,
+        18
+      ],
+      "rng": [
+        "^turn[moves=49]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        30941,
+        "^m_move_debug[mlet=L,mx=21,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=54,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        32150
+      ],
       "screen": [
         "",
         "",
@@ -1503,7 +2630,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=50]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",23827,"^m_move_debug[mlet=L,mx=22,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=53,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",23289],
+      "cursor": [
+        53,
+        18
+      ],
+      "rng": [
+        "^turn[moves=50]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        23827,
+        "^m_move_debug[mlet=L,mx=22,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=53,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        23289
+      ],
       "screen": [
         "",
         "",
@@ -1533,7 +2674,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=51]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",27564,"^m_move_debug[mlet=L,mx=23,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=52,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",12710],
+      "cursor": [
+        52,
+        18
+      ],
+      "rng": [
+        "^turn[moves=51]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        27564,
+        "^m_move_debug[mlet=L,mx=23,my=16,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=52,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        12710
+      ],
       "screen": [
         "15 gold pieces.",
         "",
@@ -1563,7 +2718,22 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=52]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",28090,"^m_move_debug[mlet=L,mx=24,my=16,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=51,uy=16]",8486,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",7535],
+      "cursor": [
+        51,
+        18
+      ],
+      "rng": [
+        "^turn[moves=52]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        28090,
+        "^m_move_debug[mlet=L,mx=24,my=16,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=51,uy=16]",
+        8486,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        7535
+      ],
       "screen": [
         "",
         "",
@@ -1593,7 +2763,21 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=53]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",28305,"^m_move_debug[mlet=L,mx=24,my=17,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=50,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",15458],
+      "cursor": [
+        50,
+        18
+      ],
+      "rng": [
+        "^turn[moves=53]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        28305,
+        "^m_move_debug[mlet=L,mx=24,my=17,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=50,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        15458
+      ],
       "screen": [
         "",
         "",
@@ -1623,7 +2807,21 @@
     },
     {
       "key": "j",
-      "rng": ["^turn[moves=54]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",54,"^m_move_debug[mlet=L,mx=25,my=17,dx=1,dy=-1,rfree=1,cell_typ=4,gat=-,ux=49,uy=16]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",26260],
+      "cursor": [
+        49,
+        18
+      ],
+      "rng": [
+        "^turn[moves=54]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        54,
+        "^m_move_debug[mlet=L,mx=25,my=17,dx=1,dy=-1,rfree=1,cell_typ=4,gat=-,ux=49,uy=16]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        26260
+      ],
       "screen": [
         "d - a pink potion.",
         "",
@@ -1653,7 +2851,23 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=55]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",26764,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=49,uy=17]",13781,10296,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",11975],
+      "cursor": [
+        49,
+        19
+      ],
+      "rng": [
+        "^turn[moves=55]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        26764,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=49,uy=17]",
+        13781,
+        10296,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        11975
+      ],
       "screen": [
         "",
         "",
@@ -1683,7 +2897,30 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=56]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",8595,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=50,uy=17]",11446,10469,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",780,23388,17141,9065,29085,15359,28430,19698],
+      "cursor": [
+        50,
+        19
+      ],
+      "rng": [
+        "^turn[moves=56]",
+        "^movemon[n=4]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        8595,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=50,uy=17]",
+        11446,
+        10469,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        780,
+        23388,
+        17141,
+        9065,
+        29085,
+        15359,
+        28430,
+        19698
+      ],
       "screen": [
         "",
         "",
@@ -1713,7 +2950,26 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=57]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",18313,"^m_move_debug[mlet=L,mx=19,my=16,dx=1,dy=1,rfree=1,cell_typ=5,gat=-,ux=51,uy=17]","^dochug[mlet=L,mstat=0,cansee=0]",4450,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=51,uy=17]",6404,3577,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",3081],
+      "cursor": [
+        51,
+        19
+      ],
+      "rng": [
+        "^turn[moves=57]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        18313,
+        "^m_move_debug[mlet=L,mx=19,my=16,dx=1,dy=1,rfree=1,cell_typ=5,gat=-,ux=51,uy=17]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        4450,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=51,uy=17]",
+        6404,
+        3577,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        3081
+      ],
       "screen": [
         "",
         "",
@@ -1743,7 +2999,26 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=58]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",24422,"^m_move_debug[mlet=L,mx=20,my=17,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=52,uy=17]","^dochug[mlet=L,mstat=0,cansee=0]",2849,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=52,uy=17]",19027,21921,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",9427],
+      "cursor": [
+        52,
+        19
+      ],
+      "rng": [
+        "^turn[moves=58]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        24422,
+        "^m_move_debug[mlet=L,mx=20,my=17,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=52,uy=17]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        2849,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=52,uy=17]",
+        19027,
+        21921,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        9427
+      ],
       "screen": [
         "",
         "",
@@ -1773,7 +3048,26 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=59]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",12906,"^m_move_debug[mlet=L,mx=21,my=17,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=53,uy=17]","^dochug[mlet=L,mstat=0,cansee=0]",7670,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=53,uy=17]",21755,772,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",27364],
+      "cursor": [
+        53,
+        19
+      ],
+      "rng": [
+        "^turn[moves=59]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        12906,
+        "^m_move_debug[mlet=L,mx=21,my=17,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=53,uy=17]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        7670,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=53,uy=17]",
+        21755,
+        772,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        27364
+      ],
       "screen": [
         "",
         "",
@@ -1803,7 +3097,27 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=60]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",6796,"^m_move_debug[mlet=L,mx=22,my=17,dx=1,dy=0,rfree=0,cell_typ=5,gat=H,ux=54,uy=17]",12675,"^dochug[mlet=L,mstat=0,cansee=0]",13394,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=54,uy=17]",21386,20921,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",5057],
+      "cursor": [
+        54,
+        19
+      ],
+      "rng": [
+        "^turn[moves=60]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        6796,
+        "^m_move_debug[mlet=L,mx=22,my=17,dx=1,dy=0,rfree=0,cell_typ=5,gat=H,ux=54,uy=17]",
+        12675,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        13394,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=54,uy=17]",
+        21386,
+        20921,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        5057
+      ],
       "screen": [
         "",
         "",
@@ -1833,7 +3147,26 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=61]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",32065,"^m_move_debug[mlet=L,mx=23,my=16,dx=1,dy=1,rfree=1,cell_typ=5,gat=-,ux=55,uy=17]","^dochug[mlet=L,mstat=0,cansee=0]",26121,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=55,uy=17]",14381,31098,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",1133],
+      "cursor": [
+        55,
+        19
+      ],
+      "rng": [
+        "^turn[moves=61]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        32065,
+        "^m_move_debug[mlet=L,mx=23,my=16,dx=1,dy=1,rfree=1,cell_typ=5,gat=-,ux=55,uy=17]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        26121,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=55,uy=17]",
+        14381,
+        31098,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        1133
+      ],
       "screen": [
         "",
         "",
@@ -1863,7 +3196,26 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=62]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",20033,"^m_move_debug[mlet=L,mx=24,my=17,dx=1,dy=0,rfree=1,cell_typ=3,gat=-,ux=56,uy=17]","^dochug[mlet=L,mstat=0,cansee=0]",11624,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=56,uy=17]",12166,15666,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",15740],
+      "cursor": [
+        56,
+        19
+      ],
+      "rng": [
+        "^turn[moves=62]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        20033,
+        "^m_move_debug[mlet=L,mx=24,my=17,dx=1,dy=0,rfree=1,cell_typ=3,gat=-,ux=56,uy=17]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        11624,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=56,uy=17]",
+        12166,
+        15666,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        15740
+      ],
       "screen": [
         "",
         "",
@@ -1893,7 +3245,27 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=63]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",13392,"^m_move_debug[mlet=L,mx=25,my=17,dx=1,dy=0,rfree=0,cell_typ=4,gat=L,ux=57,uy=17]",3440,20766,"^dochug[mlet=L,mstat=0,cansee=0]",13676,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=57,uy=17]",10356,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",20175],
+      "cursor": [
+        57,
+        19
+      ],
+      "rng": [
+        "^turn[moves=63]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        13392,
+        "^m_move_debug[mlet=L,mx=25,my=17,dx=1,dy=0,rfree=0,cell_typ=4,gat=L,ux=57,uy=17]",
+        3440,
+        20766,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        13676,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=57,uy=17]",
+        10356,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        20175
+      ],
       "screen": [
         "",
         "",
@@ -1923,7 +3295,25 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=64]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",13335,"^m_move_debug[mlet=L,mx=25,my=17,dx=1,dy=0,rfree=1,cell_typ=4,gat=-,ux=58,uy=17]","^dochug[mlet=L,mstat=0,cansee=0]",1767,"^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=58,uy=17]",31774,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",9831],
+      "cursor": [
+        58,
+        19
+      ],
+      "rng": [
+        "^turn[moves=64]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        13335,
+        "^m_move_debug[mlet=L,mx=25,my=17,dx=1,dy=0,rfree=1,cell_typ=4,gat=-,ux=58,uy=17]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        1767,
+        "^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=58,uy=17]",
+        31774,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        9831
+      ],
       "screen": [
         "",
         "",
@@ -1953,7 +3343,26 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=65]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",20300,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=58,uy=16]",97,"^dochug[mlet=L,mstat=0,cansee=0]",19227,"^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=58,uy=16]",26367,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",28382],
+      "cursor": [
+        58,
+        18
+      ],
+      "rng": [
+        "^turn[moves=65]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        20300,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=58,uy=16]",
+        97,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        19227,
+        "^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=58,uy=16]",
+        26367,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        28382
+      ],
       "screen": [
         "",
         "",
@@ -1983,7 +3392,26 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=66]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",2093,"^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=58,uy=15]","^dochug[mlet=L,mstat=0,cansee=0]",20041,"^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=58,uy=15]",24064,24138,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",7795],
+      "cursor": [
+        58,
+        17
+      ],
+      "rng": [
+        "^turn[moves=66]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        2093,
+        "^m_move_debug[mlet=L,mx=26,my=17,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=58,uy=15]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        20041,
+        "^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=58,uy=15]",
+        24064,
+        24138,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        7795
+      ],
       "screen": [
         "",
         "",
@@ -2013,7 +3441,27 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=67]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",31717,"^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=59,uy=15]",15314,"^dochug[mlet=L,mstat=0,cansee=0]",24477,"^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=59,uy=15]",752,24722,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",9718],
+      "cursor": [
+        59,
+        17
+      ],
+      "rng": [
+        "^turn[moves=67]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        31717,
+        "^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=59,uy=15]",
+        15314,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        24477,
+        "^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=59,uy=15]",
+        752,
+        24722,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        9718
+      ],
       "screen": [
         "",
         "",
@@ -2043,7 +3491,27 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=68]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",26966,"^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=15]",31344,"^dochug[mlet=L,mstat=0,cansee=0]",32040,"^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=60,uy=15]",20195,22297,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",28685],
+      "cursor": [
+        60,
+        17
+      ],
+      "rng": [
+        "^turn[moves=68]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        26966,
+        "^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=15]",
+        31344,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        32040,
+        "^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=60,uy=15]",
+        20195,
+        22297,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        28685
+      ],
       "screen": [
         "",
         "",
@@ -2073,7 +3541,25 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=69]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",13634,"^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=14]",12194,"^dochug[mlet=L,mstat=0,cansee=0]",31001,"^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=14]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",28197],
+      "cursor": [
+        60,
+        16
+      ],
+      "rng": [
+        "^turn[moves=69]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        13634,
+        "^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=14]",
+        12194,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        31001,
+        "^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=14]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        28197
+      ],
       "screen": [
         "",
         "",
@@ -2103,7 +3589,24 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=70]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",6790,"^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=13]","^dochug[mlet=L,mstat=0,cansee=0]",16168,"^m_move_debug[mlet=L,mx=26,my=14,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=13]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",11843],
+      "cursor": [
+        60,
+        15
+      ],
+      "rng": [
+        "^turn[moves=70]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        6790,
+        "^m_move_debug[mlet=L,mx=26,my=16,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=13]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        16168,
+        "^m_move_debug[mlet=L,mx=26,my=14,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=13]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        11843
+      ],
       "screen": [
         "",
         "",
@@ -2133,7 +3636,24 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=71]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",11036,"^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=12]","^dochug[mlet=L,mstat=0,cansee=0]",8370,"^m_move_debug[mlet=L,mx=26,my=13,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=12]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",17271],
+      "cursor": [
+        60,
+        14
+      ],
+      "rng": [
+        "^turn[moves=71]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        11036,
+        "^m_move_debug[mlet=L,mx=26,my=15,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=12]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        8370,
+        "^m_move_debug[mlet=L,mx=26,my=13,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=60,uy=12]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        17271
+      ],
       "screen": [
         "",
         "",
@@ -2163,7 +3683,25 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=72]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",29995,"^m_move_debug[mlet=L,mx=26,my=14,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=59,uy=12]","^dochug[mlet=L,mstat=0,cansee=0]",9687,"^m_move_debug[mlet=L,mx=26,my=12,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=59,uy=12]",1644,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",6259],
+      "cursor": [
+        59,
+        14
+      ],
+      "rng": [
+        "^turn[moves=72]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        29995,
+        "^m_move_debug[mlet=L,mx=26,my=14,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=59,uy=12]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        9687,
+        "^m_move_debug[mlet=L,mx=26,my=12,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=59,uy=12]",
+        1644,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        6259
+      ],
       "screen": [
         "",
         "",
@@ -2193,7 +3731,25 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=73]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",8119,"^m_move_debug[mlet=L,mx=26,my=13,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=58,uy=12]","^dochug[mlet=L,mstat=0,cansee=0]",3571,"^m_move_debug[mlet=L,mx=26,my=11,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=58,uy=12]",32454,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",2181],
+      "cursor": [
+        58,
+        14
+      ],
+      "rng": [
+        "^turn[moves=73]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        8119,
+        "^m_move_debug[mlet=L,mx=26,my=13,dx=1,dy=-1,rfree=0,cell_typ=0,gat=-,ux=58,uy=12]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        3571,
+        "^m_move_debug[mlet=L,mx=26,my=11,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=58,uy=12]",
+        32454,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        2181
+      ],
       "screen": [
         "",
         "",
@@ -2223,7 +3779,27 @@
     },
     {
       "key": "u",
-      "rng": ["^turn[moves=74]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",5517,"^m_move_debug[mlet=L,mx=26,my=12,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=59,uy=12]",29641,26515,"^dochug[mlet=L,mstat=0,cansee=0]",4849,"^m_move_debug[mlet=L,mx=26,my=11,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=59,uy=12]",20798,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",31779],
+      "cursor": [
+        59,
+        14
+      ],
+      "rng": [
+        "^turn[moves=74]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        5517,
+        "^m_move_debug[mlet=L,mx=26,my=12,dx=1,dy=0,rfree=0,cell_typ=0,gat=-,ux=59,uy=12]",
+        29641,
+        26515,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        4849,
+        "^m_move_debug[mlet=L,mx=26,my=11,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=59,uy=12]",
+        20798,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        31779
+      ],
       "screen": [
         "",
         "",
@@ -2253,7 +3829,29 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=75]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",6252,"^m_move_debug[mlet=L,mx=26,my=12,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=60,uy=11]",15352,"^dochug[mlet=L,mstat=0,cansee=0]",1071,"^m_move_debug[mlet=L,mx=26,my=11,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=60,uy=11]",5051,5760,17069,3403,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",24183],
+      "cursor": [
+        60,
+        13
+      ],
+      "rng": [
+        "^turn[moves=75]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        6252,
+        "^m_move_debug[mlet=L,mx=26,my=12,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=60,uy=11]",
+        15352,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        1071,
+        "^m_move_debug[mlet=L,mx=26,my=11,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=60,uy=11]",
+        5051,
+        5760,
+        17069,
+        3403,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        24183
+      ],
       "screen": [
         "",
         "",
@@ -2283,7 +3881,24 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=76]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",14623,"^m_move_debug[mlet=L,mx=26,my=12,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=60,uy=10]","^dochug[mlet=L,mstat=0,cansee=0]",22680,"^m_move_debug[mlet=L,mx=54,my=4,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=60,uy=10]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",11883],
+      "cursor": [
+        60,
+        12
+      ],
+      "rng": [
+        "^turn[moves=76]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        14623,
+        "^m_move_debug[mlet=L,mx=26,my=12,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=60,uy=10]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        22680,
+        "^m_move_debug[mlet=L,mx=54,my=4,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=60,uy=10]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        11883
+      ],
       "screen": [
         "",
         "",
@@ -2313,7 +3928,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=77]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",24167,"^m_move_debug[mlet=L,mx=26,my=11,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=60,uy=9]","^dochug[mlet=L,mstat=0,cansee=0]",2822,"^m_move_debug[mlet=L,mx=55,my=4,dx=1,dy=1,rfree=1,cell_typ=4,gat=-,ux=60,uy=9]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",14092],
+      "cursor": [
+        60,
+        11
+      ],
+      "rng": [
+        "^turn[moves=77]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        24167,
+        "^m_move_debug[mlet=L,mx=26,my=11,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=60,uy=9]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        2822,
+        "^m_move_debug[mlet=L,mx=55,my=4,dx=1,dy=1,rfree=1,cell_typ=4,gat=-,ux=60,uy=9]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        14092
+      ],
       "screen": [
         "",
         "",
@@ -2343,7 +3975,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=78]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",11392,"^m_move_debug[mlet=L,mx=26,my=10,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=61,uy=9]","^dochug[mlet=L,mstat=0,cansee=0]",3706,"^m_move_debug[mlet=L,mx=56,my=5,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=61,uy=9]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",29800],
+      "cursor": [
+        61,
+        11
+      ],
+      "rng": [
+        "^turn[moves=78]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        11392,
+        "^m_move_debug[mlet=L,mx=26,my=10,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=61,uy=9]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        3706,
+        "^m_move_debug[mlet=L,mx=56,my=5,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=61,uy=9]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        29800
+      ],
       "screen": [
         "",
         "",
@@ -2373,7 +4022,25 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=79]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",11848,"^m_move_debug[mlet=L,mx=26,my=9,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=62,uy=9]",18054,"^dochug[mlet=L,mstat=0,cansee=0]",27907,"^m_move_debug[mlet=L,mx=57,my=5,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=62,uy=9]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",31169],
+      "cursor": [
+        62,
+        11
+      ],
+      "rng": [
+        "^turn[moves=79]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        11848,
+        "^m_move_debug[mlet=L,mx=26,my=9,dx=1,dy=0,rfree=0,cell_typ=1,gat=-,ux=62,uy=9]",
+        18054,
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        27907,
+        "^m_move_debug[mlet=L,mx=57,my=5,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=62,uy=9]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        31169
+      ],
       "screen": [
         "",
         "",
@@ -2403,7 +4070,24 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=80]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",2640,"^m_move_debug[mlet=L,mx=26,my=8,dx=1,dy=0,rfree=1,cell_typ=3,gat=-,ux=62,uy=8]","^dochug[mlet=L,mstat=0,cansee=0]",12072,"^m_move_debug[mlet=L,mx=58,my=5,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=62,uy=8]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",12784],
+      "cursor": [
+        62,
+        10
+      ],
+      "rng": [
+        "^turn[moves=80]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        2640,
+        "^m_move_debug[mlet=L,mx=26,my=8,dx=1,dy=0,rfree=1,cell_typ=3,gat=-,ux=62,uy=8]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        12072,
+        "^m_move_debug[mlet=L,mx=58,my=5,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=62,uy=8]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        12784
+      ],
       "screen": [
         "",
         "",
@@ -2433,7 +4117,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=81]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",7002,"^m_move_debug[mlet=L,mx=27,my=8,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=62,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",27017,"^m_move_debug[mlet=L,mx=59,my=5,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=62,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",30003],
+      "cursor": [
+        62,
+        9
+      ],
+      "rng": [
+        "^turn[moves=81]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        7002,
+        "^m_move_debug[mlet=L,mx=27,my=8,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=62,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        27017,
+        "^m_move_debug[mlet=L,mx=59,my=5,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=62,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        30003
+      ],
       "screen": [
         "",
         "",
@@ -2463,7 +4164,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=82]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",11460,"^m_move_debug[mlet=L,mx=28,my=8,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=63,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",8602,"^m_move_debug[mlet=L,mx=60,my=5,dx=1,dy=1,rfree=1,cell_typ=4,gat=-,ux=63,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",24855],
+      "cursor": [
+        63,
+        9
+      ],
+      "rng": [
+        "^turn[moves=82]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        11460,
+        "^m_move_debug[mlet=L,mx=28,my=8,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=63,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        8602,
+        "^m_move_debug[mlet=L,mx=60,my=5,dx=1,dy=1,rfree=1,cell_typ=4,gat=-,ux=63,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        24855
+      ],
       "screen": [
         "",
         "",
@@ -2493,7 +4211,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=83]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",1725,"^m_move_debug[mlet=L,mx=29,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=64,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",1625,"^m_move_debug[mlet=L,mx=61,my=6,dx=1,dy=1,rfree=1,cell_typ=4,gat=-,ux=64,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",25107],
+      "cursor": [
+        64,
+        9
+      ],
+      "rng": [
+        "^turn[moves=83]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        1725,
+        "^m_move_debug[mlet=L,mx=29,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=64,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        1625,
+        "^m_move_debug[mlet=L,mx=61,my=6,dx=1,dy=1,rfree=1,cell_typ=4,gat=-,ux=64,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        25107
+      ],
       "screen": [
         "",
         "",
@@ -2523,7 +4258,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=84]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",2807,"^m_move_debug[mlet=L,mx=30,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=65,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",15122,"^m_move_debug[mlet=L,mx=62,my=7,dx=1,dy=0,rfree=1,cell_typ=3,gat=-,ux=65,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",25176],
+      "cursor": [
+        65,
+        9
+      ],
+      "rng": [
+        "^turn[moves=84]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        2807,
+        "^m_move_debug[mlet=L,mx=30,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=65,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        15122,
+        "^m_move_debug[mlet=L,mx=62,my=7,dx=1,dy=0,rfree=1,cell_typ=3,gat=-,ux=65,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        25176
+      ],
       "screen": [
         "",
         "",
@@ -2553,7 +4305,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=85]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",18760,"^m_move_debug[mlet=L,mx=31,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=66,uy=7]","^dochug[mlet=L,mstat=0,cansee=1]",23003,"^m_move_debug[mlet=L,mx=63,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=66,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",3937],
+      "cursor": [
+        66,
+        9
+      ],
+      "rng": [
+        "^turn[moves=85]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        18760,
+        "^m_move_debug[mlet=L,mx=31,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=66,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=1]",
+        23003,
+        "^m_move_debug[mlet=L,mx=63,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=66,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        3937
+      ],
       "screen": [
         "",
         "",
@@ -2583,7 +4352,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=86]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",7284,"^m_move_debug[mlet=L,mx=32,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=67,uy=7]","^dochug[mlet=L,mstat=0,cansee=1]",13632,"^m_move_debug[mlet=L,mx=64,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=67,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",20169],
+      "cursor": [
+        67,
+        9
+      ],
+      "rng": [
+        "^turn[moves=86]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        7284,
+        "^m_move_debug[mlet=L,mx=32,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=67,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=1]",
+        13632,
+        "^m_move_debug[mlet=L,mx=64,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=67,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        20169
+      ],
       "screen": [
         "",
         "",
@@ -2613,7 +4399,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=87]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",555,"^m_move_debug[mlet=L,mx=33,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=68,uy=7]","^dochug[mlet=L,mstat=0,cansee=1]",7529,"^m_move_debug[mlet=L,mx=65,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=68,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",27852],
+      "cursor": [
+        68,
+        9
+      ],
+      "rng": [
+        "^turn[moves=87]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        555,
+        "^m_move_debug[mlet=L,mx=33,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=68,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=1]",
+        7529,
+        "^m_move_debug[mlet=L,mx=65,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=68,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        27852
+      ],
       "screen": [
         "",
         "",
@@ -2643,7 +4446,24 @@
     },
     {
       "key": "l",
-      "rng": ["^turn[moves=88]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",27762,"^m_move_debug[mlet=L,mx=34,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=69,uy=7]","^dochug[mlet=L,mstat=0,cansee=1]",14695,"^m_move_debug[mlet=L,mx=66,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=69,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",952],
+      "cursor": [
+        69,
+        9
+      ],
+      "rng": [
+        "^turn[moves=88]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        27762,
+        "^m_move_debug[mlet=L,mx=34,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=69,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=1]",
+        14695,
+        "^m_move_debug[mlet=L,mx=66,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=69,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        952
+      ],
       "screen": [
         "",
         "",
@@ -2673,7 +4493,24 @@
     },
     {
       "key": "k",
-      "rng": ["^turn[moves=89]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",16279,"^m_move_debug[mlet=L,mx=35,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=70,uy=7]","^dochug[mlet=L,mstat=0,cansee=1]",1107,"^m_move_debug[mlet=L,mx=67,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=70,uy=7]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",24438],
+      "cursor": [
+        70,
+        9
+      ],
+      "rng": [
+        "^turn[moves=89]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        16279,
+        "^m_move_debug[mlet=L,mx=35,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=70,uy=7]",
+        "^dochug[mlet=L,mstat=0,cansee=1]",
+        1107,
+        "^m_move_debug[mlet=L,mx=67,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=70,uy=7]",
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        24438
+      ],
       "screen": [
         "",
         "",
@@ -2703,7 +4540,27 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=90]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",7199,"^m_move_debug[mlet=L,mx=36,my=7,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=70,uy=6]","^dochug[mlet=L,mstat=0,cansee=1]",6898,"^m_move_debug[mlet=L,mx=68,my=7,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=70,uy=6]",14733,25289,26074,"^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=H,mstat=2,cansee=0]",8028],
+      "cursor": [
+        70,
+        8
+      ],
+      "rng": [
+        "^turn[moves=90]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        7199,
+        "^m_move_debug[mlet=L,mx=36,my=7,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=70,uy=6]",
+        "^dochug[mlet=L,mstat=0,cansee=1]",
+        6898,
+        "^m_move_debug[mlet=L,mx=68,my=7,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=70,uy=6]",
+        14733,
+        25289,
+        26074,
+        "^dochug[mlet=K,mstat=2,cansee=0]",
+        "^dochug[mlet=J,mstat=2,cansee=0]",
+        "^dochug[mlet=H,mstat=2,cansee=0]",
+        8028
+      ],
       "screen": [
         "The leprechaun misses",
         "",
@@ -2733,7 +4590,23 @@
     },
     {
       "key": "h",
-      "rng": [21893,1108,"^turn[moves=91]","^movemon[n=5]","^dochug[mlet=L,mstat=0,cansee=0]",7836,"^m_move_debug[mlet=L,mx=37,my=6,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=70,uy=6]","^dochug[mlet=L,mstat=0,cansee=1]",724,19003,24753],
+      "cursor": [
+        39,
+        1
+      ],
+      "rng": [
+        21893,
+        1108,
+        "^turn[moves=91]",
+        "^movemon[n=5]",
+        "^dochug[mlet=L,mstat=0,cansee=0]",
+        7836,
+        "^m_move_debug[mlet=L,mx=37,my=6,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=70,uy=6]",
+        "^dochug[mlet=L,mstat=0,cansee=1]",
+        724,
+        19003,
+        24753
+      ],
       "screen": [
         "You almost hit the leprechaun.--More--",
         "",
@@ -2763,6 +4636,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -2793,6 +4670,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -2823,6 +4704,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -2853,6 +4738,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -2883,6 +4772,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -2913,6 +4806,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -2943,6 +4840,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -2973,6 +4874,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3003,6 +4908,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3033,6 +4942,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3063,6 +4976,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3093,6 +5010,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3123,6 +5044,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3153,6 +5078,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3183,6 +5112,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3213,6 +5146,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3243,6 +5180,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3273,6 +5214,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3303,6 +5248,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3333,6 +5282,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3363,6 +5316,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3393,6 +5350,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3423,6 +5384,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3453,6 +5418,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3483,6 +5452,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3513,6 +5486,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3543,6 +5520,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3573,6 +5554,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3603,6 +5588,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3633,6 +5622,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3663,6 +5656,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3693,6 +5690,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3723,6 +5724,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3753,6 +5758,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3783,6 +5792,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3813,6 +5826,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3843,6 +5860,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3873,6 +5894,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3903,6 +5928,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3933,6 +5962,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3963,6 +5996,10 @@
     },
     {
       "key": "u",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -3993,6 +6030,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4023,6 +6064,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4053,6 +6098,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4083,6 +6132,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4113,6 +6166,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4143,6 +6200,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4173,6 +6234,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4203,6 +6268,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4233,6 +6302,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4263,6 +6336,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4293,6 +6370,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4323,6 +6404,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4353,6 +6438,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4383,6 +6472,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4413,6 +6506,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4443,6 +6540,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4473,6 +6574,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4503,6 +6608,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4533,6 +6642,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4563,6 +6676,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4593,6 +6710,10 @@
     },
     {
       "key": "k",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4623,6 +6744,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4653,6 +6778,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4683,6 +6812,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4713,6 +6846,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4743,6 +6880,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4773,6 +6914,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4803,6 +6948,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4833,6 +6982,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4863,6 +7016,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4893,6 +7050,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4923,6 +7084,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4953,6 +7118,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -4983,6 +7152,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5013,6 +7186,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5043,6 +7220,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5073,6 +7254,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5103,6 +7288,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5133,6 +7322,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5163,6 +7356,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5193,6 +7390,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5223,6 +7424,10 @@
     },
     {
       "key": "n",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5253,6 +7458,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5283,6 +7492,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5313,6 +7526,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5343,6 +7560,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5373,6 +7594,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5403,6 +7628,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5433,6 +7662,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5463,6 +7696,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5493,6 +7730,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5523,6 +7764,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5553,6 +7798,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5583,6 +7832,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5613,6 +7866,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5643,6 +7900,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5673,6 +7934,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5703,6 +7968,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5733,6 +8002,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5763,6 +8036,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5793,6 +8070,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5823,6 +8104,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5853,6 +8138,10 @@
     },
     {
       "key": "y",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5883,6 +8172,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5913,6 +8206,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5943,6 +8240,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -5973,6 +8274,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6003,6 +8308,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6033,6 +8342,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6063,6 +8376,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6093,6 +8410,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6123,6 +8444,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6153,6 +8478,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6183,6 +8512,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6213,6 +8546,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6243,6 +8580,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6273,6 +8614,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6303,6 +8648,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6333,6 +8682,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6363,6 +8716,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6393,6 +8750,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6423,6 +8784,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6453,6 +8818,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6483,6 +8852,10 @@
     },
     {
       "key": "j",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6513,6 +8886,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6543,6 +8920,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6573,6 +8954,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6603,6 +8988,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6633,6 +9022,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6663,6 +9056,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6693,6 +9090,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6723,6 +9124,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6753,6 +9158,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6783,6 +9192,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6813,6 +9226,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6843,6 +9260,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6873,6 +9294,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6903,6 +9328,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6933,6 +9362,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6963,6 +9396,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -6993,6 +9430,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7023,6 +9464,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7053,6 +9498,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7083,6 +9532,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7113,6 +9566,10 @@
     },
     {
       "key": "b",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7143,6 +9600,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7173,6 +9634,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7203,6 +9668,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7233,6 +9702,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7263,6 +9736,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7293,6 +9770,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7323,6 +9804,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7353,6 +9838,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7383,6 +9872,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7413,6 +9906,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7443,6 +9940,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7473,6 +9974,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7503,6 +10008,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7533,6 +10042,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7563,6 +10076,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7593,6 +10110,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7623,6 +10144,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7653,6 +10178,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7683,6 +10212,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7713,6 +10246,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7743,6 +10280,10 @@
     },
     {
       "key": "l",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7773,6 +10314,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7803,6 +10348,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7833,6 +10382,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7863,6 +10416,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7893,6 +10450,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7923,6 +10484,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7953,6 +10518,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -7983,6 +10552,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8013,6 +10586,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8043,6 +10620,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8073,6 +10654,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8103,6 +10688,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8133,6 +10722,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8163,6 +10756,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8193,6 +10790,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8223,6 +10824,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8253,6 +10858,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8283,6 +10892,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8313,6 +10926,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8343,6 +10960,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8373,6 +10994,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8403,6 +11028,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8433,6 +11062,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8463,6 +11096,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8493,6 +11130,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8523,6 +11164,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8553,6 +11198,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8583,6 +11232,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8613,6 +11266,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8643,6 +11300,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8673,6 +11334,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8703,6 +11368,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8733,6 +11402,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8763,6 +11436,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8793,6 +11470,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8823,6 +11504,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8853,6 +11538,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8883,6 +11572,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8913,6 +11606,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8943,6 +11640,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -8973,6 +11674,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9003,6 +11708,10 @@
     },
     {
       "key": "u",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9033,6 +11742,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9063,6 +11776,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9093,6 +11810,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9123,6 +11844,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9153,6 +11878,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9183,6 +11912,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9213,6 +11946,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9243,6 +11980,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9273,6 +12014,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9303,6 +12048,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9333,6 +12082,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9363,6 +12116,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9393,6 +12150,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9423,6 +12184,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9453,6 +12218,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9483,6 +12252,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9513,6 +12286,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9543,6 +12320,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9573,6 +12354,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9603,6 +12388,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9633,6 +12422,10 @@
     },
     {
       "key": "k",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9663,6 +12456,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9693,6 +12490,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9723,6 +12524,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9753,6 +12558,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9783,6 +12592,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9813,6 +12626,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9843,6 +12660,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9873,6 +12694,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9903,6 +12728,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9933,6 +12762,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9963,6 +12796,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -9993,6 +12830,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10023,6 +12864,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10053,6 +12898,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10083,6 +12932,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10113,6 +12966,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10143,6 +13000,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10173,6 +13034,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10203,6 +13068,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10233,6 +13102,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10263,6 +13136,10 @@
     },
     {
       "key": "n",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10293,6 +13170,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10323,6 +13204,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10353,6 +13238,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10383,6 +13272,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10413,6 +13306,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10443,6 +13340,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10473,6 +13374,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10503,6 +13408,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10533,6 +13442,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10563,6 +13476,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10593,6 +13510,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10623,6 +13544,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10653,6 +13578,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10683,6 +13612,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10713,6 +13646,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10743,6 +13680,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10773,6 +13714,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10803,6 +13748,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10833,6 +13782,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10863,6 +13816,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10893,6 +13850,10 @@
     },
     {
       "key": "y",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10923,6 +13884,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10953,6 +13918,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -10983,6 +13952,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11013,6 +13986,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11043,6 +14020,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11073,6 +14054,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11103,6 +14088,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11133,6 +14122,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11163,6 +14156,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11193,6 +14190,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11223,6 +14224,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11253,6 +14258,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11283,6 +14292,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11313,6 +14326,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11343,6 +14360,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11373,6 +14394,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11403,6 +14428,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11433,6 +14462,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11463,6 +14496,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11493,6 +14530,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11523,6 +14564,10 @@
     },
     {
       "key": "j",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11553,6 +14598,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11583,6 +14632,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11613,6 +14666,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11643,6 +14700,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11673,6 +14734,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11703,6 +14768,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11733,6 +14802,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11763,6 +14836,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11793,6 +14870,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11823,6 +14904,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11853,6 +14938,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11883,6 +14972,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11913,6 +15006,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11943,6 +15040,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -11973,6 +15074,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12003,6 +15108,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12033,6 +15142,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12063,6 +15176,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12093,6 +15210,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12123,6 +15244,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12153,6 +15278,10 @@
     },
     {
       "key": "b",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12183,6 +15312,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12213,6 +15346,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12243,6 +15380,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12273,6 +15414,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12303,6 +15448,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12333,6 +15482,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12363,6 +15516,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12393,6 +15550,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12423,6 +15584,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12453,6 +15618,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12483,6 +15652,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12513,6 +15686,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12543,6 +15720,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12573,6 +15754,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12603,6 +15788,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12633,6 +15822,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12663,6 +15856,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12693,6 +15890,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12723,6 +15924,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12753,6 +15958,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12783,6 +15992,10 @@
     },
     {
       "key": "l",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12813,6 +16026,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12843,6 +16060,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12873,6 +16094,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12903,6 +16128,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12933,6 +16162,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12963,6 +16196,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -12993,6 +16230,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13023,6 +16264,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13053,6 +16298,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13083,6 +16332,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13113,6 +16366,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13143,6 +16400,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13173,6 +16434,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13203,6 +16468,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13233,6 +16502,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13263,6 +16536,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13293,6 +16570,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13323,6 +16604,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13353,6 +16638,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13383,6 +16672,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13413,6 +16706,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13443,6 +16740,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13473,6 +16774,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13503,6 +16808,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13533,6 +16842,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13563,6 +16876,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13593,6 +16910,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13623,6 +16944,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13653,6 +16978,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13683,6 +17012,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13713,6 +17046,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13743,6 +17080,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13773,6 +17114,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13803,6 +17148,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13833,6 +17182,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13863,6 +17216,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13893,6 +17250,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13923,6 +17284,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13953,6 +17318,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -13983,6 +17352,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14013,6 +17386,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14043,6 +17420,10 @@
     },
     {
       "key": "u",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14073,6 +17454,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14103,6 +17488,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14133,6 +17522,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14163,6 +17556,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14193,6 +17590,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14223,6 +17624,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14253,6 +17658,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14283,6 +17692,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14313,6 +17726,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14343,6 +17760,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14373,6 +17794,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14403,6 +17828,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14433,6 +17862,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14463,6 +17896,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14493,6 +17930,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14523,6 +17964,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14553,6 +17998,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14583,6 +18032,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14613,6 +18066,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14643,6 +18100,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14673,6 +18134,10 @@
     },
     {
       "key": "k",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14703,6 +18168,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14733,6 +18202,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14763,6 +18236,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14793,6 +18270,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14823,6 +18304,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14853,6 +18338,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14883,6 +18372,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14913,6 +18406,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14943,6 +18440,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -14973,6 +18474,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -15003,6 +18508,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -15033,6 +18542,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -15063,6 +18576,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -15093,6 +18610,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",
@@ -15123,6 +18644,10 @@
     },
     {
       "key": "h",
+      "cursor": [
+        39,
+        1
+      ],
       "rng": [],
       "screen": [
         "You almost hit the leprechaun.--More--",

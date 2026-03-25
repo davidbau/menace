@@ -3,7 +3,413 @@
   "steps": [
     {
       "key": "j",
-      "rng": [15582,926,31412,4949,16947,29207,3444,17320,5466,12701,8586,30682,7037,18985,4693,6714,8193,12597,205,16799,23923,32318,29773,20552,10545,27387,15393,9332,11736,7002,24020,14016,24689,26943,7222,16963,7258,12284,25391,21098,4598,21390,9287,21141,29716,32669,28657,31598,4128,23090,22427,14861,15628,9782,25718,27854,19708,4526,12037,4589,28084,15582,926,31412,4949,16947,29207,3444,17320,5466,12701,8586,30682,7037,18985,4693,6714,8193,12597,205,16799,23923,32318,29773,20552,10545,27387,15393,9332,11736,7002,24020,14016,24689,26943,7222,16963,7258,12284,25391,21098,4598,21390,9287,21141,29716,32669,28657,31598,4128,23090,22427,14861,15628,9782,25718,27854,19708,4526,12037,4589,28084,11192,25447,17382,9154,15941,15973,8078,19562,1940,20283,28657,21078,3954,2599,15339,250,5171,30642,"^mklev_rooms",4485,8905,19310,"^mklev_dn[x=49,y=3]",3265,11029,22041,"^mklev_up[x=68,y=7]","^mklev_up",29308,30555,18964,17622,27311,27704,25533,10986,23891,16653,31595,22376,9062,24473,18096,5243,27926,23919,30516,8721,25855,17538,18004,12103,19233,22642,7798,32403,17315,"^mon_pos[tier=0,idx=0,mx=4,my=15]",25753,32302,8371,21833,24276,28946,29273,21430,27409,14941,18579,12643,2973,3398,30716,30043,2603,28446,8869,20668,26019,7980,30913,4078,20657,8264,22546,25504,3336,16442,30231,15751,12154,14544,242,15574,6329,18113,25371,26236,12010,21061,5575,9504,9199,1392,11798,19677,21617,27730,4351,7869,2992,31440,31227,2039,14346,5185,16500,6376,"^mklev_populate","^rooms[0:3-7,4-8|1:3-5,13-16|2:14-19,5-8|3:28-36,11-14|4:29-38,4-7|5:43-54,3-8|6:51-55,12-14|7:67-70,4-10]",23629,28872,"^mkpos[x=4,y=9,dx=0,dy=1,tx=3,ty=12]",2028,"^makecor[stop,nx=4,ny=12,crm=1,x=4,y=11,dx=-1,dy=0]",28627,"^newloc[seq,ci=1,ti=2]",18876,31860,"^mkpos[x=6,y=13,dx=1,dy=0,tx=13,ty=5]",18158,"^makecor[stop,nx=13,ny=6,crm=1,x=12,y=6,dx=0,dy=-1]",4953,"^newloc[seq,ci=2,ti=3]",28387,3096,"^mkpos[x=20,y=6,dx=1,dy=0,tx=27,ty=11]",20661,"^makecor[stop,nx=27,ny=10,crm=1,x=26,y=10,dx=0,dy=1]",30902,"^newloc[seq,ci=3,ti=4]",18203,1003,"^mkpos[x=31,y=10,dx=0,dy=-1,tx=33,ty=8]",19869,12737,"^newloc[seq,ci=4,ti=5]",14043,19424,"^mkpos[x=39,y=4,dx=1,dy=0,tx=42,ty=7]",20045,"^makecor[stop,nx=42,ny=6,crm=1,x=41,y=6,dx=0,dy=1]",32418,"^newloc[seq,ci=5,ti=6]",24773,11716,"^mkpos[x=44,y=9,dx=0,dy=1,tx=51,ty=11]",26018,16208,"^newloc[seq,ci=6,ti=7]",16236,31001,"^mkpos[x=56,y=12,dx=1,dy=0,tx=66,ty=9]",30042,"^makecor[stop,nx=66,ny=10,crm=1,x=65,y=10,dx=0,dy=-1]",210,4071,2228,6533,8753,"^newloc[pick,nxcor=1,limit=11,a=4,b=5]",22807,1560,"^mkpos[x=39,y=5,dx=1,dy=0,tx=42,ty=3]",24236,19775,7095,1681,11966,"^newloc[pick,nxcor=2,limit=8,a=1,b=6]",16139,30504,"^mkpos[x=6,y=15,dx=1,dy=0,tx=50,ty=12]",24080,8382,7199,20218,17354,5935,19584,15674,9359,22843,7011,23934,16106,4773,5807,15537,25854,26228,27191,31135,27,93,"^makecor[redir,nx=27,ny=15,crm=1,x=26,y=15,dx=0,dy=-1]",12979,25152,"^makecor[redir,nx=27,ny=14,crm=1,x=26,y=14,dx=0,dy=-1]",12835,20717,"^makecor[redir,nx=27,ny=13,crm=1,x=26,y=13,dx=0,dy=-1]",1155,"^makecor[dead_end,nx=26,ny=12]",6596,12447,24699,"^newloc[pick,nxcor=3,limit=8,a=7,b=3]",8740,4962,"^mkpos[x=66,y=8,dx=-1,dy=0,tx=37,ty=11]",13728,25808,7790,28129,8791,1426,26259,31715,12148,31605,"^makecor[dead_end,nx=56,ny=8]",28632,1268,18239,"^newloc[pick,nxcor=4,limit=4,a=4,b=7]",30242,1297,"^mkpos[x=39,y=6,dx=1,dy=0,tx=66,ty=5]",2902,25975,29923,"^newloc[pick,nxcor=5,limit=10,a=7,b=3]",28637,8842,"^mkpos[x=66,y=9,dx=-1,dy=0,tx=37,ty=12]",6382,32275,31142,"^newloc[pick,nxcor=6,limit=10,a=3,b=6]",8862,736,"^mkpos[x=37,y=11,dx=1,dy=0,tx=50,ty=12]",24903,87,17466,28695,28732,6876,29032,26561,23168,2395,22310,19469,6113,27956,"^makecor[stop,nx=50,ny=11,crm=1,x=49,y=11,dx=0,dy=1]",941,26759,3478,1209,"^newloc[sentinel,nxcor=6,limit=5]","^mklev_corridors",7552,"^turn[moves=0]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",2617],
+      "cursor": [
+        68,
+        9
+      ],
+      "rng": [
+        15582,
+        926,
+        31412,
+        4949,
+        16947,
+        29207,
+        3444,
+        17320,
+        5466,
+        12701,
+        8586,
+        30682,
+        7037,
+        18985,
+        4693,
+        6714,
+        8193,
+        12597,
+        205,
+        16799,
+        23923,
+        32318,
+        29773,
+        20552,
+        10545,
+        27387,
+        15393,
+        9332,
+        11736,
+        7002,
+        24020,
+        14016,
+        24689,
+        26943,
+        7222,
+        16963,
+        7258,
+        12284,
+        25391,
+        21098,
+        4598,
+        21390,
+        9287,
+        21141,
+        29716,
+        32669,
+        28657,
+        31598,
+        4128,
+        23090,
+        22427,
+        14861,
+        15628,
+        9782,
+        25718,
+        27854,
+        19708,
+        4526,
+        12037,
+        4589,
+        28084,
+        15582,
+        926,
+        31412,
+        4949,
+        16947,
+        29207,
+        3444,
+        17320,
+        5466,
+        12701,
+        8586,
+        30682,
+        7037,
+        18985,
+        4693,
+        6714,
+        8193,
+        12597,
+        205,
+        16799,
+        23923,
+        32318,
+        29773,
+        20552,
+        10545,
+        27387,
+        15393,
+        9332,
+        11736,
+        7002,
+        24020,
+        14016,
+        24689,
+        26943,
+        7222,
+        16963,
+        7258,
+        12284,
+        25391,
+        21098,
+        4598,
+        21390,
+        9287,
+        21141,
+        29716,
+        32669,
+        28657,
+        31598,
+        4128,
+        23090,
+        22427,
+        14861,
+        15628,
+        9782,
+        25718,
+        27854,
+        19708,
+        4526,
+        12037,
+        4589,
+        28084,
+        11192,
+        25447,
+        17382,
+        9154,
+        15941,
+        15973,
+        8078,
+        19562,
+        1940,
+        20283,
+        28657,
+        21078,
+        3954,
+        2599,
+        15339,
+        250,
+        5171,
+        30642,
+        "^mklev_rooms",
+        4485,
+        8905,
+        19310,
+        "^mklev_dn[x=49,y=3]",
+        3265,
+        11029,
+        22041,
+        "^mklev_up[x=68,y=7]",
+        "^mklev_up",
+        29308,
+        30555,
+        18964,
+        17622,
+        27311,
+        27704,
+        25533,
+        10986,
+        23891,
+        16653,
+        31595,
+        22376,
+        9062,
+        24473,
+        18096,
+        5243,
+        27926,
+        23919,
+        30516,
+        8721,
+        25855,
+        17538,
+        18004,
+        12103,
+        19233,
+        22642,
+        7798,
+        32403,
+        17315,
+        "^mon_pos[tier=0,idx=0,mx=4,my=15]",
+        25753,
+        32302,
+        8371,
+        21833,
+        24276,
+        28946,
+        29273,
+        21430,
+        27409,
+        14941,
+        18579,
+        12643,
+        2973,
+        3398,
+        30716,
+        30043,
+        2603,
+        28446,
+        8869,
+        20668,
+        26019,
+        7980,
+        30913,
+        4078,
+        20657,
+        8264,
+        22546,
+        25504,
+        3336,
+        16442,
+        30231,
+        15751,
+        12154,
+        14544,
+        242,
+        15574,
+        6329,
+        18113,
+        25371,
+        26236,
+        12010,
+        21061,
+        5575,
+        9504,
+        9199,
+        1392,
+        11798,
+        19677,
+        21617,
+        27730,
+        4351,
+        7869,
+        2992,
+        31440,
+        31227,
+        2039,
+        14346,
+        5185,
+        16500,
+        6376,
+        "^mklev_populate",
+        "^rooms[0:3-7,4-8|1:3-5,13-16|2:14-19,5-8|3:28-36,11-14|4:29-38,4-7|5:43-54,3-8|6:51-55,12-14|7:67-70,4-10]",
+        23629,
+        28872,
+        "^mkpos[x=4,y=9,dx=0,dy=1,tx=3,ty=12]",
+        2028,
+        "^makecor[stop,nx=4,ny=12,crm=1,x=4,y=11,dx=-1,dy=0]",
+        28627,
+        "^newloc[seq,ci=1,ti=2]",
+        18876,
+        31860,
+        "^mkpos[x=6,y=13,dx=1,dy=0,tx=13,ty=5]",
+        18158,
+        "^makecor[stop,nx=13,ny=6,crm=1,x=12,y=6,dx=0,dy=-1]",
+        4953,
+        "^newloc[seq,ci=2,ti=3]",
+        28387,
+        3096,
+        "^mkpos[x=20,y=6,dx=1,dy=0,tx=27,ty=11]",
+        20661,
+        "^makecor[stop,nx=27,ny=10,crm=1,x=26,y=10,dx=0,dy=1]",
+        30902,
+        "^newloc[seq,ci=3,ti=4]",
+        18203,
+        1003,
+        "^mkpos[x=31,y=10,dx=0,dy=-1,tx=33,ty=8]",
+        19869,
+        12737,
+        "^newloc[seq,ci=4,ti=5]",
+        14043,
+        19424,
+        "^mkpos[x=39,y=4,dx=1,dy=0,tx=42,ty=7]",
+        20045,
+        "^makecor[stop,nx=42,ny=6,crm=1,x=41,y=6,dx=0,dy=1]",
+        32418,
+        "^newloc[seq,ci=5,ti=6]",
+        24773,
+        11716,
+        "^mkpos[x=44,y=9,dx=0,dy=1,tx=51,ty=11]",
+        26018,
+        16208,
+        "^newloc[seq,ci=6,ti=7]",
+        16236,
+        31001,
+        "^mkpos[x=56,y=12,dx=1,dy=0,tx=66,ty=9]",
+        30042,
+        "^makecor[stop,nx=66,ny=10,crm=1,x=65,y=10,dx=0,dy=-1]",
+        210,
+        4071,
+        2228,
+        6533,
+        8753,
+        "^newloc[pick,nxcor=1,limit=11,a=4,b=5]",
+        22807,
+        1560,
+        "^mkpos[x=39,y=5,dx=1,dy=0,tx=42,ty=3]",
+        24236,
+        19775,
+        7095,
+        1681,
+        11966,
+        "^newloc[pick,nxcor=2,limit=8,a=1,b=6]",
+        16139,
+        30504,
+        "^mkpos[x=6,y=15,dx=1,dy=0,tx=50,ty=12]",
+        24080,
+        8382,
+        7199,
+        20218,
+        17354,
+        5935,
+        19584,
+        15674,
+        9359,
+        22843,
+        7011,
+        23934,
+        16106,
+        4773,
+        5807,
+        15537,
+        25854,
+        26228,
+        27191,
+        31135,
+        27,
+        93,
+        "^makecor[redir,nx=27,ny=15,crm=1,x=26,y=15,dx=0,dy=-1]",
+        12979,
+        25152,
+        "^makecor[redir,nx=27,ny=14,crm=1,x=26,y=14,dx=0,dy=-1]",
+        12835,
+        20717,
+        "^makecor[redir,nx=27,ny=13,crm=1,x=26,y=13,dx=0,dy=-1]",
+        1155,
+        "^makecor[dead_end,nx=26,ny=12]",
+        6596,
+        12447,
+        24699,
+        "^newloc[pick,nxcor=3,limit=8,a=7,b=3]",
+        8740,
+        4962,
+        "^mkpos[x=66,y=8,dx=-1,dy=0,tx=37,ty=11]",
+        13728,
+        25808,
+        7790,
+        28129,
+        8791,
+        1426,
+        26259,
+        31715,
+        12148,
+        31605,
+        "^makecor[dead_end,nx=56,ny=8]",
+        28632,
+        1268,
+        18239,
+        "^newloc[pick,nxcor=4,limit=4,a=4,b=7]",
+        30242,
+        1297,
+        "^mkpos[x=39,y=6,dx=1,dy=0,tx=66,ty=5]",
+        2902,
+        25975,
+        29923,
+        "^newloc[pick,nxcor=5,limit=10,a=7,b=3]",
+        28637,
+        8842,
+        "^mkpos[x=66,y=9,dx=-1,dy=0,tx=37,ty=12]",
+        6382,
+        32275,
+        31142,
+        "^newloc[pick,nxcor=6,limit=10,a=3,b=6]",
+        8862,
+        736,
+        "^mkpos[x=37,y=11,dx=1,dy=0,tx=50,ty=12]",
+        24903,
+        87,
+        17466,
+        28695,
+        28732,
+        6876,
+        29032,
+        26561,
+        23168,
+        2395,
+        22310,
+        19469,
+        6113,
+        27956,
+        "^makecor[stop,nx=50,ny=11,crm=1,x=49,y=11,dx=0,dy=1]",
+        941,
+        26759,
+        3478,
+        1209,
+        "^newloc[sentinel,nxcor=6,limit=5]",
+        "^mklev_corridors",
+        7552,
+        "^turn[moves=0]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        2617
+      ],
       "screen": [
         "",
         "",
@@ -33,7 +439,16 @@
     },
     {
       "key": "b",
-      "rng": ["^turn[moves=1]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",23086],
+      "cursor": [
+        68,
+        10
+      ],
+      "rng": [
+        "^turn[moves=1]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        23086
+      ],
       "screen": [
         "",
         "",
@@ -63,7 +478,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=2]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",26285],
+      "cursor": [
+        67,
+        11
+      ],
+      "rng": [
+        "^turn[moves=2]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        26285
+      ],
       "screen": [
         "",
         "",
@@ -93,7 +517,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=3]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",32563],
+      "cursor": [
+        66,
+        11
+      ],
+      "rng": [
+        "^turn[moves=3]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        32563
+      ],
       "screen": [
         "",
         "",
@@ -123,7 +556,16 @@
     },
     {
       "key": "j",
-      "rng": ["^turn[moves=4]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",32125],
+      "cursor": [
+        65,
+        11
+      ],
+      "rng": [
+        "^turn[moves=4]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        32125
+      ],
       "screen": [
         "",
         "",
@@ -153,7 +595,16 @@
     },
     {
       "key": "b",
-      "rng": ["^turn[moves=5]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",29756],
+      "cursor": [
+        65,
+        12
+      ],
+      "rng": [
+        "^turn[moves=5]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        29756
+      ],
       "screen": [
         "",
         "",
@@ -183,7 +634,16 @@
     },
     {
       "key": "b",
-      "rng": ["^turn[moves=6]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",31102],
+      "cursor": [
+        64,
+        13
+      ],
+      "rng": [
+        "^turn[moves=6]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        31102
+      ],
       "screen": [
         "",
         "",
@@ -213,7 +673,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=7]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",17408],
+      "cursor": [
+        63,
+        14
+      ],
+      "rng": [
+        "^turn[moves=7]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        17408
+      ],
       "screen": [
         "",
         "",
@@ -243,7 +712,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=8]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",3491],
+      "cursor": [
+        62,
+        14
+      ],
+      "rng": [
+        "^turn[moves=8]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        3491
+      ],
       "screen": [
         "",
         "",
@@ -273,7 +751,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=9]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",1984],
+      "cursor": [
+        61,
+        14
+      ],
+      "rng": [
+        "^turn[moves=9]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        1984
+      ],
       "screen": [
         "",
         "",
@@ -303,7 +790,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=10]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",8770],
+      "cursor": [
+        60,
+        14
+      ],
+      "rng": [
+        "^turn[moves=10]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        8770
+      ],
       "screen": [
         "",
         "",
@@ -333,7 +829,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=11]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",4363],
+      "cursor": [
+        59,
+        14
+      ],
+      "rng": [
+        "^turn[moves=11]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        4363
+      ],
       "screen": [
         "",
         "",
@@ -363,7 +868,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=12]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",25160],
+      "cursor": [
+        58,
+        14
+      ],
+      "rng": [
+        "^turn[moves=12]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        25160
+      ],
       "screen": [
         "",
         "",
@@ -393,7 +907,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=13]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",15956],
+      "cursor": [
+        57,
+        14
+      ],
+      "rng": [
+        "^turn[moves=13]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        15956
+      ],
       "screen": [
         "",
         "",
@@ -423,7 +946,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=14]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",26483],
+      "cursor": [
+        56,
+        14
+      ],
+      "rng": [
+        "^turn[moves=14]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        26483
+      ],
       "screen": [
         "",
         "",
@@ -453,7 +985,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=15]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",10097],
+      "cursor": [
+        55,
+        14
+      ],
+      "rng": [
+        "^turn[moves=15]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        10097
+      ],
       "screen": [
         "",
         "",
@@ -483,7 +1024,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=16]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",22129],
+      "cursor": [
+        54,
+        14
+      ],
+      "rng": [
+        "^turn[moves=16]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        22129
+      ],
       "screen": [
         "",
         "",
@@ -513,7 +1063,16 @@
     },
     {
       "key": "h",
-      "rng": ["^turn[moves=17]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",24091],
+      "cursor": [
+        53,
+        14
+      ],
+      "rng": [
+        "^turn[moves=17]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        24091
+      ],
       "screen": [
         "",
         "",
@@ -543,7 +1102,16 @@
     },
     {
       "key": "T",
-      "rng": ["^turn[moves=18]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",875],
+      "cursor": [
+        52,
+        14
+      ],
+      "rng": [
+        "^turn[moves=18]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        875
+      ],
       "screen": [
         "d - a ruby ring.",
         "",
@@ -573,7 +1141,28 @@
     },
     {
       "key": " ",
-      "rng": ["^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]","^turn[moves=19]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",2835,"^turn[moves=20]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",9578,"^turn[moves=21]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",27497],
+      "cursor": [
+        50,
+        1
+      ],
+      "rng": [
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        "^turn[moves=19]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        2835,
+        "^turn[moves=20]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        9578,
+        "^turn[moves=21]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        27497
+      ],
       "screen": [
         "You were wearing a suit of +1 ring armor.--More--",
         "",
@@ -603,7 +1192,16 @@
     },
     {
       "key": "W",
-      "rng": ["^turn[moves=22]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",8862],
+      "cursor": [
+        52,
+        14
+      ],
+      "rng": [
+        "^turn[moves=22]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        8862
+      ],
       "screen": [
         "You can move again.",
         "",
@@ -633,6 +1231,10 @@
     },
     {
       "key": "d",
+      "cursor": [
+        24,
+        1
+      ],
       "rng": [],
       "screen": [
         "wear what (* for list)?",
@@ -663,6 +1265,10 @@
     },
     {
       "key": "P",
+      "cursor": [
+        52,
+        14
+      ],
       "rng": [],
       "screen": [
         "You can't wear that.",
@@ -693,6 +1299,10 @@
     },
     {
       "key": "d",
+      "cursor": [
+        24,
+        1
+      ],
       "rng": [],
       "screen": [
         "wear what (* for list)?",
@@ -723,6 +1333,10 @@
     },
     {
       "key": "r",
+      "cursor": [
+        16,
+        1
+      ],
       "rng": [],
       "screen": [
         "Right or Left?",
@@ -753,7 +1367,16 @@
     },
     {
       "key": "R",
-      "rng": ["^turn[moves=23]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",18979],
+      "cursor": [
+        52,
+        14
+      ],
+      "rng": [
+        "^turn[moves=23]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        18979
+      ],
       "screen": [
         "d - a ruby ring  (on right hand).",
         "",
@@ -783,6 +1406,10 @@
     },
     {
       "key": "d",
+      "cursor": [
+        26,
+        1
+      ],
       "rng": [],
       "screen": [
         "remove what (* for list)?",
@@ -813,7 +1440,16 @@
     },
     {
       "key": "Q",
-      "rng": ["^turn[moves=24]","^movemon[n=1]","^dochug[mlet=B,mstat=2,cansee=0]",2401],
+      "cursor": [
+        52,
+        14
+      ],
+      "rng": [
+        "^turn[moves=24]",
+        "^movemon[n=1]",
+        "^dochug[mlet=B,mstat=2,cansee=0]",
+        2401
+      ],
       "screen": [
         "You were wearing a ruby ring.",
         "",
@@ -843,6 +1479,10 @@
     },
     {
       "key": "Q",
+      "cursor": [
+        13,
+        1
+      ],
       "rng": [],
       "screen": [
         "Really quit?",
@@ -873,6 +1513,10 @@
     },
     {
       "key": "y",
+      "cursor": [
+        52,
+        14
+      ],
       "rng": [],
       "screen": [
         "Really quit?",
@@ -903,6 +1547,10 @@
     },
     {
       "key": "y",
+      "cursor": [
+        52,
+        14
+      ],
       "rng": [],
       "screen": [
         "",
