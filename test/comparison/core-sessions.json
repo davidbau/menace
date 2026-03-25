@@ -1,6 +1,7 @@
 {
-  "_comment": "Core session set for fast routine testing (~20s). Selected for maximum bug-detection signal per second of runtime. Run with: node test/comparison/session_test_runner.js --core",
+  "_comment": "Core session set for fast routine testing (~15s). Selected for maximum bug-detection signal per second of runtime. Run with: node test/comparison/session_test_runner.js --core",
   "sessions": [
+    "seed031_manual_direct.session.json",
     "seed1_gameplay.session.json",
     "seed3_gameplay.session.json",
     "seed42_items_gameplay.session.json",

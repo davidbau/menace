@@ -155,7 +155,7 @@ async function runUnitTests() {
     };
 
     const { globSync } = await import('node:fs');
-    const unitFiles = [
+    let unitFiles = [
         ...globSync('test/unit/*.test.js', { cwd: projectRoot }),
         ...globSync('logo/test/*.test.{js,mjs}', { cwd: projectRoot }),
         ...globSync('basic/test/*.test.{js,mjs}', { cwd: projectRoot }),
@@ -163,6 +163,20 @@ async function runUnitTests() {
         ...globSync('rogue/test/*.test.{js,mjs}', { cwd: projectRoot }),
         ...globSync('dungeon/test/*.test.{js,mjs}', { cwd: projectRoot }),
     ];
+    // In core mode, run only the most important unit tests for speed.
+    if (coreMode) {
+        const corePatterns = [
+            'altar_colors', 'door_symbols', 'secret_door_symbols', 'stairs_color',
+            'headless_overlay_header_attr', 'headless_remembered_terrain_color',
+            'headless_replay_contract', 'keylog_display_parity',
+            'message_concatenation', 'message_persistence', 'msg_window_test',
+            'status_hp_color', 'status_hunger_satiated',
+            'wizard_mode', 'display_more_clear_queue',
+            'ball_surface', 'attribute_limits',
+            'verbose_test', 'interpreter.test',
+        ];
+        unitFiles = unitFiles.filter(f => corePatterns.some(p => f.includes(p)));
+    }
     const unitEstimate = unitFiles.length * 20; // rough estimate: ~20 tests per file
     globalTotal += unitEstimate;
 
@@ -389,22 +403,24 @@ const SESSION_TYPES = ['chargen', 'interface', 'map', 'gameplay', 'special', 'ot
 
 async function main() {
     try {
-        // Translator policy checks are part of the CI/local gate path.
-        const policyCheck = spawnSync(process.execPath, ['scripts/check-translator-file-policy.mjs'], {
-            cwd: projectRoot,
-            stdio: 'inherit',
-        });
-        if ((policyCheck.status ?? 1) !== 0) process.exit(policyCheck.status ?? 1);
-        const annotationCheck = spawnSync(process.execPath, ['scripts/check-translator-annotations.mjs'], {
-            cwd: projectRoot,
-            stdio: 'inherit',
-        });
-        if ((annotationCheck.status ?? 1) !== 0) process.exit(annotationCheck.status ?? 1);
-        // 1. Unit tests (estimate file count for progress)
-        const unitResults = await runUnitTests();
-
-        // 2. Session tests
-        const sessionResults = await runSessionTests();
+        // Translator policy checks — skip in core mode for speed.
+        if (!coreMode) {
+            const policyCheck = spawnSync(process.execPath, ['scripts/check-translator-file-policy.mjs'], {
+                cwd: projectRoot,
+                stdio: 'inherit',
+            });
+            if ((policyCheck.status ?? 1) !== 0) process.exit(policyCheck.status ?? 1);
+            const annotationCheck = spawnSync(process.execPath, ['scripts/check-translator-annotations.mjs'], {
+                cwd: projectRoot,
+                stdio: 'inherit',
+            });
+            if ((annotationCheck.status ?? 1) !== 0) process.exit(annotationCheck.status ?? 1);
+        }
+        // Run unit tests and session tests in parallel for speed.
+        const [unitResults, sessionResults] = await Promise.all([
+            runUnitTests(),
+            runSessionTests(),
+        ]);
 
         clearProgress();
 

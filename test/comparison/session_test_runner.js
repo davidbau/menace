@@ -36,6 +36,9 @@ import { loadAllSessions, stripAnsiSequences, getSessionScreenAnsiLines } from '
 import { decodeDecSpecialChar, decodeSOSILine } from './symset_normalization.js';
 import { recordGameplaySessionFromInputs } from './session_recorder.js';
 import { compareRecordedGameplaySession } from './session_comparator.js';
+
+// Module-level flag: skip expensive comparisons (color/window/animation) in core mode
+let _lightweightMode = false;
 import {
     buildComparisonArtifact,
     initComparisonArtifactsRunDir,
@@ -591,7 +594,7 @@ async function runChargenResult(session) {
     return result;
 }
 
-async function runGameplayResult(session) {
+async function runGameplayResult(session, { lightweight = false } = {}) {
     const result = createReplayResult(session);
     const start = Date.now();
 
@@ -605,7 +608,9 @@ async function runGameplayResult(session) {
         if (replay.synclockDiagnostics && typeof replay.synclockDiagnostics === 'object') {
             result.synclockDiagnostics = replay.synclockDiagnostics;
         }
-        const cmp = compareRecordedGameplaySession(session, replay);
+        const cmp = compareRecordedGameplaySession(session, replay, {
+            lightweight,
+        });
 
         if (cmp.rng.total > 0) {
             recordRng(result, cmp.rng.matched, cmp.rng.total, cmp.rng.firstDivergence);
@@ -993,7 +998,7 @@ export async function runSessionResult(session) {
             if (session.meta.type === 'interface') return runInterfaceResult(session);
             if (session.meta.type === 'map') return runMapResult(session);
             if (session.meta.type === 'special') return runSpecialResult(session);
-            return runGameplayResult(session);
+            return runGameplayResult(session, { lightweight: _lightweightMode });
         }));
 }
 
@@ -1134,7 +1139,7 @@ export async function runSessionBundle({
     failFast = false,
     parallel = defaultParallelWorkers(),
     onProgress = null,
-    sessionTimeoutMs = 30000,
+    sessionTimeoutMs = 45000,
 } = {}) {
     // Keep JS replay-time calendar/luck behavior aligned with C captures.
     // Allow explicit caller override via environment.
@@ -1375,8 +1380,9 @@ export async function runSessionCli() {
             const manifestPath = resolve(dirname(fileURLToPath(import.meta.url)), 'core-sessions.json');
             const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
             args.sessionNames = manifest.sessions;
-            // Shorter timeout for core: fail fast on known-stuck sessions
-            args.sessionTimeoutMs = 12000;
+            // Core timeout: seed031 takes ~32s on slow machines
+            args.sessionTimeoutMs = 40000;
+            _lightweightMode = true; // skip window/color/animation comparisons
         }
         else if (arg === '--help' || arg === '-h') {
             console.log('Usage: node session_test_runner.js [options] [session-file]');

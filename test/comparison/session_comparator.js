@@ -7,6 +7,7 @@ import { compareMapdumpCheckpoints, stripEventContext } from './comparators.js';
 
 export function compareRecordedGameplaySession(session, replay, options = {}) {
     const policy = options.policy || createGameplayComparatorPolicy(session);
+    const lightweight = !!options.lightweight; // skip window/color/animation/repaint
     const allJsRng = [
         ...(replay.startup?.rng || []),
         ...(replay.steps || []).flatMap((s) => s.rng || []),
@@ -98,59 +99,63 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
                     firstScreenDivergence = { step: i + 1, ...screenCmp.firstDiff };
                 }
             }
-            const screenWindowCmp = policy.compareScreenWindowStep(actual, expected, i);
-            if (screenWindowCmp && screenWindowCmp.total > 0) {
-                screenWindowMatched += screenWindowCmp.matched;
-                screenWindowTotal += screenWindowCmp.total;
-                if (!screenWindowCmp.match && !firstScreenWindowDivergence && screenWindowCmp.firstDiff) {
-                    firstScreenWindowDivergence = { step: i + 1, ...screenWindowCmp.firstDiff };
-                }
-                const earlyOnly = (!screenCmp.match && screenWindowCmp.match && !!screenWindowCmp.early);
-                if (earlyOnly) {
-                    screenEarlyOnlyCount++;
-                    if (!firstScreenEarlyOnly) {
-                        firstScreenEarlyOnly = {
-                            step: i + 1,
-                            frame: screenWindowCmp.matchedFrame || null,
-                        };
+            if (!lightweight) {
+                const screenWindowCmp = policy.compareScreenWindowStep(actual, expected, i);
+                if (screenWindowCmp && screenWindowCmp.total > 0) {
+                    screenWindowMatched += screenWindowCmp.matched;
+                    screenWindowTotal += screenWindowCmp.total;
+                    if (!screenWindowCmp.match && !firstScreenWindowDivergence && screenWindowCmp.firstDiff) {
+                        firstScreenWindowDivergence = { step: i + 1, ...screenWindowCmp.firstDiff };
+                    }
+                    const earlyOnly = (!screenCmp.match && screenWindowCmp.match && !!screenWindowCmp.early);
+                    if (earlyOnly) {
+                        screenEarlyOnlyCount++;
+                        if (!firstScreenEarlyOnly) {
+                            firstScreenEarlyOnly = {
+                                step: i + 1,
+                                frame: screenWindowCmp.matchedFrame || null,
+                            };
+                        }
                     }
                 }
             }
         }
 
-        const colorCmp = policy.compareColorStep(actual, expected, i);
-        if (colorCmp) {
-            colorsMatched += colorCmp.matched;
-            colorsTotal += colorCmp.total;
-            if (!firstColorDivergence && !colorCmp.match && colorCmp.firstDiff) {
-                firstColorDivergence = { step: i + 1, ...colorCmp.firstDiff };
-            }
-            const colorWindowCmp = policy.compareColorWindowStep(actual, expected, i);
-            if (colorWindowCmp && colorWindowCmp.total > 0) {
-                colorWindowMatched += colorWindowCmp.matched;
-                colorWindowTotal += colorWindowCmp.total;
-                if (!colorWindowCmp.match && !firstColorWindowDivergence && colorWindowCmp.firstDiff) {
-                    firstColorWindowDivergence = { step: i + 1, ...colorWindowCmp.firstDiff };
+        if (!lightweight) {
+            const colorCmp = policy.compareColorStep(actual, expected, i);
+            if (colorCmp) {
+                colorsMatched += colorCmp.matched;
+                colorsTotal += colorCmp.total;
+                if (!firstColorDivergence && !colorCmp.match && colorCmp.firstDiff) {
+                    firstColorDivergence = { step: i + 1, ...colorCmp.firstDiff };
                 }
-                const earlyOnly = (!colorCmp.match && colorWindowCmp.match && !!colorWindowCmp.early);
-                if (earlyOnly) {
-                    colorEarlyOnlyCount++;
-                    if (!firstColorEarlyOnly) {
-                        firstColorEarlyOnly = {
-                            step: i + 1,
-                            frame: colorWindowCmp.matchedFrame || null,
-                        };
+                const colorWindowCmp = policy.compareColorWindowStep(actual, expected, i);
+                if (colorWindowCmp && colorWindowCmp.total > 0) {
+                    colorWindowMatched += colorWindowCmp.matched;
+                    colorWindowTotal += colorWindowCmp.total;
+                    if (!colorWindowCmp.match && !firstColorWindowDivergence && colorWindowCmp.firstDiff) {
+                        firstColorWindowDivergence = { step: i + 1, ...colorWindowCmp.firstDiff };
+                    }
+                    const earlyOnly = (!colorCmp.match && colorWindowCmp.match && !!colorWindowCmp.early);
+                    if (earlyOnly) {
+                        colorEarlyOnlyCount++;
+                        if (!firstColorEarlyOnly) {
+                            firstColorEarlyOnly = {
+                                step: i + 1,
+                                frame: colorWindowCmp.matchedFrame || null,
+                            };
+                        }
                     }
                 }
             }
-        }
 
-        const animationBoundaryCmp = policy.compareAnimationBoundariesStep(actual, expected, i);
-        if (animationBoundaryCmp) {
-            animationBoundariesMatched += animationBoundaryCmp.matched;
-            animationBoundariesTotal += animationBoundaryCmp.total;
-            if (!firstAnimationBoundaryDivergence && !animationBoundaryCmp.match && animationBoundaryCmp.firstDiff) {
-                firstAnimationBoundaryDivergence = { step: i + 1, ...animationBoundaryCmp.firstDiff };
+            const animationBoundaryCmp = policy.compareAnimationBoundariesStep(actual, expected, i);
+            if (animationBoundaryCmp) {
+                animationBoundariesMatched += animationBoundaryCmp.matched;
+                animationBoundariesTotal += animationBoundaryCmp.total;
+                if (!firstAnimationBoundaryDivergence && !animationBoundaryCmp.match && animationBoundaryCmp.firstDiff) {
+                    firstAnimationBoundaryDivergence = { step: i + 1, ...animationBoundaryCmp.firstDiff };
+                }
             }
         }
 

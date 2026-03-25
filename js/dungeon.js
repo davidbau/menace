@@ -735,6 +735,15 @@ export function setGameSeed(seed) {
     _gameUbirthday = resolveUbirthday(seed);
 }
 
+// C's u_init_misc() sets ubirthday = time() (real clock), NOT getnow().
+// During replay, session metadata may carry the recording-time timestamp
+// so shopkeeper names match C's actual output.
+export function setGameUbirthday(timestamp) {
+    if (Number.isFinite(timestamp) && timestamp > 0) {
+        _gameUbirthday = timestamp;
+    }
+}
+
 function getLedgerNoForLevel(dnum, dlevel) {
     const cdnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
     const clev = Number.isInteger(dlevel) && dlevel > 0 ? dlevel : 1;
@@ -882,6 +891,20 @@ export function Is_stronghold(lev) {
     const special = getSpecialLevelMeta(mapped.dnum, mapped.dlevel);
     const name = Array.isArray(special?.name) ? special.name[0] : special?.name;
     return String(name || '').toLowerCase() === 'castle';
+}
+
+// C ref: depth(&stronghold_level) — the depth of the Castle level.
+// Used by moveloop_core to decide random monster spawn rate.
+export function strongholdDepth(game) {
+    // The stronghold is the Castle: the DofD level where Gehennom branches off.
+    for (const br of _branchTopology) {
+        if (br?.end1?.dnum === DUNGEONS_OF_DOOM
+            && br?.end2?.dnum === GEHENNOM
+            && Number.isInteger(br?.end1?.dlevel)) {
+            return depth({ dnum: DUNGEONS_OF_DOOM, dlevel: br.end1.dlevel });
+        }
+    }
+    return 27; // fallback: typical Castle depth
 }
 
 export function Is_earthlevel(lev) {

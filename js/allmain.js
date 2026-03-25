@@ -45,7 +45,7 @@ import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vi
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
-import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty } from './dungeon.js';
+import { mklev, setGameSeed, setGameUbirthday, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty, strongholdDepth } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto, maybe_lvltport_feedback } from './do.js';
 import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          loadFlags, saveFlags, deserializeRng,
@@ -351,12 +351,12 @@ export async function moveloop_turnend(game) {
     // C ref: allmain.c:226-227 — reallocate movement to monsters via mcalcmove
     await allocateMonsterMovement((game.map || game.map));
 
-    // C ref: allmain.c:235-242 — occasional random monster spawn.
+    // C ref: allmain.c:232-236 — occasional random monster spawn.
     // Rate depends on demigod state and depth relative to stronghold.
     // Spawn happens after movement allocation, so a new monster loses first turn.
-    const playerDepth = Number(player?.dungeonLevel || 0);
+    // C uses depth(&u.uz) > depth(&stronghold_level); stronghold is the Castle.
     const spawnRate = player?.uevent?.udemigod ? 25
-        : (playerDepth > 27 ? 50 : 70);
+        : (dungeonDepth(player?.uz) > strongholdDepth(game) ? 50 : 70);
     if (!rn2(spawnRate)) {
         await makemon_appear(
             null,
@@ -599,7 +599,8 @@ function u_calc_moveamt(player) {
     } else if (wtcap === EXT_ENCUMBER) {
         moveamt -= Math.floor((moveamt * 7) / 8);
     }
-    player.umovement = Math.max(0, (player.umovement || 0) + moveamt);
+    // C ref: u.umovement += moveamt — no floor clamp; value can be negative.
+    player.umovement = (player.umovement || 0) + moveamt;
     // C ref: event_log for hero movement amount — matches C ^moveamt event.
     // Do NOT call inv_weight() here — in C it has side effects (sets gw.wc).
     pushRngLogEntry(`^moveamt[wtcap=${wtcap} moveamt=${moveamt} umovement=${player.umovement} pos=${player.x},${player.y}]`);
@@ -1780,6 +1781,12 @@ export class NetHackGame {
         this.seed = seed;
         initRng(seed);
         setGameSeed(seed);
+
+        // C's u_init_misc() sets ubirthday = time() (real clock), NOT getnow().
+        // If the session recorded C's game_start_time, use it for shopkeeper naming.
+        if (Number.isFinite(urlOpts.gameStartTime) && urlOpts.gameStartTime > 0) {
+            setGameUbirthday(urlOpts.gameStartTime);
+        }
 
         const sessionDatetime = (typeof urlOpts.datetime === 'string' && urlOpts.datetime.length === 14)
             ? urlOpts.datetime
