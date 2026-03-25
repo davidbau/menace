@@ -3,7 +3,8 @@ __pycache__/
 nethack-c/patched/
 nethack-c/install/
 .beads/
-.claude/
+.claude/*
+!.claude/skills
 *.pyc
 test/comparison/c-harness/results/
 test/comparison/isaac64_reference
