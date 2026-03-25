@@ -57,11 +57,13 @@ export class Shell {
         const content = this.fs.cat('/etc/profile');
         if (!content) return;
         if (silent) {
-            // Run profile with output suppressed but env changes apply
-            const savedIo = this.sh.io;
-            this.sh.io = { ...savedIo, println: () => {}, print: () => {} };
+            // Run profile with output suppressed but env changes apply.
+            // Must swap io on both Sh and its Interpreter since builtins use interp.io.
+            const savedIo = this.sh._interp.io;
+            const silentIo = { ...savedIo, println: () => {}, print: () => {} };
+            this.sh._interp.io = silentIo;
             try { await this.sh.runSource(content); } catch (e) { /* non-fatal */ }
-            this.sh.io = savedIo;
+            this.sh._interp.io = savedIo;
         } else {
             try { await this.sh.runSource(content); } catch (e) { /* non-fatal */ }
         }

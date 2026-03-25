@@ -162,6 +162,9 @@ export class Sh {
 // Run /etc/profile for login shells (displays motd, sources ~/.profile).
 // Matches V7 Unix: login shells source /etc/profile then ~/.profile.
 // Subshells (e.g. "!" from a game) skip this entirely.
+// Prefer Shell.runLoginProfile() which runs in the shell's own Sh env
+// with the full command set (cat, etc.). This standalone version is
+// kept for backward compat but creates a bare Sh without shell commands.
 export async function runProfile(io) {
   const path = '/etc/profile';
   try {
