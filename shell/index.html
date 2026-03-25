@@ -434,6 +434,21 @@
     if (window._applyLineHeight) window._applyLineHeight();
   })();
 
+  /* Pre-render captured terminal to avoid flash during ^C transition.
+     Games call display.captureForShell() which stores the terminal <pre>
+     outerHTML in localStorage. We insert it verbatim here — visible instantly,
+     before any ES modules load. Terminal replaces it seamlessly when ready. */
+  (function() {
+    try {
+      var html = localStorage.getItem('shell_preload_html');
+      if (!html) return;
+      localStorage.removeItem('shell_preload_html');
+      var container = document.getElementById('shell-container');
+      if (!container) return;
+      container.innerHTML = html;
+    } catch(e) { /* non-fatal */ }
+  })();
+
   /* Remove loading div once terminal appears */
   (function() {
     var container = document.getElementById('shell-container');

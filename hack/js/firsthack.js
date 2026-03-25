@@ -90,6 +90,7 @@ async function startGame() {
   } catch (e) {
     if (e instanceof GameOver) {
       // Return to the shell — like logging out of hack
+      display.captureForShell();
       localStorage.setItem('shell_context', JSON.stringify({ app: 'hack', user: 'rodney', rows: null }));
       window.location.href = '/shell/';
       return;
@@ -100,6 +101,7 @@ async function startGame() {
         rows.push({ text: display.grid[r].map(c => c.ch).join('').trimEnd(), color: 7 });
       }
       while (rows.length > 0 && rows[rows.length - 1].text === '') rows.pop();
+      display.captureForShell();
       localStorage.setItem('shell_context', JSON.stringify({ app: 'hack', user: 'rodney', rows }));
       window.location.href = '/shell/';
       return;

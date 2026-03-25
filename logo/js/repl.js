@@ -126,6 +126,7 @@ export class LogoRepl {
         // Ctrl-C — quit Logo, return to shell (shell adds its own ^C line)
         this._running = false;
         if (typeof window !== 'undefined') {
+          if (window._logoDisplay && window._logoDisplay.captureForShell) window._logoDisplay.captureForShell();
           var rows = window._logoDisplay ? window._logoDisplay.getRows() : [];
           try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: rows })); } catch(e) {}
           window.location.href = '/shell/';

@@ -191,6 +191,18 @@ span.terminal-cursor {
         this._pre = pre;
     }
 
+    // --- Shell transition ---
+
+    /** Capture the terminal <pre> HTML to localStorage for flash-free ^C transition.
+     *  The shell's inline script reads this and renders it immediately before modules load. */
+    captureForShell() {
+        try {
+            if (this._pre) {
+                localStorage.setItem('shell_preload_html', this._pre.outerHTML);
+            }
+        } catch (e) { /* non-fatal */ }
+    }
+
     // --- Color utilities ---
 
     /** Convert a color value (integer CLR_* constant or CSS string) to a CSS color. */

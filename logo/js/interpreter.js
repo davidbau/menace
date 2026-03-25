@@ -240,6 +240,7 @@ export class LogoInterpreter {
       if (name === 'STOP') throw new StopSignal();
       if (name === 'BYE') {
         if (typeof window !== 'undefined') {
+          if (window._logoDisplay && window._logoDisplay.captureForShell) window._logoDisplay.captureForShell();
           var rows = window._logoDisplay ? window._logoDisplay.getRows() : [];
           try { localStorage.setItem('shell_context', JSON.stringify({ app: 'logo', user: 'rodney', rows: rows, bye: 'GOODBYE' })); } catch(e) {}
           window.location.href = '/shell/';

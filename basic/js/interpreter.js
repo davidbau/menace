@@ -57,6 +57,7 @@ export class BasicInterpreter {
     if (upper.startsWith('LOAD')) return this._load(line.slice(4).trim());
     if (upper === 'BYE' || upper === 'QUIT' || upper === 'SYSTEM') {
       if (typeof window !== 'undefined') {
+        if (window._basicDisplay && window._basicDisplay.captureForShell) window._basicDisplay.captureForShell();
         var rows = window._basicDisplay ? window._basicDisplay.getRows() : [];
         try { localStorage.setItem('shell_context', JSON.stringify({ app: 'basic', user: 'rodney', rows: rows, bye: 'DONE' })); } catch(e) {}
         window.location.href = '/shell/';

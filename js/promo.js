@@ -220,6 +220,7 @@ export class Promo {
 
         // Ctrl-C: enter the shell (navigate to /shell/ with captured screen context)
         if (pressedKey === 3) {
+            display.captureForShell();
             localStorage.setItem(SHELL_CONTEXT_KEY, JSON.stringify({
                 app: 'nethack',
                 user: 'rodney',

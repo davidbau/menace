@@ -39,6 +39,7 @@ function createBrowserLifecycle(display, promo, restart) {
         restart,
         promo: () => promo.run(display, nhgetch, restart),
         shell: () => {
+            display.captureForShell();
             localStorage.setItem('shell_context', JSON.stringify({
                 app: 'nethack', user: 'rodney',
                 rows: captureDisplayRows(display),
