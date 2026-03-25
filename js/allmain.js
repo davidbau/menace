@@ -1890,25 +1890,10 @@ export class NetHackGame {
         this.flags.female = female;
         this.u.female = female;
 
-        // C ref: allmain.c moveloop_preamble() — real-world side effects.
-        this.flags.moonphase = phase_of_the_moon();
-        if (this.flags.moonphase === 4) { // FULL_MOON
-            if (!urlOpts.character) {
-                await this.display.putstr_message('You are lucky!  Full moon tonight.');
-            }
-            change_luck(1, this.u);
-        } else if (this.flags.moonphase === 0) { // NEW_MOON
-            if (!urlOpts.character) {
-                await this.display.putstr_message('Be careful!  New moon tonight.');
-            }
-        }
-        this.flags.friday13 = friday_13th();
-        if (this.flags.friday13) {
-            if (!urlOpts.character) {
-                await this.display.putstr_message('Watch out!  Bad things can happen on Friday the 13th.');
-            }
-            change_luck(-1, this.u);
-        }
+        // C ref: allmain.c moveloop_preamble() — moon/friday13 side effects
+        // are deferred to _gameLoopStep() to match C's timing where the
+        // preamble runs at the start of moveloop(), AFTER nethack_start()
+        // completes (lore + welcome shown first).  See _gameLoopStep().
 
         // First-level init
         this.dnum = Number.isInteger(urlOpts.startDnum) ? urlOpts.startDnum : undefined;
@@ -2447,6 +2432,19 @@ export class NetHackGame {
         // In C this is step 1; JS matches by running here instead of initFirstLevel.
         if (!this._preambleDone) {
             this._preambleDone = true;
+            // C ref: allmain.c:59-70 — moon phase and friday 13th side effects
+            this.flags.moonphase = phase_of_the_moon();
+            if (this.flags.moonphase === 4) { // FULL_MOON
+                await this.display.putstr_message('You are lucky!  Full moon tonight.');
+                change_luck(1, this.u);
+            } else if (this.flags.moonphase === 0) { // NEW_MOON
+                await this.display.putstr_message('Be careful!  New moon tonight.');
+            }
+            this.flags.friday13 = friday_13th();
+            if (this.flags.friday13) {
+                await this.display.putstr_message('Watch out!  Bad things can happen on Friday the 13th.');
+                change_luck(-1, this.u);
+            }
             rnd(9000);              // C ref: allmain.c:74 rndencode
             this.seerTurn = rnd(30); // C ref: allmain.c:81 seer_turn
         }

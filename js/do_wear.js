@@ -2,6 +2,8 @@
 // cf. do_wear.c — dowear, doputon, dotakeoff, doremring, doddoremarm, find_ac
 
 import { nhgetch, more } from './input.js';
+import { change_luck } from './attrib.js';
+import { PM_ARCHEOLOGIST } from './monsters.js';
 import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          WEAPON_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
@@ -10,7 +12,7 @@ import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          SPEED_BOOTS, ELVEN_BOOTS, LEVITATION_BOOTS, FUMBLE_BOOTS,
          ELVEN_CLOAK, CLOAK_OF_PROTECTION, CLOAK_OF_INVISIBILITY,
          CLOAK_OF_MAGIC_RESISTANCE, CLOAK_OF_DISPLACEMENT,
-         HELM_OF_BRILLIANCE, HELM_OF_TELEPATHY, HELM_OF_OPPOSITE_ALIGNMENT, DUNCE_CAP,
+         HELM_OF_BRILLIANCE, HELM_OF_TELEPATHY, HELM_OF_OPPOSITE_ALIGNMENT, DUNCE_CAP, FEDORA,
          GAUNTLETS_OF_FUMBLING, GAUNTLETS_OF_POWER, GAUNTLETS_OF_DEXTERITY,
          RIN_ADORNMENT,
          RIN_GAIN_STRENGTH, RIN_GAIN_CONSTITUTION,
@@ -469,6 +471,12 @@ function Helmet_on(player) {
     if (!player || !player.helmet) return;
     const otyp = player.helmet.otyp;
     switch (otyp) {
+    case FEDORA:
+        // C ref: do_wear.c:436-439 — Archeologists get +1 luck when wearing a fedora
+        if (player.roleMnum === PM_ARCHEOLOGIST || player.roleIndex === 3) {
+            change_luck(1, player);
+        }
+        break;
     case HELM_OF_BRILLIANCE:
         // Adjust INT and WIS by spe
         adj_abon(player, player.helmet, A_INT, player.helmet.spe || 0);
@@ -490,6 +498,12 @@ function Helmet_off(player) {
     if (!player || !player.helmet) return;
     const otyp = player.helmet.otyp;
     switch (otyp) {
+    case FEDORA:
+        // C ref: do_wear.c:522-525 — Archeologists lose +1 luck when removing fedora
+        if (player.roleMnum === PM_ARCHEOLOGIST || player.roleIndex === 3) {
+            change_luck(-1, player);
+        }
+        break;
     case HELM_OF_BRILLIANCE:
         adj_abon(player, player.helmet, A_INT, -(player.helmet.spe || 0));
         adj_abon(player, player.helmet, A_WIS, -(player.helmet.spe || 0));

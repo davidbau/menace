@@ -19,7 +19,8 @@ export function recordedAtToDatetime(recordedAt) {
 }
 
 export function resolveSessionFixedDatetime(session, sourcePref = 'session') {
-    const candidate = session?.meta?.options?.datetime || session?.meta?.regen?.datetime;
+    const candidate = session?.meta?.options?.datetime || session?.meta?.regen?.datetime
+        || session?.env?.NETHACK_FIXED_DATETIME;
     const fromSession = isFourteenDigitDatetime(candidate) ? candidate : null;
     const recordedAt = session?.meta?.options?.recordedAt || session?.meta?.regen?.recordedAt;
     const fromRecordedAt = recordedAtToDatetime(recordedAt);
