@@ -1,6 +1,6 @@
 // BASIC entry point — wires up Display, Canvas, Turtle, Interpreter, REPL.
 
-import { LogoDisplay } from './display.js';
+import { Terminal } from '../../js/terminal.js';
 import { Turtle } from './turtle.js';
 import { BasicInterpreter } from './interpreter.js';
 import { BasicRepl } from './repl.js';
@@ -34,7 +34,7 @@ function makeGetch() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  const display = new LogoDisplay(document.getElementById('basic-container'));
+  const display = new Terminal(document.getElementById('basic-container'));
   const canvas = document.getElementById('basic-canvas');
   const turtle = new Turtle(canvas);
   turtle.hideturtle(); // No turtle visible until HGR

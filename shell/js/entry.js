@@ -2,7 +2,7 @@
 // Reads localStorage shell_context (set by nethack/rogue/hack before navigating here),
 // then runs the shell as logged-in rodney (if context present) or shows a login prompt.
 
-import { Display } from '../../js/display.js';
+import { Terminal } from '../../js/terminal.js';
 import { Shell, runLoginLoop } from '../shell.js';
 import { runProfile } from '../sh/index.js';
 
@@ -72,7 +72,7 @@ function navigateToGame(game) {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-    const display = new Display('shell-container');
+    const display = new Terminal('shell-container');
     const getch   = makeGetch();
 
     const context  = readAndClearContext();

@@ -1,6 +1,6 @@
 // Logo entry point — wires up Display, Canvas, Turtle, Interpreter, REPL.
 
-import { LogoDisplay } from './display.js';
+import { Terminal } from '../../js/terminal.js';
 import { Turtle } from './turtle.js';
 import { LogoInterpreter } from './interpreter.js';
 import { LogoRepl } from './repl.js';
@@ -35,7 +35,7 @@ function makeGetch() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  const display = new LogoDisplay(document.getElementById('logo-container'));
+  const display = new Terminal(document.getElementById('logo-container'));
   const canvas = document.getElementById('logo-canvas');
   const turtle = new Turtle(canvas);
   const interp = new LogoInterpreter(turtle, () => {});

@@ -75,21 +75,21 @@ export class BasicRepl {
       if (ch === '\n') {
         this._col = 0;
         this._row++;
-        if (this._row >= this._display.ROWS) {
+        if (this._row >= this._display.rows) {
           this._display.scrollUp();
-          this._row = this._display.ROWS - 1;
+          this._row = this._display.rows - 1;
         }
         continue;
       }
-      if (this._col >= this._display.COLS) {
+      if (this._col >= this._display.cols) {
         this._col = 0;
         this._row++;
-        if (this._row >= this._display.ROWS) {
+        if (this._row >= this._display.rows) {
           this._display.scrollUp();
-          this._row = this._display.ROWS - 1;
+          this._row = this._display.rows - 1;
         }
       }
-      this._display.putChar(this._col, this._row, ch);
+      this._display.setCell(this._col, this._row, ch);
       this._col++;
     }
     this._display.setCursor(this._col, this._row);
@@ -158,18 +158,18 @@ export class BasicRepl {
       if (code >= 32 && code < 127) {
         const ch = String.fromCharCode(code).toUpperCase();
         this._inputBuf += ch;
-        this._display.putChar(startCol + this._inputBuf.length - 1, this._row, ch);
+        this._display.setCell(startCol + this._inputBuf.length - 1, this._row, ch);
         this._display.setCursor(startCol + this._inputBuf.length, this._row);
       }
     }
   }
 
   _redrawInput(startCol) {
-    for (let c = startCol; c < this._display.COLS; c++) {
-      this._display.putChar(c, this._row, ' ');
+    for (let c = startCol; c < this._display.cols; c++) {
+      this._display.setCell(c, this._row, ' ');
     }
     for (let i = 0; i < this._inputBuf.length; i++) {
-      this._display.putChar(startCol + i, this._row, this._inputBuf[i]);
+      this._display.setCell(startCol + i, this._row, this._inputBuf[i]);
     }
     this._display.setCursor(startCol + this._inputBuf.length, this._row);
   }
