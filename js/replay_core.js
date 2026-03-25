@@ -7,11 +7,13 @@
 import { enableRngLog, getRngLog, disableRngLog, pushRngLogEntry } from './rng.js';
 import { pushInput } from './input.js';
 import { NetHackGame, inputSnap } from './allmain.js';
-import { HeadlessDisplay, createHeadlessInput } from './headless.js';
+import { createHeadlessInput } from './headless.js';
+import { Display } from './display.js';
 import { consumeHarnessMapdumpPayloads } from './dungeon.js';
 import { envFlag, getEnv } from './runtime_env.js';
 
-export { HeadlessDisplay };
+// Backward-compat re-export for external callers still using the old name.
+export { Display as HeadlessDisplay };
 
 // Strip leading RNG count prefix: "1 rn2(12)=2" → "rn2(12)=2"
 function toCompactRng(entry) {
@@ -229,7 +231,7 @@ export async function replaySession(seed, opts, keys) {
     }
     enableRngLog();
 
-    const display = new HeadlessDisplay();
+    const display = new Display();
     const input = createHeadlessInput();
     const game = new NetHackGame({ display, input });
     const synclockDiagTypes = [
