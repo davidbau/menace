@@ -8,13 +8,26 @@ index 71d4a978..3b0745b1 100644
  static int rng_caller_line = 0;
  static const char *rng_caller_func = NULL;
 +static boolean rng_log_disp = FALSE;
++staticfn const char *
++harness_getenv_with_fallback(const char *nethack_key, const char *webhack_key)
++{
++    const char *value;
++
++    value = getenv(nethack_key);
++    if (value && *value)
++        return value;
++    if (!webhack_key || !*webhack_key)
++        return (const char *) 0;
++    value = getenv(webhack_key);
++    return (value && *value) ? value : (const char *) 0;
++}
  
  void
  rng_log_init(void)
 @@ -42,10 +43,12 @@ rng_log_init(void)
  {
-     const char *logpath = getenv("NETHACK_RNGLOG");
-+    const char *disp = getenv("NETHACK_RNGLOG_DISP");
+    const char *logpath = harness_getenv_with_fallback("NETHACK_RNGLOG", "WEBHACK_RNGLOG");
+    const char *disp = harness_getenv_with_fallback("NETHACK_RNGLOG_DISP", "WEBHACK_RNGLOG_DISP");
      if (logpath && *logpath) {
          rng_logfile = fopen(logpath, "w");
          if (rng_logfile)

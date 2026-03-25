@@ -27,15 +27,28 @@ index 3ec7de362..23943ca3f 100644
 +static FILE *repaint_debug_file = (FILE *) 0;
 +static const char *repaint_debug_scope = (const char *) 0;
  static boolean rng_log_disp = FALSE;
++staticfn const char *
++harness_getenv_with_fallback(const char *nethack_key, const char *webhack_key)
++{
++    const char *value;
++
++    value = getenv(nethack_key);
++    if (value && *value)
++        return value;
++    if (!webhack_key || !*webhack_key)
++        return (const char *) 0;
++    value = getenv(webhack_key);
++    return (value && *value) ? value : (const char *) 0;
++}
  
  void
  rng_log_init(void)
  {
-     const char *logpath = getenv("NETHACK_RNGLOG");
-+    const char *repaint = getenv("NETHACK_REPAINT_TRACE");
-+    const char *repaint_debug = getenv("NETHACK_REPAINT_DEBUG");
-+    const char *repaint_debug_path = getenv("NETHACK_REPAINT_DEBUG_LOG");
-     const char *disp = getenv("NETHACK_RNGLOG_DISP");
+    const char *logpath = harness_getenv_with_fallback("NETHACK_RNGLOG", "WEBHACK_RNGLOG");
+    const char *repaint = harness_getenv_with_fallback("NETHACK_REPAINT_TRACE", "WEBHACK_REPAINT_TRACE");
+    const char *repaint_debug = harness_getenv_with_fallback("NETHACK_REPAINT_DEBUG", "WEBHACK_REPAINT_DEBUG");
+    const char *repaint_debug_path = harness_getenv_with_fallback("NETHACK_REPAINT_DEBUG_LOG", "WEBHACK_REPAINT_DEBUG_LOG");
+    const char *disp = harness_getenv_with_fallback("NETHACK_RNGLOG_DISP", "WEBHACK_RNGLOG_DISP");
      if (logpath && *logpath) {
          rng_logfile = fopen(logpath, "w");
          if (rng_logfile)

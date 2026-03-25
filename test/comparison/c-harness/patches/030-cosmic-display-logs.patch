@@ -327,14 +327,26 @@ index a09ee62c4..b6f3bc2b4 100644
 +
 +staticfn void cosmic_display_logf(const char *, ...);
 +staticfn const char *cosmic_display_current_owner(void);
++staticfn const char *harness_getenv_with_fallback(const char *nethack_key, const char *webhack_key)
++{
++    const char *value;
++
++    value = getenv(nethack_key);
++    if (value && *value)
++        return value;
++    if (!webhack_key || !*webhack_key)
++        return (const char *) 0;
++    value = getenv(webhack_key);
++    return (value && *value) ? value : (const char *) 0;
++}
  
  void
  rng_log_init(void)
 @@ -48,6 +61,7 @@ rng_log_init(void)
-     const char *repaint_debug_path = getenv("NETHACK_REPAINT_DEBUG_LOG");
-     const char *exp_trace = getenv("NETHACK_EXP_TRACE");
-     const char *disp = getenv("NETHACK_RNGLOG_DISP");
-+    const char *cosmic = getenv("NETHACK_COSMIC_DISPLAY_LOGS");
+    const char *repaint_debug_path = harness_getenv_with_fallback("NETHACK_REPAINT_DEBUG_LOG", "WEBHACK_REPAINT_DEBUG_LOG");
+    const char *exp_trace = harness_getenv_with_fallback("NETHACK_EXP_TRACE", "WEBHACK_EXP_TRACE");
+    const char *disp = harness_getenv_with_fallback("NETHACK_RNGLOG_DISP", "WEBHACK_RNGLOG_DISP");
+    const char *cosmic = harness_getenv_with_fallback("NETHACK_COSMIC_DISPLAY_LOGS", "WEBHACK_COSMIC_DISPLAY_LOGS");
      if (logpath && *logpath) {
          rng_logfile = fopen(logpath, "w");
          if (rng_logfile)
