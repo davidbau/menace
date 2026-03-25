@@ -92,11 +92,9 @@ export class Sh {
     io.println('sh: entering subshell (type exit to return)');
 
     while (true) {
-      // Show prompt
+      // Show prompt and read a line (prompt is rendered by _readLine)
       const ps1 = env.get('PS1') || '$ ';
-      io.print(ps1);
-
-      // Read a line
+      io.print(ps1);  // initial prompt display
       const line = await this._readLine(io, env);
       if (line === null) {
         io.println('');
@@ -109,7 +107,7 @@ export class Sh {
       while (this._isIncomplete(src)) {
         const ps2 = env.get('PS2') || '> ';
         io.print(ps2);
-        const cont = await this._readLine(io, env);
+        const cont = await this._readLine(io, env, ps2);
         if (cont === null) break;
         src += '\n' + cont;
       }
@@ -125,8 +123,22 @@ export class Sh {
   }
 
   // Read a line from the display using getch (no editing, just basic backspace).
-  async _readLine(io, env) {
+  // Redraws prompt + input on each keystroke since io.print replaces the line.
+  async _readLine(io, env, promptOverride) {
+    const prompt = promptOverride || env.get('PS1') || '$ ';
     let line = '';
+    const redraw = () => {
+      const text = prompt + line;
+      io.print(text);
+      // Position cursor at end of text
+      if (io.shell?.display && typeof io.shell.display.setCursor === 'function') {
+        const promptRow = Math.min(
+          (io.shell.scrollBuffer?.length || 0),
+          (io.shell.display.rows || 24) - 1
+        );
+        io.shell.display.setCursor(Math.min(text.length, (io.shell.display.cols || 80) - 1), promptRow);
+      }
+    };
     while (true) {
       const ch = await io.getch();
       const code = typeof ch === 'string' ? ch.charCodeAt(0) : ch;
@@ -134,11 +146,15 @@ export class Sh {
       if (code === 3) return null;           // Ctrl-C
       if (code === 13 || code === 10) { io.println(''); return line; }
       if (code === 8 || code === 127) {
-        if (line.length > 0) { line = line.slice(0, -1); io.print('\b \b'); }
+        if (line.length > 0) line = line.slice(0, -1);
+        redraw();
         continue;
       }
       const c = typeof ch === 'string' ? ch : String.fromCharCode(code);
-      if (code >= 32 && code < 127) { line += c; io.print(c); }
+      if (code >= 32 && code < 127) {
+        line += c;
+        redraw();
+      }
     }
   }
 
