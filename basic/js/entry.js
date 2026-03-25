@@ -34,8 +34,12 @@ function makeGetch() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  const display = new Terminal(document.getElementById('basic-container'));
+  const container = document.getElementById('basic-container');
   const canvas = document.getElementById('basic-canvas');
+  // Detach canvas before Terminal clears container innerHTML, then re-add it
+  if (canvas) canvas.remove();
+  const display = new Terminal(container);
+  if (canvas) container.appendChild(canvas);
   const turtle = new Turtle(canvas);
   turtle.hideturtle(); // No turtle visible until HGR
   const interp = new BasicInterpreter(null, null, null);

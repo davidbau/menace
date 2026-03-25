@@ -35,8 +35,12 @@ function makeGetch() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  const display = new Terminal(document.getElementById('logo-container'));
+  const container = document.getElementById('logo-container');
   const canvas = document.getElementById('logo-canvas');
+  // Detach canvas before Terminal clears container innerHTML, then re-add it
+  if (canvas) canvas.remove();
+  const display = new Terminal(container);
+  if (canvas) container.appendChild(canvas);
   const turtle = new Turtle(canvas);
   const interp = new LogoInterpreter(turtle, () => {});
   const repl = new LogoRepl(display, interp);
