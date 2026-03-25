@@ -220,26 +220,28 @@ span.terminal-cursor {
      */
     setCell(col, row, ch, color, attr = 0) {
         if (row < 0 || row >= this.rows || col < 0 || col >= this.cols) return;
+
+        // Resolve display color. When this.flags exists, honor its color/use_darkgray options.
+        // Applied to grid value (not just DOM) so headless screen capture sees correct colors.
+        let displayColor = color;
+        if (typeof color === 'number' && this.flags) {
+            if (this.flags.color === false) {
+                displayColor = CLR_GRAY;
+            } else if (color === CLR_BLACK && this.flags.use_darkgray !== false) {
+                displayColor = NO_COLOR;
+            }
+        }
+
         const cell = this.grid[row][col];
-        if (cell.ch === ch && cell.color === color && cell.attr === attr) return;
+        if (cell.ch === ch && cell.color === displayColor && cell.attr === attr) return;
         cell.ch = ch;
-        cell.color = color;
+        cell.color = displayColor;
         cell.attr = attr;
 
         if (!this.spans) return;
 
         const span = this.spans[row][col];
         span.textContent = ch;
-
-        // Resolve display color. When this.flags exists, honor its color/use_darkgray options.
-        let displayColor = color;
-        if (typeof color === 'number') {
-            if (this.flags && this.flags.color === false) {
-                displayColor = CLR_GRAY;
-            } else if (this.flags && color === CLR_BLACK && this.flags.use_darkgray !== false) {
-                displayColor = NO_COLOR;
-            }
-        }
         const css = this.colorToCss(displayColor);
 
         const isInverse = (attr & ATR_INVERSE) !== 0;
