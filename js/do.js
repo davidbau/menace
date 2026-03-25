@@ -2183,6 +2183,12 @@ export async function heal_legs(how, player) {
             const entry = player.ensureUProp(WOUNDED_LEGS);
             entry.intrinsic = Number(entry?.intrinsic || 0) & ~TIMEOUT;
         }
+        // C ref: do.c heal_legs() calls encumber_msg() when how != 1
+        // (skip during dismount because dismount_steed does its own check).
+        // Healing restores carrying capacity, so encumbrance may decrease.
+        if (how !== 1) {
+            await encumber_msg(player);
+        }
     }
 }
 
