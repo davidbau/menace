@@ -551,7 +551,6 @@ export class HeadlessDisplay extends Terminal {
         super(null, { rows: TERMINAL_ROWS, cols: TERMINAL_COLS });
         this.isHeadless = true;
         this.topMessage = null; // Track current message for concatenation
-        this._topMessageStatusHp = null;
         this._topMessageStepIndex = null;
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
@@ -652,14 +651,13 @@ export class HeadlessDisplay extends Terminal {
         // for code paths that call putstr_message directly (e.g., mhitu.js).
         const isUrgent = !!opts.urgent || msg.startsWith('You die');
         const suppressStatusRefresh = !!this._urgentSuppressStatusRefresh;
-        const gameRef = this._gameRef();
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
-        const gameCtx = this._game || gameRef || null;
-        if (this._deferredBotlAfterPendingFlush && gameCtx?.player) {
-            gameCtx.player._botl = true;
-            gameCtx.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
+        const deferredPlayer = this._lastMapState?.player || null;
+        if (this._deferredBotlAfterPendingFlush && deferredPlayer) {
+            deferredPlayer._botl = true;
+            deferredPlayer._botlStepIndex = this._deferredBotlStepIndex ?? null;
             this._deferredBotlAfterPendingFlush = false;
             this._deferredBotlStepIndex = null;
         }
@@ -682,7 +680,6 @@ export class HeadlessDisplay extends Terminal {
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
-            this._topMessageStatusHp = null;
             this._topMessageStepIndex = null;
             this.moreMarkerActive = false;
             this._urgentSuppressStatusRefresh = false;
@@ -708,12 +705,6 @@ export class HeadlessDisplay extends Terminal {
                 this.clearRow(0);
                 this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
-                const statusPlayer = gameRef?.player || this._lastMapState?.player || null;
-                this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
-                    ? statusPlayer.uhp
-                    : (Number.isFinite(statusPlayer?.hp)
-                        ? statusPlayer.hp
-                        : null);
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
@@ -756,7 +747,6 @@ export class HeadlessDisplay extends Terminal {
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
-            this._topMessageStatusHp = null;
             this._topMessageStepIndex = null;
             this.moreMarkerActive = false;
             freshAfterMore = true;
@@ -766,12 +756,6 @@ export class HeadlessDisplay extends Terminal {
         if (msg.length <= this.cols) {
             this.putstr(0, 0, msg.substring(0, this.cols));
             this.topMessage = msg;
-            const statusPlayer = gameRef?.player || this._lastMapState?.player || null;
-            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
-                ? statusPlayer.uhp
-                : (Number.isFinite(statusPlayer?.hp)
-                    ? statusPlayer.hp
-                    : null);
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
@@ -783,7 +767,7 @@ export class HeadlessDisplay extends Terminal {
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {
-                const refreshPlayer = gameRef?.player || this._lastMapState?.player || null;
+                const refreshPlayer = this._lastMapState?.player || null;
                 if (refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     refreshPlayer._botl = false;
@@ -797,7 +781,7 @@ export class HeadlessDisplay extends Terminal {
                             site: 'headless.more.dismiss',
                             clearAfter: false,
                             readKey: this._nhgetch,
-                            refreshStatus: !(gameRef?.context?.mon_moving && gameRef?.multi < 0),
+                            refreshStatus: !this._urgentSuppressStatusRefresh,
                         });
                     } catch (e) {
                         if (!e.message?.includes('Concurrent nhgetch')) throw e;
@@ -805,7 +789,6 @@ export class HeadlessDisplay extends Terminal {
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
-                    this._topMessageStatusHp = null;
                     this._topMessageStepIndex = null;
                     this.moreMarkerActive = false;
                 } else {
@@ -815,7 +798,6 @@ export class HeadlessDisplay extends Terminal {
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
-                    this._topMessageStatusHp = null;
                     this._topMessageStepIndex = null;
                     this.moreMarkerActive = false;
                 }
@@ -837,12 +819,6 @@ export class HeadlessDisplay extends Terminal {
 
         this.putstr(0, 0, firstLine);
         this.topMessage = firstLine;
-        const statusPlayer = gameRef?.player || this._lastMapState?.player || null;
-        this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
-            ? statusPlayer.uhp
-            : (Number.isFinite(statusPlayer?.hp)
-                ? statusPlayer.hp
-                : null);
         this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
             ? this._lastMapState.gameMap._replayStepIndex
             : null;
@@ -851,7 +827,7 @@ export class HeadlessDisplay extends Terminal {
         this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
         this.messageCursorRow = 0;
         if (freshAfterMore && typeof this.renderStatus === 'function') {
-            const refreshPlayer = gameRef?.player || this._lastMapState?.player || null;
+            const refreshPlayer = this._lastMapState?.player || null;
             if (refreshPlayer?._botl) {
                 this.renderStatus(refreshPlayer);
                 refreshPlayer._botl = false;
@@ -889,7 +865,6 @@ export class HeadlessDisplay extends Terminal {
         this.clearRow(1);
         this.messageNeedsMore = false;
         this.topMessage = null;
-        this._topMessageStatusHp = null;
         this._topMessageStepIndex = null;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {

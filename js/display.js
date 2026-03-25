@@ -194,7 +194,6 @@ export class Display extends Terminal {
         // Message history
         this.messages = [];
         this.topMessage = null;
-        this._topMessageStatusHp = null;
         this._topMessageStepIndex = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
         // C ref: ttyDisplay->toplin — 3-state topline status
@@ -270,10 +269,10 @@ export class Display extends Terminal {
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
-        const gameCtx = this._game || _gstate || null;
-        if (this._deferredBotlAfterPendingFlush && gameCtx?.player) {
-            gameCtx.player._botl = true;
-            gameCtx.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
+        const deferredPlayer = this._lastMapState?.player || null;
+        if (this._deferredBotlAfterPendingFlush && deferredPlayer) {
+            deferredPlayer._botl = true;
+            deferredPlayer._botlStepIndex = this._deferredBotlStepIndex ?? null;
             this._deferredBotlAfterPendingFlush = false;
             this._deferredBotlStepIndex = null;
         }
@@ -299,7 +298,6 @@ export class Display extends Terminal {
             }
             this.messageNeedsMore = false;
             this.topMessage = null;
-            this._topMessageStatusHp = null;
             this._topMessageStepIndex = null;
             freshAfterMore = true;
         }
@@ -319,12 +317,6 @@ export class Display extends Terminal {
                 this.clearRow(MESSAGE_ROW);
                 this.putstr(0, MESSAGE_ROW, combined, CLR_GRAY);
                 this.topMessage = combined;
-                const statusPlayer = _gstate?.u || this._lastMapState?.player || null;
-                this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
-                    ? statusPlayer.uhp
-                    : (Number.isFinite(statusPlayer?.hp)
-                        ? statusPlayer.hp
-                        : null);
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
@@ -353,7 +345,6 @@ export class Display extends Terminal {
             }
             this.messageNeedsMore = false;
             this.topMessage = null;
-            this._topMessageStatusHp = null;
             this._topMessageStepIndex = null;
             freshAfterMore = true;
         }
@@ -366,12 +357,6 @@ export class Display extends Terminal {
         if (msg.length <= this.cols) {
             this.putstr(0, MESSAGE_ROW, msg, CLR_GRAY);
             this.topMessage = msg;
-            const statusPlayer = _gstate?.u || this._lastMapState?.player || null;
-            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
-                ? statusPlayer.uhp
-                : (Number.isFinite(statusPlayer?.hp)
-                    ? statusPlayer.hp
-                    : null);
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
@@ -379,7 +364,7 @@ export class Display extends Terminal {
             this.messageCursorRow = 0;
             this.toplin = 1; // C ref: update_topl sets toplin = TOPLINE_NEED_MORE
             if (freshAfterMore && typeof this.renderStatus === 'function') {
-            const refreshPlayer = _gstate?.u || this._lastMapState?.player || null;
+            const refreshPlayer = this._lastMapState?.player || null;
                 if (refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     if (refreshPlayer?._botl) refreshPlayer._botl = false;
@@ -397,19 +382,13 @@ export class Display extends Terminal {
 
             this.putstr(0, MESSAGE_ROW, row0, CLR_GRAY);
             this.topMessage = row0;
-            const statusPlayer = _gstate?.u || this._lastMapState?.player || null;
-            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
-                ? statusPlayer.uhp
-                : (Number.isFinite(statusPlayer?.hp)
-                    ? statusPlayer.hp
-                    : null);
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
             this.messageCursorCol = Math.min(row0.length, this.cols - 1);
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {
-                const refreshPlayer = _gstate?.u || this._lastMapState?.player || null;
+                const refreshPlayer = this._lastMapState?.player || null;
                 if (refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     if (refreshPlayer?._botl) refreshPlayer._botl = false;
@@ -439,7 +418,6 @@ export class Display extends Terminal {
                 this._topMessageRow1 = undefined;
                 this.messageNeedsMore = false;
                 this.topMessage = null;
-                this._topMessageStatusHp = null;
                 this._topMessageStepIndex = null;
                 const row1overflow = row1rest.substring(this.cols).trimStart();
                 if (row1overflow.length > 0) {
@@ -463,7 +441,6 @@ export class Display extends Terminal {
                 this.clearRow(MESSAGE_ROW);
                 this.messageNeedsMore = false;
                 this.topMessage = null;
-                this._topMessageStatusHp = null;
                 this._topMessageStepIndex = null;
             }
         }
