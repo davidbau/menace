@@ -5,6 +5,8 @@ nethack-c/install/
 .beads/
 .claude/*
 !.claude/skills
+.agents/*
+!.agents/skills
 *.pyc
 test/comparison/c-harness/results/
 test/comparison/isaac64_reference
