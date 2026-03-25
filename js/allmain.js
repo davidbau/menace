@@ -381,6 +381,12 @@ export async function moveloop_turnend(game) {
     game.heroSeqN = 0;
     game.moves = game.turnCount;
 
+    // C ref: allmain.c:213 — mvl_wtcap = near_capacity() is computed at
+    // the top of the do-while iteration, BEFORE nh_timeout.  regen_hp and
+    // overexert_hp use this cached value so they see the SAME encumbrance
+    // even if nh_timeout changes it mid-iteration (e.g. healing wounded legs).
+    const mvl_wtcap = near_capacity(player);
+
     // C ref: allmain.c once-per-turn block runs nh_timeout() after
     // mcalcdistress/mcalcmove and random spawn setup.
     await nh_timeout({
@@ -408,22 +414,22 @@ export async function moveloop_turnend(game) {
     game.saving_grace_turn = false;
 
     // C ref: allmain.c:295-301 — regen_hp(mvl_wtcap)
-    await regen_hp(game);
+    await regen_hp(game, mvl_wtcap);
 
     // C ref: allmain.c:297-301 — overexert_hp when encumbered and moving
+    // Uses mvl_wtcap (cached BEFORE nh_timeout), matching C.
     {
         const p = player;
-        const wtcap = near_capacity(p);
-        if (wtcap > MOD_ENCUMBER && p.umoved) {
+        if (mvl_wtcap > MOD_ENCUMBER && p.umoved) {
             const moves = game.turnCount;
-            if (!(wtcap < EXT_ENCUMBER ? moves % 30 : moves % 10)) {
+            if (!(mvl_wtcap < EXT_ENCUMBER ? moves % 30 : moves % 10)) {
                 await overexert_hp(game);
             }
         }
     }
 
     // C ref: allmain.c:304 — regen_pw(mvl_wtcap)
-    await regen_pw_turnend(game);
+    await regen_pw_turnend(game, mvl_wtcap);
 
     // C ref: allmain.c:306-338 — Teleportation/Polymorph/Lycanthropy checks
     {
@@ -1226,9 +1232,11 @@ async function _drainOccupation(game, coreOpts) {
 // Ported from C's regen_hp() (allmain.c:621-675).
 // Includes Upolyd branch and C turn-modulo timing for monster-form healing.
 // Simplified: eel out-of-water degeneration is still not implemented.
-async function regen_hp(game) {
+async function regen_hp(game, mvl_wtcap) {
     const player = (game.u || game.u);
-    const wtcap = near_capacity(player);
+    // C ref: regen_hp(wtcap) — uses the cached mvl_wtcap from the top
+    // of the do-while iteration, not a fresh near_capacity() call.
+    const wtcap = Number.isFinite(mvl_wtcap) ? mvl_wtcap : near_capacity(player);
     const encumbrance_ok = (wtcap < MOD_ENCUMBER || !player.umoved);
     // C ref: allmain.c:622 U_CAN_REGEN() = Regeneration || (Sleepy && u.usleep)
     const sleepyRegen = !!(player.sleepy && player.usleep);
@@ -1287,12 +1295,13 @@ async function overexert_hp(game) {
 
 // C ref: allmain.c:598 — regen_pw(wtcap): regenerate power (mana) each turn
 // Fires every ((MAXULEV+8-ulevel) * (wizard?3:4) / 6) turns when unencumbered.
-async function regen_pw_turnend(game) {
+async function regen_pw_turnend(game, mvl_wtcap) {
     const player = (game.u || game.u);
     const moves = game.turnCount + 1; // svm.moves equivalent
     if (player.uen == null || player.uenmax == null) return; // pw not initialized
     if (player.uen < player.uenmax) {
-        const wtcap = near_capacity(player);
+        // C ref: regen_pw(wtcap) uses cached mvl_wtcap, not fresh near_capacity.
+        const wtcap = Number.isFinite(mvl_wtcap) ? mvl_wtcap : near_capacity(player);
         const isWizard = (player.roleMnum === PM_WIZARD);
         const interval = Math.floor((MAXULEV + 8 - (player.ulevel || 1))
                                     * (isWizard ? 3 : 4) / 6);

@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node scripts/run-test-gates.mjs --core",
-    "test:standard": "node scripts/run-test-gates.mjs",
-    "test:all": "node scripts/run-test-gates.mjs --e2e",
+    "test:all": "node scripts/run-test-gates.mjs",
     "test:unit": "node scripts/test-unit-core.mjs",
     "test:core": "node test/comparison/session_test_runner.js --core",
     "test:e2e": "node --test --test-concurrency=1 test/e2e/*.test.js",
