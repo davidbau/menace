@@ -20,7 +20,7 @@ import { initrack } from './monmove.js';
 import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
-import { newsym, getCachedMapCell, flush_screen } from './display.js';
+import { newsym, getCachedMapCell, flush_screen, Display } from './display.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
 import { parseNethackrcFull } from './storage.js';
@@ -335,7 +335,7 @@ function rngCallPart(entry) {
 // Used by createHeadlessGame() and generateStartupWithCoreReplay()
 async function headlessFromSeed(seed, roleIndex = 11, opts = {}) {
     const input = opts.input || createHeadlessInput();
-    const display = new HeadlessDisplay();
+    const display = new Display();
     const game = new NetHackGame({ display, input, hooks: opts.hooks });
     await game.init({
         seed,
@@ -478,7 +478,7 @@ export async function generateStartupWithCoreReplay(seed, session, options = {})
     enableRngLog(withTags);
 
     const input = createHeadlessInput({ throwOnEmpty: true });
-    const display = new HeadlessDisplay();
+    const display = new Display();
     const game = new NetHackGame({ display, input });
 
     // Push chargen keystrokes for interactive chargen sessions
