@@ -117,7 +117,9 @@ async function emitMessage(message, pflags = 0) {
         return false;
     }
 
-    await getOutputContext().putstr_message(text);
+    const opts = {};
+    if ((pflags & PLINE_URGENT) !== 0) opts.urgent = true;
+    await getOutputContext().putstr_message(text, opts);
     _lastMessage = text;
     clearTransientContext();
     return true;

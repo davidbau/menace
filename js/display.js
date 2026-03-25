@@ -248,7 +248,7 @@ export class Display extends Terminal {
 
     // Display a message on the top line
     // C ref: winprocs.h win_putstr for NHW_MESSAGE
-    async putstr_message(msg) {
+    async putstr_message(msg, opts = {}) {
         let freshAfterMore = false;
         // Add to message history
         if (msg.trim()) {
@@ -266,7 +266,7 @@ export class Display extends Terminal {
             return;
         }
 
-        const isDeathMessage = msg.startsWith('You die...');
+        const isUrgent = !!opts.urgent || msg.startsWith('You die');
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
@@ -279,7 +279,7 @@ export class Display extends Terminal {
         }
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
-        if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
+        if (this.topMessage && this.messageNeedsMore && isUrgent) {
             this.renderMoreMarker();
             if (this._nhgetch) {
                 await more(this, {
@@ -452,7 +452,7 @@ export class Display extends Terminal {
         // Mark message as needing acknowledgement (for concatenation logic)
         // C ref: toplin = TOPLINE_NEED_MORE after displaying message
         this.messageNeedsMore = true;
-        if (isDeathMessage) {
+        if (isUrgent) {
             this.renderMoreMarker();
             if (this._nhgetch) {
                 await more(this, {

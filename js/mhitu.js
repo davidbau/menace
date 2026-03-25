@@ -2303,7 +2303,7 @@ export async function mdamageu(mtmp, n, player, display, game = null) {
             gameCtx.playerDied = true;
             await done_in_by(mtmp, 0, gameCtx);
         } else if (display) {
-            await display.putstr_message('You die...');
+            await display.putstr_message('You die...', { urgent: true });
         }
     }
 }

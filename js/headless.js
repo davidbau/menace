@@ -637,7 +637,7 @@ export class HeadlessDisplay extends Terminal {
         }
     }
 
-    async putstr_message(msg) {
+    async putstr_message(msg, opts = {}) {
         let freshAfterMore = false;
         // Add to message history
         if (msg.trim()) {
@@ -647,16 +647,12 @@ export class HeadlessDisplay extends Terminal {
             }
         }
 
-        const isDeathMessage = msg.startsWith('You die...');
+        // Urgent messages (death, etc.) force a --More-- boundary before display.
+        // Detected via explicit opts.urgent flag from pline, OR string match as fallback
+        // for code paths that call putstr_message directly (e.g., mhitu.js).
+        const isUrgent = !!opts.urgent || msg.startsWith('You die');
+        const suppressStatusRefresh = !!this._urgentSuppressStatusRefresh;
         const gameRef = this._gameRef();
-        const sleepWakeBoundary = !!(
-            Number(gameRef?.player?.usleep || 0) > 0
-            || gameRef?.multi_reason === 'sleeping'
-            || gameRef?.nomovemsg === 'You wake up.'
-        );
-        const suppressDeathStagingStatus = !!(gameRef?.context?.mon_moving
-            && Number(gameRef?.multi || 0) < 0
-            && !sleepWakeBoundary);
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
@@ -669,7 +665,7 @@ export class HeadlessDisplay extends Terminal {
         }
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
-        if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
+        if (this.topMessage && this.messageNeedsMore && isUrgent) {
             this.renderMoreMarker();
             if (this._nhgetch) {
                 try {
@@ -677,7 +673,7 @@ export class HeadlessDisplay extends Terminal {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
                         readKey: this._nhgetch,
-                        refreshStatus: !suppressDeathStagingStatus,
+                        refreshStatus: !suppressStatusRefresh,
                     });
                 } catch (e) {
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
@@ -689,6 +685,7 @@ export class HeadlessDisplay extends Terminal {
             this._topMessageStatusHp = null;
             this._topMessageStepIndex = null;
             this.moreMarkerActive = false;
+            this._urgentSuppressStatusRefresh = false;
             freshAfterMore = true;
         }
 
@@ -792,7 +789,7 @@ export class HeadlessDisplay extends Terminal {
                     refreshPlayer._botl = false;
                 }
             }
-            if (isDeathMessage) {
+            if (isUrgent) {
                 this.renderMoreMarker();
                 if (this._nhgetch) {
                     try {
