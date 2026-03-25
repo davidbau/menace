@@ -73,6 +73,11 @@ exp_trace_env = _session.exp_trace_env
 capture_cursor = _session.capture_cursor
 collect_mapdump_checkpoints = _session.collect_mapdump_checkpoints
 report_repaint_debug_log = _session.report_repaint_debug_log
+rnglog_disp_env = _session.rnglog_disp_env
+cosmic_display_env = _session.cosmic_display_env
+collect_passthrough_env = _session.collect_passthrough_env
+collect_regen_logging_env = _session.collect_regen_logging_env
+REGEN_LOG_ENV_PAIRS = getattr(_session, 'REGEN_LOG_ENV_PAIRS', ())
 
 
 def parse_key_delay_overrides(raw_value):
@@ -446,20 +451,19 @@ def run_from_keylog(
     repaint_env = repaint_trace_env()
     repaint_debug = repaint_debug_env(repaint_debug_log_path)
     exp_env = exp_trace_env()
-    rnglog_disp_env = f'NETHACK_RNGLOG_DISP={os.environ.get("NETHACK_RNGLOG_DISP", "")} ' if os.environ.get('NETHACK_RNGLOG_DISP', '') else ''
-    passthrough_env = ''
-    for key, value in os.environ.items():
-        if (key.startswith('NETHACK_') or key.startswith('WEBHACK_')) and value:
-            if key in {
-                'NETHACK_RNGLOG', 'NETHACK_DUMPMAP', 'NETHACK_DUMPSNAP',
-                'NETHACK_MAPDUMP_DIR', 'NETHACK_SEED',
-                'NETHACK_FIXED_DATETIME', 'NETHACK_NO_DELAY',
-                'NETHACK_EVENT_TEST_MOVE', 'NETHACK_EVENT_RUNSTEP',
-                'NETHACK_REPAINT_TRACE', 'NETHACK_REPAINT_DEBUG',
-                'NETHACK_EXP_TRACE', 'NETHACK_RNGLOG_DISP',
-            }:
-                continue
-            passthrough_env += f'{key}={value} '
+    rnglog_disp = rnglog_disp_env()
+    cosmic_display = cosmic_display_env()
+    passthrough_skip = {'NETHACK_REPAINT_DEBUG_LOG', 'WEBHACK_REPAINT_DEBUG_LOG'}
+    for nethack_key, webhack_key in REGEN_LOG_ENV_PAIRS:
+        passthrough_skip.add(nethack_key)
+        if webhack_key:
+            passthrough_skip.add(webhack_key)
+    passthrough_env_map = collect_passthrough_env(passthrough_skip)
+    passthrough_env = ''.join(
+        f'{key}={value} '
+        for key, value in passthrough_env_map.items()
+        if value
+    )
 
     name_flag = "-u '' " if interactive else f'-u {character["name"]} '
     wiz_flag = '-D' if wizard_enabled else ''
@@ -474,7 +478,8 @@ def run_from_keylog(
             f'{repaint_env}'
             f'{repaint_debug}'
             f'{exp_env}'
-            f'{rnglog_disp_env}'
+            f'{rnglog_disp}'
+            f'{cosmic_display}'
             f'{passthrough_env}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -564,16 +569,7 @@ def run_from_keylog(
             if final_capture_delay_s > 0.0:
                 session_data['regen'] = dict(session_data['regen'])
                 session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
-            session_env = {}
-            for key in (
-                'NETHACK_EVENT_TEST_MOVE',
-                'NETHACK_EVENT_RUNSTEP',
-                'NETHACK_REPAINT_TRACE',
-                'NETHACK_EXP_TRACE',
-            ):
-                value = os.environ.get(key)
-                if value:
-                    session_env[key] = value
+            session_env = collect_regen_logging_env()
             if session_env:
                 session_data['regen'] = dict(session_data['regen'])
                 session_data['regen']['env'] = session_env

@@ -2,11 +2,24 @@ diff --git a/src/hack.c b/src/hack.c
 index c27e86357..6544c8f7b 100644
 --- a/src/hack.c
 +++ b/src/hack.c
-@@ -977,11 +978,24 @@ test_move(
-     coordxy y = uy + dy;
-     struct rm *tmpr;
-     struct rm *ust;
+@@ -977,11 +978,33 @@ test_move(
+    coordxy y = uy + dy;
+    struct rm *tmpr;
+    struct rm *ust;
 +    static int log_test_move = -1;
++staticfn const char *
++harness_getenv_with_fallback(const char *nethack_key, const char *webhack_key)
++{
++    const char *value = getenv(nethack_key);
++    if (value && *value) {
++        return value;
++    }
++    if (!webhack_key || !*webhack_key) {
++        return (const char *) 0;
++    }
++    value = getenv(webhack_key);
++    return (value && *value) ? value : (const char *) 0;
++}
 +#define TEST_MOVE_RETURN(rv_expr)                                              \
 +    do {                                                                       \
 +        boolean tm_rv = (rv_expr);                                             \
@@ -15,19 +28,21 @@ index c27e86357..6544c8f7b 100644
 +                      mode, ux, uy, dx, dy, x, y, tm_rv ? TRUE : FALSE);             \
 +        return tm_rv;                                                          \
 +    } while (0)
-
+ 
      svc.context.door_opened = FALSE;
-+    if (log_test_move < 0) {
-+        const char *ev = getenv("NETHACK_EVENT_TEST_MOVE");
-+        log_test_move = (ev && *ev && *ev != '0') ? TRUE : FALSE;
-+    }
-
+    if (log_test_move < 0) {
+        const char *ev = harness_getenv_with_fallback(
+            "NETHACK_EVENT_TEST_MOVE",
+            "WEBHACK_EVENT_TEST_MOVE");
+        log_test_move = (ev && *ev && *ev != '0') ? TRUE : FALSE;
+    }
+ 
      if (!isok(x, y))
 -        return FALSE;
 +        TEST_MOVE_RETURN(FALSE);
-
+ 
      tmpr = &levl[x][y];
-
+ 
 @@ -1000,31 +1014,31 @@ test_move(
                 "there" being somewhere the player isn't sure of */
              if (mode == DO_MOVE)
@@ -137,11 +152,11 @@ index c27e86357..6544c8f7b 100644
       * Avoid water and lava using the usual running rules.
 @@ -1162,7 +1176,7 @@ test_move(
          struct trap *t = t_at(x, y);
-
+ 
          if (t && t->tseen && t->ttyp != VIBRATING_SQUARE)
 -            return (mode == TEST_TRAP);
 +            TEST_MOVE_RETURN(mode == TEST_TRAP);
-
+ 
          /* FIXME: should be using lastseentyp[x][y] rather than seen vector
           */
 @@ -1176,11 +1190,11 @@ test_move(
@@ -151,13 +166,13 @@ index c27e86357..6544c8f7b 100644
 -            return (mode == TEST_TRAP);
 +            TEST_MOVE_RETURN(mode == TEST_TRAP);
      }
-
+ 
      if (mode == TEST_TRAP)
 -        return FALSE; /* do not move through traps */
 +        TEST_MOVE_RETURN(FALSE); /* do not move through traps */
-
+ 
      ust = &levl[ux][uy];
-
+ 
 @@ -1190,7 +1204,7 @@ test_move(
          /* Can't move at a diagonal out of a doorway with door. */
          if (mode == DO_MOVE && flags.mention_walls)
@@ -165,7 +180,7 @@ index c27e86357..6544c8f7b 100644
 -        return FALSE;
 +        TEST_MOVE_RETURN(FALSE);
      }
-
+ 
      if (sobj_at(BOULDER, x, y) && (Sokoban || !Passes_walls)) {
 @@ -1198,22 +1212,22 @@ test_move(
              && !(Blind || Hallucination) && !could_move_onto_boulder(x, y)) {
@@ -186,12 +201,12 @@ index c27e86357..6544c8f7b 100644
 +                TEST_MOVE_RETURN(FALSE);
          } else if (mode == TEST_TRAV) {
              struct obj *obj;
-
+ 
              /* never travel through boulders in Sokoban */
              if (Sokoban)
 -                return FALSE;
 +                TEST_MOVE_RETURN(FALSE);
-
+ 
              /* don't pick two boulders in a row, unless there's a way thru */
              if (sobj_at(BOULDER, ux, uy) && !Sokoban) {
 @@ -1224,14 +1238,15 @@ test_move(
@@ -204,11 +219,11 @@ index c27e86357..6544c8f7b 100644
          }
          /* assume you'll be able to push it when you get there... */
      }
-
+ 
      /* OK, it is a legal place to move. */
 -    return TRUE;
 +    TEST_MOVE_RETURN(TRUE);
 +#undef TEST_MOVE_RETURN
  }
-
+ 
  /*

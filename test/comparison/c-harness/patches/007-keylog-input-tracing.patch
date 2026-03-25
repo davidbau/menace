@@ -1,19 +1,36 @@
 diff --git a/src/cmd.c b/src/cmd.c
-index 780bca6c3..c56f5ad07 100644
+index 780bca6c3..8cf23059c 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -151,6 +151,94 @@ staticfn int dummyfunction(void);
+@@ -152,6 +152,98 @@ static const char *readchar_queue = "";
+ staticfn int dummyfunction(void);
  
  static const char *readchar_queue = "";
- 
 +static const char *harness_dumpsnap_key_steps = (const char *) 0;
 +static int harness_dumpsnap_every_key = 0;
 +static int harness_dumpsnap_key_cfg_init = 0;
 +static long harness_input_key_index = -1L;
-+extern void harness_dump_checkpoint(const char *);
++
++static const char *
++harness_getenv_with_fallback(const char *first, const char *second, const char *third)
++{
++    const char *value;
++    value = getenv(first);
++    if (value && *value)
++        return value;
++    value = getenv(second);
++    if (value && *value)
++        return value;
++    if (third && *third) {
++        value = getenv(third);
++        if (value && *value)
++            return value;
++    }
++    return (const char *) 0;
++}
 +
 +staticfn boolean
-+harness_step_spec_match(const char *spec, long idx)
++harness_key_step_spec_match(const char *spec, long idx)
 +{
 +    const char *p;
 +
@@ -67,12 +84,22 @@ index 780bca6c3..c56f5ad07 100644
 +    if (!harness_dumpsnap_key_cfg_init) {
 +        const char *key_dump_every_env;
 +
-+        harness_dumpsnap_key_steps = getenv("NETHACK_DUMPSNAP_KEY_STEPS");
++        harness_dumpsnap_key_steps = harness_getenv_with_fallback(
++            "NETHACK_DUMPSNAP_KEY_STEPS",
++            "WEBHACK_DUMPSNAP_KEY_STEPS",
++            (const char *) 0
++        );
 +        key_dump_every_env = getenv("NETHACK_DUMPSNAP_EVERY_KEY");
 +        if (!key_dump_every_env || !*key_dump_every_env)
 +            key_dump_every_env = getenv("NETHACK_DUMPSNAP_EVERY_INPUT");
 +        if (!key_dump_every_env || !*key_dump_every_env)
 +            key_dump_every_env = getenv("NETHACK_DUMPSNAP_INPUT_EVERY");
++        if (!key_dump_every_env || !*key_dump_every_env)
++            key_dump_every_env = getenv("WEBHACK_DUMPSNAP_EVERY_KEY");
++        if (!key_dump_every_env || !*key_dump_every_env)
++            key_dump_every_env = getenv("WEBHACK_DUMPSNAP_EVERY_INPUT");
++        if (!key_dump_every_env || !*key_dump_every_env)
++            key_dump_every_env = getenv("WEBHACK_DUMPSNAP_INPUT_EVERY");
 +        harness_dumpsnap_every_key = (key_dump_every_env
 +                                      && *key_dump_every_env
 +                                      && *key_dump_every_env != '0');
@@ -84,8 +111,8 @@ index 780bca6c3..c56f5ad07 100644
 +
 +    ++harness_input_key_index;
 +    if (!harness_dumpsnap_every_key
-+        && !harness_step_spec_match(harness_dumpsnap_key_steps,
-+                                    harness_input_key_index))
++        && !harness_key_step_spec_match(harness_dumpsnap_key_steps,
++                                       harness_input_key_index))
 +        return;
 +
 +    Sprintf(phasebuf, "auto_key_%ld_sym_%d_getlin_%d_moveloop_%d",
@@ -93,11 +120,10 @@ index 780bca6c3..c56f5ad07 100644
 +            !!program_state.in_getlin, !!program_state.in_moveloop);
 +    harness_dump_checkpoint(phasebuf);
 +}
-+
+ 
  staticfn void
  json_write_escaped(FILE *fp, const char *s)
- {
-@@ -5600,6 +5671,8 @@ readchar_core(coordxy *x, coordxy *y, int *mod)
+@@ -5031,6 +5123,8 @@ readchar_core(coordxy *x, coordxy *y, int *mod)
          click_to_cmd(*x, *y, *mod);
      }
  
@@ -107,41 +133,34 @@ index 780bca6c3..c56f5ad07 100644
      /* next readchar() will be for an ordinary char unless parse()
         sets this back to non-zero */
 diff --git a/win/tty/wintty.c b/win/tty/wintty.c
-index 61338542b..51e3e3ea5 100644
+index 61338542b..f15cc7ce5 100644
 --- a/win/tty/wintty.c
 +++ b/win/tty/wintty.c
-@@ -14,6 +14,7 @@
+@@ -13,6 +13,7 @@
+ #define H2344_BROKEN
  
  #include "hack.h"
- 
 +#include <sys/time.h>
+ 
  #ifdef TTY_GRAPHICS
  #include "dlb.h"
- 
-@@ -94,5 +95,105 @@
+@@ -94,6 +95,90 @@ extern void msmsg(const char *, ...);
  #define HUPSKIP_RESULT(RES) /*empty*/
  #endif /* ?HANGUPHANDLING */
  
++extern void harness_dump_checkpoint(const char *);
++
 +/* Optional input event logging for deterministic replay/testing.
 + * Enable by setting NETHACK_KEYLOG to a writable file path.
 + * Optionally set NETHACK_KEYLOG_DELAY_MS to skip initial keypresses.
 + * Each input event is written as one JSON line.
-+ *
-+ * Optional full-input checkpoint stream:
-+ *   NETHACK_DUMPSNAP_EVERY_KEY=1
-+ * (legacy aliases NETHACK_DUMPSNAP_EVERY_INPUT and
-+ * NETHACK_DUMPSNAP_INPUT_EVERY are also supported).
-+ * emits checkpoint phases auto_inp_<n>... for each nhgetch() key.
 + */
 +static FILE *nh_keylog_fp = (FILE *) 0;
 +static boolean nh_keylog_inited = FALSE;
 +static long nh_keylog_seq = 0L;
-+static long nh_input_seq = -1L;
-+static struct timeval nh_keylog_start_time;
 +static int nh_keylog_delay_ms = 0;
 +static int nh_dumpsnap_every_input = 0;
-+
-+extern void harness_dump_checkpoint(const char *);
++static struct timeval nh_keylog_start_time;
 +
 +static void
 +nh_keylog_init(void)
@@ -154,17 +173,25 @@ index 61338542b..51e3e3ea5 100644
 +    nh_keylog_inited = TRUE;
 +    gettimeofday(&nh_keylog_start_time, NULL);
 +    delay_str = nh_getenv("NETHACK_KEYLOG_DELAY_MS");
++    if (!delay_str || !*delay_str)
++        delay_str = nh_getenv("WEBHACK_KEYLOG_DELAY_MS");
 +    if (delay_str && *delay_str)
 +        nh_keylog_delay_ms = atoi(delay_str);
 +    key_dump_every_env = nh_getenv("NETHACK_DUMPSNAP_EVERY_KEY");
 +    if (!key_dump_every_env || !*key_dump_every_env)
 +        key_dump_every_env = nh_getenv("NETHACK_DUMPSNAP_EVERY_INPUT");
 +    if (!key_dump_every_env || !*key_dump_every_env)
++        key_dump_every_env = nh_getenv("WEBHACK_DUMPSNAP_EVERY_KEY");
++    if (!key_dump_every_env || !*key_dump_every_env)
 +        key_dump_every_env = nh_getenv("NETHACK_DUMPSNAP_INPUT_EVERY");
++    if (!key_dump_every_env || !*key_dump_every_env)
++        key_dump_every_env = nh_getenv("WEBHACK_DUMPSNAP_INPUT_EVERY");
 +    nh_dumpsnap_every_input = (key_dump_every_env
 +                               && *key_dump_every_env
 +                               && *key_dump_every_env != '0');
 +    path = nh_getenv("NETHACK_KEYLOG");
++    if (!path || !*path)
++        path = nh_getenv("WEBHACK_KEYLOG");
 +    if (!path || !*path)
 +        return;
 +    nh_keylog_fp = fopen(path, "a");
@@ -177,46 +204,19 @@ index 61338542b..51e3e3ea5 100644
 +nh_keylog_event(int key)
 +{
 +    const char *seed;
-+    int in_getlin, in_moveloop;
-+    long movecount;
-+    coordxy ux = 0, uy = 0;
-+    int dnum = 0, dlevel = 0;
 +
 +    nh_keylog_init();
 +    if (!nh_keylog_fp && !nh_dumpsnap_every_input)
 +        return;
-+
-+    /* Skip logging if delay hasn't elapsed (for manual recording). */
-+    if (nh_keylog_delay_ms > 0) {
-+        struct timeval now;
-+        long elapsed_ms;
-+        gettimeofday(&now, NULL);
-+        elapsed_ms = (now.tv_sec - nh_keylog_start_time.tv_sec) * 1000L
-+                   + (now.tv_usec - nh_keylog_start_time.tv_usec) / 1000L;
-+        if (elapsed_ms < nh_keylog_delay_ms)
-+            return;
-+    }
-+
 +    seed = nh_getenv("NETHACK_SEED");
 +    if (!seed)
 +        seed = "";
 +
-+    in_getlin = !!program_state.in_getlin;
-+    in_moveloop = !!program_state.in_moveloop;
-+    movecount = (long) svm.moves;
-+    if (u.ux && u.uy) {
-+        ux = u.ux;
-+        uy = u.uy;
-+        dnum = u.uz.dnum;
-+        dlevel = u.uz.dlevel;
-+    }
-+
-+    ++nh_keylog_seq;
-+    ++nh_input_seq;
 +    if (nh_dumpsnap_every_input) {
 +        char phasebuf[128];
++        nh_keylog_seq++;
 +        Sprintf(phasebuf, "auto_inp_%ld_key_%d_getlin_%d_moveloop_%d",
-+                nh_input_seq, key, in_getlin, in_moveloop);
++                nh_keylog_seq, key, !!program_state.in_getlin, !!program_state.in_moveloop);
 +        harness_dump_checkpoint(phasebuf);
 +    }
 +    if (nh_keylog_fp) {
@@ -226,17 +226,19 @@ index 61338542b..51e3e3ea5 100644
 +            "\"x\":%d,\"y\":%d,\"dnum\":%d,\"dlevel\":%d,"
 +            "\"in_getlin\":%d,\"in_moveloop\":%d,"
 +            "\"seed\":\"%s\"}\n",
-+            nh_keylog_seq, key, movecount,
-+            (int) ux, (int) uy, (int) dnum, (int) dlevel,
-+            in_getlin, in_moveloop, seed);
++            nh_keylog_seq, key, (long) svm.moves,
++            (int) u.ux, (int) u.uy, (int) u.uz.dnum, (int) u.uz.dlevel,
++            !!program_state.in_getlin, !!program_state.in_moveloop, seed);
 +    }
 +}
 +
  /* Interface definition, for windows.c */
  struct window_procs tty_procs = {
-@@ -4106,5 +4200,6 @@ tty_nhgetch(void)
+     WPID(tty),
+@@ -4106,5 +4106,6 @@ tty_nhgetch(void)
          print_vt_code2(AVTC_SELECT_WINDOW, tmp);
      }
  #endif /* TTY_TILES_ESCCODES */
 +    nh_keylog_event(i);
      return i;
+ }

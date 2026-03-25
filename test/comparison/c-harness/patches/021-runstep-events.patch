@@ -9,12 +9,12 @@ diff --git a/src/allmain.c b/src/allmain.c
 +              wtcap, moveamt, u.umovement, u.ux, u.uy);
      if (u.umovement < 0)
          u.umovement = 0;
-@@ -166,4 +166,139 @@
+@@ -166,4 +166,143 @@
  static int mvl_change = 0;
  
-+static long repaint_debug_key_step_index = -1L;
-+static const char *repaint_debug_step_path = (const char *) 0;
-+static int repaint_debug_step_keyarg = -1;
++static long harness_repaint_step_index = -1L;
++static const char *harness_repaint_step_path = (const char *) 0;
++static int harness_repaint_step_keyarg = -1;
 +
 +staticfn boolean
 +runstep_event_enabled(void)
@@ -23,13 +23,15 @@ diff --git a/src/allmain.c b/src/allmain.c
 +
 +    if (cached < 0) {
 +        const char *ev = getenv("NETHACK_EVENT_RUNSTEP");
++        if (!ev || !*ev)
++            ev = getenv("WEBHACK_EVENT_RUNSTEP");
 +        cached = (ev && *ev && *ev != '0') ? 1 : 0;
 +    }
 +    return (boolean) cached;
 +}
 +
 +staticfn boolean
-+dumpsnap_step_spec_match(const char *spec, long step_index)
++harness_step_spec_match(const char *spec, long step_index)
 +{
 +    const char *p;
 +
@@ -90,6 +92,8 @@ diff --git a/src/allmain.c b/src/allmain.c
 +
 +    if (!initialized) {
 +        step_spec = getenv("NETHACK_DUMPSNAP_STEPS");
++        if (!step_spec || !*step_spec)
++            step_spec = getenv("WEBHACK_DUMPSNAP_STEPS");
 +        initialized = 1;
 +    }
 +    if (!step_spec || !*step_spec)
@@ -97,8 +101,8 @@ diff --git a/src/allmain.c b/src/allmain.c
 +    if (!pathstr || strcmp(pathstr, "fresh_cmd"))
 +        return;
 +
-+    step_index = repaint_debug_key_step_index;
-+    if (!dumpsnap_step_spec_match(step_spec, step_index))
++    step_index = harness_repaint_step_index;
++    if (!harness_step_spec_match(step_spec, step_index))
 +        return;
 +
 +    Sprintf(phasebuf, "auto_step_%ld_path_%s_key_%d",
@@ -112,27 +116,27 @@ diff --git a/src/allmain.c b/src/allmain.c
 +    if (!pathstr || !*pathstr)
 +        pathstr = "unknown";
 +    if (!strcmp(pathstr, "fresh_cmd"))
-+        ++repaint_debug_key_step_index;
-+    repaint_debug_step_path = pathstr;
-+    repaint_debug_step_keyarg = keyarg;
++        ++harness_repaint_step_index;
++    harness_repaint_step_path = pathstr;
++    harness_repaint_step_keyarg = keyarg;
 +}
 +
 +long
 +repaint_debug_get_step_index(void)
 +{
-+    return repaint_debug_key_step_index;
++    return harness_repaint_step_index;
 +}
 +
 +const char *
 +repaint_debug_get_step_path(void)
 +{
-+    return repaint_debug_step_path;
++    return harness_repaint_step_path;
 +}
 +
 +int
 +repaint_debug_get_step_key(void)
 +{
-+    return repaint_debug_step_keyarg;
++    return harness_repaint_step_keyarg;
 +}
 +
 +#define RUNSTEP_EVENT(pathstr, keyarg)                                         \

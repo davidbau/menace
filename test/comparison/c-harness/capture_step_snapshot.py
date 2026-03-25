@@ -416,7 +416,7 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
 
         matched_phase_from_stream = None
-        runstep_events_enabled = bool(os.environ.get("NETHACK_EVENT_RUNSTEP"))
+        runstep_events_enabled = bool(runstep_event_env())
         if matched_checkpoint is None and runstep_events_enabled:
             rng_lines = wait_for_target_runstep_rng(rng_log_file, step_index)
             matched_phase_from_stream = checkpoint_phase_for_runstep_index(rng_lines, step_index)
