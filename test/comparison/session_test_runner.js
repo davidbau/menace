@@ -450,7 +450,7 @@ async function replayInterfaceSession(session) {
 
     const seed = session.meta.seed;
     const display = new HeadlessDisplay();
-    const input = createHeadlessInput();
+    const input = createHeadlessInput({ throwOnEmpty: true });
     const game = new NetHackGame({ display, input });
     const subtype = session.meta.regen?.subtype;
     const replaySessionInterface = subtype !== 'startup' && subtype !== 'nameprompt';
@@ -1376,7 +1376,7 @@ export async function runSessionCli() {
             const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
             args.sessionNames = manifest.sessions;
             // Shorter timeout for core: fail fast on known-stuck sessions
-            args.sessionTimeoutMs = 12000;
+            args.sessionTimeoutMs = 5000;
         }
         else if (arg === '--help' || arg === '-h') {
             console.log('Usage: node session_test_runner.js [options] [session-file]');
