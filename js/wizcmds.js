@@ -345,7 +345,8 @@ export async function wizLevelPort(game) {
         await display.putstr_message('You are already on that level.');
         return { moved: false, tookTime: false };
     }
-    schedule_goto(player, level, 0, null, 'You materialize on a different level!');
+    schedule_goto(player, level, 0, null,
+        game.flags.verbose ? 'You materialize on a different level!' : null);
     return { moved: false, tookTime: false };
 }
 
