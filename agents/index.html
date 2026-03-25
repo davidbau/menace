@@ -30,6 +30,12 @@
   .sparkline { display: flex; align-items: flex-end; gap: 1px; height: 22px; padding: 0 0.8em 0.5em; }
   .sb { flex: 1; min-width: 2px; border-radius: 1px 1px 0 0; background: #c5b899; cursor: pointer; }
   .sb.hl { background: var(--lore); }
+  .toc-chapter {
+    padding: 0.5em 0.8em 0.15em; font-size: 0.75em; font-weight: 700;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em;
+    border-top: 1px solid var(--border); margin-top: 0.3em;
+  }
+  .toc-chapter:first-child { border-top: none; margin-top: 0; }
   .toc-item {
     display: block; padding: 0.25em 0.8em; cursor: pointer; font-size: 0.8em;
     border-left: 3px solid transparent; text-decoration: none; color: var(--text); line-height: 1.25;
@@ -258,10 +264,10 @@
   </div>
 </div>
 <script>
-let DATA=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,commit:true,lore:true};
+let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,commit:true,lore:true};
 
 async function init() {
-  // Try relative path (local/same-origin), fall back to GitHub Pages
+  // Load timeline data
   const DATA_URLS = ['data/timeline.jsonl', 'https://davidbau.github.io/menace-agents/data/timeline.jsonl'];
   let text = null;
   for (const url of DATA_URLS) {
@@ -269,6 +275,17 @@ async function init() {
   }
   if (!text) { document.getElementById('timeline').textContent = 'Failed to load timeline data.'; return; }
   DATA = text.trim().split('\n').map(l=>JSON.parse(l));
+
+  // Load chapters
+  const CH_URLS = ['data/chapters.json', 'https://davidbau.github.io/menace-agents/data/chapters.json'];
+  for (const url of CH_URLS) {
+    try { const r = await fetch(url); if (r.ok) { CHAPTERS = await r.json(); break; } } catch {}
+  }
+  // Build date→chapter lookup
+  for (const ch of CHAPTERS) {
+    ch._dates = new Set(ch.dates || []);
+    ch._firstDate = ch.dates?.[0];
+  }
   renderToc(); renderTimeline(); renderKeywordIndex();
   document.getElementById('filters').addEventListener('click', e => {
     const b = e.target.closest('.fbtn'); if (!b) return;
@@ -323,12 +340,18 @@ function renderToc(){
     return`<div class="sb${d.lore?.length?' hl':''}" style="height:${h}px" data-d="${d.date}"></div>`;
   }).join('');
   const shortDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  // Build chapter lookup: date → chapter that starts on this date
+  const chapterStart = {};
+  for (const ch of CHAPTERS) if (ch._firstDate) chapterStart[ch._firstDate] = ch;
+
   document.getElementById('toc').innerHTML=DATA.map(d=>{
     const dt = new Date(d.date+'T12:00:00');
     const dow = shortDay[dt.getDay()];
     const mon = dt.toLocaleString('en',{month:'short'});
     const dd = dt.getDate();
-    return`<a class="toc-item${d.lore?.length?' hl':''}" data-d="${d.date}" href="#d-${d.date}">
+    const ch = chapterStart[d.date];
+    const chHdr = ch ? `<div class="toc-chapter">${esc(ch.name)}</div>` : '';
+    return chHdr + `<a class="toc-item${d.lore?.length?' hl':''}" data-d="${d.date}" href="#d-${d.date}">
       <span class="td">${dow} ${mon} ${dd}</span><span class="ts">${esc(d.summary||'')}</span></a>`;
   }).join('');
 }
