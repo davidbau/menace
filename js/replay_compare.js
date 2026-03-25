@@ -340,6 +340,13 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         flags: replayFlags,
     };
 
+    // C's u_init_misc() sets ubirthday = time() (real clock), NOT getnow().
+    // Pass session's game_start_time so shopkeeper names match C's output.
+    const gameStartTime = rawSession?.game_start_time;
+    if (Number.isFinite(gameStartTime) && gameStartTime > 0) {
+        initOpts.gameStartTime = gameStartTime;
+    }
+
     const allSteps = rawSession?.steps || session?.steps || [];
     const hasCheckpointEvents = allSteps.some((step) =>
         Array.isArray(step?.rng) && step.rng.some((entry) => typeof entry === 'string' && entry.startsWith('^ckpt['))

@@ -45,7 +45,7 @@ import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vi
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
-import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty } from './dungeon.js';
+import { mklev, setGameSeed, setGameUbirthday, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto, maybe_lvltport_feedback } from './do.js';
 import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          loadFlags, saveFlags, deserializeRng,
@@ -1780,6 +1780,12 @@ export class NetHackGame {
         this.seed = seed;
         initRng(seed);
         setGameSeed(seed);
+
+        // C's u_init_misc() sets ubirthday = time() (real clock), NOT getnow().
+        // If the session recorded C's game_start_time, use it for shopkeeper naming.
+        if (Number.isFinite(urlOpts.gameStartTime) && urlOpts.gameStartTime > 0) {
+            setGameUbirthday(urlOpts.gameStartTime);
+        }
 
         const sessionDatetime = (typeof urlOpts.datetime === 'string' && urlOpts.datetime.length === 14)
             ? urlOpts.datetime

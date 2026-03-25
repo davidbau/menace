@@ -1512,6 +1512,12 @@ def record_c_session(env, nethackrc, keys, output_path,
         check=True
     )
 
+    # Capture the Unix timestamp at game launch.  C's u_init_misc() sets
+    # ubirthday = time() (the real system clock), NOT getnow() which reads
+    # NETHACK_FIXED_DATETIME.  Shopkeeper names depend on ubirthday, so
+    # the JS replay needs this value to match C's naming.
+    game_start_time = int(time.time())
+
     session_data = {
         'version': 4,
         'env': {k: v for k, v in env.items()},
@@ -1519,6 +1525,7 @@ def record_c_session(env, nethackrc, keys, output_path,
         'seed': int(env.get('NETHACK_SEED', 0)),
         'source': 'c',
         'recorded_with': get_recorded_with(),
+        'game_start_time': game_start_time,
         'steps': [],
     }
     if regen_metadata:

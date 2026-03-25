@@ -735,6 +735,15 @@ export function setGameSeed(seed) {
     _gameUbirthday = resolveUbirthday(seed);
 }
 
+// C's u_init_misc() sets ubirthday = time() (real clock), NOT getnow().
+// During replay, session metadata may carry the recording-time timestamp
+// so shopkeeper names match C's actual output.
+export function setGameUbirthday(timestamp) {
+    if (Number.isFinite(timestamp) && timestamp > 0) {
+        _gameUbirthday = timestamp;
+    }
+}
+
 function getLedgerNoForLevel(dnum, dlevel) {
     const cdnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
     const clev = Number.isInteger(dlevel) && dlevel > 0 ? dlevel : 1;
