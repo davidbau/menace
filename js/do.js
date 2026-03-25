@@ -1838,11 +1838,12 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         for (const mtmp of monsters) {
             if (!mtmp || mtmp.dead) continue;
             // C ref: restore.c:1204-1206 — monster elapsed-time catch-up.
+            // Consumes RNG for trapped/confused/stunned monsters.
             if (elapsed > 0) {
                 await mon_catchup_elapsed_time(mtmp, elapsed, game);
             }
             // C ref: restore.c:1209 restore_cham(mtmp) — update shape-changers.
-            // (JS doesn't have full restore_cham yet; skip for now.)
+            // TODO: implement restore_cham for full parity.
             // C ref: restore.c:1211-1212 — give hiders a chance to hide.
             if (elapsed > 0 && elapsed > rnd(10)) {
                 hide_monst(mtmp, nextMap);
