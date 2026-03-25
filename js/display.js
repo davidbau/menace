@@ -44,7 +44,7 @@ import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_O
          BOLT_LIM,
          MONSEEN_NORMAL, MONSEEN_SEEINVIS, MONSEEN_INFRAVIS, MONSEEN_TELEPAT,
          MONSEEN_XRAYVIS, MONSEEN_DETECT, MONSEEN_WARNMON,
-         def_warnsyms, WARNCOUNT, ECMD_OK,
+         def_warnsyms, WARNCOUNT,
          BEAR_TRAP, WEB, is_pit } from './const.js';
 import { cansee, couldsee, clear_vision_full_recalc, block_point, unblock_point } from './vision.js';
 import { do_light_sources } from './light.js';
@@ -1183,58 +1183,6 @@ span.nh-cursor {
         }
     }
 
-    // Display a simple menu and return selection (async)
-    // C ref: winprocs.h win_select_menu
-    async showMenu(title, items, readKey) {
-        // Save the current map area
-        const savedCells = [];
-        const startRow = MAP_ROW_START + 1;
-        const maxItems = Math.min(items.length, ROWNO - 4);
-
-        for (let r = startRow; r < startRow + maxItems + 2; r++) {
-            savedCells[r] = [];
-            for (let c = 0; c < this.cols; c++) {
-                savedCells[r][c] = { ...this.grid[r][c] };
-            }
-        }
-
-        // Draw menu
-        this.clearRow(startRow);
-        this.putstr(2, startRow, title, CLR_WHITE);
-
-        const displayItems = items.slice(0, maxItems);
-        for (let i = 0; i < displayItems.length; i++) {
-            const row = startRow + 1 + i;
-            this.clearRow(row);
-            const item = displayItems[i];
-            const letter = item.letter || String.fromCharCode(97 + i); // a, b, c...
-            this.putstr(2, row, `${letter} - ${item.text}`, CLR_GRAY);
-        }
-
-        // Wait for selection
-        this.putstr_message('(end) ');
-        const ch = await Promise.resolve(readKey());
-
-        // Restore map
-        for (let r = startRow; r < startRow + maxItems + 2; r++) {
-            if (!savedCells[r]) continue;
-            for (let c = 0; c < this.cols; c++) {
-                const saved = savedCells[r][c];
-                this.setCell(c, r, saved.ch, saved.color);
-            }
-        }
-        this.clearRow(MESSAGE_ROW);
-
-        // Find which item was selected
-        const charStr = String.fromCharCode(ch);
-        const selected = displayItems.find((item, idx) => {
-            const letter = item.letter || String.fromCharCode(97 + idx);
-            return letter === charStr;
-        });
-
-        return selected || null;
-    }
-
     // Clear the entire screen and reset message state.
     // C ref: tty_clear_nhwindow() — wipes the whole terminal including topline.
     // Resetting topMessage/messageNeedsMore prevents stale state from triggering
@@ -1672,11 +1620,6 @@ span.nh-cursor {
 }
 
 // Autotranslated from display.c:165
-export function tp_sensemon(mon, playerArg = null, ctxOrMap = null) {
-  const ctx = _resolveDisplayCtx(ctxOrMap);
-  const player = playerArg || ctx?.player || null;
-  return telepathySensesMonsterForMap(mon, player);
-}
 
 // Autotranslated from display.c:172
 export function sensemon(mon, playerArg = null, ctxOrMap = null) {
@@ -2104,13 +2047,6 @@ export async function shieldeff(x, y, game) {
   }
 }
 
-// Autotranslated from display.c:1117
-export function tether_glyph(x, y, player) {
-  let tdx, tdy;
-  tdx = player.x - x;
-  tdy = player.y - y;
-  return zapdir_to_glyph(Math.sign(tdx), Math.sign(tdy), 2);
-}
 
 // Autotranslated from display.c:1322
 let _swallowedLastX = null;
@@ -2298,11 +2234,6 @@ export async function curs_on_u() {
   await flush_screen(1);
 }
 
-// Autotranslated from display.c:1682
-export async function doredraw() {
-  await docrt();
-  return ECMD_OK;
-}
 
 function docrtRecalc(ctx) {
   if (!ctx?.map || !ctx?.player) return;
