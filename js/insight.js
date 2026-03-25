@@ -1119,7 +1119,9 @@ export async function enlightenment(mode, final, game) {
     const player = (game.u || game.u);
     _enl_lines = [];
 
-    const pname = (player.name || 'Hero');
+    // C ref: insight.c:372 — *tmpbuf = highc(*tmpbuf) capitalizes first letter.
+    const rawName = (player.name || 'Hero');
+    const pname = rawName.charAt(0).toUpperCase() + rawName.slice(1);
     const roleName = player.roleName || player.role || 'Adventurer';
     enlght_out(` ${pname} the ${roleName}'s attributes:`);
 

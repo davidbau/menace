@@ -457,9 +457,10 @@ export function formatStatusLine1(player, rankOfFn) {
     const rank = rankOfFn(level, player.roleIndex, female);
     const polyName = String(player?.type?.mname || '')
         .replace(/\b([a-z])/g, (m) => m.toUpperCase());
+    const capName = player.name ? player.name.charAt(0).toUpperCase() + player.name.slice(1) : "";
     const title = upolyd && polyName
-        ? `${player.name} the ${polyName}`
-        : `${player.name} the ${rank}`;
+        ? `${capName} the ${polyName}`
+        : `${capName} the ${rank}`;
     const strDisplay = upolyd && strongmonst(player.type)
         ? '18/**'
         : (player._screenStrength || player.strDisplay);
