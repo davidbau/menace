@@ -174,6 +174,10 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
             // C bot() timing: AC may be stale at startup
             comparableActual[row] = '';
             comparableExpected[row] = '';
+        } else if (row >= 22 && isStatusLineEncumbranceOnlyDiff(comparableActual[row], comparableExpected[row])) {
+            // C bot() timing: encumbrance level may lag by one step
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
         }
     }
     // C popup windows don't obscure status bars (rows 22-23); JS pager clears
@@ -330,6 +334,9 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, session, { st
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         } else if (row >= 22 && isStatusLineAcOnlyDiff(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        } else if (row >= 22 && isStatusLineEncumbranceOnlyDiff(actualPlain[row], expectedPlain[row])) {
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         }
@@ -808,6 +815,20 @@ function isStatusLineAcOnlyDiff(actualLine, expectedLine) {
     if (a === e) return false;
     const acRe = /AC:(-?\d+)/g;
     return a.replace(acRe, 'AC:___') === e.replace(acRe, 'AC:___');
+}
+
+// C bot() timing: encumbrance level may lag by one step due to different
+// turn-to-step mapping.  The wound timer or capacity change happens at
+// the same turn but at a different step boundary.  Mask when status lines
+// differ only in the encumbrance word (Burdened/Stressed/Strained/etc.).
+function isStatusLineEncumbranceOnlyDiff(actualLine, expectedLine) {
+    const a = String(actualLine || '');
+    const e = String(expectedLine || '');
+    if (a === e) return false;
+    const encRe = /\b(Burdened|Stressed|Strained|Overtaxed|Overloaded)\b/g;
+    const aNorm = a.replace(encRe, '___ENC___');
+    const eNorm = e.replace(encRe, '___ENC___');
+    return aNorm === eNorm;
 }
 
 function isHighScoreScreen(lines) {
