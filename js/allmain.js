@@ -1791,11 +1791,9 @@ export class NetHackGame {
         initRng(seed);
         setGameSeed(seed);
 
-        // C's u_init_misc() sets ubirthday = time() (real clock), NOT getnow().
-        // If the session recorded C's game_start_time, use it for shopkeeper naming.
-        if (Number.isFinite(urlOpts.gameStartTime) && urlOpts.gameStartTime > 0) {
-            setGameUbirthday(urlOpts.gameStartTime);
-        }
+        // C's u_init_misc() sets ubirthday = getnow(), which reads
+        // NETHACK_FIXED_DATETIME.  JS's setGameSeed() above already called
+        // getnow() for the same effect, so no override is needed.
 
         const sessionDatetime = (typeof urlOpts.datetime === 'string' && urlOpts.datetime.length === 14)
             ? urlOpts.datetime

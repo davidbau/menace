@@ -1,0 +1,15 @@
+diff --git a/src/calendar.c b/src/calendar.c
+--- a/src/calendar.c
++++ b/src/calendar.c
+@@ -161,6 +161,10 @@
+         if (lt) {
+             t = *lt;
+             t.tm_year = atoi(y) - 1900;
+             t.tm_mon = atoi(mo) - 1;
++            /* Let mktime determine DST for the TARGET date, not the
++               current date.  Without this, parsing a winter date during
++               summer (or vice versa) inherits the wrong tm_isdst from
++               localtime(&now), producing a 1-hour offset. */
++            t.tm_isdst = -1;
+             t.tm_mday = atoi(md);
+             t.tm_hour = atoi(h);
