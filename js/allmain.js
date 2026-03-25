@@ -429,7 +429,7 @@ export async function moveloop_turnend(game) {
     }
 
     // C ref: allmain.c:304 — regen_pw(mvl_wtcap)
-    await regen_pw_turnend(game);
+    await regen_pw_turnend(game, mvl_wtcap);
 
     // C ref: allmain.c:306-338 — Teleportation/Polymorph/Lycanthropy checks
     {
@@ -1295,12 +1295,13 @@ async function overexert_hp(game) {
 
 // C ref: allmain.c:598 — regen_pw(wtcap): regenerate power (mana) each turn
 // Fires every ((MAXULEV+8-ulevel) * (wizard?3:4) / 6) turns when unencumbered.
-async function regen_pw_turnend(game) {
+async function regen_pw_turnend(game, mvl_wtcap) {
     const player = (game.u || game.u);
     const moves = game.turnCount + 1; // svm.moves equivalent
     if (player.uen == null || player.uenmax == null) return; // pw not initialized
     if (player.uen < player.uenmax) {
-        const wtcap = near_capacity(player);
+        // C ref: regen_pw(wtcap) uses cached mvl_wtcap, not fresh near_capacity.
+        const wtcap = Number.isFinite(mvl_wtcap) ? mvl_wtcap : near_capacity(player);
         const isWizard = (player.roleMnum === PM_WIZARD);
         const interval = Math.floor((MAXULEV + 8 - (player.ulevel || 1))
                                     * (isWizard ? 3 : 4) / 6);
