@@ -769,7 +769,7 @@ export async function run_command(game, ch, opts = {}) {
     }
     // C ref: allmain.c deferred_goto() immediately follows rhack() whenever
     // u.utotype is set.
-    if (game?.player?.utotype) {
+    if ((game.u || game.u)?.utotype) {
         await deferred_goto((game.u || game.u), game);
     }
 
