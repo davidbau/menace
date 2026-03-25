@@ -379,7 +379,7 @@ function finalizeHeadlessReadyState(game) {
 }
 
 // Internal factory: equivalent to old HeadlessGame.start
-async function headlessStart(seed, options = {}) {
+export async function headlessStart(seed, options = {}) {
     const character = options.character || {};
     const roleValue = character.role ?? options.role ?? options.roleIndex;
     const roleIndex = normalizeRoleIndex(roleValue, 11);

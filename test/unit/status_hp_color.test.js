@@ -33,9 +33,8 @@ test('headless status HP text stays gray by default', () => {
     const player = makePlayer(2, 20);
     display.flags.hitpointbar = false;
     display.renderStatus(player);
-    const row = display.colors[23];
     const hpStart = 'Dlvl:1 $:0 '.length;
-    assert.equal(row[hpStart], 7);
+    assert.equal(display.grid[display.rows - 1][hpStart].color, 7);
 });
 
 test('headless status HP text highlights when hitpointbar is enabled', () => {
@@ -43,9 +42,8 @@ test('headless status HP text highlights when hitpointbar is enabled', () => {
     const player = makePlayer(2, 20);
     display.flags.hitpointbar = true;
     display.renderStatus(player);
-    const row = display.colors[23];
     const hpStart = 'Dlvl:1 $:0 '.length;
-    assert.notEqual(row[hpStart], 7);
+    assert.notEqual(display.grid[display.rows - 1][hpStart].color, 7);
 });
 
 }); // describe

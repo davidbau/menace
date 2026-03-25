@@ -1,0 +1,22 @@
+{
+  "_comment": "Core session set for fast routine testing (~20s). Selected for maximum bug-detection signal per second of runtime. Run with: node test/comparison/session_test_runner.js --core",
+  "sessions": [
+    "seed1_gameplay.session.json",
+    "seed3_gameplay.session.json",
+    "seed42_items_gameplay.session.json",
+    "seed42_inventory_wizard_pickup_gameplay.session.json",
+    "seed100_multidigit_gameplay.session.json",
+    "hi01_seed1001_wiz_shop-interact_gameplay.session.json",
+    "hi04_seed1030_wiz_fountain-altar_gameplay.session.json",
+    "hi09_seed1080_wiz_insight-deep_gameplay.session.json",
+    "theme09_seed710_wiz_engrave_gameplay.session.json",
+    "theme16_seed992_wiz_trap-beartrap_gameplay.session.json",
+    "theme24_seed1311_wiz_explode-cold_gameplay.session.json",
+    "theme33_seed2102_wiz_eat-various_gameplay.session.json",
+    "theme34_seed2236_ran_explore_gameplay.session.json",
+    "t05_s695_w_castb_gp.session.json",
+    "t06_s991_w_zappoly_gp.session.json",
+    "interface_chargen.session.json",
+    "interface_startup.session.json"
+  ]
+}

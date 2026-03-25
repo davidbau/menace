@@ -1370,12 +1370,21 @@ export async function runSessionCli() {
                 ? resolve(process.cwd(), value)
                 : resolve(process.cwd(), 'oracle/pending.jsonl');
         }
+        else if (arg === '--core') {
+            // Run only the core session set (fast, high-signal, ~20s)
+            const manifestPath = resolve(dirname(fileURLToPath(import.meta.url)), 'core-sessions.json');
+            const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+            args.sessionNames = manifest.sessions;
+            // Shorter timeout for core: fail fast on known-stuck sessions
+            args.sessionTimeoutMs = 12000;
+        }
         else if (arg === '--help' || arg === '-h') {
             console.log('Usage: node session_test_runner.js [options] [session-file]');
             console.log('Options:');
             console.log('  --verbose         Show detailed output');
             console.log(`  --parallel[=N]    Run with N workers (default: auto capped at ${DEFAULT_MAX_PARALLEL_WORKERS})`);
             console.log('  --fail-fast       Stop on first failure');
+            console.log('  --core            Run only core sessions (~17 high-signal sessions, ~15-20s)');
             console.log('  --type=TYPE       Filter by session type (chargen,gameplay,etc)');
             console.log('  --session-list=FILE  Run only session files listed in FILE (one per line)');
             console.log('  --sessions=a,b,c  Run only these session files (comma-separated; basename or path)');

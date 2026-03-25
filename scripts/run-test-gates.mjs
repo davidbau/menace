@@ -195,10 +195,14 @@ async function runUnitTests() {
 
 // ── Session tests ─────────────────────────────────────────────
 
+const coreMode = process.argv.includes('--core');
+
 async function runSessionTests() {
     return new Promise((resolve, reject) => {
         const runnerPath = join(projectRoot, 'test', 'comparison', 'session_test_runner.js');
-        const child = spawn(process.execPath, [runnerPath], {
+        const runnerArgs = [runnerPath];
+        if (coreMode) runnerArgs.push('--core');
+        const child = spawn(process.execPath, runnerArgs, {
             cwd: projectRoot,
             stdio: ['ignore', 'pipe', 'pipe'],
             env: { ...process.env },
