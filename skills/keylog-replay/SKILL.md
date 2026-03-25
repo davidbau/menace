@@ -47,7 +47,7 @@ Typical chargen sequence when `options.name` is set and auto-pick is used:
 The exact count depends on the game state. The test can verify this by checking
 which key is returned at each `nhgetch()` call.
 
-**Important**: Do NOT use `createHeadlessGame()` from `js/headless.js` for keylog
+**Important**: Do NOT use `createHeadlessGame()` from `js/display.js` for keylog
 replay — it passes a `character` field to `init()`, which skips chargen entirely
 and causes RNG divergence. Instead, use `new NetHackGame()` + `game.init()` directly.
 
@@ -56,12 +56,12 @@ and causes RNG divergence. Instead, use `new NetHackGame()` + `game.init()` dire
 The canonical replay function (from `test/unit/keylog_display_parity.test.js`):
 
 ```javascript
-import { createHeadlessInput, HeadlessDisplay } from '../../js/headless.js';
+import { createHeadlessInput, Display(null) } from '../../js/display.js';
 import { NetHackGame } from '../../js/allmain.js';
 
 async function replayKeylog(seed, keys, initFlags = {}) {
     const input = createHeadlessInput({ throwOnEmpty: true });
-    const display = new HeadlessDisplay();
+    const display = new Display(null)();
     const game = new NetHackGame({ display, input });
 
     const snapshots = [];
@@ -208,7 +208,7 @@ function assertCleanMenuRows(lines, startRow, endRow, description) {
 ## Display Architecture Notes
 
 - **Browser Display** stores grid cells as objects: `{ ch, color, attrs }`
-- **HeadlessDisplay** stores 3 parallel flat arrays: `grid[r][c]`, `colors[r][c]`, `attrs[r][c]`
+- **Display(null)** stores 3 parallel flat arrays: `grid[r][c]`, `colors[r][c]`, `attrs[r][c]`
 - Both share `putstr()`, `clearRow()`, `renderOverlayMenu()` APIs
 - Container loot menus in `js/pickup.js` draw **directly on the grid** (not through the nhwindow overlay system in `js/windows.js`), making them susceptible to improper clearing
 - The nhwindow-based menus (`select_menu()` in `windows.js`) use `renderOverlayMenu()` which handles its own clearing
@@ -219,7 +219,7 @@ function assertCleanMenuRows(lines, startRow, endRow, description) {
 |------|---------|
 | `test/unit/keylog_display_parity.test.js` | Keylog-based headless regression tests |
 | `test/e2e/headless_browser_parity.e2e.test.js` | Puppeteer browser vs headless parity |
-| `js/headless.js` | HeadlessDisplay, createHeadlessInput |
+| `js/display.js` | Display(null), createHeadlessInput |
 | `js/allmain.js` | NetHackGame class, init(), gameLoop() |
 | `js/chargen.js` | playerSelection() — chargen flow |
 | `js/nethack.js` | Browser entry point (reference for browser init path) |

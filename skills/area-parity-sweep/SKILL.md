@@ -1,4 +1,9 @@
-# Skill: Area Parity Sweep
+---
+name: area-parity-sweep
+description: When a specific parity bug is found, sweep the entire codebase for all instances of the same pattern before committing. Prevents rediscovering the same class of bugs.
+---
+
+# Area Parity Sweep
 
 ## When to apply
 When you have identified and fixed a specific parity gap (missing check, wrong flag,
