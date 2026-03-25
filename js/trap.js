@@ -2384,7 +2384,7 @@ export async function trapeffect_bear_trap_you(trap, trflags, player, game, map)
     } else {
         await pline('%s bear trap closes on your foot!',
                     A_Your[trap.madeby_u ? 1 : 0]);
-        set_wounded_legs(rn2(2) ? RIGHT_SIDE : LEFT_SIDE, rn1(10, 10), player);
+        await set_wounded_legs(rn2(2) ? RIGHT_SIDE : LEFT_SIDE, rn1(10, 10), player);
         await losehp(dmg, 'bear trap', KILLED_BY_AN, player, game?.display, game);
     }
     await exercise(player, A_DEX, false);
@@ -2748,8 +2748,8 @@ async function trapeffect_landmine_you(trap, trflags, player, game, map) {
         await pline('KAABLAMM!!!  You triggered %s land mine!',
                     a_your[trap.madeby_u ? 1 : 0]);
         if (player.usteed) await steedintrap(trap, null, player, game, map);
-        set_wounded_legs(LEFT_SIDE, rn1(35, 41), player);
-        set_wounded_legs(RIGHT_SIDE, rn1(35, 41), player);
+        await set_wounded_legs(LEFT_SIDE, rn1(35, 41), player);
+        await set_wounded_legs(RIGHT_SIDE, rn1(35, 41), player);
         await exercise(player, A_DEX, false);
     }
     // C: trap->ttyp = PIT; blow_up_landmine(trap); fall_into_pit
