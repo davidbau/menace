@@ -114,10 +114,17 @@ async function replaySession(sessionFile, opts = {}) {
     const js = jsSteps[i];
     const c = cSteps[i];
 
+    // Skip screen/cursor comparison on shell escape steps — JS shell renders
+    // content while C harness shell is a no-op, so screens legitimately differ.
+    const prevKey = i > 0 ? cSteps[i - 1].key : '';
+    const isShellStep = c.key === '!' || prevKey === '!';
+
     const screenComp = compareScreens(js.screen, c.screen);
-    totalScreenMatches += screenComp.matches;
-    totalScreenCells += screenComp.total;
-    if (screenComp.matches < screenComp.total && firstScreenDiverge < 0) firstScreenDiverge = i;
+    if (!isShellStep) {
+      totalScreenMatches += screenComp.matches;
+      totalScreenCells += screenComp.total;
+      if (screenComp.matches < screenComp.total && firstScreenDiverge < 0) firstScreenDiverge = i;
+    }
 
     const rngComp = compareRng(js.rng, c.rng);
     const matchCount = rngComp.firstDiverge < 0 ? rngComp.jsLen :
@@ -134,8 +141,8 @@ async function replaySession(sessionFile, opts = {}) {
       firstStandoutDiverge = i;
     }
 
-    // Skip cursor on save-prompt steps (path length differs C vs JS)
-    if (js.cursor && c.cursor) {
+    // Skip cursor on save-prompt and shell-escape steps
+    if (js.cursor && c.cursor && !isShellStep) {
       const jsR0 = js.screen?.[0] || '';
       const cR0 = c.screen?.[0] || '';
       const isSavePrompt = jsR0.includes('Save file') || cR0.includes('Save file') ||
