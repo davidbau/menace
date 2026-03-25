@@ -3,6 +3,7 @@
 //         rows 11-21 local (CLR_GREEN, current input on last line), row 22 status.
 
 import { CLR_CYAN, CLR_GREEN, CLR_YELLOW, CLR_WHITE } from '../js/render.js';
+import { getHostname } from './filesystem.js';
 
 // QWERTY adjacent keys for typo simulation
 const ADJACENT = {
@@ -390,7 +391,7 @@ export class TalkSession {
         const d = this._d;
 
         d.clearScreen();
-        d.putstr(0, 12, `[Waiting for ${this._username}@pdp11 to respond]`, CLR_YELLOW);
+        d.putstr(0, 12, `[Waiting for ${this._username}@${getHostname()} to respond]`, CLR_YELLOW);
         if (typeof d.flush === 'function') d.flush();
         await new Promise(r => setTimeout(r, 1500 + Math.random() * 2000));
 
@@ -462,7 +463,7 @@ export class TalkSession {
     _drawLayout() {
         const d = this._d;
         d.clearScreen();
-        const divider = `\u2500\u2500[talk: ${this._username}@pdp11]` +
+        const divider = `\u2500\u2500[talk: ${this._username}@${getHostname()}]` +
             '\u2500'.repeat(Math.max(0, 80 - 10 - this._username.length - 8));
         d.putstr(0, 10, divider.slice(0, 80), CLR_YELLOW);
         this._renderRemoteHalf(null);
