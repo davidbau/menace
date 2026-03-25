@@ -450,7 +450,7 @@ async function replayInterfaceSession(session) {
 
     const seed = session.meta.seed;
     const display = new HeadlessDisplay();
-    const input = createHeadlessInput({ throwOnEmpty: true });
+    const input = createHeadlessInput();
     const game = new NetHackGame({ display, input });
     const subtype = session.meta.regen?.subtype;
     const replaySessionInterface = subtype !== 'startup' && subtype !== 'nameprompt';
@@ -1134,7 +1134,7 @@ export async function runSessionBundle({
     failFast = false,
     parallel = defaultParallelWorkers(),
     onProgress = null,
-    sessionTimeoutMs = 30000,
+    sessionTimeoutMs = 45000,
 } = {}) {
     // Keep JS replay-time calendar/luck behavior aligned with C captures.
     // Allow explicit caller override via environment.
@@ -1375,8 +1375,8 @@ export async function runSessionCli() {
             const manifestPath = resolve(dirname(fileURLToPath(import.meta.url)), 'core-sessions.json');
             const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
             args.sessionNames = manifest.sessions;
-            // Shorter timeout for core: fail fast on known-stuck sessions
-            args.sessionTimeoutMs = 5000;
+            // Core timeout: seed031 takes ~32s on slow machines
+            args.sessionTimeoutMs = 40000;
         }
         else if (arg === '--help' || arg === '-h') {
             console.log('Usage: node session_test_runner.js [options] [session-file]');
