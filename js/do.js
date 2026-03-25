@@ -1657,40 +1657,56 @@ export function getArrivalPosition(map, dungeonLevel, transitionDir = null) {
     return getTeleportArrivalPosition(map, { up: false, wasInWTower: false });
 }
 
-// --- u_collide_m (C ref: do.c u_collide_m) ---
+// --- u_collide_m (C ref: do.c:1412 u_collide_m) ---
 
 // Handle hero landing on a monster at arrival.
+// C ref: randomly moves hero to adjacent spot (50%) or moves monster
+// via mnexto (enexto from hero pos with monster data). Fallback: rloc,
+// then m_into_limbo.
 export function resolveArrivalCollision(game) {
-    const mtmp = (game.map || game.map)?.monsterAt?.((game.u || game.u).x, (game.u || game.u).y);
-    if (!mtmp || mtmp === (game.u || game.u)?.usteed) return;
+    const map = game.map || game.map;
+    const player = game.u || game.u;
+    let mtmp = map?.monsterAt?.(player.x, player.y);
+    if (!mtmp || mtmp === player?.usteed) return;
 
-    const moveMonsterNearby = () => {
-        const pos = enexto((game.u || game.u).x, (game.u || game.u).y, (game.map || game.map));
-        if (pos) {
-            const _omx = mtmp.mx, _omy = mtmp.my;
-            mtmp.mx = pos.x; mtmp.my = pos.y;
-            newsym(_omx, _omy);
-            newsym(pos.x, pos.y);
-        }
-    };
-
+    // C ref: do.c:1425-1429 — 50% chance to move hero to adjacent spot
     if (!rn2(2)) {
-        const cc = enexto((game.u || game.u).x, (game.u || game.u).y, (game.map || game.map));
-        if (cc && Math.abs(cc.x - (game.u || game.u).x) <= 1 && Math.abs(cc.y - (game.u || game.u).y) <= 1) {
-            (game.u || game.u).x = cc.x;
-            (game.u || game.u).y = cc.y;
+        const cc = enexto(player.x, player.y, map, player.data || player.type);
+        if (cc && Math.abs(cc.x - player.x) <= 1 && Math.abs(cc.y - player.y) <= 1) {
+            player.x = cc.x;
+            player.y = cc.y;
         } else {
-            moveMonsterNearby();
+            // C ref: mnexto(mtmp, RLOC_NOMSG) — enexto from hero pos with monster data
+            const mm = enexto(player.x, player.y, map, mtmp.data || mtmp.type);
+            if (mm) {
+                const omx = mtmp.mx, omy = mtmp.my;
+                mtmp.mx = mm.x; mtmp.my = mm.y;
+                newsym(omx, omy);
+                newsym(mm.x, mm.y);
+            }
         }
     } else {
-        moveMonsterNearby();
+        // C ref: mnexto(mtmp, RLOC_NOMSG)
+        const mm = enexto(player.x, player.y, map, mtmp.data || mtmp.type);
+        if (mm) {
+            const omx = mtmp.mx, omy = mtmp.my;
+            mtmp.mx = mm.x; mtmp.my = mm.y;
+            newsym(omx, omy);
+            newsym(mm.x, mm.y);
+        }
     }
 
-    const still = (game.map || game.map)?.monsterAt?.((game.u || game.u).x, (game.u || game.u).y);
-    if (!still) return;
-    const fallback = enexto((game.u || game.u).x, (game.u || game.u).y, (game.map || game.map));
-    if (fallback) { still.mx = fallback.x; still.my = fallback.y; }
-    else { (game.map || game.map).removeMonster(still); }
+    // C ref: do.c:1431-1437 — if monster still at hero pos, rloc or limbo
+    mtmp = map?.monsterAt?.(player.x, player.y);
+    if (!mtmp) return;
+    // Try rloc (random teleport) as fallback
+    const fallback = enexto(player.x, player.y, map, mtmp.data || mtmp.type);
+    if (fallback && (fallback.x !== player.x || fallback.y !== player.y)) {
+        mtmp.mx = fallback.x; mtmp.my = fallback.y;
+    } else {
+        // C ref: m_into_limbo — remove from level, will return later
+        map.removeMonster?.(mtmp);
+    }
 }
 
 // --- goto_level core (C ref: do.c goto_level) ---
