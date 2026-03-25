@@ -4,6 +4,9 @@
 
 import { Terminal } from './terminal.js';
 import { maybeTraceCellWrite, TRACE_CELL_SPEC, TRACE_CELL_STEPS, traceStepForDisplay, traceCaller } from './trace.js';
+import { getScreenLines as _getScreenLines, getScreenAnsiLines as _getScreenAnsiLines,
+         setScreenLines as _setScreenLines, setScreenAnsiLines as _setScreenAnsiLines,
+         getAttrLines as _getAttrLines } from './screen_capture.js';
 
 import {
     COLNO, ROWNO, TERMINAL_COLS, TERMINAL_ROWS,
@@ -181,6 +184,7 @@ function playerMapGlyph(player) {
 export class Display extends Terminal {
     constructor(containerId) {
         super(containerId, { rows: TERMINAL_ROWS, cols: TERMINAL_COLS });
+        this.isHeadless = (containerId == null);
 
         // Cell info for hover: [row][col] = { name, desc, color }
         this.cellInfo = [];
@@ -223,6 +227,15 @@ export class Display extends Terminal {
 
     setNhgetch(fn) { this._nhgetch = fn; }
 
+    _gameRef() { return this._game || _gstate || null; }
+
+    // Screen capture convenience methods (delegate to screen_capture.js free functions)
+    getScreenLines() { return _getScreenLines(this.grid, this.rows, this.cols); }
+    getScreenAnsiLines() { return _getScreenAnsiLines(this.grid, this.rows, this.cols); }
+    setScreenLines(lines) { _setScreenLines(this.grid, this.rows, this.cols, lines); }
+    setScreenAnsiLines(lines) { _setScreenAnsiLines(this.grid, this.rows, this.cols, lines); }
+    getAttrLines() { return _getAttrLines(this.grid, this.rows, this.cols); }
+
     // _createDOM() is now handled by Terminal's constructor.
 
     // Override setCell to add cell-write tracing before delegating to Terminal.
@@ -252,7 +265,6 @@ export class Display extends Terminal {
         // Add to message history
         if (msg.trim()) {
             this.messages.push(msg);
-            // Keep last 20 messages
             if (this.messages.length > 20) {
                 this.messages.shift();
             }
@@ -260,12 +272,14 @@ export class Display extends Terminal {
 
         // If msg_window is enabled, render the message window
         // C ref: win/tty/topl.c — message window modes
-        if (this.flags.msg_window) {
+        if (this.flags?.msg_window) {
             this.renderMessageWindow();
             return;
         }
 
+        // Urgent messages (death, etc.) force a --More-- boundary before display.
         const isUrgent = !!opts.urgent || msg.startsWith('You die');
+        const suppressStatusRefresh = !!this._urgentSuppressStatusRefresh;
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
@@ -276,36 +290,35 @@ export class Display extends Terminal {
             this._deferredBotlAfterPendingFlush = false;
             this._deferredBotlStepIndex = null;
         }
-        // C-faithful death staging: if a death line arrives while another
+        // C-faithful urgent staging: if an urgent message arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isUrgent) {
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await more(this, {
-                    site: 'display.more.dismiss',
-                    clearAfter: false,
-                    readKey: this._nhgetch,
-                    // C vpline() already forced flush_screen(1) for the
-                    // pending message before update_topl() reaches this
-                    // concat-overflow more() boundary.
-                    refreshStatus: false,
-                });
+                try {
+                    await more(this, {
+                        site: 'display.more.dismiss',
+                        clearAfter: false,
+                        readKey: this._nhgetch,
+                        refreshStatus: !suppressStatusRefresh,
+                    });
+                } catch (e) {
+                    if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                }
             }
             this.clearRow(MESSAGE_ROW);
-            if (this._topMessageRow1 !== undefined) {
-                this.clearRow(MESSAGE_ROW + 1);
-                this._topMessageRow1 = undefined;
-            }
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStepIndex = null;
+            this.moreMarkerActive = false;
+            this._urgentSuppressStatusRefresh = false;
             freshAfterMore = true;
         }
 
-        // C ref: win/tty/topl.c:262-267 — Concatenate messages if they fit.
-        // C reserves space for " --More--" (9 chars) when deciding whether to concatenate.
-        // C uses gt.toplines (shared buffer) for the length check, which includes
-        // getlin/getobj prompt text even after nhgetch clears toplin state.
+        // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit.
+        // C reserves space for " --More--" (9 chars) when checking if messages
+        // can be concatenated.  C uses gt.toplines (shared buffer) for the
+        // length check, which includes getlin/getobj prompt text.
         const toplinesRef = (this.topMessage && this.messageNeedsMore)
             ? this.topMessage
             : (this.toplines || '');
@@ -315,136 +328,145 @@ export class Display extends Terminal {
             // C ref: win/tty/topl.c update_topl() uses strict '<' for fit check.
             if (combined.length + 9 < this.cols) {
                 this.clearRow(MESSAGE_ROW);
-                this.putstr(0, MESSAGE_ROW, combined, CLR_GRAY);
+                this.putstr(0, MESSAGE_ROW, combined.substring(0, this.cols));
                 this.topMessage = combined;
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
+                this.messageNeedsMore = true;
                 this.messageCursorCol = Math.min(combined.length, this.cols - 1);
                 this.messageCursorRow = 0;
                 this.setCursor(this.messageCursorCol, 0);
                 return;
             }
-            // C ref: win/tty/topl.c update_topl():
-            // - concat overflow triggers more()
-            // - "You die..." also forces more() before the new message
-            // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
+            // Concat overflow — show --More-- and wait for dismissal.
+            flush_screen(1);
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await more(this, {
-                    site: 'display.more.dismiss',
-                    clearAfter: false,
-                    readKey: this._nhgetch,
-                });
+                try {
+                    await more(this, {
+                        site: 'display.more.dismiss',
+                        clearAfter: false,
+                        readKey: this._nhgetch,
+                        refreshStatus: false,
+                    });
+                } catch (e) {
+                    if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                }
             }
-            // Continue to display this message fresh after dismissal.
             this.clearRow(MESSAGE_ROW);
-            if (this._topMessageRow1 !== undefined) {
-                this.clearRow(MESSAGE_ROW + 1);
-                this._topMessageRow1 = undefined;
-            }
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStepIndex = null;
+            this.moreMarkerActive = false;
             freshAfterMore = true;
         }
 
-        // Display message, wrapping to row 1 if needed.
-        // C ref: win/tty/topl.c update_topl() inserts '\n' at word boundaries
-        // when n0 >= CO, then more() places --More-- on the last row used.
+        // Display the message.
         this.clearRow(MESSAGE_ROW);
-
         if (msg.length <= this.cols) {
-            this.putstr(0, MESSAGE_ROW, msg, CLR_GRAY);
+            this.putstr(0, MESSAGE_ROW, msg.substring(0, this.cols));
             this.topMessage = msg;
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
+            this.messageNeedsMore = true;
+            this.toplin = 1;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
-            this.messageCursorRow = 0;
-            this.toplin = 1; // C ref: update_topl sets toplin = TOPLINE_NEED_MORE
-            if (freshAfterMore && typeof this.renderStatus === 'function') {
-            const refreshPlayer = this._lastMapState?.player || null;
-                if (refreshPlayer?._botl) {
-                    this.renderStatus(refreshPlayer);
-                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
-                }
-            }
-        } else {
-            // Break at word boundary near cols (C uses CO-1 as scan start).
-            let breakPoint = msg.lastIndexOf(' ', this.cols - 1);
-            if (breakPoint <= 0) {
-                breakPoint = this.cols; // hard break if no space found
-            }
-
-            const row0 = msg.substring(0, breakPoint);
-            const row1rest = msg.substring(breakPoint).trimStart();
-
-            this.putstr(0, MESSAGE_ROW, row0, CLR_GRAY);
-            this.topMessage = row0;
-            this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
-                ? this._lastMapState.gameMap._replayStepIndex
-                : null;
-            this.messageCursorCol = Math.min(row0.length, this.cols - 1);
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {
                 const refreshPlayer = this._lastMapState?.player || null;
                 if (refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
-                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                    refreshPlayer._botl = false;
                 }
             }
-
-            if (row1rest.length > 0) {
-                // Page via row 1 + --More--, then continue with any remaining text recursively.
-                const row1 = row1rest.substring(0, this.cols);
-                this.clearRow(MESSAGE_ROW + 1);
-                this.putstr(0, MESSAGE_ROW + 1, row1, CLR_GRAY);
-                this._topMessageRow1 = row1;
-                this.messageCursorCol = Math.min(row1.length, this.cols - 1);
-                this.messageCursorRow = MESSAGE_ROW + 1;
-                this.messageNeedsMore = true;
-                flush_screen(1);
+            if (isUrgent) {
                 this.renderMoreMarker();
                 if (this._nhgetch) {
-                    await more(this, {
-                        site: 'display.more.dismiss',
-                        clearAfter: false,
-                        readKey: this._nhgetch,
-                    });
+                    try {
+                        await more(this, {
+                            site: 'display.more.dismiss',
+                            clearAfter: false,
+                            readKey: this._nhgetch,
+                            refreshStatus: !this._urgentSuppressStatusRefresh,
+                        });
+                    } catch (e) {
+                        if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                    }
+                    this.clearRow(MESSAGE_ROW);
+                    this.messageNeedsMore = false;
+                    this.topMessage = null;
+                    this._topMessageStepIndex = null;
+                    this.moreMarkerActive = false;
+                } else {
+                    this.clearRow(MESSAGE_ROW);
+                    this.messageNeedsMore = false;
+                    this.topMessage = null;
+                    this._topMessageStepIndex = null;
+                    this.moreMarkerActive = false;
                 }
-                this.clearRow(MESSAGE_ROW);
-                this.clearRow(MESSAGE_ROW + 1);
-                this._topMessageRow1 = undefined;
-                this.messageNeedsMore = false;
-                this.topMessage = null;
-                this._topMessageStepIndex = null;
-                const row1overflow = row1rest.substring(this.cols).trimStart();
-                if (row1overflow.length > 0) {
-                    await this.putstr_message(row1overflow);
-                }
-                return;
+            }
+            this.setCursor(this.messageCursorCol, this.messageCursorRow);
+            return;
+        }
+
+        // Wrap long messages at word boundary near cols.
+        let breakPoint = msg.lastIndexOf(' ', this.cols - 1);
+        if (breakPoint <= 0) breakPoint = this.cols;
+        const firstLine = msg.substring(0, breakPoint);
+        const wrapped = msg.substring(breakPoint).trimStart();
+
+        this.putstr(0, MESSAGE_ROW, firstLine);
+        this.topMessage = firstLine;
+        this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+            ? this._lastMapState.gameMap._replayStepIndex
+            : null;
+        this.messageNeedsMore = true;
+        this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
+        this.messageCursorRow = 0;
+        if (freshAfterMore && typeof this.renderStatus === 'function') {
+            const refreshPlayer = this._lastMapState?.player || null;
+            if (refreshPlayer?._botl) {
+                this.renderStatus(refreshPlayer);
+                refreshPlayer._botl = false;
             }
         }
 
-        // Mark message as needing acknowledgement (for concatenation logic)
-        // C ref: toplin = TOPLINE_NEED_MORE after displaying message
-        this.messageNeedsMore = true;
-        if (isUrgent) {
-            this.renderMoreMarker();
-            if (this._nhgetch) {
+        if (wrapped.length === 0) return;
+
+        // Show wrapped portion on row 1 with --More--.
+        const moreStr = '--More--';
+        const secondMax = Math.max(1, this.cols - moreStr.length);
+        const secondLine = wrapped.substring(0, secondMax);
+        const remainder = wrapped.substring(secondLine.length).trimStart();
+        const moreCol = Math.min(secondLine.length, this.cols - moreStr.length);
+        this.clearRow(MESSAGE_ROW + 1);
+        this.putstr(0, MESSAGE_ROW + 1, secondLine);
+        this.messageCursorCol = moreCol;
+        this.messageCursorRow = MESSAGE_ROW + 1;
+        this.putstr(moreCol, MESSAGE_ROW + 1, moreStr);
+        this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), MESSAGE_ROW + 1);
+        if (this._nhgetch) {
+            try {
                 await more(this, {
                     site: 'display.more.dismiss',
                     clearAfter: false,
                     readKey: this._nhgetch,
                 });
-                this.clearRow(MESSAGE_ROW);
-                this.messageNeedsMore = false;
-                this.topMessage = null;
-                this._topMessageStepIndex = null;
+            } catch (e) {
+                if (!e.message?.includes('Concurrent nhgetch')) throw e;
             }
         }
-        this.setCursor(this.messageCursorCol, 0);
+        this.clearRow(MESSAGE_ROW);
+        this.clearRow(MESSAGE_ROW + 1);
+        this.messageNeedsMore = false;
+        this.topMessage = null;
+        this._topMessageStepIndex = null;
+        this.moreMarkerActive = false;
+        if (remainder.length > 0) {
+            await this.putstr_message(remainder);
+        }
     }
 
     // Render message window (last 3 messages)
@@ -494,233 +516,24 @@ export class Display extends Terminal {
     // Render the map from game state
     // C ref: display.c newsym() and print_glyph()
     renderMap(gameMap, player, fov, flags = {}) {
-        // Merge flags to preserve directly-set properties (e.g., DECgraphics).
         this.flags = { ...this.flags, ...flags };
         this._lastMapState = { gameMap, player, fov, flags: { ...this.flags } };
-
-        // When msg_window is enabled, map starts at row 3 (after 3-line message window)
-        // Otherwise map starts at row 1 (after single message line)
         const mapOffset = this.flags.msg_window ? 3 : MAP_ROW_START;
 
+        const renderCtx = { display: this, player, fov, flags: this.flags, map: gameMap };
         for (let y = 0; y < ROWNO; y++) {
             const row = y + mapOffset;
             // C tty map rendering uses game x in [1..COLNO-1] at terminal cols [0..COLNO-2].
-            // Keep the last terminal column blank for map rows.
             this.setCell(COLNO - 1, row, ' ', CLR_GRAY);
-            this.cellInfo[row][COLNO - 1] = null;
+            if (this.cellInfo) this.cellInfo[row][COLNO - 1] = null;
             for (let x = 1; x < COLNO; x++) {
-                const col = x - 1;
                 const loc = gameMap.at?.(x, y);
-
-                // C ref: always render the player glyph at the hero's position,
-                // even when out of FOV (e.g. during levitation on stairs).
-                if (player && x === player.x && y === player.y && !player.usteed) {
-                    const heroGlyph = playerMapGlyph(player);
-                    this.setCell(col, row, heroGlyph.ch, heroGlyph.color);
-                    this.cellInfo[row][col] = {
-                        name: player.name || 'you',
-                        desc: 'you, the adventurer',
-                        color: heroGlyph.color,
-                    };
-                    continue;
-                }
-
                 const cached = getCachedMapCell(loc, gameMap);
-                if (cached) {
-                    this.setCell(col, row, cached.ch, cached.color, cached.attr || 0);
-                    continue;
+                if (cached && !(player && x === player.x && y === player.y && !player.usteed)) {
+                    this.setCell(x - 1, row, cached.ch, cached.color, cached.attr || 0);
+                } else {
+                    newsym(x, y, renderCtx);
                 }
-
-                if (!fov || !fov.canSee(x, y)) {
-                    const mon = gameMap.monsterAt(x, y);
-                    const monVisibleByOwnLight = !!(mon
-                        && emits_light(mon.data || mon.type || {}) > 0
-                        && couldsee(gameMap, player, x, y)
-                        && monVisibleForMap(mon, player));
-                    if (monVisibleByOwnLight) {
-                        const hallu = !!(player?.Hallucination || player?.hallucinating);
-                        const glyph = monsterMapGlyph(mon, hallu);
-                        this.setCell(col, row, glyph.ch, glyph.color);
-                        continue;
-                    }
-                    // Show remembered terrain or nothing
-                    // C ref: map_invisible() uses show_glyph() directly,
-                    // so mem_invis displays even at unseen locations.
-                    if (loc && loc.mem_invis) {
-                        this.setCell(col, row, 'I', CLR_GRAY);
-                        this.cellInfo[row][col] = { name: 'remembered invisible monster', desc: '(remembered)', color: CLR_GRAY };
-                        continue;
-                    }
-                    if (loc && loc.seenv) {
-                        // C-like memory: remembered object glyph overlays
-                        // remembered terrain when out of sight.
-                        if (loc.mem_obj && !loc.mem_magic_trap) {
-                            const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
-                                ? loc.mem_obj_color
-                                : CLR_BLACK;
-                            this.setCell(col, row, loc.mem_obj, rememberedObjColor);
-                            this.cellInfo[row][col] = { name: 'remembered object', desc: '(remembered)', color: rememberedObjColor };
-                            continue;
-                        }
-                        if (loc.mem_trap) {
-                            // C ref: back_to_glyph() preserves trap's full color in memory.
-                            const memTrapColor = Number.isInteger(loc.mem_trap_color)
-                                ? loc.mem_trap_color : CLR_BLACK;
-                            this.setCell(col, row, loc.mem_trap, memTrapColor);
-                            this.cellInfo[row][col] = { name: 'remembered trap', desc: '(remembered)', color: memTrapColor };
-                            continue;
-                        }
-                        // Show remembered (dimmed) — check wall_angle first
-                        if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
-                            this.setCell(col, row, ' ', CLR_GRAY);
-                            this.cellInfo[row][col] = null;
-                            continue;
-                        }
-                        const sym = this.terrainSymbol(loc, gameMap, x, y);
-                        const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
-                        this.setCell(col, row, sym.ch, rememberedColor);
-                        const desc = this._terrainDesc(loc);
-                        this.cellInfo[row][col] = { name: desc, desc: '(remembered)', color: rememberedColor };
-                    } else {
-                        this.setCell(col, row, ' ', CLR_GRAY);
-                        this.cellInfo[row][col] = null;
-                    }
-                    continue;
-                }
-
-                if (!loc) {
-                    this.setCell(col, row, ' ', CLR_GRAY);
-                    this.cellInfo[row][col] = null;
-                    continue;
-                }
-                // seenv is now tracked by the vision code (vision.js compute())
-                // which sets the correct angle bits per direction.
-
-                // C ref: display.c:963-964 — mark any engraving at a visible square as
-                // revealed, "even when covered by objects or a monster".
-                const visEngr = gameMap.engravingAt(x, y);
-                if (visEngr) visEngr.erevealed = true;
-
-                // Check for monsters
-                const mon = gameMap.monsterAt(x, y);
-                if (monsterShownOnMap(mon, player, gameMap)) {
-                    loc.mem_invis = false;
-                    // Keep remembered object glyph under visible monsters in sync
-                    // so when LOS drops, memory matches C back_to_glyph behavior.
-                    const underObjs = coversObjectsAt(loc, player) ? [] : gameMap.objectsAt(x, y);
-                    if (underObjs.length > 0) {
-                        const underTop = underObjs[underObjs.length - 1];
-                        const underGlyph = objectMapGlyph(underTop, false, {
-                            player, x, y, observe: false
-                        });
-                        loc.mem_obj = underGlyph.ch || 0;
-                        loc.mem_obj_color = Number.isInteger(underGlyph.color)
-                            ? underGlyph.color
-                            : CLR_GRAY;
-                    } else {
-                        const engr = gameMap.engravingAt(x, y);
-                        if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
-                            const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                            loc.mem_obj = engrCh;
-                            loc.mem_obj_color = CLR_BRIGHT_BLUE;
-                        } else {
-                            loc.mem_obj = 0;
-                            loc.mem_obj_color = 0;
-                        }
-                    }
-                    const hallu = !!(player?.Hallucination || player?.hallucinating);
-                    const glyph = monsterMapGlyph(mon, hallu);
-                    this.setCell(col, row, glyph.ch, glyph.color);
-                    const look = do_lookat({ map: gameMap, player }, { x, y });
-                    const styled = format_do_look_html(look);
-                    const classInfo = look.classDesc || this._monsterClassDesc(mon.displayChar);
-                    this.cellInfo[row][col] = {
-                        name: styled.nameText || look.firstmatch || 'monster',
-                        desc: styled.descText || classInfo || '',
-                        nameHtml: styled.nameHtml || '',
-                        descHtml: styled.descHtml || '',
-                        color: mon.displayColor,
-                    };
-                    continue;
-                }
-                // C parity: remembered invis markers are for out-of-sight
-                // memory; once a square is currently visible, clear stale marker.
-                if (loc.mem_invis) {
-                    loc.mem_invis = false;
-                }
-
-                // Check for objects on the ground
-                const objs = coversObjectsAt(loc, player) ? [] : gameMap.objectsAt(x, y);
-                if (objs.length > 0) {
-                    const topObj = objs[objs.length - 1];
-                    const hallu = !!(player?.Hallucination || player?.hallucinating);
-                    const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
-                    const memGlyph = hallu
-                        ? objectMapGlyph(topObj, false, { player, x, y, observe: false })
-                        : glyph;
-                    loc.mem_obj = memGlyph.ch || 0;
-                    loc.mem_obj_color = Number.isInteger(memGlyph.color)
-                        ? memGlyph.color
-                        : CLR_GRAY;
-                    this.setCell(col, row, glyph.ch, glyph.color);
-                    const classInfo = this._objectClassDesc(topObj.oc_class);
-                    const extra = objs.length > 1 ? ` (+${objs.length - 1} more)` : '';
-                    const nameKnown = isObjectNameKnown(topObj.otyp);
-                    const encountered = isObjectEncountered(topObj.otyp);
-                    const hoverName = (nameKnown || encountered)
-                        ? discoveryTypeName(topObj.otyp) + extra
-                        : classInfo + extra;
-                    const stats = nameKnown ? this._objectStats(topObj) : '';
-                    this.cellInfo[row][col] = { name: hoverName, desc: nameKnown ? classInfo : '', stats, color: topObj.displayColor };
-                    continue;
-                }
-                loc.mem_obj = 0;
-                loc.mem_obj_color = 0;
-
-                // Check for traps
-                const trap = gameMap.trapAt(x, y);
-                if (trapShownOnMap(trap, player) && !coversObjectsAt(loc, player)) {
-                    const tg = trapGlyph(trap.ttyp);
-                    loc.mem_trap = tg.ch;
-                    loc.mem_trap_color = tg.color;
-                    this.setCell(col, row, tg.ch, tg.color);
-                    this.cellInfo[row][col] = {
-                        name: tg.name,
-                        desc: 'trap',
-                        color: tg.color,
-                    };
-                    continue;
-                }
-                loc.mem_trap = 0;
-
-                // C ref: display.c back_to_glyph() — wizard mode shows engravings
-                // as S_engroom ('`') or S_engrcorr ('#') when no higher-priority
-                // map symbol (player/monster/object/trap) occupies the square.
-                const engr = gameMap.engravingAt(x, y);
-                if (spotShowsEngravings(loc)
-                    && engr
-                    && (player?.wizard || !player?.blind || engr.erevealed)
-                    && !coversObjectsAt(loc, player)) {
-                    const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                    loc.mem_obj = engrCh;
-                    loc.mem_obj_color = CLR_BRIGHT_BLUE;
-                    this.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
-                    this.cellInfo[row][col] = { name: 'engraving', desc: '', color: CLR_BRIGHT_BLUE };
-                    continue;
-                }
-
-                // Show terrain — check wall_angle visibility first
-                // C ref: display.c:2311 — wall_angle returns S_stone for
-                // walls not visible from the current seenv angles
-                if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
-                    this.setCell(col, row, ' ', CLR_GRAY);
-                    this.cellInfo[row][col] = null;
-                    continue;
-                }
-                const sym = this.terrainSymbol(loc, gameMap, x, y);
-                this.setCell(col, row, sym.ch, sym.color);
-                const desc = this._terrainDesc(loc);
-                this.cellInfo[row][col] = { name: desc, desc: '', color: sym.color };
             }
         }
         this._captureMapBase();
@@ -877,6 +690,9 @@ export class Display extends Terminal {
         this.topMessage = null;
         this.messageNeedsMore = false;
         this._topMessageRow1 = undefined;
+        this.moreMarkerActive = false;
+        this.messageCursorCol = 0;
+        this.messageCursorRow = 0;
     }
 
     // Display a chargen menu matching C TTY positioning
@@ -962,8 +778,10 @@ export class Display extends Terminal {
         if (fullScreen) offx = 1;
 
         const menuRows = Math.min(lines.length, fullScreen ? this.rows : STATUS_ROW_1);
-        // C tty parity: clear only rows occupied by the menu itself.
-        for (let r = 0; r < menuRows; r++) {
+        // C tty parity: in full-screen mode, clear all rows (needed for
+        // multi-page menus where later pages have fewer lines than earlier ones).
+        const clearRows = fullScreen ? this.rows : menuRows;
+        for (let r = 0; r < clearRows; r++) {
             for (let c = Math.max(0, offx - 1); c < this.cols; c++) {
                 this.setCell(c, r, ' ', CLR_GRAY, 0);
             }
@@ -1244,8 +1062,6 @@ export class Display extends Terminal {
     // year: 4-digit year string
     renderTombstone(name, gold, deathLines, year) {
         this.clearScreen();
-
-        // C ref: rip.c rip[] — the tombstone art template
         const rip = [
             '                       ----------',
             '                      /          \\',
@@ -1254,39 +1070,23 @@ export class Display extends Terminal {
             '                   /     PEACE      \\',
             '                  /                  \\',
         ];
-
-        // Centered text lines on the tombstone face
-        // The stone face is 18 chars wide (between | markers), center col ~28
-        const CENTER = 28;
         const FACE_WIDTH = 16;
-
-        function centerOnStone(text) {
-            if (text.length > FACE_WIDTH) text = text.substring(0, FACE_WIDTH);
-            const pad = Math.floor((FACE_WIDTH - text.length) / 2);
-            const inner = ' '.repeat(pad) + text + ' '.repeat(FACE_WIDTH - pad - text.length);
-            return '                  |' + ' ' + inner + ' ' + '|';
-        }
-
-        // Name line
+        const centerOnStone = (text) => {
+            let t = String(text || '');
+            if (t.length > FACE_WIDTH) t = t.substring(0, FACE_WIDTH);
+            const pad = Math.floor((FACE_WIDTH - t.length) / 2);
+            const inner = ' '.repeat(pad) + t + ' '.repeat(FACE_WIDTH - pad - t.length);
+            return `                  | ${inner} |`;
+        };
         rip.push(centerOnStone(name));
-        // Gold line
         rip.push(centerOnStone(`${gold} Au`));
-        // Death description lines (up to 4)
-        for (let i = 0; i < 4; i++) {
-            rip.push(centerOnStone(deathLines[i] || ''));
-        }
-        // Empty line
-        rip.push(centerOnStone(''));
-        // Year line
+        for (let i = 0; i < 4; i++) rip.push(centerOnStone(deathLines[i] || ''));
         rip.push(centerOnStone(year));
-
-        // Bottom of tombstone
         rip.push('                 *|     *  *  *      | *');
-        rip.push('        _________)/\\\\__//(\\\\/(/\\\\)/\\\\//\\\\/|_)_______');
-
-        // Render each line
-        for (let i = 0; i < rip.length && i < this.rows; i++) {
-            this.putstr(0, i, rip[i], CLR_WHITE);
+        rip.push('        _________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______');
+        const startRow = 1;
+        for (let i = 0; i < rip.length && startRow + i < this.rows; i++) {
+            this.putstr(0, startRow + i, rip[i]);
         }
     }
 
