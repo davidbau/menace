@@ -1,5 +1,92 @@
 # Terminal Display Refactoring Plan
 
+## Historical Context
+
+Our Terminal class models the text terminal as it evolved from the 1970s
+through the late 1980s — the era that produced every game in this project.
+
+**VT100 (DEC, 1978)** — The terminal that defined the standard. 80 columns,
+24 rows, cursor addressing via escape sequences (`\x1b[row;colH`). Reverse
+video, bold, underline, blinking. The DEC Special Graphics character set
+added box-drawing characters (─│┌┐└┘) via SO/SI mode switching
+(`\x0e`/`\x0f`). Rogue (1980) was written for the VT100; its `@` on a
+grid of `#` corridors and `+` doors is a direct product of what the VT100
+could render. Ken Arnold wrote the `curses` library specifically to make
+Rogue work across different terminals.
+
+**ANSI escape codes (ECMA-48, 1976; ANSI X3.64, 1979)** — Standardized
+the escape sequences that DEC pioneered. SGR (Select Graphic Rendition)
+codes control color and attributes: `\x1b[31m` for red, `\x1b[1m` for
+bold, `\x1b[7m` for inverse. The 8-color model (30–37 foreground, 40–47
+background) was later extended to 16 colors (90–97 bright foreground) by
+AIXterm and adopted by xterm. Our Terminal's 16-color palette and attribute
+bitmask map directly to these SGR codes, making session capture inherently
+ANSI-compatible.
+
+**curses (Ken Arnold, 1980)** — The library that made terminal games
+possible. Instead of writing raw escape sequences, programs call
+`mvaddch(y, x, ch)` to place characters and `refresh()` to flush changes
+to the screen. curses handles terminal differences (VT100 vs ADM-3A vs
+Wyse-50) via termcap/terminfo databases. Rogue, Hack, Larn, Robots,
+Tetris — every terminal game in our collection uses curses. Our Terminal
+class is essentially curses for the browser: `setCell(col, row, ch, color)`
+is `mvaddch`, `flush()` is `refresh()`, and the DOM spans are the screen
+buffer. The per-app curses.js adapters (rogue, hack) mirror how curses
+mediates between game logic and terminal hardware.
+
+**VT220 (DEC, 1983)** — Added 8-bit character sets (Latin-1) and the
+secondary character set for international characters. NetHack's
+IBMgraphics symbol set uses CP437 line-drawing characters (═║╔╗╚╝) from
+this era.
+
+**VT340 (DEC, 1987)** — The graphics terminal. Two rendering planes:
+- **Text plane**: 80×24 characters with 16 colors (same as our Terminal)
+- **Graphics plane**: 800×480 pixels with 16 colors from a 4096-color palette
+
+The two planes were composited by hardware, with text overlaid on graphics.
+This is exactly the architecture our Terminal uses for Logo and BASIC: a
+`<canvas>` pixel surface underneath a transparent `<pre>` text grid,
+composited by CSS z-index stacking. The VT340 supported two graphics
+protocols:
+
+- **ReGIS** (Remote Graphics Instruction Set) — vector drawing commands
+  embedded in the terminal stream. Lines, arcs, filled regions.
+- **Sixel** — raster image protocol. Each "sixel" character (ASCII 63–126)
+  encodes a column of 6 pixels. You send rows of sixel data left-to-right,
+  advance down by 6 pixels, repeat. The image resolution is whatever you
+  send; the terminal renders it into its framebuffer. Sixel is having a
+  revival in modern terminals (xterm, foot, WezTerm, mlterm).
+
+Our Terminal's graphics canvas is resolution-independent — it can emulate
+a 320×200 Apple II (Logo), an 800×480 VT340, or a modern high-res display.
+The `<canvas>` element handles scaling natively via CSS.
+
+**xterm (1984–present)** — The X11 terminal emulator that carried VT100
+compatibility into the Unix workstation era. Extended the color model to
+256 colors and later 24-bit true color. Still supports Tektronix 4014
+vector graphics mode and sixel. Every game in our project was played on
+machines running xterm or its descendants.
+
+**The timeline of our games on these terminals:**
+
+```
+1978  VT100 ────── 80×24, cursor addressing, box-drawing
+1980  curses ────── terminal abstraction library
+1980  Rogue ─────── first roguelike, written for VT100 via curses
+1982  Hack ──────── roguelike, curses
+1983  VT220 ────── 8-bit chars, international support
+1984  Logo ──────── turtle graphics (Apple II: 320×200)
+1986  Larn ──────── roguelike with town, curses
+1987  VT340 ────── text + graphics planes, ReGIS, sixel
+1987  NetHack ──── roguelike, curses, DECgraphics symbol set
+1989  Tetris ───── BSD, curses, real-time input
+```
+
+Our Terminal class unifies this history: a text grid with the VT100's
+character model, ANSI's color codes, curses' API patterns, and the VT340's
+dual-plane architecture. The same class renders Rogue's monochrome `@`
+and NetHack's 16-color DECgraphics and Logo's turtle canvas.
+
 ## Problem
 
 We have **5,703 lines across 6 display files** with massive duplication:
