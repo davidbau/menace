@@ -103,6 +103,7 @@ import { MON_ARRIVE_WITH_YOU,
 import {
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
     W_WEP, W_SWAPWEP, W_QUIVER,
+    STEALTH,
 } from './const.js';
 export { mon_arrive } from './dog.js';
 export { MON_ARRIVE_WITH_YOU } from './const.js';
@@ -1236,9 +1237,14 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     set_moreluck(player);
 
     // C ref: attrib.c role ability tables — level 1 intrinsics.
+    // C grants these via adjabil(0, 1) during init; JS applies them directly.
     // Monks and samurai gain intrinsic Speed (Fast) at level 1.
     if (player.roleMnum === PM_MONK || player.roleMnum === PM_SAMURAI) {
         player.fast = true;
+    }
+    // C ref: attrib.c rog_abil — Rogues get intrinsic Stealth at level 1.
+    if (player.roleMnum === PM_ROGUE) {
+        player._setPropBool(STEALTH, true);
     }
     // C ref: attrib.c arc_abil/ran_abil — Archeologists and Rangers get
     // intrinsic Searching at level 1.
