@@ -64,6 +64,9 @@ import {
     D_ISOPEN, D_CLOSED, D_LOCKED,
 } from './const.js';
 import { more } from './input.js';
+import { Terminal } from './terminal.js';
+import { maybeTraceCellWrite, TRACE_CELL_SPEC, TRACE_CELL_STEPS, TRACE_CELL_STACK, traceStepForDisplay, formatTraceChar, traceCaller } from './trace.js';
+import { getScreenLines as _getScreenLines, getScreenAnsiLines as _getScreenAnsiLines, setScreenLines as _setScreenLines, setScreenAnsiLines as _setScreenAnsiLines, getAttrLines as _getAttrLines } from './screen_capture.js';
 
 
 const DEFAULT_GAME_FLAGS = {
@@ -114,68 +117,6 @@ const RACE_INDEX = {
     gnome: RACE_GNOME,
     orc: RACE_ORC,
 };
-
-function parseTraceCellSpec(raw) {
-    const text = String(raw || '').trim();
-    if (!text) return null;
-    const m = text.match(/^(\d+)\s*,\s*(\d+)$/);
-    if (!m) return null;
-    return { col: Number(m[1]), row: Number(m[2]) };
-}
-
-function parseTraceStepSpec(raw) {
-    const text = String(raw || '').trim();
-    if (!text) return null;
-    const m = text.match(/^(\d+)(?:\s*-\s*(\d+))?$/);
-    if (!m) return null;
-    const from = Number(m[1]);
-    const to = Number(m[2] || m[1]);
-    if (!Number.isInteger(from) || !Number.isInteger(to)) return null;
-    return { from: Math.min(from, to), to: Math.max(from, to) };
-}
-
-const TRACE_CELL_SPEC = parseTraceCellSpec(process?.env?.WEBHACK_TRACE_CELL);
-const TRACE_CELL_STEPS = parseTraceStepSpec(process?.env?.WEBHACK_TRACE_CELL_STEPS);
-const TRACE_CELL_STACK = process?.env?.WEBHACK_TRACE_CELL_STACK === '1';
-
-function traceStepForDisplay(display) {
-    const stepIndex = Number.isInteger(display?._lastMapState?.gameMap?._replayStepIndex)
-        ? display._lastMapState.gameMap._replayStepIndex
-        : null;
-    return stepIndex === null ? null : stepIndex + 1;
-}
-
-function formatTraceChar(ch) {
-    if (ch === ' ') return 'space';
-    return JSON.stringify(ch);
-}
-
-function traceCaller() {
-    if (!TRACE_CELL_STACK) return '';
-    const stack = String(new Error().stack || '').split('\n').slice(3);
-    for (const line of stack) {
-        if (!line.includes('/js/headless.js')) {
-            return line.trim().replace(/^at\s+/, '');
-        }
-    }
-    return stack[0] ? stack[0].trim().replace(/^at\s+/, '') : '';
-}
-
-function maybeTraceCellWrite(display, col, row, prev, next, kind = 'write') {
-    if (!TRACE_CELL_SPEC) return;
-    if (TRACE_CELL_SPEC.col !== col || TRACE_CELL_SPEC.row !== row) return;
-    const step = traceStepForDisplay(display);
-    if (TRACE_CELL_STEPS && (step === null || step < TRACE_CELL_STEPS.from || step > TRACE_CELL_STEPS.to)) return;
-    const caller = traceCaller();
-    const callerPart = caller ? ` caller=${caller}` : '';
-    console.error(
-        `^celltrace[kind=${kind} step=${step === null ? '?' : step}`
-        + ` cell=${col},${row}`
-        + ` prev=${formatTraceChar(prev.ch)}/${prev.color}/${prev.attr}`
-        + ` next=${formatTraceChar(next.ch)}/${next.color}/${next.attr}`
-        + `${callerPart}]`
-    );
-}
 
 function normalizeRoleIndex(role, fallback = 11) {
     if (Number.isInteger(role)) return role;
@@ -602,38 +543,13 @@ function extractCharacterFromSession(session = {}) {
     };
 }
 
-// DEC Special Graphics Character Set — map raw VT100 alternate charset
-// codes to Unicode so the display grid always holds display-ready characters.
-// C ref: nethack win/tty uses SO/SI (\x0e/\x0f) to toggle this charset.
-const DEC_TO_UNICODE = {
-    '`': '\u25c6', a: '\u2592', f: '\u00b0', g: '\u00b1',
-    j: '\u2518', k: '\u2510', l: '\u250c', m: '\u2514', n: '\u253c',
-    q: '\u2500', t: '\u251c', u: '\u2524', v: '\u2534', w: '\u252c',
-    x: '\u2502', '~': '\u00b7',
-};
-
-
 // Headless display for testing chargen screen rendering.
 // Same grid-based rendering as Display but without any DOM dependency.
 // Now supports terminal attributes (inverse video, bold, underline).
-export class HeadlessDisplay {
+export class HeadlessDisplay extends Terminal {
     constructor() {
+        super(null, { rows: TERMINAL_ROWS, cols: TERMINAL_COLS });
         this.isHeadless = true;
-        this.cols = TERMINAL_COLS;
-        this.rows = TERMINAL_ROWS;
-        this.grid = [];
-        this.colors = [];
-        this.attrs = []; // Parallel grid for attributes
-        for (let r = 0; r < this.rows; r++) {
-            this.grid[r] = [];
-            this.colors[r] = [];
-            this.attrs[r] = [];
-            for (let c = 0; c < this.cols; c++) {
-                this.grid[r][c] = ' ';
-                this.colors[r][c] = CLR_GRAY;
-                this.attrs[r][c] = 0; // 0 = normal
-            }
-        }
         this.topMessage = null; // Track current message for concatenation
         this._topMessageStatusHp = null;
         this._topMessageEncumbrance = null;
@@ -659,9 +575,6 @@ export class HeadlessDisplay {
         this._lastMapState = null;
         this._mapBaseCells = new Map();
         this._tempOverlay = new Map();
-        this.cursorCol = 0;
-        this.cursorRow = 0;
-        this.cursorVisible = 1;
         this._nhgetch = null;
         this._lastTextPopup = null;
     }
@@ -670,17 +583,14 @@ export class HeadlessDisplay {
 
     setCell(col, row, ch, color = CLR_GRAY, attr = 0) {
         if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
-            const prev = {
-                ch: this.grid[row][col],
-                color: this.colors[row][col],
-                attr: this.attrs[row][col],
-            };
-            this.grid[row][col] = ch;
+            const cell = this.grid[row][col];
+            const prev = { ch: cell.ch, color: cell.color, attr: cell.attr };
             const displayColor = (this.flags.color !== false)
                 ? ((color === CLR_BLACK && this.flags.use_darkgray !== false) ? NO_COLOR : color)
                 : CLR_GRAY;
-            this.colors[row][col] = displayColor;
-            this.attrs[row][col] = attr;
+            cell.ch = ch;
+            cell.color = displayColor;
+            cell.attr = attr;
             maybeTraceCellWrite(this, col, row, prev, { ch, color: displayColor, attr });
         }
     }
@@ -690,18 +600,13 @@ export class HeadlessDisplay {
     }
 
     clearRow(row) {
-        for (let c = 0; c < this.cols; c++) {
-            this.grid[row][c] = ' ';
-            this.colors[row][c] = CLR_GRAY;
-            this.attrs[row][c] = 0;
-        }
+        super.clearRow(row);
         if (row === 0) this.toplines = '';
     }
 
     clearScreen() {
-        for (let r = 0; r < this.rows; r++) {
-            this.clearRow(r);
-        }
+        super.clearScreen();
+        this.toplines = '';
         // Reset message state so stale topMessage doesn't trigger a spurious
         // --More-- on the next putstr_message call (mirrors Display.clearScreen).
         this.topMessage = null;
@@ -711,9 +616,6 @@ export class HeadlessDisplay {
         this.messageCursorCol = 0;
         this.messageCursorRow = 0;
     }
-
-    // No-op for headless mode; the browser display refreshes the DOM here.
-    render() {}
 
     setCursor(col, row) {
         this.cursorCol = col;
@@ -730,20 +632,10 @@ export class HeadlessDisplay {
         }
     }
 
-    getCursor() { return [this.cursorCol, this.cursorRow, this.cursorVisible]; }
-
-    cursSet(visibility) { this.cursorVisible = visibility ? 1 : 0; }
-
     cursorOnPlayer(player) {
         if (player) {
             const mapOffset = this.flags?.msg_window ? 3 : MAP_ROW_START;
             this.setCursor(player.x - 1, player.y + mapOffset);
-        }
-    }
-
-    putstr(col, row, str, color = CLR_GRAY, attr = 0) {
-        for (let i = 0; i < str.length && col + i < this.cols; i++) {
-            this.setCell(col + i, row, str[i], color, attr);
         }
     }
 
@@ -1185,9 +1077,10 @@ export class HeadlessDisplay {
         const clearRows = fullScreen ? this.rows : menuRows;
         for (let r = 0; r < clearRows; r++) {
             for (let c = Math.max(0, offx - 1); c < this.cols; c++) {
-                this.grid[r][c] = ' ';
-                this.colors[r][c] = CLR_GRAY;
-                this.attrs[r][c] = 0;
+                const cell = this.grid[r][c];
+                cell.ch = ' ';
+                cell.color = CLR_GRAY;
+                cell.attr = 0;
             }
         }
 
@@ -1221,17 +1114,19 @@ export class HeadlessDisplay {
     renderLoreText(lines, offx) {
         for (let i = 0; i < lines.length && i < this.rows; i++) {
             for (let c = offx; c < this.cols; c++) {
-                this.grid[i][c] = ' ';
-                this.colors[i][c] = CLR_GRAY;
-                this.attrs[i][c] = 0;
+                const cell = this.grid[i][c];
+                cell.ch = ' ';
+                cell.color = CLR_GRAY;
+                cell.attr = 0;
             }
             this.putstr(offx, i, lines[i]);
         }
         for (let i = lines.length; i < this.rows - 2; i++) {
             for (let c = offx; c < this.cols; c++) {
-                this.grid[i][c] = ' ';
-                this.colors[i][c] = CLR_GRAY;
-                this.attrs[i][c] = 0;
+                const cell = this.grid[i][c];
+                cell.ch = ' ';
+                cell.color = CLR_GRAY;
+                cell.attr = 0;
             }
         }
     }
@@ -1329,19 +1224,21 @@ export class HeadlessDisplay {
         for (let r = 0; r < clearRows; r++) {
             savedCells[r] = [];
             for (let c = left; c < this.cols; c++) {
+                const cell = this.grid[r][c];
                 savedCells[r][c] = {
-                    ch: this.grid[r][c],
-                    color: this.colors[r][c],
-                    attr: this.attrs[r][c] || 0,
+                    ch: cell.ch,
+                    color: cell.color,
+                    attr: cell.attr || 0,
                 };
             }
         }
         // Clear the popup area
         for (let r = 0; r < clearRows; r++) {
             for (let c = Math.max(0, offx); c < this.cols; c++) {
-                this.grid[r][c] = ' ';
-                this.colors[r][c] = CLR_GRAY;
-                this.attrs[r][c] = 0;
+                const cell = this.grid[r][c];
+                cell.ch = ' ';
+                cell.color = CLR_GRAY;
+                cell.attr = 0;
             }
         }
         // Render each line
@@ -1386,224 +1283,31 @@ export class HeadlessDisplay {
                 for (let c = 0; c < this.cols; c++) {
                     const saved = row[c];
                     if (!saved) continue;
-                    this.grid[r][c] = saved.ch;
-                    this.colors[r][c] = saved.color;
-                    this.attrs[r][c] = saved.attr || 0;
+                    const cell = this.grid[r][c];
+                    cell.ch = saved.ch;
+                    cell.color = saved.color;
+                    cell.attr = saved.attr || 0;
                 }
             }
         } else {
             const left = popup.hasMoreLine ? Math.max(0, popup.offx - 1) : popup.offx;
             for (let r = 0; r < popup.rows && r < this.rows; r++) {
                 for (let c = left; c < this.cols; c++) {
-                    this.grid[r][c] = ' ';
-                    this.colors[r][c] = CLR_GRAY;
-                    this.attrs[r][c] = 0;
+                    const cell = this.grid[r][c];
+                    cell.ch = ' ';
+                    cell.color = CLR_GRAY;
+                    cell.attr = 0;
                 }
             }
         }
         this._lastTextPopup = null;
     }
 
-    // Return 24-line string array matching C TTY screen format
-    getScreenLines() {
-        const result = [];
-        for (let r = 0; r < this.rows; r++) {
-            // Join chars, trim trailing spaces to match session format
-            let line = this.grid[r].join('');
-            // Right-trim spaces (C session screens are right-trimmed)
-            line = line.replace(/ +$/, '');
-            result.push(line);
-        }
-        return result;
-    }
-
-    // Return 24-line ANSI string array including SGR color/attribute changes.
-    // Used for color-faithfulness comparisons against C captures with screenAnsi.
-    getScreenAnsiLines() {
-        const fgCode = (color) => {
-            switch (color) {
-                case 0: return 30;  // black
-                case 1: return 31;  // red
-                case 2: return 32;  // green
-                case 3: return 33;  // brown
-                case 4: return 34;  // blue
-                case 5: return 35;  // magenta
-                case 6: return 36;  // cyan
-                case 7: return 37;  // gray
-                case 8: return 90;  // no-color/dark gray
-                case 9: return 91;  // orange / bright red in tty SGR
-                case 10: return 92; // bright green
-                case 11: return 93; // yellow
-                case 12: return 94; // bright blue
-                case 13: return 95; // bright magenta
-                case 14: return 96; // bright cyan
-                case 15: return 97; // white
-                default: return 37;
-            }
-        };
-        const bgCode = (color) => {
-            switch (color) {
-                case 0: return 40;
-                case 1: return 41;
-                case 2: return 42;
-                case 3: return 43;
-                case 4: return 44;
-                case 5: return 45;
-                case 6: return 46;
-                case 7: return 47;
-                case 8: return 100;
-                case 9: return 101;
-                case 10: return 102;
-                case 11: return 103;
-                case 12: return 104;
-                case 13: return 105;
-                case 14: return 106;
-                case 15: return 107;
-                default: return 40;
-            }
-        };
-        const styleKey = (fg, bg, attr) => `${fg}|${bg}|${attr}`;
-
-        const out = [];
-        for (let r = 0; r < this.rows; r++) {
-            const chars = this.grid[r].slice();
-            const colors = this.colors[r].slice();
-            const attrs = this.attrs[r].slice();
-
-            // Match getScreenLines trimming for plain trailing blanks, but keep
-            // styled trailing spaces (inverse/bold/underline) because C captures
-            // preserve those via cursor movement + active SGR.
-            let end = chars.length - 1;
-            while (end >= 0 && chars[end] === ' ' && !attrs[end]) end--;
-            if (end < 0) {
-                out.push('');
-                continue;
-            }
-
-            let line = '';
-            let curKey = '';
-            for (let c = 0; c <= end; c++) {
-                const ch = chars[c] || ' ';
-                const fg = Number.isInteger(colors[c]) ? colors[c] : 7;
-                const attr = Number.isInteger(attrs[c]) ? attrs[c] : 0;
-                const inverse = (attr & 1) !== 0;
-                const bold = (attr & 2) !== 0;
-                const underline = (attr & 4) !== 0;
-                const styleFg = fg;
-                const styleBg = 0;
-                const key = styleKey(styleFg, styleBg, attr);
-                if (key !== curKey) {
-                    const sgr = [0, fgCode(styleFg), bgCode(styleBg)];
-                    if (bold) sgr.push(1);
-                    if (underline) sgr.push(4);
-                    if (inverse) sgr.push(7);
-                    line += `\x1b[${sgr.join(';')}m`;
-                    curKey = key;
-                }
-                line += ch;
-            }
-            line += '\x1b[0m';
-            out.push(line);
-        }
-        return out;
-    }
-
-    // Overwrite the terminal grid from captured 24-line session text.
-    setScreenLines(lines) {
-        this.clearScreen();
-        const src = Array.isArray(lines) ? lines : [];
-        for (let r = 0; r < this.rows && r < src.length; r++) {
-            const line = src[r] || '';
-            for (let c = 0; c < this.cols && c < line.length; c++) {
-                this.grid[r][c] = line[c];
-                this.colors[r][c] = CLR_GRAY;
-                this.attrs[r][c] = 0;
-            }
-        }
-    }
-
-    // Overwrite terminal grid from ANSI-colored session lines.
-    setScreenAnsiLines(lines) {
-        this.clearScreen();
-        const src = Array.isArray(lines) ? lines : [];
-        for (let r = 0; r < this.rows && r < src.length; r++) {
-            const line = String(src[r] || '');
-            let i = 0;
-            let col = 0;
-            let fg = CLR_GRAY;
-            let attr = 0; // bit1=inverse, bit2=bold, bit4=underline
-
-            const applySgr = (codes) => {
-                const list = codes.length ? codes : [0];
-                for (const code of list) {
-                    if (code === 0) {
-                        fg = CLR_GRAY;
-                        attr = 0;
-                    } else if (code === 1) attr |= 2;
-                    else if (code === 4) attr |= 4;
-                    else if (code === 7) attr |= 1;
-                    else if (code === 22) attr &= ~2;
-                    else if (code === 24) attr &= ~4;
-                    else if (code === 27) attr &= ~1;
-                    else if (code >= 30 && code <= 37) fg = code - 30;
-                    else if (code >= 90 && code <= 97) fg = 8 + (code - 90);
-                    else if (code === 39) fg = CLR_GRAY;
-                }
-            };
-
-            let decGraphics = false;
-            while (i < line.length && col < this.cols) {
-                const ch = line[i];
-                if (ch === '\x0e') { decGraphics = true; i++; continue; }
-                if (ch === '\x0f') { decGraphics = false; i++; continue; }
-                if (ch === '\x1b' && line[i + 1] === '[') {
-                    let j = i + 2;
-                    while (j < line.length && !/[A-Za-z]/.test(line[j])) j++;
-                    if (j < line.length) {
-                        const cmd = line[j];
-                        const body = line.slice(i + 2, j);
-                        if (cmd === 'm') {
-                            const codes = body.length === 0
-                                ? [0]
-                                : body.split(';')
-                                    .map((s) => Number.parseInt(s || '0', 10))
-                                    .filter((n) => Number.isFinite(n));
-                            applySgr(codes);
-                        } else if (cmd === 'C') {
-                            const n = Math.max(1, Number.parseInt(body || '1', 10) || 1);
-                            for (let k = 0; k < n && col < this.cols; k++, col++) {
-                                this.setCell(col, r, ' ', fg, attr);
-                            }
-                        }
-                        i = j + 1;
-                        continue;
-                    }
-                }
-                if (ch !== '\r' && ch !== '\n') {
-                    // C ref: DEC Special Graphics — SO (\x0e) activates
-                    // alternate charset; map raw DEC codes to Unicode so
-                    // the grid always holds display-ready characters.
-                    const decoded = decGraphics ? (DEC_TO_UNICODE[ch] || ch) : ch;
-                    this.setCell(col, r, decoded, fg, attr);
-                    col++;
-                }
-                i++;
-            }
-        }
-    }
-
-    // Return 24-line attribute array matching session format
-    // Each line is 80 chars where each char is an attribute code:
-    // '0' = normal, '1' = inverse, '2' = bold, '4' = underline
-    getAttrLines() {
-        const result = [];
-        for (let r = 0; r < this.rows; r++) {
-            // Convert numeric attrs to string, pad to 80 chars
-            const attrLine = this.attrs[r].map(a => String(a)).join('').padEnd(80, '0');
-            result.push(attrLine);
-        }
-        return result;
-    }
+    getScreenLines() { return _getScreenLines(this.grid, this.rows, this.cols); }
+    getScreenAnsiLines() { return _getScreenAnsiLines(this.grid, this.rows, this.cols); }
+    setScreenLines(lines) { _setScreenLines(this.grid, this.rows, this.cols, lines); }
+    setScreenAnsiLines(lines) { _setScreenAnsiLines(this.grid, this.rows, this.cols, lines); }
+    getAttrLines() { return _getAttrLines(this.grid, this.rows, this.cols); }
 
     renderMap(gameMap, player, fov, flags = {}) {
         this.flags = { ...this.flags, ...flags };
@@ -1652,11 +1356,9 @@ export class HeadlessDisplay {
         for (let y = 0; y < ROWNO; y++) {
             const row = y + mapOffset;
             for (let col = 0; col < COLNO - 1; col++) {
-                const ch = this.grid[row]?.[col];
-                if (typeof ch !== 'string') continue;
-                const color = Number.isInteger(this.colors[row]?.[col]) ? this.colors[row][col] : CLR_GRAY;
-                const attr = Number.isInteger(this.attrs[row]?.[col]) ? this.attrs[row][col] : 0;
-                this._mapBaseCells.set(this._overlayKey(col, row), { ch, color, attr });
+                const cell = this.grid[row]?.[col];
+                if (!cell) continue;
+                this._mapBaseCells.set(this._overlayKey(col, row), { ch: cell.ch, color: cell.color, attr: cell.attr });
             }
         }
     }

@@ -2,6 +2,9 @@
 // Implements the window_procs interface from winprocs.h for browser rendering.
 // See DECISIONS.md #2 for why we use <pre> with <span> elements.
 
+import { Terminal } from './terminal.js';
+import { maybeTraceCellWrite, TRACE_CELL_SPEC, TRACE_CELL_STEPS, traceStepForDisplay, traceCaller } from './trace.js';
+
 import {
     COLNO, ROWNO, TERMINAL_COLS, TERMINAL_ROWS,
     MESSAGE_ROW, MAP_ROW_START, STATUS_ROW_1, STATUS_ROW_2,
@@ -84,90 +87,9 @@ export {
     CLR_WHITE, HI_METAL, HI_WOOD, HI_GOLD, HI_ZAP,
 };
 
-// CSS color strings for each NetHack color
-// See DECISIONS.md #2 for color choices
-// C ref: display.h color constants (0-7, skip 8, 9-15)
-const COLOR_CSS = [
-    '#555',    // 0  - CLR_BLACK (dark gray for visibility on black bg)
-    '#a00',    // 1  - CLR_RED
-    '#0a0',    // 2  - CLR_GREEN
-    '#a50',    // 3  - CLR_BROWN
-    '#00d',    // 4  - CLR_BLUE
-    '#a0a',    // 5  - CLR_MAGENTA
-    '#0aa',    // 6  - CLR_CYAN
-    '#ccc',    // 7  - CLR_GRAY
-    '#ccc',    // 8  - NO_COLOR (unused, defaults to gray)
-    '#f80',    // 9  - CLR_ORANGE
-    '#0f0',    // 10 - CLR_BRIGHT_GREEN
-    '#ff0',    // 11 - CLR_YELLOW
-    '#55f',    // 12 - CLR_BRIGHT_BLUE
-    '#f5f',    // 13 - CLR_BRIGHT_MAGENTA
-    '#0ff',    // 14 - CLR_BRIGHT_CYAN
-    '#fff',    // 15 - CLR_WHITE
-];
+// COLOR_CSS now lives in terminal.js (accessed via this.colorToCss()).
 
-function parseTraceCellSpec(raw) {
-    const text = String(raw || '').trim();
-    if (!text) return null;
-    const m = text.match(/^(\d+)\s*,\s*(\d+)$/);
-    if (!m) return null;
-    return { col: Number(m[1]), row: Number(m[2]) };
-}
-
-function parseTraceStepSpec(raw) {
-    const text = String(raw || '').trim();
-    if (!text) return null;
-    const m = text.match(/^(\d+)(?:\s*-\s*(\d+))?$/);
-    if (!m) return null;
-    const from = Number(m[1]);
-    const to = Number(m[2] || m[1]);
-    if (!Number.isInteger(from) || !Number.isInteger(to)) return null;
-    return { from: Math.min(from, to), to: Math.max(from, to) };
-}
-
-const _env = typeof process !== 'undefined' ? process.env : {};
-const TRACE_CELL_SPEC = parseTraceCellSpec(_env.WEBHACK_TRACE_CELL);
-const TRACE_CELL_STEPS = parseTraceStepSpec(_env.WEBHACK_TRACE_CELL_STEPS);
-const TRACE_CELL_STACK = _env.WEBHACK_TRACE_CELL_STACK === '1';
-
-function traceStepForDisplay(display) {
-    const stepIndex = Number.isInteger(display?._lastMapState?.gameMap?._replayStepIndex)
-        ? display._lastMapState.gameMap._replayStepIndex
-        : null;
-    return stepIndex === null ? null : stepIndex + 1;
-}
-
-function formatTraceChar(ch) {
-    if (ch === ' ') return 'space';
-    return JSON.stringify(ch);
-}
-
-function traceCaller() {
-    if (!TRACE_CELL_STACK) return '';
-    const stack = String(new Error().stack || '').split('\n').slice(3);
-    for (const line of stack) {
-        if (!line.includes('/js/display.js')) {
-            return line.trim().replace(/^at\s+/, '');
-        }
-    }
-    return stack[0] ? stack[0].trim().replace(/^at\s+/, '') : '';
-}
-
-function maybeTraceCellWrite(display, col, row, prev, next, kind = 'write') {
-    if (!TRACE_CELL_SPEC) return;
-    if (TRACE_CELL_SPEC.col !== col || TRACE_CELL_SPEC.row !== row) return;
-    const step = traceStepForDisplay(display);
-    if (TRACE_CELL_STEPS && (step === null || step < TRACE_CELL_STEPS.from || step > TRACE_CELL_STEPS.to)) return;
-    const caller = traceCaller();
-    const callerPart = caller ? ` caller=${caller}` : '';
-    console.error(
-        `^celltrace[kind=${kind} step=${step === null ? '?' : step}`
-        + ` cell=${col},${row}`
-        + ` prev=${formatTraceChar(prev.ch)}/${prev.color}/${prev.attr}`
-        + ` next=${formatTraceChar(next.ch)}/${next.color}/${next.attr}`
-        + `${callerPart}]`
-    );
-}
+// Trace functions (parseTraceCellSpec, maybeTraceCellWrite, etc.) now live in trace.js.
 
 function replayStepIndex(map) {
     return Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex : null;
@@ -254,80 +176,11 @@ function playerMapGlyph(player) {
 }
 
 
-/**
- * Compute the optimal line-height for seamless box-drawing characters.
- *
- * Terminal box-drawing glyphs (│, ┌, ─, └, etc.) are designed to tile
- * seamlessly by extending to the font's full cell height, which is defined
- * by the OS/2 table's usWinAscent + usWinDescent (the clipping bounds),
- * NOT the smaller sTypoAscender + sTypoDescender (typographic metrics).
- *
- * Chrome (and most browsers) compute "normal" line-height from the typo
- * metrics when USE_TYPO_METRICS is set, which for DejaVu Sans Mono gives
- * line-height: 1.0 — too short, clipping box-drawing glyphs. Meanwhile
- * line-height: 1.2 is too tall, leaving visible gaps between lines.
- *
- * The ideal ratio is (usWinAscent + usWinDescent) / unitsPerEm, but
- * the product of line-height × font-size must land on an INTEGER pixel
- * value, otherwise sub-pixel rounding causes inconsistent row heights
- * and occasional 1px gaps between lines.
- *
- * This function measures the actual loaded font's metrics via the Canvas
- * API (fontBoundingBoxAscent + fontBoundingBoxDescent), computes the
- * natural ratio, then rounds down to the nearest value whose product
- * with fontSize is a whole pixel.
- *
- * @param {number} fontSize - The font size in pixels (e.g. 16)
- * @param {string} fontFamily - The CSS font-family string
- * @returns {number} line-height as a unitless ratio (e.g. 1.125)
- */
-function computeTerminalLineHeight(fontSize, fontFamily) {
-    // Default: Chrome's fontBoundingBoxAscent+Descent for DejaVu Sans Mono at 16px
-    // gives 19px (not 18px from usWinAscent/usWinDescent), so floor(19)/16 = 1.1875.
-    const DEFAULT_LINE_HEIGHT = 1.1875;
-    if (typeof document === 'undefined') return DEFAULT_LINE_HEIGHT;
-    try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.font = `${fontSize}px ${fontFamily}`;
-        const metrics = ctx.measureText('│');
-        // fontBoundingBox metrics give the font-wide ascent/descent
-        // (not per-glyph), matching usWinAscent/usWinDescent.
-        if (metrics.fontBoundingBoxAscent != null &&
-            metrics.fontBoundingBoxDescent != null) {
-            const naturalHeight = metrics.fontBoundingBoxAscent
-                                + metrics.fontBoundingBoxDescent;
-            const naturalRatio = naturalHeight / fontSize;
-            // Round down to nearest value giving a whole-pixel line height.
-            // E.g. at 16px, ratio 1.164 → 18.62px → floor to 18px → 1.125.
-            const wholePixelHeight = Math.floor(naturalRatio * fontSize);
-            // Don't go below 1.0
-            return Math.max(wholePixelHeight / fontSize, 1.0);
-        }
-    } catch (e) {
-        // Canvas not available (e.g. Node.js tests)
-    }
-    return DEFAULT_LINE_HEIGHT;
-}
+// computeTerminalLineHeight now lives in terminal.js.
 
-export class Display {
+export class Display extends Terminal {
     constructor(containerId) {
-        this.container = document.getElementById(containerId);
-        this.cols = TERMINAL_COLS;
-        this.rows = TERMINAL_ROWS;
-
-        // The character grid: [row][col] = {ch, color, attr}
-        // attr: 0=normal, 1=inverse, 2=bold, 4=underline (can be OR'd)
-        this.grid = [];
-        for (let r = 0; r < this.rows; r++) {
-            this.grid[r] = [];
-            for (let c = 0; c < this.cols; c++) {
-                this.grid[r][c] = { ch: ' ', color: CLR_GRAY, attr: 0 };
-            }
-        }
-
-        // DOM spans: [row][col] = <span>
-        this.spans = [];
+        super(containerId, { rows: TERMINAL_ROWS, cols: TERMINAL_COLS });
 
         // Cell info for hover: [row][col] = { name, desc, color }
         this.cellInfo = [];
@@ -363,131 +216,34 @@ export class Display {
         this._mapBaseCells = new Map();
         // key => stack of transient cells (top is active overlay)
         this._tempOverlay = new Map();
-        this.cursorCol = 0;
-        this.cursorRow = 0;
-        this.cursorVisible = 1;
-        this._cursorSpan = null; // currently highlighted <span>
         this._nhgetch = null;
         this._topMessageRow1 = undefined; // set when message wraps to row 1
         this._lastTextPopup = null;
 
-        this._createDOM();
+        if (containerId) this._setupHover(this._pre);
     }
 
     setNhgetch(fn) { this._nhgetch = fn; }
 
-    _createDOM() {
-        // Create the pre element
-        const pre = document.createElement('pre');
-        pre.id = 'terminal';
-        const fontFamily = '"DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace';
-        // Read the current font size from the CSS variable (may differ from 16 if user changed it).
-        const fontSize = parseFloat(getComputedStyle(document.documentElement)
-            .getPropertyValue('--game-font-size')) || 16;
-        const lineHeight = computeTerminalLineHeight(fontSize, fontFamily);
-        pre.style.cssText = `
-            font-family: ${fontFamily};
-            font-size: ${fontSize}px;
-            line-height: ${lineHeight};
-            background: #000;
-            color: #ccc;
-            padding: 8px;
-            margin: 0;
-            display: inline-block;
-            white-space: pre;
-            cursor: default;
-            user-select: none;
-        `;
+    // _createDOM() is now handled by Terminal's constructor.
 
-        // Create spans for each cell
-        for (let r = 0; r < this.rows; r++) {
-            this.spans[r] = [];
-            for (let c = 0; c < this.cols; c++) {
-                const span = document.createElement('span');
-                span.textContent = ' ';
-                span.style.color = COLOR_CSS[CLR_GRAY];
-                span.dataset.row = r;
-                span.dataset.col = c;
-                this.spans[r][c] = span;
-                pre.appendChild(span);
-            }
-            if (r < this.rows - 1) {
-                pre.appendChild(document.createTextNode('\n'));
-            }
-        }
-
-        // CSS animation for blinking cursor
-        const style = document.createElement('style');
-        style.textContent = `
-@keyframes nh-cursor-blink {
-  0%, 49% { box-shadow: inset 0 -3px 0 0 rgba(255,255,255,0.85); }
-  50%, 100% { box-shadow: none; }
-}
-span.nh-cursor {
-  animation: nh-cursor-blink 0.8s step-end infinite;
-}
-`;
-        this.container.innerHTML = '';
-        this.container.appendChild(style);
-        this.container.appendChild(pre);
-
-        // Set up hover info panel
-        this._setupHover(pre);
-    }
-
-    // Set a character at terminal position (col, row) with color and attributes
-    // attr: 0=normal, 1=inverse, 2=bold, 4=underline (can be OR'd together)
+    // Override setCell to add cell-write tracing before delegating to Terminal.
     setCell(col, row, ch, color, attr = 0) {
         if (row < 0 || row >= this.rows || col < 0 || col >= this.cols) return;
         const cell = this.grid[row][col];
         if (cell.ch === ch && cell.color === color && cell.attr === attr) return; // no change
         maybeTraceCellWrite(this, col, row, { ch: cell.ch, color: cell.color, attr: cell.attr }, { ch, color, attr });
-        cell.ch = ch;
-        cell.color = color;
-        cell.attr = attr;
-        const span = this.spans[row][col];
-        span.textContent = ch;
-
-        // Apply color flag - disable colors when color=false
-        // C ref: iflags.wc_color
-        const displayColor = (this.flags.color !== false)
-            ? ((color === CLR_BLACK && this.flags.use_darkgray !== false) ? NO_COLOR : color)
-            : CLR_GRAY;
-
-        // Apply attributes via CSS
-        // C ref: win/tty/termcap.c - inverse video, bold, underline
-        const isInverse = (attr & 1) !== 0;
-        const isBold = (attr & 2) !== 0;
-        const isUnderline = (attr & 4) !== 0;
-
-        if (isInverse) {
-            // Inverse video: swap foreground and background
-            span.style.color = '#000';
-            span.style.backgroundColor = COLOR_CSS[displayColor] || COLOR_CSS[CLR_GRAY];
-        } else {
-            span.style.color = COLOR_CSS[displayColor] || COLOR_CSS[CLR_GRAY];
-            span.style.backgroundColor = '';
-        }
-
-        span.style.fontWeight = isBold ? 'bold' : '';
-        span.style.textDecoration = isUnderline ? 'underline' : '';
+        super.setCell(col, row, ch, color, attr);
     }
 
-    // Clear a row
+    // Override clearRow: delegate to Terminal, then clear toplines buffer for row 0.
     clearRow(row) {
-        for (let c = 0; c < this.cols; c++) {
-            this.setCell(c, row, ' ', CLR_GRAY);
-        }
+        super.clearRow(row);
         // C ref: clearing row 0 clears the toplines buffer
         if (row === 0) this.toplines = '';
     }
 
-    // Write a string at position (col, row) with optional attributes
-    putstr(col, row, str, color = CLR_GRAY, attr = 0) {
-        for (let i = 0; i < str.length && col + i < this.cols; i++) {
-            this.setCell(col + i, row, str[i], color, attr);
-        }
-    }
+    // putstr() is inherited from Terminal.
 
     // --- Window interface methods (mirrors winprocs.h) ---
 
@@ -1104,17 +860,10 @@ span.nh-cursor {
         this._restoreBaseCell(col, row);
     }
 
-    flush() {
-        // Browser display is immediate through setCell/DOM writes.
-    }
+    // flush() is inherited from Terminal.
 
+    // Override setCursor to add cursor-position tracing.
     setCursor(col, row) {
-        if (this._cursorSpan) {
-            this._cursorSpan.classList.remove('nh-cursor');
-            this._cursorSpan = null;
-        }
-        this.cursorCol = col;
-        this.cursorRow = row;
         if (TRACE_CELL_SPEC && TRACE_CELL_SPEC.col === col && TRACE_CELL_SPEC.row === row) {
             const step = traceStepForDisplay(this);
             if (!TRACE_CELL_STEPS || (step !== null && step >= TRACE_CELL_STEPS.from && step <= TRACE_CELL_STEPS.to)) {
@@ -1123,27 +872,12 @@ span.nh-cursor {
                 console.error(`^celltrace[kind=cursor step=${step === null ? '?' : step} cell=${col},${row}${callerPart}]`);
             }
         }
-        if (this.cursorVisible
-            && row >= 0 && row < this.rows && col >= 0 && col < this.cols
-            && this.spans[row] && this.spans[row][col]) {
-            this._cursorSpan = this.spans[row][col];
-            this._cursorSpan.classList.add('nh-cursor');
-        }
+        super.setCursor(col, row);
     }
 
-    getCursor() { return [this.cursorCol, this.cursorRow, this.cursorVisible]; }
+    // getCursor() is inherited from Terminal.
 
-    cursSet(visibility) {
-        this.cursorVisible = visibility ? 1 : 0;
-        // Update DOM: hide or show cursor based on visibility
-        if (this._cursorSpan) {
-            if (!this.cursorVisible) {
-                this._cursorSpan.classList.remove('nh-cursor');
-            } else {
-                this._cursorSpan.classList.add('nh-cursor');
-            }
-        }
-    }
+    // cursSet() is inherited from Terminal.
 
     // Get the display symbol for a terrain type
     // C ref: defsym.h PCHAR definitions, display.c back_to_glyph()
@@ -1183,14 +917,10 @@ span.nh-cursor {
         }
     }
 
-    // Clear the entire screen and reset message state.
+    // Override clearScreen: delegate to Terminal, then reset NetHack message state.
     // C ref: tty_clear_nhwindow() — wipes the whole terminal including topline.
-    // Resetting topMessage/messageNeedsMore prevents stale state from triggering
-    // spurious --More-- on the next putstr_message call.
     clearScreen() {
-        for (let r = 0; r < this.rows; r++) {
-            this.clearRow(r);
-        }
+        super.clearScreen();
         this.topMessage = null;
         this.messageNeedsMore = false;
         this._topMessageRow1 = undefined;
@@ -1531,7 +1261,7 @@ span.nh-cursor {
             const info = display.cellInfo[r] && display.cellInfo[r][c];
             if (info && info.name) {
                 const ch = display.grid[r][c].ch;
-                const color = COLOR_CSS[info.color] || COLOR_CSS[CLR_GRAY];
+                const color = display.colorToCss(info.color);
                 if (symbolEl) {
                     symbolEl.textContent = ch;
                     symbolEl.style.color = color;
