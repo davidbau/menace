@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta-Menace — Agent Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f9f7f1; --card-bg: #fff; --border: #e0ddd5;
+    --text: #333; --muted: #888; --light: #aaa;
+    --accent: #6b2c2c; --accent-dk: #4a2020; --accent-lt: #8b4c4c;
+    --lore: #8b6914; --commit: #2d6a2d; --human: #2a5599;
+    --session: #6b4c9a; --correction: #b33; --directive: #2a7a5a;
+    --question: #996b00; --ai: #555;
+    --serif: 'EB Garamond', Georgia, serif;
+    --mono: 'Consolas', 'DejaVu Sans Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--serif); line-height: 1.55; }
+
+  .layout { display: flex; height: 100vh; font-size: 20px; }
+
+  /* --- Left TOC --- */
+  .sidebar {
+    width: 340px; flex-shrink: 0; border-right: 1px solid var(--border);
+    overflow-y: auto; padding: 0.8em 0; background: #f4f1ea;
+  }
+  .sidebar h2 { font-size: 1em; color: var(--accent); padding: 0 0.8em 0.4em; }
+  .sparkline { display: flex; align-items: flex-end; gap: 1px; height: 22px; padding: 0 0.8em 0.5em; }
+  .sb { flex: 1; min-width: 2px; border-radius: 1px 1px 0 0; background: #c5b899; cursor: pointer; }
+  .sb.hl { background: var(--lore); }
+  .toc-item {
+    display: block; padding: 0.25em 0.8em; cursor: pointer; font-size: 0.8em;
+    border-left: 3px solid transparent; text-decoration: none; color: var(--text); line-height: 1.25;
+  }
+  .toc-item:hover { background: rgba(107,44,44,0.04); }
+  .toc-item.active { border-left-color: var(--accent); background: rgba(107,44,44,0.07); }
+  .toc-item.hl { border-left-color: var(--lore); }
+  .td { font-weight: 600; color: var(--accent-dk); font-size: 0.9em; }
+  .ts { color: var(--muted); font-style: italic; display: block; font-size: 0.88em; }
+
+  /* --- Main --- */
+  .main { flex: 1; overflow-y: auto; min-width: 0; }
+  .main-header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg); padding: 0.8em 2em 0.6em;
+    border-bottom: 1px solid var(--border);
+  }
+  .main-header h1 { font-size: 1.5em; color: var(--accent); margin-bottom: 0.1em; }
+  .main-header .sub { color: var(--muted); font-style: italic; font-size: 0.95em; }
+  .main-body { padding: 1em 2em; }
+
+  .day { margin-bottom: 2em; scroll-margin-top: 6.5em; }
+  .day-hdr { font-size: 1.15em; font-weight: 600; color: var(--accent); margin-bottom: 0.1em;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.2em; }
+  .day-hdr-full { display: block; }
+  .day-sum { font-weight: 400; font-style: italic; color: var(--muted); font-size: 0.8em; display: block; margin-top: 0.1em; }
+
+  /* Events */
+  .ev { margin: 0.2em 0; }
+
+  .ev-human {
+    padding: 0.3em 0.6em 0.3em 1.8em; border-radius: 4px; font-size: 0.9em;
+    border-left: 3px solid var(--human); background: rgba(42,85,153,0.04); margin: 0.4em 0;
+    position: relative;
+  }
+  .ev-human::before {
+    content: '→'; position: absolute; left: 0.4em; top: 0.3em;
+    color: var(--human); font-weight: 700; font-size: 0.9em;
+  }
+  .ev-human.truncated { cursor: pointer; }
+  .ev-human .full-text { display: none; }
+  .ev-human.expanded .full-text { display: inline; }
+  .ev-human.expanded .short-text { display: none; }
+  .ev-human.correction { border-left-color: var(--correction); background: rgba(180,50,50,0.03); }
+  .ev-human.correction::before { color: var(--correction); }
+  .ev-human.directive { border-left-color: var(--directive); }
+  .ev-human.directive::before { color: var(--directive); }
+  .ev-human.question { border-left-color: var(--question); }
+  .ev-human.question::before { color: var(--question); }
+
+  .ev-ai {
+    padding: 0.2em 0.6em; font-size: 0.85em; color: var(--ai);
+    border-left: 3px solid #ddd; margin: 0.15em 0; cursor: pointer;
+  }
+  .ev-ai:hover { background: rgba(0,0,0,0.02); }
+  .ev-ai .detail { display: none; margin-top: 0.2em; }
+  .ev-ai.open .detail { display: block; }
+  .ai-tools { font-family: var(--mono); font-size: 0.85em; color: var(--session); }
+  .ai-snip { font-style: italic; color: var(--ai); margin-top: 0.1em; }
+
+  /* Subagent events — indented to show nesting */
+  .ev-agent-directive {
+    padding: 0.25em 0.5em 0.25em 2.5em; border-radius: 3px; font-size: 0.85em;
+    border-left: 3px solid var(--session); background: rgba(107,76,154,0.04);
+    margin: 0.2em 0 0.2em 1.5em; position: relative;
+  }
+  .ev-agent-directive::before {
+    content: 'AI →'; position: absolute; left: 0.3em; top: 0.25em;
+    color: var(--session); font-weight: 700; font-size: 0.8em;
+  }
+  .ev-agent-directive.truncated { cursor: pointer; }
+  .ev-agent-directive .full-text { display: none; }
+  .ev-agent-directive.expanded .full-text { display: inline; }
+  .ev-agent-directive.expanded .short-text { display: none; }
+
+  .ev-subagent-work {
+    padding: 0.15em 0.5em; font-size: 0.8em; color: var(--ai);
+    border-left: 3px solid rgba(107,76,154,0.3); margin: 0.1em 0 0.1em 1.5em;
+    cursor: pointer;
+  }
+  .ev-subagent-work:hover { background: rgba(0,0,0,0.02); }
+  .ev-subagent-work .detail { display: none; margin-top: 0.2em; }
+  .ev-subagent-work.open .detail { display: block; }
+
+  .ev-commit {
+    font-family: var(--mono); font-size: 0.82em; padding: 0.3em 0.6em 0.3em 1.8em; margin: 0.15em 0;
+    border-left: 3px solid var(--commit); background: rgba(45,106,45,0.04);
+    border-radius: 3px; display: flex; gap: 0.5em; align-items: baseline;
+    position: relative;
+  }
+  .ev-commit::before {
+    content: '←'; position: absolute; left: 0.35em; top: 0.3em;
+    color: var(--commit); font-weight: 700; font-size: 0.9em;
+  }
+  .ev-commit.truncated { cursor: pointer; }
+  .ev-commit .full-text { display: none; margin-top: 0.2em; color: var(--muted); font-size: 0.9em; white-space: pre-wrap; }
+  .ev-commit.expanded .full-text { display: block; }
+  .ev-commit .ct { color: var(--muted); min-width: 4ch; }
+  .ev-commit .ch { color: var(--commit); font-weight: 600; }
+  .ev-commit .cm { color: var(--text); }
+
+  .ev-lore {
+    padding: 0.3em 0.6em; border-radius: 4px; font-size: 0.9em;
+    background: rgba(139,105,20,0.06); border-left: 3px solid var(--lore); margin: 0.4em 0;
+    color: var(--lore);
+  }
+
+  .ev.highlight {
+    outline: 3px solid #e8c800;
+    outline-offset: 1px;
+    scroll-margin-top: 40vh;
+  }
+
+  .ev-time { color: var(--light); font-size: 0.8em; margin-right: 0.3em; }
+  .tag {
+    font-size: 0.6em; padding: 0.1em 0.3em; border-radius: 5px;
+    font-weight: 600; font-family: -apple-system, sans-serif; margin-right: 0.2em; vertical-align: 1px;
+  }
+  .tag-correction { background: rgba(180,50,50,0.12); color: var(--correction); }
+  .tag-directive { background: rgba(42,122,90,0.1); color: var(--directive); }
+  .tag-question { background: rgba(153,107,0,0.1); color: var(--question); }
+  .tag-ai { background: rgba(107,76,154,0.1); color: var(--session); }
+
+  /* Commit groups */
+  .commit-group { margin: 0.2em 0; }
+  .cg-hdr { font-size: 0.75em; color: var(--commit); cursor: pointer; padding: 0.1em 0.6em;
+    border-left: 3px solid rgba(45,106,45,0.3); font-family: -apple-system, sans-serif; }
+  .cg-hdr:hover { background: rgba(0,0,0,0.02); }
+  .cg-body { display: none; }
+  .commit-group.open .cg-body { display: block; }
+
+  .show-more { color: var(--accent-lt); font-size: 0.82em; cursor: pointer; font-style: italic; padding: 0.2em 0.6em; }
+  .show-more:hover { color: var(--accent); text-decoration: underline; }
+
+  /* Filters */
+  .filters { display: flex; gap: 0.5em; flex-wrap: wrap; margin-top: 0.5em; }
+  .fbtn {
+    padding: 0.2em 0.7em; border-radius: 12px; border: 3px solid var(--border);
+    background: transparent; cursor: pointer; font-size: 0.75em;
+    font-weight: 600; opacity: 0.4;
+    transition: opacity 0.15s;
+  }
+  .fbtn.on { opacity: 1; }
+  .fbtn:hover { opacity: 0.8; }
+  .fbtn[data-f="human"] { border-color: var(--human); color: var(--human); }
+  .fbtn[data-f="human"].on { background: rgba(42,85,153,0.1); }
+  .fbtn[data-f="ai-work"] { border-color: var(--ai); color: var(--ai); }
+  .fbtn[data-f="ai-work"].on { background: rgba(85,85,85,0.08); }
+  .fbtn[data-f="agent-directive"] { border-color: var(--session); color: var(--session); }
+  .fbtn[data-f="agent-directive"].on { background: rgba(107,76,154,0.08); }
+  .fbtn[data-f="commit"] { border-color: var(--commit); color: var(--commit); }
+  .fbtn[data-f="commit"].on { background: rgba(45,106,45,0.08); }
+  .fbtn[data-f="lore"] { border-color: var(--lore); color: var(--lore); }
+  .fbtn[data-f="lore"].on { background: rgba(139,105,20,0.08); }
+
+  /* --- Right search --- */
+  .search-panel {
+    width: 340px; flex-shrink: 0; border-left: 1px solid var(--border);
+    overflow-y: auto; padding: 0.8em; background: #f4f1ea; display: flex; flex-direction: column;
+  }
+  .search-panel h3 { font-size: 0.9em; color: var(--accent); margin-bottom: 0.4em; }
+  #search {
+    width: 100%; padding: 0.35em 0.6em; border-radius: 5px;
+    border: 1px solid var(--border); background: #fff; color: var(--text);
+    font-family: var(--serif); font-size: 0.85em; margin-bottom: 0.4em;
+  }
+  #search:focus { outline: none; border-color: var(--accent); }
+  #sc { font-size: 0.75em; color: var(--muted); margin-bottom: 0.3em; }
+  .sr { flex: 1; overflow-y: auto; }
+  .hit {
+    padding: 0.3em 0.4em; margin: 0.15em 0; border-radius: 3px;
+    background: #fff; border: 1px solid var(--border); cursor: pointer;
+    font-size: 0.78em; line-height: 1.25;
+  }
+  .hit:hover { border-color: var(--accent); }
+  .hd { font-weight: 600; color: var(--accent-dk); font-size: 0.85em; }
+  .hs { color: var(--light); font-size: 0.8em; }
+  .hx { color: var(--text); }
+  .hx mark { background: rgba(255,215,0,0.35); color: inherit; padding: 0 1px; border-radius: 2px; }
+
+  .kw-index { margin-top: 0.5em; }
+  .kw-section { margin-bottom: 0.6em; }
+  .kw-hdr { font-size: 0.6em; font-weight: 600; color: var(--accent); text-transform: uppercase;
+    letter-spacing: 0.04em; margin-bottom: 0.15em; }
+  .kw { display: inline-block; font-size: 0.6em; padding: 0.1em 0.35em; margin: 0.08em;
+    border-radius: 3px; background: rgba(107,44,44,0.05); color: var(--accent-dk);
+    cursor: pointer; border: 1px solid transparent; font-style: italic; }
+  .kw:hover { border-color: var(--accent); background: rgba(107,44,44,0.12); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <h2>Meta-Menace</h2>
+    <div class="sparkline" id="spark"></div>
+    <div id="toc"></div>
+  </div>
+  <div class="main" id="main">
+    <div class="main-header">
+      <h1>Meta-Menace Timeline</h1>
+      <div class="filters" id="filters">
+        <button class="fbtn on" data-f="human">Human</button>
+        <button class="fbtn on" data-f="ai-work">AI work</button>
+        <button class="fbtn on" data-f="agent-directive">Subagents</button>
+        <button class="fbtn on" data-f="commit">Commits</button>
+        <button class="fbtn on" data-f="lore">LORE</button>
+      </div>
+    </div>
+    <div class="main-body" id="main-body">
+      <div id="timeline"></div>
+    </div>
+  </div>
+  <div class="search-panel">
+    <h3>Search</h3>
+    <input type="text" id="search" placeholder="Search everything&hellip;">
+    <div id="sc"></div>
+    <div class="sr" id="sr"></div>
+    <div class="kw-index" id="kw-index"></div>
+  </div>
+</div>
+<script>
+let DATA=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,commit:true,lore:true};
+
+async function init() {
+  // Try relative path (local/same-origin), fall back to GitHub Pages
+  const DATA_URLS = ['data/timeline.jsonl', 'https://davidbau.github.io/menace-agents/data/timeline.jsonl'];
+  let text = null;
+  for (const url of DATA_URLS) {
+    try { const r = await fetch(url); if (r.ok) { text = await r.text(); break; } } catch {}
+  }
+  if (!text) { document.getElementById('timeline').textContent = 'Failed to load timeline data.'; return; }
+  DATA = text.trim().split('\n').map(l=>JSON.parse(l));
+  renderToc(); renderTimeline(); renderKeywordIndex();
+  document.getElementById('filters').addEventListener('click', e => {
+    const b = e.target.closest('.fbtn'); if (!b) return;
+    const f = b.dataset.f;
+
+    const mainEl = document.getElementById('main');
+    const headerH = document.querySelector('.main-header')?.offsetHeight || 0;
+
+    // Before re-render: find all currently visible .ev elements and record their IDs + positions
+    const visibleEvs = [];
+    for (const ev of document.querySelectorAll('.ev')) {
+      const r = ev.getBoundingClientRect();
+      if (r.top >= headerH - 10 && r.top < mainEl.clientHeight) {
+        visibleEvs.push({ id: ev.id, top: r.top });
+      }
+    }
+
+    // Apply the filter change
+    SHOW[f] = !SHOW[f]; b.classList.toggle('on');
+    if (f === 'agent-directive') SHOW['subagent-work'] = SHOW[f];
+    renderTimeline();
+
+    // After re-render: find the first previously-visible element that still exists
+    for (const { id, top } of visibleEvs) {
+      const el = document.getElementById(id);
+      if (el) {
+        // Scroll so this element appears at roughly the same screen position
+        // But clamp to near the top of the visible area (just below sticky header)
+        const targetTop = Math.max(headerH + 5, Math.min(top, headerH + 100));
+        const elRect = el.getBoundingClientRect();
+        mainEl.scrollTop += (elRect.top - targetTop);
+        break;
+      }
+    }
+  });
+}
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function hl(t,q){if(!q)return esc(t);const re=new RegExp(`(\\b${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi');return esc(t).replace(re,'<mark>$1</mark>');}
+function classify(t){if(!t)return'';t=t.trim();
+  if(/^(no[, ]|don't|dont|stop|wrong|that's not|revert|undo|actually[, ]|wait[, ]|not that|no no)/i.test(t))return'correction';
+  if(/^(instead|rather|i meant)/i.test(t))return'redirect';
+  if(/\?$/.test(t)||/^(what|why|how|where|when|which|can you|could you|is there|do we|does |did )/i.test(t))return'question';
+  if(/^(let's|lets|now |next|go ahead|please |add |fix |change |update |remove |create |make |implement|write |run |test |check |push|commit)/i.test(t))return'directive';
+  return'';}
+function tm(ts){return ts?.slice(11,16)||'';}
+
+function renderToc(){
+  const mx=Math.max(...DATA.map(d=>d.commits?.length||0));
+  document.getElementById('spark').innerHTML=DATA.map(d=>{
+    const h=Math.max(2,Math.round((d.commits?.length||0)/mx*18));
+    return`<div class="sb${d.lore?.length?' hl':''}" style="height:${h}px" data-d="${d.date}"></div>`;
+  }).join('');
+  const shortDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('toc').innerHTML=DATA.map(d=>{
+    const dt = new Date(d.date+'T12:00:00');
+    const dow = shortDay[dt.getDay()];
+    const mon = dt.toLocaleString('en',{month:'short'});
+    const dd = dt.getDate();
+    return`<a class="toc-item${d.lore?.length?' hl':''}" data-d="${d.date}" href="#d-${d.date}">
+      <span class="td">${dow} ${mon} ${dd}</span><span class="ts">${esc(d.summary||'')}</span></a>`;
+  }).join('');
+}
+
+function renderTimeline(){
+  usedIds.clear();
+  document.getElementById('timeline').innerHTML=DATA.map(renderDay).join('');
+}
+
+function renderDay(day){
+  const evts = (day.events||[]).filter(e => SHOW[e.type]);
+  if (!evts.length && !day.summary) return '';
+  return `<div class="day" id="d-${day.date}">
+    <div class="day-hdr"><span class="day-hdr-full">${esc(day.dayHeader || day.date)}</span><span class="day-sum">${esc(day.summary||'')}</span></div>
+    ${renderEvents(evts)}
+  </div>`;
+}
+
+// Stable event IDs based on timestamp+type so they survive re-renders
+const usedIds = new Set();
+function stableId(e) {
+  const base = 'ev-' + (e.timestamp||'').replace(/[^0-9T]/g,'') + '-' + (e.type||'').slice(0,3);
+  let id = base;
+  let n = 0;
+  while (usedIds.has(id)) id = base + '-' + (++n);
+  usedIds.add(id);
+  return id;
+}
+function renderEvents(evts){
+  const out = [];
+  let commitBuf = []; // accumulate adjacent commits
+  function flushCommits(){
+    if(!commitBuf.length) return;
+    if(commitBuf.length <= 5){
+      // Show individually
+      for(const c of commitBuf) out.push(renderCommit(c));
+    } else {
+      // Show first 3 visible, rest in collapsible group
+      const visible = commitBuf.slice(0, 3);
+      const hidden = commitBuf.slice(3);
+      for(const c of visible) out.push(renderCommit(c));
+      out.push(`<div class="commit-group">
+        <div class="cg-hdr" onclick="this.parentElement.classList.toggle('open')">
+          &#9654; ${hidden.length} more commits (${tm(hidden[0].timestamp)}&ndash;${tm(hidden[hidden.length-1].timestamp)})
+        </div>
+        <div class="cg-body">${hidden.map(renderCommit).join('')}</div>
+      </div>`);
+    }
+    commitBuf = [];
+  }
+
+  for(const e of evts){
+    if(e.type==='commit'){commitBuf.push(e);continue;}
+    flushCommits();
+    if(e.type==='human') out.push(renderHuman(e));
+    else if(e.type==='ai-work') out.push(renderAiWork(e));
+    else if(e.type==='agent-directive') out.push(renderAgentDirective(e));
+    else if(e.type==='subagent-work') out.push(renderSubagentWork(e));
+    else if(e.type==='lore') out.push(renderLore(e));
+  }
+  flushCommits();
+  return out.join('');
+}
+
+function renderHuman(e){
+  const cls=classify(e.text);
+  const tag=cls?`<span class="tag tag-${cls}">${cls}</span>`:'';
+  const id=stableId(e);
+  e._id=id;
+  const maxLen = 200;
+  const isTrunc = e.text.length > maxLen;
+  const short = esc(e.text.substring(0, maxLen)) + (isTrunc ? '&hellip;' : '');
+  const full = esc(e.text);
+  return`<div class="ev ev-human${cls?' '+cls:''}${isTrunc?' truncated':''}" id="${id}"${isTrunc?` onclick="this.classList.toggle('expanded')"`:''}">
+    <span class="ev-time">${tm(e.timestamp)}</span>${tag}<span class="short-text">${short}</span>${isTrunc?`<span class="full-text">${full}</span>`:''}
+  </div>`;
+}
+
+function renderAiWork(e){
+  const brief = e.turns===1&&e.toolUses<=2
+    ? `${e.topTools||'thinking'}`
+    : `${e.turns} turns, ${e.toolUses} tool calls: ${e.topTools||'(none)'}`;
+  const snips = (e.snippets||[]);
+  const id=stableId(e);
+  e._id=id;
+  return`<div class="ev ev-ai" id="${id}" onclick="this.classList.toggle('open')">
+    <span class="ev-time">${tm(e.timestamp)}</span>
+    <span class="tag tag-ai">AI</span>
+    ${esc(brief)}
+    ${snips.length?`<div class="detail">${snips.map(s=>`<div class="ai-snip">${esc(s)}</div>`).join('')}</div>`:''}
+  </div>`;
+}
+
+function renderCommit(c){
+  const id=stableId(c);
+  c._id=id;
+  const hasBody = c.body && c.body.length > 0 && !c.body.startsWith('Co-Authored');
+  const bodyClean = hasBody ? c.body.replace(/Co-Authored-By:.*$/gm, '').trim() : '';
+  return`<div class="ev ev-commit${hasBody?' truncated':''}" id="${id}"${hasBody?` onclick="this.classList.toggle('expanded')"`:''}>
+    <span class="ct">${tm(c.timestamp)}</span><span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<span class="full-text">${esc(bodyClean)}</span>`:''}</span>
+  </div>`;
+}
+
+function renderLore(e){
+  const id=stableId(e);
+  e._id=id;
+  return`<div class="ev ev-lore" id="${id}">
+    <span class="ev-time">LORE</span> ${esc(e.title)}
+  </div>`;
+}
+
+function renderAgentDirective(e){
+  const id=stableId(e);
+  e._id=id;
+  const maxLen = 150;
+  const isTrunc = e.text.length > maxLen;
+  const short = esc(e.text.substring(0, maxLen)) + (isTrunc ? '&hellip;' : '');
+  const full = esc(e.text);
+  return`<div class="ev ev-agent-directive${isTrunc?' truncated':''}" id="${id}"${isTrunc?` onclick="this.classList.toggle('expanded')"`:''}>
+    <span class="ev-time">${tm(e.timestamp)}</span><span class="short-text">${short}</span>${isTrunc?`<span class="full-text">${full}</span>`:''}
+  </div>`;
+}
+
+function renderSubagentWork(e){
+  const brief = e.turns===1&&e.toolUses<=2
+    ? `${e.topTools||'thinking'}`
+    : `${e.turns} turns, ${e.toolUses} tools: ${e.topTools||'(none)'}`;
+  const snips = (e.snippets||[]);
+  const id=stableId(e);
+  e._id=id;
+  return`<div class="ev ev-subagent-work" id="${id}" onclick="this.classList.toggle('open')">
+    <span class="ev-time">${tm(e.timestamp)}</span>
+    <span class="tag tag-ai">sub</span>
+    ${esc(brief)}
+    ${snips.length?`<div class="detail">${snips.map(s=>`<div class="ai-snip">${esc(s)}</div>`).join('')}</div>`:''}
+  </div>`;
+}
+
+// Keyword index — curated search suggestions organized by theme
+const KW_INDEX = {
+  'Games': ['nethack','hack','rogue','zork','dungeon','logo','basic','shell','webhack'],
+  'History': ['fenlason','wichman','harvey','1982','reflections','vibe','revolution'],
+  'Parity': ['parity','divergence','prng','coverage','replay','harness','regression','goodhart'],
+  'Porting': ['async','await','getlin','mklev','makemon','muse','armoroff'],
+  'Mechanics': ['cockatrice','hallucination','polymorph','dog_move','distfleeck','steed','eating','pickup','combat','travel'],
+  'Tools': ['dbgmapdump','selfplay','campbot','smartbot','speedrun','codex','claude','quadro'],
+  'Process': ['campaign','milestone','gate','stuck','blocked','wrong','actually','revert'],
+};
+
+function renderKeywordIndex() {
+  const el = document.getElementById('kw-index');
+  el.innerHTML = Object.entries(KW_INDEX).map(([section, words]) =>
+    `<div class="kw-section"><div class="kw-hdr">${section}</div>${
+      words.map(w => `<span class="kw" onclick="document.getElementById('search').value='${w}';doSearch('${w}')">${w}</span>`).join('')
+    }</div>`
+  ).join('');
+}
+
+// Search
+let sTo;
+document.getElementById('search').addEventListener('input',e=>{clearTimeout(sTo);sTo=setTimeout(()=>doSearch(e.target.value),200);});
+
+function doSearch(q){
+  const el=document.getElementById('sr'), sc=document.getElementById('sc'), kwi=document.getElementById('kw-index');
+  if(!q||q.length<2){el.innerHTML='';sc.textContent='';kwi.style.display='';return;}
+  kwi.style.display='none';
+  const t=q.toLowerCase();
+  // Word-boundary match: \bhack should not match "nethack"
+  const re = new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i');
+  const hits=[];
+  const test = s => s && re.test(s);
+  for(const day of DATA){
+    for(const e of(day.events||[])){
+      let text=null;
+      if((e.type==='human'||e.type==='agent-directive')&&test(e.text)) text=e.text;
+      else if(e.type==='lore'&&test(e.title)) text=e.title;
+      else if(e.type==='commit'&&test(e.subject)) text=e.subject;
+      else if(e.type==='ai-work'||e.type==='subagent-work'){
+        const snip=(e.snippets||[]).find(s=>test(s));
+        if(snip) text=snip;
+        else if(test(e.topTools)) text=e.topTools;
+      }
+      if(text) hits.push({date:day.date,type:e.type,text,evId:e._id,timestamp:e.timestamp});
+    }
+  }
+  // Deduplicate
+  const seen=new Set();
+  const unique=hits.filter(h=>{const k=h.date+h.type+h.text.substring(0,50);if(seen.has(k))return false;seen.add(k);return true;});
+  sc.textContent=`${unique.length} results`;
+
+  // Group by 6-hour window
+  function windowKey(h) {
+    const ts = h.timestamp || h.date + 'T12:00:00';
+    const d = new Date(ts);
+    const hr = Math.floor(d.getHours() / 6) * 6;
+    return h.date + ' ' + String(hr).padStart(2,'0') + ':00–' + String(hr+6).padStart(2,'0') + ':00';
+  }
+  const groups = [];
+  let lastWin = null;
+  for (const h of unique) {
+    const win = windowKey(h);
+    if (win !== lastWin) { groups.push({ win, hits: [] }); lastWin = win; }
+    groups[groups.length - 1].hits.push(h);
+  }
+
+  function renderHit(h) {
+    const m=h.text.match(re);
+    const i=m?h.text.toLowerCase().indexOf(m[0].toLowerCase()):0;
+    const s=Math.max(0,i-40), e2=Math.min(h.text.length,i+q.length+60);
+    const snip=(s>0?'&hellip;':'')+hl(h.text.substring(s,e2),q)+(e2<h.text.length?'&hellip;':'');
+    return`<div class="hit" onclick="jumpTo('${h.date}','${h.evId||''}')">
+      <span class="hs">${h.type}</span>
+      <div class="hx">${snip}</div>
+    </div>`;
+  }
+
+  let html = '';
+  let groupsShown = 0;
+  for (const g of groups) {
+    if (groupsShown >= 40) { html += `<div style="color:var(--muted);font-size:0.75em;padding:0.3em">+ ${groups.length - groupsShown} more windows&hellip;</div>`; break; }
+    groupsShown++;
+    if (g.hits.length === 1) {
+      // Single hit — show directly with date header
+      html += `<div style="font-size:0.8em;color:var(--accent-dk);font-weight:600;margin:0.4em 0 0.1em">${g.win}</div>`;
+      html += renderHit(g.hits[0]);
+    } else {
+      // Multiple hits — show first directly, rest in collapsible group
+      html += `<div style="font-size:0.8em;color:var(--accent-dk);font-weight:600;margin:0.4em 0 0.1em;cursor:pointer" onclick="this.nextElementSibling.nextElementSibling.style.display=this.nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'">${g.win} <span style="color:var(--muted);font-weight:400">(${g.hits.length} hits)</span></div>`;
+      html += renderHit(g.hits[0]);
+      html += `<div style="display:none">` + g.hits.slice(1).map(renderHit).join('') + `</div>`;
+    }
+  }
+  el.innerHTML = html;
+}
+
+function jump(date){ jumpTo(date, ''); }
+
+function jumpTo(date, evId){
+  // Clear previous highlight
+  document.querySelectorAll('.ev.highlight').forEach(el => el.classList.remove('highlight'));
+
+  // Update TOC
+  document.querySelectorAll('.toc-item').forEach(t=>t.classList.remove('active'));
+  const ti=document.querySelector(`.toc-item[data-d="${date}"]`);
+  if(ti){ti.classList.add('active');ti.scrollIntoView({block:'nearest'});}
+
+  // Scroll directly to specific event (or day if no event)
+  const target = evId ? document.getElementById(evId) : document.getElementById('d-'+date);
+  if(!target) return;
+
+  // Open collapsed parents
+  if(evId){
+    const cg = target.closest('.commit-group');
+    if(cg) cg.classList.add('open');
+  }
+
+  // Jump: day headers go to top, specific events go to center
+  target.scrollIntoView({behavior:'instant', block: evId ? 'center' : 'start'});
+  if(evId) target.classList.add('highlight');
+}
+
+// TOC + sparkline click
+document.getElementById('toc').addEventListener('click',e=>{const i=e.target.closest('.toc-item');if(i){e.preventDefault();jump(i.dataset.d);}});
+document.getElementById('spark').addEventListener('click',e=>{const b=e.target.closest('.sb');if(b)jump(b.dataset.d);});
+
+// Scroll tracking
+const mainEl=document.getElementById('main');
+let raf;
+mainEl.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=null;
+  const hdrH=(document.querySelector('.main-header')?.offsetHeight||0)+20;
+  let cur=null;for(const b of document.querySelectorAll('.day'))if(b.getBoundingClientRect().top<hdrH+50)cur=b.id.replace('d-','');
+  if(cur){document.querySelectorAll('.toc-item').forEach(t=>t.classList.remove('active'));
+    const ti=document.querySelector(`.toc-item[data-d="${cur}"]`);if(ti){ti.classList.add('active');ti.scrollIntoView({block:'nearest'});}}
+});});
+
+init();
+</script>
+</body>
+</html>
