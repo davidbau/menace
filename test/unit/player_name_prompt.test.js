@@ -59,15 +59,16 @@ test('player name: truncation for overly long names', () => {
 
 test('player name: default name behavior', () => {
     // Before name prompt, player defaults to 'Adventurer'
-    // After wizard mode init, wizard defaults to 'Wizard'
+    // C ref: set_playmode() overrides plname to lowercase "wizard".
+    // After wizard mode init, wizard defaults to 'wizard' (lowercase).
 
     const defaultName = 'Adventurer';
-    const wizardName = 'Wizard';
+    const wizardName = 'wizard';
 
     assert.strictEqual(defaultName, 'Adventurer',
         'Normal mode should default to "Adventurer"');
-    assert.strictEqual(wizardName, 'Wizard',
-        'Wizard mode should use "Wizard"');
+    assert.strictEqual(wizardName, 'wizard',
+        'Wizard mode should use lowercase "wizard" per C set_playmode()');
 });
 
 test('player name: special characters and spaces allowed', () => {
