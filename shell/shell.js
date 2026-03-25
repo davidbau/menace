@@ -1,7 +1,7 @@
 // shell.js -- Main shell loop: prompt, parse, dispatch.
 // Simulates a 1980s Unix login shell using the existing Display class.
 
-import { VirtualFS, USERNAME, HOMEDIR, loginBanner, loginHeader, lastLoginLine, initDefaultVfsFiles, checkPassword } from './filesystem.js';
+import { VirtualFS, USERNAME, HOMEDIR, loginBanner, loginHeader, lastLoginLine, initDefaultVfsFiles, initDefaultEtcFiles, checkPassword } from './filesystem.js';
 import { getBuiltinCommands, getShellBuiltins } from './commands.js';
 import { ViEditor } from './vi.js';
 import { Sh, ShAction, ExitSignal } from './sh/index.js';
@@ -19,6 +19,7 @@ export class Shell {
         this.display = display;
         this.getch = getch;
         initDefaultVfsFiles();
+        initDefaultEtcFiles();
         this.fs = new VirtualFS();
         this.commands = getBuiltinCommands(); // kept for tab-completion list
         this.scrollBuffer = []; // lines currently on screen
@@ -47,6 +48,23 @@ export class Shell {
             clearDisplay: () => this.clearDisplay(),
             shell:        this,
         };
+    }
+
+    // Run /etc/profile in the shell's own Sh instance (login shell behavior).
+    // Environment changes (e.g., PS1) persist into the interactive session.
+    // If silent=true, discard output (for already-logged-in state).
+    async runLoginProfile(silent = false) {
+        const content = this.fs.cat('/etc/profile');
+        if (!content) return;
+        if (silent) {
+            // Run profile with output suppressed but env changes apply
+            const savedIo = this.sh.io;
+            this.sh.io = { ...savedIo, println: () => {}, print: () => {} };
+            try { await this.sh.runSource(content); } catch (e) { /* non-fatal */ }
+            this.sh.io = savedIo;
+        } else {
+            try { await this.sh.runSource(content); } catch (e) { /* non-fatal */ }
+        }
     }
 
     // Called by the sh interpreter when it encounters a game executable.
@@ -85,6 +103,10 @@ export class Shell {
                 this._addLine(`[returned from ${options.app || 'game'}]`, OUTPUT_COLOR);
             }
             this._addLine('', OUTPUT_COLOR);
+        } else if (options.subshell) {
+            // Subshell (e.g., ! from rogue, #shell from nethack).
+            // No banner, no motd, no profile — just a bare prompt.
+            this.display.clearScreen();
         } else if (options.interrupt) {
             // Capture current screen content, then scroll it up with ^C
             this._captureScreen();
@@ -96,13 +118,6 @@ export class Shell {
             for (const row of options.loginLines) this.scrollBuffer.push(row);
             this._addLine(lastLoginLine(), OUTPUT_COLOR);
             this._addLine('', OUTPUT_COLOR);
-            const motd = this.fs.cat('/etc/motd');
-            if (motd) {
-                for (const line of motd.split('\n')) {
-                    this._addLine(line, OUTPUT_COLOR);
-                }
-                this._addLine('', OUTPUT_COLOR);
-            }
         } else {
             this.display.clearScreen();
             // Show login banner (generated with current date/time)
@@ -110,14 +125,7 @@ export class Shell {
                 this._addLine(line, OUTPUT_COLOR);
             }
             this._addLine('', OUTPUT_COLOR);
-            // Show MOTD on clean entry
-            const motd = this.fs.cat('/etc/motd');
-            if (motd) {
-                for (const line of motd.split('\n')) {
-                    this._addLine(line, OUTPUT_COLOR);
-                }
-                this._addLine('', OUTPUT_COLOR);
-            }
+            // /etc/profile (which displays motd) is run by the caller via runProfile()
         }
 
         while (this.running) {
@@ -724,6 +732,8 @@ export async function runLoginLoop(display, getch, lifecycle) {
         if (username === USERNAME && await checkPassword(password)) {
             // Successful login — continue scrolling below the typed credentials
             const shell = new Shell(display, getch);
+            // Run /etc/profile (login shell: display motd, source ~/.profile, set PS1)
+            await shell.runLoginProfile();
             const result = await shell.run({ loginLines: loginBuf });
             if (result && result.action === 'launch') {
                 const game = result.game;
@@ -754,9 +764,11 @@ export async function runLoginLoop(display, getch, lifecycle) {
 }
 
 // lifecycle: object with launch methods
+// Run an embedded subshell from within a game (! or #shell).
+// No profile, no banner — bare $ prompt.
 export async function runShell(display, getch, lifecycle, options = {}) {
     const shell = new Shell(display, getch);
-    const result = await shell.run(options);
+    const result = await shell.run({ subshell: true, ...options });
 
     if (result && result.action === 'launch') {
         const game = result.game;

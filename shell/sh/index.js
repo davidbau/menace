@@ -159,15 +159,17 @@ export class Sh {
   }
 }
 
-// Convenience: run a .profile if it exists.
+// Run /etc/profile for login shells (displays motd, sources ~/.profile).
+// Matches V7 Unix: login shells source /etc/profile then ~/.profile.
+// Subshells (e.g. "!" from a game) skip this entirely.
 export async function runProfile(io) {
-  const path = '/home/rodney/.profile';
+  const path = '/etc/profile';
   try {
     const content = io.fs.cat(io.fs.resolve(path));
     if (!content) return;
     const sh = new Sh(io);
     await sh.runSource(content);
   } catch (e) {
-    // .profile errors are non-fatal
+    // /etc/profile errors are non-fatal
   }
 }

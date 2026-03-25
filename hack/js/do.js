@@ -819,6 +819,21 @@ export async function rhack(cmd) {
       await pline('You were wearing %s', doname(otmp)); break;
     }
     case 'S': await dosave(); break;
+    case '!': {
+      // Shell escape — subshell (not in original 1982 hack, added for browser)
+      game.flags.move = false;
+      try {
+        const { Shell } = await import('../../shell/shell.js');
+        const d = game.display;
+        const shell = new Shell(d, () => game.input.getKey());
+        await shell.run({ subshell: true });
+        d.clearScreen();
+        await docrt();
+        bot();
+        d.flush();
+      } catch (e) { /* shell not available */ }
+      break;
+    }
     default:
       if (cmd < ' ') await pline("Unknown command '^%c'.", String.fromCharCode(cmd.charCodeAt(0) + 64));
       else await pline("Unknown command '%c'", cmd);

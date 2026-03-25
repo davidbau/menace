@@ -347,7 +347,7 @@ async function shell_escape() {
     if (g.input.shellMode !== undefined) g.input.shellMode = true;
     try {
       const shell = new Shell(g.display, () => g.input.getKey());
-      await shell.run();
+      await shell.run({ subshell: true });
     } finally {
       if (g.input.shellMode !== undefined) g.input.shellMode = false;
     }

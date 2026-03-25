@@ -105,6 +105,28 @@ const MOTD = `                 Welcome to the Mazes of Menace!
 
   Have fun, but remember — the Dungeon Master is always watching.`;
 
+// Default /etc/profile — sourced by login shells (not subshells).
+// Displays /etc/motd and sources ~/.profile if present.
+const ETC_PROFILE = `# /etc/profile — system-wide login profile
+cat /etc/motd
+echo
+if test -f "$HOME/.profile"; then
+  . "$HOME/.profile"
+fi`;
+
+// VFS keys for /etc files (editable by root)
+const ETC_VFS_PREFIX = 'etc/';
+
+// Initialize default /etc VFS files (idempotent).
+export function initDefaultEtcFiles() {
+    if (vfsReadFile(ETC_VFS_PREFIX + 'motd') === null) {
+        vfsWriteFile(ETC_VFS_PREFIX + 'motd', MOTD);
+    }
+    if (vfsReadFile(ETC_VFS_PREFIX + 'profile') === null) {
+        vfsWriteFile(ETC_VFS_PREFIX + 'profile', ETC_PROFILE);
+    }
+}
+
 // Generate the login banner programmatically
 export function loginHeader() {
     return 'UNIX PDP-11/70 (pdp11)';
@@ -415,7 +437,8 @@ function buildTree() {
         type: 'dir', children: {
             etc: {
                 type: 'dir', children: {
-                    motd:   { type: 'file', content: MOTD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
+                    profile: { type: 'file', vfsPath: ETC_VFS_PREFIX + 'profile', owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
+                    motd:   { type: 'file', vfsPath: ETC_VFS_PREFIX + 'motd', owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
                     passwd: { type: 'file', content: PASSWD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
                     shadow: { type: 'file', content: SHADOW, readonly: true, owner: 'root', group: 'shadow', date: 'Mar 12  2026', perms: '-rw-r-----', restricted: true },
                 }

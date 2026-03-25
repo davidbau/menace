@@ -4,7 +4,6 @@
 
 import { Terminal } from '../../js/terminal.js';
 import { Shell, runLoginLoop } from '../shell.js';
-import { runProfile } from '../sh/index.js';
 
 const SHELL_CONTEXT_KEY = 'shell_context';
 const GAMEOVER_KEY = 'menace-gameover';
@@ -81,15 +80,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (context) {
         // Arrived from a game — run as already-logged-in rodney.
         const shell  = new Shell(display, getch);
-        // Run .profile on first arrival (not on subsequent game returns)
-        if (!gameover && !(context.rows && context.rows.length)) {
-            await runProfile({
-                fs: shell.fs,
-                println: (t) => shell.println(t),
-                print:   (t) => shell.printPrompt(t),
-                getch,
-            });
-        }
+        // Run /etc/profile silently (already logged in — set env vars like PS1 but hide output).
+        await shell.runLoginProfile(true);
         const result = await shell.run({
             rows: context.rows || null,
             app: context.app,
