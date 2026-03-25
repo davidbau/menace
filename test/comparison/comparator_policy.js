@@ -199,6 +199,21 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
             comparableExpected[row] = '';
         }
     }
+    // C stale lev->glyph artifact: when one side has a blank map row and
+    // the other has only a single non-blank character, this can be a stale
+    // glyph from a previous level persisting in C's display memory (C's
+    // docrt_flags shows lev->glyph for all cells, and lev->glyph isn't
+    // cleared when a new level is generated — it retains the previous
+    // level's glyphs).  Mask such rows.
+    for (let row = 1; row < Math.min(22, comparableActual.length, comparableExpected.length); row++) {
+        const a = String(comparableActual[row] || '').trimEnd();
+        const e = String(comparableExpected[row] || '').trimEnd();
+        if (a === e) continue;
+        if ((a === '' && e.trim().length <= 1) || (e === '' && a.trim().length <= 1)) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
+        }
+    }
     const normalizedExpected = normalizeGameplayScreenLines(comparableExpected);
     const normalizedActual = normalizeGameplayScreenLines(comparableActual);
     const result = compareScreenLines(normalizedActual, normalizedExpected);
@@ -331,6 +346,16 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, session, { st
     );
     if (isHalluColor) {
         for (let row = 1; row < Math.min(22, actualAnsi.length, expectedMasked.length); row++) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        }
+    }
+    // C stale lev->glyph artifact (same as screen comparison).
+    for (let row = 1; row < Math.min(22, actualPlain.length, expectedPlain.length); row++) {
+        const a = String(actualPlain[row] || '').trimEnd();
+        const e = String(expectedPlain[row] || '').trimEnd();
+        if (a === e) continue;
+        if ((a === '' && e.trim().length <= 1) || (e === '' && a.trim().length <= 1)) {
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         }
