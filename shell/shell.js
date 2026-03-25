@@ -458,6 +458,9 @@ export class Shell {
         const promptRow = Math.min(this.scrollBuffer.length, ROWS - 1);
         this.display.clearRow(promptRow);
         this.display.putstr(0, promptRow, text, OUTPUT_COLOR);
+        if (typeof this.display.setCursor === 'function') {
+            this.display.setCursor(Math.min(text.length, COLS - 1), promptRow);
+        }
     }
 
     clearPromptLine() {

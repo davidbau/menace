@@ -127,18 +127,7 @@ export class Sh {
   async _readLine(io, env, promptOverride) {
     const prompt = promptOverride || env.get('PS1') || '$ ';
     let line = '';
-    const redraw = () => {
-      const text = prompt + line;
-      io.print(text);
-      // Position cursor at end of text
-      if (io.shell?.display && typeof io.shell.display.setCursor === 'function') {
-        const promptRow = Math.min(
-          (io.shell.scrollBuffer?.length || 0),
-          (io.shell.display.rows || 24) - 1
-        );
-        io.shell.display.setCursor(Math.min(text.length, (io.shell.display.cols || 80) - 1), promptRow);
-      }
-    };
+    const redraw = () => io.print(prompt + line);
     while (true) {
       const ch = await io.getch();
       const code = typeof ch === 'string' ? ch.charCodeAt(0) : ch;
