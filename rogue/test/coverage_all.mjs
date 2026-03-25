@@ -95,6 +95,12 @@ async function replaySession(sessionFile) {
     return;
   }
 
+  // Coverage-only sessions: replay for coverage but skip comparison
+  if (data.coverage_only) {
+    console.log(JSON.stringify({ session: name, seed, passed: true, total_steps: jsSteps.length, coverage_only: true }));
+    return;
+  }
+
   const totalSteps = Math.min(jsSteps.length, cSteps.length);
   let totalScreenMatches = 0, totalScreenCells = 0;
   let totalRngMatches = 0, totalRngCells = 0;
