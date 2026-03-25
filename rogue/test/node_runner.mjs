@@ -36,7 +36,8 @@ import { resetGrpnum } from '../js/weapons.js';
 import { resetBetween } from '../js/daemons.js';
 import { draw } from '../js/curses.js';
 
-import { MockDisplay } from './mock_display.mjs';
+import { HeadlessTerminal } from '../../js/terminal.js';
+import { getScreenLines } from '../../js/screen_capture.js';
 import { MockInput } from './mock_input.mjs';
 
 // Sentinel error to terminate game after keys run out
@@ -75,7 +76,7 @@ function captureStandout(g) {
  * Returns the array of keys pressed.
  */
 export async function runSessionWithAI(seed, keyProvider) {
-  const display = new MockDisplay();
+  const display = new HeadlessTerminal();
   const input = new MockInput();
 
   const g = new GameState();
@@ -89,7 +90,7 @@ export async function runSessionWithAI(seed, keyProvider) {
   let stepNum = 0;
 
   input.getKey = async function () {
-    const screen = display.getRows();
+    const screen = getScreenLines(display.grid, display.rows, display.cols);
     const key = keyProvider(screen, stepNum++, display);
     if (key == null) throw new SessionDone();
     keys.push(key);
@@ -114,7 +115,7 @@ export async function runSessionWithAI(seed, keyProvider) {
  * @param {object} [opts] - options: { wizard: bool }
  */
 export async function runSession(seed, keys, opts = {}) {
-  const display = new MockDisplay();
+  const display = new HeadlessTerminal();
   const input = new MockInput();
 
   const g = new GameState();
@@ -131,8 +132,9 @@ export async function runSession(seed, keys, opts = {}) {
   let keyIndex = 0;
 
   input.getKey = async function () {
-    const screen = display.getRows();
-    const cursor = display.getCursor();
+    const screen = getScreenLines(display.grid, display.rows, display.cols);
+    const [curCol, curRow] = display.getCursor();
+    const cursor = [curRow, curCol];
     const rng = [...g.rawRngLog];
     g.rawRngLog = [];
 
@@ -174,7 +176,7 @@ export async function runMultigameSession(games) {
     const { seed, keys, wizard } = games[gi];
     const isRestore = gi > 0;
 
-    const display = new MockDisplay();
+    const display = new HeadlessTerminal();
     const input = new MockInput();
 
     const g = new GameState();
@@ -202,8 +204,9 @@ export async function runMultigameSession(games) {
     let keyIndex = 0;
 
     input.getKey = async function () {
-      const screen = display.getRows();
-      const cursor = display.getCursor();
+      const screen = getScreenLines(display.grid, display.rows, display.cols);
+      const [curCol, curRow] = display.getCursor();
+    const cursor = [curRow, curCol];
       const rng = [...g.rawRngLog];
       g.rawRngLog = [];
 

@@ -29,7 +29,8 @@ import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup } from '..
 import { rhack } from '../js/do.js';
 import { docrt } from '../js/pri.js';
 
-import { MockDisplay } from './mock_display.mjs';
+import { HeadlessTerminal } from '../../js/terminal.js';
+import { getScreenLines } from '../../js/screen_capture.js';
 import { MockInput } from './mock_input.mjs';
 import { mon } from '../js/data.js';
 
@@ -82,7 +83,7 @@ export async function runSession(seed, keys) {
   // so sessions don't pollute each other when run with --all.
   const monSave = mon.map(tier => tier.map(m => m ? { ...m } : null));
 
-  const display = new MockDisplay();
+  const display = new HeadlessTerminal();
   const input = new MockInput();
 
   const g = new GameState();
@@ -100,7 +101,7 @@ export async function runSession(seed, keys) {
   const origGetKey = input.getKey.bind(input);
   input.getKey = async function () {
     // Capture the current state (state that prompted this key request)
-    const screen = display.getRows();
+    const screen = getScreenLines(display.grid, display.rows, display.cols);
     const rng = [...g.rawRngLog];
     g.rawRngLog = [];
 
@@ -155,7 +156,7 @@ export async function runMultigameSession(games) {
 
   for (let gi = 0; gi < games.length; gi++) {
     const { seed, keys, restore } = games[gi];
-    const display = new MockDisplay();
+    const display = new HeadlessTerminal();
     const input = new MockInput();
     const g = new GameState();
     g.display = display;
@@ -167,7 +168,7 @@ export async function runMultigameSession(games) {
     let keyIndex = 0;
 
     input.getKey = async function () {
-      const screen = display.getRows();
+      const screen = getScreenLines(display.grid, display.rows, display.cols);
       const rng = [...g.rawRngLog];
       g.rawRngLog = [];
       if (keyIndex >= keys.length) throw new SessionDone();

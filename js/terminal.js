@@ -133,7 +133,9 @@ export class Terminal {
     }
 
     _createDOM(containerId) {
-        this.container = document.getElementById(containerId);
+        this.container = typeof containerId === 'string'
+            ? document.getElementById(containerId)
+            : containerId;  // accept DOM element directly
         const pre = document.createElement('pre');
         pre.id = 'terminal';
         const fontFamily = '"DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace';
@@ -263,6 +265,7 @@ span.terminal-cursor {
         for (let r = 0; r < this.rows; r++) {
             this.clearRow(r);
         }
+        this.setCursor(0, 0);
     }
 
     // --- Cursor ---
