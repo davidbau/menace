@@ -343,11 +343,17 @@ async function shell_escape() {
   try {
     // Try to import Shell — only available in browser build
     const { Shell } = await import('../../shell/shell.js');
-    const shell = new Shell(g.display, () => g.input.getKey());
-    await shell.run();
+    // Switch input to shell mode (numeric keycodes, raw arrows)
+    if (g.input.shellMode !== undefined) g.input.shellMode = true;
+    try {
+      const shell = new Shell(g.display, () => g.input.getKey());
+      await shell.run();
+    } finally {
+      if (g.input.shellMode !== undefined) g.input.shellMode = false;
+    }
   } catch (e) {
-    // Shell not available (Node.js harness) — just show message
-    // C: md_shellescape() would fork /bin/sh here
+    // Shell not available (Node.js harness) or crashed during run
+    if (typeof window !== 'undefined') console.error('Shell escape error:', e);
   }
 
   g.in_shell = false;

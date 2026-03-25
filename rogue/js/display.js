@@ -177,6 +177,38 @@ span.rogue-standout {
     this._dirty = false;
   }
 
+  // --- Shell compatibility methods ---
+
+  // Clear a row (0-based row index, Shell uses 0-based)
+  clearRow(row) {
+    const r = row + 1;  // convert to 1-based
+    if (r >= 1 && r <= this.ROWS) {
+      for (let c = 1; c <= this.COLS; c++) {
+        this.grid[r][c] = ' ';
+        if (this._attrGrid) this._attrGrid[r][c] = 0;
+        if (this._spans && this._spans[r]) {
+          const span = this._spans[r][c];
+          if (span.textContent !== ' ') span.textContent = ' ';
+          span.classList.remove('rogue-standout');
+        }
+      }
+    }
+  }
+
+  // Write string at (col, row) with color — Shell uses 0-based coords
+  putstr(col, row, str, color) {
+    const r = row + 1;  // convert to 1-based
+    for (let i = 0; i < str.length && col + i < this.COLS; i++) {
+      this.putChar(col + i + 1, r, str[i]);
+    }
+    this.flush();
+  }
+
+  // Set cursor position — Shell uses 0-based coords
+  setCursor(col, row) {
+    this.moveCursor(col + 1, row + 1);
+  }
+
   // Cursor visibility control (for Shell compatibility)
   cursSet(visibility) {
     if (!visibility && this._cursorSpan) {
