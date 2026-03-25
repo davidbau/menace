@@ -792,7 +792,11 @@ export class Display extends Terminal {
             // C ref: wintty.c — end_menu(prompt) title (line 0) and category headers
             // use inverse video.  add_menu_str() content lines at line 0 do NOT.
             // Callers pass opts.noTitleInverse when line 0 is add_menu_str content.
-            const isHeader = (i === 0 && !opts?.noTitleInverse && line.trim().length > 0) || isCategoryHeader(line);
+            // Callers pass opts.noHeaderInverse to suppress ALL header inverse
+            // (used during gameover disclosure where C's program_state.gameover
+            // suppresses inverse on both title and category headers).
+            const isHeader = !opts?.noHeaderInverse
+                && ((i === 0 && !opts?.noTitleInverse && line.trim().length > 0) || isCategoryHeader(line));
             if (isHeader) {
                 // C ref: wintty.c — category headers have a single leading
                 // space that is part of the pre-cleared region, not inverse video.

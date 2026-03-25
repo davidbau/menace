@@ -35,7 +35,7 @@ node scripts/debug/repaint_square_trace.mjs <session.json> --cell <col,row> --st
 
 This uses the real active display runtime:
 
-1. [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js)
+1. [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
    during parity/session replay
 2. [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
    during browser/runtime debugging

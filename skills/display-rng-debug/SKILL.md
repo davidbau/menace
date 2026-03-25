@@ -97,7 +97,7 @@ NETHACK_RNGLOG_DISP=1 python3 test/comparison/c-harness/rerecord.py \
 - `js/display_rng.js:25` — `randomObjectGlyph()` consumes display RNG
 - `js/display.js:96` — `getCachedMapCell()` per-step cell cache
 - `js/display.js:2143` — `docrt_flags()` calls newsym on every cell
-- `js/headless.js:1445` — `renderMap()` calls newsym on every cell
+- `js/display.js:1445` — `renderMap()` calls newsym on every cell
 - `js/origin_awaits.js:32` — `display_sync()` calls renderMap
 - `js/allmain.js` — `advanceTimedTurn` calls see_monsters/see_objects/see_traps
 

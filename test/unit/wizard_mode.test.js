@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { NetHackGame } from '../../js/chargen.js';
 import { createInputQueue, clearInputQueue, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
-import { createHeadlessGame, HeadlessDisplay } from '../../js/headless.js';
+import { headlessStart, HeadlessDisplay } from '../../js/headless.js';
 import { COLNO, ROWNO, STONE } from '../../js/const.js';
 
 function queueLine(input, text) {
@@ -53,7 +53,7 @@ describe('wizard mode init and commands', () => {
     });
 
     it('Ctrl+V level teleport moves through depths 2-5 in wizard mode', async () => {
-        const game = await createHeadlessGame(5, 11, { wizard: true });
+        const game = await headlessStart(5, { roleIndex: 11, wizard: true });
 
         for (let depth = 2; depth <= 5; depth++) {
             // Dismiss any pending --More-- from previous command's message
@@ -71,7 +71,7 @@ describe('wizard mode init and commands', () => {
     });
 
     it('Ctrl+V is unavailable when wizard mode is off', async () => {
-        const game = await createHeadlessGame(5, 11, { wizard: false });
+        const game = await headlessStart(5, { roleIndex: 11, wizard: false });
         const beforeDepth = game.u.dungeonLevel;
 
         queueLine(game.input, '5');
@@ -82,7 +82,7 @@ describe('wizard mode init and commands', () => {
     });
 
     it('Ctrl+F reveals the full level in wizard mode', async () => {
-        const game = await createHeadlessGame(7, 11, { wizard: true });
+        const game = await headlessStart(7, { roleIndex: 11, wizard: true });
 
         const result = await game.executeCommand(6); // Ctrl+F
         assert.equal(result.tookTime, false);
@@ -96,7 +96,7 @@ describe('wizard mode init and commands', () => {
     });
 
     it('Ctrl+T teleports to requested accessible coordinates in wizard mode', async () => {
-        const game = await createHeadlessGame(9, 11, { wizard: true });
+        const game = await headlessStart(9, { roleIndex: 11, wizard: true });
         const before = { x: game.u.x, y: game.u.y };
         const target = game.map.dnstair;
         assert.ok(target, 'Expected downstairs coordinates');
@@ -112,7 +112,7 @@ describe('wizard mode init and commands', () => {
     });
 
     it('Ctrl+T rejects inaccessible coordinates in wizard mode', async () => {
-        const game = await createHeadlessGame(9, 11, { wizard: true });
+        const game = await headlessStart(9, { roleIndex: 11, wizard: true });
         const before = { x: game.u.x, y: game.u.y };
         game.u._tipsShown = { ...(game.u._tipsShown || {}), getpos: true };
 
@@ -136,7 +136,7 @@ describe('wizard mode init and commands', () => {
     });
 
     it('Ctrl+T is unavailable when wizard mode is off', async () => {
-        const game = await createHeadlessGame(9, 11, { wizard: false });
+        const game = await headlessStart(9, { roleIndex: 11, wizard: false });
         const before = { x: game.u.x, y: game.u.y };
 
         queueLine(game.input, '1,1');

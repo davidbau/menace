@@ -32,7 +32,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM, OBJ_FLOOR, PIT, SPIKED_PIT } from './const.js';
 import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
-import { NORMAL_SPEED, P_POLEARMS, P_LANCE } from './const.js';
+import { NORMAL_SPEED, P_POLEARMS, P_LANCE, STEALTH } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku, mdamageu, ranged_attk_available, gazemu } from './mhitu.js';
 import { m_has_launcher_and_ammo } from './mthrowu.js';
@@ -1287,13 +1287,19 @@ async function dochug(mon, map, player, display, fov, game = null) {
     }
 
     // Phase 2: Sleep check — C ref: monmove.c disturb()
+    // C ref: monmove.c:342 — couldsee() checks COULD_SEE (LOS only)
+    // C ref: monmove.c:343 — Stealth = (HStealth || EStealth) && !BStealth
     function disturb(monster) {
-        const canSee = fov && fov.canSee(monster.mx, monster.my);
-        if (!canSee) return false;
+        const couldSee = (fov && typeof fov.couldSee === 'function')
+            ? fov.couldSee(monster.mx, monster.my) : false;
+        if (!couldSee) return false;
         if (dist2(monster.mx, monster.my, player.x, player.y) > 100) return false;
 
         const speciesName = monster.data?.mname || monster.type?.mname || '';
-        if (player.stealth) {
+        // C ref: Stealth macro checks intrinsic/extrinsic stealth property
+        const hasStealth = !!(player.hasProp?.(STEALTH)
+            || player.stealth || player.Stealth);
+        if (hasStealth) {
             const isEttin = speciesName === 'ettin';
             if (!(isEttin && rn2(10))) return false;
         }

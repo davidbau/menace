@@ -32,7 +32,8 @@ import { GameState } from '../js/game.js';
 import { setGame } from '../js/gstate.js';
 import { wireGameDeps, startGameState } from '../js/main.js';
 import { saveGame, loadGameState, clearSave, hasSave } from '../js/save.js';
-import { MockDisplay } from './mock_display.mjs';
+import { HeadlessTerminal } from '../../js/terminal.js';
+import { getScreenLines } from '../../js/screen_capture.js';
 import { MockInput } from './mock_input.mjs';
 
 // ===== Replay test logic (inline to avoid re-loading localStorage mock) =====
@@ -94,6 +95,12 @@ async function replaySession(sessionFile) {
     return;
   }
 
+  // Coverage-only sessions: replay for coverage but skip comparison
+  if (data.coverage_only) {
+    console.log(JSON.stringify({ session: name, seed, passed: true, total_steps: jsSteps.length, coverage_only: true }));
+    return;
+  }
+
   const totalSteps = Math.min(jsSteps.length, cSteps.length);
   let totalScreenMatches = 0, totalScreenCells = 0;
   let totalRngMatches = 0, totalRngCells = 0;
@@ -150,7 +157,7 @@ async function replayMultigameSession(data, name) {
 // ===== Direct coverage tests for hard-to-reach paths =====
 
 async function setupGame(seed) {
-  const display = new MockDisplay();
+  const display = new HeadlessTerminal();
   const input = new MockInput();
   const g = new GameState();
   g.display = display; g.input = input; g.rawRngLog = [];

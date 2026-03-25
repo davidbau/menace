@@ -117,6 +117,9 @@ fi`;
 // VFS keys for /etc files (editable by root)
 const ETC_VFS_PREFIX = 'etc/';
 
+// Default hostname (editable by root via /etc/hostname)
+const DEFAULT_HOSTNAME = 'lsrhs';
+
 // Initialize default /etc VFS files (idempotent).
 export function initDefaultEtcFiles() {
     if (vfsReadFile(ETC_VFS_PREFIX + 'motd') === null) {
@@ -125,11 +128,20 @@ export function initDefaultEtcFiles() {
     if (vfsReadFile(ETC_VFS_PREFIX + 'profile') === null) {
         vfsWriteFile(ETC_VFS_PREFIX + 'profile', ETC_PROFILE);
     }
+    if (vfsReadFile(ETC_VFS_PREFIX + 'hostname') === null) {
+        vfsWriteFile(ETC_VFS_PREFIX + 'hostname', DEFAULT_HOSTNAME);
+    }
+}
+
+// Read the system hostname from /etc/hostname (falls back to default).
+export function getHostname() {
+    const raw = vfsReadFile(ETC_VFS_PREFIX + 'hostname');
+    return (raw || DEFAULT_HOSTNAME).trim() || DEFAULT_HOSTNAME;
 }
 
 // Generate the login banner programmatically
 export function loginHeader() {
-    return 'UNIX PDP-11/70 (pdp11)';
+    return `UNIX PDP-11/70 (${getHostname()})`;
 }
 
 export function lastLoginLine() {
@@ -437,6 +449,7 @@ function buildTree() {
         type: 'dir', children: {
             etc: {
                 type: 'dir', children: {
+                    hostname: { type: 'file', vfsPath: ETC_VFS_PREFIX + 'hostname', owner: 'root', group: 'wheel', date: 'Sep 16  1982' },
                     profile: { type: 'file', vfsPath: ETC_VFS_PREFIX + 'profile', owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
                     motd:   { type: 'file', vfsPath: ETC_VFS_PREFIX + 'motd', owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
                     passwd: { type: 'file', content: PASSWD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },

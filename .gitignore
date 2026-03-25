@@ -3,7 +3,10 @@ __pycache__/
 nethack-c/patched/
 nethack-c/install/
 .beads/
-.claude/
+.claude/*
+!.claude/skills
+.agents/*
+!.agents/skills
 *.pyc
 test/comparison/c-harness/results/
 test/comparison/isaac64_reference
@@ -28,3 +31,4 @@ tmp/session-comparisons/
 /CURRENT_ISSUE.md
 js/mailcorpus_plain.js
 # rogue/rogue-c/patched/ — has its own .gitignore
+memory/

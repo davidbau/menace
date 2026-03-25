@@ -2040,23 +2040,25 @@ export class NetHackGame {
         }
 
         // Update display — C ref: do.c:1840 docrt() + do.c:1841 flush_screen(-1)
+        // C ref: docrt_flags() → cls() → clear_nhwindow(WIN_MESSAGE) clears
+        // the message window during level changes. Without this, stale messages
+        // from before the teleport trigger spurious --More-- boundaries.
+        if (this.display) {
+            this.display.toplin = 0;
+            this.display.topMessage = null;
+            this.display.messageNeedsMore = false;
+        }
         this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
-        // C ref: do.c:1966 check_special_room(FALSE) — room entry messages
-        // after docrt(). move_update(TRUE) ran in changeLevelCore to reset
-        // room tracking; now detect which rooms the player is in and show
-        // entry messages (shop greeting, zoo welcome, etc.).
-        await check_special_room(false, this.u, this.map, this.display, this.fov);
-        // If a message is pending (shop greeting, follower "still eating/trapped"),
-        // resolve it before teleport arrival feedback so key consumption stays C-aligned.
-        if (this.display?.messageNeedsMore) {
-            await more(this.display, { forceVisual: true });
-        }
-        // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
-        // and before later arrival messages. This can consume dfr_post_msg
-        // early so deferred_goto() won't print it again.
+        // C ref: do.c:1855 — maybe_lvltport_feedback() BEFORE check_special_room.
+        // The "materialize" message precedes shop greetings etc.
+        // When check_special_room shows a shop greeting, pline sees the
+        // materialize message pending and triggers tty_more() — matching C
+        // where tty_more() consumes a key transparently within goto_level.
         await maybe_lvltport_feedback(this.u);
+        // C ref: do.c:1966 check_special_room(FALSE) — room entry messages.
+        await check_special_room(false, this.u, this.map, this.display, this.fov);
         await this.maybeShowQuestPortalCall(previousDnum, { suppressOutputForLvltport: false });
         await this.maybeShowQuestLocateHint(depth);
         if (typeof this.hooks.onLevelChange === 'function') {

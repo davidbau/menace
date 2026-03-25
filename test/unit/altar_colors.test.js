@@ -10,7 +10,7 @@ import { ALTAR, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from '../../js/const.js';
 describe('altar colors', () => {
 
 test('altar colors: lawful altar uses gray', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     const x = 10, y = 10;
@@ -23,7 +23,7 @@ test('altar colors: lawful altar uses gray', () => {
 });
 
 test('altar colors: neutral altar uses gray', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     const x = 10, y = 10;
@@ -36,7 +36,7 @@ test('altar colors: neutral altar uses gray', () => {
 });
 
 test('altar colors: chaotic altar uses gray', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     const x = 10, y = 10;
@@ -49,7 +49,7 @@ test('altar colors: chaotic altar uses gray', () => {
 });
 
 test('altar colors: unaligned altar defaults to gray', () => {
-    const display = new HeadlessDisplay(80, 24);
+    const display = new HeadlessDisplay();
     const map = new GameMap();
 
     const x = 10, y = 10;

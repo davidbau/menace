@@ -25,7 +25,7 @@ function makeBlockingNhgetch() {
 
 describe('message persistence', () => {
     test('short message remains visible until replaced', async () => {
-        const display = new HeadlessDisplay(80, 24);
+        const display = new HeadlessDisplay();
         await display.putstr_message('First message');
         assert.equal(display.topMessage, 'First message');
         await display.putstr_message('Second');
@@ -54,7 +54,7 @@ describe('message persistence', () => {
     });
 
     test('death message blocks until dismissal', async () => {
-        const display = new HeadlessDisplay(80, 24);
+        const display = new HeadlessDisplay();
         const input = makeBlockingNhgetch();
         display.setNhgetch(input.nhgetch);
 

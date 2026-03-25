@@ -1,7 +1,7 @@
 // shell.js -- Main shell loop: prompt, parse, dispatch.
 // Simulates a 1980s Unix login shell using the existing Display class.
 
-import { VirtualFS, USERNAME, HOMEDIR, loginBanner, loginHeader, lastLoginLine, initDefaultVfsFiles, initDefaultEtcFiles, checkPassword } from './filesystem.js';
+import { VirtualFS, USERNAME, HOMEDIR, loginBanner, loginHeader, lastLoginLine, initDefaultVfsFiles, initDefaultEtcFiles, checkPassword, getHostname } from './filesystem.js';
 import { getBuiltinCommands, getShellBuiltins } from './commands.js';
 import { ViEditor } from './vi.js';
 import { Sh, ShAction, ExitSignal } from './sh/index.js';
@@ -174,7 +174,7 @@ export class Shell {
                         cwd.startsWith(HOMEDIR + '/') ? '~' + cwd.slice(HOMEDIR.length) : cwd;
         const user = this.isRoot ? 'root' : USERNAME;
         const sigil = this.isRoot ? '#' : '$';
-        return `${user}@pdp11:${display}${sigil} `;
+        return `${user}@${getHostname()}:${display}${sigil} `;
     }
 
     // Read a line of input character by character, supporting editing and history.
@@ -458,6 +458,9 @@ export class Shell {
         const promptRow = Math.min(this.scrollBuffer.length, ROWS - 1);
         this.display.clearRow(promptRow);
         this.display.putstr(0, promptRow, text, OUTPUT_COLOR);
+        if (typeof this.display.setCursor === 'function') {
+            this.display.setCursor(Math.min(text.length, COLS - 1), promptRow);
+        }
     }
 
     clearPromptLine() {

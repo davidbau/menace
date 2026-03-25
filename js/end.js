@@ -698,7 +698,7 @@ async function maybeInstallPossessionsPrompt(how, game) {
 
 function renderHeadlessEndWarnings(game) {
     const display = game?.display;
-    if (!display || display?.constructor?.name !== 'HeadlessDisplay') return;
+    if (!display || !display.isHeadless) return;
     if (typeof display.clearScreen !== 'function' || typeof display.putstr !== 'function') return;
 
     display.clearScreen();

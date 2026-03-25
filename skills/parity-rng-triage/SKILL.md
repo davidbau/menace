@@ -182,6 +182,40 @@ Run after any core JS change and after every `git pull`:
 - Keep this for true capture-boundary timing only; do not use it to mask core
   gameplay logic mismatches.
 
+## When a Fix Unmasks New Regressions
+
+When a C-faithful foundational fix (e.g., bitfield semantics, call-chain
+ordering) causes previously-passing sessions to fail, treat those as
+**newly exposed bugs**, not reasons to revert the fix.
+
+- Hold the known-correct fix. Do not revert it to quiet tests.
+- Instrument surgically: temporary opt-in traces behind env flags.
+- Fix the exposed bug, not the symptom. Re-run immediately.
+- Remove temporary instrumentation after diagnosis.
+- Broaden validation (nearby seed batch) before committing.
+
+**Gates for landing a foundational fix:**
+1. Invariant gate — C-faithful rule remains in place
+2. No-mask gate — no comparator/replay masking added
+3. Regression gate — target session non-regressing vs pre-fix
+4. Breadth gate — nearby seeds show no severe new regressions
+5. Cleanliness gate — temporary instrumentation removed
+
+## Persistence on Hard Bugs
+
+When working through a burndown where all issues must pass:
+
+- **Stay on the problem.** Rebuilding context is more expensive than
+  persistence. Don't context-switch to easier bugs hoping they'll be
+  faster.
+- **Collect evidence, don't theorize.** Add targeted traces, check
+  actual values, compare C vs JS at specific points.
+- **Think in invariants.** What should always be true? When is the first
+  time a desired invariant is falsified?
+- **When it seems hardest, the answer is close.** Most possibilities
+  have been eliminated. Look more carefully at evidence already collected.
+- Use the `trace-before-theorize` skill when stuck.
+
 ## Done Criteria
 - First divergence is eliminated or moved later with evidence.
 - Target failing session is green or measurably improved.

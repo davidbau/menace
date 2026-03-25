@@ -16,9 +16,9 @@ test('msg_window option controls message display', () => {
     display.renderMessageWindow();
 
     // Check that messages appear on rows 0-2
-    const row0 = display.grid[0].join('').trim();
-    const row1 = display.grid[1].join('').trim();
-    const row2 = display.grid[2].join('').trim();
+    const row0 = display.grid[0].map(c => c.ch).join('').trim();
+    const row1 = display.grid[1].map(c => c.ch).join('').trim();
+    const row2 = display.grid[2].map(c => c.ch).join('').trim();
 
     assert.strictEqual(row0, 'You miss the newt.', 'First message should be on row 0');
     assert.strictEqual(row1, 'The newt bites!', 'Second message should be on row 1');
@@ -28,9 +28,9 @@ test('msg_window option controls message display', () => {
     display.messages = ['Message 1', 'Message 2'];
     display.renderMessageWindow();
 
-    const row0b = display.grid[0].join('').trim();
-    const row1b = display.grid[1].join('').trim();
-    const row2b = display.grid[2].join('').trim();
+    const row0b = display.grid[0].map(c => c.ch).join('').trim();
+    const row1b = display.grid[1].map(c => c.ch).join('').trim();
+    const row2b = display.grid[2].map(c => c.ch).join('').trim();
 
     assert.strictEqual(row0b, '', 'Row 0 should be empty with only 2 messages');
     assert.strictEqual(row1b, 'Message 1', 'First of 2 messages should be on row 1');
@@ -40,7 +40,7 @@ test('msg_window option controls message display', () => {
     display.messages = ['This is a very long message that exceeds the terminal width and should be truncated with ellipsis'];
     display.renderMessageWindow();
 
-    const row2c = display.grid[2].join('').trim();
+    const row2c = display.grid[2].map(c => c.ch).join('').trim();
     assert.ok(row2c.endsWith('...'), 'Long messages should be truncated with ...');
     assert.ok(row2c.length <= display.cols, 'Truncated message should fit in terminal width');
 

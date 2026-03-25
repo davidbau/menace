@@ -5,7 +5,7 @@
 //   shell: the Shell instance (for output, fs access, state changes)
 // Returns: void (output via shell.print/println), or a special action object.
 
-import { USERNAME, HOMEDIR, getSessionStart, checkPassword, setPassword } from './filesystem.js';
+import { USERNAME, HOMEDIR, getSessionStart, checkPassword, setPassword, getHostname } from './filesystem.js';
 import { Sh, ShAction, ExitSignal } from './sh/index.js';
 import {
     loadMailState, saveMailState, seedInboxIfNeeded, deliverPending,
@@ -361,9 +361,9 @@ async function date(_args, shell) {
 
 async function uname(args, shell) {
     if (args.includes('-a')) {
-        shell.println('BSD 2.9 pdp11 PDP-11/70 #3: Thu Mar 12 09:14:22 EDT 1986');
+        shell.println(`V7 UNIX ${getHostname()} PDP-11/70 #1: Thu Sep 16 14:23:07 EDT 1982`);
     } else {
-        shell.println('BSD 2.9');
+        shell.println('V7 UNIX');
     }
 }
 

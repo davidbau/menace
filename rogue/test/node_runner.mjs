@@ -75,12 +75,13 @@ function captureStandout(g) {
  * keyProvider(screen, stepNum, display) => string | null
  * Returns the array of keys pressed.
  */
-export async function runSessionWithAI(seed, keyProvider) {
+export async function runSessionWithAI(seed, keyProvider, opts = {}) {
   const display = new HeadlessTerminal();
   const input = new MockInput();
 
   const g = new GameState();
   g.display = display; g.input = input; g.rawRngLog = [];
+  if (opts.wizard) { g.wizard = true; g.waswizard = true; }
   setGame(g);
 
   wireGameDeps(g);

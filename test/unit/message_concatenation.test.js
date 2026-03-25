@@ -25,7 +25,7 @@ function makeBlockingNhgetch() {
 
 describe('message concatenation', () => {
     test('short messages combine with two spaces', async () => {
-        const display = new HeadlessDisplay(80, 24);
+        const display = new HeadlessDisplay();
         await display.putstr_message('a - a +1 ring mail.');
         await display.putstr_message('There is a staircase down here.');
         assert.equal(display.topMessage, 'a - a +1 ring mail.  There is a staircase down here.');
@@ -51,7 +51,7 @@ describe('message concatenation', () => {
     });
 
     test('"You die..." forces a --More-- boundary before replacement', async () => {
-        const display = new HeadlessDisplay(80, 24);
+        const display = new HeadlessDisplay();
         const input = makeBlockingNhgetch();
         display.setNhgetch(input.nhgetch);
 

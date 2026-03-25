@@ -1,8 +1,9 @@
 // talk.js -- BSD talk(1) simulation: split-screen real-time chat.
-// Layout: rows 0-9 remote (CLR_CYAN), row 10 divider (CLR_YELLOW),
-//         rows 11-21 local (CLR_GREEN, current input on last line), row 22 status.
+// Layout: rows 0-10 remote (CLR_CYAN), row 11 divider (CLR_YELLOW),
+//         rows 12-22 local (CLR_GREEN), row 23 status.
 
 import { CLR_CYAN, CLR_GREEN, CLR_YELLOW, CLR_WHITE } from '../js/render.js';
+import { getHostname } from './filesystem.js';
 
 // QWERTY adjacent keys for typo simulation
 const ADJACENT = {
@@ -390,7 +391,7 @@ export class TalkSession {
         const d = this._d;
 
         d.clearScreen();
-        d.putstr(0, 12, `[Waiting for ${this._username}@pdp11 to respond]`, CLR_YELLOW);
+        d.putstr(0, 11, `[Waiting for ${this._username}@${getHostname()} to respond]`, CLR_YELLOW);
         if (typeof d.flush === 'function') d.flush();
         await new Promise(r => setTimeout(r, 1500 + Math.random() * 2000));
 
@@ -434,14 +435,14 @@ export class TalkSession {
         }
 
         mux.stop();
-        d.clearRow(22);
-        d.putstr(0, 22, '[Connection closed]', CLR_YELLOW);
+        d.clearRow(23);
+        d.putstr(0, 23, '[Connection closed]', CLR_YELLOW);
         if (typeof d.flush === 'function') d.flush();
         await new Promise(r => setTimeout(r, 1200));
     }
 
     _handleKey(ch, engine) {
-        if (ch === 3) return false; // Ctrl-C
+        if (ch === 3 || ch === 27) return false; // Ctrl-C or ESC
         if (ch === 13 || ch === 10) {
             this._localLines.push(this._localCurrent);
             engine.onUserMessage(this._localCurrent);
@@ -462,9 +463,10 @@ export class TalkSession {
     _drawLayout() {
         const d = this._d;
         d.clearScreen();
-        const divider = `\u2500\u2500[talk: ${this._username}@pdp11]` +
+        const divider = `\u2500\u2500[talk: ${this._username}@${getHostname()}]` +
             '\u2500'.repeat(Math.max(0, 80 - 10 - this._username.length - 8));
-        d.putstr(0, 10, divider.slice(0, 80), CLR_YELLOW);
+        d.putstr(0, 11, divider.slice(0, 80), CLR_YELLOW);
+        d.putstr(0, 23, '[Ctrl-C or ESC to quit]', CLR_YELLOW);
         this._renderRemoteHalf(null);
         this._renderLocalHalf();
         if (typeof d.flush === 'function') d.flush();
@@ -475,8 +477,8 @@ export class TalkSession {
         const isComposing = engine && (engine.state === 'composing' || engine.state === 'thinking');
         const cursor = isComposing ? '\u2588' : '';
         const allLines = [...this._remoteLines, this._remoteCurrent + cursor];
-        const startIdx = Math.max(0, allLines.length - 10);
-        for (let row = 0; row < 10; row++) {
+        const startIdx = Math.max(0, allLines.length - 11);
+        for (let row = 0; row <= 10; row++) {
             d.clearRow(row);
             const li = startIdx + row;
             if (li < allLines.length)
@@ -489,9 +491,9 @@ export class TalkSession {
         // Show committed lines + current input line inline (1982 talk style)
         const allLines = [...this._localLines, this._localCurrent];
         const startIdx = Math.max(0, allLines.length - 11);
-        for (let row = 11; row <= 21; row++) {
+        for (let row = 12; row <= 22; row++) {
             d.clearRow(row);
-            const li = startIdx + (row - 11);
+            const li = startIdx + (row - 12);
             if (li < allLines.length) {
                 d.putstr(0, row, allLines[li].slice(0, 80), CLR_GREEN);
                 // Position cursor at end of the current (last) input line
