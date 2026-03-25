@@ -195,7 +195,6 @@ export class Display extends Terminal {
         this.messages = [];
         this.topMessage = null;
         this._topMessageStatusHp = null;
-        this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
         // C ref: ttyDisplay->toplin — 3-state topline status
@@ -251,16 +250,6 @@ export class Display extends Terminal {
     // C ref: winprocs.h win_putstr for NHW_MESSAGE
     async putstr_message(msg) {
         let freshAfterMore = false;
-        const encumberRefreshMsg =
-            msg === 'Your movements are slowed slightly because of your load.'
-            || msg === 'You rebalance your load.  Movement is difficult.'
-            || msg === 'You stagger under your heavy load.  Movement is very hard.'
-            || msg === 'You can barely move a handspan with this load!'
-            || msg === "You can't even move a handspan with this load!"
-            || msg === 'Your movements are now unencumbered.'
-            || msg === 'Your movements are only slowed slightly by your load.'
-            || msg === 'You rebalance your load.  Movement is still difficult.'
-            || msg === 'You stagger under your load.  Movement is still very hard.';
         // Add to message history
         if (msg.trim()) {
             this.messages.push(msg);
@@ -311,7 +300,6 @@ export class Display extends Terminal {
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStatusHp = null;
-            this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
             freshAfterMore = true;
         }
@@ -337,9 +325,6 @@ export class Display extends Terminal {
                     : (Number.isFinite(statusPlayer?.hp)
                         ? statusPlayer.hp
                         : null);
-                this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
-                    ? statusPlayer.encumbrance
-                    : null;
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
@@ -369,7 +354,6 @@ export class Display extends Terminal {
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStatusHp = null;
-            this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
             freshAfterMore = true;
         }
@@ -388,9 +372,6 @@ export class Display extends Terminal {
                 : (Number.isFinite(statusPlayer?.hp)
                     ? statusPlayer.hp
                     : null);
-            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
-                ? statusPlayer.encumbrance
-                : null;
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
@@ -399,7 +380,7 @@ export class Display extends Terminal {
             this.toplin = 1; // C ref: update_topl sets toplin = TOPLINE_NEED_MORE
             if (freshAfterMore && typeof this.renderStatus === 'function') {
             const refreshPlayer = _gstate?.u || this._lastMapState?.player || null;
-                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                if (refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     if (refreshPlayer?._botl) refreshPlayer._botl = false;
                 }
@@ -422,9 +403,6 @@ export class Display extends Terminal {
                 : (Number.isFinite(statusPlayer?.hp)
                     ? statusPlayer.hp
                     : null);
-            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
-                ? statusPlayer.encumbrance
-                : null;
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
@@ -432,7 +410,7 @@ export class Display extends Terminal {
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {
                 const refreshPlayer = _gstate?.u || this._lastMapState?.player || null;
-                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                if (refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     if (refreshPlayer?._botl) refreshPlayer._botl = false;
                 }
@@ -462,7 +440,6 @@ export class Display extends Terminal {
                 this.messageNeedsMore = false;
                 this.topMessage = null;
                 this._topMessageStatusHp = null;
-                this._topMessageEncumbrance = null;
                 this._topMessageStepIndex = null;
                 const row1overflow = row1rest.substring(this.cols).trimStart();
                 if (row1overflow.length > 0) {
@@ -487,7 +464,6 @@ export class Display extends Terminal {
                 this.messageNeedsMore = false;
                 this.topMessage = null;
                 this._topMessageStatusHp = null;
-                this._topMessageEncumbrance = null;
                 this._topMessageStepIndex = null;
             }
         }
