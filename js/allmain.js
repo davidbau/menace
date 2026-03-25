@@ -599,7 +599,8 @@ function u_calc_moveamt(player) {
     } else if (wtcap === EXT_ENCUMBER) {
         moveamt -= Math.floor((moveamt * 7) / 8);
     }
-    player.umovement = Math.max(0, (player.umovement || 0) + moveamt);
+    // C ref: u.umovement += moveamt — no floor clamp; value can be negative.
+    player.umovement = (player.umovement || 0) + moveamt;
     // C ref: event_log for hero movement amount — matches C ^moveamt event.
     // Do NOT call inv_weight() here — in C it has side effects (sets gw.wc).
     pushRngLogEntry(`^moveamt[wtcap=${wtcap} moveamt=${moveamt} umovement=${player.umovement} pos=${player.x},${player.y}]`);
