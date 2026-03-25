@@ -58,10 +58,32 @@ if (skipped.length > 0) {
     console.log(`[test:unit] skipping ${skipped.length} session fixture files: ${skipped.join(', ')}`);
 }
 
+const coreOnly = process.argv.includes('--core');
+const concurrency = Math.max(os.cpus().length, 4);
+
+// In core mode, run only the most important unit tests for speed.
+// These are the tests that create game instances and test gameplay behavior.
+let testFiles = files;
+if (coreOnly) {
+    const corePatterns = [
+        'altar_colors', 'door_symbols', 'secret_door_symbols', 'stairs_color',
+        'headless_overlay_header_attr', 'headless_remembered_terrain_color',
+        'headless_replay_contract', 'keylog_display_parity',
+        'message_concatenation', 'message_persistence', 'msg_window_test',
+        'status_hp_color', 'status_hunger_satiated',
+        'wizard_mode', 'display_more_clear_queue',
+        'ball_surface', 'attribute_limits',
+        'verbose_test',
+    ];
+    testFiles = files.filter(f => corePatterns.some(p => f.includes(p)));
+    console.log(`[test:unit] core mode: ${testFiles.length}/${files.length} files`);
+}
+
 const result = spawnSync(process.execPath, [
     '--test',
-    '--test-timeout=1000',
-    ...files,
+    '--test-timeout=2000',
+    '--test-concurrency=' + concurrency,
+    ...testFiles,
 ], {
     cwd: projectRoot,
     stdio: 'inherit',
