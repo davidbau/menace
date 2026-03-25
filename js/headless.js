@@ -552,7 +552,6 @@ export class HeadlessDisplay extends Terminal {
         this.isHeadless = true;
         this.topMessage = null; // Track current message for concatenation
         this._topMessageStatusHp = null;
-        this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
@@ -610,7 +609,6 @@ export class HeadlessDisplay extends Terminal {
         // Reset message state so stale topMessage doesn't trigger a spurious
         // --More-- on the next putstr_message call (mirrors Display.clearScreen).
         this.topMessage = null;
-        this._topMessageEncumbrance = null;
         this.messageNeedsMore = false;
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
@@ -641,17 +639,6 @@ export class HeadlessDisplay extends Terminal {
 
     async putstr_message(msg) {
         let freshAfterMore = false;
-        const encumberRefreshMsg =
-            msg === 'Your movements are slowed slightly because of your load.'
-            || msg === 'You rebalance your load.  Movement is difficult.'
-            || msg === 'You stagger under your heavy load.  Movement is very hard.'
-            || msg === 'You can barely move a handspan with this load!'
-            || msg === "You can't even move a handspan with this load!"
-            || msg === 'Your movements are now unencumbered.'
-            || msg === 'Your movements are only slowed slightly by your load.'
-            || msg === 'You rebalance your load.  Movement is still difficult.'
-            || msg === 'You stagger under your load.  Movement is still very hard.';
-
         // Add to message history
         if (msg.trim()) {
             this.messages.push(msg);
@@ -671,21 +658,7 @@ export class HeadlessDisplay extends Terminal {
             && Number(gameRef?.multi || 0) < 0
             && !sleepWakeBoundary);
         if (this.topMessage && this.messageNeedsMore) {
-            // C ref: flush_screen(1) here mirrors C's vpline() which fires
-            // flush_screen before the new message replaces the old one.
-            // At that point C's bot() recomputes encumbrance from the CURRENT
-            // inventory (which may still contain an item that JS has already
-            // consumed via useup). Restore the snapshot encumbrance so the
-            // status line matches C's state at this boundary.
-            const _fsPlayer = this._lastMapState?.player || gameRef?.player || null;
-            const _savedFsEnc = _fsPlayer?.encumbrance;
-            if (_fsPlayer && this._topMessageEncumbrance != null) {
-                _fsPlayer.encumbrance = this._topMessageEncumbrance;
-            }
             flush_screen(1);
-            if (_fsPlayer && this._topMessageEncumbrance != null) {
-                _fsPlayer.encumbrance = _savedFsEnc;
-            }
         }
         const gameCtx = this._game || gameRef || null;
         if (this._deferredBotlAfterPendingFlush && gameCtx?.player) {
@@ -699,11 +672,6 @@ export class HeadlessDisplay extends Terminal {
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
             if (this._nhgetch) {
-                const _morePlayer = this._lastMapState?.player || gameRef?.player || null;
-                const _savedEnc = _morePlayer?.encumbrance;
-                if (_morePlayer && this._topMessageEncumbrance != null) {
-                    _morePlayer.encumbrance = this._topMessageEncumbrance;
-                }
                 try {
                     await more(this, {
                         site: 'headless.more.dismiss',
@@ -713,19 +681,13 @@ export class HeadlessDisplay extends Terminal {
                     });
                 } catch (e) {
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
-                } finally {
-                    if (_morePlayer && this._topMessageEncumbrance != null) {
-                        _morePlayer.encumbrance = _savedEnc;
-                    }
                 }
             }
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStatusHp = null;
-            this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
-            this._topMessageEncumbrance = null;
             this.moreMarkerActive = false;
             freshAfterMore = true;
         }
@@ -755,9 +717,6 @@ export class HeadlessDisplay extends Terminal {
                     : (Number.isFinite(statusPlayer?.hp)
                         ? statusPlayer.hp
                         : null);
-                this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
-                    ? statusPlayer.encumbrance
-                    : null;
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
@@ -779,15 +738,6 @@ export class HeadlessDisplay extends Terminal {
             flush_screen(1);
             this.renderMoreMarker();
             if (this._nhgetch) {
-                // Temporarily restore the encumbrance that was current when
-                // the pending topMessage was stored, so renderStatus inside
-                // more() shows the value from that point (matching C's
-                // flush_screen→bot() which ran BEFORE the message text).
-                const _morePlayer = this._lastMapState?.player || gameRef?.player || null;
-                const _savedEnc = _morePlayer?.encumbrance;
-                if (_morePlayer && this._topMessageEncumbrance != null) {
-                    _morePlayer.encumbrance = this._topMessageEncumbrance;
-                }
                 try {
                     await more(this, {
                         site: 'headless.more.dismiss',
@@ -803,10 +753,6 @@ export class HeadlessDisplay extends Terminal {
                     // appear message during a command cycle), skip the
                     // --More-- and fall through to replace the message.
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
-                } finally {
-                    if (_morePlayer && this._topMessageEncumbrance != null) {
-                        _morePlayer.encumbrance = _savedEnc;
-                    }
                 }
             }
             // Fall through to display the new message fresh.
@@ -814,9 +760,7 @@ export class HeadlessDisplay extends Terminal {
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStatusHp = null;
-            this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
-            this._topMessageEncumbrance = null;
             this.moreMarkerActive = false;
             freshAfterMore = true;
         }
@@ -831,20 +775,9 @@ export class HeadlessDisplay extends Terminal {
                 : (Number.isFinite(statusPlayer?.hp)
                     ? statusPlayer.hp
                     : null);
-            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
-                ? statusPlayer.encumbrance
-                : null;
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
-            // C ref: snapshot encumbrance when this message becomes the
-            // pending topMessage.  If a deferred more() fires later (when
-            // the NEXT message overflows), renderStatus should show the
-            // encumbrance that was current when THIS message was stored.
-            {
-                const _msgPlayer = this._lastMapState?.player || gameRef?.player || null;
-                this._topMessageEncumbrance = _msgPlayer?.encumbrance ?? null;
-            }
             this.messageNeedsMore = true;
             this.toplin = 1; // C ref: update_topl sets toplin = TOPLINE_NEED_MORE
             // C ref: topl_puts() sets toplin=1 for a fresh single message.
@@ -854,9 +787,9 @@ export class HeadlessDisplay extends Terminal {
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {
                 const refreshPlayer = gameRef?.player || this._lastMapState?.player || null;
-                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                if (refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
-                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                    refreshPlayer._botl = false;
                 }
             }
             if (isDeathMessage) {
@@ -876,9 +809,7 @@ export class HeadlessDisplay extends Terminal {
                     this.messageNeedsMore = false;
                     this.topMessage = null;
                     this._topMessageStatusHp = null;
-                    this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
-                    this._topMessageEncumbrance = null;
                     this.moreMarkerActive = false;
                 } else {
                     // Parity fallback for harness contexts without a wired
@@ -888,9 +819,7 @@ export class HeadlessDisplay extends Terminal {
                     this.messageNeedsMore = false;
                     this.topMessage = null;
                     this._topMessageStatusHp = null;
-                    this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
-                    this._topMessageEncumbrance = null;
                     this.moreMarkerActive = false;
                 }
             }
@@ -917,9 +846,6 @@ export class HeadlessDisplay extends Terminal {
             : (Number.isFinite(statusPlayer?.hp)
                 ? statusPlayer.hp
                 : null);
-        this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
-            ? statusPlayer.encumbrance
-            : null;
         this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
             ? this._lastMapState.gameMap._replayStepIndex
             : null;
@@ -929,9 +855,9 @@ export class HeadlessDisplay extends Terminal {
         this.messageCursorRow = 0;
         if (freshAfterMore && typeof this.renderStatus === 'function') {
             const refreshPlayer = gameRef?.player || this._lastMapState?.player || null;
-            if (encumberRefreshMsg || refreshPlayer?._botl) {
+            if (refreshPlayer?._botl) {
                 this.renderStatus(refreshPlayer);
-                if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                refreshPlayer._botl = false;
             }
         }
 
@@ -967,9 +893,7 @@ export class HeadlessDisplay extends Terminal {
         this.messageNeedsMore = false;
         this.topMessage = null;
         this._topMessageStatusHp = null;
-        this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
-        this._topMessageEncumbrance = null;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {
             await this.putstr_message(remainder);
