@@ -561,7 +561,7 @@ function renderWatchdog(e){
   const id=stableId(e);
   e._id=id;
   return`<div class="ev ev-watchdog" id="${id}">
-    <span class="ev-time">${tm(e.timestamp)}</span> ${esc(e.text.substring(0, 100))}${e.text.length>100?'&hellip;':''}
+    ${agentBadge(e)}<span class="ev-time">${tm(e.timestamp)}</span> ${esc(e.text.substring(0, 100))}${e.text.length>100?'&hellip;':''}
   </div>`;
 }
 
@@ -569,7 +569,7 @@ function renderAgentDirective(e){
   const id=stableId(e);
   e._id=id;
   return`<div class="ev ev-agent-directive" id="${id}" onclick="this.classList.toggle('expanded')">
-    <span class="ev-time">${tm(e.timestamp)}</span><span class="ev-text">${esc(e.text)}</span>
+    ${agentBadge(e)}<span class="ev-time">${tm(e.timestamp)}</span><span class="ev-text">${esc(e.text)}</span>
   </div>`;
 }
 
@@ -583,7 +583,7 @@ function renderSubagentWork(e){
   const id=stableId(e);
   e._id=id;
   return`<div class="ev ev-subagent-work" id="${id}" onclick="this.classList.toggle('expanded')">
-    <span class="ev-time">${tm(e.timestamp)}</span>
+    ${agentBadge(e)}<span class="ev-time">${tm(e.timestamp)}</span>
     <span class="tag tag-ai">sub</span>
     ${brief?esc(brief):''}
     ${allText?`<span class="ai-snips-inline">${esc(allText)}</span>`:''}
