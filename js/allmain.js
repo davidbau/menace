@@ -608,8 +608,9 @@ function u_calc_moveamt(player) {
     } else if (wtcap === EXT_ENCUMBER) {
         moveamt -= Math.floor((moveamt * 7) / 8);
     }
-    // C ref: u.umovement += moveamt — no floor clamp; value can be negative.
+    // C ref: u.umovement += moveamt; if (u.umovement < 0) u.umovement = 0;
     player.umovement = (player.umovement || 0) + moveamt;
+    if (player.umovement < 0) player.umovement = 0;
 }
 
 // C ref: sounds.c:202-339 dosounds() — ambient level sounds
