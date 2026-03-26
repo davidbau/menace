@@ -959,12 +959,12 @@ export function check_gear_next_turn(mon) {
 // C ref: mon.c m_detach() — detach monster from map
 // In JS, this is handled by monutil.js mondead + movemon's dead filter.
 // We provide this as a C-compatible alias.
-export function m_detach(mon, mptr, due_to_death, map, player) {
+export async function m_detach(mon, mptr, due_to_death, map, player) {
     // JS doesn't have the complex C detach chain.
     // The existing monutil.mondead handles the core: mark dead, drop inv, newsym, unstuck.
     // This wrapper is for callers that expect the C API.
     if (due_to_death && map) {
-        mondead(mon, map, player);
+        await mondead(mon, map, player);
     } else {
         mon.dead = true;
         mon.mhp = 0;
@@ -973,7 +973,7 @@ export function m_detach(mon, mptr, due_to_death, map, player) {
 }
 
 // C ref: mon.c mondead() — full death processing with life-saving
-export function mondead_full(mon, map, player) {
+export async function mondead_full(mon, map, player) {
     mon.mhp = 0;
     lifesaved_monster(mon);
     if (mon.mhp > 0) return; // life-saved
@@ -982,7 +982,7 @@ export function mondead_full(mon, map, player) {
 
     // C ref: mon.c:3098-3099 — Steam Vortex creates harmless gas cloud on death
     if (mon.mndx === PM_STEAM_VORTEX) {
-        create_gas_cloud(mon.mx, mon.my, rn2(10) + 5, 0, map, player, _gstate);
+        await create_gas_cloud(mon.mx, mon.my, rn2(10) + 5, 0, map, player, _gstate);
     }
 
     // C ref: mon.c:3142-3160 — Dead Kops may come back
@@ -996,12 +996,12 @@ export function mondead_full(mon, map, player) {
         switch (rnd(5)) {
         case 1: // returns near the stairs
             if (stway) {
-                makemon(mdat, stway.sx, stway.sy, 0, _gstate?.depth, map);
+                await makemon(mdat, stway.sx, stway.sy, 0, _gstate?.depth, map);
                 break;
             }
             // FALLTHROUGH
         case 2: // randomly
-            makemon(mdat, 0, 0, 0, _gstate?.depth, map);
+            await makemon(mdat, 0, 0, 0, _gstate?.depth, map);
             break;
         default:
             break;
@@ -1009,12 +1009,12 @@ export function mondead_full(mon, map, player) {
     }
 
     // Log death event and process (delegating to monutil.mondead)
-    mondead(mon, map, player);
+    await mondead(mon, map, player);
 }
 
 // C ref: mon.c mondied() — died of own accord, maybe leaves corpse
-export function mondied(mon, map, player) {
-    mondead_full(mon, map, player);
+export async function mondied(mon, map, player) {
+    await mondead_full(mon, map, player);
     if (mon.mhp > 0) return; // life-saved
 
     if (corpse_chance(mon) && map) {
@@ -1053,9 +1053,9 @@ export async function monkilled(mon, fltxt, how, map, player) {
     const disintegested = (how === AD_DGST || how === -AD_RBRE
                            || (how === AD_FIRE && completelyburns));
     if (disintegested) {
-        mondead_full(mon, map, player); // never leaves a corpse
+        await mondead_full(mon, map, player); // never leaves a corpse
     } else {
-        mondied(mon, map, player); // calls mondead and maybe leaves a corpse
+        await mondied(mon, map, player); // calls mondead and maybe leaves a corpse
     }
 }
 
@@ -1068,7 +1068,7 @@ export async function xkilled(mon, xkill_flags, map, player) {
     mon.mhp = 0;
 
     // C ref: mondead() with life-saving
-    mondead_full(mon, map, player);
+    await mondead_full(mon, map, player);
     if (mon.mhp > 0) return; // life-saved
 
     if (nocorpse) return;
@@ -1416,11 +1416,11 @@ export function make_corpse(mon, corpseflags, map) {
 // ========================================================================
 
 // C ref: mon.c wake_msg() — display wake message
-export function wake_msg(mon, via_attack) {
+export async function wake_msg(mon, via_attack) {
     // C ref: mon.c wake_msg() — "X wakes up." when visible sleeping monster wakes
     if (mon.msleeping && canseemon(mon, _gstate?.u, null, _gstate?.map)) {
         const golem = (mon.data === mons[PM_FLESH_GOLEM] || mon.mnum === PM_FLESH_GOLEM);
-        pline_mon(mon, "%s wakes up%s%s",
+        await pline_mon(mon, "%s wakes up%s%s",
             Monnam(mon),
             via_attack ? "!" : ".",
             golem ? " It's alive!" : "");
@@ -1551,7 +1551,7 @@ export function set_ustuck(mon, player) {
 }
 
 // C ref: mon.c:4694 maybe_unhide_at() — reveal hidden monster if can't hide
-export function maybe_unhide_at(x, y, map) {
+export async function maybe_unhide_at(x, y, map) {
     if (!map) return;
     const mon = map.monsterAt(x, y);
     if (!mon || !mon.mundetected) return;
@@ -1559,13 +1559,13 @@ export function maybe_unhide_at(x, y, map) {
     const mdat = mon.data || mon.type || {};
     // Eel out of water
     if (mdat.mlet === S_EEL && !IS_POOL(map.at(x, y)?.typ)) {
-        hideunder(mon, map);
+        await hideunder(mon, map);
         return;
     }
     // Hider-under without objects
     if (hides_under(mdat)) {
         if (!can_hide_under_obj_at(map, x, y)) {
-            hideunder(mon, map);
+            await hideunder(mon, map);
         }
     }
 }
@@ -1643,13 +1643,13 @@ export async function hideunder(mon, map, player = null, fov = null, display = n
 }
 
 // C ref: mon.c:4803 hide_monst() — called when returning to a level
-export function hide_monst(mon, map) {
+export async function hide_monst(mon, map) {
     if (!mon || !map) return;
     const mdat = mon.data || mon.type || {};
     const hider_under = hides_under(mdat) || mdat.mlet === S_EEL;
     if ((is_hider(mdat) || hider_under) && !mon.mundetected && !mon.m_ap_type) {
         if (hider_under)
-            hideunder(mon, map);
+            await hideunder(mon, map);
     }
 }
 
@@ -1944,7 +1944,7 @@ async function minliquid_core(mon, map, player) {
         if ((mon.mhpmax || 0) > dam)
             mon.mhpmax -= dam;
         if ((mon.mhp || 0) <= 0) {
-            mondied(mon, map, player);
+            await mondied(mon, map, player);
             if (mon.dead || (mon.mhp || 0) <= 0)
                 return 1;
         }
@@ -1960,11 +1960,11 @@ async function minliquid_core(mon, map, player) {
             }
             if (!resists_fire(mon)) {
                 // Burns to death
-                mondied(mon, map, player);
+                await mondied(mon, map, player);
             } else {
                 mon.mhp = (mon.mhp || 0) - 1;
                 if ((mon.mhp || 0) <= 0) {
-                    mondied(mon, map, player);
+                    await mondied(mon, map, player);
                 }
             }
             if (mon.dead || (mon.mhp || 0) <= 0) return 1;
@@ -1979,7 +1979,7 @@ async function minliquid_core(mon, map, player) {
                 if (await rloc(mon, 0, map, player)) return 0;
             }
             // Drowns
-            mondied(mon, map, player);
+            await mondied(mon, map, player);
             if (mon.dead || (mon.mhp || 0) <= 0) return 1;
             // Survivor: water damage inventory
             water_damage_chain(mon.minvent, false);
@@ -2560,7 +2560,7 @@ export function valid_vampshiftform(base, form) {
 }
 
 // Autotranslated from mon.c:5225
-export async function accept_newcham_form(mon, mndx, game) {
+export function accept_newcham_form(mon, mndx, game) {
   let mdat;
   if (mndx === NON_PM) return 0;
   mdat = mons[mndx];
@@ -2827,7 +2827,7 @@ export function unstuck(mon, player) {
 }
 
 // C ref: mon.c mondead() → m_detach() → mon_leaving_level() → unstuck()
-export function mondead(mon, map, player) {
+export async function mondead(mon, map, player) {
     const game = _gstate;
     const mndx = mon.mndx ?? 0;
     if (game?.mvitals?.[mndx]) {
@@ -2845,7 +2845,7 @@ export function mondead(mon, map, player) {
         for (let idx = items.length - 1; idx >= 0; idx--) {
             const obj = items[idx];
             if (!obj) continue;
-            mdrop_obj(mon, obj, map);
+            await mdrop_obj(mon, obj, map);
         }
         mon.minvent = [];
         mon.weapon = null;
@@ -2995,14 +2995,14 @@ export function mon_leaving_level(mon, map = null, player = _gstate?.u) {
 }
 
 // C ref: mon.c:3283
-export function monstone(mon, map = null, player = _gstate?.u) {
+export async function monstone(mon, map = null, player = _gstate?.u) {
     if (!mon) return 0;
-    mondead(mon, map || _gstate?.map || _gstate?.lev, player);
+    await mondead(mon, map || _gstate?.map || _gstate?.lev, player);
     return 1;
 }
 
 // C ref: mon.c:1196
-export async function movemon_singlemon(mon, map = null, player = _gstate?.u) {
+export function movemon_singlemon(mon, map = null, player = _gstate?.u) {
     if (!mon || mon.dead) return false;
     mcalcmove(mon, true);
     if (player && monnear(mon, player.x, player.y) && !mon.mpeaceful) {

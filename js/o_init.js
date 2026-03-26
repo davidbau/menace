@@ -323,9 +323,9 @@ export function oinit(map) {
 }
 
 // Autotranslated from o_init.c:440
-export function observe_object(obj) {
+export async function observe_object(obj) {
   obj.dknown = 1;
-  discover_object(obj.otyp, false, true, false);
+  await discover_object(obj.otyp, false, true, false);
 }
 
 // Autotranslated from o_init.c:519
@@ -465,7 +465,7 @@ export function isObjectEncountered(otyp) {
     return !!ocEncountered[otyp];
 }
 
-async function pushDisco(otyp) {
+function pushDisco(otyp) {
     const od = objectData[otyp];
     if (!od) return;
     const cls = od.oc_class;
@@ -735,12 +735,12 @@ export function disco_append_typename(prefix, otyp) {
 }
 
 // cf. o_init.c:756
-export async function dodiscovered(game) {
+export function dodiscovered(game) {
     return handleDiscoveries(game);
 }
 
 // cf. o_init.c:870
-export async function doclassdisco(_oclass, game) {
+export function doclassdisco(_oclass, game) {
     return handleDiscoveries(game);
 }
 

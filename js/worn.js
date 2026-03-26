@@ -515,7 +515,7 @@ export function which_armor(mon, flag) {
 // m_dowear — cf. worn.c:747
 // ============================================================================
 // Monster equips best available armor.
-export function m_dowear(mon, creation) {
+export async function m_dowear(mon, creation) {
     const ptr = mon.data || mon.type || {};
     // Guards: verysmall, nohands, animal skip entirely
     if ((ptr.msize || 0) < MZ_SMALL || nohands(ptr) || is_animal(ptr))
@@ -528,7 +528,7 @@ export function m_dowear(mon, creation) {
 
     const can_wear_armor = !cantweararm(ptr);
     if (creation) {
-        m_dowear_sequence(mon, ptr, can_wear_armor, creation, m_dowear_type_sync);
+        await m_dowear_sequence(mon, ptr, can_wear_armor, creation, m_dowear_type_sync);
         return;
     }
     return m_dowear_sequence(mon, ptr, can_wear_armor, creation, m_dowear_type);

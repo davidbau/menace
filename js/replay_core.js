@@ -184,7 +184,7 @@ function emitStartupRunstepIfEnabled(game) {
 }
 
 // No-op: legacy startup prompt settlement removed (V4 key-driven startup).
-async function settleStartupInputBoundaries(game, opts = {}) {
+function settleStartupInputBoundaries(game, opts = {}) {
     if (!opts?.initOpts?.simulateManualDirectChargen) return;
     if (game?.pendingPrompt?.source !== 'startup_lore') return;
 
@@ -265,7 +265,7 @@ export async function replaySession(seed, opts, keys) {
     initPromise = game.init(initOpts);
     const settled = await drainUntilInput(initPromise, game.input);
     if (settled.done) {
-        await settleStartupInputBoundaries(game, opts);
+        settleStartupInputBoundaries(game, opts);
         emitStartupRunstepIfEnabled(game);
         initPromise = null;
     } else {
@@ -345,7 +345,7 @@ export async function replaySession(seed, opts, keys) {
             const settled = await drainUntilInput(initPromise, game.input);
             if (settled.done) {
                 startupPending = false;
-                await settleStartupInputBoundaries(game, opts);
+                settleStartupInputBoundaries(game, opts);
                 emitStartupRunstepIfEnabled(game);
                 initPromise = null;
                 replayPendingTrace(

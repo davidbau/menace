@@ -435,7 +435,7 @@ export async function generateMapsWithRng(seed, maxDepth) {
                 harnessPlayer.x = map.upstair.x;
                 harnessPlayer.y = map.upstair.y;
             }
-            simulatePostLevelInit(harnessPlayer, map, 1);
+            await simulatePostLevelInit(harnessPlayer, map, 1);
         } else {
             if (harnessPlayer && previousMap) {
                 mon_arrive(previousMap, map, harnessPlayer, {
@@ -511,7 +511,7 @@ export async function generateStartupWithRng(seed, session) {
     }
 
     const preChargenCount = getRngLog().length;
-    simulatePostLevelInit(player, map, 1);
+    await simulatePostLevelInit(player, map, 1);
 
     const fullLog = getRngLog();
     disableRngLog();

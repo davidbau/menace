@@ -328,13 +328,13 @@ async function make_blinded(player, xtime, talk) {
     set_itimeout(player, BLINDED, xtime);
 
     if (u_could_see !== can_see_now) {
-        await toggle_blindness(player);
+        toggle_blindness(player);
     }
 }
 
 // cf. potion.c toggle_blindness()
 // Blindness has just toggled due to timeout or eyewear changes.
-export async function toggle_blindness(player) {
+export function toggle_blindness(player) {
     if (!player) return;
     player._botl = true;
     mark_vision_dirty();
@@ -627,7 +627,7 @@ async function handleQuaff(player, map, display) {
                 await ghost_from_bottle(player, map);
                 // C ref: useup(item) — decrements stack quantity and recomputes
                 // object weight before inventory update.
-                useup(item, player);
+                await useup(item, player);
                 replacePromptMessage();
                 return { moved: false, tookTime: true };
             } else if (objdescr_is(item, 'smoky')
@@ -636,7 +636,7 @@ async function handleQuaff(player, map, display) {
                 await djinni_from_bottle(player, item, map);
                 // C ref: useup(item) — decrements stack quantity and recomputes
                 // object weight before inventory update.
-                useup(item, player);
+                await useup(item, player);
                 replacePromptMessage();
                 return { moved: false, tookTime: true };
             }
@@ -649,7 +649,7 @@ async function handleQuaff(player, map, display) {
                 return { moved: false, tookTime: !!retval };
             }
             // retval === -1: normal path — consume one potion.
-            useup(item, player);
+            await useup(item, player);
             if (gp.potion_nothing) {
                 gp.potion_unkn++;
                 await You("have a %s feeling for a moment, then it passes.",
@@ -1585,7 +1585,7 @@ async function potionhit(mon, obj, how, player, map) {
                         await pline("%s shrieks in pain!", Monnam(mon));
                     mon.mhp -= c_d(2, 6);
                     if (mon.mhp <= 0) {
-                        mondead(mon, map);
+                        await mondead(mon, map);
                     } else if (is_were(monData) && !is_human(monData)) {
                         await new_were(mon);
                     }
@@ -1599,13 +1599,13 @@ async function potionhit(mon, obj, how, player, map) {
                 }
             } else if (mon.mndx === PM_GREMLIN) {
                 angermon = false;
-                split_mon(mon, null);
+                await split_mon(mon, null);
             } else if (mon.mndx === PM_IRON_GOLEM) {
                 if (canspotmon(mon, player))
                     await pline("%s rusts.", Monnam(mon));
                 mon.mhp -= c_d(1, 6);
                 if (mon.mhp <= 0)
-                    mondead(mon, map);
+                    await mondead(mon, map);
             }
             break;
         }
@@ -1769,7 +1769,7 @@ async function potionbreathe(player, obj) {
     case POT_WATER:
         // cf. potion.c:2066-2077 — gremlin split or lycanthropy trigger
         if (player.umonnum === PM_GREMLIN) {
-            split_mon(player, null);
+            await split_mon(player, null);
         } else if (isValidPm(player.ulycn)) {
             // vapor from holy/unholy water triggers transformation but doesn't cure
             if (obj.blessed && player.umonnum === player.ulycn) {
@@ -2065,11 +2065,11 @@ export async function dip_into(player, map, display, target = null) {
 }
 
 // cf. potion.c poof() — potion disappears in a poof (trycall + useup)
-export function poof(player, potion) {
+export async function poof(player, potion) {
     // C ref: potion.c:2393-2399
     // trycall(potion) — ID attempt; useup(potion) — consume it
     if (player && player.removeFromInventory) {
-        useup(potion, player);
+        await useup(potion, player);
     }
 }
 
@@ -2088,7 +2088,7 @@ async function dip_potion_explosion(player, obj, dmg) {
         if (!breathless(playerData) || haseyes(playerData))
             await potionbreathe(player, obj);
         // useupall(obj) — remove entire stack
-        useupall(obj, player);
+        await useupall(obj, player);
         player.uhp -= dmg;
         if (player.uhp < 1) player.uhp = 1;
         return true;
@@ -2107,7 +2107,7 @@ async function potion_dip(player, obj, potion) {
     if (potion.otyp === POT_WATER) {
         const obj_glows = `Your ${obj.oname || 'object'} glows`;
         if (await H2Opotion_dip(potion, obj, !player.blind, obj_glows)) {
-            poof(player, potion);
+            await poof(player, potion);
             return true;
         }
     }
@@ -2115,7 +2115,7 @@ async function potion_dip(player, obj, potion) {
     // mixing two different potions
     if (obj.oclass === POTION_CLASS && obj.otyp !== potion.otyp) {
         const mixture = mixtype(obj, potion);
-        poof(player, potion); // use up dip potion
+        await poof(player, potion); // use up dip potion
 
         // explosion check
         const amt = obj.quan || 1;
@@ -2142,7 +2142,7 @@ async function potion_dip(player, obj, potion) {
                 break;
             default:
                 // evaporates — remove obj
-                useupall(obj, player);
+                await useupall(obj, player);
                 await pline("The mixture glows brightly and evaporates.");
                 return true;
             }

@@ -273,7 +273,7 @@ function pet_type(roleIndex) {
 
 
 // C ref: dog.c makedog()
-export function makedog(map, player, depth) {
+export async function makedog(map, player, depth) {
     const pmIdx = pet_type(player.roleIndex);
     let petName = '';
     if (pmIdx === PM_LITTLE_DOG) {
@@ -283,7 +283,7 @@ export function makedog(map, player, depth) {
         else if (player.roleMnum === PM_RANGER) petName = 'Sirius';
     }
 
-    const pet = makemon(pmIdx, player.x, player.y, MM_EDOG | NO_MINVENT | MM_NOMSG, depth, map);
+    const pet = await makemon(pmIdx, player.x, player.y, MM_EDOG | NO_MINVENT | MM_NOMSG, depth, map);
     if (!pet) return null;
 
     if (pmIdx === PM_PONY) {

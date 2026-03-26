@@ -835,7 +835,7 @@ export async function dipsink(obj, player, map, display, fov) {
         break;
     }
     // if (try_call && obj.dknown) trycall(obj) -- not ported
-    useup(obj, player);
+    await useup(obj, player);
 }
 
 // cf. fountain.c:805 -- sink_backs_up(x, y): ring spawns from backed-up sink

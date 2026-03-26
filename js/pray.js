@@ -974,13 +974,13 @@ export async function god_zaps_you(resp_god, player, map) {
     } else {
         await pline("Suddenly, a bolt of lightning strikes you!");
         if (Reflecting(player)) {
-            shieldeff();
+            await shieldeff();
             if (player.blind)
                 await pline("For some reason you're unaffected.");
             else
                 await pline("It reflects from your %s.", "body");
         } else if (Shock_resistance(player)) {
-            shieldeff();
+            await shieldeff();
             await pline("It seems not to affect you.");
         } else {
             await fry_by_god(resp_god, false, player);
@@ -1303,7 +1303,7 @@ async function give_spell(player, map) {
     } else {
         // C ref: pray.c — divine gift spellbooks may be identified
         if (otmp.otyp === SPE_BLANK_PAPER || !rn2(100)) {
-            makeknown(otmp.otyp);
+            await makeknown(otmp.otyp);
         }
         bless_obj(otmp);
         await at_your_feet(upstart(ansimpleoname(otmp)), player);
@@ -1681,7 +1681,7 @@ async function offer_real_amulet(otmp, altaralign, player, map) {
         adjalign(player, 10);
         await pline("An invisible choir sings, and you are bathed in radiance...");
         await godvoice(altaralign, "Mortal, thou hast done well!", player);
-        display_nhwindow();
+        await display_nhwindow();
         await verbalize("In return for thy service, I grant thee the gift of Immortality!");
         await You("ascend to the status of Demigod%s...",
             player.female ? "dess" : "");

@@ -535,7 +535,7 @@ function _nhgetchToplinTransition() {
 // Command boundary --More-- handling belongs in callers (_gameLoopStep),
 // not here — matching C where tty_clearmsg handles --More-- in parse(),
 // not inside nhgetch.
-export async function nhgetch() {
+export function nhgetch() {
     const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
     if (Number.isFinite(queuedKey)) {
         ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
@@ -570,7 +570,7 @@ export async function nhgetch() {
         activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
     }
 
-    const ch = await nhgetch_raw();
+    const ch = nhgetch_raw();
     ynTrace('raw=runtime', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
     recordKey(ch);
     if (cmdqRepeatRecordMode && Number.isFinite(ch)) {

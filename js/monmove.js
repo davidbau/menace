@@ -893,7 +893,7 @@ async function run_dochug_postmove_pipeline_current_js(
                 } else if (wasLocked && can_unlock) {
                     here.flags = btrapped ? D_NODOOR : D_ISOPEN;
                     if (btrapped) {
-                        if (mb_trapped(mon, map, player)) return MMOVE_DIED;
+                        if (await mb_trapped(mon, map, player)) return MMOVE_DIED;
                     } else if (display) {
                         if (canSeeDoor && canSeeMon) {
                             await display.putstr_message(`${Monnam(mon)} unlocks and opens a door.`);
@@ -906,7 +906,7 @@ async function run_dochug_postmove_pipeline_current_js(
                 } else if (wasClosed && can_open) {
                     here.flags = btrapped ? D_NODOOR : D_ISOPEN;
                     if (btrapped) {
-                        if (mb_trapped(mon, map, player)) return MMOVE_DIED;
+                        if (await mb_trapped(mon, map, player)) return MMOVE_DIED;
                     } else if (display) {
                         if (canSeeDoor && canSeeMon) {
                             await display.putstr_message(`${Monnam(mon)} opens a door.`);
@@ -921,7 +921,7 @@ async function run_dochug_postmove_pipeline_current_js(
                     const breakMask = (btrapped || (wasLocked && !rn2(2))) ? D_NODOOR : D_BROKEN;
                     here.flags = breakMask;
                     if (btrapped) {
-                        if (mb_trapped(mon, map, player)) return MMOVE_DIED;
+                        if (await mb_trapped(mon, map, player)) return MMOVE_DIED;
                     } else if (display) {
                         if (canSeeDoor && canSeeMon) {
                             await display.putstr_message(`${Monnam(mon)} smashes down a door.`);
@@ -944,7 +944,7 @@ async function run_dochug_postmove_pipeline_current_js(
                     if (display && canSpotMonsterForMap(mon, map, player, fov)) {
                         await display.putstr_message(`${Monnam(mon)} eats through the iron bars.`);
                     }
-                    await dissolve_bars(mon.mx, mon.my, map);
+                    dissolve_bars(mon.mx, mon.my, map);
                     return MMOVE_DONE;
                 }
             }
@@ -1154,7 +1154,7 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
             if (m2.mhp <= 0) {
                 // C: monkilled(m2, "", AD_DRIN)
                 // TODO: proper monkilled with death reason
-                mondead(m2, map, null);
+                await mondead(m2, map, null);
             }
         }
     }
@@ -1547,7 +1547,7 @@ export async function dochug(mon, map, player, display, fov, game = null) {
                 // dog_move returns MMOVE_MOVED even when the dog stays put,
                 // so postmov (mdig_tunnel, mintrap, etc.) must always run.
                 if (!mon.dead && moveStatus === MMOVE_MOVED) {
-                    const postmoveStatus = await run_dochug_postmove_pipeline_current_js(
+                    const postmoveStatus = run_dochug_postmove_pipeline_current_js(
                         mon, map, player, display, fov, game, omx, omy, { preTrapDig: true }
                     );
                     if (postmoveStatus === MMOVE_DIED) {
@@ -1556,7 +1556,7 @@ export async function dochug(mon, map, player, display, fov, game = null) {
                     mmoved = true;
                 }
             }
-            ({ moveStatus, mmoved } = await run_dochug_postmove_tail_current_js(
+            ({ moveStatus, mmoved } = run_dochug_postmove_tail_current_js(
                 mon, map, player, display, fov, moveStatus, mmoved
             ));
         } else {
@@ -1581,7 +1581,7 @@ export async function dochug(mon, map, player, display, fov, game = null) {
                     trapDied = true;
                     moveStatus = MMOVE_DIED;
                 } else if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                    const postmoveStatus = await run_dochug_postmove_pipeline_current_js(
+                    const postmoveStatus = run_dochug_postmove_pipeline_current_js(
                         mon, map, player, display, fov, game, omx, omy
                     );
                     if (postmoveStatus === MMOVE_DIED) {
@@ -1593,7 +1593,7 @@ export async function dochug(mon, map, player, display, fov, game = null) {
                     }
                 }
                 if (!trapDied) {
-                    ({ moveStatus, mmoved } = await run_dochug_postmove_tail_current_js(
+                    ({ moveStatus, mmoved } = run_dochug_postmove_tail_current_js(
                         mon, map, player, display, fov, moveStatus, mmoved
                     ));
                 }
@@ -2528,13 +2528,13 @@ export function should_displace(mon, positions, goalx, goaly) {
 
 // C ref: monmove.c:54 mb_trapped() — door trap explosion
 // Returns true if monster dies.
-export function mb_trapped(mon, map, player) {
+export async function mb_trapped(mon, map, player) {
     if (!mon || !map) return false;
     mon.mstun = 1;
     mon.mstun = true;
     mon.mhp = (mon.mhp || 0) - rnd(15);
     if ((mon.mhp || 0) <= 0) {
-        mondead(mon, map, player);
+        await mondead(mon, map, player);
         if (mon.dead || (mon.mhp || 0) <= 0) return true;
     }
     return false;
@@ -2706,10 +2706,10 @@ export function gelcube_digests(mtmp) {
 }
 
 // Autotranslated from monmove.c:1157
-export function leppie_stash(mtmp, map) {
+export async function leppie_stash(mtmp, map) {
   let gold;
   if (mtmp.data === mons[PM_LEPRECHAUN] && !DEADMONSTER(mtmp) && !m_canseeu(mtmp) && !in_rooms(mtmp.mx, mtmp.my, SHOPBASE) && map.locations[mtmp.mx][mtmp.my].typ === ROOM && !t_at(mtmp.mx, mtmp.my, map) && rn2(4) && (gold = findgold(mtmp.minvent)) != null) {
-    mdrop_obj(mtmp, gold, false);
+    await mdrop_obj(mtmp, gold, false);
     gold = g_at(mtmp.mx, mtmp.my, map);
     if (gold) {
       bury_an_obj(gold, map, null);
@@ -2745,7 +2745,7 @@ export async function maybe_spin_web(mtmp, map) {
     const nwebs = map && Array.isArray(map.traps) ? map.traps.filter(t => t && t.ttyp === WEB).length : 0;
     const prob = (((mtmp.mndx === PM_GIANT_SPIDER) ? 15 : 5) * (nwalls + 1)) - (3 * nwebs);
     if (rn2(1000) < prob) {
-        const trap = maketrap(map, mtmp.mx, mtmp.my, WEB);
+        const trap = await maketrap(map, mtmp.mx, mtmp.my, WEB);
         if (trap) {
             mtmp.mspec_used = c_d(4, 4); // C ref: monmove.c:1297 — C-style d(), not Lua d()
             // Display message (cansee/canspotmon stubs — skip for now)
@@ -2854,7 +2854,7 @@ export function emitMfndposTrace(kind, mon, positions, allowflags, map) {
 }
 
 // Autotranslated from monmove.c:2172
-export async function dissolve_bars(x, y, map) {
+export function dissolve_bars(x, y, map) {
   if (!map || !isok(x, y)) return;
   const loc = map.locations?.[x]?.[y];
   if (!loc) return;

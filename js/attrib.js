@@ -1044,7 +1044,7 @@ export async function uchangealign(player, newalign, reason) {
     }
     if (player.alignment !== oldalign) {
         player.alignmentRecord = 0;
-        retouch_equipment(0, player);
+        await retouch_equipment(0, player);
     }
 }
 
