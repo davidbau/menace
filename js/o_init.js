@@ -735,13 +735,13 @@ export function disco_append_typename(prefix, otyp) {
 }
 
 // cf. o_init.c:756
-export function dodiscovered(game) {
-    return handleDiscoveries(game);
+export async function dodiscovered(game) {
+    return await handleDiscoveries(game);
 }
 
 // cf. o_init.c:870
-export function doclassdisco(_oclass, game) {
-    return handleDiscoveries(game);
+export async function doclassdisco(_oclass, game) {
+    return await handleDiscoveries(game);
 }
 
 // cf. o_init.c:399

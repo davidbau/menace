@@ -214,8 +214,8 @@ export async function placebc(player, map) {
 }
 
 // C ref: ball.c:259 Placebc() — compatibility alias.
-export function Placebc(player, map) {
-    return placebc(player, map);
+export async function Placebc(player, map) {
+    return await placebc(player, map);
 }
 
 // cf. ball.c:211 — unplacebc(): remove ball and chain
@@ -229,8 +229,8 @@ export async function unplacebc() {
 }
 
 // C ref: ball.c:287 Unplacebc() — compatibility alias.
-export function Unplacebc() {
-    return unplacebc();
+export async function Unplacebc() {
+    return await unplacebc();
 }
 
 // cf. ball.c:221 — unplacebc_and_covet_placebc(): remove and pin bc
@@ -245,8 +245,8 @@ export async function unplacebc_and_covet_placebc() {
 }
 
 // C ref: ball.c:306 Unplacebc_and_covet_placebc() — compatibility alias.
-export function Unplacebc_and_covet_placebc() {
-    return unplacebc_and_covet_placebc();
+export async function Unplacebc_and_covet_placebc() {
+    return await unplacebc_and_covet_placebc();
 }
 
 // cf. ball.c:235 — lift_covet_and_placebc(pin): lift restriction and replace
@@ -262,8 +262,8 @@ export async function lift_covet_and_placebc(pin, player, map) {
 }
 
 // C ref: ball.c:327 Lift_covet_and_placebc() — compatibility alias.
-export function Lift_covet_and_placebc(pin, player, map) {
-    return lift_covet_and_placebc(pin, player, map);
+export async function Lift_covet_and_placebc(pin, player, map) {
+    return await lift_covet_and_placebc(pin, player, map);
 }
 
 // cf. ball.c:353 — bc_order(): ball/chain stacking order

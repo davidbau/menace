@@ -1497,13 +1497,13 @@ export async function ia_checkfile(display, filename) {
 }
 
 // C ref: pager.c:830
-export function checkfile(display, filename) {
-  return ia_checkfile(display, filename);
+export async function checkfile(display, filename) {
+  return await ia_checkfile(display, filename);
 }
 
 // C ref: pager.c:1975
-export function look_all(game) {
-  return do_look(game, 0, null);
+export async function look_all(game) {
+  return await do_look(game, 0, null);
 }
 
 // C ref: pager.c:2074

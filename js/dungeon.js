@@ -5254,7 +5254,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
         } else {
             if (isRogueLevel) {
                 // C ref: mklev.c:1290-1292 — Is_rogue_level() uses makeroguerooms path.
-                const rogueMap = makeroguerooms(depth);
+                const rogueMap = await makeroguerooms(depth);
                 rogueMap._genDnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
                 rogueMap._genDlevel = Number.isInteger(dlevel) ? dlevel : depth;
                 if (!rogueMap.flags) rogueMap.flags = {};

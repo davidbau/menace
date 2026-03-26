@@ -832,13 +832,13 @@ async function handleExtendedCommand(game) {
     switch (cmd) {
         case 'o':
         case 'options':
-            queueRepeatExtcmd((g) => handleSet(g));
+            queueRepeatExtcmd(async (g) => await handleSet(g));
             return await handleSet(game);
         case 'optionsfull':
-            queueRepeatExtcmd((g) => handleSet(g, { showAdvanced: true }));
+            queueRepeatExtcmd(async (g) => await handleSet(g, { showAdvanced: true }));
             return await handleSet(game, { showAdvanced: true });
         case 'adjust':
-            queueRepeatExtcmd((g) => doorganize(g));
+            queueRepeatExtcmd(async (g) => await doorganize(g));
             return await doorganize(game);
         case 'wipe':
             queueRepeatExtcmd((g) => dowipe(g.player).then(t => ({ moved: false, tookTime: !!t })));
@@ -948,7 +948,7 @@ async function handleExtendedCommand(game) {
             return { moved: false, tookTime: false };
         }
         case 'chat':
-            queueRepeatExtcmd((g) => dotalk(g));
+            queueRepeatExtcmd(async (g) => await dotalk(g));
             return { moved: false, tookTime: !!(await dotalk(game)) };
         case 'offer': {
             const tookTimeOffer = await dosacrifice(player, game.map);
@@ -1029,28 +1029,28 @@ async function handleExtendedCommand(game) {
             return await handleExtendedCommandName(game);
         }
         case 'force':
-            queueRepeatExtcmd((g) => handleForce(g));
+            queueRepeatExtcmd(async (g) => await handleForce(g));
             return await handleForce(game);
         case 'loot':
-            queueRepeatExtcmd((g) => handleLoot(g));
+            queueRepeatExtcmd(async (g) => await handleLoot(g));
             return await handleLoot(game);
         case 'levelchange':
-            queueRepeatExtcmd((g) => wizLevelChange(g));
+            queueRepeatExtcmd(async (g) => await wizLevelChange(g));
             return await wizLevelChange(game);
         case 'wish':
-            queueRepeatExtcmd((g) => wizWish(g));
+            queueRepeatExtcmd(async (g) => await wizWish(g));
             return await wizWish(game);
         case 'map':
             queueRepeatExtcmd(async (g) => await wizMap(g));
             return await wizMap(game);
         case 'teleport':
-            queueRepeatExtcmd((g) => wizTeleport(g));
+            queueRepeatExtcmd(async (g) => await wizTeleport(g));
             return await wizTeleport(game);
         case 'genesis':
-            queueRepeatExtcmd((g) => wizGenesis(g));
+            queueRepeatExtcmd(async (g) => await wizGenesis(g));
             return await wizGenesis(game);
         case 'wizloaddes':
-            queueRepeatExtcmd((g) => handleWizLoadDes(g));
+            queueRepeatExtcmd(async (g) => await handleWizLoadDes(g));
             return await handleWizLoadDes(game);
         case 'wizbury':
             queueRepeatExtcmd((g) => wiz_debug_cmd_bury(g.map, g.player).then(() => ({ moved: false, tookTime: false })));
@@ -1095,7 +1095,7 @@ async function handleExtendedCommand(game) {
         case 'invoke':
             return { moved: false, tookTime: !!((await doinvoke(player, game)) & ECMD_TIME) };
         case 'kick':
-            queueRepeatExtcmd((g) => dokick(g.player, g.map, g.display, g));
+            queueRepeatExtcmd(async (g) => await dokick(g.player, g.map, g.display, g));
             return await dokick(player, game.map, display, game);
         case 'twoweapon':
             queueRepeatExtcmd((g) => handleTwoWeapon(g.player, g.display, g));

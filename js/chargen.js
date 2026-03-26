@@ -456,7 +456,7 @@ export async function restoreFromSave(game, saveData, urlOpts) {
     setRngCallCount(gs.rngCallCount);
 
     // Restore game state: player + inventory + equip + context
-    const restored = restGameState(gs);
+    const restored = await restGameState(gs);
     game.u = restored.player;
     (game.u || game.u).wizard = game.wizard;
     game.wizard = restored.wizard;

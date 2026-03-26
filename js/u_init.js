@@ -22,7 +22,7 @@ import { resetHungerState } from './eat.js';
 import { hack_artifacts } from './artifact.js';
 import { skill_init_from_inventory } from './weapon.js';
 import { skill_based_spellbook_id } from './spell.js';
-import { withMakemonPlayerOverride } from './makemon.js';
+import { withMakemonPlayerOverrideAsync } from './makemon.js';
 import { initLevelGeneration, mklev, depth as dungeonDepth } from './dungeon.js';
 import { setCheckpointCaptureEnabled, clearLevelCheckpoints } from './sp_lev.js';
 import { getArrivalPosition } from './do.js';
@@ -1193,9 +1193,9 @@ export async function simulatePostLevelInit(player, map, depth, opts = {}) {
     const petAlignmentRecord = (player.roleMnum === PM_CAVE_DWELLER)
         ? 0
         : (Number.isInteger(player.alignmentRecord) ? player.alignmentRecord : 0);
-    const pet = await withMakemonPlayerOverride(
+    const pet = await withMakemonPlayerOverrideAsync(
         { ...player, alignmentRecord: petAlignmentRecord },
-        () => makedog(map, player, depth || 1)
+        async () => await makedog(map, player, depth || 1)
     );
 
     // C ref: dog.c initedog() — apport = ACURR(A_CHA)

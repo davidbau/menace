@@ -1017,7 +1017,7 @@ export async function mhitm_ad_phys(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:2499 — fire damage handler
 // m-vs-m branch: uhitm.c:2565-2600
-export function mhitm_ad_fire(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_fire(magr, mattk, mdef, mhm) {
     if (mhitm_mgc_atk_negated(magr, mdef)) {
         mhm.damage = 0;
         return;
@@ -1031,7 +1031,7 @@ export function mhitm_ad_fire(magr, mattk, mdef, mhm) {
         // C ref: uhitm.c:2567 — magr->m_lev > rn2(20) gates destroy_items
         if ((magr.m_lev || 0) > rn2(20)) {
             const orig_dmg = mhm.damage;
-            destroy_items_rng_only(mdef, AD_FIRE, orig_dmg, null);
+            await destroy_items_rng_only(mdef, AD_FIRE, orig_dmg, null);
         }
     } else {
         // uhitm + mhitm paths: player attacks or monster-vs-monster
@@ -1040,12 +1040,12 @@ export function mhitm_ad_fire(magr, mattk, mdef, mhm) {
             mhm.damage = 0;
         }
         const orig_dmg = mhm.damage;
-        mhm.damage += destroy_items_rng_only(mdef, AD_FIRE, orig_dmg, null);
+        mhm.damage += await destroy_items_rng_only(mdef, AD_FIRE, orig_dmg, null);
     }
 }
 
 // cf. uhitm.c:2604 — cold damage handler
-export function mhitm_ad_cold(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_cold(magr, mattk, mdef, mhm) {
     if (mhitm_mgc_atk_negated(magr, mdef)) {
         mhm.damage = 0;
         return;
@@ -1059,7 +1059,7 @@ export function mhitm_ad_cold(magr, mattk, mdef, mhm) {
         // C ref: uhitm.c:2637 — magr->m_lev > rn2(20) gates destroy_items
         if ((magr.m_lev || 0) > rn2(20)) {
             const orig_dmg = mhm.damage;
-            destroy_items_rng_only(mdef, AD_COLD, orig_dmg, null);
+            await destroy_items_rng_only(mdef, AD_COLD, orig_dmg, null);
         }
     } else {
         // uhitm + mhitm paths
@@ -1067,12 +1067,12 @@ export function mhitm_ad_cold(magr, mattk, mdef, mhm) {
             mhm.damage = 0;
         }
         const orig_dmg = mhm.damage;
-        mhm.damage += destroy_items_rng_only(mdef, AD_COLD, orig_dmg, null);
+        mhm.damage += await destroy_items_rng_only(mdef, AD_COLD, orig_dmg, null);
     }
 }
 
 // cf. uhitm.c:2662 — electric damage handler
-export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_elec(magr, mattk, mdef, mhm) {
     if (mhitm_mgc_atk_negated(magr, mdef)) {
         mhm.damage = 0;
         return;
@@ -1086,7 +1086,7 @@ export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
         // C ref: uhitm.c:2695 — magr->m_lev > rn2(20) gates destroy_items
         if ((magr.m_lev || 0) > rn2(20)) {
             const orig_dmg = mhm.damage;
-            destroy_items_rng_only(mdef, AD_ELEC, orig_dmg, null);
+            await destroy_items_rng_only(mdef, AD_ELEC, orig_dmg, null);
         }
     } else {
         // uhitm + mhitm paths
@@ -1094,7 +1094,7 @@ export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
             mhm.damage = 0;
         }
         const orig_dmg = mhm.damage;
-        mhm.damage += destroy_items_rng_only(mdef, AD_ELEC, orig_dmg, null);
+        mhm.damage += await destroy_items_rng_only(mdef, AD_ELEC, orig_dmg, null);
     }
 }
 
@@ -1530,7 +1530,7 @@ export async function mhitm_ad_slim_async(magr, mattk, mdef, mhm, ctx = {}) {
 
     const unslimed = await munslime(mdef, false, ctx.map || null, ctx.player || null);
     if (!unslimed && !DEADMONSTER(mdef)) {
-        const transformed = runtimeApplyNewchamDirect(
+        const transformed = await runtimeApplyNewchamDirect(
             mdef,
             PM_GREEN_SLIME,
             ctx.depth || 1,
@@ -1822,9 +1822,9 @@ export async function do_stone_mon(magr, mattk, mdef, mhm, game) {
 export async function mhitm_adtyping(magr, mattk, mdef, mhm) {
     switch (mattk.adtyp) {
     case AD_PHYS: await mhitm_ad_phys(magr, mattk, mdef, mhm); break;
-    case AD_FIRE: mhitm_ad_fire(magr, mattk, mdef, mhm); break;
-    case AD_COLD: mhitm_ad_cold(magr, mattk, mdef, mhm); break;
-    case AD_ELEC: mhitm_ad_elec(magr, mattk, mdef, mhm); break;
+    case AD_FIRE: await mhitm_ad_fire(magr, mattk, mdef, mhm); break;
+    case AD_COLD: await mhitm_ad_cold(magr, mattk, mdef, mhm); break;
+    case AD_ELEC: await mhitm_ad_elec(magr, mattk, mdef, mhm); break;
     case AD_ACID: await mhitm_ad_acid(magr, mattk, mdef, mhm); break;
     case AD_STUN: await mhitm_ad_stun(magr, mattk, mdef, mhm); break;
     case AD_LEGS: await mhitm_ad_legs(magr, mattk, mdef, mhm); break;

@@ -1906,21 +1906,21 @@ async function apply_newcham_direct(mon, targetMndx, depth, map = null, player =
 }
 
 // Runtime helper for parity ports which need a direct, known-form transform.
-export function runtimeApplyNewchamDirect(mon, targetMndx, depth = 1, map = null, player = null, fov = null, display = null, showMsg = false) {
-    return apply_newcham_direct(mon, targetMndx, depth, map, player, fov, display, showMsg);
+export async function runtimeApplyNewchamDirect(mon, targetMndx, depth = 1, map = null, player = null, fov = null, display = null, showMsg = false) {
+    return await apply_newcham_direct(mon, targetMndx, depth, map, player, fov, display, showMsg);
 }
 
-export function runtimeApplyNewchamRandom(mon, depth = 1, map = null, player = null, fov = null, display = null, showMsg = false) {
+export async function runtimeApplyNewchamRandom(mon, depth = 1, map = null, player = null, fov = null, display = null, showMsg = false) {
     const baseMndx = Number.isInteger(mon?.cham) ? mon.cham : NON_PM;
-    return apply_newcham_from_base(mon, baseMndx, depth, map, player, fov, display, showMsg);
+    return await apply_newcham_from_base(mon, baseMndx, depth, map, player, fov, display, showMsg);
 }
 
-function maybe_apply_newcham(mon, baseMndx, depth, map = null) {
+async function maybe_apply_newcham(mon, baseMndx, depth, map = null) {
     const basePtr = mons[baseMndx];
     if (!(basePtr.mflags2 & M2_SHAPESHIFTER)) return false;
     if (baseMndx === PM_VLAD_THE_IMPALER) return false;
     mon.cham = baseMndx;
-    return apply_newcham_from_base(mon, baseMndx, depth, map, null, null, null, false);
+    return await apply_newcham_from_base(mon, baseMndx, depth, map, null, null, null, false);
 }
 
 // C ref: mon.c m_calcdistress() decide_to_shapeshift()
@@ -1942,7 +1942,7 @@ export async function runtimeDecideToShapeshift(mon, depth = 1, map = null, play
     if (!is_vampshifter_mndx(chamMndx)) {
         // Regular shapeshifter: rn2(6) to decide
         if (rn2(6) !== 0) return false;
-        return await maybeEmitUsmell(apply_newcham_from_base(mon, chamMndx, depth, map, player, fov, display, true));
+        return await maybeEmitUsmell(await apply_newcham_from_base(mon, chamMndx, depth, map, player, fov, display, true));
     }
 
     // Vampshifter — C ref: mon.c:4882 decide_to_shapeshift() vampshifter path
@@ -1957,7 +1957,7 @@ export async function runtimeDecideToShapeshift(mon, depth = 1, map = null, play
             if (!rn2(4)) return false;
             // Shift back to base vampire form directly (C: newcham with specific ptr)
             if (chamMndx >= LOW_PM && chamMndx < SPECIAL_PM)
-                return await maybeEmitUsmell(apply_newcham_direct(mon, chamMndx, depth, map, player, fov, display, true));
+                return await maybeEmitUsmell(await apply_newcham_direct(mon, chamMndx, depth, map, player, fov, display, true));
         } else if (mon.mndx === PM_FOG_CLOUD && mon.mhp === mon.mhpmax) {
             // C: fog cloud at full HP — consume rn2(4); if zero AND unseen/far → new shape
             if (rn2(4) !== 0) return false;
@@ -1967,7 +1967,7 @@ export async function runtimeDecideToShapeshift(mon, depth = 1, map = null, play
             // pickvampshape selects new form; use apply_newcham_direct to avoid double-calling
             const newMndx = pickvampshape(mon, chamMndx, map);
             if (newMndx < 0 || newMndx === mon.mndx) return false;
-            return await maybeEmitUsmell(apply_newcham_direct(mon, newMndx, depth, map, player, fov, display, true));
+            return await maybeEmitUsmell(await apply_newcham_direct(mon, newMndx, depth, map, player, fov, display, true));
         }
     } else {
         // Currently in vampire (base) form — maybe shift to alternate form
@@ -1977,7 +1977,7 @@ export async function runtimeDecideToShapeshift(mon, depth = 1, map = null, play
             const seen = canseemon(mon, player, fov, map);
             const distSq = player ? dist2(player.x, player.y, mon.mx, mon.my) : 999;
             if (seen && distSq <= BOLT_LIM * BOLT_LIM) return false;
-            return await maybeEmitUsmell(apply_newcham_from_base(mon, chamMndx, depth, map, player, fov, display, true));
+            return await maybeEmitUsmell(await apply_newcham_from_base(mon, chamMndx, depth, map, player, fov, display, true));
         }
     }
     return false;
@@ -2633,7 +2633,7 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     set_malign(mon);
 
     // C ref: makemon.c shapechanger path (pm_to_cham/newcham).
-    const allowMinvent = allow_minvent && !maybe_apply_newcham(mon, mndx, depth || 1, map || null);
+    const allowMinvent = allow_minvent && !await maybe_apply_newcham(mon, mndx, depth || 1, map || null);
 
     // C ref: makemon.c + light.c integration — monster light sources are
     // attached to the live monster pointer so do_light_sources() can follow movement.
@@ -2719,7 +2719,7 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
                 // synchronously (putstr_message updates display immediately) and
                 // the promise is stored for the caller to await.
                 // C ref: makemon.c uses pline() not norep() — always show message.
-                mon._appearPromise = pline('%s%s %s%s%s',
+                mon._appearPromise = await pline('%s%s %s%s%s',
                     what,
                     exclaim ? ' suddenly' : '',
                     vtense(what, 'appear'),

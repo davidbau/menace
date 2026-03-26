@@ -1551,11 +1551,11 @@ export async function domove_core(dir, player, map, display, game) {
 }
 
 // C ref: hack.c domove() entrypoint.
-export function domove(dir, player, map, display, game) {
+export async function domove(dir, player, map, display, game) {
     if (!Array.isArray(dir) || dir.length < 2) {
         return { moved: false, tookTime: false };
     }
-    return domove_core(dir, player, map, display, game);
+    return await domove_core(dir, player, map, display, game);
 }
 
 // C ref: cmd.c do_run() -> hack.c domove() with context.run
@@ -1585,7 +1585,7 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
         // For steps 2+, domove_attempting is 0 (cleared by domove()), so
         // domove_succeeded won't have RUSH/WALK flags and smudge is skipped.
         ctx._isRunStep = (steps > 0);
-        const result = domove(runDir, player, map, display, game);
+        const result = await domove(runDir, player, map, display, game);
         ctx._isRunStep = false;
         if (result.tookTime) timedTurns++;
         runTrace(
@@ -1650,8 +1650,8 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
 }
 
 // C ref: cmd.c do_rush()
-export function do_rush(dir, player, map, display, fov, game) {
-    return do_run(dir, player, map, display, fov, game, 'rush');
+export async function do_rush(dir, player, map, display, fov, game) {
+    return await do_run(dir, player, map, display, fov, game, 'rush');
 }
 
 function pickRunContinuationDir(map, player, dir) {
@@ -2274,7 +2274,7 @@ export async function dotravel_target(game) {
     // C ref: cmd.c dotravel_target() returns ECMD_TIME unconditionally once
     // destination validation passes, even if domove() doesn't move (for
     // example no reachable path from the selected cursor point).
-    const moveResult = domove([0, 0], player, map, display, game);
+    const moveResult = await domove([0, 0], player, map, display, game);
     return {
         moved: !!(moveResult && moveResult.moved),
         tookTime: true,
