@@ -170,6 +170,10 @@
     outline-offset: 1px;
     scroll-margin-top: 40vh;
   }
+  .clipped::after {
+    content: ' ▾'; color: var(--accent-lt); font-size: 0.8em;
+  }
+  .expanded.clipped::after { content: ' ▴'; }
   .search-mark { background: #ffe033; color: #000; padding: 0 2px; border-radius: 2px; }
 
   /* Hide sidebars when viewport is too narrow for all three columns */
@@ -313,6 +317,7 @@ async function init() {
     ch._firstDate = ch.dates?.[0];
   }
   renderToc(); renderTimeline(); renderKeywordIndex();
+  requestAnimationFrame(markClipped);
   document.getElementById('filters').addEventListener('click', e => {
     const b = e.target.closest('.fbtn'); if (!b) return;
     const f = b.dataset.f;
@@ -333,6 +338,7 @@ async function init() {
     SHOW[f] = !SHOW[f]; b.classList.toggle('on');
     if (f === 'agent-directive') SHOW['subagent-work'] = SHOW[f];
     renderTimeline();
+    requestAnimationFrame(markClipped);
 
     // After re-render: find the first previously-visible element that still exists
     for (const { id, top } of visibleEvs) {
@@ -681,6 +687,19 @@ function highlightInElement(el, term) {
     });
     if (last < node.textContent.length) frag.appendChild(document.createTextNode(node.textContent.slice(last)));
     node.parentNode.replaceChild(frag, node);
+  }
+}
+
+// Mark elements that are actually clipped by line-clamp
+function markClipped() {
+  for (const el of document.querySelectorAll('.ev-text, .ai-snips-inline, .commit-body')) {
+    const parent = el.closest('.ev');
+    if (!parent) continue;
+    if (el.scrollHeight > el.clientHeight + 2) {
+      parent.classList.add('clipped');
+    } else {
+      parent.classList.remove('clipped');
+    }
   }
 }
 
