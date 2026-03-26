@@ -61,10 +61,10 @@ test('trap.dng_bottom handles missing player context and invocation gate', () =>
     assert.equal(withoutPlayer, invokedBottom - 1);
 });
 
-test('uhitm.nohandglow decrements umconf when applicable', () => {
+test('uhitm.nohandglow decrements umconf when applicable', async () => {
     const player = { umconf: 2 };
     const mon = { mconf: 0 };
-    assert.equal(nohandglow(mon, player), true);
+    assert.equal(await nohandglow(mon, player), true);
     assert.equal(player.umconf, 1);
 });
 

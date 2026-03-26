@@ -220,10 +220,10 @@ export async function outrumor(truth, mechanism, player) {
     }
   }
   line = getrumor(truth, buf, reading ? false : true);
-  // C ref: rumors.c:175 — exercise(A_WIS, adjtruth > 0) after reading rumor
+  // C ref: rumors.c:175 — await exercise(A_WIS, adjtruth > 0) after reading rumor
   // Note: C uses adjtruth (truth+rn2(2)) computed inside getrumor; here we
   // approximate with truth>0 which matches for blessed/cursed but not uncursed.
-  if (player) exercise(player, A_WIS, truth > 0);
+  if (player) await exercise(player, A_WIS, truth > 0);
   if (!line) line = "NetHack rumors file closed for renovation.";
   switch (mechanism) {
     case BY_ORACLE:

@@ -1374,7 +1374,7 @@ export async function addinv_core2(obj, player) {
         && !player.blind
         && !isObjectNameKnown(obj.otyp)) {
         observeObject(obj);
-        discoverObject(obj.otyp, true, true);
+        await discoverObject(obj.otyp, true, true);
         await exercise(player, A_WIS, true);
         if (!player.uconduct) player.uconduct = {};
         player.uconduct.literate = (player.uconduct.literate || 0) + 1;
@@ -2218,8 +2218,8 @@ export function not_fully_identified(obj) {
 }
 
 // C ref: invent.c fully_identify_obj() — fully identify an object
-export function fully_identify_obj(otmp, creditClue = true) {
-    discoverObject(otmp.otyp, true, true, creditClue);  // C ref: makeknown → discover_object → exercise(A_WIS)
+export async function fully_identify_obj(otmp, creditClue = true) {
+    await discoverObject(otmp.otyp, true, true, creditClue);  // C ref: makeknown → discover_object → exercise(A_WIS)
     otmp.known = true;
     otmp.bknown = true;
     otmp.rknown = true;

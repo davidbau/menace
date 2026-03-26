@@ -465,7 +465,7 @@ export function isObjectEncountered(otyp) {
     return !!ocEncountered[otyp];
 }
 
-function pushDisco(otyp) {
+async function pushDisco(otyp) {
     const od = objectData[otyp];
     if (!od) return;
     const cls = od.oc_class;
@@ -517,10 +517,10 @@ export function undiscoverObject(oindx) {
 }
 
 // C ref: o_init.c observe_object()
-export function observeObject(obj) {
+export async function observeObject(obj) {
     if (!obj) return;
     obj.dknown = true;
-    discoverObject(obj.otyp, false, true);
+    await discoverObject(obj.otyp, false, true);
 }
 
 // C ref: o_init.c interesting_to_discover() (subset: no oc_uname yet).
@@ -708,8 +708,8 @@ export function init_oclass_probs() {
 }
 
 // cf. o_init.c:473
-export function discover_object(otyp, mark_as_known, credit_clue, mark_as_encountered) {
-    discoverObject(otyp, !!mark_as_known, !!mark_as_encountered, !!credit_clue);
+export async function discover_object(otyp, mark_as_known, credit_clue, mark_as_encountered) {
+    await discoverObject(otyp, !!mark_as_known, !!mark_as_encountered, !!credit_clue);
 }
 
 // cf. o_init.c:517
