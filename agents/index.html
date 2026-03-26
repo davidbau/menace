@@ -160,7 +160,7 @@
   }
   .ev-commit .doc-link:hover { text-decoration: underline; }
   .ev-commit { cursor: pointer; }
-  .ev-commit .ct { color: var(--muted); min-width: 6ch; }
+  .ev-commit .ct { color: var(--muted); min-width: 5ch; }
   .ev-commit .ch { color: var(--commit); font-weight: 600; }
   .ev-commit .cm { color: var(--text); }
 
@@ -289,8 +289,7 @@
         <button class="fbtn on" data-f="agent-directive">Subagents</button>
       <button class="fbtn" data-f="watchdog">Watchdog</button>
         <button class="fbtn on" data-f="commit">Commits</button>
-        <button class="fbtn on" data-f="lore">LORE</button>
-      <button class="fbtn on" data-f="docs">Docs</button>
+        <button class="fbtn on" data-f="docs">Docs</button>
       </div>
     </div>
     <div class="main-body" id="main-body">
@@ -306,7 +305,7 @@
   </div>
 </div>
 <script>
-let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,lore:true,docs:true};
+let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,lore:false,docs:true};
 
 async function init() {
   // Load timeline data
@@ -502,7 +501,7 @@ function renderCommit(c){
     `<a class="doc-link" href="https://github.com/davidbau/menace/blob/${c.hash?.slice(0,12)}/${d}" target="_blank" onclick="event.stopPropagation()">📄 ${d}</a>`
   ).join('')}</div>` : '';
   return`<div class="ev ev-commit" id="${id}" onclick="this.classList.toggle('expanded')">
-    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}${docLinks}</span>
+    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}</span>${docLinks}
   </div>`;
 }
 
