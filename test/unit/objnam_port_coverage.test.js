@@ -84,9 +84,9 @@ describe('objnam port coverage', () => {
         assert.equal(s3.actualn, 'blue');
     });
 
-    it('keeps readobjnam wish path operational', () => {
+    it('keeps readobjnam wish path operational', async () => {
         initRng(1234);
-        const otmp = readobjnam('blessed long sword', false);
+        const otmp = await readobjnam('blessed long sword', false);
         assert.ok(otmp);
         assert.equal(otmp.blessed, true);
     });
@@ -118,43 +118,43 @@ describe('objnam port coverage', () => {
         assert.match(priced, /\(unpaid, 42 zorkmids?\)$/);
     });
 
-    it('parses wizard terrain wish intents', () => {
-        const wall = wizterrainwish({ text: 'nondiggable wall' });
+    it('parses wizard terrain wish intents', async () => {
+        const wall = await wizterrainwish({ text: 'nondiggable wall' });
         assert.equal(wall?.terrain, 'wall');
         assert.deepEqual(wall?.wallprops, ['nondiggable']);
-        assert.equal(wizterrainwish({ text: 'fountain' })?.terrain, 'fountain');
-        assert.equal(wizterrainwish({ text: 'mysterious orb' }), null);
+        assert.equal((await wizterrainwish({ text: 'fountain' }))?.terrain, 'fountain');
+        assert.equal(await wizterrainwish({ text: 'mysterious orb' }), null);
     });
 
-    it('mutates live map for wizard terrain wishes', () => {
+    it('mutates live map for wizard terrain wishes', async () => {
         const map = new GameMap();
         const player = { x: 10, y: 10, map };
         map.at(10, 10).typ = ROOM;
 
-        const doorWish = wizterrainwish({ text: 'locked door', player, map });
+        const doorWish = await wizterrainwish({ text: 'locked door', player, map });
         assert.equal(doorWish?.applied, true);
         assert.equal(map.at(10, 10).typ, DOOR);
         assert.equal((map.at(10, 10).flags & D_LOCKED) !== 0, true);
 
-        const trapWish = wizterrainwish({ text: 'fire trap', player, map });
+        const trapWish = await wizterrainwish({ text: 'fire trap', player, map });
         assert.equal(trapWish?.applied, true);
         assert.ok(map.trapAt(10, 10));
         assert.equal(map.trapAt(10, 10).ttyp, FIRE_TRAP);
     });
 
-    it('routes terrain wishes through readobjnam in wizard mode', () => {
+    it('routes terrain wishes through readobjnam in wizard mode', async () => {
         const map = new GameMap();
         const player = { x: 12, y: 12, map, wizard: true };
         map.at(12, 12).typ = ROOM;
 
-        const res = readobjnam('locked door', false, { wizard: true, player, map });
+        const res = await readobjnam('locked door', false, { wizard: true, player, map });
         assert.equal(res, hands_obj);
         assert.equal(map.at(12, 12).typ, DOOR);
         assert.equal((map.at(12, 12).flags & D_LOCKED) !== 0, true);
 
         map.at(12, 12).typ = ROOM;
         map.at(12, 12).flags = 0;
-        const nonwiz = readobjnam('locked door', false, { wizard: false, player, map });
+        const nonwiz = await readobjnam('locked door', false, { wizard: false, player, map });
         assert.equal(nonwiz, null);
         assert.equal(map.at(12, 12).typ, ROOM);
     });

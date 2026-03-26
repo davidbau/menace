@@ -439,21 +439,21 @@ export async function wizterrainwish(ctx) {
         result.wallprops.push('nonpasswall');
     }
 
-    const endsWith = async (s) => text.endsWith(s);
-    if (await endsWith('fountain')) result.terrain = 'fountain';
-    else if (await endsWith('throne')) result.terrain = 'throne';
-    else if (await endsWith('sink')) result.terrain = 'sink';
+    const endsWith = (s) => text.endsWith(s);
+    if (endsWith('fountain')) result.terrain = 'fountain';
+    else if (endsWith('throne')) result.terrain = 'throne';
+    else if (endsWith('sink')) result.terrain = 'sink';
     else if (endsWith('pool') || endsWith('moat') || endsWith('wall of water')) result.terrain = 'water';
     else if (endsWith('lava') || endsWith('wall of lava')) result.terrain = 'lava';
-    else if (await endsWith('ice')) result.terrain = 'ice';
-    else if (await endsWith('altar')) result.terrain = 'altar';
+    else if (endsWith('ice')) result.terrain = 'ice';
+    else if (endsWith('altar')) result.terrain = 'altar';
     else if (endsWith('grave') || endsWith('headstone')) result.terrain = 'grave';
-    else if (await endsWith('tree')) result.terrain = 'tree';
-    else if (await endsWith('bars')) result.terrain = 'iron bars';
-    else if (await endsWith('cloud')) result.terrain = 'cloud';
+    else if (endsWith('tree')) result.terrain = 'tree';
+    else if (endsWith('bars')) result.terrain = 'iron bars';
+    else if (endsWith('cloud')) result.terrain = 'cloud';
     else if (endsWith('door') || endsWith('doorway') || endsWith('secret door')) result.terrain = 'door';
-    else if (await endsWith('wall')) result.terrain = 'wall';
-    else if (await endsWith('secret corridor')) result.terrain = 'secret corridor';
+    else if (endsWith('wall')) result.terrain = 'wall';
+    else if (endsWith('secret corridor')) result.terrain = 'secret corridor';
     else if (endsWith('room') || endsWith('floor') || endsWith('ground')) result.terrain = 'room';
 
     const trapWishes = [
@@ -508,7 +508,7 @@ export async function wizterrainwish(ctx) {
     const hadFountain = oldtyp === FOUNTAIN;
     const hadSink = oldtyp === SINK;
 
-    const setWallProps = async () => {
+    const setWallProps = () => {
         if (result.wallprops.includes('nondiggable')) {
             loc.wall_info = (Number(loc.wall_info || 0) | W_NONDIGGABLE);
             loc.nondiggable = true; // compatibility mirror
@@ -2359,7 +2359,7 @@ const alt_spellings = [
 ];
 
 // cf. objnam.c:4900 — readobjnam(bp, no_wish): parse wish string into object
-export function readobjnam(bp, no_wish, opts = {}) {
+export async function readobjnam(bp, no_wish, opts = {}) {
     if (typeof bp !== 'string') return null;
     const state = readobjnam_init();
     if (!readobjnam_preparse(state, bp)) return null;
@@ -2442,7 +2442,7 @@ export function readobjnam(bp, no_wish, opts = {}) {
         const wizard = !!opts.wizard;
         const wizkit_wishing = !!opts.wizkit_wishing;
         if (wizard && !wizkit_wishing && !oclass) {
-            const terrain = wizterrainwish({
+            const terrain = await wizterrainwish({
                 text: bp,
                 player: opts.player || null,
                 map: opts.map || opts.player?.map || null,

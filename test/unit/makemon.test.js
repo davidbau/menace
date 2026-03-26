@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
 import { ACCESSIBLE, MM_ASLEEP, NO_MM_FLAGS, MM_NOGRP, ROOMOFFSET, M_AP_OBJECT } from '../../js/const.js';
 import {
-    makemon, rndmonnum, withMakemonPlayerOverride, mbirth_limit,
+    makemon, rndmonnum, withMakemonPlayerOverride, withMakemonPlayerOverrideAsync, mbirth_limit,
     init_mongen_order, check_mongen_order, dump_mongen,
     mkclass_aligned, mkclass_poly, propagate
 } from '../../js/makemon.js';
@@ -47,7 +47,7 @@ describe('Monster creation (C-faithful)', () => {
         const mndx = mons.findIndex(m => m.name === 'grid bug');
         assert.ok(mndx >= 0, 'grid bug should exist in mons[]');
 
-        const mon = makemon(mndx, pos.x, pos.y, NO_MM_FLAGS, 1, map);
+        const mon = await makemon(mndx, pos.x, pos.y, NO_MM_FLAGS, 1, map);
         assert.ok(mon, 'Should create a monster');
         assert.equal(mon.mx, pos.x);
         assert.equal(mon.my, pos.y);
@@ -68,7 +68,7 @@ describe('Monster creation (C-faithful)', () => {
         const pos = findEmptyTile(map, room);
         assert.ok(pos, 'Should find an empty tile in room');
 
-        const mon = makemon(null, pos.x, pos.y, NO_MM_FLAGS, 1, map);
+        const mon = await makemon(null, pos.x, pos.y, NO_MM_FLAGS, 1, map);
         assert.ok(mon, 'Should create a random monster');
         assert.ok(mon.mhp > 0, 'Monster should have HP');
         assert.ok(mon.name, 'Monster should have a name');
@@ -83,7 +83,7 @@ describe('Monster creation (C-faithful)', () => {
         }
     });
 
-    it('makemon peace_minded follows player alignment context', () => {
+    it('makemon peace_minded follows player alignment context', async () => {
         const gremlin = mons.findIndex(m => m.name === 'gremlin');
         assert.ok(gremlin >= 0, 'gremlin should exist in mons[]');
 
@@ -96,22 +96,22 @@ describe('Monster creation (C-faithful)', () => {
         };
 
         initRng(1234);
-        const chaoticGremlin = withMakemonPlayerOverride(
+        const chaoticGremlin = await withMakemonPlayerOverrideAsync(
             { roleIndex: 1, alignment: -1, alignmentRecord: 10, race: 0, inventory: [] },
-            () => makemon(gremlin, 10, 10, NO_MM_FLAGS, 1, map)
+            async () => await makemon(gremlin, 10, 10, NO_MM_FLAGS, 1, map)
         );
         assert.equal(chaoticGremlin.mpeaceful, true);
 
         initRng(1234);
         map.monsters = [];
-        const lawfulGremlin = withMakemonPlayerOverride(
+        const lawfulGremlin = await withMakemonPlayerOverrideAsync(
             { roleIndex: 4, alignment: 1, alignmentRecord: 10, race: 0, inventory: [] },
-            () => makemon(gremlin, 10, 10, NO_MM_FLAGS, 1, map)
+            async () => await makemon(gremlin, 10, 10, NO_MM_FLAGS, 1, map)
         );
         assert.equal(lawfulGremlin.mpeaceful, false);
     });
 
-    it('MM_ASLEEP marks new monsters sleeping', () => {
+    it('MM_ASLEEP marks new monsters sleeping', async () => {
         const map = {
             monsters: [],
             at: () => ({ typ: 100 }),
@@ -120,24 +120,24 @@ describe('Monster creation (C-faithful)', () => {
         };
         const gridBug = mons.findIndex(m => m.name === 'grid bug');
         assert.ok(gridBug >= 0, 'grid bug should exist in mons[]');
-        const mon = makemon(gridBug, 10, 10, MM_ASLEEP, 1, map);
+        const mon = await makemon(gridBug, 10, 10, MM_ASLEEP, 1, map);
         assert.equal(mon.msleeping, 1);
         assert.ok(mon.msleeping, 'monster should be sleeping');
     });
 
-    it('leprechauns start asleep by default', () => {
+    it('leprechauns start asleep by default', async () => {
         const map = {
             monsters: [],
             at: () => ({ typ: 100 }),
             monsterAt() { return null; },
             addMonster(m) { this.monsters.unshift(m); },
         };
-        const mon = makemon(PM_LEPRECHAUN, 11, 10, NO_MM_FLAGS, 1, map);
+        const mon = await makemon(PM_LEPRECHAUN, 11, 10, NO_MM_FLAGS, 1, map);
         assert.equal(mon.msleeping, 1);
         assert.ok(mon.msleeping, 'monster should be sleeping');
     });
 
-    it('ordinary mimics get numeric appearance state during makemon', () => {
+    it('ordinary mimics get numeric appearance state during makemon', async () => {
         const map = {
             monsters: [],
             rooms: [{ rtype: 0 }],
@@ -147,7 +147,7 @@ describe('Monster creation (C-faithful)', () => {
             monsterAt() { return null; },
             addMonster(m) { this.monsters.unshift(m); },
         };
-        const mon = makemon(64, 10, 10, NO_MM_FLAGS, 7, map);
+        const mon = await makemon(64, 10, 10, NO_MM_FLAGS, 7, map);
         assert.equal(mon.m_ap_type, M_AP_OBJECT);
         assert.equal(mon.mappearance, FLINT);
     });

@@ -12,7 +12,7 @@ import { initRng, rn2, rnd, rn1 } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { Player } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
-import { movemon } from '../../js/monmove.js';
+import { movemon } from '../../js/mon.js';
 import { FOV } from '../../js/vision.js';
 import { dosearch0 } from '../../js/detect.js';
 import { NORMAL_SPEED } from '../../js/const.js';
@@ -243,8 +243,8 @@ async function setupGame() {
     return { u: player, map, fov, display: { putstr_message: () => {} }, turnCount: 0, seerTurn: 0 };
 }
 
-function doTurn(game) {
-    movemon(game.map, game.u, game.display, game.fov);
+async function doTurn(game) {
+    await movemon(game.map, game.u, game.display, game.fov);
     simulateTurnEnd(game);
     game.fov.compute(game.map, game.u.x, game.u.y);
 }
@@ -284,7 +284,7 @@ describe('Screen comparison (seed 42)', () => {
                 }
 
                 if (!NON_TURN_KEYS.has(state.step.key)) {
-                    doTurn(game);
+                    await doTurn(game);
                     game.fov.compute(game.map, game.u.x, game.u.y);
                 }
             }
