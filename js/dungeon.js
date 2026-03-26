@@ -208,6 +208,7 @@ async function themerooms_generate(map, depth) {
 import { parseEncryptedDataFile, strchr, sgn } from './hacklib.js';
 import { u_at } from './hack.js';
 import { get_rnd_line_index, getrumor, random_epitaph_text } from './rumors.js';
+import { enterModal, exitModal } from './modal_guard.js';
 
 // Branch type constants (C ref: include/dungeon.h)
 const BR_STAIR = 0;
@@ -256,12 +257,20 @@ let _harnessMapdumpPayloads = new Map();
 
 // C ref: gi.in_mklev is also TRUE while special-level Lua code runs.
 // Exposed for sp_lev.js to bracket des.* generation phases.
+//
+// Reentrancy guard: level generation uses enterModal('levelgen') so that
+// the existing modal guard catches game-loop code (moveloop, rhack, etc.)
+// trying to run during an await inside makelevel(). In C, mklev() is
+// synchronous — nothing else executes until it returns. The modal guard
+// enforces this contract in async JS.
 export function enterMklevContext() {
     inMklev = true;
     if (_gstate) _gstate._inMklev = true;
+    enterModal('levelgen');
 }
 
 export function leaveMklevContext() {
+    exitModal('levelgen');
     inMklev = false;
     if (_gstate) _gstate._inMklev = false;
 }
@@ -5079,8 +5088,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
     // Must happen BEFORE special level check to match C RNG order
     const bonesMap = getbones(null, depth);
     if (bonesMap) return finishGeneratedMap(bonesMap);
-    inMklev = true;
-    if (_gstate) _gstate._inMklev = true;
+    enterMklevContext();
     try {
 
     // Check for special level.
