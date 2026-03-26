@@ -48,7 +48,8 @@ import { pline, You, Your, You_hear, You_cant, pline_The, There,
 import { s_suffix, strchr, plur, sgn } from './hacklib.js';
 import { helpless as monHelpless, angry_guards } from './mon.js';
 import { newsym, canspotmon, canseemon } from './display.js';
-import { y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER, unique_corpstat } from './mondata.js';
+import { y_monnam } from './do_name.js';
+import { mhe, mhis, mhim, ismnum, DEADMONSTER, unique_corpstat } from './mondata.js';
 import { game as _gstate } from './gstate.js';
 import { getGameUbirthday } from './dungeon.js';
 import { maybe_reset_pick } from './lock.js';
@@ -157,7 +158,7 @@ function in_rooms(map, x, y, typeWanted = 0) {
 }
 
 // C ref: shk.c inside_shop() -- x,y is strictly inside shop
-function insideShop(map, x, y) {
+export function inside_shop(map, x, y) {
     const loc = map.at(x, y);
     const roomno = Number(loc?.roomno || 0);
     if (roomno < ROOMOFFSET || !!loc?.edge) return 0;
@@ -1078,7 +1079,7 @@ export function costly_spot(x, y, map) {
     if (rooms.length === 0) return false;
     const shkp = shop_keeper(map, rooms[0]);
     if (!shkp || !inhishop(shkp, map)) return false;
-    const shoproom = insideShop(map, x, y);
+    const shoproom = inside_shop(map, x, y);
     if (!shoproom) return false;
     // Exclude the shopkeeper's "free spot"
     if (shkp.shk && shkp.shk.x === x && shkp.shk.y === y) return false;
@@ -1408,7 +1409,7 @@ function shk_embellish(itm, cost) {
 // C ref: shk.c price_quote()
 export async function price_quote(first_obj, map) {
     if (!map) return;
-    const shoproom = insideShop(map, first_obj?.ox || 0, first_obj?.oy || 0);
+    const shoproom = inside_shop(map, first_obj?.ox || 0, first_obj?.oy || 0);
     if (!shoproom) return;
     const shkp = shop_keeper(map, shoproom);
     if (!shkp || !inhishop(shkp, map)) return;
@@ -1574,7 +1575,7 @@ function residentShopkeeperAvailableForGreeting(shkp, shoproom, map) {
     if (!shkp) return false;
     const home = shkp.mextra?.eshk?.shk || shkp.shk || null;
     const door = shkp.mextra?.eshk?.shd || shkp.shd || null;
-    const shkpInShop = (insideShop(map, shkp.mx, shkp.my) === shoproom);
+    const shkpInShop = (inside_shop(map, shkp.mx, shkp.my) === shoproom);
     const shkpAtHome = !!(home && Number(home.x) === Number(shkp.mx) && Number(home.y) === Number(shkp.my));
     const shkpAtDoor = !!(door && Number(door.x) === Number(shkp.mx) && Number(door.y) === Number(shkp.my));
     return shkpInShop || shkpAtHome || shkpAtDoor;
@@ -2225,7 +2226,7 @@ export function doinvbill(mode, map) {
 export async function shopper_financial_report(player, map) {
     if (!map || !player) return;
 
-    const playerShopRoom = insideShop(map, player.x, player.y);
+    const playerShopRoom = inside_shop(map, player.x, player.y);
     let this_shkp = playerShopRoom ? shop_keeper(map, playerShopRoom) : null;
 
     if (this_shkp && !(this_shkp.credit || shop_debt(this_shkp))) {
@@ -2443,7 +2444,7 @@ function shk_owns(obj, map = _gstate?.map) {
     if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
     const isFloor = (obj.where === OBJ_FLOOR);
     if (!(obj.unpaid || (isFloor && !obj.no_charge && costly_spot(x, y, map)))) return null;
-    const shkp = shop_keeper(map, inside_shop(x, y, map));
+    const shkp = shop_keeper(map, inside_shop(map, x, y));
     return shkp ? sSuffix(shkname(shkp)) : 'the';
 }
 
@@ -2763,7 +2764,7 @@ export async function u_left_shop(leaveroom, newlev, map, player) {
     if (!hasDebt && !hasUnpaidInventory) return;
 
     // If the hero is on the boundary square, issue a warning first.
-    const heroInsideThisShop = (insideShop(map, player.x, player.y) === roomno);
+    const heroInsideThisShop = (inside_shop(map, player.x, player.y) === roomno);
     if (heroInsideThisShop && !muteshk(shkp)) {
         await verbalize("%s!  Please pay before leaving.", String(player?.name || 'Customer'));
         return;
@@ -2905,7 +2906,7 @@ export function get_cost_of_shop_item(obj, map, player) {
     const x = obj.ox, y = obj.oy;
     if (x === undefined || y === undefined) return { cost: 0, nochrg: -1 };
 
-    const shoproom = insideShop(map, x, y);
+    const shoproom = inside_shop(map, x, y);
     if (!shoproom) return { cost: 0, nochrg: -1 };
     const shkp = shop_keeper(map, shoproom);
     if (!shkp || !inhishop(shkp, map)) return { cost: 0, nochrg: -1 };
@@ -2946,7 +2947,7 @@ export function fix_shop_damage(map) {
 // C ref: shk.c shkcatch() -- shopkeeper catches thrown pick-axe
 export function shkcatch(obj, x, y, map) {
     if (!map) return null;
-    const shoproom = insideShop(map, x, y);
+    const shoproom = inside_shop(map, x, y);
     if (!shoproom) return null;
     const shkp = shop_keeper(map, shoproom);
     if (!shkp || !inhishop(shkp, map)) return null;
@@ -3138,14 +3139,6 @@ export function restshk(shkp, ghostly, map, svp) {
       if (svp && ANGRY(shkp) && strncmpi(eshkp.customer, svp.plname, PL_NSIZ)) pacify_shk(shkp, true);
     }
   }
-}
-
-// Autotranslated from shk.c:508
-export function inside_shop(x, y, map) {
-  let rno;
-  rno = map.locations[x][y].roomno;
-  if ((rno < ROOMOFFSET) || map.locations[x][y].edge || !IS_SHOP(rno - ROOMOFFSET)) rno = NO_ROOM;
-  return rno;
 }
 
 // Autotranslated from shk.c:1127

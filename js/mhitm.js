@@ -22,10 +22,10 @@ import { monnear, mondead, helpless, unstuck } from './mon.js';
 import { grow_up } from './makemon.js';
 import { game as _gstate } from './gstate.js';
 import { map_invisible, newsym, canSpotMonsterForMap } from './display.js';
-import { monAttackName, rndmonnam } from './do_name.js';
+import { monAttackName, rndmonnam, x_monnam } from './do_name.js';
+import { ARTICLE_THE, ARTICLE_A } from './const.js';
 import { cansee } from './vision.js';
 import {
-    x_monnam,
     touch_petrifies, unsolid, resists_fire, resists_cold,
     resists_elec, resists_acid, resists_sleep, resists_ston, defended,
     nonliving, sticks, attacktype, dmgtype, is_whirly,
@@ -129,20 +129,22 @@ function pre_mm_attack(magr, mdef, vis, map, ctx) {
 
 // cf. do_name.c:863 x_monnam() — returns "it" when player can't spot the monster.
 // In C, canspotmon() is checked per-monster even within visible combat messages.
-function monCombatName(mon, visible, { capitalize = false, article = 'the', player = null } = {}) {
+// C's Monnam(mtmp) capitalizes via highc(); x_monnam has no capitalize param.
+function monCombatName(mon, visible, { capitalize = false, article = ARTICLE_THE, player = null } = {}) {
     if (visible === false) return capitalize ? 'It' : 'it';
+    let name;
     if (player?.hallucinating || player?.Hallucination) {
         const rnd = rndmonnam();
-        let base = String(rnd?.name || '');
-        if (!base) base = 'creature';
-        if (article === 'the') base = `the ${base}`;
-        else if (article === 'a') base = `a ${base}`;
-        if (capitalize && base.length > 0) {
-            base = base.charAt(0).toUpperCase() + base.slice(1);
-        }
-        return base;
+        name = String(rnd?.name || 'creature');
+        if (article === ARTICLE_THE) name = `the ${name}`;
+        else if (article === ARTICLE_A) name = `a ${name}`;
+    } else {
+        name = x_monnam(mon, article, null, 0, false);
     }
-    return x_monnam(mon, article, null, 0, capitalize);
+    if (capitalize && name.length > 0) {
+        name = name.charAt(0).toUpperCase() + name.slice(1);
+    }
+    return name;
 }
 
 // cf. mhitm.c:75 — missmm(magr, mdef, mattk): miss message
@@ -647,7 +649,7 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
         if (cansee(map, ctx?.player, ctx?.fov, mdef.mx, mdef.my) && display) {
             const killVerb = nonliving(pd) ? 'destroyed' : 'killed';
             await display.putstr_message(
-                `${monCombatName(mdef, ctx?.defVisible, { article: 'the', capitalize: true, player: ctx?.player || null })} is ${killVerb}!`
+                `${monCombatName(mdef, ctx?.defVisible, { article: ARTICLE_THE, capitalize: true, player: ctx?.player || null })} is ${killVerb}!`
             );
         }
         mondead(mdef, map, ctx?.player);

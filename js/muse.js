@@ -30,7 +30,7 @@ import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
          haseyes, is_undead, poly_when_stoned,
          resists_ston, touch_petrifies, amorphous, noncorporeal,
          unsolid, resists_fire, resists_acid, dmgtype, attacktype,
-         can_blow, x_monnam, needspick,
+         can_blow, needspick,
          dmgtype_fromattack, is_bat, nonliving, acidic,
          mon_knows_traps, mon_learns_traps } from './mondata.js';
 import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP, AD_HEAL } from './monsters.js';
@@ -91,6 +91,8 @@ import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
          Is_earthlevel, On_W_tower_level, In_V_tower, Is_rogue_level } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM, OBJ_FLOOR } from './const.js';
+import { x_monnam, Monnam, mon_nam } from './do_name.js';
+import { ARTICLE_NONE } from './const.js';
 import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall, NODIAG, slimeproof } from './mondata.js';
 import { u_at } from './hack.js';
 import { game as _gstate } from './gstate.js';
@@ -377,7 +379,7 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
         mon_adjust_speed(mon, -3, null);
 
     if (vis) {
-        const name = x_monnam(mon, { article: 'the', capitalize: true });
+        const name = Monnam(mon);
         const action = (obj.oclass === POTION_CLASS) ? 'quaffs'
             : (obj.otyp === TIN) ? 'opens and eats the contents of'
             : 'eats';
@@ -391,11 +393,11 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
     if (acid && !tinned && !resists_acid(mon)) {
         mon.mhp -= rnd(15);
         if (vis) {
-            const name = x_monnam(mon, { article: 'the', capitalize: true });
+            const name = Monnam(mon);
             await pline_mon(mon, `${name} has a very bad case of stomach acid.`);
         }
         if (DEADMONSTER(mon)) {
-            const name = x_monnam(mon, { article: 'the', capitalize: true });
+            const name = Monnam(mon);
             await pline_mon(mon, `${name} dies!`);
             if (by_you)
                 await xkilled(mon, XKILL_NOMSG | XKILL_NOCONDUCT, map, player);
@@ -405,7 +407,7 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
         }
     }
     if (stoning && vis) {
-        const name = x_monnam(mon, { article: 'the', capitalize: true });
+        const name = Monnam(mon);
         await pline_mon(mon, `${name} seems limber!`);
     }
     if (lizard && (mon.mconf || mon.mstun)) {
@@ -446,7 +448,7 @@ export async function mcureblindness(mon, verbos, player) {
         mon.mcansee = 1;
         mon.mblinded = 0;
         if (verbos && haseyes(mon.data || mon.type || {})) {
-            const name = x_monnam(mon, { article: 'the', capitalize: true });
+            const name = Monnam(mon);
             await pline_mon(mon, `${name} can see again.`);
         }
     }
@@ -504,7 +506,7 @@ async function precheck(mon, obj, map, player) {
     if (obj.oclass === WAND_CLASS && obj.cursed && !rn2(WAND_BACKFIRE_CHANCE)) {
         const dam = c_d(obj.spe + 2, 6);
         if (vis) {
-            const name = x_monnam(mon, { article: 'the', capitalize: true });
+            const name = Monnam(mon);
             await pline_mon(mon, `${name} zaps something, which suddenly explodes!`);
         } else {
             const range = couldsee(map, player, mon.mx, mon.my)
@@ -535,10 +537,10 @@ async function mzapwand(mtmp, otmp, self, map, player) {
         await You_hear(`a ${(mdistu(mtmp, player) <= range * range) ? 'nearby' : 'distant'} zap.`);
         unknow_object(otmp);
     } else if (self) {
-        const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+        const name = Monnam(mtmp);
         await pline_mon(mtmp, `${name} zaps a wand at itself!`);
     } else {
-        const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+        const name = Monnam(mtmp);
         await pline_mon(mtmp, `${name} zaps a wand!`);
     }
     otmp.spe -= 1;
@@ -556,11 +558,11 @@ export async function mplayhorn(mtmp, otmp, self, map, player) {
             (mdistu(mtmp, player) <= range * range) ? 'nearby' : 'in the distance'}.`);
         unknow_object(otmp);
     } else if (self) {
-        const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+        const name = Monnam(mtmp);
         await pline_mon(mtmp, `${name} plays a horn directed at itself!`);
         makeknown(otmp.otyp);
     } else {
-        const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+        const name = Monnam(mtmp);
         await pline_mon(mtmp, `${name} plays a horn directed at you!`);
         makeknown(otmp.otyp);
     }
@@ -573,13 +575,13 @@ export async function mplayhorn(mtmp, otmp, self, map, player) {
 async function mreadmsg(mtmp, otmp, player) {
     const vismon = canseemon(mtmp, player);
     if (vismon) {
-        const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+        const name = Monnam(mtmp);
         await pline_mon(mtmp, `${name} reads a scroll!`);
     } else {
         await You_hear('someone reading a scroll.');
     }
     if (mtmp.mconf) {
-        const name2 = x_monnam(mtmp, { article: 'none' });
+        const name2 = x_monnam(mtmp, ARTICLE_NONE);
         await pline(`Being confused, ${name2} mispronounces the magic words...`);
     }
 }
@@ -591,7 +593,7 @@ export async function mquaffmsg(mtmp, otmp, player) {
     const vismon = canseemon(mtmp, player, null, _gstate?.map || player?.map || null);
     if (vismon) {
         if (otmp) observeObject(otmp);
-        const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+        const name = Monnam(mtmp);
         const potionName = otmp ? await singular(otmp, doname) : 'a potion';
         await pline_mon(mtmp, `${name} drinks ${potionName}!`);
     } else {
@@ -651,7 +653,7 @@ async function m_tele(mtmp, vismon, oseen, how, map, player) {
             mon_learns_traps(mtmp, TELEP_TRAP);
     } else if ((mon_has_amulet(mtmp) || On_W_tower_level(map)) && !rn2(3)) {
         if (vismon) {
-            const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+            const name = Monnam(mtmp);
             await pline_mon(mtmp, `${name} seems disoriented for a moment.`);
         }
     } else {
@@ -954,7 +956,7 @@ export async function mon_escape(mtmp, vismon, map, player) {
         || (mtmp.iswiz && (player.no_of_wizards || 0) < 2))
         return 0;
     if (vismon) {
-        const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+        const name = Monnam(mtmp);
         await pline_mon(mtmp, `${name} escapes the dungeon!`);
     }
     mongone(mtmp, map, player);
@@ -983,7 +985,7 @@ export async function use_defensive(mon, map, player) {
         }
     }
 
-    const name = x_monnam(mon, { article: 'the', capitalize: true });
+    const name = Monnam(mon);
 
     switch (m.has_defense) {
     case MUSE_UNICORN_HORN:
@@ -991,7 +993,7 @@ export async function use_defensive(mon, map, player) {
             if (otmp)
                 await pline_mon(mon, `${name} uses a unicorn horn!`);
             else {
-                const name2 = x_monnam(mon, { article: 'none' });
+                const name2 = x_monnam(mon, ARTICLE_NONE);
                 await pline(`The tip of ${name2}'s horn glows!`);
             }
         }
@@ -1701,7 +1703,7 @@ export async function use_offensive(mtmp, map, player) {
     if (otmp.oclass !== POTION_CLASS && (i = await precheck(mtmp, otmp, map, player)) !== 0)
         return i;
     const oseen = canseemon(mtmp, player);
-    const name = x_monnam(mtmp, { article: 'the', capitalize: true });
+    const name = Monnam(mtmp);
 
     switch (m.has_offense) {
     case MUSE_OFF_WAN_DEATH:
@@ -1767,7 +1769,7 @@ export async function use_offensive(mtmp, map, player) {
 
     case MUSE_OFF_CAMERA:
         if (!player.blind) {
-            const cname = x_monnam(mtmp, { article: 'the', capitalize: true });
+            const cname = Monnam(mtmp);
             await pline(`${cname} takes a picture of you!`);
         }
         m_using = true;
@@ -2013,7 +2015,7 @@ async function mloot_container(mon, container, vismon, map, player) {
 
         if (can_carry(mon, xobj)) {
             if (vismon) {
-                const name = x_monnam(mon, { article: 'the', capitalize: true });
+                const name = Monnam(mon);
                 await pline_mon(mon, `${name} rummages through a container.`);
             }
             mpickobj(mon, xobj);
@@ -2031,7 +2033,7 @@ async function mloot_container(mon, container, vismon, map, player) {
 // you_aggravate — C ref: muse.c:2595
 // ========================================================================
 async function you_aggravate(mtmp) {
-    const who = x_monnam(mtmp, { article: 'the' });
+    const who = mon_nam(mtmp);
     await pline(`For some reason, ${who}'s presence is known to you.`);
     await pline(`You feel aggravated at ${who}.`);
 }
@@ -2049,7 +2051,7 @@ export async function use_misc(mon, map, player) {
     const vis = cansee(map, player, null, mon.mx, mon.my);
     const vismon = canseemon(mon, player);
     const oseen = otmp && vismon;
-    const name = x_monnam(mon, { article: 'the', capitalize: true });
+    const name = Monnam(mon);
 
     switch (m.has_misc) {
     case MUSE_MISC_POT_GAIN_LEVEL:
@@ -2090,7 +2092,7 @@ export async function use_misc(mon, map, player) {
             if (canspotmon(mon, player, null, map)) {
                 await pline(`${name}'s body takes on a strange transparency.`);
             } else {
-                const name2 = x_monnam(mon, { article: 'none' });
+                const name2 = x_monnam(mon, ARTICLE_NONE);
                 await pline(`Suddenly you cannot see ${name2}.`);
                 if (vis) map_invisible(map, mon.mx, mon.my, player);
             }
@@ -2336,7 +2338,7 @@ export async function mon_reflects(mon, str) {
     let orefl = which_armor(mon, W_ARMS);
     if (orefl && orefl.otyp === SHIELD_OF_REFLECTION) {
         if (str) {
-            const name = x_monnam(mon, { article: 'none' });
+            const name = x_monnam(mon, ARTICLE_NONE);
             await pline(`It is reflected by ${name}'s shield.`);
             makeknown(SHIELD_OF_REFLECTION);
         }
@@ -2344,7 +2346,7 @@ export async function mon_reflects(mon, str) {
     }
     if (arti_reflects(MON_WEP(mon))) {
         if (str) {
-            const name = x_monnam(mon, { article: 'none' });
+            const name = x_monnam(mon, ARTICLE_NONE);
             await pline(`It is reflected by ${name}'s weapon.`);
         }
         return true;
@@ -2352,7 +2354,7 @@ export async function mon_reflects(mon, str) {
     orefl = which_armor(mon, W_AMUL);
     if (orefl && orefl.otyp === AMULET_OF_REFLECTION) {
         if (str) {
-            const name = x_monnam(mon, { article: 'none' });
+            const name = x_monnam(mon, ARTICLE_NONE);
             await pline(`It is reflected by ${name}'s amulet.`);
             makeknown(AMULET_OF_REFLECTION);
         }
@@ -2362,14 +2364,14 @@ export async function mon_reflects(mon, str) {
     if (orefl && (orefl.otyp === SILVER_DRAGON_SCALES
         || orefl.otyp === SILVER_DRAGON_SCALE_MAIL)) {
         if (str) {
-            const name = x_monnam(mon, { article: 'none' });
+            const name = x_monnam(mon, ARTICLE_NONE);
             await pline(`It is reflected by ${name}'s armor.`);
         }
         return true;
     }
     if (mdat.mndx === PM_SILVER_DRAGON || mdat.mndx === PM_CHROMATIC_DRAGON) {
         if (str) {
-            const name = x_monnam(mon, { article: 'none' });
+            const name = x_monnam(mon, ARTICLE_NONE);
             await pline(`It is reflected by ${name}'s scales.`);
         }
         return true;
@@ -2441,10 +2443,10 @@ export async function munslime(mon, by_you, map, player) {
         // Monster breathes fire on itself
         const vis = canseemon(mon, player);
         if (vis)
-            await pline_mon(mon, `${x_monnam(mon, { article: 'the', capitalize: true })} starts turning green.`);
+            await pline_mon(mon, `${Monnam(mon)} starts turning green.`);
         mon_adjust_speed(mon, -4, null);
         if (vis)
-            await pline_mon(mon, `${x_monnam(mon, { article: 'the', capitalize: true })} breathes fire on itself.`);
+            await pline_mon(mon, `${Monnam(mon)} breathes fire on itself.`);
         if (!rn2(3)) mon.mspec_used = rn1(10, 5);
         return true;
     }
@@ -2473,7 +2475,7 @@ export function cures_sliming(mon, obj) {
 async function muse_unslime(mon, obj, trap, by_you, map, player) {
     const vis = canseemon(mon, player);
     if (vis) {
-        const name = x_monnam(mon, { article: 'the', capitalize: true });
+        const name = Monnam(mon);
         await pline_mon(mon, `${name} starts turning green.`);
     }
     mon_adjust_speed(mon, -4, null);
@@ -2491,7 +2493,7 @@ async function muse_unslime(mon, obj, trap, by_you, map, player) {
     }
 
     if (vis) {
-        const name = x_monnam(mon, { article: 'the', capitalize: true });
+        const name = Monnam(mon);
         if (!DEADMONSTER(mon))
             await pline_mon(mon, `${name}'s slime is burned away!`);
     }

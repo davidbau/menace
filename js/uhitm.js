@@ -52,7 +52,7 @@ import { will_hurtle, mhurtle, ammo_and_launcher, is_ammo, is_missile } from './
 import { u_wipe_engr } from './engrave.js';
 import { s_suffix, dist2 } from './hacklib.js';
 import {
-    nonliving, x_monnam, y_monnam, is_undead, is_demon,
+    nonliving, is_undead, is_demon,
     magic_negation, attacktype,
     resists_fire, resists_cold, resists_elec, resists_acid,
     resists_poison, resists_sleep, resists_ston, resists_drli,
@@ -85,7 +85,7 @@ import {
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER, MIM_REVEAL, STONED } from './const.js';
 import { pline, pline_The, You, Your, impossible } from './pline.js';
-import { mon_nam, Monnam } from './do_name.js';
+import { mon_nam, Monnam, x_monnam, y_monnam } from './do_name.js';
 import { tele_restrict, rloc } from './teleport.js';
 import { night } from './calendar.js';
 

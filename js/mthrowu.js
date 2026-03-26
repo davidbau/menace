@@ -33,13 +33,14 @@ import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mk
 import { mshot_xname, obj_is_pname, the, an } from './objnam.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
-    x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
+    is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
     throws_rocks, is_unicorn, hates_silver, resists_poison, resists_acid, can_blnd,
 } from './mondata.js';
 import {
     mons, AT_WEAP, AT_SPIT, G_NOCORPSE, AD_ACID, AD_BLND, AD_DRST,
     AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC, MZ_TINY, MZ_HUMAN, MZ_LARGE,
 } from './monsters.js';
+import { x_monnam, mon_nam, Monnam } from './do_name.js';
 import { distmin, dist2 } from './hacklib.js';
 import { mondead, corpse_chance } from './mon.js';
 import { flush_screen, canSeeMonsterForMap, canseemon } from './display.js';
