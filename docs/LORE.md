@@ -17089,3 +17089,58 @@ Key finding: all 4 remaining failures (seed032, seed033, seed308, seed328) invol
 set_apparxy/displacement when the hero has active displacement or invisibility.
 The displacement loop's position acceptance criteria may have a subtle terrain
 evaluation difference that causes RNG consumption mismatches.
+
+### seed033 Deep Investigation (March 26, 2026)
+
+**nhgetch toplin transition fix (committed)**: C's `tty_nhgetch` always
+transitions `toplin` from `TOPLINE_NEED_MORE` (1) to `TOPLINE_NON_EMPTY` (2)
+on every key read, regardless of input source. JS's `nhgetch` has three paths:
+queued-key, replay-key, and runtime-key. Only the runtime-key path (via
+`nhgetch_raw`) performed the transition. The queued-key and replay-key paths
+returned early, leaving `messageNeedsMore` and `toplin` stale. Fixed by adding
+`_nhgetchToplinTransition()` helper called from all three paths.
+
+**putstr_message --More-- boundary**: C's `tty_putstr` calls `more()` when
+`toplin == TOPLINE_NEED_MORE` before displaying a new message. JS's
+`putstr_message` calls `flush_screen(1)` instead (no key wait). Direct
+replacement of `flush_screen(1)` with `more()` caused regressions because
+JS already has compensating `more()` calls in callers (e.g., `read_engr_at`
+with `needsMoreBetweenMessages`, and the concat-overflow path in
+`putstr_message` itself at lines 348-362). Adding `more()` at the
+tty_putstr-equivalent point creates double --More-- consumption. The correct
+fix requires auditing and removing all compensating caller-side `more()` calls
+first, then adding the tty_putstr-equivalent call.
+
+NOTE: The `needsMoreBetweenMessages` check in `engrave.js` `read_engr_at`
+(line 411-418) never actually fires because it checks
+`game.display.morePrompt` which is not a method on the Display class.
+The actual --More-- between typeMsg and readMsg is handled by the
+concat-overflow path in `putstr_message` (lines 348-362).
+
+**seed033 first RNG divergence at global index 4935**: The divergence occurs
+in the moveloop_core outer loop (the "hero can't move" loop). C and JS both
+iterate this loop multiple times per turn (monster gets multiple turns). But
+at the divergence point, C exits the loop after 3 iterations while JS
+continues to a 4th. This means JS gives the monster one extra turn.
+
+Root cause hypothesis: **umovement accumulation difference**. The outer loop
+runs while `player.umovement < NORMAL_SPEED`. The initial umovement at the
+start of the step depends on the previous step's processing. If the rush at
+step 469 leaves different residual umovement in JS vs C, the loop count
+differs. The umovement tracking is purely additive (no RNG consumed), so
+it can diverge while the RNG stream stays in sync.
+
+Investigation showed that during the rush at step 469, JS's moveloop_core
+reports `umovement=15` with `encumbrance=0`. The rush processes 10 cells
+with `runMovementRepeatSlice` calling `advanceTimedTurn→moveloop_core` for
+each cell. The per-step rng_step_diff (which replays in isolation) may show
+different behavior than the full session replay due to missing accumulated
+state.
+
+Next steps for seed033:
+1. Add `^umovement[...]` event to RNG log in `u_calc_moveamt` to make the
+   movement allocation visible in session comparisons
+2. Compare C and JS umovement values at each moveloop_core iteration
+3. If umovement differs, trace back to find where the accumulation diverges
+4. Common suspects: speed bonus (rn2(3) for Fast/Very_fast), encumbrance
+   level (near_capacity), base form speed (mmove), or steed calculation
