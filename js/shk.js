@@ -216,14 +216,6 @@ function muteshk(shkp) {
 // Pricing helpers
 // ============================================================
 
-function roundScaled(value, multiplier, divisor) {
-    let out = value * multiplier;
-    if (divisor > 1) {
-        out = Math.floor((out * 10) / divisor);
-        out = Math.floor((out + 5) / 10);
-    }
-    return out;
-}
 
 // C ref: shk.c getprice() -- base price of object
 function getprice_base(obj, shk_buying = false) {
@@ -406,57 +398,6 @@ function get_cost(obj, shkp) {
     if (shkp && shkp.surcharge)
         tmp += Math.floor((tmp + 2) / 3);
 
-    return tmp;
-}
-
-// Existing getCost preserved for floor-object pricing with player CHA
-function getCost(obj, player, shkp) {
-    let tmp = getprice_base(obj);
-    let multiplier = 1;
-    let divisor = 1;
-    if (!tmp) tmp = 5;
-
-    const dknown = !!obj.dknown || !!obj.known;
-    const nameKnown = isObjectNameKnown(obj.otyp);
-    if (!(dknown && nameKnown) && obj.oclass !== GEM_CLASS) {
-        if ((Number(obj.o_id || 0) % 4) === 0) {
-            multiplier *= 4;
-            divisor *= 3;
-        }
-    }
-
-    if (player?.helmet?.otyp === DUNCE_CAP) {
-        multiplier *= 4;
-        divisor *= 3;
-    } else if (player?.roleMnum === PM_TOURIST && Number(player.ulevel || 1) < 15) {
-        multiplier *= 4;
-        divisor *= 3;
-    }
-
-    const cha = Number(player?.attributes?.[A_CHA] || 10);
-    if (cha > 18) {
-        divisor *= 2;
-    } else if (cha === 18) {
-        multiplier *= 2;
-        divisor *= 3;
-    } else if (cha >= 16) {
-        multiplier *= 3;
-        divisor *= 4;
-    } else if (cha <= 5) {
-        multiplier *= 2;
-    } else if (cha <= 7) {
-        multiplier *= 3;
-        divisor *= 2;
-    } else if (cha <= 10) {
-        multiplier *= 4;
-        divisor *= 3;
-    }
-
-    tmp = roundScaled(tmp, multiplier, divisor);
-    if (tmp <= 0) tmp = 1;
-    if (shkp?.surcharge) {
-        tmp += Math.floor((tmp + 2) / 3);
-    }
     return tmp;
 }
 
