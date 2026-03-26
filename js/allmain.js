@@ -1104,8 +1104,6 @@ async function runOccupationStep(game) {
 function hasPendingCommandBoundaryDismiss(game) {
     const display = game?.display;
     if (!display) return false;
-    const hasQueuedCannedBoundary = !!(cmdq_peek(CQ_CANNED) && display?.topMessage);
-    if (hasQueuedCannedBoundary) return true;
     if (!display?.messageNeedsMore) return false;
     if (display.moreMarkerActive || display.messageNeedsMoreBoundary) return true;
     if (typeof display.getScreenLines !== 'function') return false;
@@ -2544,26 +2542,15 @@ export class NetHackGame {
                         clearAfter: true,
                         readKey: () => nhgetch(),
                     });
-                    // After --More-- dismiss, check for canned commands
-                    if (cmdq_peek(CQ_CANNED)) {
-                        const commandResult = await this.runOneCommandCycle(0);
-                        if (!commandResult) return;
-                        this.renderAndAutosave({ commandResult, autosave: true });
-                        continue;
-                    }
                     if (this.u?.Hallucination) return;
                     this.renderAndAutosave({ autosave: false, forceRender: true });
                     continue;
                 }
             }
-            // Also handle canned-command-with-topline boundary (no --More-- but
-            // canned command queued while message visible)
-            if (cmdq_peek(CQ_CANNED) && this.display?.topMessage) {
-                await more(this.display, {
-                    forceVisual: true,
-                    clearAfter: true,
-                    readKey: () => nhgetch(),
-                });
+            // If a canned command is queued (e.g., wield-then-apply), run it
+            // directly without consuming a keystroke. C does this transparently
+            // via cmdq dispatch — no --More-- pause needed.
+            if (cmdq_peek(CQ_CANNED)) {
                 const commandResult = await this.runOneCommandCycle(0);
                 if (!commandResult) return;
                 this.renderAndAutosave({ commandResult, autosave: true });
