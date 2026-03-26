@@ -103,6 +103,7 @@ import { pmname, Mgender, x_monnam, y_monnam, Monnam } from './do_name.js';
 import { place_monster } from './steed.js';
 import { Role_if } from './role.js';
 import { dochug, m_everyturn_effect } from './monmove.js';
+import { assertNotInModal } from './modal_guard.js';
 
 // C macro: ismnum(mndx) — valid monster index check
 // ismnum imported from mondata.js
@@ -2177,6 +2178,7 @@ async function m_calcdistress(mon, map, player) {
 // movemon — C ref: mon.c movemon()
 // ========================================================================
 export async function movemon(map, player, display, fov, game = null) {
+    assertNotInModal('movemon');
     if (game) game._suppressMonsterHitMessagesThisTurn = false;
     if (map) map._heardDistantNoiseThisTurn = false;
     let somebodyCanMove = false;
