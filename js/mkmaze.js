@@ -607,7 +607,7 @@ export async function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, one
     }
     case LR_PORTAL:
         {
-            const trap = maketrap(map, x, y, MAGIC_PORTAL);
+            const trap = await maketrap(map, x, y, MAGIC_PORTAL);
             if (trap && opts?.portalDest) {
                 trap.dst = {
                     dnum: opts.portalDest.dnum,
@@ -927,9 +927,9 @@ export function maze_inbounds(x, y) {
 }
 
 // C ref: mkmaze.c mkportal
-export function mkportal(map, x, y, _todnum, _todlevel) {
+export async function mkportal(map, x, y, _todnum, _todlevel) {
     if (!map || !map.at) return null;
-    const trap = maketrap(map, x, y, MAGIC_PORTAL);
+    const trap = await maketrap(map, x, y, MAGIC_PORTAL);
     if (!trap) return null;
     if (Number.isInteger(_todnum) || Number.isInteger(_todlevel)) {
         trap.dst = {

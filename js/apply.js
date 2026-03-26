@@ -915,7 +915,7 @@ async function use_trap(obj, player, map, display, game) {
 }
 
 // cf. apply.c:2912 -- set_trap occupation callback
-function set_trap(game, player, map, display) {
+async function set_trap(game, player, map, display) {
     const info = game?.trapinfo;
     const obj = info?.tobj;
     if (!info || !obj || !player || !map) return false;
@@ -930,7 +930,7 @@ function set_trap(game, player, map, display) {
     const depth = Number.isInteger(map?._genDlevel)
         ? map._genDlevel
         : (Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel : 1);
-    const placed = maketrap(map, player.x, player.y, trapType, depth);
+    const placed = await maketrap(map, player.x, player.y, trapType, depth);
     if (!placed) {
         display?.putstr_message?.('You fail to set the trap here.');
         reset_trapset(game);

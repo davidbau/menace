@@ -1801,7 +1801,7 @@ export async function dospinweb(player, map) {
 
     // Create a web trap
     if (map.maketrap) {
-        const newTrap = map.maketrap(x, y, WEB);
+        const newTrap = await map.maketrap(x, y, WEB);
         if (newTrap) {
             newTrap.madeby_u = 1;
         }

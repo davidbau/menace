@@ -158,14 +158,14 @@ export async function roguecorr(map, rooms, x0, y0, dir, depth) {
 }
 
 // C ref: extralev.c:288 makerogueghost()
-export function makerogueghost(map, _depth) {
+export async function makerogueghost(map, _depth) {
     if (!map.nroom) return;
 
     const croom = map.rooms[rn2(map.nroom)];
     const x = rn1(croom.hx - croom.lx + 1, croom.lx);
     const y = rn1(croom.hy - croom.ly + 1, croom.ly);
 
-    const ghost = makemon(PM_GHOST, x, y, NO_MM_FLAGS, _depth, map);
+    const ghost = await makemon(PM_GHOST, x, y, NO_MM_FLAGS, _depth, map);
     if (!ghost) return;
     ghost.msleeping = true;
     christen_monst(ghost, roguename());
@@ -278,7 +278,7 @@ export async function makeroguerooms(depth = 15) {
         }
     }
 
-    makerogueghost(map, depth);
+    await makerogueghost(map, depth);
     sort_rooms(map);
     generate_stairs(map, depth);
 

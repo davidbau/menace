@@ -9024,7 +9024,7 @@ export async function fill_empty_maze() {
                 trytrap = rndtrap(canDigDownHere(), inEndgame());
             }
         }
-        // C ref: fill_empty_maze() uses maketrap() directly, without victim logic.
+        // C ref: fill_empty_maze() uses await maketrap() directly, without victim logic.
         await mktrap(levelState.map, trytrap, MKTRAP_MAZEFLAG | MKTRAP_NOVICTIM, null, pos, depth);
     }
 

@@ -2601,14 +2601,14 @@ export function mon_avoiding_this_attack(mtmp, attkidx) {
 }
 
 // cf. mhitu.c:2606 cloneu() — clone the hero as a tame monster
-export function cloneu(player, game, map) {
+export async function cloneu(player, game, map) {
     const youmonst_data = player.data || player.monst;
     if (!youmonst_data) return null;
     const mndx = monsndx(youmonst_data);
     if ((player.mh || 0) <= 1) return null;
     if (game.mvitals && game.mvitals[mndx]
         && (game.mvitals[mndx].mvflags & G_EXTINCT)) return null;
-    const mon = makemon(youmonst_data, player.ux || player.x, player.uy || player.y,
+    const mon = await makemon(youmonst_data, player.ux || player.x, player.uy || player.y,
         NO_MINVENT | MM_EDOG | MM_NOMSG, null, map);
     if (!mon) return null;
     mon.mcloned = 1;
