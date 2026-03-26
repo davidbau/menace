@@ -1758,7 +1758,7 @@ export async function weffects(obj, player, map, display = null, game = null) {
     }
   }
   if (disclose) {
-    learnwand(obj, player);
+    await learnwand(obj, player);
     if (wasUnknown) more_experienced(0, 10, game, player);
   }
 }
@@ -2583,11 +2583,11 @@ export async function zap_steed(obj, player, map) {
   switch (obj.otyp) {
   case WAN_PROBING:
     await probe_monster(steed);
-    learnwand(obj);
+    await learnwand(obj);
     return true;
   case WAN_TELEPORTATION:
   case SPE_TELEPORT_AWAY:
-    learnwand(obj);
+    await learnwand(obj);
     return true;
   case WAN_MAKE_INVISIBLE:
   case WAN_CANCELLATION:
