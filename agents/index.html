@@ -525,7 +525,7 @@ function renderCommit(c){
     if (firstLine === (c.subject||'').trim()) bodyClean = bodyClean.split('\n').slice(1).join('\n').trim();
   }
   return`<div class="ev ev-commit" id="${id}" onclick="this.classList.toggle('expanded')">
-    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}</span>
+    ${agentBadge(c)}<span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}</span>
   </div>`;
 }
 
@@ -534,7 +534,7 @@ function renderDoc(e){
   e._id=id;
   const url = `https://github.com/davidbau/menace/blob/${e.hash}/${e.file}`;
   return`<div class="ev ev-doc" id="${id}" onclick="this.classList.toggle('expanded')">
-    <a class="doc-name" href="${url}" target="_blank" onclick="event.stopPropagation()">${esc(e.file)}</a>
+    ${agentBadge(e)}<a class="doc-name" href="${url}" target="_blank" onclick="event.stopPropagation()">${esc(e.file)}</a>
     ${e.snippet ? `<div class="doc-snippet">${esc(e.snippet)}</div>` : ''}
   </div>`;
 }
