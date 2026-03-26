@@ -515,6 +515,19 @@ function nhgetch_raw() {
 // nhgetch_display_raw removed — nhgetch is now simple enough for all callers.
 
 // Get a character of input (async)
+// C ref: tty_nhgetch always transitions toplin NEED_MORE→NON_EMPTY.
+// nhgetch_raw does this at line 502-506, but the queued-key and replay paths
+// bypass nhgetch_raw.  This helper applies the same transition for those paths.
+function _nhgetchToplinTransition() {
+    const display = getRuntimeDisplay();
+    if (display) {
+        if (display.toplin === 1) display.toplin = 2;
+        display.messageNeedsMore = false;
+        display.moreMarkerActive = false;
+        display.messageNeedsMoreBoundary = false;
+    }
+}
+
 // This is the JS equivalent of C's nhgetch().
 // C ref: winprocs.h win_nhgetch
 // C ref: nhgetch() — read one key from input.
@@ -527,6 +540,10 @@ export async function nhgetch() {
     if (Number.isFinite(queuedKey)) {
         ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
         recordKey(queuedKey);
+        // C ref: tty_nhgetch transitions toplin 1→2 on every key read,
+        // regardless of source.  The queued-key path was skipping nhgetch_raw
+        // which does this transition, so do it here too.
+        _nhgetchToplinTransition();
         return queuedKey;
     }
 
@@ -535,6 +552,8 @@ export async function nhgetch() {
         if (key !== null) {
             ynTrace('raw=replay', key, String.fromCharCode(key));
             recordKey(key);
+            // C ref: same toplin transition for replay-sourced keys.
+            _nhgetchToplinTransition();
             return key;
         }
     }
