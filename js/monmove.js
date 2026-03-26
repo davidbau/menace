@@ -2411,7 +2411,8 @@ export function set_apparxy(mon, map, player) {
             if (displ !== 2 && mx === mon.mx && my === mon.my) continue;
             if ((mx !== player.x || my !== player.y)
                 && !passes_walls(mdat) && blocked) continue;
-            // C ref: monmove.c:2272-2277 — NO couldsee check here
+            // C ref: monmove.c:2261 — reject positions not in LOS
+            if (!couldsee(map, player, mx, my)) continue;
             break;
         } while (true);
     } else {
