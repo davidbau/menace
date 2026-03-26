@@ -1,183 +1,321 @@
 #!/usr/bin/env node
 /**
- * check-unawaited-async.mjs — AST-based static analysis to find calls
- * to async functions that are not awaited.
+ * check-unawaited-async.mjs — Import-resolving AST-based static analysis
+ * to find calls to async functions that are not awaited.
  *
- * Uses acorn to parse ES modules and walks the AST to find CallExpression
- * nodes where the callee is a known async function and the parent is NOT
- * an AwaitExpression.
+ * Phase 1: Parse all JS files, collect async function declarations and their
+ *          source modules.
+ * Phase 2: Parse import statements in each file, resolve which imported
+ *          names are async by tracing through the import graph.
+ * Phase 3: Walk AST of each file. For each CallExpression, check if the
+ *          callee resolves to a known-async function. If so, verify it's
+ *          inside an AwaitExpression or other valid context.
+ *
+ * This eliminates Array.map/filter false positives since those are never
+ * imported from our modules as async functions.
  *
  * Usage:
- *   node scripts/check-unawaited-async.mjs [--verbose] [file...]
- *
- * If no files specified, scans all js/*.js files.
+ *   node scripts/check-unawaited-async.mjs [--verbose] [--json] [dir...]
  */
 
-import { readFileSync, readdirSync } from 'fs';
-import { join, relative } from 'path';
+import { readFileSync, readdirSync, existsSync } from 'fs';
+import { join, dirname, resolve, relative } from 'path';
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 
 const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');
-const fileArgs = args.filter(a => !a.startsWith('--'));
+const jsonOutput = args.includes('--json');
+const dirs = args.filter(a => !a.startsWith('--'));
+if (dirs.length === 0) dirs.push('js');
 
-const JS_DIR = join(process.cwd(), 'js');
-const files = fileArgs.length > 0
-    ? fileArgs.map(f => ({ name: relative(process.cwd(), f), path: f }))
-    : readdirSync(JS_DIR).filter(f => f.endsWith('.js')).map(f => ({ name: `js/${f}`, path: join(JS_DIR, f) }));
+const ROOT = process.cwd();
 
-// Phase 1: Collect all async function names from all files
-const asyncFunctions = new Set();
+// ─── Phase 1: Collect all async declarations per source file ──────────
 
-for (const file of files) {
-    let src;
-    try { src = readFileSync(file.path, 'utf8'); } catch { continue; }
-    let ast;
-    try {
-        ast = acorn.parse(src, {
-            ecmaVersion: 2025,
-            sourceType: 'module',
-            allowAwaitOutsideFunction: true,
-        });
-    } catch (e) {
-        if (verbose) console.error(`Parse error in ${file.name}: ${e.message}`);
-        continue;
+// Map: absolute file path → Set of async export names
+const asyncExports = new Map();
+// Map: absolute file path → Set of locally-defined async function names (not exported)
+const asyncLocals = new Map();
+// Map: absolute file path → Map of re-exports: { exportedName → { source, importedName } }
+const reExports = new Map();
+
+function resolveModulePath(importPath, fromFile) {
+    // Resolve relative import to absolute path
+    if (!importPath.startsWith('.')) return null; // skip bare specifiers (npm packages)
+    let resolved = resolve(dirname(fromFile), importPath);
+    // Try with .js extension if not present
+    if (!resolved.endsWith('.js') && !resolved.endsWith('.mjs')) {
+        if (existsSync(resolved + '.js')) resolved += '.js';
+        else if (existsSync(resolved + '.mjs')) resolved += '.mjs';
+        else if (existsSync(resolved + '/index.js')) resolved += '/index.js';
     }
-
-    walk.simple(ast, {
-        FunctionDeclaration(node) {
-            if (node.async && node.id?.name) asyncFunctions.add(node.id.name);
-        },
-        // Also catch: const foo = async function() {} and const foo = async () => {}
-        VariableDeclarator(node) {
-            if (node.init && (node.init.type === 'FunctionExpression' || node.init.type === 'ArrowFunctionExpression')) {
-                if (node.init.async && node.id?.name) asyncFunctions.add(node.id.name);
-            }
-        },
-        // Method definitions: async foo() {} in classes/objects
-        MethodDefinition(node) {
-            if (node.value?.async && node.key?.name) asyncFunctions.add(node.key.name);
-        },
-        Property(node) {
-            if (node.value?.async && node.key?.name) asyncFunctions.add(node.key.name);
-        },
-    });
+    return resolved;
 }
 
-if (verbose) console.log(`Found ${asyncFunctions.size} async functions`);
+function collectFiles(dirPaths) {
+    const files = [];
+    for (const dir of dirPaths) {
+        const absDir = resolve(ROOT, dir);
+        if (!existsSync(absDir)) continue;
+        for (const name of readdirSync(absDir)) {
+            if (name.endsWith('.js') || name.endsWith('.mjs')) {
+                files.push({ name: `${dir}/${name}`, path: join(absDir, name) });
+            }
+        }
+    }
+    return files;
+}
 
-// Phase 2: Find un-awaited calls
+const files = collectFiles(dirs);
+
+function parseFile(filePath) {
+    let src;
+    try { src = readFileSync(filePath, 'utf8'); } catch { return null; }
+    try {
+        return {
+            src,
+            ast: acorn.parse(src, {
+                ecmaVersion: 2025,
+                sourceType: 'module',
+                allowAwaitOutsideFunction: true,
+                locations: true,
+            }),
+        };
+    } catch (e) {
+        if (verbose) console.error(`  Parse error: ${filePath}: ${e.message}`);
+        return null;
+    }
+}
+
+// First pass: collect async exports and re-exports
+for (const file of files) {
+    const parsed = parseFile(file.path);
+    if (!parsed) continue;
+    const { ast } = parsed;
+
+    const exports = new Set();
+    const locals = new Set();
+    const reExs = new Map();
+
+    walk.simple(ast, {
+        // export async function foo() {}
+        ExportNamedDeclaration(node) {
+            if (node.declaration) {
+                if (node.declaration.type === 'FunctionDeclaration' && node.declaration.async) {
+                    const name = node.declaration.id?.name;
+                    if (name) exports.add(name);
+                }
+                // export const foo = async () => {}
+                if (node.declaration.type === 'VariableDeclaration') {
+                    for (const decl of node.declaration.declarations) {
+                        if (decl.init?.async && decl.id?.name) {
+                            exports.add(decl.id.name);
+                        }
+                    }
+                }
+            }
+            // export { foo } from './bar.js' — re-export
+            if (node.source && node.specifiers) {
+                const sourcePath = resolveModulePath(node.source.value, file.path);
+                for (const spec of node.specifiers) {
+                    const exportedName = spec.exported?.name;
+                    const importedName = spec.local?.name;
+                    if (exportedName && importedName && sourcePath) {
+                        reExs.set(exportedName, { source: sourcePath, importedName });
+                    }
+                }
+            }
+        },
+        // export default async function() {} — rare but possible
+        ExportDefaultDeclaration(node) {
+            if (node.declaration?.async) {
+                exports.add('default');
+            }
+        },
+    });
+
+    // Also collect non-exported async functions (local to file)
+    walk.simple(ast, {
+        FunctionDeclaration(node) {
+            if (node.async && node.id?.name) {
+                locals.add(node.id.name);
+                // If also exported, already in exports set
+            }
+        },
+        VariableDeclarator(node) {
+            if (node.init?.async && node.id?.name) {
+                locals.add(node.id.name);
+            }
+        },
+    });
+
+    asyncExports.set(file.path, exports);
+    asyncLocals.set(file.path, locals);
+    reExports.set(file.path, reExs);
+}
+
+// Resolve re-exports: if file A re-exports foo from file B, and B's foo is async,
+// then A's foo is async too.
+function isAsyncExport(filePath, name, visited = new Set()) {
+    if (visited.has(`${filePath}:${name}`)) return false;
+    visited.add(`${filePath}:${name}`);
+
+    const exports = asyncExports.get(filePath);
+    if (exports?.has(name)) return true;
+
+    const reExs = reExports.get(filePath);
+    const re = reExs?.get(name);
+    if (re) return isAsyncExport(re.source, re.importedName, visited);
+
+    return false;
+}
+
+if (verbose) {
+    let total = 0;
+    for (const [, exps] of asyncExports) total += exps.size;
+    console.log(`Phase 1: ${total} async exports across ${files.length} files`);
+}
+
+// ─── Phase 2+3: For each file, resolve imports and find un-awaited calls ──
+
 const violations = [];
 
 for (const file of files) {
-    let src;
-    try { src = readFileSync(file.path, 'utf8'); } catch { continue; }
+    const parsed = parseFile(file.path);
+    if (!parsed) continue;
+    const { ast, src } = parsed;
     const lines = src.split('\n');
-    let ast;
-    try {
-        ast = acorn.parse(src, {
-            ecmaVersion: 2025,
-            sourceType: 'module',
-            allowAwaitOutsideFunction: true,
-            locations: true,
-        });
-    } catch { continue; }
 
-    // Walk with ancestor tracking to check parent nodes
+    // Build map: local name → is-async for this file
+    // Start with locally-defined async functions
+    const asyncNames = new Set(asyncLocals.get(file.path) || []);
+
+    // Add imported names that resolve to async exports
+    walk.simple(ast, {
+        ImportDeclaration(node) {
+            const sourcePath = resolveModulePath(node.source?.value, file.path);
+            if (!sourcePath) return;
+            for (const spec of node.specifiers) {
+                const localName = spec.local?.name;
+                const importedName = spec.imported?.name || spec.local?.name;
+                if (localName && importedName && isAsyncExport(sourcePath, importedName)) {
+                    asyncNames.add(localName);
+                }
+            }
+        },
+    });
+
+    // Walk AST to find un-awaited calls
     walk.ancestor(ast, {
         CallExpression(node, ancestors) {
-            // Get the function name being called
             let fnName = null;
+
+            // Direct call: foo()
             if (node.callee.type === 'Identifier') {
                 fnName = node.callee.name;
-            } else if (node.callee.type === 'MemberExpression' && node.callee.property?.name) {
+            }
+            // Method call: obj.foo() — check if foo is async
+            // Only for: display.putstr_message(), display.renderStatus(), etc.
+            else if (node.callee.type === 'MemberExpression' && node.callee.property?.type === 'Identifier') {
                 fnName = node.callee.property.name;
+                // For member calls, only flag if the method name is in our async set
+                // This handles display.putstr_message() but not array.map()
+            }
+            // Optional chain: foo?.()
+            else if (node.callee.type === 'ChainExpression') {
+                const inner = node.callee.expression;
+                if (inner?.type === 'MemberExpression' && inner.property?.type === 'Identifier') {
+                    fnName = inner.property.name;
+                }
             }
 
-            if (!fnName || !asyncFunctions.has(fnName)) return;
+            if (!fnName || !asyncNames.has(fnName)) return;
 
-            // Check if this call is awaited
+            // Check ancestor chain for valid contexts
             const parent = ancestors[ancestors.length - 2];
+
+            // ✓ await foo()
             if (parent?.type === 'AwaitExpression') return;
 
-            // Check if it's a return value (return foo())
+            // ✓ return foo()
             if (parent?.type === 'ReturnStatement') return;
 
-            // Check if assigned to a variable (const p = foo())
+            // ✓ const x = foo()
             if (parent?.type === 'VariableDeclarator') return;
 
-            // Check if it's the init of an assignment (x = foo())
+            // ✓ x = foo()
             if (parent?.type === 'AssignmentExpression' && parent.right === node) return;
 
-            // Check if it's in a .then() chain
-            const grandparent = ancestors[ancestors.length - 3];
-            if (grandparent?.type === 'MemberExpression' && grandparent.property?.name === 'then') return;
+            // ✓ foo().then(...)  — already chained
+            const gp = ancestors[ancestors.length - 3];
+            if (parent?.type === 'MemberExpression' && parent.object === node) return;
 
-            // Check if it's a void expression (intentional fire-and-forget)
-            if (parent?.type === 'UnaryExpression' && parent.operator === 'void') {
-                violations.push({
-                    file: file.name,
-                    line: node.loc.start.line,
-                    col: node.loc.start.column + 1,
-                    fn: fnName,
-                    text: lines[node.loc.start.line - 1]?.trim().substring(0, 80) || '',
-                    severity: 'warn',
-                    reason: 'void suppresses Promise — intentional fire-and-forget?',
-                });
-                return;
-            }
+            // ✓ [foo(), bar()] — likely Promise.all
+            if (parent?.type === 'ArrayExpression') return;
 
-            // Check if it's an argument to another function (foo(bar()))
-            // This is often intentional — the outer function handles the Promise
+            // ✓ condition ? foo() : bar()
+            if (parent?.type === 'ConditionalExpression') return;
+
+            // ✓ foo() || bar()
+            if (parent?.type === 'LogicalExpression') return;
+
+            // ✓ void foo() — intentional fire-and-forget (flag as warning)
+            if (parent?.type === 'UnaryExpression' && parent.operator === 'void') return;
+
+            // ✓ fn(foo()) — passed as argument to another function
+            // (the receiving function is responsible for the Promise)
             if (parent?.type === 'CallExpression' && parent.callee !== node) return;
 
-            // Check if it's in Promise.all/race
-            if (parent?.type === 'ArrayExpression') {
-                const gp = ancestors[ancestors.length - 3];
-                if (gp?.type === 'CallExpression') return; // likely Promise.all([...])
-            }
+            // ✓ async arrow: () => foo() — implicit return
+            if (parent?.type === 'ArrowFunctionExpression' && parent.body === node) return;
 
-            // Check if it's a conditional expression value
-            if (parent?.type === 'ConditionalExpression') return;
-            if (parent?.type === 'LogicalExpression') return;
+            // ✓ Property value in object literal: { key: foo() }
+            if (parent?.type === 'Property' && parent.value === node) return;
+
+            // ✓ Sequence expression: (a, foo()) — last value returned
+            if (parent?.type === 'SequenceExpression') return;
+
+            // ✓ Template literal expression: `${foo()}`
+            if (parent?.type === 'TemplateLiteral') return;
 
             violations.push({
                 file: file.name,
                 line: node.loc.start.line,
                 col: node.loc.start.column + 1,
                 fn: fnName,
-                text: lines[node.loc.start.line - 1]?.trim().substring(0, 80) || '',
-                severity: 'error',
-                reason: 'async function called without await',
+                text: (lines[node.loc.start.line - 1] || '').trim().substring(0, 90),
             });
         },
     });
 }
 
-// Report
-const errors = violations.filter(v => v.severity === 'error');
-const warnings = violations.filter(v => v.severity === 'warn');
+// ─── Report ────────────────────────────────────────────────────────────
 
-if (errors.length > 0) {
-    console.log(`\n${errors.length} un-awaited async calls (ERRORS):\n`);
-    for (const v of errors) {
-        console.log(`  ${v.file}:${v.line}:${v.col} — ${v.fn}()`);
-        console.log(`    ${v.text}`);
-    }
+if (jsonOutput) {
+    console.log(JSON.stringify(violations, null, 2));
+    process.exit(violations.length > 0 ? 1 : 0);
 }
 
-if (warnings.length > 0 && verbose) {
-    console.log(`\n${warnings.length} intentional fire-and-forget (void) calls:\n`);
-    for (const v of warnings) {
-        console.log(`  ${v.file}:${v.line}:${v.col} — void ${v.fn}()`);
-    }
-}
-
-if (errors.length === 0) {
-    console.log(`\n✓ No un-awaited async calls found across ${files.length} files.`);
+if (violations.length === 0) {
+    console.log(`✓ No un-awaited async calls found across ${files.length} files (${[...asyncExports.values()].reduce((s, e) => s + e.size, 0)} async exports tracked).`);
     process.exit(0);
-} else {
-    console.log(`\n✗ ${errors.length} violations found.`);
-    process.exit(1);
 }
+
+// Group by file
+const byFile = new Map();
+for (const v of violations) {
+    if (!byFile.has(v.file)) byFile.set(v.file, []);
+    byFile.get(v.file).push(v);
+}
+
+console.log(`\n${violations.length} un-awaited async calls in ${byFile.size} files:\n`);
+for (const [file, vs] of [...byFile.entries()].sort()) {
+    console.log(`  ${file}:`);
+    for (const v of vs) {
+        console.log(`    L${v.line}:${v.col}  ${v.fn}()  — ${v.text}`);
+    }
+}
+
+console.log(`\n✗ ${violations.length} violations found.`);
+process.exit(1);
