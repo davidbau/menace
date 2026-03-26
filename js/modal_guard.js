@@ -31,6 +31,7 @@ const ENABLED = _env.WEBHACK_MODAL_GUARD !== '0'; // enabled by default
 
 let _modalOwner = null;   // string identifying the active modal ('more', 'yn', 'getlin', etc.)
 let _modalStack = [];      // stack for nested modals (shouldn't happen but defensive)
+let _modalEntryStack = null; // call stack at the point enterModal was called (for debugging)
 let _violationCount = 0;
 let _violationHandler = null;
 
@@ -43,10 +44,11 @@ let _violationHandler = null;
 export function enterModal(owner) {
     if (!ENABLED) return;
     if (_modalOwner) {
-        // Nested modal — push current onto stack
-        _modalStack.push(_modalOwner);
+        // Nested modal — push current onto stack (with its entry trace)
+        _modalStack.push({ owner: _modalOwner, stack: _modalEntryStack });
     }
     _modalOwner = owner;
+    _modalEntryStack = new Error(`enterModal('${owner}')`).stack || null;
 }
 
 /**
@@ -59,7 +61,9 @@ export function exitModal(owner) {
     if (_modalOwner !== owner) {
         _reportViolation(`exitModal('${owner}') but current owner is '${_modalOwner}'`);
     }
-    _modalOwner = _modalStack.pop() || null;
+    const prev = _modalStack.pop();
+    _modalOwner = prev?.owner || null;
+    _modalEntryStack = prev?.stack || null;
 }
 
 /**
@@ -78,7 +82,8 @@ export function assertNotInModal(caller) {
     _reportViolation(
         `Game code '${caller}' ran while modal '${_modalOwner}' owns input. `
         + `In C this would be impossible (wgetch blocks). `
-        + `This indicates an async ordering bug.`
+        + `This indicates an async ordering bug.`,
+        _modalEntryStack
     );
 }
 
@@ -113,15 +118,18 @@ export function setViolationHandler(handler) {
     _violationHandler = handler;
 }
 
-function _reportViolation(message) {
+function _reportViolation(message, modalEntryStack) {
     _violationCount++;
-    const stack = new Error().stack || '';
+    const violationStack = new Error().stack || '';
     if (_violationHandler) {
-        _violationHandler(message, stack);
+        _violationHandler(message, violationStack, modalEntryStack);
         return;
     }
     console.error(`[MODAL VIOLATION] ${message}`);
-    console.error(stack);
+    console.error(`Violation occurred at:\n${violationStack}`);
+    if (modalEntryStack) {
+        console.error(`Modal was entered at:\n${modalEntryStack}`);
+    }
     // In development, throw to make violations loud and unfixable.
     // In production (browser), log but don't crash.
     if (typeof process !== 'undefined') {

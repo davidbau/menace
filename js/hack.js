@@ -84,6 +84,7 @@ import { autokey, pick_lock } from './lock.js';
 import { is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall } from './dbridge.js';
 import { game as _gstate } from './gstate.js';
 import { notake } from './mondata.js';
+import { enterModal, exitModal, assertNotInModal } from './modal_guard.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
@@ -857,6 +858,7 @@ export async function domove_fight_empty(x, y, map, display, game) {
 // Handle directional movement
 // C ref: hack.c domove_core() worker
 export async function domove_core(dir, player, map, display, game) {
+    assertNotInModal('domove_core');
     const ctx = ensure_context(game);
     const flags = game.flags || {};
     const oldX = player.x;
@@ -4043,7 +4045,13 @@ export async function getdir(prompt, display) {
             display.setCursor(Math.min(dirPrompt.length + 1, (display.cols || 80) - 1), 0);
         }
     }
-    const ch = await nhgetch();
+    enterModal('getdir');
+    let ch;
+    try {
+        ch = await nhgetch();
+    } finally {
+        exitModal('getdir');
+    }
     if (display) {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;

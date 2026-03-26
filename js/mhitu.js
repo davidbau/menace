@@ -83,6 +83,7 @@ import { pline, pline_mon, verbalize } from './pline.js';
 import { game as activeGame } from './gstate.js';
 import { fall_asleep } from './timeout.js';
 import { envFlag, getEnv, writeStderr } from './runtime_env.js';
+import { assertNotInModal } from './modal_guard.js';
 
 // PIERCE imported from objects.js
 
@@ -1304,6 +1305,7 @@ async function mhitu_adtyping(monster, attack, player, mhm, ctx) {
 // opts.range2: true if monster is not adjacent (ranged attacks only)
 // opts.map: map object (needed for thrwmu ranged throwing)
 export async function mattacku(monster, player, display, game = null, opts = {}) {
+    assertNotInModal('mattacku');
     if (!monster.attacks || monster.attacks.length === 0) return;
     if (monster.passive) return; // passive monsters don't initiate attacks
 

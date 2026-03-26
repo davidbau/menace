@@ -71,6 +71,7 @@ import { glyph_is_invisible } from './symbols.js';
 import { IS_STWALL, IS_DOOR, IS_TREE, IS_WATERWALL,
          LAVAWALL, IRONBARS, SCORR, SDOOR, DRAWBRIDGE_UP,
          D_CLOSED, D_LOCKED, D_ISOPEN } from './const.js';
+import { assertNotInModal } from './modal_guard.js';
 
 
 function hasVisibleMorePrompt(display) {
@@ -89,6 +90,7 @@ function hasVisibleMorePrompt(display) {
 // Returns: { moved: boolean, tookTime: boolean }
 // Autotranslated from cmd.c:3744
 export async function rhack(ch, game) {
+    assertNotInModal('rhack');
     const { u: player, map, display, fov } = game;
     const svc = game.svc || (game.svc = {});
     const context = svc.context || (svc.context = {});
