@@ -798,13 +798,6 @@ export function mkclass_poly(monclass) {
     return -1;
 }
 
-// C ref: drawing.c def_char_to_monclass()
-export function def_char_to_monclass(ch) {
-    for (let i = 1; i < MAXMCLASSES; i++) {
-        if (ch === def_monsyms[i].sym) return i;
-    }
-    return MAXMCLASSES;
-}
 
 // cf. makemon.c:1539 — return the birth limit for a monster type
 // (how many of this monster can exist before the population is considered too large)

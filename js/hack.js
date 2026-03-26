@@ -2555,16 +2555,6 @@ export async function check_capacity(player, str, display) {
     return false;
 }
 
-// C ref: hack.c inv_cnt() — count inventory items
-export function inv_cnt(player, incl_gold) {
-    let ct = 0;
-    const inv = player.inventory || [];
-    for (const obj of inv) {
-        if (!obj) continue;
-        if (incl_gold || obj.oclass !== COIN_CLASS) ct++;
-    }
-    return ct;
-}
 
 // C ref: hack.c money_cnt() — count gold in inventory
 export function money_cnt(inventory) {

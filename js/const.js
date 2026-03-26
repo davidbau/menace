@@ -3767,14 +3767,6 @@ export function def_char_to_objclass(ch) {
     return MAXOCLASSES;
 }
 
-// drawing.c:108 — convert a character into its monster class.
-// Returns the index of the first matching class, or MAXMCLASSES if not found.
-export function def_char_to_monclass(ch) {
-    for (let i = 1; i < MAXMCLASSES; i++) {
-        if (def_monsyms[i] && def_monsyms[i].sym === ch) return i;
-    }
-    return MAXMCLASSES;
-}
 
 // drawing.c:120 — does 'ch' represent a furniture character?
 // Returns the defsyms[] index if found, or 0 if not.

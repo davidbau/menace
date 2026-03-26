@@ -26,16 +26,16 @@ for all callers. Naive import switching causes 131 session regressions.
 
 | # | Function | C source | JS natural home | Currently also in | Status |
 |---|----------|----------|----------------|-------------------|--------|
-| 1 | `inv_cnt` | hack.c:4448 | hack.js | invent.js:2705 | [ ] |
+| 1 | `inv_cnt` | hack.c:4448 | hack.js | ~~hack.js:2559 deleted~~ | [x] stale copy deleted |
 | 2 | `dolook` | invent.c:4321 | invent.js | pager.js:393 | [ ] |
 | 3 | `can_carry` | mon.c:1975 | mon.js | dogmove.js:275 | [ ] |
-| 4-8 | `Monnam`/`mon_nam`/`x_monnam`/`y_monnam`/`YMonnam` | do_name.c | do_name.js | mondata.js (wrappers) | [~] BLOCKED: x_monnam audit needed |
+| 4-8 | `Monnam`/`mon_nam`/`x_monnam`/`y_monnam`/`YMonnam` | do_name.c | do_name.js | ~~mondata.js wrappers deleted~~ | [x] imports switched + canspotmon fix + mhitm/muse article fixes |
 | 9 | `movemon` | mon.c:1311 | mon.js | monmove.js:136 | [ ] |
 | 10 | `mineralize` | mklev.c:1451 | mklev.js | dungeon.js + sp_lev.js | [ ] |
 | 11 | `rndmonnum` | mkobj.c:389 | mkobj.js | makemon.js:592 | [ ] |
-| 12 | `def_char_to_monclass` | drawing.c:108 | symbols.js | const.js + makemon.js | [ ] |
-| 13 | `age_spells`/`ageSpells` | spell.c:669 | spell.js | (same file) | [ ] |
-| 14 | `inside_shop`/`insideShop` | shk.c:509 | shk.js | (same file) | [ ] |
+| 12 | `def_char_to_monclass` | drawing.c:108 | symbols.js | ~~const.js + makemon.js deleted~~ | [x] sp_lev switched to symbols.js |
+| 13 | `age_spells`/`ageSpells` | spell.c:669 | spell.js | ~~ageSpells renamed~~ | [x] renamed + stub deleted |
+| 14 | `inside_shop`/`insideShop` | shk.c:509 | shk.js | ~~insideShop renamed~~ | [x] renamed + stale export deleted |
 | 15 | `getCost`/`get_cost` | shk.c:2818 | shk.js | ~~getCost deleted~~ | [x] done |
 
 ## Lesson Learned

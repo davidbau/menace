@@ -46,9 +46,10 @@ import {
 } from './mondata.js';
 import { create_gas_cloud_selection_mklev } from './region.js';
 import {
-    makemon, makemon_appear, mkclass, def_char_to_monclass,
+    makemon, makemon_appear, mkclass,
     rndmonnum, getMakemonRoleIndex
 } from './makemon.js';
+import { def_char_to_monclass } from './symbols.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, DBWALL, ROOM, CORR,
