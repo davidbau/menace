@@ -8,6 +8,7 @@ export class CtrlCInterrupt extends Error {
 
 import { CLR_GRAY } from './render.js';
 import { pushRngLogEntry } from './rng.js';
+import { enterModal, exitModal } from './modal_guard.js';
 import { recordKey, isReplayMode, getNextReplayKey } from './keylog.js';
 import {
     CMDQ_KEY, CMDQ_EXTCMD, CMDQ_DIR, CMDQ_USER_INPUT, CMDQ_INT,
@@ -613,7 +614,13 @@ export async function more(display, {
         display.renderMoreMarker();
     }
 
-    const ch = await waitForMoreDismissKey(readMoreKey);
+    enterModal('more');
+    let ch;
+    try {
+        ch = await waitForMoreDismissKey(readMoreKey);
+    } finally {
+        exitModal('more');
+    }
     // C ref: win/tty/topl.c xwaitforspace() — space/ESC/enter dismiss --More-- and
     // clear the message line.  Other keys (e.g. movement keys pressed while --More--
     // is showing) are consumed but the --More-- boundary fires AGAIN on the next key,
@@ -727,6 +734,8 @@ export async function getlin(prompt, display, options = {}) {
 
     const readPromptKey = async () => nhgetch();
 
+    enterModal('getlin');
+    try {
     while (true) {
         const ch = await readPromptKey();
         if (ch === 13 || ch === 10) { // Enter
@@ -784,6 +793,9 @@ export async function getlin(prompt, display, options = {}) {
             line += String.fromCharCode(ch);
             await updateDisplay();
         }
+    }
+    } finally {
+        exitModal('getlin');
     }
 }
 
@@ -861,6 +873,8 @@ export async function ynFunction(query, choices, def, display, options = {}) {
     const preserveCase = !!(choices && /[A-Z]/.test(choices));
     const readPromptKey = async () => nhgetch();
 
+    enterModal('yn');
+    try {
     while (true) {
         const ch = await readPromptKey();
         ynTrace('key', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
@@ -890,6 +904,9 @@ export async function ynFunction(query, choices, def, display, options = {}) {
             return c.charCodeAt(0);
         }
         ynTrace('reject', c);
+    }
+    } finally {
+        exitModal('yn');
     }
 }
 

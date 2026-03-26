@@ -79,6 +79,7 @@ import { amulet } from './wizard.js';
 import { dosounds } from './sounds.js';
 import { find_ac, set_wear } from './do_wear.js';
 import { any_visible_region, run_regions } from './region.js';
+import { assertNotInModal } from './modal_guard.js';
 
 const QUEST_PORTAL_INFO_BY_ROLE = {
     Arc: { leader: 'Lord Carnarvon', homebase: 'the College of Archeology' },
@@ -173,6 +174,7 @@ async function com_pager_quest_common(msgid, player) {
 // C ref: vision_full_recalc checked at top of each loop iteration (vision.c)
 // Autotranslated from allmain.c:169
 export async function moveloop_core(game, opts = {}) {
+    assertNotInModal('moveloop_core');
     const player = (game.u || game.u);
     const setMonsterPhase = (isMonsterPhase) => {
         const v = !!isMonsterPhase;
