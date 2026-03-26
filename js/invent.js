@@ -2230,7 +2230,7 @@ export async function fully_identify_obj(otmp, creditClue = true) {
 // C ref: invent.c identify() — identify object and give feedback
 // Autotranslated from invent.c:2650
 export async function identify(otmp, player, creditClue = true) {
-  fully_identify_obj(otmp, creditClue);
+  await fully_identify_obj(otmp, creditClue);
   await prinv( 0, otmp, 0);
   // C ref: invent.c:2650 — C's identify() does NOT call exercise().
   // The exercise(A_WIS) call belongs in seffects() after identification completes.
