@@ -1525,13 +1525,15 @@ export async function domove_core(dir, player, map, display, game) {
         }
     }
 
-    // C ref: hack.c:2682 + 2944-2947
-    // domove() smudges only when gd.domove_succeeded carries DOMOVE flags.
-    // If nomul(0) clears running during this move (for example read_engr_at()),
-    // C clears the attempting gate and skips this post-move smudge.
-    const runAtMoveStart = Number(ctx._runAtMoveStart || 0);
-    const runClearedDuringMove = runAtMoveStart > 0 && Number(ctx.run || 0) === 0;
-    if (!runClearedDuringMove) {
+    // C ref: hack.c:2700 + 2962-2965 — domove() calls maybe_smudge_engr()
+    // only when domove_succeeded has DOMOVE_RUSH|DOMOVE_WALK flags AND the
+    // hero actually moved. domove_attempting is set by cmd.c on the FIRST
+    // step of a walk/run, then cleared by domove(). For run steps 2+,
+    // domove_attempting is 0 (allmain.c multi loop doesn't re-set it), so
+    // domove_succeeded is 0 and smudge is skipped.
+    // JS: _isRunStep is set by do_run for steps 2+ of a run.
+    const isRunContinuation = !!ctx._isRunStep;
+    if (!isRunContinuation && (player.x !== oldX || player.y !== oldY)) {
         await maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
     }
 
@@ -1579,12 +1581,12 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
     while (steps < 80) { // safety limit
         const beforeX = player.x;
         const beforeY = player.y;
-        // Preserve run/rush attempt state across domove(). C gates post-domove
-        // smudging on gd.domove_succeeded, which is derived from
-        // gd.domove_attempting; nomul(0) during the move can clear that gate.
-        ctx._runAtMoveStart = Number(ctx.run || 0);
+        // C ref: domove_attempting is set by cmd.c for the FIRST step only.
+        // For steps 2+, domove_attempting is 0 (cleared by domove()), so
+        // domove_succeeded won't have RUSH/WALK flags and smudge is skipped.
+        ctx._isRunStep = (steps > 0);
         const result = await domove(runDir, player, map, display, game);
-        ctx._runAtMoveStart = 0;
+        ctx._isRunStep = false;
         if (result.tookTime) timedTurns++;
         runTrace(
             `step=${replayStepLabel(map)}`,
@@ -1638,7 +1640,7 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
 
     }
     ctx.run = 0;
-    ctx._runAtMoveStart = 0;
+    ctx._isRunStep = false;
     game.running = false;
     return {
         moved: steps > 0,
