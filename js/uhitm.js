@@ -52,7 +52,7 @@ import { will_hurtle, mhurtle, ammo_and_launcher, is_ammo, is_missile } from './
 import { u_wipe_engr } from './engrave.js';
 import { s_suffix, dist2 } from './hacklib.js';
 import {
-    nonliving, x_monnam, y_monnam, is_undead, is_demon,
+    nonliving, is_undead, is_demon,
     magic_negation, attacktype,
     resists_fire, resists_cold, resists_elec, resists_acid,
     resists_poison, resists_sleep, resists_ston, resists_drli,
@@ -63,6 +63,7 @@ import {
     is_rider, slimeproof, completelyrusts, completelyrots,
     poly_when_stoned, DEADMONSTER, resists_blnd,
 } from './mondata.js';
+import { x_monnam, y_monnam } from './do_name.js';
 import { obj_resists } from './objdata.js';
 import { experience, more_experienced, newexplevel, newuexp } from './exper.js';
 import { game as _gstate } from './gstate.js';

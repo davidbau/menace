@@ -34,7 +34,7 @@ import {
 import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, GAUNTLETS_OF_POWER, WEAPON_CLASS, PIERCE } from './objects.js';
 import { xname, doname } from './mkobj.js';
 import {
-    x_monnam, is_humanoid, thick_skinned, hides_under,
+    is_humanoid, thick_skinned, hides_under,
     resists_fire, resists_cold, resists_elec, resists_acid, resists_ston,
     sticks, unsolid, attacktype, attacktype_fordmg, can_blnd, is_demon, is_were, is_human,
     is_animal, digests, enfolds, is_whirly, haseyes, perceives,
@@ -67,7 +67,7 @@ import { mon_explodes } from './explode.js';
 import { spec_dbon, defends } from './artifact.js';
 import { msummon } from './minion.js';
 import { new_were, were_summon, set_ulycn, counter_were } from './were.js';
-import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
+import { Mgender, Monnam, pmname, christen_monst, x_monnam } from './do_name.js';
 import { makemon } from './makemon.js';
 import { resists_blnd, drain_item, destroy_items_rng_only } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';

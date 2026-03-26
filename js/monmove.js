@@ -54,7 +54,7 @@ import { holetime } from './dig.js';
 import { cansee, couldsee, m_cansee } from './vision.js';
 import { pline, pline_mon, pline_The, You_hear, set_msg_xy, verbalize } from './pline.js';
 import { can_teleport, noeyes, perceives, nohands,
-         hides_under, is_mercenary, is_watch, YMonnam, Monnam,
+         hides_under, is_mercenary, is_watch,
          mon_knows_traps, is_rider, is_mind_flayer,
          is_mindless, telepathic,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
@@ -83,7 +83,7 @@ import { gd_move } from './vault.js';
 import { dist2, distmin, distu } from './hacklib.js';
 import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse, m_consume_obj } from './mon.js';
 import { attackVerb } from './mhitm.js';
-import { monAttackName } from './do_name.js';
+import { monAttackName, YMonnam, Monnam } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym, canspotmon, canseemon } from './display.js';
 import { addToMonsterInventory, canMergeMonsterInventoryObj } from './invent.js';
 import { mpickobj, mdrop_obj, findgold } from './steal.js';

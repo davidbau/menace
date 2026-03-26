@@ -407,7 +407,7 @@ function estimateSpellFailPercent(player, spellName, spellLevel, category) {
 // ── Exported functions ──
 
 // C ref: spell.c age_spells() — decrement spell retention each turn
-export function ageSpells(player) {
+export function age_spells(player) {
     const spells = player.spells;
     if (!spells) return;
     for (const s of spells) {
@@ -1734,15 +1734,6 @@ export async function deadbook_pacify_undead(mtmp, game, player) {
       await monflee(mtmp, 0, false, true);
     }
   }
-}
-
-// Autotranslated from spell.c:668
-export function age_spells() {
-  let i;
-  for (i = 0; i < MAXSPELL && spellid(i) !== NO_SPELL; i++) {
-    if (spellknow(i)) decrnknow(i);
-  }
-  return;
 }
 
 // Autotranslated from spell.c:786
