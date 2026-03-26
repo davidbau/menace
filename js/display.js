@@ -33,6 +33,8 @@ import { M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
 import { isObjectNameKnown, isObjectEncountered, discoveryTypeName, observe_object } from './o_init.js';
+import { objectData as _objectDataArr } from './objects.js';
+function _objectDataForMimic(otyp) { return _objectDataArr[otyp] || {}; }
 import {
     wallIsVisible,
     trapGlyph,
@@ -2132,6 +2134,36 @@ export function newsym(x, y, ctxOrMap = null) {
 
     // Monster (checked before mem_magic_trap — visible monsters always override the stored glyph)
     const mon = map.monsterAt(x, y);
+    // C ref: display.c:532-584 display_monster() — mimics with M_AP_OBJECT
+    // or M_AP_FURNITURE show their disguise, not the monster glyph.
+    // monsterShownOnMap returns false for these, so handle them first.
+    if (mon && (mon.m_ap_type === M_AP_OBJECT || mon.m_ap_type === M_AP_FURNITURE)) {
+        if (mon.m_ap_type === M_AP_OBJECT && Number.isInteger(mon.mappearance)) {
+            // C ref: display.c:564-576 M_AP_OBJECT — show the mimicked object
+            cosmic_display_log_newsym(x, y, 'visible-mimic-obj', true);
+            const od = _objectDataForMimic(mon.mappearance);
+            // Use the object's defined symbol and color directly.
+            // C ref: map_object() → obj_to_glyph() uses the object class symbol.
+            const mimicCh = od.symbol || '?';
+            const mimicColor = Number.isFinite(od.oc_color) ? od.oc_color : CLR_GRAY;
+            loc.mem_obj = mimicCh;
+            loc.mem_obj_color = mimicColor;
+            putMapCell(display, loc, map, col, row, mimicCh, mimicColor);
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
+            return;
+        } else if (mon.m_ap_type === M_AP_FURNITURE && Number.isInteger(mon.mappearance)) {
+            // C ref: display.c:543-561 M_AP_FURNITURE — show the mimicked terrain
+            cosmic_display_log_newsym(x, y, 'visible-mimic-furn', true);
+            const furnSym = renderTerrainSymbol(loc, map, x, y, flags);
+            putMapCell(display, loc, map, col, row, furnSym.ch || ' ', furnSym.color || CLR_GRAY);
+            cosmic_display_clear_newsym_branch();
+            cosmic_display_clear_maploc_branch();
+            cosmic_display_clear_cell();
+            return;
+        }
+    }
     if (monsterShownOnMap(mon, player, map)) {
         cosmic_display_log_newsym(x, y, 'visible-mon', true);
         // C ref: display.c:1008-1014 — trapped monster reveals physical traps
