@@ -1383,14 +1383,14 @@ function minstapetrify(mon, byplayer) {
 }
 
 // Autotranslated from trap.c:389
-export function mk_trap_statue(x, y, game, player) {
+export async function mk_trap_statue(x, y, game, player) {
   let mtmp, otmp, statue, mptr, trycount = 10;
   do {
     mptr = mons[rndmonnum()]; // C: &mons[rndmonnum()]
   } while (--trycount > 0 && is_unicorn(mptr) && sgn(player.alignment) === sgn(mptr.maligntyp));
   const mndx = Number.isInteger(mptr?.mndx) ? mptr.mndx : mons.indexOf(mptr);
   statue = mkcorpstat(STATUE, mndx, false, x, y, game?.lev || game?.map || null);
-  mtmp = makemon(mptr, 0, 0, MM_NOCOUNTBIRTH | MM_NOMSG);
+  mtmp = await makemon(mptr, 0, 0, MM_NOCOUNTBIRTH | MM_NOMSG);
   if (!mtmp) return;
   while (mtmp.minvent) {
     otmp = mtmp.minvent;
