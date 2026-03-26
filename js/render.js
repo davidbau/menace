@@ -508,10 +508,13 @@ export function formatStatusLine2(player) {
         parts.push(`Xp:${level}`);
     }
     if (player.showTime) parts.push(`T:${player.turns}`);
-    if (player.hunger > 1000) parts.push('Satiated');
-    else if (player.hunger <= 50) parts.push('Fainting');
-    else if (player.hunger <= 150) parts.push('Weak');
-    else if (player.hunger <= 300) parts.push('Hungry');
+    // C ref: botl.c status line uses u.uhs (hunger state), not raw u.uhunger value.
+    // States: 0=Satiated, 1=NOT_HUNGRY, 2=Hungry, 3=Weak, 4=Fainting, 5=Fainted, 6=Starved
+    const uhs = player.uhs ?? player.hungerState ?? 1;
+    if (uhs === 0) parts.push('Satiated');
+    else if (uhs >= 4) parts.push('Fainting');
+    else if (uhs === 3) parts.push('Weak');
+    else if (uhs === 2) parts.push('Hungry');
     // C ref: botl.c bot() computes near_capacity() live every status redraw.
     // Use cached player.encumbrance when available (set by encumber_msg at
     // turn boundaries and by --More-- snapshot restore) so the status line
