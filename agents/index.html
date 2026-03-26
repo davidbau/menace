@@ -29,7 +29,6 @@
   .sidebar h2 { font-size: 1em; color: var(--accent); padding: 0 0.8em 0.4em; }
   .sparkline { display: flex; align-items: flex-end; gap: 1px; height: 22px; padding: 0 0.8em 0.5em; }
   .sb { flex: 1; min-width: 2px; border-radius: 1px 1px 0 0; background: #c5b899; cursor: pointer; }
-  .sb.hl { background: var(--lore); }
   .toc-chapter {
     padding: 0.5em 0.8em 0.15em; font-size: 0.75em; font-weight: 700;
     color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em;
@@ -42,7 +41,6 @@
   }
   .toc-item:hover { background: rgba(107,44,44,0.04); }
   .toc-item.active { border-left-color: var(--accent); background: rgba(107,44,44,0.07); }
-  .toc-item.hl { border-left-color: var(--lore); }
   .td { font-weight: 600; color: var(--accent-dk); font-size: 0.9em; }
   .ts { color: var(--muted); font-style: italic; display: block; font-size: 0.88em; }
 
@@ -415,7 +413,7 @@ function renderToc(){
   const mx=Math.max(...DATA.map(d=>d.commits?.length||0));
   document.getElementById('spark').innerHTML=DATA.map(d=>{
     const h=Math.max(2,Math.round((d.commits?.length||0)/mx*18));
-    return`<div class="sb${d.lore?.length?' hl':''}" style="height:${h}px" data-d="${d.date}"></div>`;
+    return`<div class="sb" style="height:${h}px" data-d="${d.date}"></div>`;
   }).join('');
   const shortDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   // Build chapter lookup: date → chapter that starts on this date
@@ -429,7 +427,7 @@ function renderToc(){
     const dd = dt.getDate();
     const ch = chapterStart[d.date];
     const chHdr = ch ? `<div class="toc-chapter">${esc(ch.name)}</div>` : '';
-    return chHdr + `<a class="toc-item${d.lore?.length?' hl':''}" data-d="${d.date}" href="#d-${d.date}">
+    return chHdr + `<a class="toc-item" data-d="${d.date}" href="#d-${d.date}">
       <span class="td">${dow} ${mon} ${dd}</span><span class="ts">${esc(d.summary||'')}</span></a>`;
   }).join('');
 }
