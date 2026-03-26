@@ -72,7 +72,7 @@ function genericObjectGlyph(obj) {
     };
 }
 
-export async function maybeObserveObjectForMap(obj, player, x, y) {
+export function maybeObserveObjectForMap(obj, player, x, y) {
     if (!isGenericObject(obj) || !player || !Number.isInteger(x) || !Number.isInteger(y)) {
         return;
     }
@@ -82,15 +82,19 @@ export async function maybeObserveObjectForMap(obj, player, x, y) {
     const dx = player.x - x;
     const dy = player.y - y;
     if ((dx * dx) + (dy * dy) <= neardist) {
-        await observeObject(obj);
+        // observeObject sets obj.dknown = true synchronously, then fires
+        // discoverObject (exercise/RNG) as a fire-and-forget Promise.
+        // This matches C where observe_object is sync and the display
+        // path (newsym → map_object) must remain sync.
+        observeObject(obj);
     }
 }
 
-export async function objectMapGlyph(obj, hallucinating = false, options = {}) {
+export function objectMapGlyph(obj, hallucinating = false, options = {}) {
     if (hallucinating) return randomObjectGlyph();
     const { player = null, x = null, y = null, observe = true } = options;
     if (observe) {
-        await maybeObserveObjectForMap(obj, player, x, y);
+        maybeObserveObjectForMap(obj, player, x, y);
     }
     if (isGenericObject(obj)) {
         return genericObjectGlyph(obj);
