@@ -170,10 +170,12 @@
     outline-offset: 1px;
     scroll-margin-top: 40vh;
   }
+  .clipped { position: relative; }
   .clipped::after {
-    content: ' ▾'; color: var(--accent-lt); font-size: 0.8em;
+    content: '▾'; color: var(--accent-lt); font-size: 0.7em;
+    position: absolute; top: 0.2em; right: 0.3em; pointer-events: none;
   }
-  .expanded.clipped::after { content: ' ▴'; }
+  .expanded.clipped::after { content: '▴'; }
   .search-mark { background: #ffe033; color: #000; padding: 0 2px; border-radius: 2px; }
 
   /* Hide sidebars when viewport is too narrow for all three columns */
