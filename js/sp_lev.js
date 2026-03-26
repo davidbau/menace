@@ -2720,7 +2720,7 @@ export async function terrain(x_or_opts, y_or_type, type) {
     // C ref: sp_lev.c lspo_terrain() routes all paths through sel_set_ter(),
     // which sets typ and also handles horizontal flag for HWALL/IRONBARS,
     // door orientation, etc.  Use sel_set_ter with clear:false to match.
-    async function applyTerrain(px, py, terrainType) {
+    function applyTerrain(px, py, terrainType) {
         if (px >= 0 && px < COLNO && py >= 0 && py < ROWNO) {
             sel_set_ter(px, py, terrainType, { clear: false, lit: null });
         }
@@ -2735,7 +2735,7 @@ export async function terrain(x_or_opts, y_or_type, type) {
             if (x_or_opts.length === 2
                 && Number.isFinite(x_or_opts[0]) && Number.isFinite(x_or_opts[1])) {
                 const pos = getLocationCoord(x_or_opts[0], x_or_opts[1], GETLOC_ANY_LOC, levelState.currentRoom || null);
-                await applyTerrain(pos.x, pos.y, terrainType);
+                applyTerrain(pos.x, pos.y, terrainType);
                 return;
             }
 
@@ -2748,7 +2748,7 @@ export async function terrain(x_or_opts, y_or_type, type) {
                     x = abs.x;
                     y = abs.y;
                 }
-                await applyTerrain(x, y, terrainType);
+                applyTerrain(x, y, terrainType);
             }
         } else if (x_or_opts.x !== undefined && x_or_opts.y !== undefined) {
             // {x, y, typ} format
@@ -2756,7 +2756,7 @@ export async function terrain(x_or_opts, y_or_type, type) {
             const pos = getLocationCoord(x_or_opts.x, x_or_opts.y, GETLOC_ANY_LOC, levelState.currentRoom || null);
             const terrainType = mapchrToTerrain(x_or_opts.typ);
             if (terrainType !== -1) {
-                await applyTerrain(pos.x, pos.y, terrainType);
+                applyTerrain(pos.x, pos.y, terrainType);
             }
         } else if (Array.isArray(x_or_opts.coords)) {
             // selection object format (selection.new()/area()/randline() result)
@@ -2764,7 +2764,7 @@ export async function terrain(x_or_opts, y_or_type, type) {
             if (terrainType === -1) return;
             for (const coord of x_or_opts.coords) {
                 if (!coord) continue;
-                await applyTerrain(coord.x, coord.y, terrainType);
+                applyTerrain(coord.x, coord.y, terrainType);
             }
         }
     } else if (typeof x_or_opts === 'number') {
@@ -2774,7 +2774,7 @@ export async function terrain(x_or_opts, y_or_type, type) {
         const pos = getLocationCoord(x_or_opts, y_or_type, GETLOC_ANY_LOC, levelState.currentRoom || null);
         const terrainType = mapchrToTerrain(type);
         if (terrainType !== -1) {
-            await applyTerrain(pos.x, pos.y, terrainType);
+            applyTerrain(pos.x, pos.y, terrainType);
         }
     }
 }
@@ -6340,7 +6340,7 @@ async function createScriptMonster(deferred) {
     let monsterId, coordX, coordY, opts;
 
     // C ref: sp_lev.c sp_amask_to_amask(AM_SPLEV_RANDOM) -> induced_align(80)
-    async function consumeInducedAlignRng() {
+    function consumeInducedAlignRng() {
         sp_amask_to_amask('random');
     }
 
@@ -6379,7 +6379,7 @@ async function createScriptMonster(deferred) {
         if (immediateParity) {
             // C ref: create_monster() computes amask via sp_amask_to_amask()
             // (AM_SPLEV_RANDOM -> induced_align()) before coordinate selection.
-            await consumeInducedAlignRng();
+            consumeInducedAlignRng();
         }
         let coordX;
         let coordY;
@@ -6477,7 +6477,7 @@ async function createScriptMonster(deferred) {
         }
         // C ref: create_monster() default AM_SPLEV_RANDOM -> induced_align().
         // Keep historical single-call behavior to preserve parity suites.
-        await consumeInducedAlignRng();
+        consumeInducedAlignRng();
         // C ref: create_monster() resolves class with mkclass() after induced_align()
         // but before get_location().
         if (mndxForParity === null && typeof monsterId === 'string' && monsterId.length === 1) {
