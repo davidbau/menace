@@ -328,6 +328,22 @@ For the full narratives of how these lessons were discovered, see the
 
 ## The Cardinal Rules
 
+### 0. The single-threaded contract is enforced
+
+C NetHack is single-threaded. When `more()` blocks in `wgetch()`, no
+game code runs until the key arrives. JS `await` yields the event loop,
+but `js/modal_guard.js` enforces the same invariant at runtime: if any
+game code (moveloop, monster AI, combat) fires while a modal wait (more,
+yn, getlin, getdir, menu) is active, it throws immediately.
+
+The most common violation: calling an async function without `await`.
+The orphaned Promise fires later during an unrelated `await`, breaking
+execution order. The modal guard catches this instantly.
+
+As of 2026-03-26, zero violations exist across the full 4,257-test suite.
+If you see a modal violation, fix the missing `await` — do not suppress
+the guard.
+
 ### 1. The RNG is the source of truth
 
 If the RNG sequences diverge, everything else is noise. A screen mismatch

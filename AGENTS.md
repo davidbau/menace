@@ -70,6 +70,11 @@ evidence don't count.**
    - one active owner of input at a time,
    - no gameplay reentrancy,
    - no synthetic queues/continuations to reorder command vs monster work.
+   - **Enforced at runtime** by `js/modal_guard.js`: modal waits (more,
+     yn, getlin, getdir, menu) assert exclusive input ownership. Game
+     code (moveloop, movemon, mattacku, domove, rhack) asserts it's not
+     inside a modal. Missing `await` on async calls is the #1 cause of
+     violations — the orphaned Promise fires during an unrelated yield.
 
 ## Current-Phase Resources
 Read these first for active work:
