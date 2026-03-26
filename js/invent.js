@@ -1390,6 +1390,11 @@ export function carry_obj_effects(obj) {
 // This is now a standalone function wrapping player.addToInventory
 export async function addinv(obj, player) {
     if (!obj || !player) return obj;
+    // C ref: invent.c:171 — observe_object(obj) sets dknown before merging.
+    // This ensures picked-up objects can merge with already-seen items.
+    if (!player.blind) {
+        obj.dknown = true;
+    }
     addinv_core1(obj, player);
     const result = player.addToInventory(obj) || obj;
     // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
