@@ -2497,11 +2497,15 @@ export function senseMonsterForMap(mon, map, player) {
 
 // C ref: display.h canspotmon(mon) = canseemon(mon) || sensemon(mon)
 // Context-resolving wrapper matching canseemon() pattern.
+// When no display context is available (headless replay, worker threads),
+// default to true — C's canspotmon always has global state and never
+// returns false due to missing context.
 export function canspotmon(mon, playerArg = null, fovArg = null, ctxOrMap = null) {
     const ctx = _resolveDisplayCtx(ctxOrMap);
     const map = ctx?.map || null;
     const player = playerArg || ctx?.player || null;
     const fov = fovArg || ctx?.fov || null;
+    if (!map || !player) return true; // C always has global context
     return canSpotMonsterForMap(mon, map, player, fov);
 }
 
