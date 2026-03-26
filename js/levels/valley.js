@@ -44,17 +44,17 @@ export async function generate() {
     // Make the path somewhat unpredictable
     // If you get "lucky", you may have to go through all three graveyards.
     if (percent(50)) {
-       des.terrain(selection.line(50,8, 53,8), '-');
-       des.terrain(selection.line(40,8, 43,8), 'B');
+       await des.terrain(selection.line(50,8, 53,8), '-');
+       await des.terrain(selection.line(40,8, 43,8), 'B');
     }
     if (percent(50)) {
-       des.terrain({ x: 27, y: 12, typ: '|' });
-       des.terrain(selection.line(27,3, 29,3), 'B');
-       des.terrain({ x: 28, y: 2, typ: '-' });
+       await des.terrain({ x: 27, y: 12, typ: '|' });
+       await des.terrain(selection.line(27,3, 29,3), 'B');
+       await des.terrain({ x: 28, y: 2, typ: '-' });
     }
     if (percent(50)) {
-       des.terrain(selection.line(16,10, 16,11), '|');
-       des.terrain(selection.line(9,13, 14,13), 'B');
+       await des.terrain(selection.line(16,10, 16,11), '|');
+       await des.terrain(selection.line(9,13, 14,13), 'B');
     }
 
 
@@ -66,21 +66,21 @@ export async function generate() {
     await des.region({ region: [9,14, 16,18],lit: 0,type: "morgue",filled: 1,irregular: 1 });
     await des.region({ region: [37,9, 43,14],lit: 0,type: "morgue",filled: 1,irregular: 1 });
     // Stairs
-    des.stair("down", 1,1);
+    await des.stair("down", 1,1);
     // Branch location
-    des.levregion({ type: "branch", region: [66,17,66,17] });
-    des.teleport_region({ region: [58,9,72,18], dir: "down" });
+    await des.levregion({ type: "branch", region: [66,17,66,17] });
+    await des.teleport_region({ region: [58,9,72,18], dir: "down" });
 
     // Secret Doors
-    des.door("locked",4,1);
-    des.door("locked",8,4);
-    des.door("locked",6,6);
+    await des.door("locked",4,1);
+    await des.door("locked",8,4);
+    await des.door("locked",6,6);
 
     // The altar of Moloch.
-    des.altar({ x: 3,y: 10,align: "noalign", type: "shrine" });
+    await des.altar({ x: 3,y: 10,align: "noalign", type: "shrine" });
 
     // Non diggable walls - everywhere!
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
 
     // Objects
     // **LOTS** of dead bodies (all human).

@@ -32,10 +32,10 @@ export async function generate() {
     	   [1,7],[13,7],[3,9],[7,9],[11,9] ]
     shuffle(place)
 
-    des.ladder("up", 11,5);
-    des.ladder("down", 3,7);
-    des.door("locked",10,4);
-    des.door("locked",9,7);
+    await des.ladder("up", 11,5);
+    await des.ladder("down", 3,7);
+    await des.door("locked",10,4);
+    await des.door("locked",9,7);
     await des.monster("&",place[9]);
     await des.monster("&",place[0]);
     await des.monster("hell hound pup",place[1]);
@@ -67,7 +67,7 @@ export async function generate() {
     await des.object(spbooks[0],place[8]);
 
     // Walls in the tower are non diggable
-    des.non_diggable(selection.area(0,0,14,10));
+    await des.non_diggable(selection.area(0,0,14,10));
 
 
 

@@ -22,9 +22,9 @@ export async function generate() {
 
     des.level_flags("mazelevel", "noteleport", "hardfloor", "shortsighted");
 
-    des.message("Well done, mortal!");
-    des.message("But now thou must face the final Test...args");
-    des.message("Prove thyself worthy || perish!");
+    await des.message("Well done, mortal!");
+    await des.message("But now thou must face the final Test...args");
+    await des.message("Prove thyself worthy || perish!");
 
     // The player lands, upon arrival, in the
     // lower-right cavern.  The location of the
@@ -54,11 +54,11 @@ export async function generate() {
                                                                             
 `);
 
-    des.replace_terrain({ region: [0,0, 75,19], fromterrain: " ", toterrain: ".", lit: 0, chance: 5 });
+    await des.replace_terrain({ region: [0,0, 75,19], fromterrain: " ", toterrain: ".", lit: 0, chance: 5 });
 
     // Since there are no stairs, this forces the hero's initial placement
-    des.teleport_region({region: [69,16,69,16] });
-    des.levregion({ region: [0,0,75,19], exclude: [65,13,75,19], type: "portal", name: "air" });
+    await des.teleport_region({region: [69,16,69,16] });
+    await des.levregion({ region: [0,0,75,19], exclude: [65,13,75,19], type: "portal", name: "air" });
     // Some helpful monsters.  Making sure a
     // pick axe && at least one wand of digging
     // are available.

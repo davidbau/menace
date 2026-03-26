@@ -48,18 +48,18 @@ export async function generate() {
     // make the downstairs area a real room to control arriving monsters
     await des.region({ region: [67,8,69,11], lit: 1, type: "ordinary", arrival_room: true });
     // Teleport: down to up stairs island, up to Medusa's island
-    des.teleport_region({ region: [2,3,5,16], dir: "down" });
-    des.teleport_region({ region: [61,3,72,16], dir: "up" });
+    await des.teleport_region({ region: [2,3,5,16], dir: "down" });
+    await des.teleport_region({ region: [61,3,72,16], dir: "up" });
     // Stairs
-    des.stair("up", 4,9);
-    des.stair("down", 68,10);
+    await des.stair("up", 4,9);
+    await des.stair("down", 68,10);
     // Doors
-    des.door("locked", 71,7);
+    await des.door("locked", 71,7);
     // Branch, ! allowed on Medusa's island.
-    des.levregion({ type: "branch", region: [1,0,79,20], exclude: [59,1,73,17] });
+    await des.levregion({ type: "branch", region: [1,0,79,20], exclude: [59,1,73,17] });
     // Non diggable walls
-    des.non_diggable(selection.area(1,2,6,17));
-    des.non_diggable(selection.area(60,2,73,17));
+    await des.non_diggable(selection.area(1,2,6,17));
+    await des.non_diggable(selection.area(60,2,73,17));
     // Objects
     await des.object({ id: "statue", x: 68,y: 10,buc: "uncursed",
                           montype: "knight", historic: 1, male: 1,name: "Perseus",

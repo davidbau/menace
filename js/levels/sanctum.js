@@ -18,7 +18,7 @@ export async function generate() {
     // This is outside the main map, below, so we must do it before adding
     // that map && anchoring coordinates to it. This extends the invisible
     // barrier up to the top row, which falls outside the drawn map.
-    des.non_passwall(selection.area(39,0,41,0));
+    await des.non_passwall(selection.area(39,0,41,0));
     await des.map(`\
 ----------------------------------------------------------------------------
 |             --------------                                               |
@@ -42,19 +42,19 @@ export async function generate() {
 ----------------------------------------------------------------------------
 `);
     await des.region({ region: [15,7, 21,10], lit: 1, type: "temple", filled: 2, contents: async function() {
-                    des.door({ wall: "random", state: "secret" });
+                    await des.door({ wall: "random", state: "secret" });
     } })
-    des.altar({ x: 18, y: 8, align: "noalign", type: "sanctum" });
+    await des.altar({ x: 18, y: 8, align: "noalign", type: "sanctum" });
     await des.region({ region: [41,6, 48,11], lit: 0, type: "morgue", filled: 1, irregular: 1 });
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Invisible barrier separating the left & right halves of the level
-    des.non_passwall(selection.area(37,0,39,19));
+    await des.non_passwall(selection.area(37,0,39,19));
     // Doors
-    des.door("closed",40,6);
-    des.door("locked",62,6);
-    des.door("closed",46,12);
-    des.door("closed",53,10);
+    await des.door("closed",40,6);
+    await des.door("locked",62,6);
+    await des.door("closed",46,12);
+    await des.door("closed",53,10);
     // Surround the temple with fire
     await des.trap("fire",13,5);
     await des.trap("fire",14,5);
@@ -136,10 +136,10 @@ export async function generate() {
     await des.monster("V");
     await des.monster("V");
     await des.monster("V");
-    des.stair("up", 63,15);
+    await des.stair("up", 63,15);
     // Teleporting to this level is allowed after the invocation creates its
     // entrance.  Force arrival in that case to be on rightmost third of level.
-    des.teleport_region({ region: [54,1,79,18], region_islev: 1, dir: "down" });
+    await des.teleport_region({ region: [54,1,79,18], region_islev: 1, dir: "down" });
 
 
     return await des.finalize_level();

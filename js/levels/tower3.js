@@ -33,10 +33,10 @@ export async function generate() {
     let place = [ [5,1],[9,1],[13,1],[3,3],[15,3],
     	   [3,7],[15,7],[5,9],[9,9],[13,9] ]
 
-    des.levregion({ type: "branch", region: [2,5,2,5] });
-    des.ladder("up", 5,7);
+    await des.levregion({ type: "branch", region: [2,5,2,5] });
+    await des.ladder("up", 5,7);
     // Entry door is, of course, locked
-    des.door("locked",14,5);
+    await des.door("locked",14,5);
     // Let's put a dragon behind the door, just for the fun...args
     await des.monster("D", 13, 5);
     await des.monster({ x: 12, y: 4 });
@@ -56,7 +56,7 @@ export async function generate() {
     await des.object("blindfold",place[2]);
     await des.trap({ coord: place[2] });
     // Walls in the tower are non diggable
-    des.non_diggable(selection.area(0,0,18,12));
+    await des.non_diggable(selection.area(0,0,18,12));
 
 
     return await des.finalize_level();

@@ -61,8 +61,8 @@ xxxx-------xxxxxxxxxxxxxxx--------------
 
     // stairs can generate 1 column left || right inside the map,
     // in case the randomly generated mines layout doesn't extend outside the map
-    des.levregion({ type: "stair-up", region: [1,3,21,19], region_islev: 1, exclude: [1,0,39,18] });
-    des.levregion({ type: "stair-down", region: [60,3,75,19], region_islev: 1, exclude: [0,0,38,18] });
+    await des.levregion({ type: "stair-up", region: [1,3,21,19], region_islev: 1, exclude: [1,0,39,18] });
+    await des.levregion({ type: "stair-down", region: [60,3,75,19], region_islev: 1, exclude: [0,0,38,18] });
 
     await des.region(selection.area(13,7,14,8),"unlit");
     await des.region({ region: [9,9, 11,11], lit: 1, type: "candle shop", filled: 1 });
@@ -70,25 +70,25 @@ xxxx-------xxxxxxxxxxxxxxx--------------
     await des.region({ region: [23,3, 25,5], lit: 1, type: "shop", filled: 1 });
     await des.region({ region: [22,14, 24,15], lit: 1, type: monkfoodshop(), filled: 1 });
     await des.region({ region: [31,14, 36,16], lit: 1, type: "temple", filled: 1 });
-    des.altar({ x: 35,y: 15,align: align[0],type: "shrine"});
+    await des.altar({ x: 35,y: 15,align: align[0],type: "shrine"});
 
-    des.door("closed",5,4);
-    des.door("locked",4,10);
-    des.door("closed",10,4);
-    des.door("closed",10,12);
-    des.door("locked",13,9);
-    des.door("locked",14,11);
-    des.door("closed",19,7);
-    des.door("closed",19,12);
-    des.door("closed",24,6);
-    des.door("closed",24,11);
-    des.door("closed",25,14);
-    des.door("closed",28,6);
-    des.door("locked",28,8);
-    des.door("closed",30,15);
-    des.door("closed",31,5);
-    des.door("closed",35,5);
-    des.door("closed",33,9);
+    await des.door("closed",5,4);
+    await des.door("locked",4,10);
+    await des.door("closed",10,4);
+    await des.door("closed",10,12);
+    await des.door("locked",13,9);
+    await des.door("locked",14,11);
+    await des.door("closed",19,7);
+    await des.door("closed",19,12);
+    await des.door("closed",24,6);
+    await des.door("closed",24,11);
+    await des.door("closed",25,14);
+    await des.door("closed",28,6);
+    await des.door("locked",28,8);
+    await des.door("closed",30,15);
+    await des.door("closed",31,5);
+    await des.door("closed",35,5);
+    await des.door("closed",33,9);
 
     await des.monster("gnome");
     await des.monster("gnome");

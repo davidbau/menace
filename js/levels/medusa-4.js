@@ -67,25 +67,25 @@ export async function generate() {
     // irregular=1 will force this
     await des.region({ region: [13,3, 18,13], lit: 1, type: "ordinary", irregular: 1 });
     // 
-    des.teleport_region({ region: [64,1,74,17], dir: "down" });
-    des.teleport_region({ region: [2,2,18,13], dir: "up" });
+    await des.teleport_region({ region: [64,1,74,17], dir: "down" });
+    await des.teleport_region({ region: [2,2,18,13], dir: "up" });
     // 
-    des.levregion({ region: [67,1,74,20], type: "stair-up" });
+    await des.levregion({ region: [67,1,74,20], type: "stair-up" });
 
     // place the downstairs at the same spot where Medusa will be placed
-    des.stair("down", medloc);
+    await des.stair("down", medloc);
     // 
-    des.door("locked",4,6);
-    des.door("locked",4,10);
-    des.door("locked",8,4);
-    des.door("locked",8,12);
-    des.door("locked",10,6);
-    des.door("locked",10,10);
-    des.door("locked",12,8);
+    await des.door("locked",4,6);
+    await des.door("locked",4,10);
+    await des.door("locked",8,4);
+    await des.door("locked",8,12);
+    await des.door("locked",10,6);
+    await des.door("locked",10,10);
+    await des.door("locked",12,8);
     // 
-    des.levregion({ region: [27,0,79,20], type: "branch" });
+    await des.levregion({ region: [27,0,79,20], type: "branch" });
     // 
-    des.non_diggable(selection.area(1,1,22,14));
+    await des.non_diggable(selection.area(1,1,22,14));
     // 
     await des.object("crystal ball", 7,8);
     // 

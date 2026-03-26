@@ -23,7 +23,7 @@ export async function generate() {
     des.level_flags("mazelevel", "noteleport", "hardfloor", "arboreal");
 
     des.level_init({ style: "mines", fg: ".", bg: ".", smoothed: true, joined: true, lit: 1, walled: false });
-    des.replace_terrain({ region: [0,0, 76,19], fromterrain: ".", toterrain: "T", chance: 5 });
+    await des.replace_terrain({ region: [0,0, 76,19], fromterrain: ".", toterrain: "T", chance: 5 });
     // 1234567890123456789012345678901234567890123456789012345678901234567890
     await des.map({ halign: "left", valign: "center", map: `\
                                        xx
@@ -51,9 +51,9 @@ export async function generate() {
     // Dungeon Description
     await des.region(selection.area(0,0,40,20), "lit");
     // Stairs
-    des.stair("down", 10,10);
+    await des.stair("down", 10,10);
     // Portal arrival point; just about anywhere on the right hand side of the map
-    des.levregion({ region: [51,2,77,18], region_islev: 1, type: "branch" });
+    await des.levregion({ region: [51,2,77,18], region_islev: 1, type: "branch" });
     // Orion
     await des.monster({ id: "Orion", coord: [20, 10], inventory: async function() {
        await des.object({ id: "leather armor", spe: 4 });
@@ -72,7 +72,7 @@ export async function generate() {
     await des.monster("hunter", 20, 11);
     await des.monster("hunter", 21, 11);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,40,20));
+    await des.non_diggable(selection.area(0,0,40,20));
     // Traps
     await des.trap("arrow",30,9);
     await des.trap("arrow",30,10);

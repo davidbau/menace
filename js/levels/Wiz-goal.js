@@ -56,28 +56,28 @@ export async function generate() {
     await des.region(selection.area(47,11,48,12), "unlit");
     await des.region(selection.area(50,4,60,14), "lit");
     // Doors
-    des.door("locked",19,6);
-    des.door("locked",14,9);
-    des.door("locked",31,9);
-    des.door("locked",33,8);
-    des.door("locked",36,8);
-    des.door("locked",39,8);
-    des.door("locked",42,8);
-    des.door("locked",45,8);
-    des.door("locked",48,8);
-    des.door("locked",33,10);
-    des.door("locked",36,10);
-    des.door("locked",39,10);
-    des.door("locked",42,10);
-    des.door("locked",45,10);
-    des.door("locked",48,10);
-    des.door("locked",49,9);
+    await des.door("locked",19,6);
+    await des.door("locked",14,9);
+    await des.door("locked",31,9);
+    await des.door("locked",33,8);
+    await des.door("locked",36,8);
+    await des.door("locked",39,8);
+    await des.door("locked",42,8);
+    await des.door("locked",45,8);
+    await des.door("locked",48,8);
+    await des.door("locked",33,10);
+    await des.door("locked",36,10);
+    await des.door("locked",39,10);
+    await des.door("locked",42,10);
+    await des.door("locked",45,10);
+    await des.door("locked",48,10);
+    await des.door("locked",49,9);
     // Stairs
-    des.stair("up", 55,5);
+    await des.stair("up", 55,5);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // The altar.  This is ! a shrine.
-    des.altar({ coord: [16,11], aligned: "noncoaligned", type: "altar" });
+    await des.altar({ coord: [16,11], aligned: "noncoaligned", type: "altar" });
     // Objects
     await des.object({ id: "amulet of ESP", x: 16, y: 11, buc: "blessed", spe: 0, name: "The Eye of the Aethiopica" });
     await des.object();

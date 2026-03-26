@@ -45,26 +45,26 @@ export async function generate() {
 
     await des.region(selection.area(0,0,44,19), "unlit");
     // Doors
-    des.door("closed",19,10);
-    des.door("closed",22,8);
-    des.door("closed",22,12);
-    des.door("closed",25,10);
+    await des.door("closed",19,10);
+    await des.door("closed",22,8);
+    await des.door("closed",22,12);
+    await des.door("closed",25,10);
     // Stairs
-    des.stair({ dir: "up", coord: place[placeidx] });
+    await des.stair({ dir: "up", coord: place[placeidx] });
 
     // Holes in the concentric ring walls
     place = [ [22,14],[30,10],[22, 6],[14,10] ]
     placeidx = (rn2((place.length) - (1) + 1) + (1));
-    des.terrain(place[placeidx], ".");
+    await des.terrain(place[placeidx], ".");
     place = [ [22, 4],[35,10],[22,16],[ 9,10] ]
     placeidx = (rn2((place.length) - (1) + 1) + (1));
-    des.terrain(place[placeidx], ".");
+    await des.terrain(place[placeidx], ".");
     place = [ [22, 2],[22,18] ]
     placeidx = (rn2((place.length) - (1) + 1) + (1));
-    des.terrain(place[placeidx], ".");
+    await des.terrain(place[placeidx], ".");
 
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,44,19));
+    await des.non_diggable(selection.area(0,0,44,19));
     // Objects
     await des.object({ id: "tsurugi", x: 22, y: 10, buc: "blessed", spe: 0, name: "The Tsurugi of Muramasa" });
     await des.object();

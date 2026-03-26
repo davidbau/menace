@@ -20,9 +20,9 @@ export async function generate() {
     des.level_init({ style: "solidfill", fg: " " });
 
     des.level_flags("mazelevel", "noteleport", "hardfloor", "nommap", "shortsighted", "solidify");
-    des.message("You arrive on the Astral Plane!");
-    des.message("Here the High Temple of %d is located.");
-    des.message("You sense alarm, hostility, && excitement in the air!");
+    await des.message("You arrive on the Astral Plane!");
+    await des.message("Here the High Temple of %d is located.");
+    await des.message("You sense alarm, hostility, && excitement in the air!");
     await des.map(`\
                               ---------------                              
                               |.............|                              
@@ -55,20 +55,20 @@ export async function generate() {
        let hall;
        if (percent(60)) {
          if (i == 1) {
-            des.terrain(selection.area(17,14, 30,18),".");
-            des.wallify();
+            await des.terrain(selection.area(17,14, 30,18),".");
+            await des.wallify();
             // temporarily close off the area to be filled so that it doesn't cover
             // the entire entry area
-            des.terrain(33,18, "|");
+            await des.terrain(33,18, "|");
             hall = selection.floodfill(30,16)
             // re-connect the opened wing with the rest of the map
-            des.terrain(33,18, ".");
+            await des.terrain(33,18, ".");
          } else {
-            des.terrain(selection.area(44,14, 57,18),".");
-            des.wallify();
-            des.terrain(41,18, "|");
+            await des.terrain(selection.area(44,14, 57,18),".");
+            await des.wallify();
+            await des.terrain(41,18, "|");
             hall = selection.floodfill(44,16)
-            des.terrain(41,18, ".");
+            await des.terrain(41,18, ".");
          }
          // extra monsters; was [6 + 3d4] when both wings were opened up at once
          const extraMonsterWaves = 3 + (rn2((2*3) - (2 - 1) + 1) + (2 - 1));
@@ -88,7 +88,7 @@ export async function generate() {
     place.set(51,9);
 
     // Where the player will land on arrival
-    des.teleport_region({ region: [29,15,45,15], exclude: [30,15,44,15] });
+    await des.teleport_region({ region: [29,15,45,15], exclude: [30,15,44,15] });
     // Lit courts
     await des.region({ region: [1,5,16,14],lit: 1,type: "ordinary",irregular: 1 });
     await des.region({ region: [31,1,44,10],lit: 1,type: "ordinary",irregular: 1 });
@@ -100,22 +100,22 @@ export async function generate() {
     await des.region({ region: [34,3,40,7],lit: 1,type: "temple",filled: 2 });
     await des.region({ region: [64,7,70,11],lit: 1,type: "temple",filled: 2 });
 
-    des.altar({ x: 7, y: 9, align: align[0],type: "sanctum" });
-    des.altar({ x: 37, y: 5, align: align[1],type: "sanctum" });
-    des.altar({ x: 67, y: 9, align: align[2],type: "sanctum" });
+    await des.altar({ x: 7, y: 9, align: align[0],type: "sanctum" });
+    await des.altar({ x: 37, y: 5, align: align[1],type: "sanctum" });
+    await des.altar({ x: 67, y: 9, align: align[2],type: "sanctum" });
     // Doors
-    des.door("closed",11,9);
-    des.door("closed",17,9);
-    des.door("locked",23,12);
-    des.door("locked",37,8);
-    des.door("closed",37,11);
-    des.door("closed",37,17);
-    des.door("locked",51,12);
-    des.door("locked",57,9);
-    des.door("closed",63,9);
+    await des.door("closed",11,9);
+    await des.door("closed",17,9);
+    await des.door("locked",23,12);
+    await des.door("locked",37,8);
+    await des.door("closed",37,11);
+    await des.door("closed",37,17);
+    await des.door("locked",51,12);
+    await des.door("locked",57,9);
+    await des.door("closed",63,9);
     // Non diggable && phazeable everywhere
-    des.non_diggable(selection.area(0,0,74,19));
-    des.non_passwall(selection.area(0,0,74,19));
+    await des.non_diggable(selection.area(0,0,74,19));
+    await des.non_passwall(selection.area(0,0,74,19));
     // Moloch's horde
     // West round room
     await des.monster({ id: "aligned cleric",x: 18,y: 9,align: "noalign", peaceful: 0 });

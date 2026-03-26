@@ -55,13 +55,13 @@ export async function generate() {
     await des.region({ region: [17,16, 23,18], lit: 1, type: "ordinary", irregular: 1 });
     await des.region({ region: [35,16, 44,18], lit: 1, type: "ordinary", irregular: 1 });
     // Stairs
-    des.stair("down", 2,3);
+    await des.stair("down", 2,3);
     // Portal arrival point
-    des.levregion({ region: [71,9,71,9], type: "branch" });
+    await des.levregion({ region: [71,9,71,9], type: "branch" });
     // Doors
-    des.door("locked",19,6);
+    await des.door("locked",19,6);
     // The temple altar (this will force a priest(ess) to be created)
-    des.altar({ x: 36,y: 2, align: "coaligned", type: "shrine" });
+    await des.altar({ x: 36,y: 2, align: "coaligned", type: "shrine" });
     // Shaman Karnov
     await des.monster({ id: "Shaman Karnov", coord: [35, 2], inventory: async function() {
        await des.object({ id: "leather armor", spe: 5 });
@@ -79,7 +79,7 @@ export async function generate() {
     await des.monster("neanderthal", 22, 1);
     await des.monster("neanderthal", 26, 9);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Random traps
     await des.trap("pit",47,11);
     await des.trap("pit",57,10);
@@ -100,7 +100,7 @@ export async function generate() {
     await des.monster({ id: "bugbear", x: 65, y: 9, peaceful: 0 });
     await des.monster({ id: "bugbear", x: 67, y: 10, peaceful: 0 });
     await des.monster({ id: "bugbear", x: 69, y: 11, peaceful: 0 });
-    des.wallify();
+    await des.wallify();
 
 
     return await des.finalize_level();

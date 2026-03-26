@@ -52,20 +52,20 @@ export async function generate() {
     await des.region(selection.area(0,0,75,19), "lit");
     await des.region({ region: [18,3, 26,7], lit: 1, type: "throne", filled: 2 });
     // Portal arrival zone
-    des.levregion({ region: [62,12,70,17], type: "branch" });
+    await des.levregion({ region: [62,12,70,17], type: "branch" });
     // Stairs
-    des.stair("down", 29,4);
+    await des.stair("down", 29,4);
     // Doors
-    des.door("locked",10,6);
-    des.door("locked",10,7);
-    des.door("closed",27,4);
-    des.door("closed",27,6);
-    des.door("closed",38,6);
-    des.door("locked",38,8);
-    des.door("closed",39,6);
-    des.door("locked",39,8);
-    des.door("closed",50,4);
-    des.door("closed",50,6);
+    await des.door("locked",10,6);
+    await des.door("locked",10,7);
+    await des.door("closed",27,4);
+    await des.door("closed",27,6);
+    await des.door("closed",38,6);
+    await des.door("locked",38,8);
+    await des.door("closed",39,6);
+    await des.door("locked",39,8);
+    await des.door("closed",50,4);
+    await des.door("closed",50,6);
     // Lord Sato
     await des.monster({ id: "Lord Sato", coord: [20, 4], inventory: async function() {
        await des.object({ id: "splint mail", spe: 5, eroded: -1, buc: "!-cursed" });
@@ -83,7 +83,7 @@ export async function generate() {
     await des.monster("roshi", 26, 6);
     await des.monster("roshi", 26, 7);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Random traps
     await des.trap();
     await des.trap();

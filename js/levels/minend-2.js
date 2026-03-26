@@ -41,26 +41,26 @@ export async function generate() {
 `);
 
     if (percent(50)) {
-       des.terrain([55,14],"-");
-       des.terrain([56,14],"-");
-       des.terrain([61,15],"|");
-       des.terrain([52,5], "S");
-       des.door("locked", 52,5);
+       await des.terrain([55,14],"-");
+       await des.terrain([56,14],"-");
+       await des.terrain([61,15],"|");
+       await des.terrain([52,5], "S");
+       await des.door("locked", 52,5);
     }
     if (percent(50)) {
-       des.terrain([18,1], "|");
-       des.terrain(selection.area(7,12, 8,13), ".");
+       await des.terrain([18,1], "|");
+       await des.terrain(selection.area(7,12, 8,13), ".");
     }
     if (percent(50)) {
-       des.terrain([49,4], "|");
-       des.terrain([21,5], ".");
+       await des.terrain([49,4], "|");
+       await des.terrain([21,5], ".");
     }
     if (percent(50)) {
        if (percent(50)) {
-          des.terrain([22,1], "|");
+          await des.terrain([22,1], "|");
        } else {
-          des.terrain([50,7], "-");
-          des.terrain([51,7], "-");
+          await des.terrain([50,7], "-");
+          await des.terrain([51,7], "-");
        }
     }
 
@@ -68,10 +68,10 @@ export async function generate() {
     // portion of level to prevent ending up stuck in the treasure area, whether
     // arriving from above || below (despite this being bottom of Mines branch,
     // hero might arrive from below by invoking Wiz role's Eye of the Aethiopica)
-    des.teleport_region({ region: [23,3,48,16], region_islev: 1 });
+    await des.teleport_region({ region: [23,3,48,16], region_islev: 1 });
 
     // Dungeon Description
-    des.feature("fountain", [14,13]);
+    await des.feature("fountain", [14,13]);
     await des.region(selection.area(23,3,48,6),"lit");
     await des.region(selection.area(21,6,22,6),"lit");
     await des.region(selection.area(14,4,14,4),"unlit");
@@ -79,22 +79,22 @@ export async function generate() {
     await des.region(selection.area(10,9,11,9),"unlit");
     await des.region(selection.area(15,8,16,8),"unlit");
     // Secret doors
-    des.door("locked",12,2);
-    des.door("locked",11,6);
+    await des.door("locked",12,2);
+    await des.door("locked",11,6);
     // Stairs
-    des.stair("up", 36,4);
+    await des.stair("up", 36,4);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,52,17));
-    des.non_diggable(selection.area(53,0,74,0));
-    des.non_diggable(selection.area(53,17,74,17));
-    des.non_diggable(selection.area(74,1,74,16));
-    des.non_diggable(selection.area(53,7,55,7));
-    des.non_diggable(selection.area(53,14,61,14));
+    await des.non_diggable(selection.area(0,0,52,17));
+    await des.non_diggable(selection.area(53,0,74,0));
+    await des.non_diggable(selection.area(53,17,74,17));
+    await des.non_diggable(selection.area(74,1,74,16));
+    await des.non_diggable(selection.area(53,7,55,7));
+    await des.non_diggable(selection.area(53,14,61,14));
     // The Gnome King's wine cellar.
     // the Trespassers sign is a long-running joke
-    des.engraving([12,3], "engrave",
+    await des.engraving([12,3], "engrave",
     	      "You are now entering the Gnome King's wine cellar.")
-    des.engraving([12,4], "engrave", "Trespassers will be persecuted!");
+    await des.engraving([12,4], "engrave", "Trespassers will be persecuted!");
     await des.object("potion of booze", 10, 7);
     await des.object("potion of booze", 10, 7);
     await des.object("!", 10, 7);

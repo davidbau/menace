@@ -46,10 +46,10 @@ export async function generate() {
     // Dungeon Description
     await des.region(selection.area(0,0,75,20), "lit");
     // Stairs
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,20));
+    await des.non_diggable(selection.area(0,0,75,20));
     // Objects
     await des.object();
     await des.object();
@@ -73,7 +73,7 @@ export async function generate() {
     let tinloc = tinplace.rndcoord(0)
     await des.object({ id: "tin", coord: tinloc, quantity: 2, buc: "blessed",
                  montype: "spinach" })
-    des.engraving({ coord: tinloc, type: "burn", text: "Elbereth" });
+    await des.engraving({ coord: tinloc, type: "burn", text: "Elbereth" });
     // Random traps
     await des.trap();
     await des.trap();

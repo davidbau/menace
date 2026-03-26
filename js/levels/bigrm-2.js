@@ -57,16 +57,16 @@ export async function generate() {
     if (darkness !== null) {
        await des.region(darkness,"unlit");
        if (percent(25)) {
-          des.replace_terrain({ selection: darkness.grow(),
+          await des.replace_terrain({ selection: darkness.grow(),
                                 fromterrain: ".", toterrain: "I" });
        }
     }
 
     // Stairs
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
     // Non diggable walls
-    des.non_diggable();
+    await des.non_diggable();
     // Objects
     for (let i = 1; i <= 15; i++) {
        await des.object();

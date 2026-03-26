@@ -66,12 +66,12 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
     // Dungeon description
     await des.region({ region: [0,0,50,17], lit: 0, type: "swamp", filled: 2 });
-    des.levregion({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17], type: "stair-down" });
-    des.levregion({ region: [69,0,79,20], region_islev: 1, exclude: [0,0,50,17], type: "stair-up" });
-    des.levregion({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17], type: "branch" });
-    des.teleport_region({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17],dir: "up" });
-    des.teleport_region({ region: [69,0,79,20], region_islev: 1, exclude: [0,0,50,17],dir: "down" });
-    des.feature("fountain", place.rndcoord(1));
+    await des.levregion({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17], type: "stair-down" });
+    await des.levregion({ region: [69,0,79,20], region_islev: 1, exclude: [0,0,50,17], type: "stair-up" });
+    await des.levregion({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17], type: "branch" });
+    await des.teleport_region({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17],dir: "up" });
+    await des.teleport_region({ region: [69,0,79,20], region_islev: 1, exclude: [0,0,50,17],dir: "down" });
+    await des.feature("fountain", place.rndcoord(1));
     await des.monster({ id: "giant mimic", coord: place.rndcoord(1), appear_as: "ter:fountain" });
     await des.monster({ id: "giant mimic", coord: place.rndcoord(1), appear_as: "ter:fountain" });
     await des.monster({ id: "giant mimic", coord: place.rndcoord(1), appear_as: "ter:fountain" });

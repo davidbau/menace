@@ -42,12 +42,12 @@ export async function generate() {
     await des.region(selection.area(0,0,75,19), "unlit");
     await des.region({ region: [52,6, 73,15], lit: 1, type: "ordinary", irregular: 1 });
     // Doors
-    des.door("locked",28,11);
+    await des.door("locked",28,11);
     // Stairs
-    des.stair("up", 4,3);
-    des.stair("down", 73,10);
+    await des.stair("up", 4,3);
+    await des.stair("down", 73,10);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Objects
     await des.object();
     await des.object();
@@ -99,7 +99,7 @@ export async function generate() {
     await des.monster({ id: "hill giant", peaceful: 0 });
     await des.monster({ id: "hill giant", peaceful: 0 });
     await des.monster({ class: "H", peaceful: 0 });
-    des.wallify();
+    await des.wallify();
 
     // 
     // The "goal" level for the quest.

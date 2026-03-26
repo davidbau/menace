@@ -41,24 +41,24 @@ export async function generate() {
     // maybe replace lavawalls/waterwalls with stone walls
     if (percent(20)) {
        if (percent(50)) {
-          des.replace_terrain({ fromterrain: "W", toterrain: "-" });
+          await des.replace_terrain({ fromterrain: "W", toterrain: "-" });
        }
        if (percent(50)) {
-          des.replace_terrain({ fromterrain: "Z", toterrain: "-" });
+          await des.replace_terrain({ fromterrain: "Z", toterrain: "-" });
        }
     }
 
     // maybe replace pools with floor && then possibly walls with pools
     if (percent(25)) {
-       des.replace_terrain({ fromterrain: "P", toterrain: "." });
+       await des.replace_terrain({ fromterrain: "P", toterrain: "." });
        if (percent(75)) {
-          des.replace_terrain({ fromterrain: "W", toterrain: "P" });
+          await des.replace_terrain({ fromterrain: "W", toterrain: "P" });
        }
     }
     if (percent(25)) {
-       des.replace_terrain({ fromterrain: "L", toterrain: "." });
+       await des.replace_terrain({ fromterrain: "L", toterrain: "." });
        if (percent(75)) {
-          des.replace_terrain({ fromterrain: "Z", toterrain: "L" });
+          await des.replace_terrain({ fromterrain: "Z", toterrain: "L" });
        }
     }
 
@@ -66,22 +66,22 @@ export async function generate() {
     if (percent(20)) {
        if (percent(50)) {
           // both are lava
-          des.replace_terrain({ fromterrain: "P", toterrain: "L" });
-          des.replace_terrain({ fromterrain: "W", toterrain: "Z" });
+          await des.replace_terrain({ fromterrain: "P", toterrain: "L" });
+          await des.replace_terrain({ fromterrain: "W", toterrain: "Z" });
        } else {
           // both are water
-          des.replace_terrain({ fromterrain: "L", toterrain: "P" });
-          des.replace_terrain({ fromterrain: "Z", toterrain: "W" });
+          await des.replace_terrain({ fromterrain: "L", toterrain: "P" });
+          await des.replace_terrain({ fromterrain: "Z", toterrain: "W" });
        }
     }
 
     await des.region(selection.area(0,0,75,19), "lit");
-    des.non_diggable();
+    await des.non_diggable();
 
-    des.wallify();
+    await des.wallify();
 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
 
     for (let i = 1; i <= 15; i++) {
        await des.object();

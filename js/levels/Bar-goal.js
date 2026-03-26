@@ -41,13 +41,13 @@ export async function generate() {
     // Dungeon Description
     await des.region(selection.area(0,0,75,19), "unlit");
     // Secret doors
-    des.door("locked",22,9);
-    des.door("locked",26,9);
+    await des.door("locked",22,9);
+    await des.door("locked",26,9);
     // Stairs
-    des.stair("up", 36,5);
+    await des.stair("up", 36,5);
     // The altar.  Unattended.
-    des.altar({ x: 63,y: 4,align: "noncoaligned", type: "altar" });
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.altar({ x: 63,y: 4,align: "noncoaligned", type: "altar" });
+    await des.non_diggable(selection.area(0,0,75,19));
     // Objects
     await des.object({ id: "luckstone", x: 63, y: 4,buc: "blessed",spe: 0,name: "The Heart of Ahriman" });
     await des.object();
@@ -100,7 +100,7 @@ export async function generate() {
     await des.monster({ id: "rock troll", peaceful: 0 });
     await des.monster({ id: "rock troll", peaceful: 0 });
     await des.monster({ class: "T", peaceful: 0 });
-    des.wallify();
+    await des.wallify();
 
 
 

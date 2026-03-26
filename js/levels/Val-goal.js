@@ -42,17 +42,17 @@ xxxxxxxxx..................xxxxxxxx
     // Stairs
     // Note:  The up stairs are *intentionally* off of the map.
     // if the stairs are surrounded by lava, maybe give some room
-    des.replace_terrain({ region: [44,9, 46,11], fromterrain: 'L', toterrain: '.', chance: 50 });
-    des.stair("up", 45,10);
+    await des.replace_terrain({ region: [44,9, 46,11], fromterrain: 'L', toterrain: '.', chance: 50 });
+    await des.stair("up", 45,10);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,34,16));
+    await des.non_diggable(selection.area(0,0,34,16));
     // Drawbridges; northern one opens from the south (portcullis) to further
     // north (lowered span), southern one from the north to further south
-    des.drawbridge({ x: 17, y: 2, dir: "south", state: "random" });
+    await des.drawbridge({ x: 17, y: 2, dir: "south", state: "random" });
     if (percent(75)) {
-       des.drawbridge({ x: 17, y: 14, dir: "north", state: "open" });
+       await des.drawbridge({ x: 17, y: 14, dir: "north", state: "open" });
     } else {
-       des.drawbridge({ x: 17, y: 14, dir: "north", state: "random" });
+       await des.drawbridge({ x: 17, y: 14, dir: "north", state: "random" });
     }
     // Objects
     await des.object({ id: "crystal ball", x: 17, y: 8, buc: "blessed", spe: 5, name: "The Orb of Fate" });

@@ -30,12 +30,12 @@ export async function generate() {
   |................|
   ------------------
 `);
-    des.stair("down", 6,11);
-    des.stair("up", 15,6);
-    des.door("locked",18,10);
+    await des.stair("down", 6,11);
+    await des.stair("up", 15,6);
+    await des.door("locked",18,10);
     await des.region(selection.area(0,0,19,12), "lit");
-    des.non_diggable(selection.area(0,0,19,12));
-    des.non_passwall(selection.area(0,0,19,12));
+    await des.non_diggable(selection.area(0,0,19,12));
+    await des.non_passwall(selection.area(0,0,19,12));
 
     // Boulders
     await des.object("boulder",4,2);
@@ -56,7 +56,7 @@ export async function generate() {
     await des.object("boulder",5,11);
 
     // prevent monster generation over the (filled) holes
-    des.exclusion({ type: "monster-generation", region: [ 6,11, 18,11 ] });
+    await des.exclusion({ type: "monster-generation", region: [ 6,11, 18,11 ] });
     // Traps
     await des.trap("hole",7,11);
     await des.trap("hole",8,11);

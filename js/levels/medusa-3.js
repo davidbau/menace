@@ -67,25 +67,25 @@ export async function generate() {
     await des.region(selection.area(45,14,47,16),"unlit");
     // Non diggable walls
     // 4th room has diggable walls as Medusa is never placed there
-    des.non_diggable(selection.area(6,4,10,8));
-    des.non_diggable(selection.area(64,3,68,7));
-    des.non_diggable(selection.area(44,13,48,17));
+    await des.non_diggable(selection.area(6,4,10,8));
+    await des.non_diggable(selection.area(64,3,68,7));
+    await des.non_diggable(selection.area(44,13,48,17));
     // All places are accessible also with jumping, so don't bother
     // restricting the placement when teleporting from levels below this.
-    des.teleport_region({ region: [33,2,38,7], dir: "down" });
-    des.levregion({ region: [32,1,39,7], type: "stair-up" });
+    await des.teleport_region({ region: [33,2,38,7], dir: "down" });
+    await des.levregion({ region: [32,1,39,7], type: "stair-up" });
 
     // place the downstairs at the same spot where Medusa will be placed
-    des.stair("down", medloc);
+    await des.stair("down", medloc);
     // 
-    des.door("locked",8,8);
-    des.door("locked",64,5);
-    des.door("random",50,13);
-    des.door("locked",48,15);
+    await des.door("locked",8,8);
+    await des.door("locked",64,5);
+    await des.door("random",50,13);
+    await des.door("locked",48,15);
     // 
     // in one of the three designated rooms, but ! the one with Medusa plus
     // downstairs && also ! 'altloc' where a random statue will be placed
-    des.feature("fountain", othloc);
+    await des.feature("fountain", othloc);
     // 
     // same spot as Medusa plus downstairs
     await des.object({ id: "statue", coord: medloc, buc: "uncursed",

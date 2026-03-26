@@ -45,9 +45,9 @@ export async function generate() {
 `);
 
     // first do cloud everywhere
-    des.replace_terrain({ region: [0,0, 75,19], fromterrain: ".", toterrain: "C", chance: 10 });
+    await des.replace_terrain({ region: [0,0, 75,19], fromterrain: ".", toterrain: "C", chance: 10 });
     // then replace clouds inside the tower back to floor
-    des.replace_terrain({ region: [13,5, 33,15], fromterrain: "C", toterrain: ".", chance: 100 });
+    await des.replace_terrain({ region: [13,5, 33,15], fromterrain: "C", toterrain: ".", chance: 100 });
 
     // Dungeon Description
     await des.region(selection.area(0,0,75,19), "lit");
@@ -56,19 +56,19 @@ export async function generate() {
     await des.region({ region: [19,11,33,15], lit: 0, type: "ordinary", irregular: 1 });
     await des.region(selection.area(30,10,31,10), "unlit");
     // Stairs
-    des.stair("down", 30,10);
+    await des.stair("down", 30,10);
     // Portal arrival point
-    des.terrain([63,6], ".");
-    des.levregion({ region: [63,6,63,6], type: "branch" });
+    await des.terrain([63,6], ".");
+    await des.levregion({ region: [63,6,63,6], type: "branch" });
     // Doors
-    des.door("closed",31,9);
-    des.door("closed",16,8);
-    des.door("closed",28,7);
-    des.door("locked",34,10);
-    des.door("locked",35,10);
-    des.door("closed",15,10);
-    des.door("locked",19,10);
-    des.door("locked",20,10);
+    await des.door("closed",31,9);
+    await des.door("closed",16,8);
+    await des.door("closed",28,7);
+    await des.door("locked",34,10);
+    await des.door("locked",35,10);
+    await des.door("closed",15,10);
+    await des.door("locked",19,10);
+    await des.door("locked",20,10);
     // Neferet the Green, the quest leader
     await des.monster({ id: "Neferet the Green", coord: [23, 5], inventory: async function() {
        await des.object({ id: "elven cloak", spe: 5 });
@@ -90,7 +90,7 @@ export async function generate() {
     await des.monster("giant eel", 69, 15);
     await des.monster("giant eel", 67, 17);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Random traps
     await des.trap();
     await des.trap();

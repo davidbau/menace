@@ -41,8 +41,8 @@ export async function generate() {
     pools = pools.union(selection.grow(randomSeedSelection(), 1));
 
     // Lava pools surrounded by water
-    des.terrain(selection.grow(pools, 1), "P");
-    des.terrain(pools, "L");
+    await des.terrain(selection.grow(pools, 1), "P");
+    await des.terrain(pools, "L");
 
     await des.map(`\
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -69,13 +69,13 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // Dungeon Description
     await des.region(selection.area(0,0,75,19), "lit");
     // Portal arrival point
-    des.levregion({ region: [66,17,66,17], type: "branch" });
+    await des.levregion({ region: [66,17,66,17], type: "branch" });
     // Stairs
-    des.stair("down", 18,1);
-    des.feature("fountain", 53,2);
+    await des.stair("down", 18,1);
+    await des.feature("fountain", 53,2);
     // Doors
-    des.door("locked",26,10);
-    des.door("locked",43,10);
+    await des.door("locked",26,10);
+    await des.door("locked",43,10);
     // Norn
     await des.monster({ id: "Norn", coord: [35, 10], inventory: async function() {
        await des.object({ id: "banded mail", spe: 5 });
@@ -93,7 +93,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     await des.monster("warrior", 42, 11);
     await des.monster("warrior", 42, 12);
     // Non diggable walls
-    des.non_diggable(selection.area(26,7,43,13));
+    await des.non_diggable(selection.area(26,7,43,13));
     // Random traps
     await des.trap("fire");
     await des.trap("fire");

@@ -45,29 +45,29 @@ PPP.............PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP....PPPPPP
 PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 `);
 
-    des.replace_terrain({ region: [1,1, 74,18], fromterrain: "P", toterrain: ".", chance: 10 });
+    await des.replace_terrain({ region: [1,1, 74,18], fromterrain: "P", toterrain: ".", chance: 10 });
 
     // Dungeon Description
     await des.region(selection.area(0,0,75,19), "lit");
     // Stairs
-    des.stair("down", 37,9);
+    await des.stair("down", 37,9);
     // Portal arrival point
-    des.levregion({ region: [4,12,4,12], type: "branch" });
+    await des.levregion({ region: [4,12,4,12], type: "branch" });
     // altar for the Temple
-    des.altar({ x: 32,y: 9,align: "neutral",type: "altar" });
+    await des.altar({ x: 32,y: 9,align: "neutral",type: "altar" });
     // Doors
-    des.door("locked",24,10);
-    des.door("closed",26,8);
-    des.door("closed",27,12);
-    des.door("locked",28,13);
-    des.door("closed",35,7);
-    des.door("locked",35,10);
-    des.door("locked",39,10);
-    des.door("closed",39,13);
-    des.door("locked",46,7);
-    des.door("closed",47,8);
-    des.door("closed",48,12);
-    des.door("locked",50,10);
+    await des.door("locked",24,10);
+    await des.door("closed",26,8);
+    await des.door("closed",27,12);
+    await des.door("locked",28,13);
+    await des.door("closed",35,7);
+    await des.door("locked",35,10);
+    await des.door("locked",39,10);
+    await des.door("closed",39,13);
+    await des.door("locked",46,7);
+    await des.door("closed",47,8);
+    await des.door("closed",48,12);
+    await des.door("locked",50,10);
     // Hippocrates
     await des.monster({ id: "Hippocrates", coord: [37, 10], inventory: async function() {
        await des.object({ id: "silver dagger", spe: 5 });
@@ -84,7 +84,7 @@ PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
     await des.monster("attendant", 40, 11);
     await des.monster("attendant", 40, 13);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Random traps
     await des.trap();
     await des.trap();

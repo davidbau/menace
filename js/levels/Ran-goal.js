@@ -41,9 +41,9 @@ export async function generate() {
     // Dungeon Description
     await des.region(selection.area(0,0,75,19), "lit");
     // Stairs
-    des.stair("up", 19,10);
+    await des.stair("up", 19,10);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Objects
     await des.object({ id: "bow", x: 37, y: 10, buc: "blessed", spe: 0, name: "The Longbow of Diana" });
     await des.object("chest", 37, 10);
@@ -68,20 +68,20 @@ export async function generate() {
     await des.trap();
     await des.trap();
     // doors
-    des.door("locked",12,8);
-    des.door("closed",22,10);
-    des.door("locked",24,10);
-    des.door("closed",25,11);
-    des.door("closed",32,10);
-    des.door("closed",37,3);
-    des.door("closed",37,7);
-    des.door("closed",37,13);
-    des.door("closed",37,16);
-    des.door("closed",42,10);
-    des.door("locked",46,8);
-    des.door("closed",51,10);
-    des.door("locked",53,8);
-    des.door("closed",65,5);
+    await des.door("locked",12,8);
+    await des.door("closed",22,10);
+    await des.door("locked",24,10);
+    await des.door("closed",25,11);
+    await des.door("closed",32,10);
+    await des.door("closed",37,3);
+    await des.door("closed",37,7);
+    await des.door("closed",37,13);
+    await des.door("closed",37,16);
+    await des.door("closed",42,10);
+    await des.door("locked",46,8);
+    await des.door("closed",51,10);
+    await des.door("locked",53,8);
+    await des.door("closed",65,5);
     // Random monsters.
     await des.monster({ id: "Scorpius", x: 37, y: 10, peaceful: 0 });
     await des.monster({ id: "forest centaur", x: 36, y: 9, peaceful: 0 });
@@ -112,7 +112,7 @@ export async function generate() {
     await des.monster({ id: "scorpion", peaceful: 0 });
     await des.monster({ class: "s", peaceful: 0 });
 
-    des.wallify();
+    await des.wallify();
 
 
     return await des.finalize_level();
