@@ -2548,7 +2548,7 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
                     // fully_identify_obj → makeknown(otyp) = discover_object
                     // with credit_hero=TRUE, which fires exercise(A_WIS, TRUE)
                     // when a type is newly discovered.
-                    fully_identify_obj(target, true);
+                    await fully_identify_obj(target, true);
                 }
             }
             update_inventory(p);
