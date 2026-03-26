@@ -292,6 +292,15 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 diff --git a/win/tty/wintty.c b/win/tty/wintty.c
 --- a/win/tty/wintty.c
 +++ b/win/tty/wintty.c
+@@ -1280,6 +1280,9 @@
+         term_start_color(item->color);
+     (void) putchar(ch);
++#ifdef NOMUX_CAPTURE
++    nomux_putch(ch);
++#endif
+     ttyDisplay->curx++;
+     if (item->color != NO_COLOR)
+         term_end_color();
 @@ -1282,6 +1282,9 @@
      if (flags.standout)
          standoutbeg();
@@ -302,7 +311,17 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
      ttyDisplay->curx += strlen(prompt);
      if (flags.standout)
          standoutend();
-@@ -1598,9 +1601,15 @@
+@@ -1587,6 +1590,9 @@
+                         if (n == 2 && curr->identifier.a_void != 0
+                             && curr->selected) {
+                             char c = (curr->count == -1L) ? '*' : '#';
++#ifdef NOMUX_CAPTURE
++                            { int svx = ttyDisplay->curx; ttyDisplay->curx--; nomux_putch(c); ttyDisplay->curx = svx; }
++#endif
+ 
+                             /* all selected: '*' vs count selected: '#' */
+                             (void) putchar(c);
+@@ -1598,9 +1604,15 @@
                                 and requires referencing the cursor location */
                              toggle_menu_attr(TRUE, gcolor, ATR_NONE);
                              (void) putchar(curr->glyphinfo.ttychar);

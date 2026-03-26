@@ -1,0 +1,37 @@
+diff --git a/include/unixconf.h b/include/unixconf.h
+index 65f698780..e733fa703 100644
+--- a/include/unixconf.h
++++ b/include/unixconf.h
+@@ -114,5 +114,5 @@
+ /* #define TIMED_DELAY */ /* usleep() */
+ #endif
+-#if defined(MACOS) && !defined(TIMED_DELAY)
++#if defined(MACOS) && !defined(TIMED_DELAY) && !defined(NO_TIMED_DELAY)
+ #define TIMED_DELAY
+ #endif
+diff --git a/win/tty/termcap.c b/win/tty/termcap.c
+index ad8e25764..68f3dc131 100644
+--- a/win/tty/termcap.c
++++ b/win/tty/termcap.c
+@@ -793,8 +793,19 @@ tty_delay_output(void)
+ #if defined(MICRO)
+     int i;
+ #endif
+-    if (iflags.debug_fuzzer)
+-        return;
++    static int no_delay = -1;
++    const char *no_delay_env;
++
++    if (no_delay < 0) {
++        no_delay_env = getenv("NETHACK_NO_DELAY");
++        if (!no_delay_env || !*no_delay_env)
++            no_delay_env = getenv("WEBHACK_NO_DELAY");
++        no_delay = (no_delay_env && *no_delay_env && *no_delay_env != '0');
++    }
++    if (no_delay || iflags.debug_fuzzer) {
++        (void) fflush(stdout);
++        return;
++    }
+ #ifdef TIMED_DELAY
+     if (flags.nap) {
+         (void) fflush(stdout);

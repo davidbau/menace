@@ -203,8 +203,8 @@ CHARGEN_ALIGN_KEYS = {'l': 'lawful', 'n': 'neutral', 'c': 'chaotic'}
 
 
 def harness_fixed_datetime():
-    dt = os.environ.get('NETHACK_FIXED_DATETIME')
-    return DEFAULT_FIXED_DATETIME if dt is None else dt
+    dt = first_nonempty_env('NETHACK_FIXED_DATETIME', 'WEBHACK_FIXED_DATETIME')
+    return DEFAULT_FIXED_DATETIME if not dt else dt
 
 
 def fixed_datetime_env():
@@ -213,79 +213,166 @@ def fixed_datetime_env():
 
 
 def diag_events_env():
-    """Pass WEBHACK_DIAG_EVENTS through to the C binary if set."""
-    v = os.environ.get('WEBHACK_DIAG_EVENTS', '')
-    return f'WEBHACK_DIAG_EVENTS={v} ' if v else ''
+    """Pass DIAG_EVENTS through to the C binary if set."""
+    v = first_nonempty_env('NETHACK_DIAG_EVENTS', 'WEBHACK_DIAG_EVENTS')
+    return f'NETHACK_DIAG_EVENTS={v} ' if v else ''
 
 
 def no_delay_env():
     """Enable C tty delay suppression for harness captures by default.
 
-    Set NETHACK_NO_DELAY=0 in the environment to opt out.
+    Set NETHACK_NO_DELAY=0 (or WEBHACK_NO_DELAY=0) to opt out.
     """
-    v = os.environ.get('NETHACK_NO_DELAY')
-    if v is None:
+    v = first_nonempty_env('NETHACK_NO_DELAY', 'WEBHACK_NO_DELAY')
+    if not v:
         return 'NETHACK_NO_DELAY=1 '
     return '' if v == '0' else f'NETHACK_NO_DELAY={v} '
 
 def test_move_event_env():
-    """Pass NETHACK_EVENT_TEST_MOVE through to the C binary if set."""
-    v = os.environ.get('NETHACK_EVENT_TEST_MOVE', '')
+    """Pass TEST_MOVE event gating through to the C binary if set."""
+    v = first_nonempty_env('NETHACK_EVENT_TEST_MOVE', 'WEBHACK_EVENT_TEST_MOVE')
     return f'NETHACK_EVENT_TEST_MOVE={v} ' if v else ''
 
 def runstep_event_env():
-    """Pass NETHACK_EVENT_RUNSTEP through to the C binary if set."""
-    v = os.environ.get('NETHACK_EVENT_RUNSTEP', '')
+    """Pass RUNSTEP event gating through to the C binary if set."""
+    v = first_nonempty_env('NETHACK_EVENT_RUNSTEP', 'WEBHACK_EVENT_RUNSTEP')
     return f'NETHACK_EVENT_RUNSTEP={v} ' if v else ''
 
 def repaint_trace_env():
-    """Pass NETHACK_REPAINT_TRACE through to the C binary if set."""
-    v = os.environ.get('NETHACK_REPAINT_TRACE', '')
+    """Pass repaint trace through to the C binary if set."""
+    v = first_nonempty_env('NETHACK_REPAINT_TRACE', 'WEBHACK_REPAINT_TRACE')
     return f'NETHACK_REPAINT_TRACE={v} ' if v else ''
 
 def exp_trace_env():
-    """Pass NETHACK_EXP_TRACE through to the C binary if set."""
-    v = os.environ.get('NETHACK_EXP_TRACE', '')
+    """Pass experience trace through to the C binary if set."""
+    v = first_nonempty_env('NETHACK_EXP_TRACE', 'WEBHACK_EXP_TRACE')
     return f'NETHACK_EXP_TRACE={v} ' if v else ''
 
 def screendump_env():
-    """Pass NETHACK_SCREENDUMP through to the C binary if set."""
-    v = os.environ.get('NETHACK_SCREENDUMP', '')
+    """Pass screen dump env through to the C binary if set."""
+    v = first_nonempty_env('NETHACK_SCREENDUMP', 'WEBHACK_SCREENDUMP')
     return f'NETHACK_SCREENDUMP={v} ' if v else ''
 
 def repaint_debug_env(log_path=None):
     """Pass repaint debug settings through to the C binary if enabled."""
-    v = os.environ.get('NETHACK_REPAINT_DEBUG', '')
+    v = first_nonempty_env('NETHACK_REPAINT_DEBUG', 'WEBHACK_REPAINT_DEBUG')
     if not v:
         return ''
     out = f'NETHACK_REPAINT_DEBUG={v} '
     if log_path:
-        out += f'NETHACK_REPAINT_DEBUG_LOG={log_path} '
+        repaint_debug_log = first_nonempty_env(
+            'NETHACK_REPAINT_DEBUG_LOG',
+            'WEBHACK_REPAINT_DEBUG_LOG',
+        )
+        if not repaint_debug_log:
+            repaint_debug_log = log_path
+        out += f'NETHACK_REPAINT_DEBUG_LOG={repaint_debug_log} '
     return out
 
-def dumpsnap_env():
-    """Pass harness dumpsnap controls through to the C binary if set."""
-    out = ''
-    for key in (
-        'NETHACK_DUMPSNAP_EVERY_KEY',
-        'NETHACK_DUMPSNAP_KEY_STEPS',
-        'NETHACK_DUMPSNAP_EVERY_INPUT',
-        'NETHACK_DUMPSNAP_INPUT_EVERY',
-        'NETHACK_DUMPSNAP_STEPS',
-    ):
+def first_nonempty_env(*keys):
+    """Return the first non-empty environment value from `keys`, or '' if none."""
+    for key in keys:
         value = os.environ.get(key, '')
         if value:
-            out += f'{key}={value} '
+            return value
+    return ''
+
+
+DUMPSNAP_KEY_EVERY_ENV_VARS = (
+    'NETHACK_DUMPSNAP_EVERY_KEY',
+    'NETHACK_DUMPSNAP_EVERY_INPUT',
+    'NETHACK_DUMPSNAP_INPUT_EVERY',
+    'WEBHACK_DUMPSNAP_EVERY_KEY',
+    'WEBHACK_DUMPSNAP_EVERY_INPUT',
+    'WEBHACK_DUMPSNAP_INPUT_EVERY',
+)
+
+
+DUMPSNAP_STEP_ENV_VARS = (
+    'NETHACK_DUMPSNAP_KEY_STEPS',
+    'NETHACK_DUMPSNAP_STEPS',
+    'WEBHACK_DUMPSNAP_KEY_STEPS',
+    'WEBHACK_DUMPSNAP_STEPS',
+)
+
+REGEN_LOG_ENV_PAIRS = (
+    ('NETHACK_EVENT_TEST_MOVE', 'WEBHACK_EVENT_TEST_MOVE'),
+    ('NETHACK_EVENT_RUNSTEP', 'WEBHACK_EVENT_RUNSTEP'),
+    ('NETHACK_REPAINT_TRACE', 'WEBHACK_REPAINT_TRACE'),
+    ('NETHACK_REPAINT_DEBUG', 'WEBHACK_REPAINT_DEBUG'),
+    ('NETHACK_EXP_TRACE', 'WEBHACK_EXP_TRACE'),
+    ('NETHACK_DIAG_EVENTS', 'WEBHACK_DIAG_EVENTS'),
+    ('NETHACK_RNGLOG_DISP', 'WEBHACK_RNGLOG_DISP'),
+    ('NETHACK_COSMIC_DISPLAY_LOGS', 'WEBHACK_COSMIC_DISPLAY_LOGS'),
+)
+
+_PASSTHROUGH_ENV_SKIP_KEYS = (
+    'NETHACK_RNGLOG',
+    'NETHACK_DUMPMAP',
+    'NETHACK_DUMPSNAP',
+    'NETHACK_MAPDUMP_DIR',
+    'NETHACK_SEED',
+    'NETHACK_FIXED_DATETIME',
+    'WEBHACK_FIXED_DATETIME',
+    'NETHACK_NO_DELAY',
+    'WEBHACK_NO_DELAY',
+    'NETHACK_RNGLOG_DISP',
+    'WEBHACK_RNGLOG_DISP',
+    'NETHACK_COSMIC_DISPLAY_LOGS',
+    'WEBHACK_COSMIC_DISPLAY_LOGS',
+)
+
+
+def collect_regen_logging_env():
+    """Collect normalized NETHACK logging env entries for session regen metadata."""
+    session_env = {}
+    for nethack_key, webhack_key in REGEN_LOG_ENV_PAIRS:
+        value = first_nonempty_env(nethack_key, webhack_key)
+        if value:
+            session_env[nethack_key] = value
+    return session_env
+
+def dumpsnap_env(default_every_key=False, step_index=None):
+    """Pass harness dumpsnap controls through to the C binary.
+
+    Parameters:
+        default_every_key: Force NETHACK_DUMPSNAP_EVERY_KEY when no explicit
+            every-key env var is set.
+        step_index: Optional override for NETHACK_DUMPSNAP_STEPS.
+    """
+    out = ''
+    every_key = first_nonempty_env(
+        *DUMPSNAP_KEY_EVERY_ENV_VARS,
+    )
+    if every_key:
+        out += f'NETHACK_DUMPSNAP_EVERY_KEY={every_key} '
+    elif default_every_key:
+        out += 'NETHACK_DUMPSNAP_EVERY_KEY=1 '
+    if step_index is not None:
+        out += f'NETHACK_DUMPSNAP_STEPS={int(step_index)} '
+    else:
+        steps = first_nonempty_env(*DUMPSNAP_STEP_ENV_VARS)
+        if steps:
+            out += f'NETHACK_DUMPSNAP_STEPS={steps} '
     return out
 
 def rnglog_disp_env():
-    """Pass NETHACK_RNGLOG_DISP through to the C binary if set."""
-    v = os.environ.get('NETHACK_RNGLOG_DISP', '')
+    """Pass RNG log display guard through to the C binary if set."""
+    v = first_nonempty_env('NETHACK_RNGLOG_DISP', 'WEBHACK_RNGLOG_DISP')
     return f'NETHACK_RNGLOG_DISP={v} ' if v else ''
 
 
+def cosmic_display_env():
+    """Pass cosmic display logging guard through to the C binary if set."""
+    v = first_nonempty_env(
+        'NETHACK_COSMIC_DISPLAY_LOGS',
+        'WEBHACK_COSMIC_DISPLAY_LOGS',
+    )
+    return f'NETHACK_COSMIC_DISPLAY_LOGS={v} ' if v else ''
+
+
 def report_repaint_debug_log(log_path, output_json):
-    if not os.environ.get('NETHACK_REPAINT_DEBUG'):
+    if not first_nonempty_env('NETHACK_REPAINT_DEBUG', 'WEBHACK_REPAINT_DEBUG'):
         return
     if os.path.isfile(log_path):
         dest = f'{output_json}.repaintdbg.log'
@@ -654,6 +741,10 @@ def capture_screen_ansi_lines(session):
     )
     _raise_on_dump_error(result.stdout)
     lines = result.stdout.split('\n')
+    lines = [
+        line.replace('\x1b[0m\x1b[39m\x1b[49m', '\x1b[0m')
+        for line in lines
+    ]
     while len(lines) < 24:
         lines.append('')
     return lines[:24]
@@ -1396,12 +1487,20 @@ def _passthrough_env_vars():
     for key, value in os.environ.items():
         if key.startswith('NETHACK_') or key.startswith('WEBHACK_'):
             # Skip harness-specific vars that we set ourselves
-            if key in ('NETHACK_RNGLOG', 'NETHACK_DUMPMAP', 'NETHACK_DUMPSNAP',
-                        'NETHACK_MAPDUMP_DIR', 'NETHACK_SEED',
-                        'NETHACK_FIXED_DATETIME', 'NETHACK_NO_DELAY'):
+            if key in _PASSTHROUGH_ENV_SKIP_KEYS:
                 continue
             result[key] = value
     return result
+
+
+def collect_passthrough_env(extra_skip_keys=None):
+    """Collect passthrough env, optionally skipping additional keys."""
+    skip_keys = set(_PASSTHROUGH_ENV_SKIP_KEYS)
+    if extra_skip_keys:
+        skip_keys.update(filter(None, extra_skip_keys))
+    return {key: value for key, value in os.environ.items() if
+            (key.startswith('NETHACK_') or key.startswith('WEBHACK_')) and
+            key not in skip_keys}
 
 
 def record_c_session(env, nethackrc, keys, output_path,
@@ -1512,12 +1611,6 @@ def record_c_session(env, nethackrc, keys, output_path,
         check=True
     )
 
-    # Capture the Unix timestamp at game launch.  C's u_init_misc() sets
-    # ubirthday = time() (the real system clock), NOT getnow() which reads
-    # NETHACK_FIXED_DATETIME.  Shopkeeper names depend on ubirthday, so
-    # the JS replay needs this value to match C's naming.
-    game_start_time = int(time.time())
-
     session_data = {
         'version': 4,
         'env': {k: v for k, v in env.items()},
@@ -1525,7 +1618,6 @@ def record_c_session(env, nethackrc, keys, output_path,
         'seed': int(env.get('NETHACK_SEED', 0)),
         'source': 'c',
         'recorded_with': get_recorded_with(),
-        'game_start_time': game_start_time,
         'steps': [],
     }
     if regen_metadata:
@@ -1752,6 +1844,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{dumpsnap_env()}'
             f'{rnglog_disp_env()}'
+            f'{cosmic_display_env()}'
             f'{screendump_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2017,6 +2110,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
+            f'{cosmic_display_env()}'
             f'{screendump_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2315,6 +2409,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
+            f'{cosmic_display_env()}'
             f'{screendump_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2703,6 +2798,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
+            f'{cosmic_display_env()}'
             f'{screendump_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2790,20 +2886,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             session_data['regen']['key_delays_s'] = key_delay_overrides
         if final_capture_delay_s > 0.0:
             session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
-        test_move_ev = os.environ.get('NETHACK_EVENT_TEST_MOVE')
-        runstep_ev = os.environ.get('NETHACK_EVENT_RUNSTEP')
-        repaint_ev = os.environ.get('NETHACK_REPAINT_TRACE')
-        exp_ev = os.environ.get('NETHACK_EXP_TRACE')
-        if test_move_ev or runstep_ev or repaint_ev or exp_ev:
-            session_env = {}
-            if test_move_ev:
-                session_env['NETHACK_EVENT_TEST_MOVE'] = test_move_ev
-            if runstep_ev:
-                session_env['NETHACK_EVENT_RUNSTEP'] = runstep_ev
-            if repaint_ev:
-                session_env['NETHACK_REPAINT_TRACE'] = repaint_ev
-            if exp_ev:
-                session_env['NETHACK_EXP_TRACE'] = exp_ev
+        session_env = collect_regen_logging_env()
+        if session_env:
             session_data['regen']['env'] = session_env
         if record_more_spaces:
             session_data['regen']['record_more_spaces'] = True

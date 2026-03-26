@@ -1,0 +1,286 @@
+diff --git a/src/allmain.c b/src/allmain.c
+index 7a431ea27..50dbe9ce2 100644
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -224,8 +224,14 @@ moveloop(void)
+                 /* reallocate movement rations to monsters; don't need
+                    to skip dead monsters here because they will have
+                    been purged at end of their previous round of moving */
+-                for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
+-                    mtmp->movement += mcalcmove(mtmp, TRUE);
++                for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
++                    int old_mv = mtmp->movement;
++                    int added = mcalcmove(mtmp, TRUE);
++                    mtmp->movement += added;
++                    event_log("mcalcmove[%d@%d,%d speed=%d mv=%d->%d]",
++                              monsndx(mtmp->data), mtmp->mx, mtmp->my,
++                              mtmp->data->mmove, old_mv, mtmp->movement);
++                }
+ 
+                 /* occasionally add another monster; since this takes
+                    place after movement has been allotted, the new
+diff --git a/src/dog.c b/src/dog.c
+index 3404c5c4c..def85c07a 100644
+--- a/src/dog.c
++++ b/src/dog.c
+@@ -642,6 +642,11 @@ mon_catchup_elapsed_time(struct monst *mtmp, long nmv)
+     else
+         imv = (int) nmv;
+ 
++    event_log("catchup[%d@%d,%d elapsed=%d trapped=%d conf=%d stun=%d tame=%d eat=%d spec=%d]",
++              monsndx(mtmp->data), mtmp->mx, mtmp->my, imv,
++              mtmp->mtrapped ? 1 : 0, mtmp->mconf ? 1 : 0,
++              mtmp->mstun ? 1 : 0, (int) mtmp->mtame, mtmp->meating,
++              mtmp->mspec_used);
+     /* might stop being afraid, blind or frozen */
+     /* set to 1 and allow final decrement in movemon() */
+     if (mtmp->mblinded) {
+diff --git a/src/dogmove.c b/src/dogmove.c
+index 8956f2dd6..2556edb74 100644
+--- a/src/dogmove.c
++++ b/src/dogmove.c
+@@ -395,11 +395,14 @@ dog_invent(struct monst *mtmp, struct edog *edog, int udist)
+ {
+     coordxy omx, omy;
+-    int carryamt = 0;
++    int carryamt = 0, diag_act = 0, diag_otyp = -1, diag_carry = 0;
+     struct obj *obj, *otmp;
+ 
+-    if (helpless(mtmp) || mtmp->meating)
++    if (helpless(mtmp) || mtmp->meating) {
++        event_log("dog_invent_decision[%d@%d,%d ud=%d act=%d otyp=%d carry=%d rv=%d]",
++                  monsndx(mtmp->data), mtmp->mx, mtmp->my, udist, -1, -1, 0,
++                  0);
+         return 0;
++    }
+ 
+     omx = mtmp->mx;
+     omy = mtmp->my;
+@@ -413,6 +416,7 @@ dog_invent(struct monst *mtmp, struct edog *edog, int udist)
+         if (!rn2(udist + 1) || !rn2(edog->apport))
+             if (rn2(10) < edog->apport) {
+                 relobj(mtmp, (int) mtmp->minvis, TRUE);
++                diag_act = 1;
+                 if (edog->apport > 1)
+                     edog->apport--;
+                 edog->dropdist = udist; /* hpscdi!jon */
+@@ -432,8 +436,13 @@ dog_invent(struct monst *mtmp, struct edog *edog, int udist)
+             if ((edible <= CADAVER
+                  /* starving pet is more aggressive about eating */
+                  || (edog->mhpmax_penalty && edible == ACCFOOD))
+-                && could_reach_item(mtmp, obj->ox, obj->oy))
+-                return dog_eat(mtmp, obj, omx, omy, FALSE);
++                && could_reach_item(mtmp, obj->ox, obj->oy)) {
++                int rv = dog_eat(mtmp, obj, omx, omy, FALSE);
++                event_log("dog_invent_decision[%d@%d,%d ud=%d act=%d otyp=%d carry=%d rv=%d]",
++                          monsndx(mtmp->data), omx, omy, udist, 2,
++                          obj->otyp, 0, rv);
++                return rv;
++            }
+ 
+             carryamt = can_carry(mtmp, obj);
+             if (carryamt > 0 && !obj->cursed
+@@ -458,6 +467,9 @@ dog_invent(struct monst *mtmp, struct edog *edog, int udist)
+                         obj_extract_self(otmp);
+                         newsym(omx, omy);
+                         (void) mpickobj(mtmp, otmp);
++                        diag_act = 3;
++                        diag_otyp = otmp->otyp;
++                        diag_carry = carryamt;
+                         if (attacktype(mtmp->data, AT_WEAP)
+                             && mtmp->weapon_check == NEED_WEAPON) {
+                             mtmp->weapon_check = NEED_HTH_WEAPON;
+@@ -469,6 +481,8 @@ dog_invent(struct monst *mtmp, struct edog *edog, int udist)
+             }
+         }
+     }
++    event_log("dog_invent_decision[%d@%d,%d ud=%d act=%d otyp=%d carry=%d rv=%d]",
++              monsndx(mtmp->data), omx, omy, udist, diag_act, diag_otyp,
++              diag_carry, 0);
+     return 0;
+ }
+@@ -532,6 +546,11 @@ dog_goal(struct monst *mtmp, struct edog *edog, int after, int udist, int whappr
+         if ((max_y = omy + SQSRCHRADIUS) >= ROWNO)
+             max_y = ROWNO - 1;
+ 
++        event_log("dog_goal_start[M%u@%d,%d apport=%u minvent=%d ims=%d range=[%d..%d]x[%d..%d]]",
++                  mtmp->m_id, omx, omy, edog->apport,
++                  dog_has_minvent ? 1 : 0, in_masters_sight ? 1 : 0,
++                  min_x, max_x, min_y, max_y);
++
+         /* nearby food is the first choice, then other objects */
+         for (obj = fobj; obj; obj = obj->nobj) {
+             nx = obj->ox;
+@@ -539,32 +558,56 @@ dog_goal(struct monst *mtmp, struct edog *edog, int after, int udist, int whappr
+             if (nx >= min_x && nx <= max_x && ny >= min_y && ny <= max_y) {
+                 otyp = dogfood(mtmp, obj);
+                 /* skip inferior goals */
+-                if (otyp > gg.gtyp || otyp == UNDEF)
++                if (otyp > gg.gtyp || otyp == UNDEF) {
++                    event_log("dog_goal_obj[M%u oid=%u@%d,%d food=%d skip=inf]",
++                              mtmp->m_id, obj->o_id, nx, ny, otyp);
+                     continue;
++                }
+                 /* avoid cursed items unless starving */
+                 if (cursed_object_at(nx, ny)
+-                    && !(edog->mhpmax_penalty && otyp < MANFOOD))
++                    && !(edog->mhpmax_penalty && otyp < MANFOOD)) {
++                    event_log("dog_goal_obj[M%u oid=%u@%d,%d food=%d skip=cur]",
++                              mtmp->m_id, obj->o_id, nx, ny, otyp);
+                     continue;
++                }
+                 /* skip completely unreachable goals */
+                 if (!could_reach_item(mtmp, nx, ny)
+-                    || !can_reach_location(mtmp, mtmp->mx, mtmp->my, nx, ny))
++                    || !can_reach_location(mtmp, mtmp->mx, mtmp->my, nx, ny)) {
++                    event_log("dog_goal_obj[M%u oid=%u@%d,%d food=%d skip=rch]",
++                              mtmp->m_id, obj->o_id, nx, ny, otyp);
+                     continue;
++                }
+                 if (otyp < MANFOOD) {
+                     if (otyp < gg.gtyp
+                         || DDIST(nx, ny) < DDIST(gg.gx, gg.gy)) {
++                        event_log("dog_goal_obj[M%u oid=%u@%d,%d food=%d sel=1]",
++                                  mtmp->m_id, obj->o_id, nx, ny, otyp);
+                         gg.gx = nx;
+                         gg.gy = ny;
+                         gg.gtyp = otyp;
++                    } else {
++                        event_log("dog_goal_obj[M%u oid=%u@%d,%d food=%d sel=0]",
++                                  mtmp->m_id, obj->o_id, nx, ny, otyp);
+                     }
+                 } else if (gg.gtyp == UNDEF && in_masters_sight
+                            && !dog_has_minvent
+                            && (!levl[omx][omy].lit || levl[u.ux][u.uy].lit)
+-                           && (otyp == MANFOOD || m_cansee(mtmp, nx, ny))
+-                           && edog->apport > rn2(8)
+-                           && can_carry(mtmp, obj) > 0) {
+-                    gg.gx = nx;
+-                    gg.gy = ny;
+-                    gg.gtyp = APPORT;
++                           && (otyp == MANFOOD || m_cansee(mtmp, nx, ny))) {
++                    int aproll = rn2(8);
++                    int carry_res = (edog->apport > aproll)
++                                        ? can_carry(mtmp, obj)
++                                        : 0;
++                    int sel = (edog->apport > aproll && carry_res > 0);
++                    event_log("dog_goal_obj[M%u oid=%u@%d,%d food=%d apport=%u rn2_8=%d carry=%d sel=%d]",
++                              mtmp->m_id, obj->o_id, nx, ny, otyp,
++                              edog->apport, aproll, carry_res, sel);
++                    if (sel) {
++                        gg.gx = nx;
++                        gg.gy = ny;
++                        gg.gtyp = APPORT;
++                    }
++                } else {
++                    event_log("dog_goal_obj[M%u oid=%u@%d,%d food=%d skip=apc]",
++                              mtmp->m_id, obj->o_id, nx, ny, otyp);
+                 }
+             }
+         }
+@@ -651,6 +694,8 @@ dog_goal(struct monst *mtmp, struct edog *edog, int after, int udist, int whappr
+     } else if (edog) {
+         edog->ogoal.x = 0;
+     }
++    event_log("dog_goal_end[M%u goal=%d,%d gtyp=%d appr=%d]",
++              mtmp->m_id, gg.gx, gg.gy, gg.gtyp, appr);
+     return appr;
+ #undef FARAWAY
+ }
+@@ -1037,6 +1082,9 @@ dog_move(struct monst *mtmp, int after)
+     appr = dog_goal(mtmp, edog, after, udist, whappr);
+     if (appr == -2)
+         return MMOVE_NOTHING;
++    event_log("dog_move_entry[%d@%d,%d goal=%d,%d appr=%d]",
++              monsndx(mtmp->data), omx, omy,
++              gg.gx, gg.gy, appr);
+ 
+     if (Conflict && !resist_conflict(mtmp)) {
+         if (!edog) {
+@@ -1057,6 +1105,8 @@ dog_move(struct monst *mtmp, int after)
+     allowflags = mon_allowflags(mtmp);
+     cnt = mfndpos(mtmp, &mfp, allowflags);
+ 
++    event_log("dog_move_mfndpos[cnt=%d flags=0x%lx]", cnt, allowflags);
++
+     /* Normally dogs don't step on cursed items, but if they have no
+      * other choice they will.  This requires checking ahead of time
+      * to see how many uncursed item squares are around.
+@@ -1271,6 +1321,13 @@ dog_move(struct monst *mtmp, int after)
+         return i;
+ 
+  newdogpos:
++    event_log("dog_move_choice[%d@%d,%d pick=%d,%d chi=%d do_eat=%d cnt=%d appr=%d]",
++              monsndx(mtmp->data), omx, omy, nix, niy, chi,
++              do_eat ? 1 : 0, cnt, appr);
++
+     if (nix != omx || niy != omy) {
++        event_log("dog_move_exit[%d@%d,%d->%d,%d chi=%d do_eat=%d]",
++                  monsndx(mtmp->data), omx, omy, nix, niy, chi, do_eat);
+         boolean wasseen;
+diff --git a/src/mon.c b/src/mon.c
+index 7168ec695..a2eafc461 100644
+--- a/src/mon.c
++++ b/src/mon.c
+@@ -1233,6 +1233,9 @@ next_to_u(void)
+     if (mtmp->movement < NORMAL_SPEED)
+         return FALSE;
+ 
++    event_log("movemon_turn[%d@%d,%d mv=%d->%d]",
++              monsndx(mtmp->data), mtmp->mx, mtmp->my,
++              mtmp->movement, mtmp->movement - NORMAL_SPEED);
+     mtmp->movement -= NORMAL_SPEED;
+     if (mtmp->movement >= NORMAL_SPEED)
+         gs.somebody_can_move = TRUE;
+diff --git a/src/monmove.c b/src/monmove.c
+index 0bfdb7ca1..c9e5fb759 100644
+--- a/src/monmove.c
++++ b/src/monmove.c
+@@ -537,6 +537,7 @@ distfleeck(struct monst *mtmp, boolean *inrange, boolean *nearby, boolean *scare
+ {
+     int seescaryx, seescaryy;
+     boolean sawscary = FALSE, bravegremlin = (rn2(5) == 0);
++    boolean fleelight = FALSE, sanctuary = FALSE;
+ 
+     *inrange = (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy)
+                 <= (BOLT_LIM * BOLT_LIM));
+@@ -558,13 +559,24 @@ distfleeck(struct monst *mtmp, boolean *inrange, boolean *nearby, boolean *scare
+     }
+ 
+     sawscary = onscary(seescaryx, seescaryy, mtmp);
+-    if (*nearby && (sawscary
+-                    || (flees_light(mtmp) && !bravegremlin)
+-                    || (!mtmp->mpeaceful && in_your_sanctuary(mtmp, 0, 0)))) {
++    if (*nearby) {
++        if (!sawscary) {
++            fleelight = flees_light(mtmp) && !bravegremlin;
++            if (!fleelight)
++                sanctuary = !mtmp->mpeaceful
++                            && in_your_sanctuary(mtmp, 0, 0);
++        }
++    }
++    if (*nearby && (sawscary || fleelight || sanctuary)) {
+         *scared = 1;
+         monflee(mtmp, rnd(rn2(7) ? 10 : 100), TRUE, TRUE);
+     } else
+         *scared = 0;
++
++    event_log("distfleeck[%d@%d,%d in=%d near=%d scare=%d brave=%d saw=%d light=%d sanct=%d]",
++              monsndx(mtmp->data), mtmp->mx, mtmp->my, *inrange, *nearby,
++              *scared, bravegremlin ? 1 : 0, sawscary ? 1 : 0,
++              fleelight ? 1 : 0, sanctuary ? 1 : 0);
+ }
+ 
+ #undef flees_light
+@@ -669,7 +681,11 @@ mcalcmove(struct monst *mtmp, boolean check_burden)
+     if (mtmp->data == &mons[PM_FOG_CLOUD]) {
+         /* don't leave a vapor cloud if some other gas cloud is already
+            present, or when flowing under closed doors so that visibility
+            changes aren't mixed with messages about doing such */
++        event_log("fog_everyturn[%d@%d,%d cd=%d vr=%d]",
++                  monsndx(mtmp->data), x, y,
++                  closed_door(x, y) ? 1 : 0,
++                  visible_region_at(x, y) ? 1 : 0);
+         if (!closed_door(x, y) && !visible_region_at(x, y))
+             create_gas_cloud(x, y, 1, 0); /* harmless vapor */
+     }

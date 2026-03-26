@@ -1,0 +1,271 @@
+diff --git a/include/extern.h b/include/extern.h
+index 4c31cd9f6..9ac53901d 100644
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -2737,6 +2737,11 @@ extern void rng_log_init(void);
+ extern boolean rng_log_enabled(void);
+ extern void rng_log_set_caller(const char *, int, const char *);
+ extern int rng_log_get_call_count(void);
+ /* Event logging for differential-debug instrumentation */
++extern void repaint_log(const char *, ...) PRINTF_F(1, 2);
++extern void repaint_debug_log(const char *, ...) PRINTF_F(1, 2);
++extern void repaint_debug_set_scope(const char *);
++extern void repaint_debug_clear_scope(void);
++extern const char *repaint_debug_get_scope(void);
+ extern void event_log(const char *, ...) PRINTF_F(1, 2);
+diff --git a/src/rnd.c b/src/rnd.c
+index 99d818ab0..6b32f9a95 100644
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -29,12 +29,34 @@ static FILE *rng_logfile = NULL;
+ static int rng_call_count = 0;
+ static const char *rng_caller_file = NULL;
+ static int rng_caller_line = 0;
+ static const char *rng_caller_func = NULL;
++static boolean repaint_trace_enabled = FALSE;
++static boolean repaint_debug_enabled = FALSE;
++static FILE *repaint_debug_file = (FILE *) 0;
++static const char *repaint_debug_scope = (const char *) 0;
+ 
+ void
+ rng_log_init(void)
+ {
+-    const char *logpath = getenv("NETHACK_RNGLOG");
++    const char *logpath = getenv("NETHACK_RNGLOG");
++    const char *repaint = getenv("NETHACK_REPAINT_TRACE");
++    const char *repaint_debug = getenv("NETHACK_REPAINT_DEBUG");
++    const char *repaint_debug_path = getenv("NETHACK_REPAINT_DEBUG_LOG");
++
++    if ((!repaint || !*repaint) && getenv("WEBHACK_REPAINT_TRACE"))
++        repaint = getenv("WEBHACK_REPAINT_TRACE");
++    if ((!repaint_debug || !*repaint_debug) && getenv("WEBHACK_REPAINT_DEBUG"))
++        repaint_debug = getenv("WEBHACK_REPAINT_DEBUG");
++    if ((!repaint_debug_path || !*repaint_debug_path)
++        && getenv("WEBHACK_REPAINT_DEBUG_LOG"))
++        repaint_debug_path = getenv("WEBHACK_REPAINT_DEBUG_LOG");
+     if (logpath && *logpath) {
+         rng_logfile = fopen(logpath, "w");
+         if (rng_logfile)
+             setvbuf(rng_logfile, NULL, _IOLBF, 0); /* line-buffered */
+     }
++    repaint_trace_enabled = (repaint && *repaint && *repaint != '0') ? TRUE : FALSE;
++    repaint_debug_enabled = (repaint_debug && *repaint_debug
++                             && *repaint_debug != '0') ? TRUE : FALSE;
++    if (repaint_debug_path && *repaint_debug_path) {
++        repaint_debug_file = fopen(repaint_debug_path, "a");
++        if (repaint_debug_file)
++            setvbuf(repaint_debug_file, NULL, _IOLBF, 0);
++    }
+ }
+@@ -90,6 +112,50 @@ event_log(const char *fmt, ...)
+     fputc('\n', rng_logfile);
+ }
+ 
++void
++repaint_log(const char *fmt, ...)
++{
++    va_list ap;
++
++    if (!rng_logfile || !repaint_trace_enabled)
++        return;
++    fputs("^repaint[", rng_logfile);
++    va_start(ap, fmt);
++    vfprintf(rng_logfile, fmt, ap);
++    va_end(ap);
++    fputs("]\n", rng_logfile);
++}
++
++void
++repaint_debug_log(const char *fmt, ...)
++{
++    va_list ap;
++    FILE *out;
++
++    if (!repaint_debug_enabled)
++        return;
++    out = repaint_debug_file ? repaint_debug_file : stderr;
++    fputs("^repaintdbg[", out);
++    va_start(ap, fmt);
++    vfprintf(out, fmt, ap);
++    va_end(ap);
++    fputs("]\n", out);
++}
++
++void
++repaint_debug_set_scope(const char *scope)
++{
++    repaint_debug_scope = scope;
++}
++
++void
++repaint_debug_clear_scope(void)
++{
++    repaint_debug_scope = (const char *) 0;
++}
++
++const char *
++repaint_debug_get_scope(void)
++{
++    return repaint_debug_scope;
++}
++
+ #ifdef USE_ISAAC64
+ #include "isaac64.h"
+diff --git a/src/botl.c b/src/botl.c
+index eddfcccf5..1fca7d11b 100644
+--- a/src/botl.c
++++ b/src/botl.c
+@@ -255,6 +255,12 @@ void
+ bot(void)
+ {
++    repaint_log("bot hp=%d botl=%d botlx=%d time=%d",
++                (int) u.uhp, (int) disp.botl, (int) disp.botlx,
++                (int) disp.time_botl);
++    repaint_debug_log("owner=botl.bot hp=%d botl=%d botlx=%d time=%d",
++                      (int) u.uhp, (int) disp.botl, (int) disp.botlx,
++                      (int) disp.time_botl);
+     if (gb.bot_disabled)
+         return;
+diff --git a/src/display.c b/src/display.c
+index ccd03b428..83b13a081 100644
+--- a/src/display.c
++++ b/src/display.c
+@@ -2212,6 +2212,14 @@ flush_screen(int cursor_on_u)
+     if (_suppress_map_output())
+         return;
+ 
++    repaint_log("flush hp=%d cursor=%d botl=%d botlx=%d time=%d",
++                (int) u.uhp, cursor_on_u, (int) disp.botl,
++                (int) disp.botlx, (int) disp.time_botl);
++    repaint_debug_log("owner=display.flush_screen scope=%s hp=%d cursor=%d botl=%d botlx=%d time=%d",
++                      repaint_debug_get_scope() ? repaint_debug_get_scope() : "-",
++                      (int) u.uhp, cursor_on_u, (int) disp.botl,
++                      (int) disp.botlx, (int) disp.time_botl);
++
+     if (cursor_on_u == -1)
+         delay_flushing = !delay_flushing;
+     if (delay_flushing)
+diff --git a/src/pline.c b/src/pline.c
+index 18ce50331..dc398e9bc 100644
+--- a/src/pline.c
++++ b/src/pline.c
+@@ -271,8 +271,11 @@ vpline(const char *line, va_list the_args)
+         vision_recalc(0);
+         in_pline = tmp_in_pline;
+     }
+-    if (u.ux)
+-        flush_screen((gp.pline_flags & NO_CURS_ON_U) ? 0 : 1); /* %% */
++    if (u.ux) {
++        repaint_debug_set_scope("pline.vpline");
++        flush_screen((gp.pline_flags & NO_CURS_ON_U) ? 0 : 1); /* %% */
++        repaint_debug_clear_scope();
++    }
+ 
+     putmesg(line);
+diff --git a/win/tty/topl.c b/win/tty/topl.c
+index c20dfa288..55c0edb65 100644
+--- a/win/tty/topl.c
++++ b/win/tty/topl.c
+@@ -214,6 +214,12 @@ more(void)
+         return;
+ 
+     ttyDisplay->inmore++;
++    repaint_log("more hp=%d topl=%d row=%d col=%d",
++                (int) u.uhp, (int) ttyDisplay->toplin,
++                cw ? cw->cury : -1, cw ? cw->curx : -1);
++    repaint_debug_log("owner=tty.topl.more hp=%d topl=%d row=%d col=%d",
++                      (int) u.uhp, (int) ttyDisplay->toplin,
++                      cw ? cw->cury : -1, cw ? cw->curx : -1);
+ 
+     if (ttyDisplay->toplin) {
+         tty_curs(BASE_WINDOW, cw->curx + 1, cw->cury);
+@@ -227,7 +233,15 @@ more(void)
+     if (flags.standout)
+         standoutend();
+ 
++    repaint_debug_log("owner=tty.topl.more.await hp=%d topl=%d row=%d col=%d prompt=%s",
++                      (int) u.uhp, (int) ttyDisplay->toplin,
++                      cw ? cw->cury : -1, cw ? cw->curx : -1, "\033 ");
+     xwaitforspace("\033 ");
++    repaint_debug_log("owner=tty.topl.more.key hp=%d topl=%d row=%d col=%d morc=%d dismiss=%d",
++                      (int) u.uhp, (int) ttyDisplay->toplin,
++                      cw ? cw->cury : -1, cw ? cw->curx : -1,
++                      (int) (unsigned char) morc,
++                      (morc == '\033' || morc == ' ') ? 1 : 0);
+ 
+     if (morc == '\033') {
+         if (!(cw->flags & WIN_NOSTOP))
+@@ -243,6 +257,10 @@ more(void)
+         home();
+         cl_end();
+     }
++    repaint_debug_log("owner=tty.topl.more.return hp=%d topl=%d row=%d col=%d morc=%d",
++                      (int) u.uhp, (int) ttyDisplay->toplin,
++                      cw ? cw->cury : -1, cw ? cw->curx : -1,
++                      (int) (unsigned char) morc);
+     ttyDisplay->toplin = TOPLINE_EMPTY;
+     ttyDisplay->inmore = 0;
+ }
+@@ -263,6 +281,9 @@ update_topl(const char *bp)
+         && cw->cury == 0
+         && n0 + (int) strlen(gt.toplines) + 3 < CO - 8 /* room for --More-- */
+         && (notdied = strncmp(bp, "You die", 7)) != 0) {
++        repaint_debug_log("owner=tty.topl.update_topl.concat_fit topl=%d cury=%d len=%d existing=%d msg=%s",
++                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                          n0, (int) strlen(gt.toplines), bp ? bp : "");
+         Strcat(gt.toplines, "  ");
+         Strcat(gt.toplines, bp);
+         cw->curx += 2;
+@@ -271,6 +292,9 @@ update_topl(const char *bp)
+         return;
+     } else if (!skip) {
+         if (ttyDisplay->toplin == TOPLINE_NEED_MORE) {
++            repaint_debug_log("owner=tty.topl.update_topl.pre_more topl=%d cury=%d len=%d existing=%d msg=%s",
++                              (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                              n0, (int) strlen(gt.toplines), bp ? bp : "");
+             more();
+         } else if (cw->cury) { /* for toplin==TOPLINE_NON_EMPTY && cury > 1 */
+             docorner(1, cw->cury + 1, 0); /* reset cury = 0 if redraw screen */
+@@ -297,8 +321,12 @@ update_topl(const char *bp)
+     }
+     if (!notdied) /* double negative => "You die"; avoid suppressing mesg */
+         cw->flags &= ~WIN_STOP, skip = FALSE;
+-    if (!skip)
++    if (!skip) {
++        repaint_debug_log("owner=tty.topl.update_topl.redotoplin topl=%d cury=%d len=%d msg=%s",
++                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                          (int) strlen(gt.toplines), gt.toplines);
+         redotoplin(gt.toplines);
++    }
+ }
+@@ -387,6 +415,12 @@ yn_function(const char *query, const char *resp, char def)
+     char prompt[BUFSZ];
+ 
+     yn_number = 0L;
++    repaint_log("yn hp=%d topl=%d def=%d query=%s",
++                (int) u.uhp, (int) ttyDisplay->toplin, (int) def,
++                query ? query : "");
++    repaint_debug_log("owner=tty.topl.yn_function hp=%d topl=%d def=%d query=%s",
++                      (int) u.uhp, (int) ttyDisplay->toplin, (int) def,
++                      query ? query : "");
+     if (ttyDisplay->toplin == TOPLINE_NEED_MORE
+         && (cw->flags & (WIN_STOP | WIN_NOSTOP)) != WIN_STOP)
+         more();
+diff --git a/win/tty/wintty.c b/win/tty/wintty.c
+index 61338542b..08beafc31 100644
+--- a/win/tty/wintty.c
++++ b/win/tty/wintty.c
+@@ -3716,6 +3716,14 @@ void
+ tty_mark_synch(void)
+ {
+     HUPSKIP();
++    repaint_log("mark hp=%d topl=%d inread=%d inmore=%d",
++                (int) u.uhp, ttyDisplay ? (int) ttyDisplay->toplin : -1,
++                ttyDisplay ? ttyDisplay->inread : -1,
++                ttyDisplay ? ttyDisplay->inmore : -1);
++    repaint_debug_log("owner=tty.wintty.mark_synch hp=%d topl=%d inread=%d inmore=%d",
++                      (int) u.uhp, ttyDisplay ? (int) ttyDisplay->toplin : -1,
++                      ttyDisplay ? ttyDisplay->inread : -1,
++                      ttyDisplay ? ttyDisplay->inmore : -1);
+     (void) fflush(stdout);
+ }
