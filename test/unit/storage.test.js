@@ -1035,13 +1035,13 @@ describe('saveGameState/restGameState round-trip', () => {
         assert.deepEqual(restored.flags, { pickup: false, showexp: true, color: true });
     });
 
-    it('round-trips discovery state (oc_name_known + encountered)', () => {
+    it('round-trips discovery state (oc_name_known + encountered)', async () => {
         initRng(42);
         initLevelGeneration();
         initDiscoveryState();
 
         // Scroll of earth starts undiscovered by name; mark encountered+known.
-        discoverObject(SCR_EARTH, true, true);
+        await discoverObject(SCR_EARTH, true, true);
 
         const player = new Player();
         player.initRole(11);
@@ -1061,7 +1061,7 @@ describe('saveGameState/restGameState round-trip', () => {
         assert.equal(isObjectNameKnown(SCR_EARTH), false);
         assert.equal(isObjectEncountered(SCR_EARTH), false);
 
-        restGameState(JSON.parse(JSON.stringify(gs)));
+        await restGameState(JSON.parse(JSON.stringify(gs)));
         assert.equal(isObjectNameKnown(SCR_EARTH), true);
         assert.equal(isObjectEncountered(SCR_EARTH), true);
     });

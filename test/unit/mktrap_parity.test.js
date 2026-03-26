@@ -23,7 +23,7 @@ describe('mktrap C parity', () => {
         const croom = { lx: x, hx: x, ly: y, hy: y };
         const before = map.traps.length;
 
-        mktrap(map, PIT, 0, croom, null, 3);
+        await mktrap(map, PIT, 0, croom, null, 3);
 
         assert.equal(map.traps.length, before + 1);
         const t = map.trapAt(x, y);
@@ -39,7 +39,7 @@ describe('mktrap C parity', () => {
         const before = map.traps.length;
 
         map.objects.push({ otyp: BOULDER, ox: x, oy: y });
-        mktrap(map, PIT, 0, croom, null, 3);
+        await mktrap(map, PIT, 0, croom, null, 3);
 
         assert.equal(
             map.traps.length,
@@ -56,7 +56,7 @@ describe('mktrap C parity', () => {
         const before = map.traps.length;
 
         map.at(x, y).typ = POOL;
-        mktrap(map, PIT, 0, null, { x, y }, 3);
+        await mktrap(map, PIT, 0, null, { x, y }, 3);
 
         assert.equal(
             map.traps.length,

@@ -43,9 +43,7 @@ describe('spell CODEMATCH compatibility surface', () => {
         assert.deepEqual(sorted.map((s) => s.otyp), [SPE_DIG, SPE_FIREBALL, SPE_MAGIC_MAPPING]);
     });
 
-    it('skill_based_spellbook_id no-ops for non-wizards', () => {
-        assert.doesNotThrow(() => {
-            skill_based_spellbook_id({ roleMnum: 0, roleIndex: 0, spells: [] });
-        });
+    it('skill_based_spellbook_id no-ops for non-wizards', async () => {
+        await skill_based_spellbook_id({ roleMnum: 0, roleIndex: 0, spells: [] });
     });
 });

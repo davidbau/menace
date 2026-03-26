@@ -57,7 +57,7 @@ describe('Post-level initialization (u_init)', () => {
         const logBefore = getRngLog();
         const countBefore = logBefore.length;
 
-        simulatePostLevelInit(player, map, 1);
+        await simulatePostLevelInit(player, map, 1);
 
         const logAfter = getRngLog();
         const delta = logAfter.length - countBefore;
@@ -74,7 +74,7 @@ describe('Post-level initialization (u_init)', () => {
         // We test indirectly: the algorithm should distribute 27 points
         // (75 - 48 Valkyrie base) across 6 attributes weighted by attrdist.
         const { u: player, map } = await setupSeed42Game();
-        simulatePostLevelInit(player, map, 1);
+        await simulatePostLevelInit(player, map, 1);
 
         // Verify attributes are reasonable (sum should be ~75 for Valkyrie)
         const sum = player.attributes.reduce((a, b) => a + b, 0);
@@ -93,7 +93,7 @@ describe('Post-level initialization (u_init)', () => {
 
     it('Valkyrie gets correct HP/PW/AC', async () => {
         const { u: player, map } = await setupSeed42Game();
-        simulatePostLevelInit(player, map, 1);
+        await simulatePostLevelInit(player, map, 1);
 
         // HP = Valkyrie(14) + Human(2) = 16
         assert.equal(player.hp, 16, 'HP should be 16');
@@ -107,7 +107,7 @@ describe('Post-level initialization (u_init)', () => {
 
     it('Valkyrie gets 4 inventory items with correct types', async () => {
         const { u: player, map } = await setupSeed42Game();
-        simulatePostLevelInit(player, map, 1);
+        await simulatePostLevelInit(player, map, 1);
 
         // Valkyrie: SPEAR, DAGGER, SMALL_SHIELD, FOOD_RATION (no lamp for seed 42)
         assert.equal(player.inventory.length, 4, 'Should have 4 inventory items');
@@ -142,7 +142,7 @@ describe('Post-level initialization (u_init)', () => {
         const { u: player, map } = await setupSeed42Game();
 
         enableRngLog();
-        simulatePostLevelInit(player, map, 1);
+        await simulatePostLevelInit(player, map, 1);
         const log = getRngLog();
         disableRngLog();
 
@@ -172,14 +172,14 @@ describe('Post-level initialization (u_init)', () => {
             }
         }
 
-        simulatePostLevelInit(player, map, 1);
+        await simulatePostLevelInit(player, map, 1);
         assert.equal(map.monsters.length, monsterCountBefore,
             'Pet should not be force-placed when no valid enexto position exists');
     });
 
     it('mon_arrive does not force placement when arrival has no valid tiles', async () => {
         const { u: player, map: oldMap } = await setupSeed42Game();
-        simulatePostLevelInit(player, oldMap, 1);
+        await simulatePostLevelInit(player, oldMap, 1);
 
         const { u: newPlayer, map: newMap } = await setupSeed42Game();
         for (let dx = -3; dx <= 3; dx++) {
@@ -463,7 +463,7 @@ describe('Post-level initialization (u_init)', () => {
 
     it('Healer gets startup money as gold inventory object', async () => {
         const { u: player, map } = await setupRoleGame(1, 'Healer');
-        simulatePostLevelInit(player, map, 1);
+        await simulatePostLevelInit(player, map, 1);
 
         assert.ok(player.umoney0 >= 1001 && player.umoney0 <= 2000,
             `Healer umoney0 out of range: ${player.umoney0}`);
@@ -478,7 +478,7 @@ describe('Post-level initialization (u_init)', () => {
 
     it('Tourist gets startup money as gold inventory object', async () => {
         const { u: player, map } = await setupRoleGame(1, 'Tourist');
-        simulatePostLevelInit(player, map, 1);
+        await simulatePostLevelInit(player, map, 1);
 
         assert.ok(player.umoney0 >= 1 && player.umoney0 <= 1000,
             `Tourist umoney0 out of range: ${player.umoney0}`);

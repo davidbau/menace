@@ -28,13 +28,13 @@ async function setupRole(seed, roleName) {
 
 test('samurai starts with orcish dagger name known', async () => {
     const { u: player, map } = await setupRole(110, 'Samurai');
-    simulatePostLevelInit(player, map, 1);
+    await simulatePostLevelInit(player, map, 1);
     assert.equal(isObjectNameKnown(ORCISH_DAGGER), true);
 });
 
 test('wizard does not start with orcish dagger name known', async () => {
     const { u: player, map } = await setupRole(113, 'Wizard');
-    simulatePostLevelInit(player, map, 1);
+    await simulatePostLevelInit(player, map, 1);
     assert.equal(isObjectNameKnown(ORCISH_DAGGER), false);
 });
 

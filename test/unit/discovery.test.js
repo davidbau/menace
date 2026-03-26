@@ -23,16 +23,16 @@ describe('undiscoverObject', () => {
         initDiscoveryState();
     });
 
-    it('is a no-op when ocNameKnown is true', () => {
-        discoverObject(POT_HEALING, true, false); // sets name_known = true
+    it('is a no-op when ocNameKnown is true', async () => {
+        await discoverObject(POT_HEALING, true, false); // sets name_known = true
         undiscoverObject(POT_HEALING);
         assert.equal(isObjectNameKnown(POT_HEALING), true);
         assert.ok(getDiscoveryState().disco.includes(POT_HEALING),
             'item should remain in disco when name_known is true');
     });
 
-    it('is a no-op when ocEncountered is true', () => {
-        discoverObject(POT_HEALING, false, true); // sets encountered = true
+    it('is a no-op when ocEncountered is true', async () => {
+        await discoverObject(POT_HEALING, false, true); // sets encountered = true
         undiscoverObject(POT_HEALING);
         assert.equal(isObjectEncountered(POT_HEALING), true);
         assert.ok(getDiscoveryState().disco.includes(POT_HEALING),
@@ -90,8 +90,8 @@ describe('getDiscoveryState / setDiscoveryState', () => {
         initDiscoveryState();
     });
 
-    it('round-trips ocNameKnown and ocEncountered', () => {
-        discoverObject(POT_HEALING, true, true);
+    it('round-trips ocNameKnown and ocEncountered', async () => {
+        await discoverObject(POT_HEALING, true, true);
         const state = getDiscoveryState();
         initDiscoveryState();
         assert.equal(isObjectNameKnown(POT_HEALING), false);
@@ -115,9 +115,9 @@ describe('getDiscoveryState / setDiscoveryState', () => {
             'flags should still be false after round-trip');
     });
 
-    it('disco in getDiscoveryState includes items added by discoverObject', () => {
-        discoverObject(POT_HEALING, true, false);
-        discoverObject(POT_SICKNESS, false, true);
+    it('disco in getDiscoveryState includes items added by discoverObject', async () => {
+        await discoverObject(POT_HEALING, true, false);
+        await discoverObject(POT_SICKNESS, false, true);
         const { disco } = getDiscoveryState();
         assert.ok(disco.includes(POT_HEALING));
         assert.ok(disco.includes(POT_SICKNESS));

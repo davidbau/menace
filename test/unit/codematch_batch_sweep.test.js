@@ -112,12 +112,12 @@ test('mhitu.summonmu reverts beast-form were when shapechanger protection is act
     assert.equal(beast.mndx, PM_HUMAN_WEREWOLF);
 });
 
-test('mthrowu.return_from_mtoss drops uncaught returning projectile at thrower square', () => {
+test('mthrowu.return_from_mtoss drops uncaught returning projectile at thrower square', async () => {
     initRng(9);
     const map = new GameMap();
     const magr = { mx: 15, my: 8, mconf: 1, mhp: 20, minvent: [] };
     const otmp = { otyp: DAGGER };
-    return_from_mtoss(magr, otmp, false, map);
+    await return_from_mtoss(magr, otmp, false, map);
     assert.equal(otmp.ox, 15);
     assert.equal(otmp.oy, 8);
     assert.equal(map.objects.includes(otmp), true);
