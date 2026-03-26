@@ -869,7 +869,7 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
     // Phase 11: confusion touch
     // cf. uhitm.c:1889-1896 — umconf hand-glow confusion touch
     if (!hmd.destroyed && player.umconf && hmd.hand_to_hand) {
-        nohandglow(mon, player);
+        await nohandglow(mon, player);
         if (!mon.mconf && !resist(mon, SPBOOK_CLASS)) {
             mon.mconf = 1;
             if (!mon.mstun && display && canspotmon(mon)) {
@@ -999,7 +999,7 @@ function steal_it(mdef, mattk) {
 
 // cf. uhitm.c:3959 — physical damage handler
 // m-vs-m branch: uhitm.c:4106-4177
-export function mhitm_ad_phys(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_phys(magr, mattk, mdef, mhm) {
     const pd = mdef.data || mdef.type || {};
     // C ref: uhitm.c:4111-4115 — shade_miss for m-vs-m physical damage
     const mwep = (mattk.aatyp === AT_WEAP || mattk.aatyp === AT_CLAW)
@@ -1011,7 +1011,7 @@ export function mhitm_ad_phys(magr, mattk, mdef, mhm) {
     }
     // C ref: uhitm.c:4065 — exercise A_STR when being crushed (AT_HUGS)
     if (mdef.attributes && mattk.aatyp === AT_HUGS && mhm.damage > 0) {
-        exercise(mdef, A_STR, false);
+        await exercise(mdef, A_STR, false);
     }
 }
 
@@ -1100,7 +1100,7 @@ export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:2720 — acid damage handler
 // m-vs-m branch: uhitm.c:2744-2763
-export function mhitm_ad_acid(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_acid(magr, mattk, mdef, mhm) {
     if (magr.attributes) {
         // uhitm path: player attacks monster with acid
         // C ref: uhitm.c:2725-2727
@@ -1116,7 +1116,7 @@ export function mhitm_ad_acid(magr, mattk, mdef, mhm) {
                 mhm.damage = 0;
             } else {
                 // "covered in acid! It burns!"
-                exercise(mdef, A_STR, false);
+                await exercise(mdef, A_STR, false);
             }
         } else {
             mhm.damage = 0;
@@ -1239,7 +1239,7 @@ export function mhitm_ad_slee(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:3409 — paralysis handler
 // m-vs-m branch: uhitm.c:3441-3453
-export function mhitm_ad_plys(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_plys(magr, mattk, mdef, mhm) {
     if (mdef.mcanmove !== false && !rn2(3)
         && !mhitm_mgc_atk_negated(magr, mdef)) {
         const amt = rnd(10);
@@ -1247,7 +1247,7 @@ export function mhitm_ad_plys(magr, mattk, mdef, mhm) {
         mdef.mfrozen = Math.min(amt, 127);
         // C ref: uhitm.c:3454 — exercise A_DEX after paralysis (mhitu path)
         if (mdef.attributes) {
-            exercise(mdef, A_DEX, false);
+            await exercise(mdef, A_DEX, false);
         }
     }
 }
@@ -1432,12 +1432,12 @@ export async function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
 }
 
 // cf. uhitm.c:2768 — steal gold (m-vs-m: no effect)
-export function mhitm_ad_sgld(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_sgld(magr, mattk, mdef, mhm) {
     mhm.damage = 0;
     if (magr.attributes) {
         // uhitm path: player steals gold from monster
-        // C ref: uhitm.c:2777-2791 — exercise(A_DEX, TRUE)
-        exercise(magr, A_DEX, true);
+        // C ref: uhitm.c:2777-2791 — await exercise(A_DEX, TRUE)
+        await exercise(magr, A_DEX, true);
         return;
     } else if (mdef.attributes) {
         // mhitu path: monster steals gold from player
@@ -1608,13 +1608,13 @@ export async function mhitm_ad_ston(magr, mattk, mdef, mhm) {
 }
 
 // cf. uhitm.c:4243 — lycanthropy (m-vs-m: no effect)
-export function mhitm_ad_were(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_were(magr, mattk, mdef, mhm) {
     if (mdef.attributes) {
         // mhitu path: monster bites player with lycanthropy
         // C ref: uhitm.c:4259-4271 — !rn2(4) gates lycanthropy + exercise
         if (!rn2(4) && !mhitm_mgc_atk_negated(magr, mdef)) {
             // Lycanthropy infection path
-            exercise(mdef, A_CON, false);
+            await exercise(mdef, A_CON, false);
         }
     }
     // All paths: physical damage
@@ -1628,7 +1628,7 @@ export function mhitm_ad_heal(magr, mattk, mdef, mhm) {
 }
 
 // cf. uhitm.c:4403 — leg wound (m-vs-m: physical damage)
-export function mhitm_ad_legs(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_legs(magr, mattk, mdef, mhm) {
     if (mdef.attributes) {
         // mhitu path: monster wounds player's legs
         // C ref: uhitm.c:4409-4453 — rn2(2) side + boot checks + exercise
@@ -1645,8 +1645,8 @@ export function mhitm_ad_legs(magr, mattk, mdef, mhm) {
             }
         }
         rnd(Math.max(1, 60 - (mdef.dexterity || 10))); // wounded_legs duration
-        exercise(mdef, A_STR, false);
-        exercise(mdef, A_DEX, false);
+        await exercise(mdef, A_STR, false);
+        await exercise(mdef, A_DEX, false);
     }
     mhitm_ad_phys(magr, mattk, mdef, mhm);
 }
@@ -1732,11 +1732,11 @@ export function mhitm_ad_pest(magr, mattk, mdef, mhm) {
 }
 
 // cf. uhitm.c:3755 — famine (Rider attack)
-export function mhitm_ad_famn(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_famn(magr, mattk, mdef, mhm) {
     if (mdef.attributes) {
         // mhitu path: famine attack on player
-        // C ref: uhitm.c:3775-3778 — exercise(A_CON, FALSE)
-        exercise(mdef, A_CON, false);
+        // C ref: uhitm.c:3775-3778 — await exercise(A_CON, FALSE)
+        await exercise(mdef, A_CON, false);
     } else {
         // mhitm path: famine on monster
         const pd = mdef?.data || mdef?.type || {};

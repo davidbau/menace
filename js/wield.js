@@ -306,7 +306,7 @@ export async function chwepon(player, display, otmp, amount) {
             }
         }
         // C ref: wield.c:935 — exercise dexterity after enchant weapon on no weapon
-        exercise(player, A_DEX, amount >= 0);
+        await exercise(player, A_DEX, amount >= 0);
         return 0;
     }
 

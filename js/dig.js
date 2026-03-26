@@ -592,7 +592,7 @@ export function dighole(pit_only, by_magic, cc, map, player) {
 //      mkclass() calls also consume RNG.
 // ============================================================================
 
-export function dig_up_grave(cc, map, player) {
+export async function dig_up_grave(cc, map, player) {
     let dig_x, dig_y;
     if (!cc) {
         dig_x = player.x;
@@ -607,7 +607,7 @@ export function dig_up_grave(cc, map, player) {
     if (!lev) return;
 
     // C ref: dig.c — wisdom exercise for grave-digging
-    exercise(player, A_WIS, false);
+    await exercise(player, A_WIS, false);
     // C: alignment adjustments for Archeologist, Samurai, Lawful
     // TODO: adjalign calls for role-specific alignment penalties
 

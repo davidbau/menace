@@ -1620,7 +1620,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           }
           // C ref: exercise calls from zap_over_floor (zap.c:4395-4524)
           if (damgtype === ZT_MAGIC_MISSILE) {
-            exercise(player, A_STR, false);
+            await exercise(player, A_STR, false);
           } else if (damgtype === ZT_FIRE) {
             // C ref: zap.c zhitu() fire path:
             // if (burnarmor(&youmonst)) { if (!rn2(3)) destroy_items; if (!rn2(3)) ignite_items; }
@@ -1631,10 +1631,10 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           } else if (damgtype === ZT_COLD) {
             if (!rn2(3)) await destroy_items_player(player, AD_COLD, origDam, player);
           } else if (damgtype === ZT_LIGHTNING) {
-            exercise(player, A_CON, false);
+            await exercise(player, A_CON, false);
             if (!rn2(3)) await destroy_items_player(player, AD_ELEC, origDam, player);
           } else if (damgtype === ZT_ACID) {
-            exercise(player, A_STR, false);
+            await exercise(player, A_STR, false);
           }
           if (dam && hasProp(HALF_SPDAM) && zaptype(type) < 20) {
             dam = Math.floor((dam + 1) / 2);
@@ -2699,7 +2699,7 @@ export function release_hold(mon, player) {
 }
 
 // C ref: zap.c object-destruction utility names.
-export function maybe_destroy_item(obj, dmgtyp, player, owner = null) {
+export async function maybe_destroy_item(obj, dmgtyp, player, owner = null) {
   if (!obj) return 0;
   if (player && inventory_resistance_check(dmgtyp, player)) return 0;
   if (!destroyable_by(obj, dmgtyp)) return 0;
@@ -2725,7 +2725,7 @@ export function maybe_destroy_item(obj, dmgtyp, player, owner = null) {
   // C maybe_destroy_item() applies damage side effects for player-carried
   // exploding items; keep the attribute exercise RNG path aligned.
   if (player && cnt > 0 && itemDamage > 0) {
-    exercise(player, A_STR, false);
+    await exercise(player, A_STR, false);
   }
   // Apply minimal quantity mutation to keep later command/item selection
   // behavior aligned with C destroy_items() side effects.
@@ -2841,7 +2841,7 @@ async function maybe_destroy_item_player(obj, dmgtyp, player, owner = null) {
         : null;
       if (how) {
         await losehp(itemDamage, how, KILLED_BY_AN, player, _gstate?.display, _gstate);
-        exercise(player, A_STR, false);
+        await exercise(player, A_STR, false);
       }
     }
   }

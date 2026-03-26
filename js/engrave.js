@@ -805,9 +805,9 @@ export async function handleEngrave(player, display, game) {
     buf += finalText;
 
     make_engr_at(map, player.x, player.y, buf, de.type);
-    // C ref: engrave.c:443-450 — exercise(A_WIS, TRUE) when player engraves "Elbereth"
+    // C ref: engrave.c:443-450 — await exercise(A_WIS, TRUE) when player engraves "Elbereth"
     if (buf === 'Elbereth') {
-        exercise(player, A_WIS, true);
+        await exercise(player, A_WIS, true);
     }
     const newEp = engr_at(map, player.x, player.y);
     if (newEp) {
@@ -1016,7 +1016,7 @@ export async function disturb_grave(map, x, y, player, depth) {
         if (typeof makemon_appear === 'function') {
             await makemon_appear(mons[PM_GHOUL], x, y, 0, depth, map);
         }
-        // C: exercise(A_WIS, FALSE)
+        // C: await exercise(A_WIS, FALSE)
         if (player) {
             await exercise(player, A_WIS, false);
         }

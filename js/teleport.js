@@ -952,7 +952,7 @@ export async function dotele(break_the_rules, game) {
     await tele(game);
     // cf. teleport.c:1128 — exercise WIS after spell-based teleport (not trap)
     if (!trap) {
-        exercise(player, A_WIS, true);
+        await exercise(player, A_WIS, true);
     }
     return 1;
 }
