@@ -496,7 +496,7 @@ function nameshk(shk, nlp, ubirthday, ledgerNo) {
 // shkinit — C ref: shknam.c:628-692
 // ========================================================================
 
-function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
+async function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     // C ref: shknam.c:636 — find good door
     const door = good_shopdoor(sroom, map);
     if (!door) return -1;
@@ -507,7 +507,7 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     // MM_ESHK = 0x08 in C, but in our JS makemon it's just NO_MM_FLAGS
     // The shopkeeper creation consumes: next_ident (rnd(2)), newmonhp,
     // gender rn2(2), m_initweap, m_initinv, saddle rn2(100)
-    const shk = makemon(PM_SHOPKEEPER, sx, sy, NO_MM_FLAGS, depth, map);
+    const shk = await makemon(PM_SHOPKEEPER, sx, sy, NO_MM_FLAGS, depth, map);
     if (!shk) return -1;
     neweshk(shk);
     const eshkp = shk.mextra.eshk;
@@ -625,7 +625,7 @@ export async function stock_room(shp_indx, sroom, map, depth, ubirthday, ledgerN
     const shp = shtypes[shp_indx];
 
     // C ref: shknam.c:733 — create shopkeeper
-    const sh = shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo);
+    const sh = await shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo);
     if (sh < 0) return;
 
     // C ref: shknam.c:737-748 — fix door
