@@ -667,7 +667,7 @@ function check_jump(x, y, arg, map, player) {
 }
 
 // cf. apply.c:1889 -- is_valid_jump_pos: validate a jump destination
-export function is_valid_jump_pos(x, y, magic, showmsg, player, map) {
+export async function is_valid_jump_pos(x, y, magic, showmsg, player, map) {
     if (!player) player = globalThis.gs?.player;
     if (!map) map = globalThis.gs?.map;
 
@@ -678,16 +678,16 @@ export function is_valid_jump_pos(x, y, magic, showmsg, player, map) {
     if (!magic && !(HJumping & ~INTRINSIC) && !EJumping
         && distu(player, x, y) !== 5) {
         /* Knight jumping restriction: exactly 5 distance (L-shape) */
-        if (showmsg) pline("Illegal move!");
+        if (showmsg) await pline("Illegal move!");
         return false;
     } else if (distu(player, x, y) > (magic ? 6 + magic * 3 : 9)) {
-        if (showmsg) pline("Too far!");
+        if (showmsg) await pline("Too far!");
         return false;
     } else if (!isok(x, y)) {
-        if (showmsg) You("cannot jump there!");
+        if (showmsg) await You("cannot jump there!");
         return false;
     } else if (!cansee(x, y)) {
-        if (showmsg) You("cannot see where to land!");
+        if (showmsg) await You("cannot see where to land!");
         return false;
     } else {
         const loc = map.locations[player.x]?.[player.y];
@@ -708,7 +708,7 @@ export function is_valid_jump_pos(x, y, magic, showmsg, player, map) {
             && (loc.doormask & D_ISOPEN) !== 0
             && (traj === jDiag
                 || ((traj & jHorz) !== 0) === (!!loc.horizontal))) {
-            if (showmsg) You_cant("jump diagonally out of a doorway.");
+            if (showmsg) await You_cant("jump diagonally out of a doorway.");
             return false;
         }
         const uc = { x: player.x, y: player.y };
@@ -716,7 +716,7 @@ export function is_valid_jump_pos(x, y, magic, showmsg, player, map) {
         const arg = { traj, map, player };
         if (!walk_path(uc, tc,
                 (a, wx, wy) => check_jump(wx, wy, a, a.map, a.player), arg)) {
-            if (showmsg) There("is an obstacle preventing that jump.");
+            if (showmsg) await There("is an obstacle preventing that jump.");
             return false;
         }
     }

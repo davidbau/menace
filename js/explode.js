@@ -129,7 +129,7 @@ export async function explode(x, y, type, dam, olet, expltype, map, player) {
               if (player.uhp < 0) player.uhp = 0;
             }
             // C ref: explode.c:678 — exercise STR after taking explosion damage
-            exercise(player, A_STR, false);
+            await exercise(player, A_STR, false);
           }
         }
       }

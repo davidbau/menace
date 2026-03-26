@@ -103,6 +103,7 @@ import { pmname, Mgender, x_monnam, y_monnam, Monnam } from './do_name.js';
 import { place_monster } from './steed.js';
 import { Role_if } from './role.js';
 import { dochug, m_everyturn_effect } from './monmove.js';
+import { assertNotInModal } from './modal_guard.js';
 
 // C macro: ismnum(mndx) — valid monster index check
 // ismnum imported from mondata.js
@@ -514,8 +515,9 @@ export function mfndpos(mon, map, player, flag) {
     const isSwimmer = !!(mflags1 & (M1_SWIM | M1_AMPHIBIOUS));
     const poolok = (m_in_air || (isSwimmer && !wantpool));
     const likesLava = (mon.mndx === PM_FIRE_ELEMENTAL || mon.mndx === PM_SALAMANDER);
-    // C ref: mon.c:2160 — lavaok: flyers (not floaters) or lava-likers; exclude floating eye
-    const lavaok = ((m_in_air && !isFloater) || likesLava) && mon.mndx !== PM_FLOATING_EYE;
+    // C ref: mon.c:2155-2157 — lavaok: m_in_air (flyers+floaters+clingers) or lava-likers;
+    // only floating eye is excluded (prefers to avoid heat)
+    const lavaok = (m_in_air || likesLava) && mon.mndx !== PM_FLOATING_EYE;
     // C ref: mon.c:2162 — thrudoor = passes_walls || BUSTDOOR; digging-capable
     // monsters can also pass doors once rockok/treeok is established below.
     let thrudoor = !!((flag & (ALLOW_WALL | BUSTDOOR)) !== 0);
@@ -791,6 +793,8 @@ export function mfndpos(mon, map, player, flag) {
                 allowMDisp: !!(posInfo & ALLOW_MDISP),
                 allowU: !!(posInfo & ALLOW_U),
                 notOnLine: !!(posInfo & NOTONL),
+                // C ref: should_displace() needs to know if a monster is at this pos
+                hasMonster: !!(posInfo & (ALLOW_M | ALLOW_MDISP)),
             });
         }
     }
@@ -2174,6 +2178,7 @@ async function m_calcdistress(mon, map, player) {
 // movemon — C ref: mon.c movemon()
 // ========================================================================
 export async function movemon(map, player, display, fov, game = null) {
+    assertNotInModal('movemon');
     if (game) game._suppressMonsterHitMessagesThisTurn = false;
     if (map) map._heardDistantNoiseThisTurn = false;
     let somebodyCanMove = false;

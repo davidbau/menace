@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import process from 'node:process';
+import os from 'node:os';
 
 const projectRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const unitDir = join(projectRoot, 'test', 'unit');

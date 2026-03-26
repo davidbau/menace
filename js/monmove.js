@@ -495,9 +495,9 @@ export function mon_allowflags(mon, player, map = null) {
         flag |= ALLOW_SSM | ALLOW_SANCT;
     }
 
-    // C ref: mon.c:2083 — can_tunnel → ALLOW_DIG
-    // can_tunnel = tunnels(ptr) unless needspick && hostile && close to player
-    let can_tunnel = tunnels(ptr);
+    // C ref: mon.c:2058 — can_tunnel = tunnels && !rogue_level
+    const isRogueLevel = !!(map?.flags?.is_rogue || map?.flags?.roguelike || map?.flags?.is_rogue_lev);
+    let can_tunnel = tunnels(ptr) && !isRogueLevel;
     if (can_tunnel && needspick(ptr) && !mon_is_tame(mon) && !mon_is_peaceful(mon)) {
         const mux = Number.isInteger(mon.mux) ? mon.mux : (player?.x ?? mon.mx);
         const muy = Number.isInteger(mon.muy) ? mon.muy : (player?.y ?? mon.my);
@@ -2046,9 +2046,11 @@ export async function m_move(mon, map, player, display = null, fov = null) {
             || Number(player?.acurrstr)
             || 10;
         const { x: apparentX, y: apparentY } = monApparentTarget(mon);
+        // C ref: monmove.c:1914 — throws_rocks hero gets 20 range, else ACURRSTR/2+1
+        const heroThrowsRocks = !!(player?.data && throws_rocks(player.data));
+        const inLineRange = heroThrowsRocks ? 20 : (Math.floor(heroStr / 2) + 1);
         const inLine = linedUpToPlayer(mon, map, player, fov)
-            && (distmin(mon.mx, mon.my, apparentX, apparentY)
-                <= (Math.floor(heroStr / 2) + 1));
+            && (distmin(mon.mx, mon.my, apparentX, apparentY) <= inLineRange);
         if (appr !== 1 || !inLine) getitems = true;
     }
     if (getitems) {
@@ -2409,7 +2411,7 @@ export function set_apparxy(mon, map, player) {
             if (displ !== 2 && mx === mon.mx && my === mon.my) continue;
             if ((mx !== player.x || my !== player.y)
                 && !passes_walls(mdat) && blocked) continue;
-            if (!couldsee(map, player, mx, my)) continue;
+            // C ref: monmove.c:2272-2277 — NO couldsee check here
             break;
         } while (true);
     } else {
@@ -2510,7 +2512,7 @@ export function should_displace(mon, positions, goalx, goaly) {
     for (const pos of positions) {
         if (!pos) continue;
         const ndist = dist2(pos.x, pos.y, goalx, goaly);
-        if (pos.hasMonster && pos.allowDisplace) {
+        if (pos.hasMonster && pos.allowMDisp) {
             if (shortestWith === -1 || ndist < shortestWith)
                 shortestWith = ndist;
         } else {

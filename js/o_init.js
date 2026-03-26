@@ -475,7 +475,7 @@ function pushDisco(otyp) {
 }
 
 // C ref: o_init.c discover_object() (subset; no samurai special naming yet).
-export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue = true) {
+export async function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue = true) {
     if (ocNameKnown.length === 0) initDiscoveryState();
     if (!Number.isInteger(otyp) || otyp < FIRST_OBJECT || otyp >= objectData.length) return;
     if ((!ocNameKnown[otyp] && markAsKnown) || (!ocEncountered[otyp] && markAsEncountered)) {
@@ -497,7 +497,7 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue 
         // Gate on newlyKnown: only fire when name was not already known.
         if (creditClue && newlyKnown) {
             const player = _gstate?.u;
-            if (player) exercise(player, A_WIS, true);
+            if (player) await exercise(player, A_WIS, true);
         }
     }
 }

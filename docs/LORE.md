@@ -218,6 +218,21 @@ For the full narratives of how these lessons were discovered, see the
 ## 2026-03-19 - live level identity is a state invariant, not an `align_shift()` heuristic
 
 - C gameplay code always has authoritative current level coordinates in `u.uz`.
+
+## 2026-03-26 - remove stray JS-only `^moveamt[...]` instrumentation before `033` dochug triage
+
+- Current `main` was still emitting `^moveamt[...]` from `u_calc_moveamt()` in
+  [js/allmain.js](/tmp/mazes-eval/js/allmain.js), even though that entry is not
+  part of the canonical C-grounded session surface.
+- In `seed033_manual_direct`, that extra raw entry appeared before the real
+  gameplay seam and made `rng_step_diff` look like the first problem was hero
+  movement accounting rather than the actual `dochug`/post-turn ordering issue.
+- Removing the JS-only `^moveamt[...]` emission:
+  - does not move the authoritative first divergence in `seed033_manual_direct`
+    (still step `470`),
+  - does not change `seed032_manual_direct`,
+  - and makes raw drilldown point at the real `dochug`-family mismatch instead
+    of instrumentation noise.
 - If live JS gameplay reaches level-sensitive code with all of these missing:
   - `player.uz`
   - `map.uz`
@@ -312,6 +327,22 @@ For the full narratives of how these lessons were discovered, see the
     created that inherited target
 
 ## The Cardinal Rules
+
+### 0. The single-threaded contract is enforced
+
+C NetHack is single-threaded. When `more()` blocks in `wgetch()`, no
+game code runs until the key arrives. JS `await` yields the event loop,
+but `js/modal_guard.js` enforces the same invariant at runtime: if any
+game code (moveloop, monster AI, combat) fires while a modal wait (more,
+yn, getlin, getdir, menu) is active, it throws immediately.
+
+The most common violation: calling an async function without `await`.
+The orphaned Promise fires later during an unrelated `await`, breaking
+execution order. The modal guard catches this instantly.
+
+As of 2026-03-26, zero violations exist across the full 4,257-test suite.
+If you see a modal violation, fix the missing `await` — do not suppress
+the guard.
 
 ### 1. The RNG is the source of truth
 
@@ -17037,3 +17068,24 @@ source is elsewhere in the moveloop phase ordering.
 - **Game-state (5)**: luck divergences (seed301 kick_door), monster movement (seed332),
   medusa_fixup (seed321/328), zoo filling (seed325)
 - **Deep (2)**: seed032 (level-restore mon_catchup missing), seed033 (tutorial encumbrance)
+
+## seed308 displacement divergence (March 26, 2026)
+
+seed308 (ranger selfplay) diverges at step 10, RNG index 2250. Root cause:
+`set_apparxy()` displacement loop iterates a different number of times in JS vs C.
+
+The ranger starts with a cloak of displacement. Both C and JS detect displacement
+(`notthere=true`, `displ=2`). The displacement loop randomizes the monster's
+perceived hero position via `rn2(2*displ+1)` twice per iteration. C rejects the
+first candidate position and iterates again; JS accepts it. This consumes
+different numbers of RNG calls, breaking alignment.
+
+The acceptance condition depends on `accessible(mx, my)` (C) vs
+`ACCESSIBLE(loc.typ) && !closedDoor` (JS). These should be equivalent but may
+differ for specific terrain types or drawbridge positions. Needs per-cell terrain
+comparison at the specific position to identify the exact mismatch.
+
+Key finding: all 4 remaining failures (seed032, seed033, seed308, seed328) involve
+set_apparxy/displacement when the hero has active displacement or invisibility.
+The displacement loop's position acceptance criteria may have a subtle terrain
+evaluation difference that causes RNG consumption mismatches.

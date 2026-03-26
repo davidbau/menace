@@ -762,6 +762,11 @@
       "path": "js/trace.js",
       "policy": "manual_only",
       "reason": "Shared debug tracing utilities."
+    },
+    {
+      "path": "js/modal_guard.js",
+      "policy": "manual_only",
+      "reason": "Single-threaded modal ownership assertions."
     }
   ]
 }

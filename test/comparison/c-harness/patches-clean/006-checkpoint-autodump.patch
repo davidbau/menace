@@ -1,0 +1,611 @@
+diff --git a/include/extern.h b/include/extern.h
+index 7954f033c..ca91f0cb0 100644
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -473,6 +473,7 @@ extern char paranoid_ynq(boolean, const char *, boolean);
+ extern boolean paranoid_query(boolean, const char *);
+ extern void makemap_prepost(boolean, boolean);
+ extern const char *ecname_from_fn(int (*)(void));
++extern void harness_dump_checkpoint(const char *);
+ 
+ /* ### date.c ### */
+diff --git a/src/cmd.c b/src/cmd.c
+index 780bca6c3..920143dfd 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -149,6 +149,258 @@ staticfn int dummyfunction(void);
+ 
+ static const char *readchar_queue = "";
+ 
++staticfn void
++json_write_escaped(FILE *fp, const char *s)
++{
++    int c;
++
++    if (!s)
++        return;
++    while ((c = (unsigned char) *s++) != '\0') {
++        if (c == '"' || c == '\\') {
++            fputc('\\', fp);
++            fputc(c, fp);
++        } else if (c >= 0x20 && c <= 0x7e) {
++            fputc(c, fp);
++        } else {
++            fprintf(fp, "\\u%04x", c & 0xff);
++        }
++    }
++}
++
++void
++harness_dump_checkpoint(const char *phase)
++{
++    const char *fname;
++    FILE *fp;
++    int x, y, i, first;
++    struct trap *ttmp;
++    struct obj *otmp;
++    struct monst *mtmp;
++    struct mkroom *croom;
++    stairway *stway;
++
++    fname = getenv("NETHACK_DUMPSNAP");
++    if (!fname || !*fname)
++        return;
++
++    fp = fopen(fname, "a");
++    if (!fp)
++        return;
++
++    if (!phase || !*phase)
++        phase = "unspecified";
++
++    fputc('{', fp);
++    fprintf(fp, "\"phase\":\"");
++    json_write_escaped(fp, phase);
++    fprintf(fp, "\",\"rngCallCount\":%d", rng_log_get_call_count());
++    fprintf(fp, ",\"dnum\":%d,\"dlevel\":%d", (int) u.uz.dnum,
++            (int) u.uz.dlevel);
++    fprintf(fp,
++            ",\"u_acurrstr\":%d,\"u_str\":%d,\"u_ux\":%d,\"u_uy\":%d,\"u_blind\":%d",
++            ACURRSTR, ABASE(A_STR), u.ux, u.uy, Blind ? 1 : 0);
++
++    fputs(",\"typGrid\":[", fp);
++    for (y = 0; y < ROWNO; y++) {
++        if (y > 0)
++            fputc(',', fp);
++        fputc('[', fp);
++        for (x = 0; x < COLNO; x++) {
++            if (x > 0)
++                fputc(',', fp);
++            fprintf(fp, "%d", levl[x][y].typ);
++        }
++        fputc(']', fp);
++    }
++    fputc(']', fp);
++
++    fputs(",\"flagGrid\":[", fp);
++    for (y = 0; y < ROWNO; y++) {
++        if (y > 0)
++            fputc(',', fp);
++        fputc('[', fp);
++        for (x = 0; x < COLNO; x++) {
++            if (x > 0)
++                fputc(',', fp);
++            fprintf(fp, "%d", levl[x][y].flags);
++        }
++        fputc(']', fp);
++    }
++    fputc(']', fp);
++
++    fputs(",\"wallInfoGrid\":[", fp);
++    for (y = 0; y < ROWNO; y++) {
++        if (y > 0)
++            fputc(',', fp);
++        fputc('[', fp);
++        for (x = 0; x < COLNO; x++) {
++            if (x > 0)
++                fputc(',', fp);
++            fprintf(fp, "%d", levl[x][y].wall_info);
++        }
++        fputc(']', fp);
++    }
++    fputc(']', fp);
++
++    fputs(",\"traps\":[", fp);
++    first = 1;
++    for (y = 0; y < ROWNO; y++)
++        for (x = 0; x < COLNO; x++)
++            if ((ttmp = t_at(x, y)) != 0) {
++                if (!first)
++                    fputc(',', fp);
++                first = 0;
++                fprintf(fp, "{\"x\":%d,\"y\":%d,\"ttyp\":%d}", x, y,
++                        ttmp->ttyp);
++            }
++    fputc(']', fp);
++
++    fputs(",\"objects\":[", fp);
++    first = 1;
++    for (y = 0; y < ROWNO; y++)
++        for (x = 0; x < COLNO; x++)
++            for (otmp = svl.level.objects[x][y]; otmp;
++                 otmp = otmp->nexthere) {
++                if (!first)
++                    fputc(',', fp);
++                first = 0;
++                fprintf(fp,
++                        "{\"x\":%d,\"y\":%d,\"otyp\":%d,\"oclass\":%d,"
++                        "\"quan\":%ld,\"no_charge\":%d,\"cursed\":%d}",
++                        x, y, otmp->otyp, otmp->oclass, otmp->quan,
++                        otmp->no_charge ? 1 : 0, otmp->cursed ? 1 : 0);
++            }
++    fputc(']', fp);
++
++    fputs(",\"monsters\":[", fp);
++    first = 1;
++    for (y = 0; y < ROWNO; y++)
++        for (x = 0; x < COLNO; x++)
++            if ((mtmp = m_at(x, y)) != 0 && !DEADMONSTER(mtmp)) {
++                int minvload = 0, minvcount = 0;
++                long minvgold = 0L;
++                struct obj *invotmp;
++
++                for (invotmp = mtmp->minvent; invotmp;
++                     invotmp = invotmp->nobj) {
++                    minvcount++;
++                    minvload += invotmp->owt;
++                    if (invotmp->oclass == COIN_CLASS)
++                        minvgold += invotmp->quan;
++                }
++                if (!first)
++                    fputc(',', fp);
++                first = 0;
++                fprintf(fp,
++                        "{\"x\":%d,\"y\":%d,\"m_id\":%u,\"mnum\":%d,\"mhp\":%d,"
++                        "\"mpeaceful\":%d,\"movement\":%d,\"mtame\":%d,"
++                        "\"minvis\":%d,\"perminvis\":%d,\"invis_blkd\":%d,"
++                        "\"mundetected\":%d,\"msleeping\":%d,\"mcanmove\":%d,"
++                        "\"mblinded\":%d,\"m_ap_type\":%d,\"mappearance\":%u,"
++                        "\"canseemon\":%d,\"mux\":%d,\"muy\":%d,\"mflee\":%d,"
++                        "\"mfleetim\":%d,\"mconf\":%d,\"mstun\":%d,"
++                        "\"minvcount\":%d,\"minvload\":%d,\"minvgold\":%ld,"
++                        "\"mtrack\":[{\"x\":%d,\"y\":%d},{\"x\":%d,\"y\":%d},"
++                        "{\"x\":%d,\"y\":%d},{\"x\":%d,\"y\":%d}],\"minvent\":[",
++                        x, y, mtmp->m_id, monsndx(mtmp->data), mtmp->mhp,
++                        mtmp->mpeaceful ? 1 : 0, (int) mtmp->movement,
++                        (int) mtmp->mtame, mtmp->minvis ? 1 : 0,
++                        mtmp->perminvis ? 1 : 0, mtmp->invis_blkd ? 1 : 0,
++                        mtmp->mundetected ? 1 : 0, mtmp->msleeping ? 1 : 0,
++                        mtmp->mcanmove ? 1 : 0, (int) mtmp->mblinded,
++                        (int) mtmp->m_ap_type, (unsigned) mtmp->mappearance,
++                        canseemon(mtmp) ? 1 : 0, (int) mtmp->mux,
++                        (int) mtmp->muy, mtmp->mflee ? 1 : 0,
++                        (int) mtmp->mfleetim, mtmp->mconf ? 1 : 0,
++                        mtmp->mstun ? 1 : 0, minvcount, minvload, minvgold,
++                        mtmp->mtrack[0].x, mtmp->mtrack[0].y,
++                        mtmp->mtrack[1].x, mtmp->mtrack[1].y,
++                        mtmp->mtrack[2].x, mtmp->mtrack[2].y,
++                        mtmp->mtrack[3].x, mtmp->mtrack[3].y);
++                {
++                    boolean firstinv = TRUE;
++
++                    for (invotmp = mtmp->minvent; invotmp;
++                         invotmp = invotmp->nobj) {
++                        if (!firstinv)
++                            fputc(',', fp);
++                        firstinv = FALSE;
++                        fprintf(fp,
++                                "{\"otyp\":%d,\"oclass\":%d,\"quan\":%ld,"
++                                "\"owt\":%d,\"cursed\":%d}",
++                                invotmp->otyp, invotmp->oclass,
++                                invotmp->quan, invotmp->owt,
++                                invotmp->cursed ? 1 : 0);
++                    }
++                }
++                fputs("]}", fp);
++            }
++    fputc(']', fp);
++
++    fprintf(fp, ",\"nroom\":%d", (int) svn.nroom);
++    fputs(",\"rooms\":[", fp);
++    for (i = 0; i < svn.nroom; i++) {
++        if (i > 0)
++            fputc(',', fp);
++        croom = &svr.rooms[i];
++        fprintf(fp,
++                "{\"idx\":%d,\"lx\":%d,\"ly\":%d,\"hx\":%d,\"hy\":%d,"
++                "\"rtype\":%d,\"orig_rtype\":%d,\"rlit\":%d,\"doorct\":%d,"
++                "\"fdoor\":%d,\"irregular\":%d}",
++                i, croom->lx, croom->ly, croom->hx, croom->hy,
++                croom->rtype, croom->orig_rtype, croom->rlit,
++                croom->doorct, croom->fdoor, croom->irregular ? 1 : 0);
++    }
++    fputc(']', fp);
++
++    fprintf(fp, ",\"doorindex\":%d", gd.doorindex);
++    fputs(",\"doors\":[", fp);
++    for (i = 0; i < gd.doorindex; i++) {
++        if (i > 0)
++            fputc(',', fp);
++        fprintf(fp, "{\"x\":%d,\"y\":%d}", svd.doors[i].x,
++                svd.doors[i].y);
++    }
++    fputc(']', fp);
++
++    fputs(",\"stairs\":[", fp);
++    first = 1;
++    for (stway = gs.stairs; stway; stway = stway->next) {
++        if (!first)
++            fputc(',', fp);
++        first = 0;
++        fprintf(fp,
++                "{\"x\":%d,\"y\":%d,\"up\":%d,\"isladder\":%d,"
++                "\"to\":{\"dnum\":%d,\"dlevel\":%d}}",
++                stway->sx, stway->sy, stway->up ? 1 : 0,
++                stway->isladder ? 1 : 0, (int) stway->tolev.dnum,
++                (int) stway->tolev.dlevel);
++    }
++    fputc(']', fp);
++
++    fprintf(fp,
++            ",\"updest\":{\"lx\":%d,\"ly\":%d,\"hx\":%d,\"hy\":%d,"
++            "\"nlx\":%d,\"nly\":%d,\"nhx\":%d,\"nhy\":%d}",
++            svu.updest.lx, svu.updest.ly, svu.updest.hx, svu.updest.hy,
++            svu.updest.nlx, svu.updest.nly, svu.updest.nhx,
++            svu.updest.nhy);
++    fprintf(fp,
++            ",\"dndest\":{\"lx\":%d,\"ly\":%d,\"hx\":%d,\"hy\":%d,"
++            "\"nlx\":%d,\"nly\":%d,\"nhx\":%d,\"nhy\":%d}",
++            svd.dndest.lx, svd.dndest.ly, svd.dndest.hx, svd.dndest.hy,
++            svd.dndest.nlx, svd.dndest.nly, svd.dndest.nhx,
++            svd.dndest.nhy);
++
++    fputs("}\n", fp);
++    fclose(fp);
++}
++
+ /* for rejecting attempts to use wizard mode commands
+  * Also used in wizcmds.c  */
+ const char unavailcmd[] = "Unavailable command '%s'.";
+diff --git a/src/mkmaze.c b/src/mkmaze.c
+index 9c665a37e..fba2e0389 100644
+--- a/src/mkmaze.c
++++ b/src/mkmaze.c
+@@ -701,6 +701,7 @@ fixup_special(void)
+     if (gl.lregions)
+         free((genericptr_t) gl.lregions), gl.lregions = 0;
+     gn.num_lregions = 0;
++    harness_dump_checkpoint("after_levregions_fixup");
+ }
+ 
+ staticfn void
+diff --git a/src/sp_lev.c b/src/sp_lev.c
+index 2e1b4ab65..117817159 100644
+--- a/src/sp_lev.c
++++ b/src/sp_lev.c
+@@ -3860,6 +3860,7 @@ lspo_level_init(lua_State *L)
+         init_lev.bg = (init_lev.init_style == LVLINIT_SWAMP) ? MOAT : STONE;
+ 
+     splev_initlev(&init_lev);
++    harness_dump_checkpoint("after_level_init");
+ 
+     return 0;
+ }
+@@ -6026,6 +6027,7 @@ lspo_finalize_level(lua_State *L)
+      */
+     if (!svl.level.flags.corrmaze)
+         wallification(1, 0, COLNO - 1, ROWNO - 1);
++    harness_dump_checkpoint("after_wallification");
+ 
+     if (L)
+         flip_level_rnd(gc.coder->allow_flips, FALSE);
+@@ -6049,6 +6051,7 @@ lspo_finalize_level(lua_State *L)
+     }
+ 
+     makemap_prepost(FALSE, wtower);
++    harness_dump_checkpoint("after_finalize");
+     iflags.lua_testing = FALSE;
+     return 0;
+ }
+@@ -6304,6 +6307,7 @@ TODO: gc.coder->croom needs to be updated
+     /* return selection where map locations were put */
+     l_selection_push_copy(L, sel);
+     selection_free(sel, TRUE);
++    harness_dump_checkpoint("after_map");
+ 
+     return 1;
+ }
+@@ -6468,6 +6472,7 @@ load_special(const char *name)
+      */
+     if (!svl.level.flags.corrmaze)
+         wallification(1, 0, COLNO - 1, ROWNO - 1);
++    harness_dump_checkpoint("after_wallification_special");
+ 
+     flip_level_rnd(gc.coder->allow_flips, FALSE);
+ 
+@@ -6483,6 +6488,8 @@ load_special(const char *name)
+     if (gc.coder->premapped)
+         premap_detect();
+ 
++    harness_dump_checkpoint("after_finalize_special");
++
+     result = TRUE;
+  give_up:
+     Free(gc.coder);
+diff --git a/src/mklev.c b/src/mklev.c
+--- a/src/mklev.c
++++ b/src/mklev.c
+@@ -49,5 +49,11 @@ staticfn void makerooms(void);
+ staticfn boolean good_rm_wall_doorpos(coordxy, coordxy, int, struct mkroom *);
+ staticfn boolean finddpos_shift(coordxy *, coordxy *, int, struct mkroom *);
++staticfn void harness_auto_mapdump(void);
++staticfn char harness_mapdump_cell(int);
++staticfn void harness_mapdump_emit_run(FILE *, int, int);
++staticfn void harness_mapdump_rle_grid(FILE *, int);
++staticfn void harness_mapdump_sparse_lists(FILE *);
++staticfn int harness_mapdump_minvent_count(struct monst *);
+ 
+ staticfn boolean finddpos(coord *, int, struct mkroom *);
+ 
+@@ -1585,6 +1591,8 @@ mklev(void)
+ 
+     level_finalize_topology();
+ 
++    harness_auto_mapdump();
++
+     reseed_random(rn2);
+     reseed_random(rn2_on_display_rng);
+ }
+@@ -2918,5 +2926,252 @@ mk_knox_portal(coordxy x, coordxy y)
+     debugpline0("Made knox portal.");
+     place_branch(br, x, y);
+ }
++
++/* Compact auto-mapdump for harness captures. */
++staticfn char
++harness_mapdump_cell(int v)
++{
++    if (v < 0)
++        v = 0;
++    if (v <= 9)
++        return (char) ('0' + v);
++    if (v <= 35)
++        return (char) ('a' + (v - 10));
++    if (v <= 61)
++        return (char) ('A' + (v - 36));
++    return 'Z';
++}
++
++staticfn void
++harness_mapdump_emit_run(FILE *fp, int value, int count)
++{
++    if (count <= 0)
++        return;
++    if (count >= 3) {
++        (void) fprintf(fp, "~%d,%c", count, harness_mapdump_cell(value));
++    } else {
++        while (count-- > 0)
++            (void) fputc(harness_mapdump_cell(value), fp);
++    }
++}
++
++staticfn void
++harness_mapdump_rle_grid(FILE *fp, int which)
++{
++    coordxy x, y;
++    for (y = 0; y < ROWNO; y++) {
++        int runval = -1, runlen = 0;
++        if (y > 0)
++            (void) fputc('|', fp);
++        for (x = 0; x < COLNO; x++) {
++            struct rm *loc = &levl[x][y];
++            int v;
++            switch (which) {
++            case 0: v = (int) loc->typ; break;
++            case 1: v = ((int) loc->flags) & 0x1f; break;
++            case 2: v = loc->horizontal ? 1 : 0; break;
++            case 3: v = loc->lit ? 1 : 0; break;
++            case 4: v = ((int) loc->roomno) & 0x3f; break;
++            case 5: v = ((int) loc->wall_info) & 0x1f; break;
++            default: v = 0; break;
++            }
++            if (runlen == 0) {
++                runval = v;
++                runlen = 1;
++            } else if (v == runval) {
++                runlen++;
++            } else {
++                harness_mapdump_emit_run(fp, runval, runlen);
++                runval = v;
++                runlen = 1;
++            }
++        }
++        harness_mapdump_emit_run(fp, runval, runlen);
++    }
++}
++
++staticfn void
++harness_mapdump_sparse_lists(FILE *fp)
++{
++    struct obj *otmp;
++    struct monst *mtmp;
++    struct trap *ttmp;
++    struct engr *ep;
++    boolean first;
++
++    (void) fputc('O', fp);
++    first = TRUE;
++    for (otmp = fobj; otmp; otmp = otmp->nobj) {
++        if (!isok(otmp->ox, otmp->oy))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d,%ld",
++                       first ? "" : ";",
++                       (int) otmp->ox, (int) otmp->oy,
++                       (int) otmp->otyp, (long) otmp->quan);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('Q', fp);
++    first = TRUE;
++    for (otmp = fobj; otmp; otmp = otmp->nobj) {
++        if (!isok(otmp->ox, otmp->oy))
++            continue;
++        (void) fprintf(fp, "%s%u,%d,%d,%d,%ld,%d,%d,%d,%u,%d,%d,%d,%d,%d",
++                       first ? "" : ";",
++                       otmp->o_id,
++                       (int) otmp->ox, (int) otmp->oy,
++                       (int) otmp->otyp, (long) otmp->quan,
++                       (int) otmp->where,
++                       otmp->cursed ? 1 : 0,
++                       otmp->blessed ? 1 : 0,
++                       (unsigned) otmp->owt,
++                       (int) otmp->invlet,
++                       otmp->olocked ? 1 : 0,
++                       otmp->obroken ? 1 : 0,
++                       otmp->otrapped ? 1 : 0,
++                       otmp->no_charge ? 1 : 0);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('M', fp);
++    first = TRUE;
++    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
++        if (!isok(mtmp->mx, mtmp->my))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d,%d",
++                       first ? "" : ";",
++                       (int) mtmp->mx, (int) mtmp->my,
++                       (int) monsndx(mtmp->data), (int) mtmp->mhp);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('N', fp);
++    first = TRUE;
++    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
++        if (!isok(mtmp->mx, mtmp->my))
++            continue;
++        (void) fprintf(fp, "%s%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%u,%u,%d",
++                       first ? "" : ";",
++                       mtmp->m_id,
++                       (int) mtmp->mx, (int) mtmp->my,
++                       (int) monsndx(mtmp->data),
++                       (int) mtmp->mhp, (int) mtmp->mhpmax,
++                       (int) mtmp->mtame,
++                       mtmp->mpeaceful ? 1 : 0,
++                       mtmp->msleeping ? 1 : 0,
++                       (int) mtmp->mfrozen,
++                       mtmp->mcanmove ? 1 : 0,
++                       mtmp->mtrapped ? 1 : 0,
++                       (unsigned) mtmp->m_ap_type,
++                       (unsigned) mtmp->mappearance,
++                       harness_mapdump_minvent_count(mtmp));
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('K', fp);
++    first = TRUE;
++    for (ttmp = gf.ftrap; ttmp; ttmp = ttmp->ntrap) {
++        if (!isok(ttmp->tx, ttmp->ty))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d",
++                       first ? "" : ";",
++                       (int) ttmp->tx, (int) ttmp->ty, (int) ttmp->ttyp);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('J', fp);
++    first = TRUE;
++    for (ttmp = gf.ftrap; ttmp; ttmp = ttmp->ntrap) {
++        if (!isok(ttmp->tx, ttmp->ty))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d,%d,%d,%d,%d,%d",
++                       first ? "" : ";",
++                       (int) ttmp->tx, (int) ttmp->ty, (int) ttmp->ttyp,
++                       ttmp->tseen ? 1 : 0,
++                       ttmp->once ? 1 : 0,
++                       ttmp->madeby_u ? 1 : 0,
++                       (int) ttmp->teledest.x, (int) ttmp->teledest.y);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('E', fp);
++    first = TRUE;
++    for (ep = head_engr; ep; ep = ep->nxt_engr) {
++        if (!isok(ep->engr_x, ep->engr_y))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d,%u,%d,%d",
++                       first ? "" : ";",
++                       (int) ep->engr_x, (int) ep->engr_y,
++                       (int) ep->engr_type,
++                       (unsigned) (ep->engr_txt[actual_text]
++                                   ? strlen(ep->engr_txt[actual_text]) : 0),
++                       ep->nowipeout ? 1 : 0,
++                       ep->guardobjects ? 1 : 0);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++}
++
++staticfn int
++harness_mapdump_minvent_count(struct monst *mtmp)
++{
++    int n = 0;
++    struct obj *otmp;
++
++    if (!mtmp)
++        return 0;
++    for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj)
++        n++;
++    return n;
++}
++
++staticfn void
++harness_auto_mapdump(void)
++{
++    const char *dir = nh_getenv("NETHACK_MAPDUMP_DIR");
++    static long dump_serial = 0;
++    char dump_id[64], pathbuf[BUFSZ];
++    FILE *fp;
++
++    if (!dir || !*dir)
++        return;
++
++    (void) Snprintf(dump_id, sizeof dump_id, "d%dl%d_%03ld",
++                    (int) u.uz.dnum, (int) u.uz.dlevel, ++dump_serial);
++    (void) Snprintf(pathbuf, sizeof pathbuf, "%s/%s", dir, dump_id);
++
++    fp = fopen(pathbuf, "w");
++    if (!fp) {
++        raw_printf("mapdump: cannot open %s for writing.", pathbuf);
++        return;
++    }
++
++    (void) fputc('T', fp); harness_mapdump_rle_grid(fp, 0); (void) fputc('\n', fp);
++    (void) fputc('F', fp); harness_mapdump_rle_grid(fp, 1); (void) fputc('\n', fp);
++    (void) fputc('H', fp); harness_mapdump_rle_grid(fp, 2); (void) fputc('\n', fp);
++    (void) fputc('L', fp); harness_mapdump_rle_grid(fp, 3); (void) fputc('\n', fp);
++    (void) fputc('R', fp); harness_mapdump_rle_grid(fp, 4); (void) fputc('\n', fp);
++    (void) fputc('W', fp); harness_mapdump_rle_grid(fp, 5); (void) fputc('\n', fp);
++    (void) fprintf(fp, "U%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%ld,%d,%d,%d,%d,%d\n",
++                   (int) u.ux, (int) u.uy,
++                   (int) u.uhp, (int) u.uhpmax,
++                   (int) u.uen, (int) u.uenmax,
++                   (int) gm.multi, (int) u.utrap, (int) u.utraptype,
++                   (int) svc.context.move, (long) svm.moves,
++                   Confusion ? 1 : 0, Stunned ? 1 : 0,
++                   Blind ? 1 : 0, Hallucination ? 1 : 0,
++                   Fumbling ? 1 : 0);
++    (void) fprintf(fp, "A%ld,%ld\n", (long) svm.moves, (long) gh.hero_seq);
++    harness_mapdump_sparse_lists(fp);
++    (void) fclose(fp);
++
++    event_log("mapdump[%s]", dump_id);
++}
+ 
+ /*mklev.c*/

@@ -1,0 +1,704 @@
+diff --git a/include/display.h b/include/display.h
+index fc52eac41..f03dfa731 100644
+--- a/include/display.h
++++ b/include/display.h
+@@ -183,8 +183,11 @@
+  * random_object() won't return STRANGE_OBJECT or the generic objects.
+  * -/+ FIRST_OBJECT is used to skip it and them.
+  */
+-#define random_monster(rng) ((*rng)(NUMMONS))
+-#define random_object(rng) ((*rng)(NUM_OBJECTS - FIRST_OBJECT) + FIRST_OBJECT)
++#define random_monster(rng) \
++    (cosmic_display_prepare_rng_kind("mon"), (*rng)(NUMMONS))
++#define random_object(rng) \
++    (cosmic_display_prepare_rng_kind("obj"), \
++     (*rng)(NUM_OBJECTS - FIRST_OBJECT) + FIRST_OBJECT)
+ 
+ /*
+  * what_obj()
+diff --git a/include/extern.h b/include/extern.h
+index 03c4d84fb..c9399b6ba 100644
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -2746,6 +2746,25 @@ extern const char *repaint_debug_get_step_path(void);
+ extern int repaint_debug_get_step_key(void);
+ extern void exp_log(const char *, ...) PRINTF_F(1, 2);
++extern boolean cosmic_display_log_enabled(void);
++extern void cosmic_display_push_owner(const char *);
++extern void cosmic_display_pop_owner(const char *);
++extern void cosmic_display_set_cell(coordxy, coordxy);
++extern void cosmic_display_clear_cell(void);
++extern void cosmic_display_set_newsym_branch(const char *);
++extern void cosmic_display_clear_newsym_branch(void);
++extern void cosmic_display_set_maploc_branch(const char *);
++extern void cosmic_display_clear_maploc_branch(void);
++extern void cosmic_display_prepare_rng_kind(const char *);
++extern void cosmic_display_log_newsym(coordxy, coordxy, const char *, int);
++extern void cosmic_display_log_maploc(coordxy, coordxy, const char *, int);
++extern void cosmic_display_log_tty_menu_show(int, const char *, int, int,
++                                             long, long, int, int, int);
++extern void cosmic_display_log_tty_menu_draw(int, const char *, int, int,
++                                             long, int, int, const char *);
++extern void cosmic_display_log_tty_menu_hide(int, const char *, int, int);
++extern void cosmic_display_log_tty_menu_erase(int, const char *, int, int,
++                                              int, int, int, int);
+ extern void event_log(const char *, ...) PRINTF_F(1, 2);
+diff --git a/src/potion.c b/src/potion.c
+index 072d33b29..e2cd10079 100644
+--- a/src/potion.c
++++ b/src/potion.c
+@@ -421,9 +421,11 @@
+             swallowed(0); /* redraw swallow display */
+         } else {
+             /* The see_* routines should be called *before* the pline. */
++            cosmic_display_push_owner("make_hallucinated");
+             see_monsters();
+             see_objects();
+             see_traps();
++            cosmic_display_pop_owner("make_hallucinated");
+         }
+ 
+         /* for perm_inv and anything similar
+diff --git a/src/display.c b/src/display.c
+index fa05f7834..1adbc321c 100644
+--- a/src/display.c
++++ b/src/display.c
+@@ -453,22 +453,27 @@
+         NhRegion *_ml_reg;                                              \
+                                                                         \
+         if ((obj = vobj_at(x, y)) && !covers_objects(x, y)) {           \
++            cosmic_display_log_maploc(x, y, "obj", show);              \
+             map_object(obj, show);                                      \
+         } else if ((trap = t_at(x, y))                                  \
+                     && trap->tseen && !covers_traps(x, y)) {            \
++            cosmic_display_log_maploc(x, y, "trap", show);             \
+             map_trap(trap, show);                                       \
+         } else if (spot_shows_engravings(x, y)                          \
+                  && (ml_ep = engr_at(x, y)) != 0                        \
+                  && ml_ep->erevealed                                    \
+                  && !covers_traps(x, y)) {                              \
++            cosmic_display_log_maploc(x, y, "engr", show);             \
+             map_engraving(ml_ep, show);                                 \
+         } else {                                                        \
++            cosmic_display_log_maploc(x, y, "terrain", show);          \
+             map_background(x, y, show);                                 \
+         }                                                               \
+                                                                         \
+         update_lastseentyp(x, y);                                       \
+         if (show && !Blind && (_ml_reg = visible_region_at(x, y)) != 0) \
+             show_region(_ml_reg, x, y);                                 \
++        cosmic_display_clear_maploc_branch();                           \
+     } while (0)
+ 
+ void
+@@ -923,21 +928,38 @@
+     struct rm *lev = &(levl[x][y]);
+     struct engr *ep;
+ 
++    cosmic_display_set_cell(x, y);
++    cosmic_display_clear_newsym_branch();
++    cosmic_display_clear_maploc_branch();
++
+     /* don't try to produce map output when level is in a state of flux */
+-    if (_suppress_map_output())
++    if (_suppress_map_output()) {
++        cosmic_display_clear_newsym_branch();
++        cosmic_display_clear_maploc_branch();
++        cosmic_display_clear_cell();
+         return;
++    }
+ 
+     /* only permit updating the hero when swallowed */
+     if (u.uswallow) {
+-        if (u_at(x, y))
++        if (u_at(x, y)) {
++            cosmic_display_log_newsym(x, y, "hero-swallowed", 1);
+             display_self();
++        }
++        cosmic_display_clear_newsym_branch();
++        cosmic_display_clear_maploc_branch();
++        cosmic_display_clear_cell();
+         return;
+     }
+     if (Underwater && !Is_waterlevel(&u.uz)) {
+         /* when underwater, don't do anything unless <x,y> is an
+            adjacent water or lava or ice position */
+-        if (!(is_pool_or_lava(x, y) || is_ice(x, y)) || !next2u(x, y))
++        if (!(is_pool_or_lava(x, y) || is_ice(x, y)) || !next2u(x, y)) {
++            cosmic_display_clear_newsym_branch();
++            cosmic_display_clear_maploc_branch();
++            cosmic_display_clear_cell();
+             return;
++        }
+     }
+ 
+     /* Can physically see the location. */
+@@ -984,13 +1006,21 @@
+         if (reg && (ACCESSIBLE(lev->typ)
+                     || (reg->visible && is_pool_or_lava(x, y)))) {
+             if (!mon_overrides_region(mon, x, y)) {
++                cosmic_display_log_newsym(x, y, "visible-region", 1);
+                 show_region(reg, x, y);
++                cosmic_display_clear_newsym_branch();
++                cosmic_display_clear_maploc_branch();
++                cosmic_display_clear_cell();
+                 return;
+             }
+         }
+ 
+         if (u_at(x, y)) {
+             int see_self = canspotself();
++            cosmic_display_log_newsym(x, y,
++                                      see_self ? "hero-visible"
++                                               : "hero-map-location",
++                                      1);
+ 
+             /* update map information for <u.ux,u.uy> (remembered topology
+                and object/known trap/terrain glyph) but only display it if
+@@ -1005,6 +1035,7 @@
+                              || (!worm_tail && (tp_sensemon(mon)
+                                                 || MATCH_WARN_OF_MON(mon))));
+             if (mon && (see_it || (!worm_tail && Detect_monsters))) {
++                cosmic_display_log_newsym(x, y, "visible-mon", 1);
+                 if (mon->mtrapped) {
+                     struct trap *trap = t_at(x, y);
+                     int tt = trap ? trap->ttyp : NO_TRAP;
+@@ -1019,10 +1050,13 @@
+                                 see_it ? PHYSICALLY_SEEN : DETECTED,
+                                 worm_tail);
+             } else if (mon && mon_warning(mon) && !worm_tail) {
++                cosmic_display_log_newsym(x, y, "visible-warning", 1);
+                 display_warning(mon);
+             } else if (glyph_is_invisible(lev->glyph)) {
++                cosmic_display_log_newsym(x, y, "visible-invis", 1);
+                 map_invisible(x, y);
+             } else {
++                cosmic_display_log_newsym(x, y, "visible-map-location", 1);
+                 _map_location(x, y, 1); /* map the location */
+             }
+         }
+@@ -1030,6 +1064,7 @@
+     /* Can't see the location. */
+     } else {
+         if (u_at(x, y)) {
++            cosmic_display_log_newsym(x, y, "oos-self", 0);
+             feel_location(u.ux, u.uy); /* forces an update */
+ 
+             if (canspotself())
+@@ -1039,11 +1074,13 @@
+                                   || (see_with_infrared(mon)
+                                       && mon_visible(mon)))) != 0
+                        || (Detect_monsters && !is_worm_tail(mon)))) {
++            cosmic_display_log_newsym(x, y, "oos-sensed-mon", 0);
+             /* Seen or sensed monsters are printed every time.
+                This also gets rid of any invisibility glyph. */
+             display_monster(x, y, mon, see_it ? 0 : DETECTED,
+                             is_worm_tail(mon) ? TRUE : FALSE);
+         } else if (mon && mon_warning(mon) && !is_worm_tail(mon)) {
++            cosmic_display_log_newsym(x, y, "oos-warning", 0);
+             display_warning(mon);
+ 
+         /*
+@@ -1068,6 +1105,7 @@
+          * They are dependent on the position being out of sight.
+          */
+         } else if (Is_rogue_level(&u.uz)) {
++            cosmic_display_log_newsym(x, y, "oos-remembered", 0);
+             if (lev->glyph == cmap_to_glyph(S_litcorr) && lev->typ == CORR)
+                 show_glyph(x, y, lev->glyph = cmap_to_glyph(S_corr));
+             else if (lev->glyph == cmap_to_glyph(S_room) && lev->typ == ROOM
+@@ -1076,6 +1114,7 @@
+             else
+                 goto show_mem;
+         } else if (!lev->waslit || (flags.dark_room && iflags.use_color)) {
++            cosmic_display_log_newsym(x, y, "oos-remembered", 0);
+             if (lev->glyph == cmap_to_glyph(S_litcorr) && lev->typ == CORR)
+                 show_glyph(x, y, lev->glyph = cmap_to_glyph(S_corr));
+             else if (lev->glyph == cmap_to_glyph(S_room) && lev->typ == ROOM)
+@@ -1083,10 +1122,14 @@
+             else
+                 goto show_mem;
+         } else {
++            cosmic_display_log_newsym(x, y, "oos-remembered", 0);
+  show_mem:
+             show_glyph(x, y, lev->glyph);
+         }
+     }
++    cosmic_display_clear_newsym_branch();
++    cosmic_display_clear_maploc_branch();
++    cosmic_display_clear_cell();
+ }
+ 
+ #undef is_worm_tail
+@@ -1485,6 +1528,7 @@
+ 
+     if (gd.defer_see_monsters)
+         return;
++    cosmic_display_push_owner("see_monsters");
+ 
+     /* steed and unseen engulfer/holder/holdee are recognized via touch
+        even if they aren't going to be rendered; other monsters
+@@ -1518,6 +1562,7 @@
+     /* when mounted, hero's location gets caught by monster loop */
+     if (!u.usteed)
+         newsym(u.ux, u.uy);
++    cosmic_display_pop_owner("see_monsters");
+ }
+ 
+ staticfn void
+@@ -1551,6 +1596,8 @@
+ {
+     struct obj *obj;
+ 
++    cosmic_display_push_owner("see_objects");
++
+     for (obj = fobj; obj; obj = obj->nobj)
+         if (vobj_at(obj->ox, obj->oy) == obj)
+             newsym(obj->ox, obj->oy);
+@@ -1560,6 +1607,7 @@
+        inventory which includes glyphs should also be affected, so do this
+        for all interfaces in case any feature that for persistent inventory */
+     update_inventory();
++    cosmic_display_pop_owner("see_objects");
+ }
+ 
+ /* mark the top object of nearby stacks as having been seen, and if
+@@ -1605,11 +1653,14 @@
+     struct trap *trap;
+     int glyph;
+ 
++    cosmic_display_push_owner("see_traps");
++
+     for (trap = gf.ftrap; trap; trap = trap->ntrap) {
+         glyph = _glyph_at(trap->tx, trap->ty);
+         if (glyph_is_trap(glyph))
+             newsym(trap->tx, trap->ty);
+     }
++    cosmic_display_pop_owner("see_traps");
+ }
+ 
+ /*  glyph, ttychar, framecolor,
+@@ -1710,6 +1761,7 @@
+         return; /* display isn't ready yet */
+ 
+     program_state.in_docrt = TRUE;
++    cosmic_display_push_owner("docrt_flags");
+ 
+     if (redrawonly) {
+         redraw_map(FALSE);
+@@ -1752,7 +1804,7 @@
+     /* overlay with monsters */
+     see_monsters();
+ 
+- post_map:
++post_map:
+ 
+     if (!maponly) {
+         /* perm_invent */
+@@ -1761,6 +1813,7 @@
+         disp.botlx = TRUE; /* force a redraw of the bottom lines */
+         /* note: caller needs to call bot() to actually redraw status */
+     }
++    cosmic_display_pop_owner("docrt_flags");
+     program_state.in_docrt = FALSE;
+ }
+ 
+diff --git a/src/rnd.c b/src/rnd.c
+index 33b784d56..a5f7016fc 100644
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -39,6 +39,15 @@ static FILE *repaint_debug_file = (FILE *) 0;
+ static boolean rng_log_disp = FALSE;
+ static const char *repaint_debug_scope = (const char *) 0;
++static boolean cosmic_display_logs = FALSE;
++static boolean cosmic_tty_menu_logs = FALSE;
++#define COSMIC_OWNER_STACK_SIZE 32
++static const char *cosmic_owner_stack[COSMIC_OWNER_STACK_SIZE];
++static int cosmic_owner_depth = 0;
++static coordxy cosmic_cell_x = 0;
++static coordxy cosmic_cell_y = 0;
++static boolean cosmic_cell_active = FALSE;
++static const char *cosmic_newsym_branch = (const char *) 0;
++static const char *cosmic_maploc_branch = (const char *) 0;
++static const char *cosmic_rng_kind = (const char *) 0;
++staticfn void cosmic_display_logf(const char *, ...);
++staticfn const char *cosmic_display_current_owner(void);
+ 
+ staticfn const char *
+ harness_getenv_with_fallback(const char *nethack_key, const char *webhack_key)
+@@ -68,6 +77,9 @@ rng_log_init(void)
+     const char *disp = harness_getenv_with_fallback("NETHACK_RNGLOG_DISP",
+                                                     "WEBHACK_RNGLOG_DISP");
++    const char *cosmic =
++        harness_getenv_with_fallback("NETHACK_COSMIC_DISPLAY_LOGS",
++                                     "WEBHACK_COSMIC_DISPLAY_LOGS");
++    const char *cosmic_tty_menu =
++        harness_getenv_with_fallback("NETHACK_COSMIC_TTY_MENU_LOGS",
++                                     "WEBHACK_COSMIC_TTY_MENU_LOGS");
+ 
+     if (logpath && *logpath) {
+         rng_logfile = fopen(logpath, "w");
+@@ -79,6 +91,7 @@ rng_log_init(void)
+     exp_trace_enabled = (exp_trace && *exp_trace && *exp_trace != '0') ? TRUE : FALSE;
+     repaint_trace_enabled = (repaint && *repaint && *repaint != '0') ? TRUE : FALSE;
+     rng_log_disp = (disp && *disp && *disp != '0') ? TRUE : FALSE;
++    cosmic_display_logs = (cosmic && *cosmic && *cosmic != '0') ? TRUE : FALSE;
++    cosmic_tty_menu_logs =
++        (cosmic_tty_menu && *cosmic_tty_menu && *cosmic_tty_menu != '0')
++            ? TRUE
++            : FALSE;
+     repaint_debug_enabled = (repaint_debug && *repaint_debug
+                              && *repaint_debug != '0') ? TRUE : FALSE;
+     if (repaint_debug_path && *repaint_debug_path) {
+@@ -106,5 +120,189 @@ rng_log_get_call_count(void)
+ {
+     return rng_call_count;
+ }
++
++boolean
++cosmic_display_log_enabled(void)
++{
++    return (rng_logfile && cosmic_display_logs) ? TRUE : FALSE;
++}
++
++staticfn const char *
++cosmic_display_current_owner(void)
++{
++    if (cosmic_owner_depth <= 0)
++        return (const char *) 0;
++    return cosmic_owner_stack[cosmic_owner_depth - 1];
++}
++
++staticfn void
++cosmic_display_logf(const char *fmt, ...)
++{
++    va_list ap;
++
++    if (!cosmic_display_log_enabled() || !cosmic_tty_menu_logs)
++        return;
++    va_start(ap, fmt);
++    vfprintf(rng_logfile, fmt, ap);
++    va_end(ap);
++}
++
++void
++cosmic_display_push_owner(const char *owner)
++{
++    const char *parent;
++
++    if (!cosmic_display_log_enabled() || !cosmic_tty_menu_logs)
++        return;
++    parent = cosmic_display_current_owner();
++    if (cosmic_owner_depth < COSMIC_OWNER_STACK_SIZE)
++        cosmic_owner_stack[cosmic_owner_depth] = owner;
++    cosmic_owner_depth++;
++    cosmic_display_logf("^disp_owner_begin[owner=%s depth=%d%s%s]\n",
++                        owner ? owner : "?", cosmic_owner_depth,
++                        parent ? " parent=" : "",
++                        parent ? parent : "");
++}
++
++void
++cosmic_display_pop_owner(const char *owner)
++{
++    const char *current;
++
++    if (!cosmic_display_log_enabled() || !cosmic_tty_menu_logs)
++        return;
++    current = cosmic_display_current_owner();
++    cosmic_display_logf("^disp_owner_end[owner=%s depth=%d%s%s]\n",
++                        owner ? owner : "?", cosmic_owner_depth,
++                        current ? " current=" : "",
++                        current ? current : "");
++    if (cosmic_owner_depth > 0)
++        --cosmic_owner_depth;
++}
++
++void
++cosmic_display_set_cell(coordxy x, coordxy y)
++{
++    cosmic_cell_x = x;
++    cosmic_cell_y = y;
++    cosmic_cell_active = TRUE;
++}
++
++void
++cosmic_display_clear_cell(void)
++{
++    cosmic_cell_x = 0;
++    cosmic_cell_y = 0;
++    cosmic_cell_active = FALSE;
++}
++
++void
++cosmic_display_set_newsym_branch(const char *branch)
++{
++    cosmic_newsym_branch = branch;
++}
++
++void
++cosmic_display_clear_newsym_branch(void)
++{
++    cosmic_newsym_branch = (const char *) 0;
++}
++
++void
++cosmic_display_set_maploc_branch(const char *branch)
++{
++    cosmic_maploc_branch = branch;
++}
++
++void
++cosmic_display_clear_maploc_branch(void)
++{
++    cosmic_maploc_branch = (const char *) 0;
++}
++
++void
++cosmic_display_prepare_rng_kind(const char *kind)
++{
++    cosmic_rng_kind = kind;
++}
++
++void
++cosmic_display_log_newsym(coordxy x, coordxy y, const char *branch, int cansee)
++{
++    if (!cosmic_display_log_enabled() || !cosmic_tty_menu_logs)
++        return;
++    cosmic_display_set_cell(x, y);
++    cosmic_display_set_newsym_branch(branch);
++    cosmic_display_logf("^disp_newsym[owner=%s x=%d y=%d cansee=%d branch=%s]\n",
++                        cosmic_display_current_owner()
++                            ? cosmic_display_current_owner()
++                            : "?",
++                        x, y, cansee, branch ? branch : "?");
++}
++
++void
++cosmic_display_log_maploc(coordxy x, coordxy y, const char *branch, int show)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_set_cell(x, y);
++    cosmic_display_set_maploc_branch(branch);
++    cosmic_display_logf("^disp_maploc[owner=%s x=%d y=%d show=%d branch=%s]\n",
++                        cosmic_display_current_owner()
++                            ? cosmic_display_current_owner()
++                            : "?",
++                        x, y, show, branch ? branch : "?");
++}
++
++void
++cosmic_display_log_tty_menu_show(
++    int window, const char *type, int offx, int offy,
++    long maxrow, long maxcol, int overlay, int fullscreen, int blocking)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_logf(
++        "^tty_menu_show[owner=%s win=%d type=%s offx=%d offy=%d maxrow=%ld maxcol=%ld overlay=%d fullscreen=%d blocking=%d]\n",
++        cosmic_display_current_owner() ? cosmic_display_current_owner() : "?",
++        window, type ? type : "?", offx, offy, maxrow, maxcol, overlay,
++        fullscreen, blocking);
++}
++
++void
++cosmic_display_log_tty_menu_draw(
++    int window, const char *type, int row0, int rowN,
++    long page_lines, int npages, int curr_page, const char *morestr)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_logf(
++        "^tty_menu_draw[owner=%s win=%d type=%s row0=%d rowN=%d page_lines=%ld page=%d npages=%d%s%s]\n",
++        cosmic_display_current_owner() ? cosmic_display_current_owner() : "?",
++        window, type ? type : "?", row0, rowN, page_lines, curr_page,
++        npages, morestr ? " more=" : "", morestr ? morestr : "");
++}
++
++void
++cosmic_display_log_tty_menu_hide(int window, const char *type, int active,
++                                 int clearscreen)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_logf(
++        "^tty_menu_hide[owner=%s win=%d type=%s active=%d clearscreen=%d]\n",
++        cosmic_display_current_owner() ? cosmic_display_current_owner() : "?",
++        window, type ? type : "?", active, clearscreen);
++}
++
++void
++cosmic_display_log_tty_menu_erase(
++    int window, const char *type, int x0, int y0, int x1, int y1,
++    int clear, int restore)
++{
++    if (!cosmic_display_log_enabled())
++        return;
++    cosmic_display_logf(
++        "^tty_menu_erase[owner=%s win=%d type=%s x0=%d y0=%d x1=%d y1=%d clear=%d restore=%d]\n",
++        cosmic_display_current_owner() ? cosmic_display_current_owner() : "?",
++        window, type ? type : "?", x0, y0, x1, y1, clear, restore);
++}
+ 
+ static void
+ rng_log_write(const char *func, const char *args, int result)
+@@ -290,17 +487,42 @@ rn2_on_display_rng(int x)
+     if (rng_logfile && rng_log_disp) {
+         char buf[32];
+ 
+         snprintf(buf, sizeof buf, "%d", x);
+         rng_call_count++;
+-        fprintf(rng_logfile, "%d ~drn2(%s) = %d", rng_call_count, buf, result);
+-        if (rng_caller_file) {
+-            if (rng_caller_func) {
+-                fprintf(rng_logfile, " @ %s(%s:%d)",
+-                        rng_caller_func, rng_caller_file, rng_caller_line);
+-            } else {
+-                fprintf(rng_logfile, " @ %s:%d",
+-                        rng_caller_file, rng_caller_line);
++        if (cosmic_display_log_enabled()) {
++            fprintf(rng_logfile,
++                    "%d ~drn2_disp[n=%s idx=%d owner=%s kind=%s x=%d y=%d%s%s%s%s]",
++                    rng_call_count, buf, result,
++                    cosmic_display_current_owner()
++                        ? cosmic_display_current_owner()
++                        : "?",
++                    cosmic_rng_kind ? cosmic_rng_kind : "?",
++                    cosmic_cell_active ? cosmic_cell_x : -1,
++                    cosmic_cell_active ? cosmic_cell_y : -1,
++                    cosmic_newsym_branch ? " newsym=" : "",
++                    cosmic_newsym_branch ? cosmic_newsym_branch : "",
++                    cosmic_maploc_branch ? " maploc=" : "",
++                    cosmic_maploc_branch ? cosmic_maploc_branch : "");
++            if (rng_caller_file) {
++                if (rng_caller_func) {
++                    fprintf(rng_logfile, " @ %s(%s:%d)",
++                            rng_caller_func, rng_caller_file, rng_caller_line);
++                } else {
++                    fprintf(rng_logfile, " @ %s:%d",
++                            rng_caller_file, rng_caller_line);
++                }
++            }
++            fputc('\n', rng_logfile);
++        } else {
++            fprintf(rng_logfile, "%d ~drn2(%s) = %d", rng_call_count, buf,
++                    result);
++            if (rng_caller_file) {
++                if (rng_caller_func) {
++                    fprintf(rng_logfile, " @ %s(%s:%d)",
++                            rng_caller_func, rng_caller_file, rng_caller_line);
++                } else {
++                    fprintf(rng_logfile, " @ %s:%d",
++                            rng_caller_file, rng_caller_line);
++                }
+             }
++            fputc('\n', rng_logfile);
+         }
+-        fputc('\n', rng_logfile);
+     }
++    cosmic_rng_kind = (const char *) 0;
+     return result;
+ }
+diff --git a/win/tty/wintty.c b/win/tty/wintty.c
+index 710ed7237..9c6ef674d 100644
+--- a/win/tty/wintty.c
++++ b/win/tty/wintty.c
+@@ -1068,17 +1068,35 @@
+     struct WinDesc *cw,
+     boolean clear)
+ {
++    const char *wtype = (cw->type == NHW_TEXT) ? "NHW_TEXT"
++                        : (cw->type == NHW_MENU) ? "NHW_MENU"
++                                                 : "NHW_OTHER";
+     if (cw->offx == 0) {
+         if (cw->offy) {
++            cosmic_display_log_tty_menu_erase(window, wtype, 0, 0,
++                                              ttyDisplay->cols - 1,
++                                              ttyDisplay->rows - 1,
++                                              clear ? 1 : 0, 0);
+             tty_curs(window, 1, 0);
+             cl_eos();
+         } else if (clear) {
++            cosmic_display_log_tty_menu_erase(window, wtype, 0, 0,
++                                              ttyDisplay->cols - 1,
++                                              ttyDisplay->rows - 1,
++                                              1, 0);
+             term_clear_screen();
+         } else {
++            cosmic_display_log_tty_menu_erase(window, wtype, 0, 0,
++                                              ttyDisplay->cols - 1,
++                                              ttyDisplay->rows - 1,
++                                              0, 1);
+             docrt();
+             flush_screen(1);
+         }
+     } else {
++        cosmic_display_log_tty_menu_erase(window, wtype, cw->offx, 0,
++                                          ttyDisplay->cols - 1,
++                                          cw->maxrow + 1, clear ? 1 : 0, 1);
+         docorner((int) cw->offx, cw->maxrow + 1, 0);
+     }
+ }
+@@ -1642,6 +1660,10 @@
+             else
+                 Strcpy(cw->morestr, defmorestr);
+ 
++            cosmic_display_log_tty_menu_draw(
++                window, "NHW_MENU", 0, page_lines, page_lines,
++                cw->npages, curr_page, cw->morestr);
++
+             tty_curs(window, 1, page_lines);
+             cl_end();
+             dmore(cw, resp);
+@@ -1958,6 +1980,7 @@
+ {
+     struct WinDesc *cw = 0;
+     short s_maxcol;
++    int fullscreen_menu;
+ 
+     HUPSKIP();
+     if (window == WIN_ERR || (cw = wins[window]) == (struct WinDesc *) 0)
+@@ -2021,11 +2044,13 @@
+         if (ttyDisplay->toplin == TOPLINE_NEED_MORE)
+             tty_display_nhwindow(WIN_MESSAGE, TRUE);
+ #ifdef H2344_BROKEN
+-        if (cw->maxrow >= (int) ttyDisplay->rows
+-            || !iflags.menu_overlay)
++        fullscreen_menu = (cw->maxrow >= (int) ttyDisplay->rows
++                           || !iflags.menu_overlay);
++        if (fullscreen_menu)
+ #else
+-        if (cw->offx == 10 || cw->maxrow >= (int) ttyDisplay->rows
+-            || !iflags.menu_overlay)
++        fullscreen_menu = (cw->offx == 10 || cw->maxrow >= (int) ttyDisplay->rows
++                           || !iflags.menu_overlay);
++        if (fullscreen_menu)
+ #endif
+         {
+             cw->offx = 0;
+@@ -2040,6 +2065,11 @@
+                 tty_clear_nhwindow(WIN_MESSAGE);
+         }
+ 
++        cosmic_display_log_tty_menu_show(
++            window, (cw->type == NHW_TEXT) ? "NHW_TEXT" : "NHW_MENU",
++            cw->offx, cw->offy, cw->maxrow, cw->maxcol,
++            iflags.menu_overlay ? 1 : 0, fullscreen_menu, blocking ? 1 : 0);
++
+         if (cw->data || !cw->maxrow)
+             process_text_window(window, cw);
+         else
+@@ -2096,6 +2126,12 @@
+                 if (program_state.in_role_selection)
+                     clearscreen = TRUE;
+ 
++                cosmic_display_log_tty_menu_hide(
++                    window,
++                    (cw->type == NHW_TEXT) ? "NHW_TEXT"
++                    : (cw->type == NHW_MENU) ? "NHW_MENU"
++                    : "NHW_PERMINVENT",
++                    1, clearscreen ? 1 : 0);
+                 erase_menu_or_text(window, cw, clearscreen);
+             }
+             cw->active = 0;

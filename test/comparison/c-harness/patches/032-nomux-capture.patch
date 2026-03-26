@@ -1,12 +1,12 @@
 diff --git a/include/wintty.h b/include/wintty.h
 --- a/include/wintty.h
 +++ b/include/wintty.h
-@@ -5,6 +5,24 @@
+@@ -5,6 +5,25 @@
  #ifndef WINTTY_H
  #define WINTTY_H
  
-+/* NOMUX: shadow frame buffer for direct screen capture without tmux */
-+#ifndef NO_NOMUX_CAPTURE
++/* NOMUX_CAPTURE: shadow frame buffer for direct screen capture without tmux */
++#ifndef NOMUX_CAPTURE
 +#define NOMUX_CAPTURE
 +#endif
 +#ifdef NOMUX_CAPTURE
@@ -14,6 +14,7 @@ diff --git a/include/wintty.h b/include/wintty.h
 +extern nomux_cell nomux_buf[24][80];
 +extern void nomux_clear_screen(void);
 +extern void nomux_clear_to_eol(int row, int col);
++extern void nomux_capture_write_screen(void);
 +extern void nomux_putch(int ch);
 +extern void nomux_set_attr(int attr);
 +extern void nomux_end_attr(void);
@@ -29,111 +30,116 @@ diff --git a/include/wintty.h b/include/wintty.h
 diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 --- a/win/tty/termcap.c
 +++ b/win/tty/termcap.c
-@@ -634,6 +634,170 @@
+@@ -634,6 +634,169 @@
      return putchar(c);
  }
  
 +#ifdef NOMUX_CAPTURE
-+/* NOMUX shadow frame buffer — mirrors terminal state for direct capture */
-+nomux_cell nomux_buf[24][80];
-+static int nomux_cur_fg = 7;
-+static int nomux_cur_attr = 0;
-+int nomux_decgfx_cur = 0;
++static const char *
++nomux_capture_path(void)
++{
++    static const char *path = (const char *) 0;
++    static int path_checked = 0;
++
++    if (!path_checked) {
++        path = getenv("NOMUX_SCREEN_FILE");
++        path_checked = 1;
++    }
++
++    return path;
++}
 +
 +void
-+nomux_clear_screen(void)
++nomux_capture_write_screen(void)
 +{
++    const char *nomux_path = nomux_capture_path();
++    if (!nomux_path)
++        return;
++
++    {
++        FILE *nf = fopen(nomux_path, "w");
++        if (!nf)
++            return;
++
++        char *scr = nomux_capture_screen();
++        int cx, cy;
++        nomux_get_cursor(&cx, &cy);
++        fprintf(nf, "%s\n---CURSOR:%d,%d\n", scr, cx, cy);
++        fclose(nf);
++    }
++}
++
++/* NOMUX shadow frame buffer implementation */
++nomux_cell nomux_buf[24][80];
++static unsigned char nomux_fg_cur = 7;
++static unsigned char nomux_attr_cur = 0;
++static unsigned char nomux_decgfx_cur = 0;
++
++void nomux_clear_screen(void) {
 +    int r, c;
 +    for (r = 0; r < 24; r++)
 +        for (c = 0; c < 80; c++) {
 +            nomux_buf[r][c].ch = ' ';
 +            nomux_buf[r][c].fg = 7;
-+            nomux_buf[r][c].attr = 0;
-+            nomux_buf[r][c].decgfx = 0;
++            nomux_buf[r][c].attr = 0; nomux_buf[r][c].decgfx = 0;
 +        }
 +}
 +
-+void
-+nomux_clear_to_eol(int row, int col)
-+{
++void nomux_clear_to_eol(int row, int col) {
 +    int c;
 +    if (row < 0 || row >= 24) return;
-+    if (col < 0) col = 0;
-+    for (c = col; c < 80; c++) {
++    for (c = (col < 0 ? 0 : col); c < 80; c++) {
 +        nomux_buf[row][c].ch = ' ';
 +        nomux_buf[row][c].fg = 7;
 +        nomux_buf[row][c].attr = 0;
-+        nomux_buf[row][c].decgfx = 0;
 +    }
 +}
 +
-+void
-+nomux_putch(int ch)
-+{
++void nomux_putch(int ch) {
 +    int row, col;
-+    if (!ttyDisplay) return;
++    if (!ttyDisplay || ch < 32) return;
 +    row = ttyDisplay->cury;
 +    col = ttyDisplay->curx;
-+    if (row < 0 || row >= 24 || col < 0 || col >= 80) return;
-+    nomux_buf[row][col].ch = (char) ch;
-+    nomux_buf[row][col].fg = (unsigned char) nomux_cur_fg;
-+    nomux_buf[row][col].attr = (unsigned char) nomux_cur_attr;
-+    nomux_buf[row][col].decgfx = (unsigned char) nomux_decgfx_cur;
++    if (row >= 0 && row < 24 && col >= 0 && col < 80) {
++        nomux_buf[row][col].ch = (char) ch;
++        nomux_buf[row][col].fg = nomux_fg_cur;
++        nomux_buf[row][col].attr = nomux_attr_cur;
++        nomux_buf[row][col].decgfx = nomux_decgfx_cur;
++    }
 +}
 +
-+void
-+nomux_set_attr(int attr)
-+{
-+    if (attr == ATR_INVERSE || attr == ATR_BOLD)
-+        nomux_cur_attr |= (1 << attr);
++void nomux_set_attr(int attr) {
++    switch (attr) {
++    case ATR_INVERSE: nomux_attr_cur |= 1; break;
++    case ATR_BOLD:    nomux_attr_cur |= 2; break;
++    case ATR_ULINE:   nomux_attr_cur |= 4; break;
++    }
 +}
-+
-+void
-+nomux_end_attr(void)
-+{
-+    nomux_cur_attr = 0;
++void nomux_end_attr(void) { nomux_attr_cur = 0; }
++void nomux_set_fg(int color) {
++    nomux_fg_cur = (color < 0 || color >= 16) ? 7 : (unsigned char) color;
 +}
++void nomux_end_fg(void) { nomux_fg_cur = 7; }
 +
-+/* Remap table: NetHack color index -> NOMUX fg index (default identity) */
-+int nomux_fg_remap[16] = {
-+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-+};
-+
-+void
-+nomux_set_fg(int color)
-+{
-+    if (color >= 0 && color < 16)
-+        nomux_cur_fg = nomux_fg_remap[color];
-+    else
-+        nomux_cur_fg = 7;
-+}
-+
-+void
-+nomux_end_fg(void)
-+{
-+    nomux_cur_fg = 7;
-+}
-+
-+static int
-+nomux_sgr_fg(int fg)
-+{
++static int nomux_sgr_fg(int fg) {
 +    if (fg >= 0 && fg <= 7) return 30 + fg;
 +    if (fg >= 8 && fg <= 15) return 90 + (fg - 8);
-+    return 37; /* default white */
++    return 37;
 +}
 +
 +static char nomux_out[24 * 256];
 +char *nomux_capture_screen(void) {
 +    char *p = nomux_out;
 +    int row, col, end, cur_fg, cur_attr;
-+    /* tmux capture-pane -e compatible format:
-+     * - Incremental SGR: only emit changes between cells
-+     * - Color: \033[97m (just code), fg reset: \033[39m
-+     * - Attr: \033[7m (inverse), \033[1m (bold)
-+     * - End-of-line: \033[0m or \033[39m to reset */
++    /* tmux capture-pane -e format:
++     * - Color start: \033[97m (just the code, no 0; prefix)
++     * - Color end (to default): \033[39m (fg reset only)
++     * - Attr start: \033[7m (inverse), \033[1m (bold)
++     * - Attr end: \033[27m (end inverse), \033[22m (end bold)
++     * - Full reset: \033[0m only at end-of-line or when both attr+color reset
++     * Incremental: only emit what changes between cells. */
 +    for (row = 0; row < 24; row++) {
 +        cur_fg = 7; cur_attr = 0;
-+        /* Trim trailing blank cells */
 +        end = 79;
 +        while (end >= 0
 +               && (nomux_buf[row][end].ch == ' ' || nomux_buf[row][end].ch == 0)
@@ -144,10 +150,11 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 +        for (col = 0; col <= end; col++) {
 +            nomux_cell *c = &nomux_buf[row][col];
 +            char ch = c->ch ? c->ch : ' ';
-+            int fg = c->fg;  /* 7=default; 0 is valid CLR_BLACK */
++            int fg = c->fg ? c->fg : 7;
 +            int at = c->attr;
 +            /* Emit incremental SGR changes */
 +            if (at != cur_attr) {
++                /* Handle attr changes individually */
 +                if ((at & 1) && !(cur_attr & 1)) p += sprintf(p, "\033[7m");
 +                if (!(at & 1) && (cur_attr & 1)) p += sprintf(p, "\033[27m");
 +                if ((at & 2) && !(cur_attr & 2)) p += sprintf(p, "\033[1m");
@@ -169,13 +176,13 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 +            *p++ = ch;
 +        }
 +        if (in_dec) { *p++ = '\017'; in_dec = 0; }
-+        /* End-of-line: reset to defaults */
++        /* End-of-line: reset to defaults — match tmux format */
 +        if (cur_attr && cur_fg != 7) {
-+            p += sprintf(p, "\033[0m");
++            p += sprintf(p, "\033[0m");  /* both attr+color: full reset */
 +        } else if (cur_attr) {
-+            p += sprintf(p, "\033[0m");
++            p += sprintf(p, "\033[0m");  /* attr only: full reset */
 +        } else if (cur_fg != 7) {
-+            p += sprintf(p, "\033[39m");
++            p += sprintf(p, "\033[39m"); /* color only: fg reset */
 +            cur_fg = 7; cur_attr = 0;
 +        }
 +        if (row < 23) *p++ = '\n';
@@ -184,23 +191,16 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
 +    return nomux_out;
 +}
 +
-+void
-+nomux_get_cursor(int *cx, int *cy)
-+{
-+    if (ttyDisplay) {
-+        *cx = ttyDisplay->curx;
-+        *cy = ttyDisplay->cury;
-+    } else {
-+        *cx = 0;
-+        *cy = 0;
-+    }
++void nomux_get_cursor(int *cx, int *cy) {
++    *cx = ttyDisplay ? ttyDisplay->curx : 0;
++    *cy = ttyDisplay ? ttyDisplay->cury : 0;
 +}
 +#endif /* NOMUX_CAPTURE */
 +
  void
  xputs(const char *s)
  {
-@@ -649,6 +813,9 @@
+@@ -649,6 +778,9 @@
  {
      if (CE) {
          xputs(CE);
@@ -210,37 +210,17 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
      } else { /* no-CE fix - free after Harold Rynes */
          int cx = ttyDisplay->curx + 1;
  
-@@ -672,6 +839,9 @@
-     if (CL) {
+@@ -673,6 +805,9 @@
          xputs(CL);
          home();
+         /* set remembered data to all spaces */
 +#ifdef NOMUX_CAPTURE
 +        nomux_clear_screen();
 +#endif
-         /* set remembered data to all spaces */
          erase_tty_screen();
      }
-@@ -692,6 +862,9 @@
- void
- standoutbeg(void)
- {
-+#ifdef NOMUX_CAPTURE
-+    nomux_set_attr(ATR_INVERSE);
-+#endif
-     if (SO)
-         xputs(SO);
  }
-@@ -699,6 +872,9 @@
- void
- standoutend(void)
- {
-+#ifdef NOMUX_CAPTURE
-+    nomux_end_attr();
-+#endif
-     if (SE)
-         xputs(SE);
- }
-@@ -760,6 +936,9 @@
+@@ -760,6 +895,9 @@
  void
  graph_on(void)
  {
@@ -250,7 +230,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
      if (AS)
          xputs(AS);
  }
-@@ -767,6 +946,9 @@
+@@ -767,6 +905,9 @@
  void
  graph_off(void)
  {
@@ -260,7 +240,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
      if (AE)
          xputs(AE);
  }
-@@ -848,6 +1030,9 @@
+@@ -848,6 +989,9 @@
  {
      if (nh_CD) {
          xputs(nh_CD);
@@ -270,21 +250,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
      } else {
          int cy = ttyDisplay->cury + 1;
  
-@@ -1040,6 +1225,13 @@
-          */
-         hilites[CLR_BLACK] = hilites[CLR_BLUE];
-     }
-+#ifdef NOMUX_CAPTURE
-+    if (iflags.wc2_darkgray) {
-+        nomux_fg_remap[CLR_BLACK] = COLOR_BLACK | BRIGHT;
-+    } else {
-+        nomux_fg_remap[CLR_BLACK] = CLR_BLUE;
-+    }
-+#endif
- }
- 
- static void
-@@ -1439,6 +1631,9 @@
+@@ -1439,6 +1583,9 @@
  term_start_attr(int attr)
  {
      if (attr) {
@@ -294,7 +260,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
          const char *astr = s_atr2str(attr);
  
          if (astr && *astr)
-@@ -1450,6 +1645,9 @@
+@@ -1450,6 +1597,9 @@
  term_end_attr(int attr)
  {
      if (attr) {
@@ -304,28 +270,7 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
          const char *astr = e_atr2str(attr);
  
          if (astr && *astr)
-@@ -1464,6 +1662,9 @@
- {
-     const char *soOn = nh_HI ? nh_HI : tty_standout_on;
- 
-+#ifdef NOMUX_CAPTURE
-+    nomux_set_attr(ATR_INVERSE);
-+#endif
-     if (*soOn)
-         xputs(soOn);
- }
-@@ -1474,6 +1675,10 @@
- {
-     const char *soOff = nh_HE ? nh_HE : tty_standout_off;
- 
-+#ifdef NOMUX_CAPTURE
-+    nomux_end_attr();
-+    nomux_end_fg();
-+#endif
-     if (*soOff)
-         xputs(soOff);
- }
-@@ -1482,11 +1687,21 @@
+@@ -1482,11 +1632,18 @@
  term_end_color(void)
  {
      xputs(nh_HE);
@@ -340,37 +285,10 @@ diff --git a/win/tty/termcap.c b/win/tty/termcap.c
  {
 +#ifdef NOMUX_CAPTURE
 +    nomux_set_fg(color);
-+    if (color == NO_COLOR) {
-+        nomux_end_attr();
-+    }
 +#endif
      if (color == NO_COLOR)
          xputs(nh_HE); /* inline term_end_color() */
      else if (color < CLR_MAX && hilites[color] && *hilites[color])
-@@ -1596,6 +1811,12 @@
- {
-     /* color 0 has bit 0x1000000 set */
-     long mcolor = (customcolor & 0xFFFFFF);
-+#ifdef NOMUX_CAPTURE
-+    if (color256idx < 16)
-+        nomux_set_fg((int) color256idx);
-+    else
-+        nomux_set_fg(7);
-+#endif
-     if (iflags.colorcount == 256)
-         emit256(color256idx);
-     else
-@@ -1605,6 +1826,10 @@
- void
- term_end_extracolor(void)
- {
-+#ifdef NOMUX_CAPTURE
-+        nomux_end_fg();
-+        nomux_end_attr();
-+#endif
-         xputs("\033[0m");
- }
- #endif /* TTY_GRAPHICS && !NO_TERMS  */
 diff --git a/win/tty/wintty.c b/win/tty/wintty.c
 --- a/win/tty/wintty.c
 +++ b/win/tty/wintty.c
@@ -422,7 +340,7 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
                  } else {
                      (void) putchar(*cp);
 +#ifdef NOMUX_CAPTURE
-+                        { int svx = ttyDisplay->curx; ttyDisplay->curx--; nomux_putch(*cp); ttyDisplay->curx = svx; }
++                    { int svx = ttyDisplay->curx; ttyDisplay->curx--; nomux_putch(*cp); ttyDisplay->curx = svx; }
 +#endif
                  }
              }
@@ -447,37 +365,38 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
              str++;
              ttyDisplay->curx++;
          }
-@@ -3929,6 +3953,9 @@
+@@ -3929,6 +3953,10 @@
      console_g_putch(in_ch);
      nhUse(ch);
  #endif /* WIN32CON */
 +#ifdef NOMUX_CAPTURE
++    /* Strip high bit for DEC graphics, matching putchar(ch ^ 0x80) */
 +    nomux_putch((int)(unsigned char)((ch & 0x80) ? (ch ^ 0x80) : ch));
 +#endif
      return;
  }
  
-@@ -4200,6 +4227,9 @@
+@@ -4200,6 +4228,9 @@
      print_vt_code1(AVTC_INLINE_SYNC);
      term_curs_set(1);
      (void) fflush(stdout);
 +#ifdef NOMUX_CAPTURE
-+    { static const char *nomux_path = NULL; static int nomux_checked = 0; if (!nomux_checked) { nomux_path = getenv("NOMUX_SCREEN_FILE"); nomux_checked = 1; } if (nomux_path) { FILE *nf = fopen(nomux_path, "w"); if (nf) { char *scr = nomux_capture_screen(); int cx, cy; nomux_get_cursor(&cx, &cy); fprintf(nf, "%s\n---CURSOR:%d,%d\n", scr, cx, cy); fclose(nf); } } }
++    nomux_capture_write_screen();
 +#endif
      /* Note: if raw_print() and wait_synch() get called to report terminal
       * initialization problems, then wins[] and ttyDisplay might not be
       * available yet.  Such problems will probably be fatal before we get
-@@ -4273,6 +4303,9 @@
+@@ -4273,6 +4304,9 @@
      HUPSKIP_RESULT('\033');
  #if defined(WIN32CON)
      (void) fflush(stdout);
 +#ifdef NOMUX_CAPTURE
-+    { static const char *nomux_path = NULL; static int nomux_checked = 0; if (!nomux_checked) { nomux_path = getenv("NOMUX_SCREEN_FILE"); nomux_checked = 1; } if (nomux_path) { FILE *nf = fopen(nomux_path, "w"); if (nf) { char *scr = nomux_capture_screen(); int cx, cy; nomux_get_cursor(&cx, &cy); fprintf(nf, "%s\n---CURSOR:%d,%d\n", scr, cx, cy); fclose(nf); } } }
++    nomux_capture_write_screen();
 +#endif
      /* Note: if raw_print() and wait_synch() get called to report terminal
       * initialization problems, then wins[] and ttyDisplay might not be
       * available yet.  Such problems will probably be fatal before we get
-@@ -4962,6 +4995,9 @@
+@@ -4962,6 +4996,9 @@
              n = i + x;
              if (n < ncols && *text) {
                  (void) putchar(*text);
@@ -490,13 +409,13 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
 diff --git a/win/tty/topl.c b/win/tty/topl.c
 --- a/win/tty/topl.c
 +++ b/win/tty/topl.c
-@@ -369,6 +369,9 @@
- #ifndef WIN32CON
-     (void) putchar(c);
+@@ -361,6 +361,9 @@
+ #ifdef WIN32CON
+         (void) putchar(c);
  #endif
 +#ifdef NOMUX_CAPTURE
-+    { int svx = ttyDisplay->curx; ttyDisplay->curx--; nomux_putch(c); ttyDisplay->curx = svx; }
++        nomux_putch(c);
 +#endif
- }
- 
- void
+         ttyDisplay->curx++;
+     }
+     cw->curx = ttyDisplay->curx;

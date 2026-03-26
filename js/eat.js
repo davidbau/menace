@@ -1530,9 +1530,38 @@ export function tin_variety_txt(s, tinvariety) {
 }
 
 // cf. eat.c tin_details() — determine tin contents and variety
+// Called from xname() to format tin description for display.
+// IMPORTANT: calls tin_variety(obj, TRUE) which may consume rn2(TTSZ-1)
+// for tins whose variety hasn't been determined yet (obj.spe === 0).
 function tin_details(obj, mnum, buf) {
-    // Stub: would format tin description
-    return buf || '';
+    if (!obj || buf === undefined || buf === null) return '';
+
+    const r = tin_variety(obj, true);
+
+    if (r === SPINACH_TIN) {
+        return buf + ' of spinach';
+    } else if (mnum === NON_PM) {
+        return 'empty tin';
+    } else {
+        let result = buf;
+        const monName = (ismnum(mnum) && mons[mnum])
+            ? (mons[mnum].pmnames?.[2] || mons[mnum].mname || 'something')
+            : 'something';
+        const isVeg = ismnum(mnum) && vegetarian(mons[mnum]);
+
+        if ((obj.cknown || false) && obj.spe < 0) {
+            if (r === ROTTEN_TIN || r === HOMEMADE_TIN) {
+                result = `${tintxts[r].txt} ${result} of `;
+            } else {
+                result += ` of ${tintxts[r].txt} `;
+            }
+        } else {
+            result += ' of ';
+        }
+
+        result += isVeg ? monName : `${monName} meat`;
+        return result;
+    }
 }
 
 // cf. eat.c set_tin_variety() — set variety on a tin object

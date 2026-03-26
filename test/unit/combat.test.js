@@ -20,15 +20,16 @@ const mockDisplay = {
 // Create a simple test monster matching makemon.js format
 function makeMonster(opts = {}) {
     const ac = opts.ac !== undefined ? opts.ac : 8;
+    const name = opts.name || 'test monster';
+    const type = { ac, mname: name, ...(opts.type || {}) };
     return {
-        name: opts.name || 'test monster',
+        name,
         displayChar: opts.displayChar || 'x',
         mhp: opts.mhp || 10,
         mhpmax: opts.mhpmax || 10,
-        // Combat to-hit uses worn.find_mac(mon) -> mon.type.ac.
-        // Keep mac too for any legacy callers in tests.
         mac: ac,
-        type: { ac },
+        type,
+        data: type,
         mx: opts.mx || 5,
         my: opts.my || 5,
         mlevel: opts.level || 1,
@@ -147,7 +148,8 @@ describe('Combat system', () => {
             level: 10,
             attacks: [{ aatyp: AT_WEAP, damn: 1, damd: 4 }],
         });
-        mon.type = { mflags1: M1_HUMANOID, mflags2: 0, geno: 0 };
+        mon.type = { mname: 'goblin', mflags1: M1_HUMANOID, mflags2: 0, geno: 0 };
+        mon.data = mon.type;
         mon.female = true;
         mon.weapon = {
             otyp: ORCISH_DAGGER,

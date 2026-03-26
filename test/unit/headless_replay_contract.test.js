@@ -21,7 +21,8 @@ describe('HeadlessGame replay contract', () => {
             },
         });
 
-        assert.equal(game.u.name, 'ReplayTester');
+        // Wizard mode sets name from nethackrc WIZARD field (lowercase 'wizard')
+        assert.equal(game.u.name, 'wizard');
         assert.equal(game.u.wizard, true);
         assert.equal(game.wizard, true);
         assert.equal(game.u.gender, 1);
@@ -105,6 +106,7 @@ describe('HeadlessGame replay contract', () => {
         assert.equal(Array.isArray(startup.grid), true);
         assert.equal(startup.grid.length, 21);
         assert.equal(startup.grid[0].length, 80);
-        assert.equal(startup.player.name, 'CoreInit');
+        // Wizard mode overrides character name via nethackrc
+        assert.equal(startup.player.name, 'wizard');
     });
 });

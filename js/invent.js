@@ -46,6 +46,7 @@ import { game as _gstate } from './gstate.js';
 import { visctrl } from './hacklib.js';
 import { can_reach_floor } from './engrave.js';
 import { artitouch } from './quest.js';
+import { enterModal, exitModal } from './modal_guard.js';
 
 
 // ============================================================
@@ -356,6 +357,8 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
 
     let selection = null;
     let countDigits = '';
+    enterModal('menu');
+    try {
     while (true) {
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
@@ -393,6 +396,9 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         }
         // C tty parity: PICK_ONE menus dismiss on any unrecognized key.
         if (dismissOnUnrecognized) break;
+    }
+    } finally {
+        exitModal('menu');
     }
 
     restoreOverlayMenu(display, currentLines, menuOffx);
@@ -2093,6 +2099,8 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
         }
     }
 
+    enterModal('getobj');
+    try {
     while (true) {
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
@@ -2156,6 +2164,9 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
         // Found a valid inventory item — clear prompt and return
         clearPrompt();
         return item;
+    }
+    } finally {
+        exitModal('getobj');
     }
 }
 
