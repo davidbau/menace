@@ -1427,7 +1427,7 @@ export async function dig(map, player) {
         }
         newsym(dpx, dpy);
         if (digtxt && !ctx.quiet) {
-            _gstate?.display?.putstr_message?.(digtxt);
+            await _gstate?.display?.putstr_message?.(digtxt);
         }
         if (dmgtxt) {
             await pay_for_damage(dmgtxt, false, map, player, _gstate?.moves || 0);

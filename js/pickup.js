@@ -584,12 +584,12 @@ async function pickup_object(obj, count, telekinesis, player, map) {
         obj = splitobj(obj, cnt_p.value);
 
     obj = await pick_obj(obj, player, map);
-    pickup_prinv(obj, cnt_p.value, 'lifting', player);
+    await pickup_prinv(obj, cnt_p.value, 'lifting', player);
     return 1;
 }
 
 // cf. pickup.c:1945 — pickup_prinv(obj, count, verb)
-function pickup_prinv(obj, count, verb, player) {
+async function pickup_prinv(obj, count, verb, player) {
     const nearload = near_capacity(player);
     let prefix = null;
     if (nearload !== pickup_encumbrance) {
@@ -601,7 +601,7 @@ function pickup_prinv(obj, count, verb, player) {
         pickup_encumbrance = nearload;
     }
     const pbuf = prefix ? `${prefix} ${verb}` : null;
-    prinv(pbuf, obj, count, player);
+    await prinv(pbuf, obj, count, player);
 }
 
 // cf. pickup.c:1972 — encumber_msg()
