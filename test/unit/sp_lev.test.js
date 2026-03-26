@@ -753,44 +753,44 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.upstair.y, 15, 'upstair y metadata should be flipped');
     });
 
-    it('place_lregion oneshot removes destroyable trap blocker', () => {
+    it('place_lregion oneshot removes destroyable trap blocker', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         const map = getLevelState().map;
         map.traps.push({ ttyp: PIT, tx: 10, ty: 10 });
 
-        place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, LR_UPSTAIR);
+        await place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, LR_UPSTAIR);
 
         assert.equal(map.trapAt(10, 10), null, 'destroyable trap should be removed in oneshot fallback');
         assert.equal(map.at(10, 10).typ, STAIRS, 'stairs should be placed after removing trap');
     });
 
-    it('place_lregion oneshot keeps undestroyable trap blocker', () => {
+    it('place_lregion oneshot keeps undestroyable trap blocker', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         const map = getLevelState().map;
         map.traps.push({ ttyp: MAGIC_PORTAL, tx: 10, ty: 10 });
 
-        place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, LR_UPSTAIR);
+        await place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, LR_UPSTAIR);
 
         assert.notEqual(map.trapAt(10, 10), null, 'undestroyable trap should remain');
         assert.notEqual(map.at(10, 10).typ, STAIRS, 'stairs should not overwrite undestroyable trap location');
     });
 
-    it('place_lregion oneshot teleport relocates occupying monster', () => {
+    it('place_lregion oneshot teleport relocates occupying monster', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         const map = getLevelState().map;
         map.monsters.push({ mx: 10, my: 10, mhp: 10 });
 
         // LR_TELE in const.js
-        place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, LR_TELE);
+        await place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, LR_TELE);
 
         assert.equal(map.monsterAt(10, 10), null, 'occupying monster should be displaced from teleport location');
         assert.equal(map.monsters.length, 1, 'monster should remain on level when relocation is possible');
     });
 
-    it('place_lregion oneshot teleport limbos occupying monster when no relocation exists', () => {
+    it('place_lregion oneshot teleport limbos occupying monster when no relocation exists', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         const map = getLevelState().map;
@@ -798,7 +798,7 @@ describe('sp_lev.js - des.* API', () => {
         map.monsters.push({ mx: 10, my: 10, mhp: 10 });
 
         // LR_TELE in const.js
-        place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, LR_TELE);
+        await place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, LR_TELE);
 
         assert.equal(map.monsters.length, 0, 'monster should be removed when no legal relocation exists');
     });

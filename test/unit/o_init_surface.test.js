@@ -24,11 +24,11 @@ import {
 } from '../../js/objects.js';
 
 describe('o_init C-surface wrappers', () => {
-  it('init/discover/undiscover wrappers execute and update discovery flags', () => {
+  it('init/discover/undiscover wrappers execute and update discovery flags', async () => {
     init_oclass_probs();
     initDiscoveryState();
     assert.equal(isObjectNameKnown(POT_HEALING), false);
-    discover_object(POT_HEALING, true, false, false);
+    await discover_object(POT_HEALING, true, false, false);
     assert.equal(isObjectNameKnown(POT_HEALING), true);
     undiscover_object(POT_HEALING);
     assert.equal(isObjectNameKnown(POT_HEALING), true);
@@ -42,9 +42,9 @@ describe('o_init C-surface wrappers', () => {
     assert.ok(label.length > 0);
   });
 
-  it('save/restore and rename wrappers are executable', () => {
+  it('save/restore and rename wrappers are executable', async () => {
     initDiscoveryState();
-    discover_object(POT_HEALING, true, false, true);
+    await discover_object(POT_HEALING, true, false, true);
     const nhfp = {};
     savenames(nhfp);
     initDiscoveryState();

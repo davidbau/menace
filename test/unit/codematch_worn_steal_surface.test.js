@@ -97,11 +97,11 @@ test('steal maybe_absorb_item moves carried object to monster inventory', async 
     assert.equal(mon.minvent.includes(obj), true);
 });
 
-test('steal mdrop_special_objs drops invocation item from monster inventory', () => {
+test('steal mdrop_special_objs drops invocation item from monster inventory', async () => {
     const special = { otyp: AMULET_OF_YENDOR, owornmask: 0, bypass: 0 };
     const mon = { mndx: 1, mx: 8, my: 9, minvent: [special], dead: false };
     const map = { objects: [] };
-    mdrop_special_objs(mon, map);
+    await mdrop_special_objs(mon, map);
     assert.equal(mon.minvent.length, 0);
     assert.equal(map.objects.length, 1);
     assert.equal(map.objects[0].otyp, AMULET_OF_YENDOR);

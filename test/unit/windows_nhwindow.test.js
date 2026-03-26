@@ -275,19 +275,19 @@ describe('nhwindow infrastructure (windows.js)', () => {
     });
 
     describe('putstr routing', () => {
-        it('routes putstr to display.putstr_message for NHW_MESSAGE window', () => {
+        it('routes putstr to display.putstr_message for NHW_MESSAGE window', async () => {
             const display = makeDisplay();
             init_nhwindows(display, null, null);
             const winMessage = getWinMessage();
-            putstr(winMessage, ATR_NONE, 'hello world');
+            await putstr(winMessage, ATR_NONE, 'hello world');
             assert.ok(display.messages.includes('hello world'));
         });
 
-        it('does not call putstr_message for non-message windows', () => {
+        it('does not call putstr_message for non-message windows', async () => {
             const display = makeDisplay();
             init_nhwindows(display, null, null);
             const win = create_nhwindow(NHW_TEXT);
-            putstr(win, ATR_NONE, 'text line');
+            await putstr(win, ATR_NONE, 'text line');
             assert.equal(display.messages.length, 0);
         });
     });
@@ -440,7 +440,7 @@ describe('nhwindow infrastructure (windows.js)', () => {
             init_nhwindows(display, null, null);
             // Simulate a message having been shown (toplin = NON_EMPTY)
             const winMessage = getWinMessage();
-            putstr(winMessage, ATR_NONE, 'A message');
+            await putstr(winMessage, ATR_NONE, 'A message');
             pushInput(' '.charCodeAt(0));
             await display_nhwindow(winMessage, true);
             assert.ok(display.messages.some(m => m === '--More--'));

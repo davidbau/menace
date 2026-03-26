@@ -237,7 +237,7 @@ async function setupGame() {
     player.x = map.upstair.x;
     player.y = map.upstair.y;
     player.dungeonLevel = 1;
-    simulatePostLevelInit(player, map, 1);
+    await simulatePostLevelInit(player, map, 1);
     const fov = new FOV();
     fov.compute(map, player.x, player.y);
     return { u: player, map, fov, display: { putstr_message: () => {} }, turnCount: 0, seerTurn: 0 };
@@ -280,7 +280,7 @@ describe('Screen comparison (seed 42)', () => {
                     game.u.x += dir[0];
                     game.u.y += dir[1];
                 } else if (state.step.key === 's') {
-                    dosearch0(game.u, game.map, game.display);
+                    await dosearch0(game.u, game.map, game.display);
                 }
 
                 if (!NON_TURN_KEYS.has(state.step.key)) {

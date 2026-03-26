@@ -26,7 +26,7 @@ function makeDisplayLog() {
     };
 }
 
-test('maybe_wail uses power-count warning for wizard/valk/elf roles', () => {
+test('maybe_wail uses power-count warning for wizard/valk/elf roles', async () => {
     const display = makeDisplayLog();
     const player = {
         hp: 2,
@@ -41,11 +41,11 @@ test('maybe_wail uses power-count warning for wizard/valk/elf roles', () => {
         },
     };
     const game = { moves: 100, wailmsg: 0 };
-    maybe_wail(player, game, display);
+    await maybe_wail(player, game, display);
     assert.equal(display.messages.at(-1), 'Wizard, all your powers will be lost...');
 });
 
-test('maybe_wail uses life-force message when intrinsic count is low', () => {
+test('maybe_wail uses life-force message when intrinsic count is low', async () => {
     const display = makeDisplayLog();
     const player = {
         hp: 2,
@@ -57,11 +57,11 @@ test('maybe_wail uses life-force message when intrinsic count is low', () => {
         },
     };
     const game = { moves: 100, wailmsg: 0 };
-    maybe_wail(player, game, display);
+    await maybe_wail(player, game, display);
     assert.equal(display.messages.at(-1), 'Wizard, your life force is running out.');
 });
 
-test('saving_grace path in losehp leaves hero at 1 hp', () => {
+test('saving_grace path in losehp leaves hero at 1 hp', async () => {
     const display = makeDisplayLog();
     const player = {
         hp: 10,
@@ -74,7 +74,7 @@ test('saving_grace path in losehp leaves hero at 1 hp', () => {
         saving_grace_turn: false,
     };
 
-    losehp(20, 'test trap', 0, player, display, game);
+    await losehp(20, 'test trap', 0, player, display, game);
 
     assert.equal(player.hp, 1);
     assert.equal(player.usaving_grace, 1);
@@ -82,7 +82,7 @@ test('saving_grace path in losehp leaves hero at 1 hp', () => {
     assert.equal(game.playerDied, undefined);
 });
 
-test('showdamage reports polymorph hp pool when enabled', () => {
+test('showdamage reports polymorph hp pool when enabled', async () => {
     const display = makeDisplayLog();
     const player = {
         upolyd: true,
@@ -90,7 +90,7 @@ test('showdamage reports polymorph hp pool when enabled', () => {
         mh: 5,
     };
     const game = { iflags: { showdamage: true } };
-    showdamage(3, player, display, game);
+    await showdamage(3, player, display, game);
     assert.equal(display.messages.at(-1), '[HP -3, 5 left]');
 });
 

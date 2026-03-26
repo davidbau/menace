@@ -414,7 +414,7 @@ describe('inventory modal dismissal', () => {
 
     it('uses spellbook wording in inventory action prompt', async () => {
         const { game } = makeGame();
-        discoverObject(SPE_HEALING, true, false);
+        await discoverObject(SPE_HEALING, true, false);
         game.u.inventory = [{
             oclass: SPBOOK_CLASS,
             otyp: SPE_HEALING,
@@ -524,7 +524,7 @@ describe('inventory modal dismissal', () => {
 
     it('shows light and rub actions for oil lamps', async () => {
         const { game } = makeGame();
-        discoverObject(OIL_LAMP, true, false);
+        await discoverObject(OIL_LAMP, true, false);
         game.u.inventory = [{
             oclass: TOOL_CLASS,
             otyp: OIL_LAMP,
