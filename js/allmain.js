@@ -611,6 +611,9 @@ function u_calc_moveamt(player) {
     // C ref: u.umovement += moveamt; if (u.umovement < 0) u.umovement = 0;
     player.umovement = (player.umovement || 0) + moveamt;
     if (player.umovement < 0) player.umovement = 0;
+    // C ref: allmain.c:162 event_log("moveamt[...]") — diagnostic for movement
+    // allocation parity. Filtered as midlog entry (^) in RNG comparison.
+    pushRngLogEntry(`^moveamt[wtcap=${wtcap} moveamt=${moveamt} umovement=${player.umovement}]`);
 }
 
 // C ref: sounds.c:202-339 dosounds() — ambient level sounds
