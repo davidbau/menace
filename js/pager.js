@@ -353,7 +353,7 @@ function look_surface_name(loc) {
 }
 
 // C ref: invent.c look_here() style message used for ':' command.
-function build_dolook_message(ctx) {
+async function build_dolook_message(ctx) {
     const map = ctx?.map;
     const player = ctx?.player;
     const blind = !!player?.blind;
@@ -373,7 +373,7 @@ function build_dolook_message(ctx) {
                 ? `You ${verb} here a gold piece.`
                 : `You ${verb} here ${count} gold pieces.`;
         } else {
-            observeObject(seen);
+            await observeObject(seen);
             objText = `You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`;
         }
     } else if (objs.length > 1) {

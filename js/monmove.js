@@ -893,7 +893,7 @@ async function run_dochug_postmove_pipeline_current_js(
                 } else if (wasLocked && can_unlock) {
                     here.flags = btrapped ? D_NODOOR : D_ISOPEN;
                     if (btrapped) {
-                        if (mb_trapped(mon, map, player)) return MMOVE_DIED;
+                        if (await mb_trapped(mon, map, player)) return MMOVE_DIED;
                     } else if (display) {
                         if (canSeeDoor && canSeeMon) {
                             await display.putstr_message(`${Monnam(mon)} unlocks and opens a door.`);
@@ -906,7 +906,7 @@ async function run_dochug_postmove_pipeline_current_js(
                 } else if (wasClosed && can_open) {
                     here.flags = btrapped ? D_NODOOR : D_ISOPEN;
                     if (btrapped) {
-                        if (mb_trapped(mon, map, player)) return MMOVE_DIED;
+                        if (await mb_trapped(mon, map, player)) return MMOVE_DIED;
                     } else if (display) {
                         if (canSeeDoor && canSeeMon) {
                             await display.putstr_message(`${Monnam(mon)} opens a door.`);
@@ -921,7 +921,7 @@ async function run_dochug_postmove_pipeline_current_js(
                     const breakMask = (btrapped || (wasLocked && !rn2(2))) ? D_NODOOR : D_BROKEN;
                     here.flags = breakMask;
                     if (btrapped) {
-                        if (mb_trapped(mon, map, player)) return MMOVE_DIED;
+                        if (await mb_trapped(mon, map, player)) return MMOVE_DIED;
                     } else if (display) {
                         if (canSeeDoor && canSeeMon) {
                             await display.putstr_message(`${Monnam(mon)} smashes down a door.`);
@@ -1154,7 +1154,7 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
             if (m2.mhp <= 0) {
                 // C: monkilled(m2, "", AD_DRIN)
                 // TODO: proper monkilled with death reason
-                mondead(m2, map, null);
+                await mondead(m2, map, null);
             }
         }
     }
@@ -2528,13 +2528,13 @@ export function should_displace(mon, positions, goalx, goaly) {
 
 // C ref: monmove.c:54 mb_trapped() — door trap explosion
 // Returns true if monster dies.
-export function mb_trapped(mon, map, player) {
+export async function mb_trapped(mon, map, player) {
     if (!mon || !map) return false;
     mon.mstun = 1;
     mon.mstun = true;
     mon.mhp = (mon.mhp || 0) - rnd(15);
     if ((mon.mhp || 0) <= 0) {
-        mondead(mon, map, player);
+        await mondead(mon, map, player);
         if (mon.dead || (mon.mhp || 0) <= 0) return true;
     }
     return false;
@@ -2706,10 +2706,10 @@ export function gelcube_digests(mtmp) {
 }
 
 // Autotranslated from monmove.c:1157
-export function leppie_stash(mtmp, map) {
+export async function leppie_stash(mtmp, map) {
   let gold;
   if (mtmp.data === mons[PM_LEPRECHAUN] && !DEADMONSTER(mtmp) && !m_canseeu(mtmp) && !in_rooms(mtmp.mx, mtmp.my, SHOPBASE) && map.locations[mtmp.mx][mtmp.my].typ === ROOM && !t_at(mtmp.mx, mtmp.my, map) && rn2(4) && (gold = findgold(mtmp.minvent)) != null) {
-    mdrop_obj(mtmp, gold, false);
+    await mdrop_obj(mtmp, gold, false);
     gold = g_at(mtmp.mx, mtmp.my, map);
     if (gold) {
       bury_an_obj(gold, map, null);

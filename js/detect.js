@@ -196,10 +196,10 @@ export function o_material(obj, material) {
 // ========================================================================
 // cf. detect.c:249 -- observe_recursively
 // ========================================================================
-export function observe_recursively(obj) {
+export async function observe_recursively(obj) {
     if (!obj) return;
-    observeObject(obj);
-    if (Has_contents(obj)) for (const otmp of obj.cobj) observe_recursively(otmp);
+    await observeObject(obj);
+    if (Has_contents(obj)) for (const otmp of obj.cobj) await observe_recursively(otmp);
 }
 
 // ========================================================================
@@ -424,26 +424,26 @@ export async function object_detect(detector, oclass, player, map, display, game
     const stuff = (player.hallucinating || (player.confused && oclass === SCROLL_CLASS))
         ? 'something' : 'objects';
     const buried = buried_objects(map);
-    if (do_dknown) for (const obj of (player.inventory || [])) observe_recursively(obj);
+    if (do_dknown) for (const obj of (player.inventory || [])) await observe_recursively(obj);
     for (const obj of (map.objects || [])) {
         if (obj?.buried) continue;
         if ((!oclass && !boulder) || o_in(obj, oclass)) {
             if (u_at(player, obj.ox, obj.oy)) ctu++; else ct++;
         }
-        if (do_dknown) observe_recursively(obj);
+        if (do_dknown) await observe_recursively(obj);
     }
     for (const obj of buried) {
         if ((!oclass && !boulder) || o_in(obj, oclass)) {
             if (u_at(player, obj.ox, obj.oy)) ctu++; else ct++;
         }
-        if (do_dknown) observe_recursively(obj);
+        if (do_dknown) await observe_recursively(obj);
     }
     if (player.usteed) { player.usteed.mx = player.x; player.usteed.my = player.y; }
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp) || (mtmp.isgd && !mtmp.mx)) continue;
         for (const obj of (mtmp.minvent || [])) {
             if ((!oclass && !boulder) || o_in(obj, oclass)) ct++;
-            if (do_dknown) observe_recursively(obj);
+            if (do_dknown) await observe_recursively(obj);
         }
         if ((is_cursed && M_AP_TYPE(mtmp)
              && (!oclass || oclass === (objectData[mtmp.mappearance] || {}).oc_class))

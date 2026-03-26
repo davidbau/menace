@@ -757,9 +757,9 @@ export async function do_play_instrument(instr, player, map, display, fov) {
                         // record_achievement(ACH_TUNE) — stub
                         const dloc = map.at(result.x || x, result.y || y);
                         if (dloc && dloc.typ === DRAWBRIDGE_DOWN)
-                            close_drawbridge(result.x || x, result.y || y, map, player);
+                            await close_drawbridge(result.x || x, result.y || y, map, player);
                         else
-                            open_drawbridge(result.x || x, result.y || y, map, player);
+                            await open_drawbridge(result.x || x, result.y || y, map, player);
                         return 1; // ECMD_TIME
                     }
                 }

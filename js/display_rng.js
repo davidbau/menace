@@ -72,7 +72,7 @@ function genericObjectGlyph(obj) {
     };
 }
 
-export function maybeObserveObjectForMap(obj, player, x, y) {
+export async function maybeObserveObjectForMap(obj, player, x, y) {
     if (!isGenericObject(obj) || !player || !Number.isInteger(x) || !Number.isInteger(y)) {
         return;
     }
@@ -82,15 +82,15 @@ export function maybeObserveObjectForMap(obj, player, x, y) {
     const dx = player.x - x;
     const dy = player.y - y;
     if ((dx * dx) + (dy * dy) <= neardist) {
-        observeObject(obj);
+        await observeObject(obj);
     }
 }
 
-export function objectMapGlyph(obj, hallucinating = false, options = {}) {
+export async function objectMapGlyph(obj, hallucinating = false, options = {}) {
     if (hallucinating) return randomObjectGlyph();
     const { player = null, x = null, y = null, observe = true } = options;
     if (observe) {
-        maybeObserveObjectForMap(obj, player, x, y);
+        await maybeObserveObjectForMap(obj, player, x, y);
     }
     if (isGenericObject(obj)) {
         return genericObjectGlyph(obj);

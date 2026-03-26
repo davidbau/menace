@@ -93,7 +93,7 @@ export function miniwalk(rooms, x, y) {
 }
 
 // C ref: extralev.c:45 roguecorr()
-export function roguecorr(map, rooms, x0, y0, dir, depth) {
+export async function roguecorr(map, rooms, x0, y0, dir, depth) {
     let x = x0;
     let y = y0;
     let fromx; let fromy; let tox; let toy;
@@ -106,7 +106,7 @@ export function roguecorr(map, rooms, x0, y0, dir, depth) {
         } else {
             fromx = 1 + 26 * x + rooms[x][y].rlx + rn2(rooms[x][y].dx);
             fromy = 7 * y + rooms[x][y].rly + rooms[x][y].dy;
-            dodoor(map, fromx, fromy, map.rooms[rooms[x][y].nroom], depth);
+            await dodoor(map, fromx, fromy, map.rooms[rooms[x][y].nroom], depth);
             map.at(fromx, fromy).flags = D_NODOOR;
             fromy++;
         }
@@ -120,7 +120,7 @@ export function roguecorr(map, rooms, x0, y0, dir, depth) {
         } else {
             tox = 1 + 26 * x + rooms[x][y].rlx + rn2(rooms[x][y].dx);
             toy = 7 * y + rooms[x][y].rly - 1;
-            dodoor(map, tox, toy, map.rooms[rooms[x][y].nroom], depth);
+            await dodoor(map, tox, toy, map.rooms[rooms[x][y].nroom], depth);
             map.at(tox, toy).flags = D_NODOOR;
             toy--;
         }
@@ -136,7 +136,7 @@ export function roguecorr(map, rooms, x0, y0, dir, depth) {
     } else {
         fromx = 1 + 26 * x + rooms[x][y].rlx + rooms[x][y].dx;
         fromy = 7 * y + rooms[x][y].rly + rn2(rooms[x][y].dy);
-        dodoor(map, fromx, fromy, map.rooms[rooms[x][y].nroom], depth);
+        await dodoor(map, fromx, fromy, map.rooms[rooms[x][y].nroom], depth);
         map.at(fromx, fromy).flags = D_NODOOR;
         fromx++;
     }
@@ -150,7 +150,7 @@ export function roguecorr(map, rooms, x0, y0, dir, depth) {
     } else {
         tox = 1 + 26 * x + rooms[x][y].rlx - 1;
         toy = 7 * y + rooms[x][y].rly + rn2(rooms[x][y].dy);
-        dodoor(map, tox, toy, map.rooms[rooms[x][y].nroom], depth);
+        await dodoor(map, tox, toy, map.rooms[rooms[x][y].nroom], depth);
         map.at(tox, toy).flags = D_NODOOR;
         tox--;
     }
@@ -223,7 +223,7 @@ export function makerogueghost(map, _depth) {
 }
 
 // C ref: extralev.c:193 makeroguerooms()
-export function makeroguerooms(depth = 15) {
+export async function makeroguerooms(depth = 15) {
     const map = new GameMap();
     map.clear();
     if (!map.flags) map.flags = {};
@@ -273,8 +273,8 @@ export function makeroguerooms(depth = 15) {
 
     for (let y = 0; y < 3; y++) {
         for (let x = 0; x < 3; x++) {
-            if (rooms[x][y].doortable & XL_DOWN) roguecorr(map, rooms, x, y, XL_DOWN, depth);
-            if (rooms[x][y].doortable & XL_RIGHT) roguecorr(map, rooms, x, y, XL_RIGHT, depth);
+            if (rooms[x][y].doortable & XL_DOWN) await roguecorr(map, rooms, x, y, XL_DOWN, depth);
+            if (rooms[x][y].doortable & XL_RIGHT) await roguecorr(map, rooms, x, y, XL_RIGHT, depth);
         }
     }
 
@@ -283,7 +283,7 @@ export function makeroguerooms(depth = 15) {
     generate_stairs(map, depth);
 
     for (let i = 0; i < map.nroom; i++) {
-        fill_ordinary_room(map, map.rooms[i], depth, false);
+        await fill_ordinary_room(map, map.rooms[i], depth, false);
     }
     return map;
 }

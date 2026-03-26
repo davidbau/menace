@@ -1672,7 +1672,7 @@ export function see_objects() {
 // Mark the top floor object at each visible nearby cell as dknown=true.
 // Called from u_on_newpos() when the player moves (dungeon.js:u_on_newpos).
 // Matches C's logic: iterate r=2 range, cansee + distu <= neardist, observe_object.
-export function see_nearby_objects() {
+export async function see_nearby_objects() {
   const ctx = _gstate;
   const map = ctx?.map;
   const player = ctx?.player;
@@ -1695,7 +1695,7 @@ export function see_nearby_objects() {
       const du = distu(player, ix, iy);
       if (!cs) continue;
       if (du > neardist) continue;
-      observe_object(topObj);
+      await observe_object(topObj);
       // C relies on vision_recalc's seenv-angle change triggering newsym() for newly-dknown
       // objects (display.c:1591: only call newsym_force if already showing a generic obj glyph).
       // JS vision_recalc only calls newsym on visibility CHANGE (not seenv-angle change), so

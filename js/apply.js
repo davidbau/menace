@@ -256,7 +256,7 @@ export async function use_towel(obj, player) {
     player.ucreamed = 0;
     if (!player.Blind) {
       await pline("You've got the glop off.");
-      if (!gulp_blnd_check()) { set_itimeout(player, BLINDED, 1); await make_blinded(player, 0, true); }
+      if (!await gulp_blnd_check()) { set_itimeout(player, BLINDED, 1); await make_blinded(player, 0, true); }
     }
     else { await Your("%s feels clean now.", body_part(FACE)); }
     if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
@@ -983,7 +983,7 @@ async function use_cream_pie(obj, player) {
     if (obj.quan > 1) obj.quan--;
     await You("immerse your face in %s.", xname(obj));
     rnd(25); // blindinc RNG consumption
-    if (obj.quan <= 0) clearWornItemEffects(player, obj);
+    if (obj.quan <= 0) await clearWornItemEffects(player, obj);
 }
 
 // cf. apply.c:3603 -- jelly_ok
@@ -1056,7 +1056,7 @@ async function do_break_wand(obj, player, map, display) {
     );
     if (!obj.spe) obj.spe = rnd(3);
     await break_wand(obj, player, map);
-    useupall(obj, player);
+    await useupall(obj, player);
     return true;
 }
 

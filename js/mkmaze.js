@@ -268,7 +268,7 @@ export async function makemaz(map, protofile, dnum, dlevel, depth) {
     } else {
         const invPos = pick_vibrasquare_location(map);
         if (invPos) {
-            maketrap(map, invPos.x, invPos.y, VIBRATING_SQUARE);
+            await maketrap(map, invPos.x, invPos.y, VIBRATING_SQUARE);
         }
     }
 
@@ -282,11 +282,11 @@ export async function makemaz(map, protofile, dnum, dlevel, depth) {
     const branchDlevel = Number.isInteger(dlevel) ? dlevel : (Number.isInteger(map._genDlevel) ? map._genDlevel : depth);
     const branchResult = resolveBranchPlacementForLevel(branchDnum, branchDlevel);
     if (branchResult.found) {
-        place_lregion(map, 0, 0, 0, 0, 0, 0, 0, 0, LR_BRANCH, { branchPlacement: branchResult.placement });
+        await place_lregion(map, 0, 0, 0, 0, 0, 0, 0, 0, LR_BRANCH, { branchPlacement: branchResult.placement });
     }
 
     // C ref: mkmaze.c:1213 — populate_maze()
-    populate_maze(map, depth);
+    await populate_maze(map, depth);
 }
 
 // C ref: mkmaze.c create_maze
@@ -389,7 +389,7 @@ export function create_maze(map, corrwid, wallthick, rmdeadends) {
 }
 
 // C ref: mkmaze.c populate_maze
-export function populate_maze(map, depth) {
+export async function populate_maze(map, depth) {
     const placeObjAt = (obj, x, y) => {
         if (!obj) return;
         obj.ox = x;
@@ -411,12 +411,12 @@ export function populate_maze(map, depth) {
     for (let i = rn2(3); i > 0; i--) {
         const pos = mazexy(map);
         if (!pos) continue;
-        makemon(PM_MINOTAUR, pos.x, pos.y, NO_MM_FLAGS, depth, map);
+        await makemon(PM_MINOTAUR, pos.x, pos.y, NO_MM_FLAGS, depth, map);
     }
     for (let i = rn1(5, 7); i > 0; i--) {
         const pos = mazexy(map);
         if (!pos) continue;
-        makemon(null, pos.x, pos.y, NO_MM_FLAGS, depth, map);
+        await makemon(null, pos.x, pos.y, NO_MM_FLAGS, depth, map);
     }
     for (let i = rn1(6, 7); i > 0; i--) {
         const pos = mazexy(map);
@@ -431,7 +431,7 @@ export function populate_maze(map, depth) {
         placeObjAt(gold, pos.x, pos.y);
     }
     for (let i = rn1(6, 7); i > 0; i--) {
-        mktrap(map, 0, MKTRAP_MAZEFLAG, null, null, depth);
+        await mktrap(map, 0, MKTRAP_MAZEFLAG, null, null, depth);
     }
 }
 
@@ -567,7 +567,7 @@ export function pick_vibrasquare_location(map) {
 }
 
 // C ref: mkmaze.c put_lregion_here()
-export function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, opts = {}) {
+export async function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, opts = {}) {
     let invalid = bad_location(map, x, y, nlx, nly, nhx, nhy)
         || is_exclusion_zone(map, rtype, x, y);
     if (invalid) {
@@ -623,7 +623,7 @@ export function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, 
         mkstairs(map, x, y, true);
         break;
     case LR_BRANCH:
-        place_branch(map, x, y, opts.branchPlacement || 'none');
+        await place_branch(map, x, y, opts.branchPlacement || 'none');
         break;
     default:
         break;
@@ -632,14 +632,14 @@ export function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, 
 }
 
 // C ref: mkmaze.c place_lregion()
-export function place_lregion(map, lx, ly, hx, hy, nlx, nly, nhx, nhy, rtype, opts = {}) {
+export async function place_lregion(map, lx, ly, hx, hy, nlx, nly, nhx, nhy, rtype, opts = {}) {
     if (!lx) {
         if (rtype === LR_BRANCH) {
             // C ref: mkmaze.c place_lregion():
             // only delegate to place_branch(...,0,0) when rooms exist.
             // Otherwise fall through to bounded whole-level coordinate search.
             if (map?.nroom) {
-                place_branch(map, 0, 0, opts.branchPlacement || 'none');
+                await place_branch(map, 0, 0, opts.branchPlacement || 'none');
                 return;
             }
         }
@@ -658,12 +658,12 @@ export function place_lregion(map, lx, ly, hx, hy, nlx, nly, nhx, nhy, rtype, op
     for (let trycnt = 0; trycnt < 200; trycnt++) {
         const x = rn1((hx - lx) + 1, lx);
         const y = rn1((hy - ly) + 1, ly);
-        if (put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, opts)) return;
+        if (await put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, opts)) return;
     }
 
     for (let x = lx; x <= hx; x++) {
         for (let y = ly; y <= hy; y++) {
-            if (put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, true, opts)) return;
+            if (await put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, true, opts)) return;
         }
     }
     console.warn(`Couldn't place lregion type ${rtype}!`);
@@ -909,10 +909,10 @@ export function stolen_booty(map, x = null, y = null, depth = 1) {
 }
 
 // C ref: mkmaze.c migrate_orc() — migrate an orc and optionally drop stolen loot.
-export function migrate_orc(map, mon = null, depth = 1, x = null, y = null) {
+export async function migrate_orc(map, mon = null, depth = 1, x = null, y = null) {
     if (!map) return false;
     if (!mon && Number.isInteger(x) && Number.isInteger(y) && isok(x, y)) {
-        mon = makemon(null, x, y, NO_MM_FLAGS, depth, map);
+        mon = await makemon(null, x, y, NO_MM_FLAGS, depth, map);
     }
     if (!mon) return false;
     if (!rn2(3)) {

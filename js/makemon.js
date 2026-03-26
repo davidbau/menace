@@ -327,7 +327,7 @@ function _normalizeMakemonOverride(playerLike) {
     });
 }
 
-export function withMakemonPlayerOverride(playerLike, fn) {
+export async function withMakemonPlayerOverride(playerLike, fn) {
     const prev = _makemonPlayerOverride;
     _makemonPlayerOverride = _normalizeMakemonOverride(playerLike);
     try {
@@ -1829,7 +1829,7 @@ function maybe_usmellmon_after_newcham(mdat, newMndx) {
     }
 }
 
-function apply_newcham_from_base(mon, baseMndx, depth, map = null, player = null, fov = null, _display = null, _showMsg = false) {
+async function apply_newcham_from_base(mon, baseMndx, depth, map = null, player = null, fov = null, _display = null, _showMsg = false) {
     let target = null;
     let tryct = 20;
     do {
@@ -1865,7 +1865,7 @@ function apply_newcham_from_base(mon, baseMndx, depth, map = null, player = null
     mon.m_lev = newLev;
     mon.mac = target.ac;
     // C ref: newcham() post-transform gear handling.
-    mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
+    await mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
     maybe_init_long_worm_after_newcham(mon, newMndx, map, player);
     return true;
 }
@@ -1873,7 +1873,7 @@ function apply_newcham_from_base(mon, baseMndx, depth, map = null, player = null
 // C ref: mon.c newcham() with specific target ptr — apply form change to a known target mndx.
 // Used when the target form was already selected (e.g., pickvampshape was already called).
 // Unlike apply_newcham_from_base, does NOT re-call select_newcham_form/pickvampshape.
-function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null, fov = null, _display = null, _showMsg = false) {
+async function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null, fov = null, _display = null, _showMsg = false) {
     const target = mons[targetMndx];
     if (!target) return false;
 
@@ -1900,7 +1900,7 @@ function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null,
     mon.m_lev = newLev;
     mon.mac = target.ac;
     // C ref: newcham() post-transform gear handling.
-    mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
+    await mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
     maybe_init_long_worm_after_newcham(mon, targetMndx, map, player);
     return true;
 }
@@ -2369,7 +2369,7 @@ function makemonVisibleToPlayer(mon, map) {
     return true;
 }
 
-export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
+export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     let mndx;
     let anymon = false;
 
@@ -2684,7 +2684,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         if (is_armed(ptr))
             m_initweap(mon, mndx, depth || 1);
         m_initinv(mon, mndx, depth || 1, m_lev, map);
-        m_dowear(mon, true);
+        await m_dowear(mon, true);
 
         // C evaluates !rn2(100) first (always consumed), then is_domestic
         if (!rn2(100) && is_domestic(ptr)) {
@@ -2887,7 +2887,7 @@ export async function grow_up(mtmp, victim, game) {
     if (game.mvitals[newtype].mvflags & G_GENOD) {
       if (canspotmon(mtmp)) await pline("As %s grows up into %s, %s %s!", mon_nam(mtmp), an(pmname(ptr, Mgender(mtmp))), mhe(mtmp), nonliving(ptr) ? "expires" : "dies");
       set_mon_data(mtmp, ptr);
-      mondied(mtmp);
+      await mondied(mtmp);
       return  0;
     }
     else if (canspotmon(mtmp)) {
@@ -2970,7 +2970,7 @@ export function freemcorpsenm(mtmp) {
 }
 
 // Autotranslated from makemon.c:2548
-export function bagotricks(bag, tipping, seencount, player) {
+export async function bagotricks(bag, tipping, seencount, player) {
   let moncount = 0;
   if (!bag || bag.otyp !== BAG_OF_TRICKS) { impossible("bad bag o' tricks"); }
   else if (bag.spe < 1) {
@@ -2995,7 +2995,7 @@ export function bagotricks(bag, tipping, seencount, player) {
       if (seencount) {
          seencount += seecount;
       }
-      if (bag.dknown) { makeknown(BAG_OF_TRICKS); update_inventory(); }
+      if (bag.dknown) { await makeknown(BAG_OF_TRICKS); update_inventory(); }
     }
     else if (!tipping) {
       pline1(!moncount ? nothing_happens : nothing_seems_to_happen);
@@ -3005,10 +3005,10 @@ export function bagotricks(bag, tipping, seencount, player) {
 }
 
 // Autotranslated from makemon.c:2599
-export function summon_furies(limit, player) {
+export async function summon_furies(limit, player) {
   let i = 0;
   while (mk_gen_ok(PM_ERINYS, G_GONE, 0) && (i < limit || !limit)) {
-    makemon(mons[PM_ERINYS], player.x, player.y, MM_ADJACENTOK | MM_NOWAIT);
+    await makemon(mons[PM_ERINYS], player.x, player.y, MM_ADJACENTOK | MM_NOWAIT);
     i++;
   }
 }

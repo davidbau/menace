@@ -1617,8 +1617,8 @@ export function costly_tin(alter_type, game) {
 
 // cf. eat.c use_up_tin() — consume a tin after opening
 // Autotranslated from eat.c:1515
-export function use_up_tin(tin, game) {
-  if (carried(tin)) useup(tin);
+export async function use_up_tin(tin, game) {
+  if (carried(tin)) await useup(tin);
   else {
     useupf(tin, 1);
   }
@@ -2261,7 +2261,7 @@ export async function done_eating(message, game, player) {
             await fpostfx(player, piece);
         }
         // useup piece
-        if (carried(piece)) useup(piece);
+        if (carried(piece)) await useup(piece);
         else useupf(piece, 1);
     }
     if (v) {

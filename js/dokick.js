@@ -936,7 +936,7 @@ async function really_kick_object(x, y, player, map, game) {
         newsym(x, y, map);
         if (costly && (!costly_spot(player.x, player.y, map))) {
             if (!kickedobj.no_charge)
-                addtobill(kickedobj, false, false, false);
+                await addtobill(kickedobj, false, false, false);
             else
                 kickedobj.no_charge = 0;
         }
@@ -1824,7 +1824,7 @@ export async function ship_object(otmp, x, y, shop_floor_obj, player, map, game)
     if (nodrop) {
         if (impact) {
             await impact_drop(otmp, x, y, 0, player, map, game);
-            maybe_unhide_at(x, y, map);
+            await maybe_unhide_at(x, y, map);
         }
         return false;
     }
@@ -1845,7 +1845,7 @@ export async function ship_object(otmp, x, y, shop_floor_obj, player, map, game)
     }
 
     if (otmp.owornmask)
-        remove_worn_item(player, otmp);
+        await remove_worn_item(player, otmp);
 
     if (breaktest(otmp)) {
         let result;
