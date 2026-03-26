@@ -2111,7 +2111,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
         if (ufound && !not_affected) {
             if (display) await display.putstr_message('You are caught in a blast of kaleidoscopic light!');
             // Kill the monster immediately
-            mondead(mtmp, map, player);
+            await mondead(mtmp, map, player);
             kill_agr = false; // already killed
             // C: make_hallucinated(HHallucination + tmp, FALSE, 0L)
             // Hallucination not fully ported
@@ -2127,7 +2127,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
     }
 
     if (kill_agr && !mtmp.dead && mtmp.mhp > 0) {
-        mondead(mtmp, map, player);
+        await mondead(mtmp, map, player);
     }
 
     return (mtmp.dead || mtmp.mhp <= 0) ? M_ATTK_AGR_DIED : M_ATTK_MISS;

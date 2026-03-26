@@ -684,11 +684,11 @@ export async function makeniche(map, depth, trap_type) {
                     await wipe_engr_at(map, xx, yy - dy, 5, false);
                 }
             }
-            dosdoor(map, xx, yy, aroom, SDOOR, depth);
+            await dosdoor(map, xx, yy, aroom, SDOOR, depth);
         } else {
             rm.typ = CORR;
             if (rn2(7)) {
-                dosdoor(map, xx, yy, aroom, rn2(5) ? SDOOR : DOOR, depth);
+                await dosdoor(map, xx, yy, aroom, rn2(5) ? SDOOR : DOOR, depth);
             } else {
                 if (!rn2(5) && IS_WALL(map.at(xx, yy).typ)) {
                     map.at(xx, yy).typ = IRONBARS;
@@ -781,7 +781,7 @@ function is_shop_door(map, x, y) {
 }
 
 // C ref: mklev.c dosdoor()
-export function dosdoor(map, x, y, aroom, type, depth) {
+export async function dosdoor(map, x, y, aroom, type, depth) {
     const loc = map.at(x, y);
     const shdoor = is_shop_door(map, x, y);
 
@@ -804,7 +804,7 @@ export function dosdoor(map, x, y, aroom, type, depth) {
             if (depth >= 9 && !rn2(5)) {
                 loc.flags = D_NODOOR;
                 const mimicType = mkclass(S_MIMIC, 0, depth);
-                if (mimicType) makemon(mimicType, x, y, 0, depth, map);
+                if (mimicType) await makemon(mimicType, x, y, 0, depth, map);
             }
         }
     } else {
@@ -816,8 +816,8 @@ export function dosdoor(map, x, y, aroom, type, depth) {
 }
 
 // C ref: mklev.c dodoor()
-export function dodoor(map, x, y, aroom, depth) {
-    dosdoor(map, x, y, aroom, maybe_sdoor(depth, 8) ? SDOOR : DOOR, depth);
+export async function dodoor(map, x, y, aroom, depth) {
+    await dosdoor(map, x, y, aroom, maybe_sdoor(depth, 8) ? SDOOR : DOOR, depth);
 }
 
 // C ref: mklev.c chk_okdoor() — if x,y is door, does it open into solid terrain.
@@ -923,7 +923,7 @@ export function free_luathemes() {
 }
 
 // C ref: mklev.c place_branch()
-export function place_branch(map, x = 0, y = 0, placementHint = 'none') {
+export async function place_branch(map, x = 0, y = 0, placementHint = 'none') {
     if (!map) return false;
     // C ref: mklev.c place_branch() no-ops when branch already placed.
     if (map?._madeBranch) return true;
@@ -944,7 +944,7 @@ export function place_branch(map, x = 0, y = 0, placementHint = 'none') {
         return true;
     }
     if (placementHint === 'portal') {
-        maketrap(map, x, y, MAGIC_PORTAL);
+        await maketrap(map, x, y, MAGIC_PORTAL);
     } else if (placementHint === 'stair-up') {
         mkstairs(map, x, y, true, true);
     } else if (placementHint === 'stair-down') {

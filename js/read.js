@@ -571,7 +571,7 @@ async function handleRead(player, display, game) {
                 // effect, prompt the player to name/call the scroll type.
                 if (!alreadyKnown && !isObjectNameKnown(anyItem.otyp)) {
                     if (effectKnown) {
-                        learnscroll(anyItem);
+                        await learnscroll(anyItem);
                     } else {
                         anyItem.dknown = true;
                         await trycall(anyItem);
@@ -704,7 +704,7 @@ async function seffect_identify(sobj, player, display) {
         await display.putstr_message('This is an identify scroll.');
     }
     if (!already_known) {
-        learnscrolltyp(SCR_IDENTIFY);
+        await learnscrolltyp(SCR_IDENTIFY);
     }
     if (confused || (scursed && !already_known)) {
         return true; // consumed
@@ -756,7 +756,7 @@ export async function seffect_charging(sobj, player, display, game) {
     // Non-confused: identify, then prompt for item to charge
     if (!already_known) {
         await display.putstr_message('This is a charging scroll.');
-        learnscrolltyp(SCR_CHARGING);
+        await learnscrolltyp(SCR_CHARGING);
     }
     // Use up scroll before prompting
     const charge_bless = scursed ? -1 : sblessed ? 1 : 0;
@@ -968,7 +968,7 @@ async function seffect_remove_curse(sobj, player, display) {
             } else if (obj.cursed) {
                 uncurse(obj);
                 if (obj.bknown) {
-                    learnscrolltyp(SCR_REMOVE_CURSE);
+                    await learnscrolltyp(SCR_REMOVE_CURSE);
                 }
             }
         }
@@ -1056,7 +1056,7 @@ export async function seffect_enchant_weapon(sobj, player, display) {
             uwep.cursed = true;
         }
     }
-    makeknown(sobj.otyp);
+    await makeknown(sobj.otyp);
     // C: elven weapons vibrate warningly when enchanted beyond a limit
     // C: (spe > 5) && (is_elven_weapon || oartifact || !rn2(7))
     // rn2(7) only consumed when not elven and not artifact (short-circuit)
@@ -1496,7 +1496,7 @@ async function seffect_fire(sobj, player, display, game) {
     useup_scroll(sobj, player);
 
     if (!already_known) {
-        learnscrolltyp(SCR_FIRE);
+        await learnscrolltyp(SCR_FIRE);
     }
 
     if (confused) {
@@ -1716,9 +1716,9 @@ async function seffects(sobj, player, display, game) {
 export { handleRead, tshirt_text, hawaiian_motif, hawaiian_design, candy_wrapper_text, stripspe, bcsign, blessorcurse, uncurse, some_armor, useup_scroll, seffects, litroom };
 
 // Autotranslated from read.c:68
-export function learnscroll(sobj) {
+export async function learnscroll(sobj) {
   if (sobj.oclass !== SPBOOK_CLASS) {
-    learnscrolltyp(sobj.otyp);
+    await learnscrolltyp(sobj.otyp);
   }
 }
 
@@ -1788,7 +1788,7 @@ export async function drop_boulder_on_monster(x, y, confused, byu, player, map, 
     mtmp.mhp -= mdmg;
     if (DEADMONSTER(mtmp)) {
       if (byu) { await killed(mtmp); }
-      else { await pline("%s is killed.", Monnam(mtmp)); mondied(mtmp); }
+      else { await pline("%s is killed.", Monnam(mtmp)); await mondied(mtmp); }
     }
     else { wakeup(mtmp, byu); }
     wake_nearto(x, y, 4 * 4, map, game, player);

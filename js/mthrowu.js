@@ -627,7 +627,7 @@ export async function ohitmon(
             if (verbose && display && !player?.blind && couldsee(map, player, mtmp.mx, mtmp.my)) {
                 deathMessage = `${Monnam(mtmp)} is killed!`;
             }
-            mondead(mtmp, map);
+            await mondead(mtmp, map);
             map.removeMonster?.(mtmp);
             if (player) {
                 const exp = ((mtmp.mlevel || 0) + 1) * ((mtmp.mlevel || 0) + 1);
@@ -719,7 +719,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
         if (result?.hitPlayer) hitPlayer = true;
         if (result?.promptedForTopline) promptedForTopline = true;
         if (tethered_weapon && result?.returnFlight) {
-            return_from_mtoss(mon, projectile, true, map);
+            await return_from_mtoss(mon, projectile, true, map);
             if (mon.dead) break;
             continue;
         }
@@ -919,7 +919,7 @@ export async function m_throw_timed(
 }
 
 // C ref: mthrowu.c return_from_mtoss().
-export function return_from_mtoss(magr, otmp, tethered_weapon, map) {
+export async function return_from_mtoss(magr, otmp, tethered_weapon, map) {
     if (!magr || !otmp || !map) return;
     const impaired = !!(magr.mconf || magr.mstun || magr.mblinded);
     const madeItBack = rn2(100);
@@ -948,7 +948,7 @@ export function return_from_mtoss(magr, otmp, tethered_weapon, map) {
     if (hitsThrower) {
         magr.mhp = (magr.mhp || 0) - dmg;
         if ((magr.mhp || 0) <= 0) {
-            mondead(magr, map);
+            await mondead(magr, map);
         }
     }
 

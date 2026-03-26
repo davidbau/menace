@@ -1087,8 +1087,8 @@ async function discoverClassByRule(oclass, shouldKnow) {
     }
 }
 
-function discoverWeaponClassForRole(roleMnum) {
-    discoverClassByRule(WEAPON_CLASS, (od) => {
+async function discoverWeaponClassForRole(roleMnum) {
+    await discoverClassByRule(WEAPON_CLASS, (od) => {
         const skill = Number(od.oc_subtyp || 0);
         if (roleMnum !== PM_KNIGHT && roleMnum !== PM_SAMURAI
             && skill === P_POLEARMS) {
@@ -1116,11 +1116,11 @@ async function applyRolePreknowledge(player) {
         case PM_KNIGHT:
         case PM_SAMURAI:
         case PM_VALKYRIE:
-            discoverWeaponClassForRole(player.roleMnum);
-            discoverClassByRule(ARMOR_CLASS);
+            await discoverWeaponClassForRole(player.roleMnum);
+            await discoverClassByRule(ARMOR_CLASS);
             break;
         case PM_MONK:
-            discoverClassByRule(ARMOR_CLASS);
+            await discoverClassByRule(ARMOR_CLASS);
             await discoverObject(SHURIKEN, true, false, false);
             break;
         case PM_HEALER:
@@ -1130,11 +1130,11 @@ async function applyRolePreknowledge(player) {
             await discoverObject(POT_WATER, true, false, false);
             break;
         case PM_RANGER:
-            discoverWeaponClassForRole(player.roleMnum);
+            await discoverWeaponClassForRole(player.roleMnum);
             break;
         case PM_ROGUE:
             await discoverObject(SACK, true, false, false);
-            discoverWeaponClassForRole(player.roleMnum);
+            await discoverWeaponClassForRole(player.roleMnum);
             break;
         default:
             break;
@@ -1183,7 +1183,7 @@ function moneyCount(player) {
 // Simulate the full post-level initialization sequence.
 // Must be called after level generation and player placement.
 // C ref: allmain.c newgame() — makedog through welcome
-export function simulatePostLevelInit(player, map, depth, opts = {}) {
+export async function simulatePostLevelInit(player, map, depth, opts = {}) {
     const role = roles[player.roleIndex];
 
     // 1. makedog() — pet creation (actually places pet on map)
@@ -1193,7 +1193,7 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     const petAlignmentRecord = (player.roleMnum === PM_CAVE_DWELLER)
         ? 0
         : (Number.isInteger(player.alignmentRecord) ? player.alignmentRecord : 0);
-    const pet = withMakemonPlayerOverride(
+    const pet = await withMakemonPlayerOverride(
         { ...player, alignmentRecord: petAlignmentRecord },
         () => makedog(map, player, depth || 1)
     );
@@ -1223,9 +1223,9 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     skill_init_from_inventory(player.inventory || [], player.roleMnum);
     // C ref: spell.c skill_based_spellbook_id() — wizards passively identify
     // low-level spellbooks based on their spell skill ranks.
-    skill_based_spellbook_id(player);
-    applyRolePreknowledge(player);
-    applyStartupDiscoveries(player);
+    await skill_based_spellbook_id(player);
+    await applyRolePreknowledge(player);
+    await applyStartupDiscoveries(player);
     //    c+d. init_attr(75) + vary_init_attr()
     initAttributes(player);
     //    e. u_init_carry_attr_boost() — no RNG
@@ -1303,8 +1303,8 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
 export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     const startDlevel = opts.startDlevel ?? 1;
     const captureSpecialLevelCheckpoints = opts.captureSpecialLevelCheckpoints === true;
-    setCheckpointCaptureEnabled(captureSpecialLevelCheckpoints);
-    if (captureSpecialLevelCheckpoints) clearLevelCheckpoints();
+    await setCheckpointCaptureEnabled(captureSpecialLevelCheckpoints);
+    if (captureSpecialLevelCheckpoints) await clearLevelCheckpoints();
     initrack();
     resetPlineState();
     resetNoisesState();
@@ -1346,7 +1346,7 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     player.y = pos.y;
     player.dungeonLevel = startDlevel;
     player.inTutorial = !!map?.flags?.is_tutorial;
-    const initResult = simulatePostLevelInit(player, map, startDlevel, { enadv_roll });
+    const initResult = await simulatePostLevelInit(player, map, startDlevel, { enadv_roll });
     return { map, initResult };
 }
 
@@ -1384,8 +1384,8 @@ export async function knows_object(otyp, override_pauper) {
 // cf. u_init.c:586 — knows_class(sym)
 // Know ordinary (non-magical) objects of a certain class.
 // JS equivalent: discoverClassByRule (already implemented above).
-export function knows_class(sym) {
-    discoverClassByRule(sym);
+export async function knows_class(sym) {
+    await discoverClassByRule(sym);
 }
 
 // cf. u_init.c:1036 — skills_for_role()
@@ -1452,8 +1452,8 @@ export function u_init_misc(player) {
 // cf. u_init.c:1394 — u_init_skills_discoveries()
 // Apply starting gear, discover objects, initialize skills.
 // JS equivalent: equipInitialGear + applyStartupDiscoveries + applyRolePreknowledge.
-export function u_init_skills_discoveries(player) {
+export async function u_init_skills_discoveries(player) {
     equipInitialGear(player);
-    applyStartupDiscoveries(player);
-    applyRolePreknowledge(player);
+    await applyStartupDiscoveries(player);
+    await applyRolePreknowledge(player);
 }

@@ -769,7 +769,7 @@ async function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
             mon.mspec_used = (mon.mspec_used || 0) + c_d(2, 6);
             if (in_sight) {
                 seetrap(trap);
-                pline_mon(mon, "%s seems lethargic.", Monnam(mon));
+                await pline_mon(mon, "%s seems lethargic.", Monnam(mon));
             }
         }
     } else {
@@ -1697,7 +1697,7 @@ export async function disarm_squeaky_board(ttmp, player) {
   fails = try_disarm(ttmp, bad_tool);
   if (fails < 2) return fails;
   if (obj.otyp === CAN_OF_GREASE) { consume_obj_charge(obj, true); }
-  else { useup(obj); makeknown(POT_OIL); }
+  else { await useup(obj); await makeknown(POT_OIL); }
   await You("repair the squeaky board.");
   deltrap(_gstate?.map || null, ttmp);
   newsym(player.x + player.dx, player.y + player.dy);

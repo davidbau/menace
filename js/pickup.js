@@ -550,7 +550,7 @@ async function pickup_object(obj, count, telekinesis, player, map) {
         return 0;
     }
 
-    observeObject(obj);
+    await observeObject(obj);
 
     if (obj === player.uchain)
         return 0;
@@ -889,7 +889,7 @@ async function out_container(obj, player, map) {
 
     // Add to inventory via addinv (handles merge, invlet assignment, etc.)
     const result = await addinv(obj, player);
-    observeObject(obj);
+    await observeObject(obj);
 
     // cf. C pickup.c:2748 — announce removal
     await pline("%s - %s.", result?.invlet || obj.invlet || '-', doname(result || obj, player));
@@ -1368,7 +1368,7 @@ async function handlePickup(player, map, display, game = null) {
                 if (extraResult?.item) extraResult.item.pickup_prev = 1;
                 map.removeObject(extra);
             }
-            observeObject(pickedObj);
+            await observeObject(pickedObj);
             if (addResult.discoveredByCompare) {
                 await displayCtx.putstr_message('You learn more about your items by comparing them.');
             }
@@ -1557,12 +1557,12 @@ function sortSameClassContainerItems(items) {
         .map((entry) => entry.obj);
 }
 
-function buildContainerDisplayRows(items, letters, selected, player) {
+async function buildContainerDisplayRows(items, letters, selected, player) {
     const rows = [];
     let lastHeader = null;
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        observeObject(item);
+        await observeObject(item);
         const sym = CLASS_SYMBOLS[item?.oclass];
         const header = classSymbolLabel(sym);
         if (header !== lastHeader) {

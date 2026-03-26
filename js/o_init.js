@@ -323,9 +323,9 @@ export function oinit(map) {
 }
 
 // Autotranslated from o_init.c:440
-export function observe_object(obj) {
+export async function observe_object(obj) {
   obj.dknown = 1;
-  discover_object(obj.otyp, false, true, false);
+  await discover_object(obj.otyp, false, true, false);
 }
 
 // Autotranslated from o_init.c:519
@@ -479,7 +479,7 @@ export async function discoverObject(otyp, markAsKnown, markAsEncountered, credi
     if (ocNameKnown.length === 0) initDiscoveryState();
     if (!Number.isInteger(otyp) || otyp < FIRST_OBJECT || otyp >= objectData.length) return;
     if ((!ocNameKnown[otyp] && markAsKnown) || (!ocEncountered[otyp] && markAsEncountered)) {
-        pushDisco(otyp);
+        await pushDisco(otyp);
         if (markAsEncountered) ocEncountered[otyp] = true;
         const newlyKnown = !ocNameKnown[otyp] && markAsKnown;
         if (newlyKnown) {
@@ -586,7 +586,7 @@ export function getDiscoveryState() {
     };
 }
 
-export function setDiscoveryState(state) {
+export async function setDiscoveryState(state) {
     initDiscoveryState();
     if (!state || !Array.isArray(state.ocNameKnown) || !Array.isArray(state.ocEncountered)) {
         return;
@@ -597,10 +597,10 @@ export function setDiscoveryState(state) {
         ocEncountered[i] = !!state.ocEncountered[i];
     }
     if (Array.isArray(state.disco) && state.disco.length > 0) {
-        for (const otyp of state.disco) pushDisco(otyp);
+        for (const otyp of state.disco) await pushDisco(otyp);
     } else {
         for (let i = 0; i < n; i++) {
-            if (ocNameKnown[i] || ocEncountered[i]) pushDisco(i);
+            if (ocNameKnown[i] || ocEncountered[i]) await pushDisco(i);
         }
     }
 }
@@ -752,10 +752,10 @@ export function savenames(nhfp) {
 }
 
 // cf. o_init.c:435
-export function restnames(nhfp) {
+export async function restnames(nhfp) {
     if (!nhfp || typeof nhfp !== 'object' || !nhfp.discoveryState)
         return;
-    setDiscoveryState(nhfp.discoveryState);
+    await setDiscoveryState(nhfp.discoveryState);
 }
 
 // cf. o_init.c:1087

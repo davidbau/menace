@@ -1373,7 +1373,7 @@ export async function addinv_core2(obj, player) {
         && obj?.otyp !== SCR_BLANK_PAPER
         && !player.blind
         && !isObjectNameKnown(obj.otyp)) {
-        observeObject(obj);
+        await observeObject(obj);
         await discoverObject(obj.otyp, true, true);
         await exercise(player, A_WIS, true);
         if (!player.uconduct) player.uconduct = {};
@@ -1596,14 +1596,14 @@ export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_
 // ============================================================
 
 // C ref: invent.c useupall() — consume entire stack of an object
-export function useupall(obj, player) {
-    setnotworn(obj, player);
+export async function useupall(obj, player) {
+    await setnotworn(obj, player);
     freeinv(obj, player);
 }
 
 // C ref: invent.c useup() — consume one item from a stack
 // Autotranslated from invent.c:1320
-export function useup(obj, player) {
+export async function useup(obj, player) {
   if (!player) player = _gstate?.u;
   if (obj.quan > 1) {
     obj.in_use = false;
@@ -1611,7 +1611,7 @@ export function useup(obj, player) {
     obj.owt = weight(obj);
     update_inventory(player);
   }
-  else { useupall(obj, player); }
+  else { await useupall(obj, player); }
 }
 
 // C ref: invent.c consume_obj_charge() — consume a charge from a wand/tool
@@ -2230,7 +2230,7 @@ export async function fully_identify_obj(otmp, creditClue = true) {
 // C ref: invent.c identify() — identify object and give feedback
 // Autotranslated from invent.c:2650
 export async function identify(otmp, player, creditClue = true) {
-  fully_identify_obj(otmp, creditClue);
+  await fully_identify_obj(otmp, creditClue);
   await prinv( 0, otmp, 0);
   // C ref: invent.c:2650 — C's identify() does NOT call exercise().
   // The exercise(A_WIS) call belongs in seffects() after identification completes.
@@ -2548,7 +2548,7 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
                     // fully_identify_obj → makeknown(otyp) = discover_object
                     // with credit_hero=TRUE, which fires exercise(A_WIS, TRUE)
                     // when a type is newly discovered.
-                    fully_identify_obj(target, true);
+                    await fully_identify_obj(target, true);
                 }
             }
             update_inventory(p);
@@ -3175,9 +3175,9 @@ export function removeObjFromChain(head, target) {
 }
 
 // Helper: safely un-wear an object
-function setnotworn(obj, player) {
+async function setnotworn(obj, player) {
     if (!player) return;
-    clearWornItemEffects(player, obj);
+    await clearWornItemEffects(player, obj);
 }
 
 // Autotranslated from invent.c:390
@@ -3230,8 +3230,8 @@ export async function ddoinv(game = null) {
 }
 
 // Autotranslated from invent.c:3455
-export function repopulate_perminvent() {
-  display_pickinv(null,  0,  0, false, false, null);
+export async function repopulate_perminvent() {
+  await display_pickinv(null,  0,  0, false, false, null);
 }
 
 // Autotranslated from invent.c:4916

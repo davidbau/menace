@@ -210,7 +210,7 @@ export async function breakchestlock(game, box, destroyit) {
                 }
                 // C uses useup() here after extraction; it decrements quantity
                 // and keeps the remainder object for floor placement.
-                useup(otmp, player);
+                await useup(otmp, player);
             }
 
             otmp.ox = player.x;
@@ -452,7 +452,7 @@ async function makeForcelockOccupation(game) {
                 && !uwep.cursed && !obj_resists(uwep, 0, 99)) {
                 const prefix = (uwep.quan > 1) ? "One of your" : "Your";
                 await pline(`${prefix} ${xname(uwep)} broke!`);
-                useup(uwep, player);
+                await useup(uwep, player);
                 await You("give up your attempt to force the lock.");
                 await exercise(player, A_DEX, true);
                 xlock.usedtime = 0;

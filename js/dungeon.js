@@ -1843,7 +1843,7 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
     const actualDlevel = Number.isInteger(dlevel) ? dlevel : where.dlevel;
     const actualDepth = Number.isInteger(depth) ? depth : actualDlevel;
 
-    resetLevelState();
+    await resetLevelState();
     const specialName = typeof special.name === 'string' ? special.name : String(protofile || '');
     const specialMap = await withSpecialLevelDepth(actualDepth, async () =>
         await withFinalizeContext({
@@ -2229,7 +2229,7 @@ export function dig_corridor(map, org, dest, nxcor, depth) {
 }
 
 // C ref: mklev.c join() -- connect two rooms with a corridor
-export function join(map, a, b, nxcor, depth) {
+export async function join(map, a, b, nxcor, depth) {
     const croom = map.rooms[a];
     const troom = map.rooms[b];
 
@@ -2281,13 +2281,13 @@ export function join(map, a, b, nxcor, depth) {
 
     // Place door at source room
     if (result.npoints > 0 && (okdoor(map, xx, yy) || !nxcor))
-        dodoor(map, xx, yy, croom, depth);
+        await dodoor(map, xx, yy, croom, depth);
 
     if (!result.success) return;
 
     // Place door at target room
     if (okdoor(map, tt.x, tt.y) || !nxcor)
-        dodoor(map, tt.x, tt.y, troom, depth);
+        await dodoor(map, tt.x, tt.y, troom, depth);
 
     // Update connectivity (smeq)
     if (map.smeq[a] < map.smeq[b])
@@ -2297,21 +2297,21 @@ export function join(map, a, b, nxcor, depth) {
 }
 
 // C ref: mklev.c makecorridors()
-export function makecorridors(map, depth) {
+export async function makecorridors(map, depth) {
     // Initialize smeq (each room in its own component)
     map.smeq = new Array(MAXNROFROOMS + 1);
     for (let i = 0; i < map.nroom; i++) map.smeq[i] = i;
 
     // Phase 1: Join consecutive rooms
     for (let a = 0; a < map.nroom - 1; a++) {
-        join(map, a, a + 1, false, depth);
+        await join(map, a, a + 1, false, depth);
         if (!rn2(50)) break; // allow some randomness
     }
 
     // Phase 2: Join rooms separated by 2 if not connected
     for (let a = 0; a < map.nroom - 2; a++) {
         if (map.smeq[a] !== map.smeq[a + 2])
-            join(map, a, a + 2, false, depth);
+            await join(map, a, a + 2, false, depth);
     }
 
     // Phase 3: Join all remaining disconnected components
@@ -2320,7 +2320,7 @@ export function makecorridors(map, depth) {
         any = false;
         for (let b = 0; b < map.nroom; b++) {
             if (map.smeq[a] !== map.smeq[b]) {
-                join(map, a, b, false, depth);
+                await join(map, a, b, false, depth);
                 any = true;
             }
         }
@@ -2332,7 +2332,7 @@ export function makecorridors(map, depth) {
             const a = rn2(map.nroom);
             let b = rn2(map.nroom - 2);
             if (b >= a) b += 2;
-            join(map, a, b, true, depth);
+            await join(map, a, b, true, depth);
         }
     }
 }
@@ -2398,12 +2398,12 @@ function searchDoor(room, wall, doorIndex, map) {
 
 // C ref: sp_lev.c create_corridor() as used by lspo_corridor().
 // src/dest room fields are 0-based room indices (svr.rooms[] indexing).
-export function create_corridor(map, spec, depth) {
+export async function create_corridor(map, spec, depth) {
     const srcRoomN = Number.isFinite(spec?.src?.room) ? Math.trunc(spec.src.room) : -1;
     const destRoomN = Number.isFinite(spec?.dest?.room) ? Math.trunc(spec.dest.room) : -1;
 
     if (srcRoomN < 0 || destRoomN < 0) {
-        makecorridors(map, depth);
+        await makecorridors(map, depth);
         return;
     }
 
@@ -2708,7 +2708,7 @@ function find_random_launch_coord(map, trap) {
 }
 
 // C ref: trap.c mk_trap_statue()
-function mk_trap_statue(map, x, y, depth = 1) {
+async function mk_trap_statue(map, x, y, depth = 1) {
     const sgn = (v) => (v > 0 ? 1 : (v < 0 ? -1 : 0));
     const roleIndex = Number.isInteger(_gstate?.u?.roleIndex)
         ? _gstate.u.roleIndex
@@ -2728,7 +2728,7 @@ function mk_trap_statue(map, x, y, depth = 1) {
 
     const statue = mkcorpstat(STATUE, statueMndx, false, x, y, map);
 
-    const mtmp = makemon(statueMndx, 0, 0, NO_MM_FLAGS, depth, map);
+    const mtmp = await makemon(statueMndx, 0, 0, NO_MM_FLAGS, depth, map);
     if (!mtmp) return;
 
     if (statue && Array.isArray(mtmp.minvent) && mtmp.minvent.length > 0) {
@@ -2750,7 +2750,7 @@ function mk_trap_statue(map, x, y, depth = 1) {
 }
 
 // C ref: trap.c:455 maketrap() -- create a trap at (x,y)
-export function maketrap(map, x, y, typ, depth = 1) {
+export async function maketrap(map, x, y, typ, depth = 1) {
     if (typ === TRAPPED_DOOR || typ === TRAPPED_CHEST) return null;
 
     let trap = map.trapAt(x, y);
@@ -2795,7 +2795,7 @@ export function maketrap(map, x, y, typ, depth = 1) {
         trap.tnote = choose_trapnote(map);
         break;
     case STATUE_TRAP:
-        mk_trap_statue(map, x, y, depth);
+        await mk_trap_statue(map, x, y, depth);
         break;
     case ROLLING_BOULDER_TRAP: {
         // C ref: mkroll_launch
@@ -2905,7 +2905,7 @@ function hole_destination(map) {
 }
 
 // C ref: mklev.c:2021 mktrap() — select trap type, find location, create trap
-export function mktrap(map, num, mktrapflags, croom, tm, depth) {
+export async function mktrap(map, num, mktrapflags, croom, tm, depth) {
     if (!tm && !croom && !(mktrapflags & MKTRAP_MAZEFLAG)) return;
     // C ref: mklev.c mktrap() — "no traps in pools".
     if (tm) {
@@ -2959,13 +2959,13 @@ export function mktrap(map, num, mktrapflags, croom, tm, depth) {
         } while (occupied(map, mx, my) || (avoid_boulder && hasBoulderAt(map, mx, my)));
     }
 
-    const t = maketrap(map, mx, my, kind, depth);
+    const t = await maketrap(map, mx, my, kind, depth);
     if (!t) return;
     kind = t.ttyp;
 
     // C ref: mklev.c mktrap() — WEB creates a giant spider unless suppressed.
     if (kind === WEB && !(mktrapflags & MKTRAP_NOSPIDERONWEB)) {
-        makemon(PM_GIANT_SPIDER, mx, my, NO_MM_FLAGS, depth, map);
+        await makemon(PM_GIANT_SPIDER, mx, my, NO_MM_FLAGS, depth, map);
     }
     // C ref: mklev.c mktrap() — MKTRAP_SEEN marks generated trap as seen.
     if (mktrapflags & MKTRAP_SEEN) {
@@ -3127,7 +3127,7 @@ const extra_classes = [
 
 // C ref: mklev.c fill_ordinary_room()
 // C ref: ROOM_IS_FILLABLE: (rtype == OROOM || rtype == THEMEROOM) && needfill == FILL_NORMAL
-export function fill_ordinary_room(map, croom, depth, bonusItems) {
+export async function fill_ordinary_room(map, croom, depth, bonusItems) {
     if (croom.rtype !== OROOM && croom.rtype !== THEMEROOM) return;
 
     // C ref: mklev.c:944-952 — recursively fill subrooms first, before
@@ -3136,7 +3136,7 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
     for (let i = 0; i < croom.nsubrooms; i++) {
         const subroom = croom.sbrooms[i];
         if (subroom) {
-            fill_ordinary_room(map, subroom, depth, false);
+            await fill_ordinary_room(map, subroom, depth, false);
         }
     }
 
@@ -3148,10 +3148,10 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
     if (heroHasAmulet || !rn2(3)) {
         const pos = somexyspace(map, croom);
         if (pos) {
-            const tmonst = makemon(null, pos.x, pos.y, MM_NOGRP, depth, map);
+            const tmonst = await makemon(null, pos.x, pos.y, MM_NOGRP, depth, map);
             if (tmonst && tmonst.mndx === PM_GIANT_SPIDER
                 && !occupied(map, pos.x, pos.y)) {
-                maketrap(map, pos.x, pos.y, WEB, depth);
+                await maketrap(map, pos.x, pos.y, WEB, depth);
             }
         }
     }
@@ -3162,7 +3162,7 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
     const trapChance = Math.max(x, 2);
     let trycnt = 0;
     while (!rn2(trapChance) && (++trycnt < 1000)) {
-        mktrap(map, 0, MKTRAP_NOFLAGS, croom, null, depth);
+        await mktrap(map, 0, MKTRAP_NOFLAGS, croom, null, depth);
     }
 
     // Gold (1/3 chance)
@@ -3654,7 +3654,7 @@ function getWallifyProtectedArea(map) {
 }
 
 // C ref: mklev.c mk_knox_portal()
-export function mk_knox_portal(map, x, y, levelDepth) {
+export async function mk_knox_portal(map, x, y, levelDepth) {
     if (levelDepth <= 1) return false;
 
     const br = dungeon_branch("Fort Ludios");
@@ -3697,7 +3697,7 @@ export function mk_knox_portal(map, x, y, levelDepth) {
     source.dnum = dnum;
     source.dlevel = dlevel;
 
-    return !!maketrap(map, x, y, MAGIC_PORTAL, levelDepth);
+    return !!await maketrap(map, x, y, MAGIC_PORTAL, levelDepth);
 }
 
 // C ref: mklev.c mkinvk_check_wall()
@@ -3749,7 +3749,7 @@ export function mkinvpos(map, x, y, dist, depth = 1) {
     case 1:
         if (!IS_POOL(loc.typ) && !IS_LAVA(loc.typ)) {
             loc.typ = ROOM;
-            const fire = maketrap(map, x, y, FIRE_TRAP, depth);
+            const fire = await maketrap(map, x, y, FIRE_TRAP, depth);
             if (fire) fire.tseen = true;
         }
         break;
@@ -3818,10 +3818,10 @@ async function do_fill_vault(map, vaultCheck, depth) {
     // C ref: mklev.c:1319 — fill_special_room called immediately after vault creation.
     // C calls it here AND again in the general room loop (mklev.c:1406), so vault gold
     // is filled twice and stacks. needfill is not reset to FILL_NONE by fill_special_room.
-    fill_special_room(map, map.rooms[map.nroom - 1], depth);
+    await fill_special_room(map, map.rooms[map.nroom - 1], depth);
 
     // C ref: mk_knox_portal(vault_x + w, vault_y + h)
-    mk_knox_portal(map, hix, hiy, depth);
+    await mk_knox_portal(map, hix, hiy, depth);
 
     // C ref: mklev.c:1321-1322 — !rn2(3) → makevtele()
     if (!rn2(3)) {
@@ -3915,7 +3915,7 @@ function mk_tt_object(map, objtype, x, y) {
 // make_grave imported from engrave.js
 
 // C ref: mkroom.c fill_zoo() — fill a zoo-type room with appropriate monsters/objects.
-function fill_zoo_room(map, sroom, depth) {
+async function fill_zoo_room(map, sroom, depth) {
     const type = sroom.rtype;
     const door = Array.isArray(map.doors) ? map.doors[sroom.fdoor] : null;
     const difficulty = Math.max(Math.trunc(depth), 1);
@@ -3952,7 +3952,7 @@ function fill_zoo_room(map, sroom, depth) {
                 if (pos) { tx = pos.x; ty = pos.y; }
             } while (occupied(map, tx, ty) && --i > 0);
         }
-        mk_zoo_thronemon(map, tx, ty, depth);
+        await mk_zoo_thronemon(map, tx, ty, depth);
         break;
     case BEEHIVE:
         tx = sroom.lx + Math.trunc((sroom.hx - sroom.lx + 1) / 2);
@@ -4003,7 +4003,7 @@ function fill_zoo_room(map, sroom, depth) {
             else monType = null; // ZOO: random
 
             // C: MM_ASLEEP | MM_NOGRP
-            const mon = makemon(monType, sx, sy, MM_NOGRP, depth, map);
+            const mon = await makemon(monType, sx, sy, MM_NOGRP, depth, map);
             if (mon) {
                 mon.msleeping = 1;
                 if (type === COURT && mon.mpeaceful) {
@@ -4091,10 +4091,10 @@ function fill_zoo_room(map, sroom, depth) {
 }
 
 // C ref: sp_lev.c fill_special_room()
-export function fill_special_room(map, croom, depth) {
+export async function fill_special_room(map, croom, depth) {
     if (!croom) return;
     for (let i = 0; i < croom.nsubrooms; i++) {
-        fill_special_room(map, croom.sbrooms[i], depth);
+        await fill_special_room(map, croom.sbrooms[i], depth);
     }
     if (croom.rtype === OROOM || croom.rtype === THEMEROOM
         || croom.needfill === FILL_NONE) {
@@ -4103,7 +4103,7 @@ export function fill_special_room(map, croom, depth) {
 
     if (croom.needfill === FILL_NORMAL) {
         if (croom.rtype >= SHOPBASE) {
-            stock_room(
+            await stock_room(
                 croom.rtype - SHOPBASE,
                 croom,
                 map,
@@ -4132,7 +4132,7 @@ export function fill_special_room(map, croom, depth) {
         case LEPREHALL:
         case MORGUE:
         case BARRACKS:
-            fill_zoo_room(map, croom, depth);
+            await fill_zoo_room(map, croom, depth);
             break;
         default:
             break;
@@ -5136,7 +5136,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             // Reset special-level Lua/des state for each special level generation.
             // Prevents stale rect/room/deferred state from prior levels affecting
             // RNG and placement on subsequent specials.
-            resetLevelState();
+            await resetLevelState();
 
             // C parity: special-level depth-sensitive logic should use absolute depth,
             // not branch-local dlevel.
@@ -5284,7 +5284,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
 
         // Connect rooms with corridors
         // C ref: mklev.c:1299 makecorridors()
-        makecorridors(map, depth);
+        await makecorridors(map, depth);
 
         // Add niches
         // C ref: mklev.c:1300 make_niches()
@@ -5334,25 +5334,25 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             if (depth > 1 && map.nroom >= room_threshold && rn2(depth) < 3) {
                 mkshop(map);
             } else if (depth > 4 && !rn2(6)) {
-                do_mkroom(map, COURT, depth, mktempleOpts);
+                await do_mkroom(map, COURT, depth, mktempleOpts);
             } else if (depth > 5 && !rn2(8)) {
-                do_mkroom(map, LEPREHALL, depth, mktempleOpts);
+                await do_mkroom(map, LEPREHALL, depth, mktempleOpts);
             } else if (depth > 6 && !rn2(7)) {
-                do_mkroom(map, ZOO, depth, mktempleOpts);
+                await do_mkroom(map, ZOO, depth, mktempleOpts);
             } else if (depth > 8 && !rn2(5)) {
-                do_mkroom(map, TEMPLE, depth, mktempleOpts);
+                await do_mkroom(map, TEMPLE, depth, mktempleOpts);
             } else if (depth > 9 && !rn2(5)) {
-                do_mkroom(map, BEEHIVE, depth, mktempleOpts);
+                await do_mkroom(map, BEEHIVE, depth, mktempleOpts);
             } else if (depth > 11 && !rn2(6)) {
-                do_mkroom(map, MORGUE, depth, mktempleOpts);
+                await do_mkroom(map, MORGUE, depth, mktempleOpts);
             } else if (depth > 12 && !rn2(8)) {
-                do_mkroom(map, ANTHOLE, depth, mktempleOpts);
+                await do_mkroom(map, ANTHOLE, depth, mktempleOpts);
             } else if (depth > 14 && !rn2(4)) {
-                do_mkroom(map, BARRACKS, depth, mktempleOpts);
+                await do_mkroom(map, BARRACKS, depth, mktempleOpts);
             } else if (depth > 15 && !rn2(6)) {
-                do_mkroom(map, SWAMP, depth, mktempleOpts);
+                await do_mkroom(map, SWAMP, depth, mktempleOpts);
             } else if (depth > 16 && !rn2(8)) {
-                do_mkroom(map, COCKNEST, depth, mktempleOpts);
+                await do_mkroom(map, COCKNEST, depth, mktempleOpts);
             }
         }
 
@@ -5380,7 +5380,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             if (_branchTopology.length && hasBranchAtStart) {
                 const { pos } = find_branch_room(map);
                 if (pos) {
-                    place_branch(map, pos.x, pos.y, branchPlacementAtStart.placement);
+                    await place_branch(map, pos.x, pos.y, branchPlacementAtStart.placement);
                 }
             }
         }
@@ -5407,7 +5407,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             const croom = map.rooms[i];
             if (!croom || croom.hx <= 0) continue;
             const fillable = isFillable(croom);
-            fill_ordinary_room(map, croom, depth,
+            await fill_ordinary_room(map, croom, depth,
                                fillable && bonusCountdown === 0);
             if (fillable) bonusCountdown--;
         }
@@ -5419,7 +5419,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
     for (let i = 0; i < map.nroom; i++) {
         const croom = map.rooms[i];
         if (!croom || croom.hx <= 0) continue;
-        fill_special_room(map, croom, depth);
+        await fill_special_room(map, croom, depth);
     }
 
     // C ref: mklev.c:1409 — run themed-room post-level callbacks (e.g. garden wall->tree).
