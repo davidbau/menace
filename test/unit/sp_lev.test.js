@@ -414,11 +414,11 @@ describe('sp_lev.js - des.* API', () => {
         assert.ok(randomGold.quan >= 1 && randomGold.quan <= 200, 'gold() amount should be rnd(200)');
     });
 
-    it('des.monster fleeing option sets runtime flee state', () => {
+    it('des.monster fleeing option sets runtime flee state', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
 
-        des.monster({ id: 'goblin', x: 12, y: 8, fleeing: 9 });
+        await des.monster({ id: 'goblin', x: 12, y: 8, fleeing: 9 });
 
         const monsters = getLevelState().map.monsters;
         assert.equal(monsters.length, 1);
