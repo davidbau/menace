@@ -55,6 +55,7 @@ _spec.loader.exec_module(_session)
 tmux_send = _session.tmux_send
 tmux_send_special = _session.tmux_send_special
 capture_screen_compressed = _session.capture_screen_compressed
+capture_screen_compressed_nomux = _session.capture_screen_compressed_nomux
 screen_to_plain_lines = _session.screen_to_plain_lines
 clear_more_prompts = _session.clear_more_prompts
 wait_for_game_ready = _session.wait_for_game_ready
@@ -434,9 +435,11 @@ def run_from_keylog(
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
     mapdump_dir = os.path.join(tmpdir, 'mapdumps')
     repaint_debug_log_path = os.path.join(tmpdir, 'repaintdbg.log')
+    nomux_screen_file = os.path.join(tmpdir, 'nomux_screen.txt')
     os.makedirs(mapdump_dir, exist_ok=True)
     session_name = f'webhack-keylog-{seed}-{os.getpid()}'
     keylog_moves_base = int(events[0].get('moves', 0))
+    use_nomux = os.environ.get('NOMUX', '') == '1'
 
     key_delay_s = max(0.0, float(key_delay_ms) / 1000.0)
     key_delay_overrides = parse_key_delay_overrides(os.environ.get('NETHACK_KEY_DELAYS_S'))
@@ -489,6 +492,8 @@ def run_from_keylog(
             f'{NETHACK_BINARY} {name_flag}{wiz_flag}; '
             f'sleep 999'
         )
+        if use_nomux:
+            cmd = f'NOMUX_SCREEN_FILE={nomux_screen_file} ' + cmd
         subprocess.run(
             ['tmux', 'new-session', '-d', '-s', session_name, '-x', '80', '-y', '24', cmd],
             check=True
@@ -518,9 +523,15 @@ def run_from_keylog(
             clear_more_prompts(session_name)
             time.sleep(0.1)
 
-        startup_screen = capture_screen_v3(session_name)
+        if use_nomux:
+            startup_screen, startup_cursor = capture_screen_compressed_nomux(nomux_screen_file)
+            if startup_screen is None:
+                startup_screen = capture_screen_v3(session_name)
+                startup_cursor = capture_cursor(session_name)
+        else:
+            startup_screen = capture_screen_v3(session_name)
+            startup_cursor = capture_cursor(session_name)
         startup_screen_lines = screen_to_plain_lines(startup_screen)
-        startup_cursor = capture_cursor(session_name)
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         startup_rng_entries = parse_rng_lines(startup_rng_lines)
         startup_actual_rng = sum(1 for e in startup_rng_entries if e[0] not in ('>', '<'))
@@ -578,6 +589,21 @@ def run_from_keylog(
         prev_depth_recorded = None  # Record depth only when it changes
         warned_tutorial_dnum_lag = False
 
+        def wait_for_rng_settle(prev_count):
+            stable = 0
+            last_count = prev_count
+            for _ in range(100):
+                time.sleep(0.02)
+                cur_count, _ = read_rng_log(rng_log_file)
+                if cur_count == last_count:
+                    stable += 1
+                    if stable >= 3:
+                        return cur_count
+                else:
+                    stable = 0
+                    last_count = cur_count
+            return last_count
+
         print(
             f'=== Replaying {len(events)} keylog events '
             f'(seed={seed}, screenCapture={screen_capture_mode}, tutorial={tutorial_enabled}, keyDelayMs={key_delay_ms}) ==='
@@ -593,7 +619,17 @@ def run_from_keylog(
             if i == len(events) - 1 and final_capture_delay_s > 0.0:
                 time.sleep(final_capture_delay_s)
 
-            screen = capture_screen_v3(session_name)
+            if use_nomux:
+                wait_for_rng_settle(prev_rng_count)
+
+            if use_nomux:
+                screen, step_cursor = capture_screen_compressed_nomux(nomux_screen_file)
+                if screen is None:
+                    screen = capture_screen_v3(session_name)
+                    step_cursor = capture_cursor(session_name)
+            else:
+                screen = capture_screen_v3(session_name)
+                step_cursor = capture_cursor(session_name)
             screen_lines = screen_to_plain_lines(screen)
             rng_count, rng_lines = read_rng_log(rng_log_file)
             delta_lines = rng_lines[prev_rng_count:rng_count]
@@ -626,7 +662,7 @@ def run_from_keylog(
                 'turn': turn,
                 'rng': rng_entries,
                 'screen': screen,
-                'cursor': capture_cursor(session_name),
+                'cursor': step_cursor,
             }
             if depth != prev_depth_recorded:
                 step['depth'] = depth

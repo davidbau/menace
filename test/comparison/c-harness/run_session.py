@@ -741,6 +741,10 @@ def capture_screen_ansi_lines(session):
     )
     _raise_on_dump_error(result.stdout)
     lines = result.stdout.split('\n')
+    lines = [
+        line.replace('\x1b[0m\x1b[39m\x1b[49m', '\x1b[0m')
+        for line in lines
+    ]
     while len(lines) < 24:
         lines.append('')
     return lines[:24]

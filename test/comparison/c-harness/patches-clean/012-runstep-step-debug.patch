@@ -1,0 +1,220 @@
+diff --git a/include/extern.h b/include/extern.h
+index 9ac53901d..4e10fefae 100644
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -2741,6 +2741,9 @@ extern void repaint_log(const char *, ...) PRINTF_F(1, 2);
+ extern void repaint_debug_log(const char *, ...) PRINTF_F(1, 2);
+ extern void repaint_debug_set_scope(const char *);
+ extern void repaint_debug_clear_scope(void);
+ extern const char *repaint_debug_get_scope(void);
++extern long repaint_debug_get_step_index(void);
++extern const char *repaint_debug_get_step_path(void);
++extern int repaint_debug_get_step_key(void);
+ extern void event_log(const char *, ...) PRINTF_F(1, 2);
+diff --git a/src/allmain.c b/src/allmain.c
+index 7a431ea27..4ee28ef86 100644
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -157,6 +157,6 @@ moveloop_preamble(boolean resuming)
+     }
+ 
+     u.umovement += moveamt;
+     if (u.umovement < 0)
+         u.umovement = 0;
+ }
+@@ -166,6 +169,118 @@ static int mvl_abort_lev;
+ #endif
+ static int mvl_wtcap = 0;
+ static int mvl_change = 0;
++
++static long harness_repaint_step_index = -1L;
++static const char *harness_repaint_step_path = (const char *) 0;
++static int harness_repaint_step_keyarg = -1;
++
++staticfn boolean
++runstep_event_enabled(void)
++{
++    static int cached = -1;
++    const char *ev = getenv("NETHACK_EVENT_RUNSTEP");
++
++    if (!ev || !*ev)
++        ev = getenv("WEBHACK_EVENT_RUNSTEP");
++    if (cached < 0)
++        cached = (ev && *ev && *ev != '0') ? 1 : 0;
++    return (boolean) cached;
++}
++
++staticfn void
++repaint_debug_note_runstep(const char *pathstr, int keyarg)
++{
++    if (!pathstr || !*pathstr)
++        pathstr = "unknown";
++    if (!strcmp(pathstr, "fresh_cmd"))
++        ++harness_repaint_step_index;
++    harness_repaint_step_path = pathstr;
++    harness_repaint_step_keyarg = keyarg;
++}
++
++long
++repaint_debug_get_step_index(void)
++{
++    return harness_repaint_step_index;
++}
++
++const char *
++repaint_debug_get_step_path(void)
++{
++    return harness_repaint_step_path;
++}
++
++int
++repaint_debug_get_step_key(void)
++{
++    return harness_repaint_step_keyarg;
++}
+ 
+ void
+ moveloop_core(void)
+@@ -518,6 +633,14 @@ moveloop_core(void)
+     u.umoved = FALSE;
+ 
+     if (gm.multi > 0) {
++#define RUNSTEP_EVENT(pathstr, keyarg)                                         \
++    do {                                                                       \
++        repaint_debug_note_runstep((pathstr), (keyarg));                       \
++        if (runstep_event_enabled())                                           \
++            event_log("runstep[path=%s keyarg=%d cmd=%d cc=%d moves=%ld multi=%d run=%d mv=%d move=%d occ=%d umoved=%d ux=%d uy=%d]", \
++                      (pathstr), (int) (keyarg), gc.cmd_key, gc.command_count, \
++                      svm.moves, gm.multi, svc.context.run, svc.context.mv, svc.context.move, go.occupation ? 1 : 0, u.umoved ? 1 : 0, u.ux, u.uy); \
++    } while (0)
+         lookaround();
+         runmode_delay_output();
+         if (!gm.multi) {
+@@ -525,6 +648,7 @@ moveloop_core(void)
+             svc.context.move = 0;
+             return;
+         }
++        RUNSTEP_EVENT(svc.context.mv ? "repeat_mv" : "repeat_cmd", gc.cmd_key);
+         if (svc.context.mv) {
+             if (gm.multi < COLNO && !--gm.multi)
+                 end_running(TRUE);
+@@ -532,6 +656,7 @@ moveloop_core(void)
+         } else {
+             --gm.multi;
+             nhassert(gc.command_count != 0);
++            RUNSTEP_EVENT("repeat_cmd_done", gc.cmd_key);
+             rhack(gc.cmd_key);
+         }
+     } else if (gm.multi == 0) {
+@@ -539,6 +664,7 @@ moveloop_core(void)
+ #ifdef MAIL
+         ckmailstatus();
+ #endif
++        RUNSTEP_EVENT("fresh_cmd", 0);
+         rhack(0);
+     }
+     if (u.utotype)       /* change dungeon level */
+@@ -560,6 +686,7 @@ moveloop_core(void)
+         nhl_pcall_handle(gl.luacore, 1, 0, "moveloop_core", NHLpa_panic);
+         lua_settop(gl.luacore, 0);
+     }
++#undef RUNSTEP_EVENT
+ }
+ 
+ staticfn void
+diff --git a/src/rnd.c b/src/rnd.c
+index 6b32f9a95..5c30f685a 100644
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -122,10 +122,22 @@ repaint_debug_log(const char *fmt, ...)
+ {
+     va_list ap;
+     FILE *out;
++    long step_index;
++    const char *step_path;
++    int step_key;
+ 
+     if (!repaint_debug_enabled)
+         return;
+     out = repaint_debug_file ? repaint_debug_file : stderr;
+     fputs("^repaintdbg[", out);
++    step_index = repaint_debug_get_step_index();
++    if (step_index >= 0L)
++        fprintf(out, "step=%ld ", step_index + 1L);
++    step_path = repaint_debug_get_step_path();
++    if (step_path && *step_path)
++        fprintf(out, "path=%s ", step_path);
++    step_key = repaint_debug_get_step_key();
++    if (step_key >= 0)
++        fprintf(out, "key=%d ", step_key);
+     va_start(ap, fmt);
+     vfprintf(out, fmt, ap);
+     va_end(ap);
+diff --git a/win/tty/wintty.c b/win/tty/wintty.c
+index 08beafc31..c2939d205 100644
+--- a/win/tty/wintty.c
++++ b/win/tty/wintty.c
+@@ -1043,6 +1043,9 @@ tty_clear_nhwindow(winid window)
+ 
+     switch (cw->type) {
+     case NHW_MESSAGE:
++        repaint_debug_log("owner=tty.wintty.clear_message.enter topl=%d row=%d col=%d",
++                          ttyDisplay ? ttyDisplay->toplin : -1,
++                          cw ? cw->cury : -1, cw ? cw->curx : -1);
+         if (ttyDisplay->toplin != TOPLINE_EMPTY) {
+             if (!erasing_tty_screen) {
+                 home();
+@@ -1054,6 +1057,9 @@ tty_clear_nhwindow(winid window)
+             cw->curx = cw->cury = 0;
+             ttyDisplay->toplin = TOPLINE_EMPTY;
+         }
++        repaint_debug_log("owner=tty.wintty.clear_message.exit topl=%d row=%d col=%d",
++                          ttyDisplay ? ttyDisplay->toplin : -1,
++                          cw ? cw->cury : -1, cw ? cw->curx : -1);
+         break;
+     case NHW_STATUS:
+         m = cw->maxrow;
+@@ -1869,8 +1875,17 @@ tty_display_nhwindow(
+ 
+     switch (cw->type) {
+     case NHW_MESSAGE:
++        repaint_debug_log("owner=tty.wintty.display_message.enter blocking=%d topl=%d row=%d col=%d",
++                          blocking ? 1 : 0, ttyDisplay ? ttyDisplay->toplin : -1,
++                          cw ? cw->cury : -1, cw ? cw->curx : -1);
+         if (ttyDisplay->toplin == TOPLINE_NEED_MORE) {
++            repaint_debug_log("owner=tty.wintty.display_message.pre_more blocking=%d topl=%d row=%d col=%d",
++                              blocking ? 1 : 0, ttyDisplay ? ttyDisplay->toplin : -1,
++                              cw ? cw->cury : -1, cw ? cw->curx : -1);
+             more();
++            repaint_debug_log("owner=tty.wintty.display_message.post_more blocking=%d topl=%d row=%d col=%d",
++                              blocking ? 1 : 0, ttyDisplay ? ttyDisplay->toplin : -1,
++                              cw ? cw->cury : -1, cw ? cw->curx : -1);
+             ttyDisplay->toplin = TOPLINE_NEED_MORE; /* more resets this */
+             tty_clear_nhwindow(window);
+             nhassert(ttyDisplay->toplin == TOPLINE_EMPTY);
+@@ -1877,6 +1892,9 @@ tty_display_nhwindow(
+             ttyDisplay->toplin = TOPLINE_EMPTY;
+         cw->curx = cw->cury = 0;
+         if (!cw->active)
+             iflags.window_inited = TRUE;
++        repaint_debug_log("owner=tty.wintty.display_message.exit blocking=%d topl=%d row=%d col=%d",
++                          blocking ? 1 : 0, ttyDisplay ? ttyDisplay->toplin : -1,
++                          cw ? cw->cury : -1, cw ? cw->curx : -1);
+         break;
+     case NHW_MAP:
+         end_glyphout();
+@@ -4094,8 +4117,13 @@ tty_nhgetch(void)
+         i = '\033'; /* same for EOF */
+     }
+     /* topline has been seen - we can clear the need for --More-- */
+-    if (ttyDisplay && ttyDisplay->toplin == TOPLINE_NEED_MORE)
++    if (ttyDisplay && ttyDisplay->toplin == TOPLINE_NEED_MORE) {
++        repaint_debug_log("owner=tty.wintty.nhgetch.toplin_need_more_to_non_empty key=%d topl=%d",
++                          i, ttyDisplay->toplin);
+         ttyDisplay->toplin = TOPLINE_NON_EMPTY;
++        repaint_debug_log("owner=tty.wintty.nhgetch.toplin_now_non_empty key=%d topl=%d",
++                          i, ttyDisplay->toplin);
++    }
+ #ifdef TTY_TILES_ESCCODES
+     {
+         /* hack to force output of the window select code */

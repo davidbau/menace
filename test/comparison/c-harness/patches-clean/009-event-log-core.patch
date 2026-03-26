@@ -1,0 +1,44 @@
+diff --git a/include/extern.h b/include/extern.h
+index 02b6ae642..4c31cd9f6 100644
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -2734,7 +2734,8 @@ extern void nh_deterministic_qsort(void *, size_t, size_t,
+                                                          const void *));
+ extern void rng_log_init(void);
+ extern boolean rng_log_enabled(void);
+ extern void rng_log_set_caller(const char *, int, const char *);
+ extern int rng_log_get_call_count(void);
++/* Event logging for differential-debug instrumentation */
++extern void event_log(const char *, ...) PRINTF_F(1, 2);
+ 
+ /* ### role.c ### */
+diff --git a/src/rnd.c b/src/rnd.c
+index beb4992ed..99d818ab0 100644
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -72,6 +72,24 @@ rng_log_write(const char *func, const char *args, int result)
+     }
+ }
+ 
++/*
++ * Event logging.
++ *
++ * Writes ^event lines interleaved with the RNG log so differential-debug
++ * consumers can correlate state-changing events with the PRNG stream.
++ */
++void
++event_log(const char *fmt, ...)
++{
++    va_list ap;
++
++    if (!rng_logfile)
++        return;
++    fputc('^', rng_logfile);
++    va_start(ap, fmt);
++    vfprintf(rng_logfile, fmt, ap);
++    va_end(ap);
++    fputc('\n', rng_logfile);
++}
++
+ #ifdef USE_ISAAC64
+ #include "isaac64.h"

@@ -1,0 +1,117 @@
+diff --git a/src/calendar.c b/src/calendar.c
+index 5a5287b2a..9bda4577d 100644
+--- a/src/calendar.c
++++ b/src/calendar.c
+@@ -31,8 +31,14 @@ staticfn struct tm *getlt(void);
+ time_t
+ getnow(void)
+ {
++    const char *fixed_dt = nh_getenv("NETHACK_FIXED_DATETIME");
+     time_t datetime = 0;
+ 
++    if (fixed_dt && *fixed_dt) {
++        time_t parsed = time_from_yyyymmddhhmmss((char *) fixed_dt);
++        if (parsed != (time_t) 0)
++            return parsed;
++    }
+     (void) time((TIME_type) &datetime);
+     return datetime;
+ }
+@@ -122,6 +128,7 @@ time_from_yyyymmddhhmmss(char *buf)
+     int k;
+     time_t timeresult = (time_t) 0;
+     struct tm t, *lt;
++    time_t now;
+     char *d, *p, y[5], mo[3], md[3], h[3], mi[3], s[3];
+ 
+     if (buf && strlen(buf) == 14) {
+@@ -150,7 +157,9 @@ time_from_yyyymmddhhmmss(char *buf)
+         for (k = 0; k < 2; ++k)
+             *p++ = *d++;
+         *p = '\0';
+-        lt = getlt();
++        /* Avoid recursion when getnow() itself is using fixed datetime. */
++        (void) time((TIME_type) &now);
++        lt = localtime((LOCALTIME_type) &now);
+         if (lt) {
+             t = *lt;
+             t.tm_year = atoi(y) - 1900;
+diff --git a/src/end.c b/src/end.c
+index a4ed7fc0d..92aa8179d 100644
+--- a/src/end.c
++++ b/src/end.c
+@@ -1029,7 +1029,8 @@ done(int how)
+             svk.killer.name[0] = '\0';
+         }
+         if (wizard) {
+-            You("are a very tricky wizard, it seems.");
++            /* Suppress message for deterministic replay. */
++            /* You("are a very tricky wizard, it seems."); */
+             svk.killer.format = KILLED_BY_AN; /* reset to 0 */
+             return;
+         }
+diff --git a/src/nhlua.c b/src/nhlua.c
+index 96970f73c..6f4378b1d 100644
+--- a/src/nhlua.c
++++ b/src/nhlua.c
+@@ -2943,9 +3094,18 @@ UNSAFEIO:
+     }
+     if (lflags & NHL_SB_MATH) {
+         luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1);
+-        /* XXX Note that math.random uses Lua's built-in xoshiro256**
+-         * algorithm regardless of what the rest of the game uses.
+-         * Fixing this would require changing lmathlib.c. */
++        /* Seed Lua's math.random (xoshiro256**) from the game seed so
++         * that math.random() calls in level scripts produce deterministic,
++         * reproducible results. */
++        {
++            const char *env_seed = nh_getenv("NETHACK_SEED");
++            if (env_seed) {
++                unsigned long seed = strtoul(env_seed, NULL, 10);
++                lua_getfield(L, -1, "randomseed");
++                lua_pushinteger(L, (lua_Integer) seed);
++                lua_call(L, 1, 0);
++            }
++        }
+         lua_pop(L, 1);
+     }
+     if (lflags & NHL_SB_UTF8) {
+diff --git a/src/u_init.c b/src/u_init.c
+index 9c37508c0..f839a023c 100644
+--- a/src/u_init.c
++++ b/src/u_init.c
+@@ -1004,11 +1004,8 @@ u_init_misc(void)
+     u.ualignbase[A_CURRENT] = u.ualignbase[A_ORIGINAL] = u.ualign.type =
+         aligns[flags.initalign].value;
+ 
+-#if defined(BSD) && !defined(POSIX_TYPES)
+-    (void) time((long *) &ubirthday);
+-#else
+-    (void) time(&ubirthday);
+-#endif
++    /* Route through getnow() so fixed datetime also controls ubirthday. */
++    ubirthday = getnow();
+ 
+     /*
+      *  For now, everyone starts out with a night vision range of 1 and
+diff --git a/sys/unix/unixmain.c b/sys/unix/unixmain.c
+index 6fb14c417..789c9e966 100644
+--- a/sys/unix/unixmain.c
++++ b/sys/unix/unixmain.c
+@@ -1164,6 +1165,20 @@ port_insert_pastebuf(char *buf)
+ unsigned long
+ sys_random_seed(void)
+ {
++    /* Harness comparison testing: if NETHACK_SEED is set, use it directly.
++     * Leave has_strong_rngseed false so reseed_random() remains a no-op. */
++    {
++        const char *env_seed = getenv("NETHACK_SEED");
++        if (env_seed) {
++            unsigned long seed = strtoul(env_seed, NULL, 10);
++            return seed;
++        }
++    }
++
+     unsigned long seed = 0L;
+     unsigned long pid = (unsigned long) getpid();
+     boolean no_seed = TRUE;

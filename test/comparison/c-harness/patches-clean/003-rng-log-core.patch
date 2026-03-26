@@ -1,0 +1,302 @@
+diff --git a/include/extern.h b/include/extern.h
+index 7954f033..126ff0fb 100644
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -2733,6 +2733,10 @@ extern void nh_deterministic_qsort(void *, size_t, size_t,
+                                    int (QSORTCALLBACK *)(const void *,
+                                                          const void *));
++extern void rng_log_init(void);
++extern boolean rng_log_enabled(void);
++extern void rng_log_set_caller(const char *, int, const char *);
++extern int rng_log_get_call_count(void);
+ 
+ /* ### role.c ### */
+ 
+diff --git a/include/hack.h b/include/hack.h
+index 63be3d43..1dc9a557 100644
+--- a/include/hack.h
++++ b/include/hack.h
+@@ -1579,6 +1579,44 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
+ #define qsort(base, nmemb, size, compar) \
+     nh_deterministic_qsort((base), (nmemb), (size), (compar))
+ #endif
+ 
++/*
++ * PRNG call logging macros (004-prng-logging patch).
++ *
++ * These use a C preprocessor trick: function-like macros only match
++ * when followed by '('.  So `init_random(rn2)` passes the bare function
++ * pointer (no parens) and the macro doesn't fire.  But `rn2(42)` does
++ * match, setting the caller's __func__, __FILE__:__LINE__ before
++ * calling the real rn2 function.
++ *
++ * The self-reference in the expansion (e.g. rn2 calling rn2) is safe:
++ * C99 6.10.3.4 says a macro name found during its own expansion is
++ * not replaced again, so it resolves to the real function.
++ *
++ * Suppressed inside rnd.c itself (RNGLOG_IN_RND_C) so that internal
++ * calls (rnz->rn2, rne->rn2, etc) inherit the outer caller's context
++ * rather than setting their own.
++ */
++#ifndef RNGLOG_IN_RND_C
++#define rn2(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rn2(x)) \
++                : rn2(x))
++#define rnd(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rnd(x)) \
++                : rnd(x))
++#define rnl(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rnl(x)) \
++                : rnl(x))
++#define d(n,x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), d((n),(x))) \
++                : d((n),(x)))
++#define rne(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rne(x)) \
++                : rne(x))
++#define rnz(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rnz(x)) \
++                : rnz(x))
++#endif /* RNGLOG_IN_RND_C */
++
+ #endif  /* RECOVER_C */
+ 
+ #endif /* HACK_H */
+diff --git a/src/rnd.c b/src/rnd.c
+index beb4992ed..498999111 100644
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -2,8 +2,86 @@
+ /*      Copyright (c) 2004 by Robert Patrick Rankin               */
+ /* NetHack may be freely redistributed.  See license for details. */
+ 
++/* Suppress rng logging macros inside this file -- we define the real
++   functions here, and add logging directly in each function body.
++   Internal calls (e.g. rnz calling rn2) inherit the outer caller's
++   context because the macros don't fire inside rnd.c. */
++#define RNGLOG_IN_RND_C
+ #include "hack.h"
+ 
++/*
++ * PRNG call logging infrastructure.
++ * When NETHACK_RNGLOG is set, every rn2/rnd/rnl/d/rne/rnz call is logged
++ * with: call#, function(args) = result @ caller_func(file:line)
++ *
++ * The caller_func, file:line come from rng_log_set_caller(), invoked
++ * by the macros in hack.h before calling the real function.
++ *
++ * Caller context propagation: the context is NOT cleared after logging.
++ * This means internal rn2 calls from wrapper functions (rnz, rne, rnl)
++ * inherit the ORIGINAL caller's file:line annotation.  For example,
++ * if start_corpse_timeout at mkobj.c:1409 calls rnz(25), the internal
++ * rn2(1000), rn2(4), rn2(2) calls all log with "@ mkobj.c:1409".
++ * The wrapper result (rnz, rne, rnl) also logs with the same annotation.
++ *
++ * Context is overwritten by the next macro expansion (each external call
++ * sets fresh context), so there is no stale-context problem.
++ */
++static FILE *rng_logfile = NULL;
++static int rng_call_count = 0;
++static const char *rng_caller_file = NULL;
++static int rng_caller_line = 0;
++static const char *rng_caller_func = NULL;
++
++void
++rng_log_init(void)
++{
++    const char *logpath = getenv("NETHACK_RNGLOG");
++    if (logpath && *logpath) {
++        rng_logfile = fopen(logpath, "w");
++        if (rng_logfile)
++            setvbuf(rng_logfile, NULL, _IOLBF, 0); /* line-buffered */
++    }
++}
++
++boolean
++rng_log_enabled(void)
++{
++    return rng_logfile ? TRUE : FALSE;
++}
++
++void
++rng_log_set_caller(const char *file, int line, const char *func)
++{
++    rng_caller_file = file;
++    rng_caller_line = line;
++    rng_caller_func = func;
++}
++
++int
++rng_log_get_call_count(void)
++{
++    return rng_call_count;
++}
++
++static void
++rng_log_write(const char *func, const char *args, int result)
++{
++    if (!rng_logfile)
++        return;
++    rng_call_count++;
++    if (rng_caller_file) {
++        if (rng_caller_func) {
++            fprintf(rng_logfile, "%d %s(%s) = %d @ %s(%s:%d)\n",
++                    rng_call_count, func, args, result,
++                    rng_caller_func, rng_caller_file, rng_caller_line);
++        } else {
++            fprintf(rng_logfile, "%d %s(%s) = %d @ %s:%d\n",
++                    rng_call_count, func, args, result,
++                    rng_caller_file, rng_caller_line);
++        }
++        /* Do NOT clear rng_caller_file here -- let internal calls from
++           wrapper functions (rnz, rne, rnl) inherit the same context. */
++    } else {
++        fprintf(rng_logfile, "%d %s(%s) = %d\n",
++                rng_call_count, func, args, result);
++    }
++}
++
+ #ifdef USE_ISAAC64
+ #include "isaac64.h"
+ 
+@@ -94,16 +166,20 @@ rn2_on_display_rng(int x)
+ int
+ rn2(int x)
+ {
++    int result;
+ #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
+     if (x <= 0) {
+         impossible("rn2(%d) attempted", x);
+         return 0;
+     }
+-    x = RND(x);
+-    return x;
+-#else
+-    return RND(x);
+ #endif
++    result = RND(x);
++    if (rng_logfile) {
++        char buf[32];
++        snprintf(buf, sizeof buf, "%d", x);
++        rng_log_write("rn2", buf, result);
++    }
++    return result;
+ }
+ 
+ /* 0 <= rnl(x) < x; sometimes subtracting Luck;
+@@ -112,6 +188,8 @@ int
+ rnl(int x)
+ {
+     int i, adjustment;
++    /* Internal rn2 call inherits caller context from the rnl macro --
++       no save/clear needed. */
+ 
+ #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
+     if (x <= 0) {
+@@ -147,6 +225,11 @@ rnl(int x)
+         else if (i >= x)
+             i = x - 1;
+     }
++    if (rng_logfile) {
++        char buf[32];
++        snprintf(buf, sizeof buf, "%d", x);
++        rng_log_write("rnl", buf, i);
++    }
+     return i;
+ }
+ 
+@@ -154,14 +237,20 @@ rnl(int x)
+ int
+ rnd(int x)
+ {
++    int result;
+ #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
+     if (x <= 0) {
+         impossible("rnd(%d) attempted", x);
+         return 1;
+     }
+ #endif
+-    x = RND(x) + 1;
+-    return x;
++    result = RND(x) + 1;
++    if (rng_logfile) {
++        char buf[32];
++        snprintf(buf, sizeof buf, "%d", x);
++        rng_log_write("rnd", buf, result);
++    }
++    return result;
+ }
+ 
+ int
+@@ -175,6 +264,7 @@ int
+ d(int n, int x)
+ {
+     int tmp = n;
++    int orig_n = n;
+ 
+ #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
+     if (x < 0 || n < 0 || (x == 0 && n != 0)) {
+@@ -184,6 +274,11 @@ d(int n, int x)
+ #endif
+     while (n--)
+         tmp += RND(x);
++    if (rng_logfile) {
++        char buf[64];
++        snprintf(buf, sizeof buf, "%d,%d", orig_n, x);
++        rng_log_write("d", buf, tmp);
++    }
+     return tmp; /* Alea iacta est. -- J.C. */
+ }
+ 
+@@ -192,11 +287,18 @@ int
+ rne(int x)
+ {
+     int tmp, utmp;
++    /* Internal rn2 calls inherit caller context from the rne macro --
++       no save/clear needed. */
+ 
+     utmp = (u.ulevel < 15) ? 5 : u.ulevel / 3;
+     tmp = 1;
+     while (tmp < utmp && !rn2(x))
+         tmp++;
++    if (rng_logfile) {
++        char buf[32];
++        snprintf(buf, sizeof buf, "%d", x);
++        rng_log_write("rne", buf, tmp);
++    }
+     return tmp;
+ 
+     /* was:
+@@ -215,6 +317,8 @@ rnz(int i)
+ {
+     long x = (long) i;
+     long tmp = 1000L;
++    /* Internal rn2/rne calls inherit caller context from the rnz macro --
++       no save/clear needed. */
+ 
+     tmp += rn2(1000);
+     tmp *= rne(4);
+@@ -225,6 +329,11 @@ rnz(int i)
+         x *= 1000;
+         x /= tmp;
+     }
++    if (rng_logfile) {
++        char buf[32];
++        snprintf(buf, sizeof buf, "%d", i);
++        rng_log_write("rnz", buf, (int) x);
++    }
+     return (int) x;
+ }
+ 
+diff --git a/sys/unix/unixmain.c b/sys/unix/unixmain.c
+index 881c1666e..46ff058d2 100644
+--- a/sys/unix/unixmain.c
++++ b/sys/unix/unixmain.c
+@@ -63,6 +63,7 @@ main(int argc, char *argv[])
+     boolean plsel_once = FALSE;
+ 
+     early_init(argc, argv);
++    rng_log_init();  /* 004-prng-logging: open log if NETHACK_RNGLOG is set */
+ 
+ #if defined(__APPLE__)
+     {
