@@ -28,6 +28,7 @@
 
 const _env = typeof process !== 'undefined' ? process.env : {};
 const ENABLED = _env.WEBHACK_MODAL_GUARD !== '0'; // enabled by default
+const TRACE_STACKS = _env.WEBHACK_MODAL_GUARD_TRACE === '1'; // expensive, off by default
 
 let _modalOwner = null;   // string identifying the active modal ('more', 'yn', 'getlin', etc.)
 let _modalStack = [];      // stack for nested modals (shouldn't happen but defensive)
@@ -48,7 +49,7 @@ export function enterModal(owner) {
         _modalStack.push({ owner: _modalOwner, stack: _modalEntryStack });
     }
     _modalOwner = owner;
-    _modalEntryStack = new Error(`enterModal('${owner}')`).stack || null;
+    _modalEntryStack = TRACE_STACKS ? (new Error(`enterModal('${owner}')`).stack || null) : null;
 }
 
 /**

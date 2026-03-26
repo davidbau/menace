@@ -301,11 +301,24 @@ For a quick reference: the `js/` directory contains 32 ES6 modules organized by 
 
 > *"You feel as if someone is testing you."*
 
-### Fast Tests (no C binary needed)
+### Test Tiers
+
+```bash
+npm test            # Core: ~12s — 20 unit files + 18 high-signal sessions
+npm run test:all    # Full: ~90s — all 3700+ unit tests + 570 sessions
+```
+
+`npm test` is fast enough to run after every edit. `npm run test:all`
+before pushing.
+
+### Individual Test Commands
 
 ```bash
 # Unit tests — module-level correctness
 npm run test:unit
+
+# Core sessions only (no units)
+npm run test:core
 
 # E2E tests — browser rendering via Puppeteer
 npm run test:e2e
@@ -313,20 +326,14 @@ npm run test:e2e
 # Session comparison — replay C reference sessions
 npm run test:session
 
-# Session filename policy check (changed files only)
-npm run session:names
-
-# Session filename policy check (full tree)
-npm run session:names -- test/comparison/sessions test/comparison/maps
+# Single session
+node test/comparison/session_test_runner.js <session-path>
 
 # Dump raw JS replay trace from a C gameplay session
 npm run replay:dump -- test/comparison/sessions/<file>.session.json --out /tmp/<file>.js-replay.json
 
 # Compare C gameplay session vs JS replay (generated or --js file)
 npm run session:compare -- test/comparison/sessions/<file>.session.json
-
-# Everything at once
-npm run test:all
 ```
 
 Timeout policy (hang detection):
@@ -498,6 +505,41 @@ Use one project backlog for all work, with labels for classification.
    - Add `agent:<name>` only when an agent actively claims the issue.
 4. Use evidence-first issue bodies for `parity` issues.
    - Include seed/session/command, first mismatch point, and expected vs actual behavior.
+
+## Modal Guard (Single-Threaded Contract)
+
+C NetHack is single-threaded. When `more()` calls `wgetch()`, the CPU
+blocks and nothing else executes until the key is pressed. In JS,
+`await nhgetch()` yields the event loop, allowing any pending Promise
+continuation to fire — breaking the single-threaded contract.
+
+`js/modal_guard.js` enforces the C contract with runtime assertions:
+
+- **Modal owners** (`more`, `yn`, `getlin`, `getdir`, `menu`, `getobj`)
+  call `enterModal(name)` before awaiting input and `exitModal(name)`
+  after.
+- **Game mutation points** (`moveloop_core`, `movemon`, `mattacku`,
+  `domove_core`, `rhack`) call `assertNotInModal(name)` at entry.
+- If game code runs while a modal is active, the guard throws with
+  a diagnostic showing both the violation point and the modal entry
+  stack.
+
+**The most common bug this catches**: an async function called without
+`await`. The orphaned Promise's continuation fires during an unrelated
+`await` yield later, violating execution ordering.
+
+```bash
+# Enabled by default. Disable for production if needed:
+WEBHACK_MODAL_GUARD=0 node ...
+
+# Enable entry stack traces for debugging (collects Error().stack on
+# every enterModal call — expensive, off by default):
+WEBHACK_MODAL_GUARD_TRACE=1 node ...
+```
+
+Nested modals are valid and supported (stack-based) — e.g., `more()`
+inside `putstr_message` inside `ynFunction`. The guard catches only
+non-modal game code running during a modal wait.
 
 ## C Parity Policy
 
