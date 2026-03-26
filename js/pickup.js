@@ -550,7 +550,7 @@ async function pickup_object(obj, count, telekinesis, player, map) {
         return 0;
     }
 
-    await observeObject(obj);
+    observeObject(obj);
 
     if (obj === player.uchain)
         return 0;
@@ -889,7 +889,7 @@ async function out_container(obj, player, map) {
 
     // Add to inventory via addinv (handles merge, invlet assignment, etc.)
     const result = await addinv(obj, player);
-    await observeObject(obj);
+    observeObject(obj);
 
     // cf. C pickup.c:2748 — announce removal
     await pline("%s - %s.", result?.invlet || obj.invlet || '-', doname(result || obj, player));
@@ -987,7 +987,7 @@ async function u_handsy(player) {
 
 // cf. pickup.c:2937 — stash_ok(obj)
 // Autotranslated from pickup.c:2936
-export function stash_ok(obj) {
+export async function stash_ok(obj) {
   if (!obj) return GETOBJ_EXCLUDE;
   if (!ck_bag(obj)) return GETOBJ_EXCLUDE_SELECTABLE;
   return GETOBJ_SUGGEST;
@@ -1368,7 +1368,7 @@ async function handlePickup(player, map, display, game = null) {
                 if (extraResult?.item) extraResult.item.pickup_prev = 1;
                 map.removeObject(extra);
             }
-            await observeObject(pickedObj);
+            observeObject(pickedObj);
             if (addResult.discoveredByCompare) {
                 await displayCtx.putstr_message('You learn more about your items by comparing them.');
             }
@@ -1557,12 +1557,12 @@ function sortSameClassContainerItems(items) {
         .map((entry) => entry.obj);
 }
 
-async function buildContainerDisplayRows(items, letters, selected, player) {
+function buildContainerDisplayRows(items, letters, selected, player) {
     const rows = [];
     let lastHeader = null;
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        await observeObject(item);
+        observeObject(item);
         const sym = CLASS_SYMBOLS[item?.oclass];
         const header = classSymbolLabel(sym);
         if (header !== lastHeader) {
@@ -2432,7 +2432,7 @@ async function do_loot_cont(cobj, cindex, ccount, player, map, game) {
 // Main #loot command handler. JS equivalent: handleLoot.
 // This is a C-named alias that delegates to handleLoot.
 // ---------------------------------------------------------------------------
-function doloot_core(game) {
+async function doloot_core(game) {
     return handleLoot(game);
 }
 
@@ -2697,7 +2697,7 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
 // JS equivalent: doPutIn/doTakeOut in containerMenu.
 // This is a C-named wrapper; in JS the containerMenu handles both styles.
 // ---------------------------------------------------------------------------
-function traditional_loot(put_in, player, game) {
+async function traditional_loot(put_in, player, game) {
     // In JS, Traditional/Full menustyle distinction is not maintained.
     // Delegate to menu_loot which is the common path.
     return menu_loot(0, put_in, player, game);
@@ -2825,7 +2825,7 @@ async function menu_loot(retry, put_in, player, game) {
 // Main container interaction function. JS equivalent: containerMenu.
 // This is a C-named alias for the JS containerMenu function.
 // ---------------------------------------------------------------------------
-function use_container(game, container) {
+async function use_container(game, container) {
     return containerMenu(game, container);
 }
 

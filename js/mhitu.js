@@ -2111,7 +2111,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
         if (ufound && !not_affected) {
             if (display) await display.putstr_message('You are caught in a blast of kaleidoscopic light!');
             // Kill the monster immediately
-            await mondead(mtmp, map, player);
+            mondead(mtmp, map, player);
             kill_agr = false; // already killed
             // C: make_hallucinated(HHallucination + tmp, FALSE, 0L)
             // Hallucination not fully ported
@@ -2127,7 +2127,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
     }
 
     if (kill_agr && !mtmp.dead && mtmp.mhp > 0) {
-        await mondead(mtmp, map, player);
+        mondead(mtmp, map, player);
     }
 
     return (mtmp.dead || mtmp.mhp <= 0) ? M_ATTK_AGR_DIED : M_ATTK_MISS;
@@ -2601,14 +2601,14 @@ export function mon_avoiding_this_attack(mtmp, attkidx) {
 }
 
 // cf. mhitu.c:2606 cloneu() — clone the hero as a tame monster
-export async function cloneu(player, game, map) {
+export function cloneu(player, game, map) {
     const youmonst_data = player.data || player.monst;
     if (!youmonst_data) return null;
     const mndx = monsndx(youmonst_data);
     if ((player.mh || 0) <= 1) return null;
     if (game.mvitals && game.mvitals[mndx]
         && (game.mvitals[mndx].mvflags & G_EXTINCT)) return null;
-    const mon = await makemon(youmonst_data, player.ux || player.x, player.uy || player.y,
+    const mon = makemon(youmonst_data, player.ux || player.x, player.uy || player.y,
         NO_MINVENT | MM_EDOG | MM_NOMSG, null, map);
     if (!mon) return null;
     mon.mcloned = 1;

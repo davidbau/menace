@@ -210,7 +210,7 @@ export async function breakchestlock(game, box, destroyit) {
                 }
                 // C uses useup() here after extraction; it decrements quantity
                 // and keeps the remainder object for floor placement.
-                await useup(otmp, player);
+                useup(otmp, player);
             }
 
             otmp.ox = player.x;
@@ -277,7 +277,7 @@ export async function stumble_onto_mimic(x, y, map) {
 
 // C-name compatibility wrapper for CODEMATCH surface.
 // cf. lock.c:759 — stumble_on_door_mimic()
-export function stumble_on_door_mimic(x, y, map) {
+export async function stumble_on_door_mimic(x, y, map) {
     return stumble_onto_mimic(x, y, map);
 }
 
@@ -452,7 +452,7 @@ async function makeForcelockOccupation(game) {
                 && !uwep.cursed && !obj_resists(uwep, 0, 99)) {
                 const prefix = (uwep.quan > 1) ? "One of your" : "Your";
                 await pline(`${prefix} ${xname(uwep)} broke!`);
-                await useup(uwep, player);
+                useup(uwep, player);
                 await You("give up your attempt to force the lock.");
                 await exercise(player, A_DEX, true);
                 xlock.usedtime = 0;

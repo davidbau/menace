@@ -651,7 +651,7 @@ export async function handleZap(player, map, display, game) {
         // C ref: zap.c:2665-2669 — post-zap: wand turns to dust if spe < 0
         if (wand && wand.spe < 0) {
             await pline(`${The(xname(wand))} turns to dust.`);
-            await useupall(wand, player);
+            useupall(wand, player);
         }
     };
     const resolveSelectedWand = async (wand, promptGame = null, priorOwner = null) => {
@@ -673,7 +673,7 @@ export async function handleZap(player, map, display, game) {
             if (promptGame?.pendingPrompt === priorOwner) promptGame.pendingPrompt = null;
             await backfire(wand, player);
             await exercise(player, A_STR, false);
-            await useupall(wand, player);
+            useupall(wand, player);
             return { handled: true, moved: false, tookTime: true };
         }
 
@@ -845,7 +845,7 @@ export async function handleZap(player, map, display, game) {
 }
 
 // C ref: zap.c dozap() name-parity surface.
-export function dozap(player, map, display, game) {
+export async function dozap(player, map, display, game) {
   return handleZap(player, map, display, game);
 }
 
@@ -1216,7 +1216,7 @@ export async function bhitm(mon, otmp, map, player) {
   case WAN_TELEPORTATION:
   case SPE_TELEPORT_AWAY:
     // C: no resist() check — just teleport directly
-    await u_teleport_mon(mon, true, map, player, null, null);
+    u_teleport_mon(mon, true, map, player, null, null);
     break;
   case WAN_MAKE_INVISIBLE:
     mon_set_minvis(mon, map);
@@ -1540,7 +1540,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
 
           if (tmp === MAGIC_COOKIE) {
             // C ref: zap.c — disintegration path
-            await disintegrate_mon(mon, map, player);
+            disintegrate_mon(mon, map, player);
           } else if (mon.mhp <= 0) {
             // C ref: zap.c — hero kills use xkilled(), monster kills use monkilled()
             if (type < 0) {
@@ -1758,7 +1758,7 @@ export async function weffects(obj, player, map, display = null, game = null) {
     }
   }
   if (disclose) {
-    await learnwand(obj, player);
+    learnwand(obj, player);
     if (wasUnknown) more_experienced(0, 10, game, player);
   }
 }
@@ -2120,7 +2120,7 @@ export async function zap_updown(obj, player, map) {
   const y = player.y || 0;
   const loc = map?.at ? map.at(x, y) : null;
 
-  const openOrDestroyBridge = async (destroy = false) => {
+  const openOrDestroyBridge = (destroy = false) => {
     if (!map) return false;
     let bx = x;
     let by = y;
@@ -2130,8 +2130,8 @@ export async function zap_updown(obj, player, map) {
     }
     const db = find_drawbridge(bx, by, map);
     if (!db?.found) return false;
-    if (destroy) await destroy_drawbridge(db.x, db.y, map, player);
-    else await open_drawbridge(db.x, db.y, map, player);
+    if (destroy) destroy_drawbridge(db.x, db.y, map, player);
+    else open_drawbridge(db.x, db.y, map, player);
     return true;
   };
 
@@ -2187,7 +2187,7 @@ export async function zap_updown(obj, player, map) {
   case WAN_OPENING:
   case SPE_KNOCK:
     // C ref: zap.c:3251-3277 — open drawbridge, release traps
-    if (await openOrDestroyBridge(false)) {
+    if (openOrDestroyBridge(false)) {
       disclose = true;
     }
     if (player.dz && player.dz > 0 && player.utrap) {
@@ -2200,7 +2200,7 @@ export async function zap_updown(obj, player, map) {
   case WAN_STRIKING:
   case SPE_FORCE_BOLT:
     // C ref: zap.c:3278-3341 — striking up: dislodge rock
-    if (await openOrDestroyBridge(true)) {
+    if (openOrDestroyBridge(true)) {
       disclose = true;
       break;
     }
@@ -2224,7 +2224,7 @@ export async function zap_updown(obj, player, map) {
     if (map) {
       const db = find_drawbridge(x, y, map);
       if (db?.found) {
-        await close_drawbridge(db.x, db.y, map, player);
+        close_drawbridge(db.x, db.y, map, player);
         disclose = true;
         break;
       }
@@ -2386,10 +2386,10 @@ function adtyp_to_prop(adtyp) {
 async function learnwand(obj, player = null) {
   if (!obj || obj.oclass === SPBOOK_CLASS) return;
   if (isObjectNameKnown(obj.otyp)) {
-    await observeObject(obj);
+    observeObject(obj);
   } else {
     if (!(player?.blind || player?.Blind)) {
-      await observeObject(obj);
+      observeObject(obj);
     }
     if (obj.dknown) {
       await discoverObject(obj.otyp, true, true);
@@ -2566,7 +2566,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     break;
   case WAN_UNDEAD_TURNING:
   case SPE_TURN_UNDEAD:
-    await unturn_you(obj, player, map);
+    unturn_you(obj, player, map);
     break;
   default:
     await pline('You zap yourself.');
@@ -2583,11 +2583,11 @@ export async function zap_steed(obj, player, map) {
   switch (obj.otyp) {
   case WAN_PROBING:
     await probe_monster(steed);
-    await learnwand(obj);
+    learnwand(obj);
     return true;
   case WAN_TELEPORTATION:
   case SPE_TELEPORT_AWAY:
-    await learnwand(obj);
+    learnwand(obj);
     return true;
   case WAN_MAKE_INVISIBLE:
   case WAN_CANCELLATION:
@@ -2824,12 +2824,12 @@ async function maybe_destroy_item_player(obj, dmgtyp, player, owner = null) {
     if ((obj.owornmask || 0) & W_RING) {
       await Ring_gone(obj, _gstate, player);
     } else {
-      await clearWornItemEffects(player, obj);
+      clearWornItemEffects(player, obj);
     }
   }
 
   for (let i = 0; i < cnt; i++) {
-    await useup(obj, player);
+    useup(obj, player);
   }
 
   if (itemDamage > 0) {
@@ -3072,7 +3072,7 @@ export async function create_polymon(obj, mndx, map, player) {
   }
   return mon || null;
 }
-export async function disintegrate_mon(mon, map, player) {
+export function disintegrate_mon(mon, map, player) {
   if (!mon) return false;
   // C ref: zap.c disintegrate_mon() — iterate monster inventory,
   // destroy items that don't resist disintegration.
@@ -3092,7 +3092,7 @@ export async function disintegrate_mon(mon, map, player) {
   }
   mon.mhp = 0;
   if (map?.removeMonster) map.removeMonster(mon);
-  await mondead(mon, map, player);
+  mondead(mon, map, player);
   return true;
 }
 export async function flashburn(duration, via_lightning = false, player = null) {
@@ -3219,17 +3219,17 @@ export async function ubuzz(type, nd, player, map = null) {
 export async function ubreatheu(type, nd, sx, sy, dx, dy, map, player) {
   await buzz(ZT_BREATH(type), nd, sx, sy, dx, dy, map, player);
 }
-export async function unturn_dead(_obj, mon, map, player) {
+export function unturn_dead(_obj, mon, map, player) {
   if (!mon) return false;
   const mdat = mons[mon.mndx] || {};
   if (!is_undead(mdat)) return false;
   mon.mhp -= c_d(2, 6);
-  if (mon.mhp <= 0) await disintegrate_mon(mon, map, player);
+  if (mon.mhp <= 0) disintegrate_mon(mon, map, player);
   return true;
 }
-export async function unturn_you(_obj, player, _map) {
+export function unturn_you(_obj, player, _map) {
   if (!player) return false;
-  await unturn_dead(_obj, { minvent: player.inventory || [] }, _map, player);
+  unturn_dead(_obj, { minvent: player.inventory || [] }, _map, player);
   if (player.isUndead) {
     player.stunned = Math.max(Number(player.stunned || 0), rnd(30));
   }

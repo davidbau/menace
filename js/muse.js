@@ -402,7 +402,7 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
             if (by_you)
                 await xkilled(mon, XKILL_NOMSG | XKILL_NOCONDUCT, map, player);
             else
-                await mondead(mon, map, player);
+                mondead(mon, map, player);
             return;
         }
     }
@@ -560,11 +560,11 @@ export async function mplayhorn(mtmp, otmp, self, map, player) {
     } else if (self) {
         const name = Monnam(mtmp);
         await pline_mon(mtmp, `${name} plays a horn directed at itself!`);
-        await makeknown(otmp.otyp);
+        makeknown(otmp.otyp);
     } else {
         const name = Monnam(mtmp);
         await pline_mon(mtmp, `${name} plays a horn directed at you!`);
-        await makeknown(otmp.otyp);
+        makeknown(otmp.otyp);
     }
     otmp.spe -= 1;
 }
@@ -592,7 +592,7 @@ async function mreadmsg(mtmp, otmp, player) {
 export async function mquaffmsg(mtmp, otmp, player) {
     const vismon = canseemon(mtmp, player, null, _gstate?.map || player?.map || null);
     if (vismon) {
-        if (otmp) await observeObject(otmp);
+        if (otmp) observeObject(otmp);
         const name = Monnam(mtmp);
         const potionName = otmp ? await singular(otmp, doname) : 'a potion';
         await pline_mon(mtmp, `${name} drinks ${potionName}!`);
@@ -648,7 +648,7 @@ export function m_sees_sleepy_soldier(mtmp, map) {
 // ========================================================================
 async function m_tele(mtmp, vismon, oseen, how, map, player) {
     if (tele_restrict(mtmp, map)) {
-        if (vismon && how) await makeknown(how);
+        if (vismon && how) makeknown(how);
         if (noteleport_level(mtmp, map))
             mon_learns_traps(mtmp, TELEP_TRAP);
     } else if ((mon_has_amulet(mtmp) || On_W_tower_level(map)) && !rn2(3)) {
@@ -657,7 +657,7 @@ async function m_tele(mtmp, vismon, oseen, how, map, player) {
             await pline_mon(mtmp, `${name} seems disoriented for a moment.`);
         }
     } else {
-        if (how && oseen) await makeknown(how);
+        if (how && oseen) makeknown(how);
         await rloc(mtmp, 0, map, player);
     }
 }
@@ -698,7 +698,7 @@ function reveal_trap(t, seeit, map) {
 // ========================================================================
 // find_defensive — C ref: muse.c:439
 // ========================================================================
-export function find_defensive(mon, tryescape, map, player) {
+export async function find_defensive(mon, tryescape, map, player) {
     let obj;
     let t;
     const x = mon.mx, y = mon.my;
@@ -792,14 +792,14 @@ export function find_defensive(mon, tryescape, map, player) {
     } else {
         const loc = map.at(x, y);
         if (loc && loc.typ === STAIRS) {
-            const stway = stairway_at(x, y, map);
+            const stway = await stairway_at(x, y, map);
             if (stway && !stway.up && !is_floater(mdat)) {
                 m.has_defense = MUSE_DOWNSTAIRS;
             } else if (stway && stway.up) {
                 m.has_defense = MUSE_UPSTAIRS;
             }
         } else if (loc && loc.typ === LADDER) {
-            const stway = stairway_at(x, y, map);
+            const stway = await stairway_at(x, y, map);
             if (stway && stway.up) {
                 m.has_defense = MUSE_UP_LADDER;
             } else if (stway && !stway.up && !is_floater(mdat)) {
@@ -1061,10 +1061,10 @@ export async function use_defensive(mon, map, player) {
         if (!otmp) return 0;
         await m_flee(mon);
         await mzapwand(mon, otmp, false, map, player);
-        if (oseen) await makeknown(WAN_DIGGING);
+        if (oseen) makeknown(WAN_DIGGING);
         const loc = map.at(mon.mx, mon.my);
         if (loc && (IS_FURNITURE(loc.typ) || IS_DRAWBRIDGE(loc.typ)
-            || stairway_at(mon.mx, mon.my, map))) {
+            || await stairway_at(mon.mx, mon.my, map))) {
             await pline('The digging ray is ineffective.');
             return 2;
         }
@@ -1081,7 +1081,7 @@ export async function use_defensive(mon, map, player) {
         } else {
             await You_hear('something crash through the floor.');
         }
-        migrate_to_level(mon, ledger_no(null) + 1, 0, null, map);
+        await migrate_to_level(mon, ledger_no(null) + 1, 0, null, map);
         return 2;
     }
 
@@ -1101,7 +1101,7 @@ export async function use_defensive(mon, map, player) {
         await mzapwand(mon, otmp, false, map, player);
         const newmon = await makemon_appear(null, cc.x, cc.y, 0, 0, map);
         if (newmon && canspotmon(newmon, player, null, map) && oseen)
-            await makeknown(WAN_CREATE_MONSTER);
+            makeknown(WAN_CREATE_MONSTER);
         return 2;
     }
 
@@ -1120,7 +1120,7 @@ export async function use_defensive(mon, map, player) {
             const newmon = await makemon_appear(pm, cc.x, cc.y, 0, 0, map);
             if (newmon && canspotmon(newmon, player, null, map)) known = true;
         }
-        if (known) await makeknown(SCR_CREATE_MONSTER);
+        if (known) makeknown(SCR_CREATE_MONSTER);
         m_useup(mon, otmp);
         return 2;
     }
@@ -1134,57 +1134,57 @@ export async function use_defensive(mon, map, player) {
         }
         if (t2) reveal_trap(t2, vis, map);
         // Move monster to trap and migrate
-        migrate_to_level(mon, ledger_no(null) + 1, 0, null, map);
+        await migrate_to_level(mon, ledger_no(null) + 1, 0, null, map);
         return 2;
     }
 
     case MUSE_UPSTAIRS: {
         await m_flee(mon);
-        const stway = stairway_at(mon.mx, mon.my, map);
+        const stway = await stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes upstairs!`);
-        migrate_to_level(mon, 0, 0, null, map);
+        await migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
     case MUSE_DOWNSTAIRS: {
         await m_flee(mon);
-        const stway = stairway_at(mon.mx, mon.my, map);
+        const stway = await stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes downstairs!`);
-        migrate_to_level(mon, 0, 0, null, map);
+        await migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
     case MUSE_UP_LADDER: {
         await m_flee(mon);
-        const stway = stairway_at(mon.mx, mon.my, map);
+        const stway = await stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes up the ladder!`);
-        migrate_to_level(mon, 0, 0, null, map);
+        await migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
     case MUSE_DN_LADDER: {
         await m_flee(mon);
-        const stway = stairway_at(mon.mx, mon.my, map);
+        const stway = await stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes down the ladder!`);
-        migrate_to_level(mon, 0, 0, null, map);
+        await migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
     case MUSE_SSTAIRS: {
         await m_flee(mon);
-        const stway = stairway_at(mon.mx, mon.my, map);
+        const stway = await stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes ${stway.up ? 'up' : 'down'}stairs!`);
-        migrate_to_level(mon, 0, 0, null, map);
+        await migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
@@ -1208,7 +1208,7 @@ export async function use_defensive(mon, map, player) {
             await mcureblindness(mon, vismon, player);
         if (vismon)
             await pline_mon(mon, `${name} looks better.`);
-        if (oseen) await makeknown(POT_HEALING);
+        if (oseen) makeknown(POT_HEALING);
         m_useup(mon, otmp);
         return 2;
 
@@ -1221,7 +1221,7 @@ export async function use_defensive(mon, map, player) {
             await mcureblindness(mon, vismon, player);
         if (vismon)
             await pline_mon(mon, `${name} looks much better.`);
-        if (oseen) await makeknown(POT_EXTRA_HEALING);
+        if (oseen) makeknown(POT_EXTRA_HEALING);
         m_useup(mon, otmp);
         return 2;
 
@@ -1237,7 +1237,7 @@ export async function use_defensive(mon, map, player) {
             await mcureblindness(mon, vismon, player);
         if (vismon)
             await pline_mon(mon, `${name} looks completely healed.`);
-        if (oseen) await makeknown(otmp.otyp);
+        if (oseen) makeknown(otmp.otyp);
         m_useup(mon, otmp);
         return 2;
 
@@ -1385,7 +1385,7 @@ function mon_likes_objpile_at(mtmp, x, y, map) {
 // ========================================================================
 // find_offensive — C ref: muse.c:1419
 // ========================================================================
-export function find_offensive(mtmp, map, player) {
+export async function find_offensive(mtmp, map, player) {
     const mdat = mtmp.data || mtmp.type || {};
 
     m.offensive = null;
@@ -1466,7 +1466,7 @@ export function find_offensive(mtmp, map, player) {
             && (onscary(map, player.x, player.y, mtmp)
                 || (hero_behind_chokepoint(mtmp, map, player) && mon_has_friends(mtmp, map))
                 || mon_likes_objpile_at(mtmp, player.x, player.y, map)
-                || stairway_at(player.x, player.y, map))) {
+                || await stairway_at(player.x, player.y, map))) {
             m.offensive = obj;
             m.has_offense = MUSE_OFF_WAN_TELEPORTATION;
         }
@@ -1571,13 +1571,13 @@ async function mbhitm(mtmp, otmp, map, player) {
                 learnit = true;
             }
         }
-        if (learnit && zap_oseen) await makeknown(WAN_STRIKING);
+        if (learnit && zap_oseen) makeknown(WAN_STRIKING);
         break;
 
     case WAN_TELEPORTATION:
         if (hits_you) {
             // Hero teleport handling is routed through global teleport flow.
-            if (zap_oseen) await makeknown(WAN_TELEPORTATION);
+            if (zap_oseen) makeknown(WAN_TELEPORTATION);
         } else {
             if (!tele_restrict(mtmp, map))
                 await rloc(mtmp, 0, map, player);
@@ -1590,7 +1590,7 @@ async function mbhitm(mtmp, otmp, map, player) {
             learnit = zap_oseen;
         } else {
             let wake = false;
-            if (await unturn_dead(mtmp)) wake = true;
+            if (unturn_dead(mtmp)) wake = true;
             if (is_undead(mtmp.data || mtmp.type || {}) || is_vampshifter(mtmp)) {
                 wake = reveal_invis = true;
                 resist(mtmp, WAND_CLASS, rnd(8));
@@ -1601,7 +1601,7 @@ async function mbhitm(mtmp, otmp, map, player) {
                 learnit = zap_oseen;
             }
         }
-        if (learnit) await makeknown(WAN_UNDEAD_TURNING);
+        if (learnit) makeknown(WAN_UNDEAD_TURNING);
         break;
 
     default:
@@ -1713,7 +1713,7 @@ export async function use_offensive(mtmp, map, player) {
     case MUSE_OFF_WAN_LIGHTNING:
     case MUSE_OFF_WAN_MAGIC_MISSILE:
         await mzapwand(mtmp, otmp, false, map, player);
-        if (oseen) await makeknown(otmp.otyp);
+        if (oseen) makeknown(otmp.otyp);
         m_using = true;
         // C: buzz(BZ_M_WAND(...), nd, mx, my, dx, dy)
         {
@@ -1756,7 +1756,7 @@ export async function use_offensive(mtmp, map, player) {
         await mreadmsg(mtmp, otmp, player);
         if (canspotmon(mtmp, player, null, map)) {
             await pline('The ceiling rumbles!');
-            if (oseen) await makeknown(otmp.otyp);
+            if (oseen) makeknown(otmp.otyp);
         }
         m_useup(mtmp, otmp);
         if (dist2(mmx, mmy, player.x, player.y) <= 2 && !otmp.cursed) {
@@ -1849,7 +1849,7 @@ export function rnd_offensive_item(mtmp) {
 // ========================================================================
 // find_misc — C ref: muse.c:2074
 // ========================================================================
-export function find_misc(mon, map, player) {
+export async function find_misc(mon, map, player) {
     const mdat = mon.data || mon.type || {};
     const x = mon.mx, y = mon.my;
     const immobile = ((mdat.mmove || 0) === 0);
@@ -1905,7 +1905,7 @@ export function find_misc(mon, map, player) {
             && u_at(player, mon.mux ?? player.x, mon.muy ?? player.y)
             && m_next2u(mon, player)
             && !player.uswallow
-            && canletgo(player.weapon, '')) {
+            && await canletgo(player.weapon, '')) {
             m.misc = obj;
             m.has_misc = MUSE_MISC_BULLWHIP;
         }
@@ -2063,7 +2063,7 @@ export async function use_misc(mon, map, player) {
                     await pline_mon(mon, `${name} rises up, through the ceiling!`);
                 }
                 m_useup(mon, otmp);
-                migrate_to_level(mon, 0, 0, null, map);
+                await migrate_to_level(mon, 0, 0, null, map);
                 return 2;
             }
             if (vismon) {
@@ -2074,7 +2074,7 @@ export async function use_misc(mon, map, player) {
         }
         if (vismon)
             await pline_mon(mon, `${name} seems more experienced.`);
-        if (oseen) await makeknown(POT_GAIN_LEVEL);
+        if (oseen) makeknown(POT_GAIN_LEVEL);
         m_useup(mon, otmp);
         if (!await grow_up(mon, null, _gstate)) return 1;
         return 2;
@@ -2096,7 +2096,7 @@ export async function use_misc(mon, map, player) {
                 await pline(`Suddenly you cannot see ${name2}.`);
                 if (vis) map_invisible(map, mon.mx, mon.my, player);
             }
-            if (oseen) await makeknown(otmp.otyp);
+            if (oseen) makeknown(otmp.otyp);
         }
         if (otmp.otyp === POT_INVISIBILITY) {
             if (otmp.cursed) await you_aggravate(mon);
@@ -2113,7 +2113,7 @@ export async function use_misc(mon, map, player) {
     case MUSE_MISC_POT_SPEED:
         if (!otmp) return 0;
         await mquaffmsg(mon, otmp, player);
-        if (oseen) await makeknown(otmp.otyp);
+        if (oseen) makeknown(otmp.otyp);
         mon_adjust_speed(mon, 1, otmp);
         m_useup(mon, otmp);
         return 2;
@@ -2122,7 +2122,7 @@ export async function use_misc(mon, map, player) {
         if (!otmp) return 0;
         await mzapwand(mon, otmp, true, map, player);
         newcham(mon, muse_newcham_mon(mon), 0);
-        if (oseen) await makeknown(WAN_POLYMORPH);
+        if (oseen) makeknown(WAN_POLYMORPH);
         return 2;
 
     case MUSE_MISC_POT_POLYMORPH:
@@ -2132,7 +2132,7 @@ export async function use_misc(mon, map, player) {
         if (vismon)
             await pline_mon(mon, `${name} suddenly mutates!`);
         newcham(mon, muse_newcham_mon(mon), 0);
-        if (oseen) await makeknown(POT_POLYMORPH);
+        if (oseen) makeknown(POT_POLYMORPH);
         return 2;
 
     case MUSE_MISC_POLY_TRAP: {
@@ -2340,7 +2340,7 @@ export async function mon_reflects(mon, str) {
         if (str) {
             const name = x_monnam(mon, ARTICLE_NONE);
             await pline(`It is reflected by ${name}'s shield.`);
-            await makeknown(SHIELD_OF_REFLECTION);
+            makeknown(SHIELD_OF_REFLECTION);
         }
         return true;
     }
@@ -2356,7 +2356,7 @@ export async function mon_reflects(mon, str) {
         if (str) {
             const name = x_monnam(mon, ARTICLE_NONE);
             await pline(`It is reflected by ${name}'s amulet.`);
-            await makeknown(AMULET_OF_REFLECTION);
+            makeknown(AMULET_OF_REFLECTION);
         }
         return true;
     }
@@ -2388,7 +2388,7 @@ export async function ureflects(fmt, str, player) {
     if (erefl & W_ARMS) {
         if (fmt && str) {
             await pline(`${str} is reflected by your shield.`);
-            await makeknown(SHIELD_OF_REFLECTION);
+            makeknown(SHIELD_OF_REFLECTION);
         }
         return true;
     }
@@ -2399,7 +2399,7 @@ export async function ureflects(fmt, str, player) {
     if (erefl & W_AMUL) {
         if (fmt && str) {
             await pline(`${str} is reflected by your medallion.`);
-            await makeknown(AMULET_OF_REFLECTION);
+            makeknown(AMULET_OF_REFLECTION);
         }
         return true;
     }

@@ -256,7 +256,7 @@ export async function use_towel(obj, player) {
     player.ucreamed = 0;
     if (!player.Blind) {
       await pline("You've got the glop off.");
-      if (!await gulp_blnd_check()) { set_itimeout(player, BLINDED, 1); await make_blinded(player, 0, true); }
+      if (!gulp_blnd_check()) { set_itimeout(player, BLINDED, 1); await make_blinded(player, 0, true); }
     }
     else { await Your("%s feels clean now.", body_part(FACE)); }
     if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
@@ -765,7 +765,7 @@ export async function jump(magic, player, map, game) {
 }
 
 // cf. apply.c:1843 -- dojump: entry point for #jump command
-export function dojump(player, map, game) {
+export async function dojump(player, map, game) {
     return jump(0, player, map, game);
 }
 
@@ -915,7 +915,7 @@ async function use_trap(obj, player, map, display, game) {
 }
 
 // cf. apply.c:2912 -- set_trap occupation callback
-async function set_trap(game, player, map, display) {
+function set_trap(game, player, map, display) {
     const info = game?.trapinfo;
     const obj = info?.tobj;
     if (!info || !obj || !player || !map) return false;
@@ -930,7 +930,7 @@ async function set_trap(game, player, map, display) {
     const depth = Number.isInteger(map?._genDlevel)
         ? map._genDlevel
         : (Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel : 1);
-    const placed = await maketrap(map, player.x, player.y, trapType, depth);
+    const placed = maketrap(map, player.x, player.y, trapType, depth);
     if (!placed) {
         display?.putstr_message?.('You fail to set the trap here.');
         reset_trapset(game);
@@ -983,7 +983,7 @@ async function use_cream_pie(obj, player) {
     if (obj.quan > 1) obj.quan--;
     await You("immerse your face in %s.", xname(obj));
     rnd(25); // blindinc RNG consumption
-    if (obj.quan <= 0) await clearWornItemEffects(player, obj);
+    if (obj.quan <= 0) clearWornItemEffects(player, obj);
 }
 
 // cf. apply.c:3603 -- jelly_ok
@@ -1056,7 +1056,7 @@ async function do_break_wand(obj, player, map, display) {
     );
     if (!obj.spe) obj.spe = rnd(3);
     await break_wand(obj, player, map);
-    await useupall(obj, player);
+    useupall(obj, player);
     return true;
 }
 

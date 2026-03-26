@@ -627,7 +627,7 @@ export async function ohitmon(
             if (verbose && display && !player?.blind && couldsee(map, player, mtmp.mx, mtmp.my)) {
                 deathMessage = `${Monnam(mtmp)} is killed!`;
             }
-            await mondead(mtmp, map);
+            mondead(mtmp, map);
             map.removeMonster?.(mtmp);
             if (player) {
                 const exp = ((mtmp.mlevel || 0) + 1) * ((mtmp.mlevel || 0) + 1);
@@ -711,7 +711,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
         // a fresh object id via next_ident() (consumes rnd(2)).
         if (splittingStack) projectile.o_id = next_ident();
         m_useup(mon, otmp);
-        const result = m_throw_timed(
+        const result = await m_throw_timed(
             mon, mon.mx, mon.my, ddx, ddy, dm, projectile, map, player, display, game,
             { tethered_weapon, intendedTarget: mtarg, launcher: mwep }
         );
@@ -719,7 +719,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
         if (result?.hitPlayer) hitPlayer = true;
         if (result?.promptedForTopline) promptedForTopline = true;
         if (tethered_weapon && result?.returnFlight) {
-            await return_from_mtoss(mon, projectile, true, map);
+            return_from_mtoss(mon, projectile, true, map);
             if (mon.dead) break;
             continue;
         }
@@ -800,7 +800,7 @@ export async function m_throw_timed(
 
         const mtmp = map.monsterAt(x, y);
         if (mtmp && !mtmp.dead) {
-            const impact = ohitmon(
+            const impact = await ohitmon(
                 mtmp, weapon, range, true, map, player, display, game,
                 mon, intendedTarget, launcher
             );
@@ -919,7 +919,7 @@ export async function m_throw_timed(
 }
 
 // C ref: mthrowu.c return_from_mtoss().
-export async function return_from_mtoss(magr, otmp, tethered_weapon, map) {
+export function return_from_mtoss(magr, otmp, tethered_weapon, map) {
     if (!magr || !otmp || !map) return;
     const impaired = !!(magr.mconf || magr.mstun || magr.mblinded);
     const madeItBack = rn2(100);
@@ -948,7 +948,7 @@ export async function return_from_mtoss(magr, otmp, tethered_weapon, map) {
     if (hitsThrower) {
         magr.mhp = (magr.mhp || 0) - dmg;
         if ((magr.mhp || 0) <= 0) {
-            await mondead(magr, map);
+            mondead(magr, map);
         }
     }
 

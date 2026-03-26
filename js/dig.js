@@ -246,7 +246,7 @@ export async function mdig_tunnel(mtmp, map, player) {
 
         if (trapped) {
             const seeit = canseemon(mtmp, player);
-            if (await mb_trapped(mtmp, map, player)) { // mtmp is killed
+            if (mb_trapped(mtmp, map, player)) { // mtmp is killed
                 newsym(mtmp.mx, mtmp.my);
                 return true;
             }
@@ -379,7 +379,7 @@ export function fillholetyp(x, y, fill_if_any, map) {
 // furniture_handled (cf. dig.c:570-592)
 // Processes terrain furniture destruction when digging.
 // ============================================================================
-export async function furniture_handled(x, y, madeby_u, map) {
+export function furniture_handled(x, y, madeby_u, map) {
     const lev = map.at(x, y);
     if (!lev) return false;
 
@@ -400,7 +400,7 @@ export async function furniture_handled(x, y, madeby_u, map) {
         const result = find_drawbridge(bx, by, map);
         bx = result.x;
         by = result.y;
-        await destroy_drawbridge(bx, by, map);
+        destroy_drawbridge(bx, by, map);
     } else {
         return false;
     }
@@ -413,7 +413,7 @@ export async function furniture_handled(x, y, madeby_u, map) {
 // Creates a pit or hole trap at given location.
 // ============================================================================
 
-export async function digactualhole(x, y, madeby, ttyp, map, player) {
+export function digactualhole(x, y, madeby, ttyp, map, player) {
     const madeby_u = (madeby === 'BY_YOU');
     const madeby_obj = (madeby === 'BY_OBJECT');
     const heros_fault = (madeby_u || madeby_obj);
@@ -421,7 +421,7 @@ export async function digactualhole(x, y, madeby, ttyp, map, player) {
     if (!lev) return;
 
     // C: furniture_handled
-    if (await furniture_handled(x, y, madeby_u, map))
+    if (furniture_handled(x, y, madeby_u, map))
         return;
 
     // C: maketrap(x, y, ttyp)
@@ -477,7 +477,7 @@ export function liquid_flow(x, y, typ, ttmp, fillmsg, map) {
 // Returns TRUE if digging succeeded, FALSE otherwise.
 // ============================================================================
 
-export async function dighole(pit_only, by_magic, cc, map, player) {
+export function dighole(pit_only, by_magic, cc, map, player) {
     let dig_x, dig_y;
     if (!cc) {
         dig_x = player.x;
@@ -508,7 +508,7 @@ export async function dighole(pit_only, by_magic, cc, map, player) {
             // "The drawbridge seems too hard to dig through."
         } else {
             const result = find_drawbridge(dig_x, dig_y, map);
-            await destroy_drawbridge(result.x, result.y, map);
+            destroy_drawbridge(result.x, result.y, map);
             retval = true;
         }
 
@@ -529,8 +529,8 @@ export async function dighole(pit_only, by_magic, cc, map, player) {
         }
 
     } else if (IS_GRAVE(old_typ)) {
-        await digactualhole(dig_x, dig_y, 'BY_YOU', PIT, map, player);
-        await dig_up_grave(cc, map, player);
+        digactualhole(dig_x, dig_y, 'BY_YOU', PIT, map, player);
+        dig_up_grave(cc, map, player);
         retval = true;
 
     } else if (old_typ === DRAWBRIDGE_UP) {
@@ -556,7 +556,7 @@ export async function dighole(pit_only, by_magic, cc, map, player) {
         lev.flags = 0;
 
         if (typ !== ROOM) {
-            if (!await furniture_handled(dig_x, dig_y, true, map)) {
+            if (!furniture_handled(dig_x, dig_y, true, map)) {
                 lev.typ = typ;
                 liquid_flow(dig_x, dig_y, typ, ttmp,
                             "As you dig, the hole fills with %s!", map);
@@ -572,9 +572,9 @@ export async function dighole(pit_only, by_magic, cc, map, player) {
 
             // Finally make a hole
             if (nohole || pit_only) {
-                await digactualhole(dig_x, dig_y, 'BY_YOU', PIT, map, player);
+                digactualhole(dig_x, dig_y, 'BY_YOU', PIT, map, player);
             } else {
-                await digactualhole(dig_x, dig_y, 'BY_YOU', HOLE, map, player);
+                digactualhole(dig_x, dig_y, 'BY_YOU', HOLE, map, player);
             }
             retval = true;
         }
@@ -628,7 +628,7 @@ export async function dig_up_grave(cc, map, player) {
         {
             const zmndx = mkclass(S_ZOMBIE, 0, level_difficulty());
             if (zmndx >= 0) {
-                await makemon(zmndx, dig_x, dig_y, MM_NOMSG, undefined, map);
+                makemon(zmndx, dig_x, dig_y, MM_NOMSG, undefined, map);
             }
         }
         break;
@@ -638,7 +638,7 @@ export async function dig_up_grave(cc, map, player) {
         {
             const mmndx = mkclass(S_MUMMY, 0, level_difficulty());
             if (mmndx >= 0) {
-                await makemon(mmndx, dig_x, dig_y, MM_NOMSG, undefined, map);
+                makemon(mmndx, dig_x, dig_y, MM_NOMSG, undefined, map);
             }
         }
         break;
@@ -804,7 +804,7 @@ export async function zap_dig(map, player) {
                 newsym(u.x, u.y);
             } else {
                 watch_dig(null, u.x, u.y, true, map);
-                await dighole(false, true, null, map, player);
+                dighole(false, true, null, map, player);
             }
         }
         return;
@@ -856,7 +856,7 @@ export async function zap_dig(map, player) {
                     if (!(adjpit && (adjpit.ttyp === PIT || adjpit.ttyp === SPIKED_PIT))) {
                         const cc = { x: zx, y: zy };
                         if (await adj_pit_checks(cc, '', map)) {
-                            await dighole(true, true, cc, map, player);
+                            dighole(true, true, cc, map, player);
                         }
                     }
                     const newAdjPit = t_at(zx, zy, map);
@@ -1283,7 +1283,7 @@ export async function dig(map, player) {
 
         if (ctx.effort > 250
             || (ttmp && ttmp.ttyp === HOLE)) {
-            await dighole(false, false, null, map, player);
+            dighole(false, false, null, map, player);
             // Reset digging context
             ctx.pos = { x: 0, y: 0 };
             ctx.effort = 0;
@@ -1330,7 +1330,7 @@ export async function dig(map, player) {
         }
 
         // Make pit
-        if (await dighole(true, false, null, map, player)) {
+        if (dighole(true, false, null, map, player)) {
             ctx.level = { dnum: 0, dlevel: -1 };
         }
         return 0;
@@ -1436,7 +1436,7 @@ export async function dig(map, player) {
         // Earth level: rn2(3), rn2(2) for earth elemental
         if (map.flags && map.flags.is_earthlevel && !rn2(3)) {
             const mndx = rn2(2) ? PM_EARTH_ELEMENTAL : PM_XORN;
-            await makemon(mndx, dpx, dpy, MM_NOMSG, undefined, map);
+            makemon(mndx, dpx, dpy, MM_NOMSG, undefined, map);
         }
 
         if (IS_DOOR(lev.typ) && (lev.flags & D_TRAPPED)) {

@@ -338,7 +338,7 @@ export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vi
         if (tmp > 0) {
             magr.mhp -= tmp;
             if (magr.mhp <= 0) {
-                await mondead(magr, map);
+                mondead(magr, map);
                 return (mdead | mhit | M_ATTK_AGR_DIED);
             }
         }
@@ -426,7 +426,7 @@ export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vi
     if (tmp > 0) {
         magr.mhp -= tmp;
         if (magr.mhp <= 0) {
-            await mondead(magr, map);
+            mondead(magr, map);
             return (mdead | mhit | M_ATTK_AGR_DIED);
         }
     }
@@ -489,7 +489,7 @@ export async function explmm(magr, mdef, mattk, display, vis, map, ctx) {
 
     // Kill off aggressor (self-destruct)
     if (!(result & M_ATTK_AGR_DIED)) {
-        await mondead(magr, map, ctx?.player);
+        mondead(magr, map, ctx?.player);
         if (!DEADMONSTER(magr)) {
             return result; // lifesaved
         }
@@ -652,7 +652,7 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
                 `${monCombatName(mdef, ctx?.defVisible, { article: ARTICLE_THE, capitalize: true, player: ctx?.player || null })} is ${killVerb}!`
             );
         }
-        await mondead(mdef, map, ctx?.player);
+        mondead(mdef, map, ctx?.player);
         if (!DEADMONSTER(mdef)) {
             return mhm.hitflags; // lifesaved
         }
@@ -776,7 +776,7 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
                 && touch_petrifies(pd) && !resists_ston(magr)) {
                 // Attacker turns to stone from bare-handed contact
                 magr.mhp = 0;
-                await mondead(magr, map);
+                mondead(magr, map);
                 return M_ATTK_AGR_DIED;
             }
 
@@ -915,7 +915,7 @@ export async function fightm(mtmp, map, display, vis) {
 // ============================================================================
 
 // C ref: mhitm.c:178 mdisplacem() — attacker displaces defender
-export async function mdisplacem(magr, mdef, quietly, map) {
+export function mdisplacem(magr, mdef, quietly, map) {
     if (!magr || !mdef || magr === mdef || !map) return M_ATTK_MISS;
 
     const tx = mdef.mx, ty = mdef.my; // destination
@@ -940,7 +940,7 @@ export async function mdisplacem(magr, mdef, quietly, map) {
         if (!gloves) {
             // Aggressor turns to stone
             magr.mhp = 0;
-            await mondead(magr, map);
+            mondead(magr, map);
             return M_ATTK_AGR_DIED;
         }
     }

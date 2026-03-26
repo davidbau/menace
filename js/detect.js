@@ -196,10 +196,10 @@ export function o_material(obj, material) {
 // ========================================================================
 // cf. detect.c:249 -- observe_recursively
 // ========================================================================
-export async function observe_recursively(obj) {
+export function observe_recursively(obj) {
     if (!obj) return;
-    await observeObject(obj);
-    if (Has_contents(obj)) for (const otmp of obj.cobj) await observe_recursively(otmp);
+    observeObject(obj);
+    if (Has_contents(obj)) for (const otmp of obj.cobj) observe_recursively(otmp);
 }
 
 // ========================================================================
@@ -330,7 +330,7 @@ async function _gold_detect_outgoldmap(sobj, player, map, display) {
     if (!ugold) newsym(player.x, player.y);
     await You_feel("very greedy, and sense gold!");
     await exercise(player, A_WIS, true);
-    browse_map(0, 'gold', player, map, display); await map_redisplay(player, map);
+    await browse_map(0, 'gold', player, map, display); await map_redisplay(player, map);
     return 0;
 }
 
@@ -403,7 +403,7 @@ export async function food_detect(sobj, player, map, display, game) {
             } else await Your("%s tingles and you smell %s.", body_part(NOSE, player), what);
         } else await You("sense %s.", what);
         await exercise(player, A_WIS, true);
-        browse_map(0, 'food', player, map, display); await map_redisplay(player, map);
+        await browse_map(0, 'food', player, map, display); await map_redisplay(player, map);
     }
     return 0;
 }
@@ -424,26 +424,26 @@ export async function object_detect(detector, oclass, player, map, display, game
     const stuff = (player.hallucinating || (player.confused && oclass === SCROLL_CLASS))
         ? 'something' : 'objects';
     const buried = buried_objects(map);
-    if (do_dknown) for (const obj of (player.inventory || [])) await observe_recursively(obj);
+    if (do_dknown) for (const obj of (player.inventory || [])) observe_recursively(obj);
     for (const obj of (map.objects || [])) {
         if (obj?.buried) continue;
         if ((!oclass && !boulder) || o_in(obj, oclass)) {
             if (u_at(player, obj.ox, obj.oy)) ctu++; else ct++;
         }
-        if (do_dknown) await observe_recursively(obj);
+        if (do_dknown) observe_recursively(obj);
     }
     for (const obj of buried) {
         if ((!oclass && !boulder) || o_in(obj, oclass)) {
             if (u_at(player, obj.ox, obj.oy)) ctu++; else ct++;
         }
-        if (do_dknown) await observe_recursively(obj);
+        if (do_dknown) observe_recursively(obj);
     }
     if (player.usteed) { player.usteed.mx = player.x; player.usteed.my = player.y; }
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp) || (mtmp.isgd && !mtmp.mx)) continue;
         for (const obj of (mtmp.minvent || [])) {
             if ((!oclass && !boulder) || o_in(obj, oclass)) ct++;
-            if (do_dknown) await observe_recursively(obj);
+            if (do_dknown) observe_recursively(obj);
         }
         if ((is_cursed && M_AP_TYPE(mtmp)
              && (!oclass || oclass === (objectData[mtmp.mappearance] || {}).oc_class))
@@ -508,7 +508,7 @@ export async function object_detect(detector, oclass, player, map, display, game
         ter_typ |= TER_MON; // C: include hero for autodescribe when no object at hero
     }
     await You("detect the %s of %s.", ct ? 'presence' : 'absence', stuff);
-    browse_map(ter_typ, 'object', player, map, display); await map_redisplay(player, map);
+    await browse_map(ter_typ, 'object', player, map, display); await map_redisplay(player, map);
     return 0;
 }
 
@@ -548,7 +548,7 @@ export async function monster_detect(otmp, mclass, player, map, display, game) {
         if (!swallowed) display_self();
         await You("sense the presence of monsters.");
         if (woken) await pline("Monsters sense the presence of you.");
-        browse_map(0, 'monster of interest', player, map, display); await map_redisplay(player, map);
+        await browse_map(0, 'monster of interest', player, map, display); await map_redisplay(player, map);
     }
     return 0;
 }
@@ -623,7 +623,7 @@ async function display_trap_map(cursed_src, player, map, display) {
     }
     newsym(player.x, player.y);
     await You_feel("%s.", cursed_src ? 'very greedy' : 'entrapped');
-    browse_map(0, (cursed_src ? 'gold' : 'trap of interest'), player, map, display); await map_redisplay(player, map);
+    await browse_map(0, (cursed_src ? 'gold' : 'trap of interest'), player, map, display); await map_redisplay(player, map);
 }
 
 // ========================================================================
@@ -1183,7 +1183,7 @@ export async function reveal_terrain(which_subset, player, map, display) {
             show_map_spot(x, y, false, map);
     flush_screen(1);
     await pline("Showing terrain only...");
-    browse_map(which_subset, 'anything of interest', player, map, display); await map_redisplay(player, map);
+    await browse_map(which_subset, 'anything of interest', player, map, display); await map_redisplay(player, map);
 }
 
 // Autotranslated from detect.c:94

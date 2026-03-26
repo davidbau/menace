@@ -209,9 +209,9 @@ export async function stealarm(player, map, display = null) {
 // Remove a worn item from hero. Simplified: clears the appropriate equipment
 // slot and owornmask. Full C version handles armor off effects, ring effects,
 // amulet effects, ball/chain, etc.
-export async function remove_worn_item(player, obj) {
+export function remove_worn_item(player, obj) {
     if (!obj) return;
-    await clearWornItemEffects(player, obj);
+    clearWornItemEffects(player, obj);
 }
 
 function inferred_wornmask(player, obj) {
@@ -256,7 +256,7 @@ async function worn_item_removal(mon, obj, player, display) {
         : (mask & W_ACCESSORY) ? 'removes'
             : 'takes off';
     await display.putstr_message(`${Some_Monnam(mon)} ${verb} ${desc}.`);
-    await remove_worn_item(player, obj);
+    remove_worn_item(player, obj);
 }
 
 // ============================================================================
@@ -433,7 +433,7 @@ export async function maybe_absorb_item(mon, obj, ochance, achance, player = nul
 
     const carried = !!(player && Array.isArray(player.inventory) && player.inventory.includes(obj));
     if (carried) {
-        if (obj.owornmask) await remove_worn_item(player, obj);
+        if (obj.owornmask) remove_worn_item(player, obj);
         const inv = player.inventory;
         const idx = inv.indexOf(obj);
         if (idx >= 0) inv.splice(idx, 1);
@@ -450,7 +450,7 @@ export async function maybe_absorb_item(mon, obj, ochance, achance, player = nul
 // ============================================================================
 // Prevent special items (Amulet, invocation, quest artifacts) from leaving level.
 // Stub: quest artifacts and invocation items not yet tracked.
-export async function mdrop_special_objs(mon, map = null) {
+export function mdrop_special_objs(mon, map = null) {
     if (!mon || !Array.isArray(mon.minvent)) return;
     const inv = [...mon.minvent];
     for (const obj of inv) {
@@ -464,7 +464,7 @@ export async function mdrop_special_objs(mon, map = null) {
             || obj_resists(obj, 0, 0);
         if (!special) continue;
         if (Number.isInteger(mon.mx) && Number.isInteger(mon.my) && map) {
-            await mdrop_obj(mon, obj, map);
+            mdrop_obj(mon, obj, map);
         } else {
             extract_from_minvent(mon, obj, true, true);
             if (map) {
@@ -484,7 +484,7 @@ export async function mdrop_special_objs(mon, map = null) {
 // ============================================================================
 // Release all objects from monster inventory to floor.
 // Used by mondead via m_detach. Replaces inline loop in monutil.js.
-export async function relobj(mon, map, show, _is_pet) {
+export function relobj(mon, map, show, _is_pet) {
     if (!mon || !map) return;
 
     // C ref: steal.c:894 — drop all inventory via mdrop_obj
@@ -493,7 +493,7 @@ export async function relobj(mon, map, show, _is_pet) {
         // Drop from end to match C's linked-list order
         const obj = mon.minvent[mon.minvent.length - 1];
         if (!obj) { mon.minvent.pop(); continue; }
-        await mdrop_obj(mon, obj, map);
+        mdrop_obj(mon, obj, map);
     }
 
     if (show) {
@@ -519,13 +519,13 @@ export function mpickobj(mon, obj) {
 // C ref: steal.c:814 mdrop_obj()
 // Removes object from monster inventory and places on floor with event logging.
 // Uses extract_from_minvent for proper worn-item cleanup.
-export async function mdrop_obj(mon, obj, map) {
+export function mdrop_obj(mon, obj, map) {
     // C ref: extract_from_minvent with do_extrinsics=FALSE, silently=TRUE
     const unwornmask = obj.owornmask || 0;
     extract_from_minvent(mon, obj, false, true);
     // C ref: relobj()/map_object() can discover generic objects as each item
     // becomes visible on the floor, before the next item is processed.
-    await maybeObserveObjectForMap(obj, _gstate?.u, mon.mx, mon.my);
+    maybeObserveObjectForMap(obj, _gstate?.u, mon.mx, mon.my);
     obj.ox = mon.mx;
     obj.oy = mon.my;
     // C ref: steal.c:838-841 — place_object(); stackobj(); then event_log(EV_DROP)

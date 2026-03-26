@@ -1677,7 +1677,7 @@ export async function show_spells(player, display) {
 }
 
 // C ref: spell.c skill_based_spellbook_id() — passive wizard book ID
-export async function skill_based_spellbook_id(player) {
+export function skill_based_spellbook_id(player) {
     if (!player || !Role_if(player, PM_WIZARD)) return;
     for (let otyp = 0; otyp < objectData.length; otyp++) {
         const od = objectData[otyp];
@@ -1705,7 +1705,7 @@ export async function skill_based_spellbook_id(player) {
         }
         const level = Number(od.oc_oc2 || od.oc_level || 0);
         if (level <= knownUpToLevel) {
-            await discover_object(otyp, true, false, false);
+            discover_object(otyp, true, false, false);
         }
     }
 }
