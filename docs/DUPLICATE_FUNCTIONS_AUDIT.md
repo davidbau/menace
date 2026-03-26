@@ -27,7 +27,7 @@ for all callers. Naive import switching causes 131 session regressions.
 | # | Function | C source | JS natural home | Currently also in | Status |
 |---|----------|----------|----------------|-------------------|--------|
 | 1 | `inv_cnt` | hack.c:4448 | hack.js | ~~hack.js:2559 deleted~~ | [x] stale copy deleted |
-| 2 | `dolook` | invent.c:4321 | invent.js | pager.js:393 | [ ] |
+| 2 | `dolook` | invent.c:4321 | pager.js (full impl) | ~~invent.js:2835 deleted~~ | [x] thin wrapper deleted |
 | 3 | `can_carry` | mon.c:1975 | mon.js | dogmove.js:275 | [ ] |
 | 4-8 | `Monnam`/`mon_nam`/`x_monnam`/`y_monnam`/`YMonnam` | do_name.c | do_name.js | ~~mondata.js wrappers deleted~~ | [x] imports switched + canspotmon fix + mhitm/muse article fixes |
 | 9 | `movemon` | mon.c:1311 | mon.js | monmove.js:136 | [ ] |

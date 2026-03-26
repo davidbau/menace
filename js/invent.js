@@ -2831,11 +2831,6 @@ export async function look_here(player, map, obj_cnt) {
     }
 }
 
-// C ref: invent.c dolook() — look command
-export async function dolook(player, map) {
-    return await look_here(player, map, 0);
-}
-
 // C ref: invent.c will_feel_cockatrice() — check if touching will petrify
 export function will_feel_cockatrice(otmp, force_touch, player) {
     if ((!player?.blind && !force_touch) || player?.gloves) return false;
