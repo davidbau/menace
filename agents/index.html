@@ -12,7 +12,7 @@
     --accent: #6b2c2c; --accent-dk: #4a2020; --accent-lt: #8b4c4c;
     --lore: #8b6914; --commit: #2d6a2d; --human: #2a5599;
     --session: #6b4c9a; --correction: #b33; --directive: #2a7a5a;
-    --question: #7a5ac7; --ai: #555;
+    --question: #2a5599; --ai: #555;
     --serif: 'EB Garamond', Georgia, serif;
     --mono: 'Consolas', 'DejaVu Sans Mono', monospace;
   }
@@ -120,8 +120,8 @@
   .ev-agent-directive { cursor: pointer; }
 
   .ev-subagent-work {
-    padding: 0.15em 0.5em; font-size: 0.8em; color: var(--ai);
-    border-left: 3px solid rgba(107,76,154,0.3); margin: 0.1em 0 0.1em 1.5em;
+    padding: 0.2em 0.6em; font-size: 0.85em; color: var(--ai);
+    border-left: 3px solid rgba(107,76,154,0.3); margin: 0.15em 0 0.15em 1.5em;
     cursor: pointer;
   }
   .ev-subagent-work:hover { background: rgba(0,0,0,0.02); }
@@ -153,6 +153,12 @@
   }
   .ev-commit.expanded .cm { -webkit-line-clamp: unset; overflow: visible; }
   .ev-commit .commit-body { color: var(--muted); font-size: 0.9em; white-space: pre-wrap; margin-top: 0.1em; }
+  .ev-commit .commit-docs { margin-top: 0.15em; }
+  .ev-commit .doc-link {
+    display: inline-block; font-size: 0.85em; color: var(--accent);
+    text-decoration: none; margin-right: 0.5em;
+  }
+  .ev-commit .doc-link:hover { text-decoration: underline; }
   .ev-commit { cursor: pointer; }
   .ev-commit .ct { color: var(--muted); min-width: 6ch; }
   .ev-commit .ch { color: var(--commit); font-weight: 600; }
@@ -190,7 +196,7 @@
   }
   .tag-correction { background: rgba(180,50,50,0.12); color: var(--correction); }
   .tag-directive { background: rgba(42,122,90,0.1); color: var(--directive); }
-  .tag-question { background: rgba(122,90,199,0.1); color: var(--question); }
+  .tag-question { background: rgba(42,85,153,0.1); color: var(--question); }
   .tag-ai { background: rgba(107,76,154,0.1); color: var(--session); }
 
   /* Commit groups */
@@ -228,6 +234,8 @@
   .fbtn[data-f="lore"].on { background: rgba(139,105,20,0.08); }
   .fbtn[data-f="watchdog"] { border-color: var(--light); color: var(--light); }
   .fbtn[data-f="watchdog"].on { background: rgba(170,170,170,0.08); }
+  .fbtn[data-f="docs"] { border-color: var(--accent); color: var(--accent); }
+  .fbtn[data-f="docs"].on { background: rgba(107,44,44,0.08); }
 
   /* --- Right search --- */
   .search-panel {
@@ -282,6 +290,7 @@
       <button class="fbtn" data-f="watchdog">Watchdog</button>
         <button class="fbtn on" data-f="commit">Commits</button>
         <button class="fbtn on" data-f="lore">LORE</button>
+      <button class="fbtn on" data-f="docs">Docs</button>
       </div>
     </div>
     <div class="main-body" id="main-body">
@@ -297,7 +306,7 @@
   </div>
 </div>
 <script>
-let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,lore:true};
+let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,lore:true,docs:true};
 
 async function init() {
   // Load timeline data
@@ -488,8 +497,12 @@ function renderCommit(c){
     const firstLine = bodyClean.split('\n')[0].trim();
     if (firstLine === (c.subject||'').trim()) bodyClean = bodyClean.split('\n').slice(1).join('\n').trim();
   }
+  const docs = SHOW.docs && c.docs ? c.docs.filter(d => !d.startsWith('_') && d !== 'README.md' && d !== 'REFLECTIONS.md') : [];
+  const docLinks = docs.length ? `<div class="commit-docs">${docs.map(d =>
+    `<a class="doc-link" href="https://github.com/davidbau/menace/blob/${c.hash?.slice(0,12)}/${d}" target="_blank" onclick="event.stopPropagation()">📄 ${d}</a>`
+  ).join('')}</div>` : '';
   return`<div class="ev ev-commit" id="${id}" onclick="this.classList.toggle('expanded')">
-    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}</span>
+    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}${docLinks}</span>
   </div>`;
 }
 
