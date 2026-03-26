@@ -218,6 +218,21 @@ For the full narratives of how these lessons were discovered, see the
 ## 2026-03-19 - live level identity is a state invariant, not an `align_shift()` heuristic
 
 - C gameplay code always has authoritative current level coordinates in `u.uz`.
+
+## 2026-03-26 - remove stray JS-only `^moveamt[...]` instrumentation before `033` dochug triage
+
+- Current `main` was still emitting `^moveamt[...]` from `u_calc_moveamt()` in
+  [js/allmain.js](/tmp/mazes-eval/js/allmain.js), even though that entry is not
+  part of the canonical C-grounded session surface.
+- In `seed033_manual_direct`, that extra raw entry appeared before the real
+  gameplay seam and made `rng_step_diff` look like the first problem was hero
+  movement accounting rather than the actual `dochug`/post-turn ordering issue.
+- Removing the JS-only `^moveamt[...]` emission:
+  - does not move the authoritative first divergence in `seed033_manual_direct`
+    (still step `470`),
+  - does not change `seed032_manual_direct`,
+  - and makes raw drilldown point at the real `dochug`-family mismatch instead
+    of instrumentation noise.
 - If live JS gameplay reaches level-sensitive code with all of these missing:
   - `player.uz`
   - `map.uz`
