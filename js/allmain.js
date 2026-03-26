@@ -1767,7 +1767,7 @@ export class NetHackGame {
 
         // Check for saved game before RNG init.
         // Prefer manual save; fall back to autosave (crash recovery).
-        const saveData = loadSave() || await nhload(() => loadAutosave());
+        const saveData = loadSave() || await nhload(async () => await loadAutosave());
         if (saveData) {
             const restored = await _restoreFromSave(this, saveData, urlOpts);
             if (restored) return;

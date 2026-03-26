@@ -2611,19 +2611,19 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
 }
 
 // C ref: invent.c display_inventory()
-export function display_inventory(lets, want_reply, player = null, display = null, options = null) {
+export async function display_inventory(lets, want_reply, player = null, display = null, options = null) {
     const p = player || _gstate?.u || null;
-    return display_pickinv(lets, null, null, false, !!want_reply, null, p, display, options);
+    return await display_pickinv(lets, null, null, false, !!want_reply, null, p, display, options);
 }
 
 // C ref: invent.c dispinv_with_action()
-export function dispinv_with_action(lets, use_inuse_ordering, alt_label, game = null) {
+export async function dispinv_with_action(lets, use_inuse_ordering, alt_label, game = null) {
     const g = game || _gstate || null;
     const p = g?.player || _gstate?.u || null;
     const d = g?.display || _gstate?.display || null;
     const len = typeof lets === 'string' ? lets.length : 0;
     const menumode = (len !== 1) || !!g?.flags?.menu_requested;
-    const c = display_inventory(lets || '', menumode, p, d);
+    const c = await display_inventory(lets || '', menumode, p, d);
     if (c && c !== '\x1b') {
         // itemactions() is not fully ported yet; keep C-compatible return code.
         return ECMD_OK;
@@ -3230,8 +3230,8 @@ export function ckunpaid(otmp) {
 }
 
 // Autotranslated from invent.c:3005
-export function ddoinv(game = null) {
-  return dispinv_with_action('', false, null, game);
+export async function ddoinv(game = null) {
+  return await dispinv_with_action('', false, null, game);
 }
 
 // Autotranslated from invent.c:3455
@@ -3314,8 +3314,8 @@ export function addToMonsterInventory(mon, obj) {
 
 // cf. invent.c:1056 — addinv_core0(obj, other_obj, update_perm_invent)
 // Core inventory addition with merge logic. JS equivalent: addinv() above.
-export function addinv_core0(obj, player) {
-    return addinv(obj, player);
+export async function addinv_core0(obj, player) {
+    return await addinv(obj, player);
 }
 
 // cf. invent.c:1152 — addinv(obj) [C version]
@@ -3323,9 +3323,9 @@ export function addinv_core0(obj, player) {
 
 // cf. invent.c:1160 — addinv_before(obj, other_obj)
 // Add to inventory before a specific object. JS uses array-based inventory.
-export function addinv_before(obj, other_obj, player) {
+export async function addinv_before(obj, other_obj, player) {
     // JS inventory is array-based; position doesn't affect gameplay.
-    return addinv(obj, player);
+    return await addinv(obj, player);
 }
 
 // cf. invent.c:5008 — adjust_split()

@@ -765,8 +765,8 @@ export async function jump(magic, player, map, game) {
 }
 
 // cf. apply.c:1843 -- dojump: entry point for #jump command
-export function dojump(player, map, game) {
-    return jump(0, player, map, game);
+export async function dojump(player, map, game) {
+    return await jump(0, player, map, game);
 }
 
 // cf. apply.c:2163 -- tinnable
@@ -907,8 +907,8 @@ async function use_trap(obj, player, map, display, game) {
 
     game.occupation = {
         occtxt: `setting a ${obj.otyp === LAND_MINE ? 'land mine' : 'bear trap'}`,
-        fn() {
-            return set_trap(game, player, map, display);
+        async fn() {
+            return await set_trap(game, player, map, display);
         },
     };
     return { moved: false, tookTime: true };
@@ -1221,7 +1221,7 @@ export async function handleApply(player, map, display, game) {
                 if (!await wield_tool(player, display, selected, "dig")) {
                     return { moved: false, tookTime: false };
                 }
-                cmdq_add_ec(CQ_CANNED, (g) => handleApply(g.player, g.map, g.display, g));
+                cmdq_add_ec(CQ_CANNED, async (g) => await handleApply(g.player, g.map, g.display, g));
                 cmdq_add_key(CQ_CANNED, selected.invlet.charCodeAt(0));
                 return { moved: false, tookTime: true };
             }
@@ -1457,12 +1457,12 @@ export async function flip_coin() {
 }
 
 // Autotranslated from apply.c:1954
-export function get_valid_jump_position(x, y, map) {
-  return (isok(x, y) && (ACCESSIBLE(map.locations[x][y].typ) || Passes_walls) && is_valid_jump_pos(x, y, gj.jumping_is_magic, false));
+export async function get_valid_jump_position(x, y, map) {
+  return (isok(x, y) && (ACCESSIBLE(map.locations[x][y].typ) || Passes_walls) && await is_valid_jump_pos(x, y, gj.jumping_is_magic, false));
 }
 
 // Autotranslated from apply.c:1962
-export function display_jump_positions(on_off, player) {
+export async function display_jump_positions(on_off, player) {
   let x, y, dx, dy;
   if (on_off) {
     tmp_at(DISP_BEAM, cmap_to_glyph(S_goodpos));
@@ -1470,7 +1470,7 @@ export function display_jump_positions(on_off, player) {
       for (dy = -4; dy <= 4; dy++) {
         x = dx + player.x;
         y = dy + player.y;
-        if (get_valid_jump_position(x, y) && !u_at(player, x, y)) tmp_at(x, y);
+        if (await get_valid_jump_position(x, y) && !u_at(player, x, y)) tmp_at(x, y);
       }
     }
   }

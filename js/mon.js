@@ -2252,8 +2252,8 @@ export async function movemon(map, player, display, fov, game = null) {
                     continue;
             }
             // TODO: fightm() — Conflict not implemented
-            const rd = await withRngTag('dochug(monmove.js:847)', () =>
-                dochug(mon, map, player, display, fov, game));
+            const rd = await withRngTag('dochug(monmove.js:847)', async () =>
+                await dochug(mon, map, player, display, fov, game));
             if (game && game.occupation && !mon.dead && !rd) {
                 const attacks = (mon.data || mon.type)?.mattk || [];
                 const noAttacks = !attacks.some((a) => a && a.aatyp !== AT_NONE);

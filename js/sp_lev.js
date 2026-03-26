@@ -4976,7 +4976,7 @@ export async function region(opts_or_selection, type) {
 
     let createdRoom = null;
     if (irregular) createdRoom = addRegionIrregularRoom(norm.x1, norm.y1);
-    else createdRoom = addRegionRectRoom(norm.x1, norm.y1, norm.x2, norm.y2);
+    else createdRoom = await addRegionRectRoom(norm.x1, norm.y1, norm.x2, norm.y2);
 
     if (!createdRoom) return;
     const mapBeforeContents = levelState.map;
@@ -5836,8 +5836,8 @@ export async function create_altar(opts) {
     markSpLevTouched(pos.x, pos.y);
 }
 
-export function altar(opts) {
-    return create_altar(opts);
+export async function altar(opts) {
+    return await create_altar(opts);
 }
 
 /**
@@ -7275,17 +7275,17 @@ export function lspo_door(...args) { return door(...args); }
 export function lspo_stair(...args) { return stair(...args); }
 export function lspo_ladder(...args) { return ladder(...args); }
 export function lspo_grave(...args) { return grave(...args); }
-export function lspo_altar(...args) { return altar(...args); }
+export async function lspo_altar(...args) { return await altar(...args); }
 export async function lspo_map(...args) { return await map(...args); }
 export function lspo_feature(...args) { return feature(...args); }
-export function lspo_terrain(...args) { return terrain(...args); }
+export async function lspo_terrain(...args) { return await terrain(...args); }
 export function lspo_replace_terrain(...args) { return replace_terrain(...args); }
 export async function lspo_room(...args) { return await room(...args); }
-export function lspo_corridor(...args) { return corridor(...args); }
-export function lspo_random_corridors(...args) { return random_corridors(...args); }
+export async function lspo_corridor(...args) { return await corridor(...args); }
+export async function lspo_random_corridors(...args) { return await random_corridors(...args); }
 export function lspo_gold(...args) { return gold(...args); }
 export async function lspo_trap(...args) { return await trap(...args); }
-export function lspo_mazewalk(...args) { return mazewalk(...args); }
+export async function lspo_mazewalk(...args) { return await mazewalk(...args); }
 export function lspo_drawbridge(...args) { return drawbridge(...args); }
 export async function lspo_region(...args) { return await region(...args); }
 export function lspo_levregion(...args) { return levregion(...args); }
@@ -8767,7 +8767,7 @@ export function l_selection_getbounds(sel) { return sel?.bounds ? sel.bounds() :
 export function l_selection_size_description(sel) { return sel?.size_description ? sel.size_description() : 'empty'; }
 export async function l_selection_iterate(sel, fn) { if (sel?.iterate) await sel.iterate(fn); return sel; }
 export function l_selection_rndcoord(sel, rm = false) { return selection.rndcoord(sel, rm); }
-export function l_selection_room() { return selection.room(); }
+export async function l_selection_room() { return await selection.room(); }
 export function l_selection_area(x1, y1, x2, y2) { return selection.area(x1, y1, x2, y2); }
 export function l_selection_line(x1, y1, x2, y2) { return selection.line(x1, y1, x2, y2); }
 export function l_selection_randline(...args) { return selection.randline(...args); }

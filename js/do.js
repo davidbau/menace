@@ -1147,8 +1147,8 @@ export async function handleDropTypes(player, map, display) {
 }
 
 // C ref: do.c:924 doddrop() — drop by category selection.
-export function doddrop(player, map, display) {
-    return handleDropTypes(player, map, display);
+export async function doddrop(player, map, display) {
+    return await handleDropTypes(player, map, display);
 }
 
 
@@ -1222,8 +1222,8 @@ export async function handleDownstairs(player, map, display, game) {
 }
 
 // C ref: do.c:1131 dodown() — descend stairs.
-export function dodown(player, map, display, game) {
-    return handleDownstairs(player, map, display, game);
+export async function dodown(player, map, display, game) {
+    return await handleDownstairs(player, map, display, game);
 }
 
 // Handle going upstairs
@@ -1279,8 +1279,8 @@ export async function handleUpstairs(player, map, display, game) {
 }
 
 // C ref: do.c:1298 doup() — ascend stairs.
-export function doup(player, map, display, game) {
-    return handleUpstairs(player, map, display, game);
+export async function doup(player, map, display, game) {
+    return await handleUpstairs(player, map, display, game);
 }
 
 async function markCurrentStairTraversed(map, x, y) {
@@ -1944,13 +1944,13 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
 }
 
 // C ref: do.c:1479 goto_level() — level transition core.
-export function goto_level(game, depth, transitionDir = null, opts = {}) {
-    return changeLevel(game, depth, transitionDir, opts);
+export async function goto_level(game, depth, transitionDir = null, opts = {}) {
+    return await changeLevel(game, depth, transitionDir, opts);
 }
 
 // C ref: do.c:981 menu_drop() — menu-driven drop operation.
-export function menu_drop(player, map, display) {
-    return handleDropTypes(player, map, display);
+export async function menu_drop(player, map, display) {
+    return await handleDropTypes(player, map, display);
 }
 
 // C ref: do.c:1412 u_collide_m() — resolve hero arrival collisions.

@@ -44,6 +44,7 @@ const ROOT = process.cwd();
 const SUPPRESSED_UNAWAITED = new Map([
     ['queueRepeatExtcmd', 'intentional: queues command for later async execution'],
     ['_runAutosave', 'intentional: fire-and-forget background save'],
+    ['observeObject', 'intentional: fire-and-forget in sync display path (newsym→map_object)'],
 ]);
 
 // Method names that are NEVER our async functions (builtin prototypes).

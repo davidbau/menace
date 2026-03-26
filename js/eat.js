@@ -663,7 +663,7 @@ export async function choke(food, player) {
                 setKillerName("very rich meal");
             } else {
                 setKillerFormat(KILLED_BY);
-                setKillerName(food_xname(food, true));
+                setKillerName(await food_xname(food, true));
             }
         } else {
             await You("choke over it.");

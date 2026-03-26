@@ -711,7 +711,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
         // a fresh object id via next_ident() (consumes rnd(2)).
         if (splittingStack) projectile.o_id = next_ident();
         m_useup(mon, otmp);
-        const result = m_throw_timed(
+        const result = await m_throw_timed(
             mon, mon.mx, mon.my, ddx, ddy, dm, projectile, map, player, display, game,
             { tethered_weapon, intendedTarget: mtarg, launcher: mwep }
         );
@@ -800,7 +800,7 @@ export async function m_throw_timed(
 
         const mtmp = map.monsterAt(x, y);
         if (mtmp && !mtmp.dead) {
-            const impact = ohitmon(
+            const impact = await ohitmon(
                 mtmp, weapon, range, true, map, player, display, game,
                 mon, intendedTarget, launcher
             );

@@ -1827,7 +1827,7 @@ async function containerMenu(game, container) {
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
-            const displayRows = buildContainerDisplayRows(visible, available, selected, player);
+            const displayRows = await buildContainerDisplayRows(visible, available, selected, player);
             overlayEndRow = Math.max(overlayEndRow, 1 + displayRows.length);
             // C tty menus overlay text onto the existing map/status display.
             // Re-rendering the map here re-consumes hallucination display RNG
@@ -2432,8 +2432,8 @@ async function do_loot_cont(cobj, cindex, ccount, player, map, game) {
 // Main #loot command handler. JS equivalent: handleLoot.
 // This is a C-named alias that delegates to handleLoot.
 // ---------------------------------------------------------------------------
-function doloot_core(game) {
-    return handleLoot(game);
+async function doloot_core(game) {
+    return await handleLoot(game);
 }
 
 // ---------------------------------------------------------------------------
@@ -2697,10 +2697,10 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
 // JS equivalent: doPutIn/doTakeOut in containerMenu.
 // This is a C-named wrapper; in JS the containerMenu handles both styles.
 // ---------------------------------------------------------------------------
-function traditional_loot(put_in, player, game) {
+async function traditional_loot(put_in, player, game) {
     // In JS, Traditional/Full menustyle distinction is not maintained.
     // Delegate to menu_loot which is the common path.
-    return menu_loot(0, put_in, player, game);
+    return await menu_loot(0, put_in, player, game);
 }
 
 // ---------------------------------------------------------------------------
@@ -2825,8 +2825,8 @@ async function menu_loot(retry, put_in, player, game) {
 // Main container interaction function. JS equivalent: containerMenu.
 // This is a C-named alias for the JS containerMenu function.
 // ---------------------------------------------------------------------------
-function use_container(game, container) {
-    return containerMenu(game, container);
+async function use_container(game, container) {
+    return await containerMenu(game, container);
 }
 
 export { handlePickup, handleLoot, handlePay, handleTogglePickup, fatal_corpse_mistake, force_decor, deferred_decor, describe_decor, check_here, n_or_more, menu_class_present, add_valid_menu_class, allow_category, allow_cat_no_uchain, check_autopickup_exceptions, autopick_testobj, carry_count, lift_object, pickup_object, pickup_prinv, encumber_msg, container_at, able_to_loot, do_boh_explosion, in_container, ck_bag, out_container, container_gone, explain_container_prompt, u_handsy, choose_tip_container_menu, dotip, tipcontainer, tipcontainer_gettarget, tipcontainer_checks, collect_obj_classes, count_unpaid, count_buc, simple_look, autopick, count_target_containers, reverse_loot, loot_mon, do_loot_cont, doloot_core, query_classes, query_category, query_objlist, traditional_loot, menu_loot, use_container };

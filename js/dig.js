@@ -1928,7 +1928,7 @@ export function unearth_you(player) {
 // cf. dig.c:2240-2270 — escape_tomb() [#if 0 in C]
 // Attempt to escape from being buried alive.
 // RNG: rn2(3) for teleport check.
-export function escape_tomb(map, player) {
+export async function escape_tomb(map, player) {
     if (!player) return;
 
     // C: if ((Teleportation || can_teleport(youmonst.data))
@@ -1954,7 +1954,7 @@ export function escape_tomb(map, player) {
             // "You ooze/phase/tunnel up through the ground."
             let good;
             if (can_tunnel) {
-                good = dighole(true, false, null, map, player);
+                good = await dighole(true, false, null, map, player);
             } else {
                 good = true;
             }

@@ -792,12 +792,12 @@ async function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_poly_trap_mon(mon, trap, player, fov, map, display) {
+async function trapeffect_poly_trap_mon(mon, trap, player, fov, map, display) {
     const in_sight = !!(canseemon(mon, player, fov) || mon === player?.usteed);
     if (resists_magm(mon)) {
         // C ref: shieldeff_mon(mtmp) — visual-only immunity feedback.
     } else if (!resist(mon, WAND_CLASS)) {
-        runtimeApplyNewchamRandom(
+        await runtimeApplyNewchamRandom(
             mon,
             player?.dungeonLevel || player?.depth || 1,
             map,
@@ -1049,7 +1049,7 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case ANTI_MAGIC:
         return await trapeffect_anti_magic_mon(mon, trap, map, player, fov);
     case POLY_TRAP:
-        return trapeffect_poly_trap_mon(mon, trap, player, fov, map, display);
+        return await trapeffect_poly_trap_mon(mon, trap, player, fov, map, display);
     case LANDMINE:
         return await trapeffect_landmine_mon(mon, trap, trflags, map, player);
     case ROLLING_BOULDER_TRAP:
@@ -1672,7 +1672,7 @@ export async function reward_untrap(ttmp, mtmp, game, player) {
 
 // Autotranslated from trap.c:5501
 export async function disarm_landmine(ttmp) {
-  let fails = try_disarm(ttmp, false);
+  let fails = await try_disarm(ttmp, false);
   if (fails < 2) return fails;
   await You("disarm %s land mine.", the_your[ttmp.madeby_u]);
   await cnv_trap_obj(LAND_MINE, 1, ttmp, false);
@@ -1694,7 +1694,7 @@ export async function disarm_squeaky_board(ttmp, player) {
   obj = await getobj("untrap with", unsqueak_ok, GETOBJ_PROMPT);
   if (!obj) return 0;
   bad_tool = (obj.cursed || ((obj.otyp !== POT_OIL || obj.lamplit) && (obj.otyp !== CAN_OF_GREASE || !obj.spe)));
-  fails = try_disarm(ttmp, bad_tool);
+  fails = await try_disarm(ttmp, bad_tool);
   if (fails < 2) return fails;
   if (obj.otyp === CAN_OF_GREASE) { consume_obj_charge(obj, true); }
   else { await useup(obj); await makeknown(POT_OIL); }
@@ -1708,7 +1708,7 @@ export async function disarm_squeaky_board(ttmp, player) {
 
 // Autotranslated from trap.c:5571
 export async function disarm_shooting_trap(ttmp, otyp) {
-  let fails = try_disarm(ttmp, false);
+  let fails = await try_disarm(ttmp, false);
   if (fails < 2) return fails;
   await You("disarm %s trap.", the_your[ttmp.madeby_u]);
   await cnv_trap_obj(otyp, 50 - rnl(50), ttmp, false);
@@ -3165,13 +3165,13 @@ export async function try_disarm(player, trap, game, map) {
 }
 
 // C ref: trap.c:5460
-export function disarm_holdingtrap(player, trap, game, map) {
-    return try_disarm(player, trap, game, map);
+export async function disarm_holdingtrap(player, trap, game, map) {
+    return await try_disarm(player, trap, game, map);
 }
 
 // C ref: trap.c:5584
-export function try_lift(player, trap, game, map) {
-    return try_disarm(player, trap, game, map);
+export async function try_lift(player, trap, game, map) {
+    return await try_disarm(player, trap, game, map);
 }
 
 // C ref: trap.c:5607

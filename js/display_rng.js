@@ -86,7 +86,7 @@ export function maybeObserveObjectForMap(obj, player, x, y) {
         // discoverObject (exercise/RNG) as a fire-and-forget Promise.
         // This matches C where observe_object is sync and the display
         // path (newsym → map_object) must remain sync.
-        observeObject(obj);
+        observeObject(obj); // intentional fire-and-forget
     }
 }
 
