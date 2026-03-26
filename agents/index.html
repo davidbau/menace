@@ -173,11 +173,6 @@
   .ev-commit .ch { color: var(--commit); font-weight: 600; }
   .ev-commit .cm { color: var(--text); }
 
-  .ev-lore {
-    padding: 0.3em 0.6em; border-radius: 4px; font-size: 0.9em;
-    background: rgba(139,105,20,0.06); border-left: 3px solid var(--lore); margin: 0.4em 0;
-    color: var(--lore);
-  }
 
   .ev.highlight {
     outline: 3px solid #e8c800;
@@ -261,8 +256,6 @@
   .fbtn[data-f="agent-directive"].on { background: rgba(107,76,154,0.08); }
   .fbtn[data-f="commit"] { border-color: var(--commit); color: var(--commit); }
   .fbtn[data-f="commit"].on { background: rgba(45,106,45,0.08); }
-  .fbtn[data-f="lore"] { border-color: var(--lore); color: var(--lore); }
-  .fbtn[data-f="lore"].on { background: rgba(139,105,20,0.08); }
   .fbtn[data-f="watchdog"] { border-color: var(--light); color: var(--light); }
   .fbtn[data-f="watchdog"].on { background: rgba(170,170,170,0.08); }
   .fbtn[data-f="doc"] { border-color: var(--accent); color: var(--accent); }
@@ -336,7 +329,7 @@
   </div>
 </div>
 <script>
-let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,lore:false,doc:true};
+let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,doc:true};
 
 async function init() {
   // Load timeline data
@@ -488,7 +481,6 @@ function renderEvents(evts){
     else if(e.type==='watchdog') out.push(renderWatchdog(e));
     else if(e.type==='subagent-work') out.push(renderSubagentWork(e));
     else if(e.type==='doc') out.push(renderDoc(e));
-    else if(e.type==='lore') out.push(renderLore(e));
   }
   flushCommits();
   return out.join('');
@@ -544,14 +536,6 @@ function renderDoc(e){
   return`<div class="ev ev-doc" id="${id}" onclick="this.classList.toggle('expanded')">
     <a class="doc-name" href="${url}" target="_blank" onclick="event.stopPropagation()">${esc(e.file)}</a>
     ${e.snippet ? `<div class="doc-snippet">${esc(e.snippet)}</div>` : ''}
-  </div>`;
-}
-
-function renderLore(e){
-  const id=stableId(e);
-  e._id=id;
-  return`<div class="ev ev-lore" id="${id}">
-    <span class="ev-time">LORE</span> ${esc(e.title)}
   </div>`;
 }
 
@@ -626,7 +610,6 @@ function doSearch(q){
     for(const e of(day.events||[])){
       let text=null;
       if((e.type==='human'||e.type==='agent-directive')&&test(e.text)) text=e.text;
-      else if(e.type==='lore'&&test(e.title)) text=e.title;
       else if(e.type==='commit'&&test(e.subject)) text=e.subject;
       else if(e.type==='doc'&&(test(e.file)||test(e.snippet))) text=e.file+': '+(e.snippet||'');
       else if(e.type==='ai-work'||e.type==='subagent-work'){
