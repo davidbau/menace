@@ -17137,10 +17137,36 @@ each cell. The per-step rng_step_diff (which replays in isolation) may show
 different behavior than the full session replay due to missing accumulated
 state.
 
+**Refined root cause: key stream offset from travel**. Detailed analysis of
+C's global RNG stream revealed:
+- C's step 459 (key="_") starts travel. Steps 460-469 have 0 RNG but the
+  cursor moves (player travels). Step 470 (key=".") has 167 entries with
+  10 monster turns and the accumulated domove processing.
+- JS's first divergence (index 4935) matches C at step 480 (key=" "),
+  not step 470. This means JS is 10 steps behind C in the key stream.
+- C consumed keys 460-469 via nhgetch during travel (for display/interruption
+  checks), creating 0-RNG step boundaries. JS processes travel internally
+  without consuming these keys.
+- At C step 479 (key="k"), the player moves onto an engraving showing
+  "Some text has been burned into the floor here.--More--". Step 480
+  (key=" ") dismisses the --More-- and includes `rnd(5) @
+  maybe_smudge_engr` + monster turns.
+- The key stream offset causes JS to process different keys at the same
+  global RNG position, producing the divergence.
+
+The travel key consumption pattern in C appears to be related to how C's
+session recording captures intermediate keys during travel (possibly via
+`delay_output()` timing or terminal buffer reads). The exact C mechanism for
+consuming these keys during travel needs further investigation.
+
+**umovement floor clamp** (committed): C clamps `u.umovement` to 0 after
+`u_calc_moveamt()` adds movement. JS was missing this clamp. Added to match
+C's `allmain.c:158-159`.
+
 Next steps for seed033:
-1. Add `^umovement[...]` event to RNG log in `u_calc_moveamt` to make the
-   movement allocation visible in session comparisons
-2. Compare C and JS umovement values at each moveloop_core iteration
-3. If umovement differs, trace back to find where the accumulation diverges
-4. Common suspects: speed bonus (rn2(3) for Fast/Very_fast), encumbrance
-   level (near_capacity), base form speed (mmove), or steed calculation
+1. Understand why C consumes nhgetch keys during travel that JS doesn't
+2. Check if C's travel loop has an explicit nhgetch for interruption
+   checking that JS's runMovementRepeatSlice lacks
+3. If the key offset is due to --More-- boundaries during travel
+   (engraving reads that trigger more()), the putstr_message fix may
+   resolve it — but requires removing compensating more() calls first
