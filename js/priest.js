@@ -439,7 +439,7 @@ export async function intemple(roomno, map, player, display, fov) {
         }
         if (!rn2(5)) {
             const depth = map.depth || 1;
-            const mtmp = await makemon(mons[PM_GHOST], player.x, player.y, MM_NOMSG, depth, map);
+            const mtmp = makemon(mons[PM_GHOST], player.x, player.y, MM_NOMSG, depth, map);
             if (mtmp) {
                 // C: ngen = mvitals[PM_GHOST].born — we approximate
                 const ngen = (map.mvitals && map.mvitals[PM_GHOST])
@@ -613,7 +613,7 @@ export async function mk_roamer(ptr, alignment, x, y, peaceful, depth, map, play
         if (existing) await rloc(existing, RLOC_NOMSG, map, player);
     }
 
-    const roamer = await makemon(ptr, x, y, MM_ADJACENTOK | MM_EMIN | MM_NOMSG, depth, map);
+    const roamer = makemon(ptr, x, y, MM_ADJACENTOK | MM_EMIN | MM_NOMSG, depth, map);
     if (!roamer) return null;
 
     newemin(roamer);

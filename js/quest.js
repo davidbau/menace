@@ -328,7 +328,7 @@ export async function artitouch(obj, game) {
 
 // cf. quest.c:140 — ok_to_quest(): quest dungeon entry eligibility
 // Returns true if player is allowed to enter quest dungeon.
-export function ok_to_quest(game) {
+export async function ok_to_quest(game) {
   const qs = Qstat(game || {});
   return (((qs.got_quest || qs.got_thanks) && is_pure(false) > 0) || qs.killed_leader);
 }
@@ -343,7 +343,7 @@ export async function finish_quest(obj, game) {
     if (obj && !is_quest_artifact(obj)) {
         // Tossed an invocation item (or [fake] AoY) at the quest leader
         if (player.deaf) return;
-        await fully_identify_obj(obj);
+        fully_identify_obj(obj);
         if (obj.otyp === AMULET_OF_YENDOR) {
             await qt_pager("hasamulet", game);
         } else if (obj.otyp === FAKE_AMULET_OF_YENDOR) {
@@ -361,7 +361,7 @@ export async function finish_quest(obj, game) {
         // Leader IDs the real amulet but ignores fakes
         const otmp = carrying(AMULET_OF_YENDOR, player);
         if (otmp) {
-            await fully_identify_obj(otmp);
+            fully_identify_obj(otmp);
             update_inventory(player);
         }
     } else {
@@ -376,7 +376,7 @@ export async function finish_quest(obj, game) {
     if (obj) {
         if (!player.uevent) player.uevent = {};
         player.uevent.qcompleted = 1; // you did it!
-        await fully_identify_obj(obj);
+        fully_identify_obj(obj);
         update_inventory(player);
     }
 }

@@ -279,7 +279,7 @@ export function newebones(mtmp) {
 
 // Full bones save pipeline on player death.
 // C ref: bones.c:399
-export async function savebones(game) {
+export function savebones(game) {
     const { u: player, map } = game;
     if (!map) return;
     const depth = player.dungeonLevel;
@@ -300,8 +300,8 @@ export async function savebones(game) {
     // C ref: bones.c:464 — remove_mon_from_bones
     remove_mon_from_bones(map);
 
-    // C ref: bones.c:497 — await makemon(&mons[PM_GHOST], u.ux, u.uy, MM_NONAME)
-    const ghost = await makemon(PM_GHOST, player.x, player.y, MM_NONAME, depth, map);
+    // C ref: bones.c:497 — makemon(&mons[PM_GHOST], u.ux, u.uy, MM_NONAME)
+    const ghost = makemon(PM_GHOST, player.x, player.y, MM_NONAME, depth, map);
     if (ghost) {
         // C ref: bones.c:499-504 — override ghost stats with player-based values
         ghost.name = 'Ghost of ' + sanitize_name(player.name);

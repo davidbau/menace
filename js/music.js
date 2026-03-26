@@ -226,7 +226,7 @@ export function charm_monsters(distance, map, player) {
 // ============================================================================
 
 async function do_pit(x, y, tu_pit, map, player, fov) {
-    const chasm = await maketrap(map, x, y, PIT);
+    const chasm = maketrap(map, x, y, PIT);
     if (!chasm) return; // no pit if portal at that location
     chasm.tseen = 1;
 
@@ -757,9 +757,9 @@ export async function do_play_instrument(instr, player, map, display, fov) {
                         // record_achievement(ACH_TUNE) — stub
                         const dloc = map.at(result.x || x, result.y || y);
                         if (dloc && dloc.typ === DRAWBRIDGE_DOWN)
-                            await close_drawbridge(result.x || x, result.y || y, map, player);
+                            close_drawbridge(result.x || x, result.y || y, map, player);
                         else
-                            await open_drawbridge(result.x || x, result.y || y, map, player);
+                            open_drawbridge(result.x || x, result.y || y, map, player);
                         return 1; // ECMD_TIME
                     }
                 }

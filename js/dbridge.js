@@ -327,7 +327,7 @@ function e_jumps(etmp) {
 }
 
 // cf. dbridge.c:401 — e_died: entity dies from drawbridge
-async function e_died(etmp, xkill_flags, how, map) {
+function e_died(etmp, xkill_flags, how, map) {
     if (is_u(etmp)) {
         // Hero death from drawbridge — simplified
         // Full implementation would call done(how)
@@ -335,14 +335,14 @@ async function e_died(etmp, xkill_flags, how, map) {
     }
     // Monster death
     if (etmp.emon && etmp.emon.mhp > 0) {
-        await mondead(etmp.emon, map);
+        mondead(etmp.emon, map);
         etmp.edata = null;
     }
 }
 
 // cf. dbridge.c:531 — do_entity: handle entity during drawbridge state change
 // RNG: calls e_missed (rnd(8)) and e_jumps (rnd(10))
-async function do_entity(etmp, occupants, map, player) {
+function do_entity(etmp, occupants, map, player) {
     if (!etmp.edata) return;
 
     const oldx = etmp.ex;
@@ -367,7 +367,7 @@ async function do_entity(etmp, occupants, map, player) {
     } else {
         if (loc && loc.typ === DRAWBRIDGE_DOWN) {
             // Crushed underneath — no jump possible
-            await e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);
+            e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);
             return;
         }
         must_jump = true;
@@ -378,7 +378,7 @@ async function do_entity(etmp, occupants, map, player) {
             if (e_jumps(etmp)) {
                 relocates = true;
             } else {
-                await e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);
+                e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);
                 return;
             }
         } else {
@@ -400,7 +400,7 @@ async function do_entity(etmp, occupants, map, player) {
         if (e_survives_at(other, newx, newy, map) && automiss(other)) {
             relocates = false;
         } else {
-            await do_entity(other, occupants, map, player);
+            do_entity(other, occupants, map, player);
             if (e_at(oldx, oldy, occupants) !== etmp) return;
         }
     }
@@ -425,7 +425,7 @@ async function do_entity(etmp, occupants, map, player) {
 
     // Check survival at final position
     if (!e_survives_at(etmp, etmp.ex, etmp.ey, map)) {
-        await e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE,
+        e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE,
                is_pool(etmp.ex, etmp.ey, map) ? DROWNING
                : is_lava(etmp.ex, etmp.ey, map) ? BURNING
                : CRUSHING, map);
@@ -443,7 +443,7 @@ function nokiller(occupants) {
 // ============================================================================
 
 // cf. dbridge.c:752 — close_drawbridge(x, y): close drawbridge
-export async function close_drawbridge(x, y, map, player) {
+export function close_drawbridge(x, y, map, player) {
     const loc = map.at(x, y);
     if (!loc || loc.typ !== DRAWBRIDGE_DOWN) return;
     const wall = get_wall_for_db(x, y, map);
@@ -466,9 +466,9 @@ export async function close_drawbridge(x, y, map, player) {
     const occupants = [{}, {}];
     set_entity(x, y, occupants[0], map, player);
     set_entity(wall.x, wall.y, occupants[1], map, player);
-    await do_entity(occupants[0], occupants, map, player);
+    do_entity(occupants[0], occupants, map, player);
     set_entity(wall.x, wall.y, occupants[1], map, player);
-    await do_entity(occupants[1], occupants, map, player);
+    do_entity(occupants[1], occupants, map, player);
 
     // Clean up traps and objects on bridge/wall squares
     const t1 = map.trapAt(x, y);
@@ -483,7 +483,7 @@ export async function close_drawbridge(x, y, map, player) {
 }
 
 // cf. dbridge.c:817 — open_drawbridge(x, y): open drawbridge
-export async function open_drawbridge(x, y, map, player) {
+export function open_drawbridge(x, y, map, player) {
     const loc = map.at(x, y);
     if (!loc || loc.typ !== DRAWBRIDGE_UP) return;
     const wall = get_wall_for_db(x, y, map);
@@ -499,9 +499,9 @@ export async function open_drawbridge(x, y, map, player) {
     const occupants = [{}, {}];
     set_entity(x, y, occupants[0], map, player);
     set_entity(wall.x, wall.y, occupants[1], map, player);
-    await do_entity(occupants[0], occupants, map, player);
+    do_entity(occupants[0], occupants, map, player);
     set_entity(wall.x, wall.y, occupants[1], map, player);
-    await do_entity(occupants[1], occupants, map, player);
+    do_entity(occupants[1], occupants, map, player);
 
     // Clean up traps
     const t1 = map.trapAt(x, y);
@@ -517,7 +517,7 @@ export async function open_drawbridge(x, y, map, player) {
 
 // cf. dbridge.c:865 — destroy_drawbridge(x, y): demolish drawbridge
 // RNG: rn2(6) for debris count, rn2(2) for debris x/y placement
-export async function destroy_drawbridge(x, y, map, player) {
+export function destroy_drawbridge(x, y, map, player) {
     const loc = map.at(x, y);
     if (!loc || !IS_DRAWBRIDGE(loc.typ)) return;
     const wall = get_wall_for_db(x, y, map);
@@ -561,7 +561,7 @@ export async function destroy_drawbridge(x, y, map, player) {
     set_entity(wall.x, wall.y, occupants[1], map, player);
     if (occupants[1].edata) {
         if (!automiss(occupants[1])) {
-            await e_died(occupants[1], XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);
+            e_died(occupants[1], XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);
         }
     }
     set_entity(x, y, occupants[0], map, player);
@@ -569,10 +569,10 @@ export async function destroy_drawbridge(x, y, map, player) {
         if (e_missed(occupants[0], true, map)) {
             // Spared — but may fall into liquid
         } else {
-            await e_died(occupants[0], XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);
+            e_died(occupants[0], XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);
             if (map.at(occupants[0].ex, occupants[0].ey) &&
                 map.at(occupants[0].ex, occupants[0].ey).typ === MOAT) {
-                await do_entity(occupants[0], occupants, map, player);
+                do_entity(occupants[0], occupants, map, player);
             }
         }
     }

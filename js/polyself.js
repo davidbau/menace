@@ -886,7 +886,7 @@ export async function newman(player) {
 
     // encumber_msg, retouch_equipment, selftouch
     await encumber_msg(player);
-    await retouch_equipment(2, player);
+    retouch_equipment(2, player);
     if (!player.gloves) {
         selftouch("No longer petrify-resistant, you", player);
     }
@@ -1313,7 +1313,7 @@ export async function polymon(player, mntmp, map) {
 
     // Encumbrance, retouch equipment, selftouch
     await encumber_msg(player);
-    await retouch_equipment(2, player);
+    retouch_equipment(2, player);
     if (!player.gloves) {
         selftouch("No longer petrify-resistant, you", player);
     }
@@ -1406,7 +1406,7 @@ export async function rehumanize(player) {
         }
     }
 
-    await retouch_equipment(2, player);
+    retouch_equipment(2, player);
     if (!player.gloves) {
         selftouch("No longer petrify-resistant, you", player);
     }
@@ -1445,7 +1445,7 @@ export async function break_armor(player) {
             await You("break out of your armor!");
             await exercise(player, A_STR, false);
             Armor_gone(player);
-            await useup(player.armor);
+            useup(player.armor);
             player.armor = null;
         }
         if (player.cloak) {
@@ -1455,7 +1455,7 @@ export async function break_armor(player) {
         }
         if (player.shirt) {
             await Your("shirt rips to shreds!");
-            await useup(player.shirt);
+            useup(player.shirt);
             player.shirt = null;
         }
     } else if (sliparm(uptr)) {
@@ -1801,7 +1801,7 @@ export async function dospinweb(player, map) {
 
     // Create a web trap
     if (map.maketrap) {
-        const newTrap = await map.maketrap(x, y, WEB);
+        const newTrap = map.maketrap(x, y, WEB);
         if (newTrap) {
             newTrap.madeby_u = 1;
         }

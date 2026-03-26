@@ -461,7 +461,7 @@ export async function trycall(obj) {
     await docall(obj);
     // Keep discovery bookkeeping in sync with legacy observe path.
     if (typeof observeObject === 'function') {
-        await observeObject(obj);
+        observeObject(obj);
     }
 }
 
@@ -1147,7 +1147,7 @@ export async function handleDropTypes(player, map, display) {
 }
 
 // C ref: do.c:924 doddrop() — drop by category selection.
-export function doddrop(player, map, display) {
+export async function doddrop(player, map, display) {
     return handleDropTypes(player, map, display);
 }
 
@@ -1222,7 +1222,7 @@ export async function handleDownstairs(player, map, display, game) {
 }
 
 // C ref: do.c:1131 dodown() — descend stairs.
-export function dodown(player, map, display, game) {
+export async function dodown(player, map, display, game) {
     return handleDownstairs(player, map, display, game);
 }
 
@@ -1279,7 +1279,7 @@ export async function handleUpstairs(player, map, display, game) {
 }
 
 // C ref: do.c:1298 doup() — ascend stairs.
-export function doup(player, map, display, game) {
+export async function doup(player, map, display, game) {
     return handleUpstairs(player, map, display, game);
 }
 
@@ -1361,7 +1361,7 @@ export async function deferred_goto(player, game) {
         const newMap = game?.map || game?.lev;
         const objs = newMap?.objectsAt ? newMap.objectsAt(player.x, player.y) : [];
         if (arrivalMsg && objs.length === 1) {
-            await observeObject(objs[0]);
+            observeObject(objs[0]);
             await pline(`${arrivalMsg}  You see here ${describeGroundObjectForPlayer(objs[0], player, newMap)}.`);
         } else {
             if (arrivalMsg) {
@@ -1379,7 +1379,7 @@ export async function deferred_goto(player, game) {
                 if (dfeature) {
                     await pline(`There is ${an(dfeature)} here.`);
                 }
-                await observeObject(objs[0]);
+                observeObject(objs[0]);
                 await pline(`You see here ${describeGroundObjectForPlayer(objs[0], player, newMap)}.`);
             } else {
                 // C path for plain floor presence after arrival does not pass picked_some.
@@ -1847,7 +1847,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
             // TODO: implement restore_cham for full parity.
             // C ref: restore.c:1211-1212 — give hiders a chance to hide.
             if (elapsed > 0 && elapsed > rnd(10)) {
-                await hide_monst(mtmp, nextMap);
+                hide_monst(mtmp, nextMap);
             }
         }
     }
@@ -1944,12 +1944,12 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
 }
 
 // C ref: do.c:1479 goto_level() — level transition core.
-export function goto_level(game, depth, transitionDir = null, opts = {}) {
+export async function goto_level(game, depth, transitionDir = null, opts = {}) {
     return changeLevel(game, depth, transitionDir, opts);
 }
 
 // C ref: do.c:981 menu_drop() — menu-driven drop operation.
-export function menu_drop(player, map, display) {
+export async function menu_drop(player, map, display) {
     return handleDropTypes(player, map, display);
 }
 

@@ -779,7 +779,7 @@ export function optfn_role(optidx, req, negated, opts, op, game) {
 }
 
 // Autotranslated from options.c:3963
-export function optfn_sortvanquished(optidx, req, negated, opts, op, game) {
+export async function optfn_sortvanquished(optidx, req, negated, opts, op, game) {
   let vanqorders, vanqmodes = "tdaACcnz", optname = allopt[optidx].name;
   if (req === do_init) { game.flags.vanq_sortmode = VANQ_MLVL_MNDX; return optn_ok; }
   if (req === do_set) {
@@ -810,7 +810,7 @@ export function optfn_sortvanquished(optidx, req, negated, opts, op, game) {
   if (req === do_handler) {
     let prev_sortmode = game.flags.vanq_sortmode;
     set_vanq_order(true);
-    pline("'%s' %s \"%s: %s\".", optname, (game.flags.vanq_sortmode === prev_sortmode) ? "not changed, still" : "changed to", vanqorders[game.flags.vanq_sortmode][0], vanqorders[game.flags.vanq_sortmode][1]);
+    await pline("'%s' %s \"%s: %s\".", optname, (game.flags.vanq_sortmode === prev_sortmode) ? "not changed, still" : "changed to", vanqorders[game.flags.vanq_sortmode][0], vanqorders[game.flags.vanq_sortmode][1]);
   }
   return optn_ok;
 }
@@ -904,8 +904,8 @@ export function complain_about_duplicate(optidx) {
 }
 
 // Autotranslated from options.c:6796
-export function rejectoption(optname) {
-  pline("%s can be set only from NETHACKOPTIONS or %s.", optname, get_configfile());
+export async function rejectoption(optname) {
+  await pline("%s can be set only from NETHACKOPTIONS or %s.", optname, get_configfile());
 }
 
 // Autotranslated from options.c:6832
@@ -1072,8 +1072,8 @@ export function msgtype_parse_add(str) {
 }
 
 // Autotranslated from options.c:8094
-export function add_menu_cmd_alias(from_ch, to_ch, game) {
-  if (game.gn.n_menu_mapped >= MAX_MENU_MAPPED_CMDS) { pline("out of menu map space."); }
+export async function add_menu_cmd_alias(from_ch, to_ch, game) {
+  if (game.gn.n_menu_mapped >= MAX_MENU_MAPPED_CMDS) { await pline("out of menu map space."); }
   else {
     game.mapped_menu_cmds = from_ch;
     game.mapped_menu_op = to_ch;
@@ -1101,7 +1101,7 @@ export function map_menu_cmd(ch, game) {
 }
 
 // Autotranslated from options.c:8316
-export function optfn_o_autopickup_exceptions(optidx, req, negated, opts, op) {
+export async function optfn_o_autopickup_exceptions(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) {
   }
@@ -1143,7 +1143,7 @@ export function optfn_o_autocomplete(optidx, req, negated, opts, op) {
 }
 
 // Autotranslated from options.c:8382
-export function optfn_o_menu_colors(optidx, req, negated, opts, op) {
+export async function optfn_o_menu_colors(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) {
   }
@@ -1157,7 +1157,7 @@ export function optfn_o_menu_colors(optidx, req, negated, opts, op) {
 }
 
 // Autotranslated from options.c:8403
-export function optfn_o_message_types(optidx, req, negated, opts, op) {
+export async function optfn_o_message_types(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) {
   }

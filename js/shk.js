@@ -1732,7 +1732,7 @@ export async function dopay(game) {
     if (!shkp) return 0;
     const robbed = Number(shkp.robbed || 0);
     if (robbed || Number(ESHK(shkp)?.billct || 0) || Number(ESHK(shkp)?.debit || 0)) {
-        await rouse_shk(shkp, true);
+        rouse_shk(shkp, true);
     }
     if (monHelpless(shkp)) {
         await pline("%s %s.", Shknam(shkp), rn2(2) ? "seems to be napping" : "doesn't respond");
@@ -2964,7 +2964,7 @@ export function shkcatch(obj, x, y, map) {
 // ============================================================
 
 // C ref: shk.c globby_bill_fixup()
-export async function globby_bill_fixup(obj_absorber, obj_absorbed) {
+export function globby_bill_fixup(obj_absorber, obj_absorbed) {
     if (!obj_absorber || !obj_absorbed) return;
     const map = _gstate?.map;
     const x = Number(obj_absorber.ox ?? obj_absorbed.ox);
@@ -2978,7 +2978,7 @@ export async function globby_bill_fixup(obj_absorber, obj_absorbed) {
         sub_one_frombill(obj_absorbed, shkp);
     } else if (bpAbsorbed && !bpAbsorber) {
         obj_absorber.unpaid = 1;
-        await addtobill(obj_absorber, false, false, true);
+        addtobill(obj_absorber, false, false, true);
         const bpNew = onbill(obj_absorber, shkp, true);
         if (bpNew) bpNew.price = Number(bpNew.price || 0) + Number(bpAbsorbed.price || 0);
         sub_one_frombill(obj_absorbed, shkp);
@@ -3074,18 +3074,18 @@ export async function call_kops(shkp, nearshop, game, player) {
     if (game.flags.verbose) await pline_The("Keystone Kops appear!");
     mm.x = player.x;
     mm.y = player.y;
-    await makekops( mm, game, _gstate?.map, player);
+    makekops( mm, game, _gstate?.map, player);
     return;
   }
   if (game.flags.verbose) await pline_The("Keystone Kops are after you!");
   if (isok(sx, sy)) {
     mm.x = sx;
     mm.y = sy;
-    await makekops( mm, game, _gstate?.map, player);
+    makekops( mm, game, _gstate?.map, player);
   }
   mm.x = shkp.mx;
   mm.y = shkp.my;
-  await makekops( mm, game, _gstate?.map, player);
+  makekops( mm, game, _gstate?.map, player);
 }
 
 function kops_gone(silent) {
@@ -3548,7 +3548,7 @@ function litter_scatter(litter, x, y, _shkp) {
 }
 
 // Autotranslated from shk.c:5047
-export async function makekops(mm, game, map, player) {
+export function makekops(mm, game, map, player) {
   let k_mndx = [ PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN ];
   let k_cnt = [], cnt, mndx, k;
   k_cnt[0] = cnt = Math.abs(depth(map.uz)) + rnd(5);
@@ -3565,7 +3565,7 @@ export async function makekops(mm, game, map, player) {
     }
     while (cnt--) {
       if (enexto(mm, mm.x, mm.y, mons[mndx], map, player)) {
-        await makemon(mons[mndx], mm.x, mm.y, MM_NOMSG, depth(map.uz), map);
+        makemon(mons[mndx], mm.x, mm.y, MM_NOMSG, depth(map.uz), map);
       }
     }
   }

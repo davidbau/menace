@@ -1672,7 +1672,7 @@ export function see_objects() {
 // Mark the top floor object at each visible nearby cell as dknown=true.
 // Called from u_on_newpos() when the player moves (dungeon.js:u_on_newpos).
 // Matches C's logic: iterate r=2 range, cansee + distu <= neardist, observe_object.
-export async function see_nearby_objects() {
+export function see_nearby_objects() {
   const ctx = _gstate;
   const map = ctx?.map;
   const player = ctx?.player;
@@ -1695,7 +1695,7 @@ export async function see_nearby_objects() {
       const du = distu(player, ix, iy);
       if (!cs) continue;
       if (du > neardist) continue;
-      await observe_object(topObj);
+      observe_object(topObj);
       // C relies on vision_recalc's seenv-angle change triggering newsym() for newly-dknown
       // objects (display.c:1591: only call newsym_force if already showing a generic obj glyph).
       // JS vision_recalc only calls newsym on visibility CHANGE (not seenv-angle change), so
@@ -1719,8 +1719,8 @@ export function see_traps() {
 }
 
 // Autotranslated from display.c:1675
-export function curs_on_u() {
-  flush_screen(1);
+export async function curs_on_u() {
+  await flush_screen(1);
 }
 
 
@@ -1730,7 +1730,7 @@ function docrtRecalc(ctx) {
 }
 
 // Autotranslated from display.c:1704
-export function docrt_flags(recalc = null, ctxOrMap = null) {
+export async function docrt_flags(recalc = null, ctxOrMap = null) {
   const ctx = _resolveDisplayCtx(ctxOrMap);
   if (!ctx?.display || !ctx?.map) return;
   cosmic_display_push_owner('docrt_flags');
@@ -1745,8 +1745,8 @@ export function docrt_flags(recalc = null, ctxOrMap = null) {
 }
 
 // Autotranslated from display.c:1690
-export function docrt() {
-  docrt_flags(docrtRecalc);
+export async function docrt() {
+  await docrt_flags(docrtRecalc);
 }
 
 // Autotranslated from display.c:2207
