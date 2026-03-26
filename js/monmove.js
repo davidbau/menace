@@ -2744,7 +2744,7 @@ export async function maybe_spin_web(mtmp, map) {
     const nwebs = map && Array.isArray(map.traps) ? map.traps.filter(t => t && t.ttyp === WEB).length : 0;
     const prob = (((mtmp.mndx === PM_GIANT_SPIDER) ? 15 : 5) * (nwalls + 1)) - (3 * nwebs);
     if (rn2(1000) < prob) {
-        const trap = maketrap(map, mtmp.mx, mtmp.my, WEB);
+        const trap = await maketrap(map, mtmp.mx, mtmp.my, WEB);
         if (trap) {
             mtmp.mspec_used = c_d(4, 4); // C ref: monmove.c:1297 — C-style d(), not Lua d()
             // Display message (cansee/canspotmon stubs — skip for now)

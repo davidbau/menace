@@ -226,7 +226,7 @@ export function charm_monsters(distance, map, player) {
 // ============================================================================
 
 async function do_pit(x, y, tu_pit, map, player, fov) {
-    const chasm = maketrap(map, x, y, PIT);
+    const chasm = await maketrap(map, x, y, PIT);
     if (!chasm) return; // no pit if portal at that location
     chasm.tseen = 1;
 

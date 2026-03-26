@@ -671,7 +671,7 @@ export async function makeniche(map, depth, trap_type) {
             if (trap_type) {
                 let actual_trap = trap_type;
                 if (is_hole(actual_trap) && depth <= 1) actual_trap = ROCKTRAP;
-                const ttmp = maketrap(map, xx, yy + dy, actual_trap, depth);
+                const ttmp = await maketrap(map, xx, yy + dy, actual_trap, depth);
                 if (ttmp && actual_trap !== ROCKTRAP) {
                     ttmp.once = 1;
                 }

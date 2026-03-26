@@ -2645,7 +2645,7 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     // Group formation
     // C ref: makemon.c:1427-1435 — only for anymon (random monster)
     if (anymon && !(mmflags & MM_NOGRP)) {
-        const initgrp = (n) => {
+        const initgrp = async (n) => {
             const ulevel = getMakemonUlevel();
             let cnt = rnd(n);
             cnt = Math.floor(cnt / ((ulevel < 3) ? 4 : (ulevel < 5) ? 2 : 1));
@@ -2658,7 +2658,7 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
                 if (!cc) continue;
                 gx = cc.x;
                 gy = cc.y;
-                const mate = makemon(mndx, gx, gy, mmflags | MM_NOGRP, depth, map);
+                const mate = await makemon(mndx, gx, gy, mmflags | MM_NOGRP, depth, map);
                 if (mate) {
                     mate.mpeaceful = false;
                     mate.mavenge = 0;
@@ -2667,10 +2667,10 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         };
 
         if ((ptr.geno & G_SGROUP) && rn2(2)) {
-            initgrp(3);
+            await initgrp(3);
         } else if (ptr.geno & G_LGROUP) {
-            if (rn2(3)) initgrp(10);
-            else initgrp(3);
+            if (rn2(3)) await initgrp(10);
+            else await initgrp(3);
         }
     }
 
@@ -2738,9 +2738,9 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
 
 // Async wrapper for makemon — use when the appear message might fire
 // (i.e., outside mklev, monster visible to player, MM_NOMSG not set).
-// Callers in async functions should use this instead of raw makemon().
+// Callers in async functions should use this instead of raw await makemon().
 export async function makemon_appear(ptr_or_null, x, y, mmflags, depth, map) {
-    const mon = makemon(ptr_or_null, x, y, mmflags | MM_ASYNC, depth, map);
+    const mon = await makemon(ptr_or_null, x, y, mmflags | MM_ASYNC, depth, map);
     if (mon?._appearPromise) {
         await mon._appearPromise;
         delete mon._appearPromise;
@@ -2762,7 +2762,7 @@ export function wrong_elem_type(ptr, map) {
 }
 
 // Autotranslated from makemon.c:80
-export function m_initgrp(mtmp, x, y, n, mmflags, player) {
+export async function m_initgrp(mtmp, x, y, n, mmflags, player) {
   let mm = {x, y}, cnt = rnd(n), mon;
   cnt = Math.floor(cnt / ((player.ulevel < 3) ? 4 : (player.ulevel < 5) ? 2 : 1));
   if (!cnt) cnt++;
@@ -2771,7 +2771,7 @@ export function m_initgrp(mtmp, x, y, n, mmflags, player) {
       continue;
     }
     if (enexto_gpflags( mm, mm.x, mm.y, mtmp.data, mmflags)) {
-      mon = makemon(mtmp.data, mm.x, mm.y, (mmflags | MM_NOGRP));
+      mon = await makemon(mtmp.data, mm.x, mm.y, (mmflags | MM_NOGRP));
       if (mon) {
         mon.mpeaceful = false;
         mon.mavenge = 0;
@@ -2819,7 +2819,7 @@ export function unmakemon(mon, mmflags, game) {
 }
 
 // Autotranslated from makemon.c:1553
-export function create_critters(cnt, mptr, neverask, player) {
+export async function create_critters(cnt, mptr, neverask, player) {
   let c = {x: 0, y: 0}, x, y, mon, known = false, ask = (wizard && !neverask);
   while (cnt--) {
     if (ask) {
@@ -2830,7 +2830,7 @@ export function create_critters(cnt, mptr, neverask, player) {
     }
     x = player.x, y = player.y;
     if (!mptr && player.uinwater && enexto( c, x, y, mons[PM_GIANT_EEL])) x = c.x, y = c.y;
-    if ((mon = makemon(mptr, x, y, NO_MM_FLAGS)) == null) {
+    if ((mon = await makemon(mptr, x, y, NO_MM_FLAGS)) == null) {
       continue;
     }
     if ((canseemon(mon, player, null, player?.map || null) && (M_AP_TYPE(mon) === M_AP_NOTHING || M_AP_TYPE(mon) === M_AP_MONSTER))
@@ -2984,7 +2984,7 @@ export async function bagotricks(bag, tipping, seencount, player) {
       creatcnt += rnd(7);
     }
     do {
-      mtmp = makemon( 0, player.x, player.y, NO_MM_FLAGS);
+      mtmp = await makemon( 0, player.x, player.y, NO_MM_FLAGS);
       if (mtmp) {
         ++moncount;
         if ((canseemon(mtmp, player, null, player?.map || null) && (M_AP_TYPE(mtmp) === M_AP_NOTHING || M_AP_TYPE(mtmp) === M_AP_MONSTER))

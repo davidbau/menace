@@ -3709,7 +3709,7 @@ export function mkinvk_check_wall(map, x, y) {
 }
 
 // C ref: mklev.c mkinvpos()
-export function mkinvpos(map, x, y, dist, depth = 1) {
+export async function mkinvpos(map, x, y, dist, depth = 1) {
     if (!map || !isok(x, y)) return false;
 
     // Invocation area is clipped by maze-like bounds on both axes.
@@ -3723,7 +3723,7 @@ export function mkinvpos(map, x, y, dist, depth = 1) {
 
     // C: clear boulders and optionally fracture one into rocks.
     const makeRocks = (dist !== 1 && dist !== 4 && dist !== 5);
-    const boulders = map.objectsAt(x, y).filter(o => o.otyp === BOULDER);
+    const boulders = map.objectsAt(x, y).filterasync (o => o.otyp === BOULDER);
     let fractured = false;
     for (const b of boulders) {
         map.removeObject(b);
@@ -3770,14 +3770,14 @@ export function mkinvpos(map, x, y, dist, depth = 1) {
 }
 
 // C ref: mklev.c mkinvokearea()
-export function mkinvokearea(map, invPos, depth = 1) {
+export async function mkinvokearea(map, invPos, depth = 1) {
     if (!map) return false;
     const center = invPos || map.inv_pos || map._invPos || map.upstair;
     if (!center || !isok(center.x, center.y)) return false;
 
     let xmin = center.x, xmax = center.x;
     let ymin = center.y, ymax = center.y;
-    mkinvpos(map, xmin, ymin, 0, depth);
+    await mkinvpos(map, xmin, ymin, 0, depth);
 
     for (let dist = 1; dist < 7; dist++) {
         xmin--;
@@ -3786,13 +3786,13 @@ export function mkinvokearea(map, invPos, depth = 1) {
             ymin--;
             ymax++;
             for (let i = xmin + 1; i < xmax; i++) {
-                mkinvpos(map, i, ymin, dist, depth);
-                mkinvpos(map, i, ymax, dist, depth);
+                await mkinvpos(map, i, ymin, dist, depth);
+                await mkinvpos(map, i, ymax, dist, depth);
             }
         }
         for (let i = ymin; i <= ymax; i++) {
-            mkinvpos(map, xmin, i, dist, depth);
-            mkinvpos(map, xmax, i, dist, depth);
+            await mkinvpos(map, xmin, i, dist, depth);
+            await mkinvpos(map, xmax, i, dist, depth);
         }
     }
 
