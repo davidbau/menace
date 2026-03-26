@@ -10,6 +10,7 @@ import {
 import { SPBOOK_CLASS, SPE_TELEPORT_AWAY } from '../../js/objects.js';
 import { initDiscoveryState } from '../../js/o_init.js';
 import { Player } from '../../js/player.js';
+import { setGame } from '../../js/gstate.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -96,6 +97,9 @@ function makeGame() {
 describe('shop entry and pricing messages', () => {
     beforeEach(() => {
         initDiscoveryState();
+        // Set global game state so shk.js get_cost() can read _gstate.u
+        const game = makeGame();
+        setGame(game);
     });
 
     it('shows shop greeting on doorway entry and for-sale pricing in shop', async () => {

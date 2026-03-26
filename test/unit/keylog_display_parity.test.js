@@ -31,7 +31,7 @@ async function replayKeylog(seed, keys, initFlags = {}) {
         for (let r = 0; r < rows; r++) {
             let line = '';
             for (let c = 0; c < cols; c++) {
-                line += display.grid?.[r]?.[c] || ' ';
+                line += display.grid?.[r]?.[c]?.ch || ' ';
             }
             lines.push(line);
         }
@@ -72,7 +72,7 @@ async function replayKeylog(seed, keys, initFlags = {}) {
     for (let r = 0; r < fRows; r++) {
         let line = '';
         for (let c = 0; c < fCols; c++) {
-            line += display.grid?.[r]?.[c] || ' ';
+            line += display.grid?.[r]?.[c]?.ch || ' ';
         }
         finalLines.push(line);
     }
