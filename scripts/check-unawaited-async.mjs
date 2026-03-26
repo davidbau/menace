@@ -276,30 +276,35 @@ for (const file of files) {
 
             // ✓ await foo()
             if (parent?.type === 'AwaitExpression') return;
-            // ✓ return foo()
-            if (parent?.type === 'ReturnStatement') return;
-            // ✓ const x = foo()
-            if (parent?.type === 'VariableDeclarator') return;
-            // ✓ x = foo()
-            if (parent?.type === 'AssignmentExpression' && parent.right === node) return;
-            // ✓ foo().then(...)
+
+            // Find enclosing function to check if it's async
+            let enclosingFnAsync = false;
+            for (let i = ancestors.length - 2; i >= 0; i--) {
+                const a = ancestors[i];
+                if (a.type === 'FunctionDeclaration' || a.type === 'FunctionExpression'
+                    || a.type === 'ArrowFunctionExpression') {
+                    enclosingFnAsync = !!a.async;
+                    break;
+                }
+            }
+
+            // ✓ return foo() — OK only in async function (returns Promise to caller)
+            if (parent?.type === 'ReturnStatement' && enclosingFnAsync) return;
+            // ✓ foo().then(...) — already chained
             if (parent?.type === 'MemberExpression' && parent.object === node) return;
             // ✓ [foo(), bar()] — likely Promise.all
             if (parent?.type === 'ArrayExpression') return;
-            // ✓ condition ? foo() : bar()
-            if (parent?.type === 'ConditionalExpression') return;
-            // ✓ foo() || bar()
-            if (parent?.type === 'LogicalExpression') return;
+            // ✓ condition ? await foo() : await bar() — parent is ConditionalExpression
+            //   but only if the conditional itself is awaited
+            if (parent?.type === 'ConditionalExpression') {
+                const gp = ancestors[ancestors.length - 3];
+                if (gp?.type === 'AwaitExpression') return;
+                if (gp?.type === 'ReturnStatement' && enclosingFnAsync) return;
+            }
             // ✓ void foo() — intentional fire-and-forget
             if (parent?.type === 'UnaryExpression' && parent.operator === 'void') return;
-            // ✓ fn(foo()) — passed as argument
-            if (parent?.type === 'CallExpression' && parent.callee !== node) return;
-            // ✓ async arrow: () => foo() — implicit return
-            if (parent?.type === 'ArrowFunctionExpression' && parent.body === node) return;
-            // ✓ Property value: { key: foo() }
-            if (parent?.type === 'Property' && parent.value === node) return;
-            // ✓ Sequence expression: (a, foo())
-            if (parent?.type === 'SequenceExpression') return;
+            // ✓ async arrow: () => foo() — implicit return (only if arrow is async)
+            if (parent?.type === 'ArrowFunctionExpression' && parent.body === node && parent.async) return;
             // ✓ Template literal: `${foo()}`
             if (parent?.type === 'TemplateLiteral') return;
 
