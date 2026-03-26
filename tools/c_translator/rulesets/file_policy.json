@@ -767,6 +767,11 @@
       "path": "js/modal_guard.js",
       "policy": "manual_only",
       "reason": "Single-threaded modal ownership assertions."
+    },
+    {
+      "path": "js/sync_assert.js",
+      "policy": "manual_only",
+      "reason": "Runtime sync Promise assertion (experimental)."
     }
   ]
 }

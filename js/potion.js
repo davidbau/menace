@@ -658,7 +658,7 @@ async function handleQuaff(player, map, display) {
             const potionUnknown = !!gp.potion_unkn;
             if (item.dknown && !isObjectNameKnown(item.otyp)) {
                 if (!potionUnknown) {
-                    discoverObject(item.otyp, true, true);
+                    await discoverObject(item.otyp, true, true);
                     more_experienced(0, 10, gstateGame, player);
                 } else {
                     await trycall(item);
@@ -1537,7 +1537,7 @@ async function potionhit(mon, obj, how, player, map) {
                 // C ref: potionhit() — print "falls asleep" and makeknown on success
                 // C does NOT gate on canspotmon here (unlike some other potion cases)
                 await pline("%s falls asleep.", Monnam(mon));
-                discoverObject(obj.otyp, true, true, false);
+                await discoverObject(obj.otyp, true, true, false);
             }
             break;
         }

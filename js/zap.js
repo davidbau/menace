@@ -1415,7 +1415,7 @@ export async function zapnodir(obj, player, map, display, game) {
   }
 
   // C ref: zap.c zapnodir() -> learnwand() when effect is observable.
-  if (known) discoverObject(obj.otyp, true, true);
+  if (known) await discoverObject(obj.otyp, true, true);
 }
 
 async function bhit_zapped_wand(obj, player, map, game = null) {
@@ -1473,7 +1473,7 @@ async function bhit_zapped_wand(obj, player, map, game = null) {
         case SPE_FORCE_BOLT:
           if (await doorlock(game, obj, x, y)) {
             if (cansee(x, y))
-              discoverObject(obj.otyp, true, true);
+              await discoverObject(obj.otyp, true, true);
           }
           break;
         }
@@ -2383,7 +2383,7 @@ function adtyp_to_prop(adtyp) {
 }
 
 // C ref: zap.c learnwand()
-function learnwand(obj, player = null) {
+async function learnwand(obj, player = null) {
   if (!obj || obj.oclass === SPBOOK_CLASS) return;
   if (isObjectNameKnown(obj.otyp)) {
     observeObject(obj);
@@ -2392,7 +2392,7 @@ function learnwand(obj, player = null) {
       observeObject(obj);
     }
     if (obj.dknown) {
-      discoverObject(obj.otyp, true, true);
+      await discoverObject(obj.otyp, true, true);
     }
   }
   update_inventory();
@@ -2560,7 +2560,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
   case WAN_LIGHT:
     damage = await lightdamage(obj, player, ordinary ? 5 : c_d(Math.max(1, obj.spe || 1), 25), ordinary);
     if (await flashburn(rnd(25) + damage, false, player)) {
-      discoverObject(obj.otyp, true, true);
+      await discoverObject(obj.otyp, true, true);
     }
     damage = 0;
     break;

@@ -1108,7 +1108,7 @@ export async function docall(obj) {
     }
   } else {
     od.uname = buf;
-    discoverObject(obj.otyp, false, true);
+    await discoverObject(obj.otyp, false, true);
   }
   if (obj.where === OBJ_INVENT) {
     update_inventory();

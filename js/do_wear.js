@@ -139,8 +139,8 @@ export async function on_msg(obj, player) {
 }
 
 // C ref: makeknown(otyp) — discover an object type
-export function makeknown(otyp) {
-    discoverObject(otyp, true, true);
+export async function makeknown(otyp) {
+    await discoverObject(otyp, true, true);
 }
 
 // Helper: toggle stealth — C ref: do_wear.c toggle_stealth()

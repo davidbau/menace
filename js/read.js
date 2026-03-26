@@ -641,8 +641,8 @@ function useup_scroll(sobj, player) {
 }
 
 // cf. read.c learnscrolltyp() — mark scroll type as discovered
-export function learnscrolltyp(otyp) {
-    discoverObject(otyp, true, true);
+export async function learnscrolltyp(otyp) {
+    await discoverObject(otyp, true, true);
 }
 
 // cf. read.c cap_spe() — cap enchantment at SPE_LIM (99)
