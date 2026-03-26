@@ -698,7 +698,7 @@ function reveal_trap(t, seeit, map) {
 // ========================================================================
 // find_defensive — C ref: muse.c:439
 // ========================================================================
-export async function find_defensive(mon, tryescape, map, player) {
+export function find_defensive(mon, tryescape, map, player) {
     let obj;
     let t;
     const x = mon.mx, y = mon.my;
@@ -792,14 +792,14 @@ export async function find_defensive(mon, tryescape, map, player) {
     } else {
         const loc = map.at(x, y);
         if (loc && loc.typ === STAIRS) {
-            const stway = await stairway_at(x, y, map);
+            const stway = stairway_at(x, y, map);
             if (stway && !stway.up && !is_floater(mdat)) {
                 m.has_defense = MUSE_DOWNSTAIRS;
             } else if (stway && stway.up) {
                 m.has_defense = MUSE_UPSTAIRS;
             }
         } else if (loc && loc.typ === LADDER) {
-            const stway = await stairway_at(x, y, map);
+            const stway = stairway_at(x, y, map);
             if (stway && stway.up) {
                 m.has_defense = MUSE_UP_LADDER;
             } else if (stway && !stway.up && !is_floater(mdat)) {
@@ -1064,7 +1064,7 @@ export async function use_defensive(mon, map, player) {
         if (oseen) await makeknown(WAN_DIGGING);
         const loc = map.at(mon.mx, mon.my);
         if (loc && (IS_FURNITURE(loc.typ) || IS_DRAWBRIDGE(loc.typ)
-            || await stairway_at(mon.mx, mon.my, map))) {
+            || stairway_at(mon.mx, mon.my, map))) {
             await pline('The digging ray is ineffective.');
             return 2;
         }
@@ -1081,7 +1081,7 @@ export async function use_defensive(mon, map, player) {
         } else {
             await You_hear('something crash through the floor.');
         }
-        await migrate_to_level(mon, ledger_no(null) + 1, 0, null, map);
+        migrate_to_level(mon, ledger_no(null) + 1, 0, null, map);
         return 2;
     }
 
@@ -1134,57 +1134,57 @@ export async function use_defensive(mon, map, player) {
         }
         if (t2) reveal_trap(t2, vis, map);
         // Move monster to trap and migrate
-        await migrate_to_level(mon, ledger_no(null) + 1, 0, null, map);
+        migrate_to_level(mon, ledger_no(null) + 1, 0, null, map);
         return 2;
     }
 
     case MUSE_UPSTAIRS: {
         await m_flee(mon);
-        const stway = await stairway_at(mon.mx, mon.my, map);
+        const stway = stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes upstairs!`);
-        await migrate_to_level(mon, 0, 0, null, map);
+        migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
     case MUSE_DOWNSTAIRS: {
         await m_flee(mon);
-        const stway = await stairway_at(mon.mx, mon.my, map);
+        const stway = stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes downstairs!`);
-        await migrate_to_level(mon, 0, 0, null, map);
+        migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
     case MUSE_UP_LADDER: {
         await m_flee(mon);
-        const stway = await stairway_at(mon.mx, mon.my, map);
+        const stway = stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes up the ladder!`);
-        await migrate_to_level(mon, 0, 0, null, map);
+        migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
     case MUSE_DN_LADDER: {
         await m_flee(mon);
-        const stway = await stairway_at(mon.mx, mon.my, map);
+        const stway = stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes down the ladder!`);
-        await migrate_to_level(mon, 0, 0, null, map);
+        migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
     case MUSE_SSTAIRS: {
         await m_flee(mon);
-        const stway = await stairway_at(mon.mx, mon.my, map);
+        const stway = stairway_at(mon.mx, mon.my, map);
         if (!stway) return 0;
         if (vismon)
             await pline_mon(mon, `${name} escapes ${stway.up ? 'up' : 'down'}stairs!`);
-        await migrate_to_level(mon, 0, 0, null, map);
+        migrate_to_level(mon, 0, 0, null, map);
         return 2;
     }
 
@@ -1385,7 +1385,7 @@ function mon_likes_objpile_at(mtmp, x, y, map) {
 // ========================================================================
 // find_offensive — C ref: muse.c:1419
 // ========================================================================
-export async function find_offensive(mtmp, map, player) {
+export function find_offensive(mtmp, map, player) {
     const mdat = mtmp.data || mtmp.type || {};
 
     m.offensive = null;
@@ -1466,7 +1466,7 @@ export async function find_offensive(mtmp, map, player) {
             && (onscary(map, player.x, player.y, mtmp)
                 || (hero_behind_chokepoint(mtmp, map, player) && mon_has_friends(mtmp, map))
                 || mon_likes_objpile_at(mtmp, player.x, player.y, map)
-                || await stairway_at(player.x, player.y, map))) {
+                || stairway_at(player.x, player.y, map))) {
             m.offensive = obj;
             m.has_offense = MUSE_OFF_WAN_TELEPORTATION;
         }
@@ -1849,7 +1849,7 @@ export function rnd_offensive_item(mtmp) {
 // ========================================================================
 // find_misc — C ref: muse.c:2074
 // ========================================================================
-export async function find_misc(mon, map, player) {
+export function find_misc(mon, map, player) {
     const mdat = mon.data || mon.type || {};
     const x = mon.mx, y = mon.my;
     const immobile = ((mdat.mmove || 0) === 0);
@@ -1905,7 +1905,7 @@ export async function find_misc(mon, map, player) {
             && u_at(player, mon.mux ?? player.x, mon.muy ?? player.y)
             && m_next2u(mon, player)
             && !player.uswallow
-            && await canletgo(player.weapon, '')) {
+            && canletgo(player.weapon, '')) {
             m.misc = obj;
             m.has_misc = MUSE_MISC_BULLWHIP;
         }
@@ -2063,7 +2063,7 @@ export async function use_misc(mon, map, player) {
                     await pline_mon(mon, `${name} rises up, through the ceiling!`);
                 }
                 m_useup(mon, otmp);
-                await migrate_to_level(mon, 0, 0, null, map);
+                migrate_to_level(mon, 0, 0, null, map);
                 return 2;
             }
             if (vismon) {

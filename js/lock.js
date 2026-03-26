@@ -277,7 +277,7 @@ export async function stumble_onto_mimic(x, y, map) {
 
 // C-name compatibility wrapper for CODEMATCH surface.
 // cf. lock.c:759 — stumble_on_door_mimic()
-export async function stumble_on_door_mimic(x, y, map) {
+export function stumble_on_door_mimic(x, y, map) {
     return stumble_onto_mimic(x, y, map);
 }
 

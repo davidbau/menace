@@ -1147,7 +1147,7 @@ export async function handleDropTypes(player, map, display) {
 }
 
 // C ref: do.c:924 doddrop() — drop by category selection.
-export async function doddrop(player, map, display) {
+export function doddrop(player, map, display) {
     return handleDropTypes(player, map, display);
 }
 
@@ -1222,7 +1222,7 @@ export async function handleDownstairs(player, map, display, game) {
 }
 
 // C ref: do.c:1131 dodown() — descend stairs.
-export async function dodown(player, map, display, game) {
+export function dodown(player, map, display, game) {
     return handleDownstairs(player, map, display, game);
 }
 
@@ -1279,7 +1279,7 @@ export async function handleUpstairs(player, map, display, game) {
 }
 
 // C ref: do.c:1298 doup() — ascend stairs.
-export async function doup(player, map, display, game) {
+export function doup(player, map, display, game) {
     return handleUpstairs(player, map, display, game);
 }
 
@@ -1944,12 +1944,12 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
 }
 
 // C ref: do.c:1479 goto_level() — level transition core.
-export async function goto_level(game, depth, transitionDir = null, opts = {}) {
+export function goto_level(game, depth, transitionDir = null, opts = {}) {
     return changeLevel(game, depth, transitionDir, opts);
 }
 
 // C ref: do.c:981 menu_drop() — menu-driven drop operation.
-export async function menu_drop(player, map, display) {
+export function menu_drop(player, map, display) {
     return handleDropTypes(player, map, display);
 }
 

@@ -953,7 +953,7 @@ export function objtyp_is_callable(i) {
 // JS equivalent: handleCallObjectTypePrompt (defined below)
 
 // cf. do_name.c:679 — namefloorobj: name type of object on floor
-export async function namefloorobj(player, map, display) {
+export function namefloorobj(player, map, display) {
     // Simplified: in full C, this uses getpos to select a floor tile
     // and then calls docall on the object there.
     // Stub for CODEMATCH — full implementation requires getpos infrastructure.

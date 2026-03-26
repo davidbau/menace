@@ -102,7 +102,7 @@ import {
 import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
 import { defsyms } from './symbols.js';
 
-async function currentAlignmentDnum(ctx = null) {
+function currentAlignmentDnum(ctx = null) {
     const liveUz = _gstate?.u?.uz || _gstate?.map?.uz || null;
     if (Number.isFinite(liveUz?.dnum)) return liveUz.dnum;
     if (Number.isFinite(_gstate?.map?._genDnum)) return _gstate.map._genDnum;
@@ -159,7 +159,7 @@ const ALIGN_TYPE_MAP = {
     random: 'random'
 };
 
-async function get_table_align(opts = {}, name = 'align', defval = 'random') {
+function get_table_align(opts = {}, name = 'align', defval = 'random') {
     let value = opts?.[name];
     if (value === undefined) value = defval;
     if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
@@ -168,7 +168,7 @@ async function get_table_align(opts = {}, name = 'align', defval = 'random') {
     return (mapped !== undefined) ? mapped : ALIGN_TYPE_MAP.random;
 }
 
-async function get_table_int_or_random(opts = {}, name, rndval) {
+function get_table_int_or_random(opts = {}, name, rndval) {
     const value = opts?.[name];
     if (value === undefined || value === null) return rndval;
     if (typeof value === 'string' && value.toLowerCase() === 'random') return rndval;
@@ -178,7 +178,7 @@ async function get_table_int_or_random(opts = {}, name, rndval) {
     return Math.trunc(value);
 }
 
-async function get_table_buc(opts = {}) {
+function get_table_buc(opts = {}) {
     const value = String(opts?.buc ?? 'random').toLowerCase();
     const bucs = {
         random: 0,
@@ -192,7 +192,7 @@ async function get_table_buc(opts = {}) {
     return (bucs[value] !== undefined) ? bucs[value] : 0;
 }
 
-async function get_table_roomtype_opt(opts = {}, name, defval) {
+function get_table_roomtype_opt(opts = {}, name, defval) {
     const value = opts?.[name];
     if (typeof value === 'number' && Number.isFinite(value)) {
         return Math.trunc(value);
@@ -202,37 +202,37 @@ async function get_table_roomtype_opt(opts = {}, name, defval) {
     return (mapped !== undefined) ? mapped : defval;
 }
 
-async function parseRoomType(type, defval = 0) {
+function parseRoomType(type, defval = 0) {
     return get_table_roomtype_opt({ type }, 'type', defval);
 }
 
-async function canOverwriteTerrain(oldTyp) {
+function canOverwriteTerrain(oldTyp) {
     // C ref: rm.h CAN_OVERWRITE_TERRAIN() default behavior.
     return oldTyp !== LADDER && oldTyp !== STAIRS;
 }
 
-async function setLevlTypAt(map, x, y, newTyp) {
+function setLevlTypAt(map, x, y, newTyp) {
     if (!map || x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return false;
     if (newTyp < STONE || newTyp >= MAX_TYPE) return false;
     const loc = map.locations[x][y];
     if (!loc) return false;
-    if (!await canOverwriteTerrain(loc.typ)) return false;
+    if (!canOverwriteTerrain(loc.typ)) return false;
     loc.typ = newTyp;
     return true;
 }
 
-async function getProcessEnv(name) {
+function getProcessEnv(name) {
     return getEnv(name);
 }
 
 let spObjTraceEvent = 0;
-async function spObjTrace(message) {
+function spObjTrace(message) {
     const spec = getProcessEnv('WEBHACK_MKOBJ_TRACE');
     if (!spec || spec === '0') return;
     console.log(message);
 }
 
-async function installTypWatch(map) {
+function installTypWatch(map) {
     const spec = getProcessEnv('WEBHACK_WATCH_TYP');
     if (!spec || !map || !map.locations) return;
     const m = String(spec).match(/^\s*(\d+)\s*,\s*(\d+)\s*$/);
@@ -266,7 +266,7 @@ async function installTypWatch(map) {
     });
 }
 
-export async function sp_level_coder_init() {
+export function sp_level_coder_init() {
     return {
         premapped: false,
         solidify: false,
@@ -275,7 +275,7 @@ export async function sp_level_coder_init() {
     };
 }
 
-export async function create_des_coder() {
+export function create_des_coder() {
     if (!levelState?.coder) {
         levelState.coder = sp_level_coder_init();
     }
@@ -283,7 +283,7 @@ export async function create_des_coder() {
 }
 
 // C ref: sp_lev.c sp_code_jmpaddr()
-export async function sp_code_jmpaddr(coder = levelState.coder) {
+export function sp_code_jmpaddr(coder = levelState.coder) {
     if (!coder || typeof coder !== 'object') return 0;
     return Number.isFinite(coder.jmpaddr) ? Math.trunc(coder.jmpaddr) : 0;
 }
@@ -350,30 +350,30 @@ export let levelState = {
 };
 
 // C ref: sp_lev.c update_croom()
-export async function update_croom(room) {
+export function update_croom(room) {
     levelState.currentRoom = room || null;
     return levelState.currentRoom;
 }
 
 // C ref: sp_lev.c spo_endroom()
-export async function spo_endroom() {
-    await update_croom(levelState.roomStack.pop() || null);
+export function spo_endroom() {
+    update_croom(levelState.roomStack.pop() || null);
     if (levelState.roomDepth > 0) levelState.roomDepth--;
 }
 
 // C ref: sp_lev.c spo_pop_container()
-export async function spo_pop_container() {
+export function spo_pop_container() {
     return levelState.containerStack.pop() || null;
 }
 
 // C ref: sp_lev.c spo_end_moninvent()
-export async function spo_end_moninvent() {
+export function spo_end_moninvent() {
     return levelState.monsterInventoryStack.pop() || null;
 }
 
 const WALL_INFO_MASK = 0x07 | W_NONDIGGABLE | W_NONPASSWALL;
 
-async function setWallInfoBits(loc, bits) {
+function setWallInfoBits(loc, bits) {
     if (!loc) return;
     const next = Number(loc.wall_info || 0) | bits;
     loc.wall_info = next;
@@ -391,29 +391,29 @@ let Sokoban = false;
 let okLocationOverride = null;
 let monsterExecSeq = 0;
 
-async function initSpLevTouched() {
+function initSpLevTouched() {
     if (levelState.spLevTouched) return;
     levelState.spLevTouched = Array.from({ length: COLNO }, () => Array(ROWNO).fill(false));
 }
 
-async function initSpLevMap() {
+function initSpLevMap() {
     if (levelState.spLevMap) return;
     levelState.spLevMap = Array.from({ length: COLNO }, () => Array(ROWNO).fill(false));
 }
 
-async function markSpLevTouched(x, y) {
+function markSpLevTouched(x, y) {
     if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
-    await initSpLevTouched();
+    initSpLevTouched();
     levelState.spLevTouched[x][y] = true;
 }
 
-async function markSpLevMap(x, y) {
+function markSpLevMap(x, y) {
     if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
-    await initSpLevMap();
+    initSpLevMap();
     levelState.spLevMap[x][y] = true;
 }
 
-async function normalizeDestRect(rect) {
+function normalizeDestRect(rect) {
     const fallback = { lx: 0, ly: 0, hx: 0, hy: 0, nlx: 0, nly: 0, nhx: 0, nhy: 0 };
     if (!rect || typeof rect !== 'object') return fallback;
     return {
@@ -428,7 +428,7 @@ async function normalizeDestRect(rect) {
     };
 }
 
-export async function captureCheckpoint(phase) {
+export function captureCheckpoint(phase) {
     if (!checkpointCaptureEnabled || !levelState.map) return;
     const map = levelState.map;
     const typGrid = [];
@@ -561,7 +561,7 @@ export async function captureCheckpoint(phase) {
  * @param {GameMap} map - The procedural dungeon map to operate on
  * @param {number} depth - Current dungeon depth (for level_difficulty)
  */
-async function applyLevelContext(map, depth) {
+function applyLevelContext(map, depth) {
     const DEBUG = envFlag('DEBUG_LUA_RNG');
 
     levelState.map = map;
@@ -592,7 +592,7 @@ async function applyLevelContext(map, depth) {
  * Clear the level context after themed room generation completes.
  * Always call this to prevent state leakage between levels.
  */
-async function clearLevelContext() {
+function clearLevelContext() {
     levelState.map = null;
     levelState.depth = 1;
     levelState.levelDepth = undefined;
@@ -611,11 +611,11 @@ async function clearLevelContext() {
 }
 
 export async function withLevelContext(map, depth, fn) {
-    await applyLevelContext(map, depth);
+    applyLevelContext(map, depth);
     try {
         return await fn();
     } finally {
-        await clearLevelContext();
+        clearLevelContext();
     }
 }
 
@@ -625,7 +625,7 @@ export async function withLevelContext(map, depth, fn) {
  *
  * @param {Object} room - Room object from map.rooms[]
  */
-export async function setCurrentRoom(room) {
+export function setCurrentRoom(room) {
     levelState.currentRoom = room;
 }
 
@@ -646,11 +646,11 @@ let _mtInitializedLocal = false;
 let _mtCallCount = 0;
 
 // Reset MT initialization flag (called between themed room generations)
-export async function resetMtInitFlag() {
+export function resetMtInitFlag() {
     _mtInitializedLocal = false;
 }
 
-export async function initLuaMT() {
+export function initLuaMT() {
     _mtCallCount++;
     const DEBUG = envFlag('DEBUG_LUA_RNG');
 
@@ -722,7 +722,7 @@ export async function initLuaMT() {
  * @param {number} depth - Current dungeon depth (for litstate_rnd)
  * @returns {Object|null} Room object {lx, ly, hx, hy, rtype, rlit} or null on failure
  */
-async function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipLitstate = false, forceRandomize = false, deferCreateRoom = false) {
+function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipLitstate = false, forceRandomize = false, deferCreateRoom = false) {
     const DEBUG = envFlag('DEBUG_ROOMS');
     const DEBUG_BUILD = envFlag('DEBUG_BUILD_ROOM');
     if (DEBUG || DEBUG_BUILD) {
@@ -993,7 +993,7 @@ async function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth,
 /**
  * Reset level state for new level generation
  */
-export async function resetLevelState() {
+export function resetLevelState() {
     if (levelState && levelState._mklevContextEntered) {
         leaveMklevContext();
     }
@@ -1081,7 +1081,7 @@ export async function resetLevelState() {
  * @param {boolean} [ctx.skipRandomFlip]
  * @param {boolean} [ctx.boundDiggingIsMazeLevel]
  */
-async function applyFinalizeContext(ctx = null) {
+function applyFinalizeContext(ctx = null) {
     if (!ctx) {
         levelState.finalizeContext = null;
         return;
@@ -1113,7 +1113,7 @@ async function applyFinalizeContext(ctx = null) {
 
 export async function withFinalizeContext(ctx, fn) {
     const prev = levelState.finalizeContext ? { ...levelState.finalizeContext } : null;
-    await applyFinalizeContext(ctx);
+    applyFinalizeContext(ctx);
     try {
         return await fn();
     } finally {
@@ -1121,7 +1121,7 @@ export async function withFinalizeContext(ctx, fn) {
     }
 }
 
-async function applySpecialLevelDepth(depth) {
+function applySpecialLevelDepth(depth) {
     if (Number.isFinite(depth)) {
         levelState.levelDepth = depth;
         if (_gstate) _gstate._levelDepth = depth;
@@ -1133,11 +1133,11 @@ async function applySpecialLevelDepth(depth) {
 
 export async function withSpecialLevelDepth(depth, fn) {
     const prevDepth = levelState.levelDepth;
-    await applySpecialLevelDepth(depth);
+    applySpecialLevelDepth(depth);
     try {
         return await fn();
     } finally {
-        await applySpecialLevelDepth(prevDepth);
+        applySpecialLevelDepth(prevDepth);
     }
 }
 
@@ -1147,11 +1147,11 @@ export async function withSpecialLevelDepth(depth, fn) {
  * Test-only level reset helper mirroring C des.reset_level().
  * C ref: sp_lev.c lspo_reset_level()
  */
-export async function reset_level() {
-    await resetLevelState();
+export function reset_level() {
+    resetLevelState();
 }
 
-async function canPlaceStair(direction) {
+function canPlaceStair(direction) {
     const ctx = levelState.finalizeContext;
     const dunlev = (ctx && typeof ctx.dunlev === 'number')
         ? ctx.dunlev
@@ -1318,7 +1318,7 @@ async function fixupSpecialLevel() {
     }
     if (specialName.startsWith('medusa')) {
         levelState.map.flags.is_medusa_level = true;
-        await medusa_fixup(levelState.map);
+        medusa_fixup(levelState.map);
     }
     // C ref: mkmaze.c fixup_special():
     // Role_if(PM_CLERIC) && In_quest(&u.uz) => level.flags.graveyard = 1
@@ -1345,11 +1345,11 @@ async function fixupSpecialLevel() {
     }
     // C ref: mkmaze.c fixup_special() frees gl.lregions and zeroes num_lregions.
     levelState.levRegions = [];
-    await captureCheckpoint('after_levregions_fixup');
+    captureCheckpoint('after_levregions_fixup');
 }
 
 // C ref: mkmaze.c fixup_special() Medusa branch
-async function medusa_fixup(map) {
+function medusa_fixup(map) {
     if (!map || !Array.isArray(map.rooms) || map.rooms.length === 0) return;
     const croom = map.rooms[0]; // first room defined on Medusa level
     if (!croom) return;
@@ -1421,7 +1421,7 @@ async function medusa_fixup(map) {
 /**
  * Get the current level state (for testing/debugging)
  */
-export async function getLevelState() {
+export function getLevelState() {
     return levelState;
 }
 
@@ -1430,7 +1430,7 @@ export async function getLevelState() {
  * Returns a 21×80 array of terrain type codes (0-based indexing)
  * Compatible with C dumpmap format for comparison testing
  */
-export async function getTypGrid() {
+export function getTypGrid() {
     if (!levelState.map || !levelState.map.locations) {
         return null;
     }
@@ -1447,18 +1447,18 @@ export async function getTypGrid() {
     return grid;
 }
 
-export async function setCheckpointCaptureEnabled(enabled = true) {
+export function setCheckpointCaptureEnabled(enabled = true) {
     checkpointCaptureEnabled = !!enabled;
     if (!checkpointCaptureEnabled) {
         levelCheckpoints = [];
     }
 }
 
-export async function clearLevelCheckpoints() {
+export function clearLevelCheckpoints() {
     levelCheckpoints = [];
 }
 
-export async function getLevelCheckpoints() {
+export function getLevelCheckpoints() {
     return JSON.parse(JSON.stringify(levelCheckpoints));
 }
 
@@ -1478,7 +1478,7 @@ export async function getLevelCheckpoints() {
  * @param {boolean} opts.walled - Add walls (default: false)
  */
 // C ref: sp_lev.c lvlfill_solid()
-export async function lvlfill_solid(map, init = levelState.init) {
+export function lvlfill_solid(map, init = levelState.init) {
     levelState.mazeMaxX = (COLNO - 1) & ~1;
     levelState.mazeMaxY = (ROWNO - 1) & ~1;
     const lit = init.lit < 0 ? rn2(2) : init.lit;
@@ -1497,7 +1497,7 @@ export async function lvlfill_solid(map, init = levelState.init) {
 }
 
 // C ref: sp_lev.c lvlfill_maze_grid()
-export async function lvlfill_maze_grid(map, init = levelState.init, flags = levelState.flags) {
+export function lvlfill_maze_grid(map, init = levelState.init, flags = levelState.flags) {
     const fillChar = init.bg !== -1 ? init.bg : STONE;
     const xMazeMax = (COLNO - 1) & ~1;
     const yMazeMax = (ROWNO - 1) & ~1;
@@ -1517,7 +1517,7 @@ export async function lvlfill_maze_grid(map, init = levelState.init, flags = lev
 }
 
 // C ref: sp_lev.c lvlfill_swamp()
-export async function lvlfill_swamp(map, init = levelState.init) {
+export function lvlfill_swamp(map, init = levelState.init) {
     levelState.mazeMaxX = (COLNO - 1) & ~1;
     levelState.mazeMaxY = (ROWNO - 1) & ~1;
     const fgTyp = init.fg;
@@ -1561,7 +1561,7 @@ export async function lvlfill_swamp(map, init = levelState.init) {
     }
 }
 
-export async function level_init(opts = {}) {
+export function level_init(opts = {}) {
     // C parity: special level scripts run under mklev context between
     // lspo_level_init() and lspo_finalize_level().
     if (!levelState._mklevContextEntered) {
@@ -1592,7 +1592,7 @@ export async function level_init(opts = {}) {
 
     // Apply the initialization - always create fresh map and clear entity arrays
     levelState.map = new GameMap();
-    await installTypWatch(levelState.map);
+    installTypWatch(levelState.map);
     // Keep C-like level flags when Lua scripts call level_init multiple times.
     for (const [k, v] of Object.entries(levelState.flags)) {
         if (k in levelState.map.flags) {
@@ -1614,9 +1614,9 @@ export async function level_init(opts = {}) {
     levelState.traps = [];
 
     if (style === 'solidfill') {
-        await lvlfill_solid(levelState.map, levelState.init);
+        lvlfill_solid(levelState.map, levelState.init);
     } else if (style === 'mazegrid') {
-        await lvlfill_maze_grid(levelState.map, levelState.init, levelState.flags);
+        lvlfill_maze_grid(levelState.map, levelState.init, levelState.flags);
     } else if (style === 'maze') {
         levelState.mazeMaxX = (COLNO - 1) & ~1;
         levelState.mazeMaxY = (ROWNO - 1) & ~1;
@@ -1629,7 +1629,7 @@ export async function level_init(opts = {}) {
             !!levelState.init.rm_deadends
         );
     } else if (style === 'swamp') {
-        await lvlfill_swamp(levelState.map, levelState.init);
+        lvlfill_swamp(levelState.map, levelState.init);
     } else if (style === 'mines' || style === 'rogue') {
         levelState.mazeMaxX = (COLNO - 1) & ~1;
         levelState.mazeMaxY = (ROWNO - 1) & ~1;
@@ -1677,11 +1677,11 @@ export async function level_init(opts = {}) {
             }
         }
     }
-    await captureCheckpoint('after_level_init');
+    captureCheckpoint('after_level_init');
 }
 
 // C ref: sp_lev.c splev_initlev()
-export async function splev_initlev(opts = {}) {
+export function splev_initlev(opts = {}) {
     return level_init(opts);
 }
 
@@ -1693,7 +1693,7 @@ export async function splev_initlev(opts = {}) {
  *
  * @param {...string} flags - Variable number of flag names
  */
-export async function level_flags(...flags) {
+export function level_flags(...flags) {
     const setFlag = (key, value) => {
         levelState.flags[key] = value;
         if (levelState.map && levelState.map.flags && key in levelState.map.flags) {
@@ -1791,7 +1791,7 @@ export async function level_flags(...flags) {
  * This matches C's flip_level_rnd() which is called at the end of level loading.
  * C ref: sp_lev.c flip_level_rnd() and flip_level()
  */
-async function flipLevelRandom(extras = false) {
+function flipLevelRandom(extras = false) {
     const allowFlips = levelState.coder.allow_flips;
     const DEBUG_FLIP = envFlag('DEBUG_FLIP');
     const rngBefore = DEBUG_FLIP && typeof getRngCallCount === 'function' ? getRngCallCount() : null;
@@ -2015,34 +2015,34 @@ async function flipLevelRandom(extras = false) {
 }
 
 // C ref: sp_lev.c flip_level_rnd()
-export async function flip_level_rnd(extras = false) {
+export function flip_level_rnd(extras = false) {
     return flipLevelRandom(extras);
 }
 
 // C ref: sp_lev.c flip_level()
 // JS keeps the full coordinate-flip pipeline shared with flip_level_rnd().
-export async function flip_level(extras = false) {
+export function flip_level(extras = false) {
     return flipLevelRandom(extras);
 }
 
 // C ref: sp_lev.c flip_visuals()
-export async function flip_visuals(extras = false) {
+export function flip_visuals(extras = false) {
     return flip_level(extras);
 }
 
 // C ref: sp_lev.c flip_encoded_dir_bits()
-export async function flip_encoded_dir_bits(dirBits, flipY = false, flipX = false) {
+export function flip_encoded_dir_bits(dirBits, flipY = false, flipX = false) {
     return Number.isInteger(dirBits) ? dirBits : 0;
 }
 
 // C ref: sp_lev.c flip_dbridge_horizontal()/flip_dbridge_vertical()
-export async function flip_dbridge_horizontal(mask) {
+export function flip_dbridge_horizontal(mask) {
     if (!Number.isInteger(mask)) return mask;
     if (mask & DB_EAST) return (mask & ~DB_EAST) | DB_WEST;
     if (mask & DB_WEST) return (mask & ~DB_WEST) | DB_EAST;
     return mask;
 }
-export async function flip_dbridge_vertical(mask) {
+export function flip_dbridge_vertical(mask) {
     if (!Number.isInteger(mask)) return mask;
     if (mask & DB_NORTH) return (mask & ~DB_NORTH) | DB_SOUTH;
     if (mask & DB_SOUTH) return (mask & ~DB_SOUTH) | DB_NORTH;
@@ -2050,7 +2050,7 @@ export async function flip_dbridge_vertical(mask) {
 }
 
 // C ref: sp_lev.c flip_vault_guard()
-export async function flip_vault_guard(guardPos, minX = 0, minY = 0, maxX = COLNO - 1, maxY = ROWNO - 1, flipY = false, flipX = false) {
+export function flip_vault_guard(guardPos, minX = 0, minY = 0, maxX = COLNO - 1, maxY = ROWNO - 1, flipY = false, flipX = false) {
     if (!guardPos || !Number.isInteger(guardPos.x) || !Number.isInteger(guardPos.y)) return guardPos;
     const out = { x: guardPos.x, y: guardPos.y };
     if (flipY) out.y = (maxY - out.y) + minY;
@@ -2059,7 +2059,7 @@ export async function flip_vault_guard(guardPos, minX = 0, minY = 0, maxX = COLN
 }
 
 // C ref: sp_lev.c cvt_to_relcoord()
-export async function cvt_to_relcoord(coord, room = levelState.currentRoom || null) {
+export function cvt_to_relcoord(coord, room = levelState.currentRoom || null) {
     if (!coord) return null;
     const x = Number.isInteger(coord.x) ? coord.x : coord[0];
     const y = Number.isInteger(coord.y) ? coord.y : coord[1];
@@ -2068,7 +2068,7 @@ export async function cvt_to_relcoord(coord, room = levelState.currentRoom || nu
 }
 
 // C ref: sp_lev.c cvt_to_abscoord()
-export async function cvt_to_abscoord(coord, room = levelState.currentRoom || null) {
+export function cvt_to_abscoord(coord, room = levelState.currentRoom || null) {
     if (!coord) return null;
     const x = Number.isInteger(coord.x) ? coord.x : coord[0];
     const y = Number.isInteger(coord.y) ? coord.y : coord[1];
@@ -2077,7 +2077,7 @@ export async function cvt_to_abscoord(coord, room = levelState.currentRoom || nu
 }
 
 // C ref: sp_lev.c ensure_way_out()
-export async function ensure_way_out(map = levelState.map) {
+export function ensure_way_out(map = levelState.map) {
     if (!map) return false;
     const hasUp = Number.isInteger(map.upstair?.x) && Number.isInteger(map.upstair?.y);
     const hasDown = Number.isInteger(map.dnstair?.x) && Number.isInteger(map.dnstair?.y);
@@ -2091,7 +2091,7 @@ export async function ensure_way_out(map = levelState.map) {
 }
 
 // C ref: sp_lev.c floodfillchk_match_under()/floodfillchk_match_accessible()
-export async function floodfillchk_match_under(x, y, map = levelState.map) {
+export function floodfillchk_match_under(x, y, map = levelState.map) {
     if (typeof floodfillchk_match_under_override === 'function') {
         return !!floodfillchk_match_under_override(x, y, map);
     }
@@ -2099,26 +2099,26 @@ export async function floodfillchk_match_under(x, y, map = levelState.map) {
     if (!loc) return false;
     return !IS_WALL(loc.typ) && !IS_POOL(loc.typ);
 }
-export async function floodfillchk_match_accessible(x, y, map = levelState.map) {
+export function floodfillchk_match_accessible(x, y, map = levelState.map) {
     const loc = map?.locations?.[x]?.[y];
     if (!loc) return false;
     return !IS_WALL(loc.typ) && !IS_POOL(loc.typ) && !IS_LAVA(loc.typ);
 }
 
 // C ref: sp_lev.c set_floodfillchk_match_under()
-export async function set_floodfillchk_match_under(fn) {
+export function set_floodfillchk_match_under(fn) {
     floodfillchk_match_under_override = (typeof fn === 'function') ? fn : null;
 }
 
 // C ref: sp_lev.c generate_way_out_method()
-export async function generate_way_out_method(map = levelState.map) {
+export function generate_way_out_method(map = levelState.map) {
     if (!map) return 'none';
     if (Number.isInteger(map.upstair?.x) || Number.isInteger(map.dnstair?.x)) return 'stairs';
     if (Number.isInteger(map.upladder?.x) || Number.isInteger(map.dnladder?.x)) return 'ladder';
     return 'teleport';
 }
 
-async function getLevelExtentsForFlip(map) {
+function getLevelExtentsForFlip(map) {
     const isMazeLevel = !!levelState.flags.is_maze_lev;
     let found = false;
     let nonwall = false;
@@ -2184,14 +2184,14 @@ async function getLevelExtentsForFlip(map) {
 }
 
 // C ref: sp_lev.c match_maptyps()
-export async function match_maptyps(mapTyp, fragTyp) {
+export function match_maptyps(mapTyp, fragTyp) {
     if (fragTyp === MATCH_WALL && !IS_STWALL(mapTyp)) return false;
     if (fragTyp < MAX_TYPE && fragTyp !== mapTyp) return false;
     return true;
 }
 
 // C ref: sp_lev.c mapfrag_fromstr()
-export async function mapfrag_fromstr(src, preserveExactBlankLines = false) {
+export function mapfrag_fromstr(src, preserveExactBlankLines = false) {
     let mapStr = String(src ?? '').replace(/[0-9]/g, '');
     if (!preserveExactBlankLines) {
         if (mapStr.startsWith('\r\n')) mapStr = mapStr.slice(2);
@@ -2209,7 +2209,7 @@ export async function mapfrag_fromstr(src, preserveExactBlankLines = false) {
 }
 
 // C ref: sp_lev.c mapfrag_get()
-export async function mapfrag_get(mapfrag, x, y) {
+export function mapfrag_get(mapfrag, x, y) {
     if (!mapfrag || !Array.isArray(mapfrag.lines)) {
         throw new Error('outside mapfrag');
     }
@@ -2222,20 +2222,20 @@ export async function mapfrag_get(mapfrag, x, y) {
 }
 
 // C ref: sp_lev.c mapfrag_free()
-export async function mapfrag_free(_mapfrag) {
+export function mapfrag_free(_mapfrag) {
     // GC-managed in JS.
 }
 
 // C ref: sp_lev.c mapfrag_canmatch()
-export async function mapfrag_canmatch(map, mapfrag, x, y) {
+export function mapfrag_canmatch(map, mapfrag, x, y) {
     if (!mapfrag) return false;
     return ((mapfrag.width % 2) === 1) && ((mapfrag.height % 2) === 1);
 }
 
 // C ref: sp_lev.c mapfrag_error()
-export async function mapfrag_error(mapfrag) {
+export function mapfrag_error(mapfrag) {
     if (!mapfrag) return 'mapfragment error';
-    if (!await mapfrag_canmatch(null, mapfrag)) return 'mapfragment needs to have odd height and width';
+    if (!mapfrag_canmatch(null, mapfrag)) return 'mapfragment needs to have odd height and width';
     try {
         const center = mapfrag_get(mapfrag, Math.trunc(mapfrag.width / 2), Math.trunc(mapfrag.height / 2));
         if (center === MAX_TYPE || center === INVALID_TYPE) {
@@ -2248,7 +2248,7 @@ export async function mapfrag_error(mapfrag) {
 }
 
 // C ref: sp_lev.c mapfrag_match()
-export async function mapfrag_match(map, mapfrag, x, y) {
+export function mapfrag_match(map, mapfrag, x, y) {
     if (!map || !mapfrag) return false;
     if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
     const cx = Math.trunc(x);
@@ -2263,13 +2263,13 @@ export async function mapfrag_match(map, mapfrag, x, y) {
             const mapTyp = (gx >= 0 && gx < COLNO && gy >= 0 && gy < ROWNO)
                 ? map.locations[gx][gy].typ
                 : STONE;
-            if (!await match_maptyps(mapTyp, fragTyp)) return false;
+            if (!match_maptyps(mapTyp, fragTyp)) return false;
         }
     }
     return true;
 }
 
-async function mapchrToTerrainFragment(ch) {
+function mapchrToTerrainFragment(ch) {
     if (ch === 'w') return MATCH_WALL;
     const t = mapchrToTerrain(ch);
     if (t === -1) {
@@ -2278,13 +2278,13 @@ async function mapchrToTerrainFragment(ch) {
     return t;
 }
 
-async function mapfrag_match_scan(map, mapfrag) {
+function mapfrag_match_scan(map, mapfrag) {
     if (!map || !mapfrag) return null;
     const hx = Math.trunc(mapfrag.width / 2);
     const hy = Math.trunc(mapfrag.height / 2);
     for (let y = hy; y < ROWNO - hy; y++) {
         for (let x = hx; x < COLNO - hx; x++) {
-            if (await mapfrag_match(map, mapfrag, x, y)) {
+            if (mapfrag_match(map, mapfrag, x, y)) {
                 return { x, y };
             }
         }
@@ -2467,7 +2467,7 @@ export async function map(data) {
             if (gx >= 0 && gx < 80 && gy >= 0 && gy < 21) {
                 const terrain = mapchrToTerrain(ch);
                 if (terrain !== -1) {
-                    await sel_set_ter(gx, gy, terrain, { clear: true, lit: lit ? 1 : null });
+                    sel_set_ter(gx, gy, terrain, { clear: true, lit: lit ? 1 : null });
                 }
             }
         }
@@ -2494,7 +2494,7 @@ export async function map(data) {
         await contents(mapRegion);
     }
 
-    await captureCheckpoint('after_map');
+    captureCheckpoint('after_map');
 }
 
 /**
@@ -2505,7 +2505,7 @@ export async function map(data) {
  * @param {number} y - Y coordinate (map-relative if mapCoordMode is true)
  * @returns {Object} { x: absoluteX, y: absoluteY }
  */
-async function toAbsoluteCoords(x, y) {
+function toAbsoluteCoords(x, y) {
     if (levelState.mapCoordMode && x !== undefined && y !== undefined) {
         return {
             x: levelState.mapOriginX + x,
@@ -2524,7 +2524,7 @@ const GETLOC_HOT = 1 << 4;
 const GETLOC_SPACELOC = 1 << 5;
 const GETLOC_NO_LOC_WARN = 1 << 6;
 export 
-async function get_unpacked_coord(coord) {
+function get_unpacked_coord(coord) {
     if (coord && typeof coord === 'object'
         && Number.isFinite(coord.x) && Number.isFinite(coord.y)) {
         return { x: Math.trunc(coord.x), y: Math.trunc(coord.y) };
@@ -2541,7 +2541,7 @@ async function get_unpacked_coord(coord) {
     return { x: -1, y: -1 };
 }
 
-async function hasBoulderAt(x, y) {
+function hasBoulderAt(x, y) {
     // C ref: is_ok_location() uses sobj_at(BOULDER, x, y), which only checks
     // currently placed floor objects. Deferred objects are not considered here.
     for (const obj of levelState.map.objects || []) {
@@ -2550,7 +2550,7 @@ async function hasBoulderAt(x, y) {
     return false;
 }
 
-async function isOkLocation(x, y, humidity) {
+function isOkLocation(x, y, humidity) {
     if (okLocationOverride) {
         return okLocationOverride(x, y);
     }
@@ -2562,27 +2562,27 @@ async function isOkLocation(x, y, humidity) {
 
     if ((humidity & (GETLOC_DRY | GETLOC_SPACELOC)) !== 0 && typ > DOOR) {
         // C ref: sp_lev.c is_ok_location() boulder rejection in DRY/SPACELOC.
-        if (!await hasBoulderAt(x, y) || (humidity & GETLOC_SOLID) !== 0) return true;
+        if (!hasBoulderAt(x, y) || (humidity & GETLOC_SOLID) !== 0) return true;
     }
     if ((humidity & GETLOC_WET) !== 0 && IS_POOL(typ)) return true;
     if ((humidity & GETLOC_HOT) !== 0 && IS_LAVA(typ)) return true;
     return false;
 }
 export 
-async function is_ok_location(x, y, humidity) {
+function is_ok_location(x, y, humidity) {
     return isOkLocation(x, y, humidity);
 }
 
-async function good_stair_loc(x, y) {
+function good_stair_loc(x, y) {
     const typ = levelState.map?.locations?.[x]?.[y]?.typ;
     return typ === ROOM || typ === CORR || typ === ICE;
 }
 
-export async function set_ok_location_func(func) {
+export function set_ok_location_func(func) {
     okLocationOverride = func || null;
 }
 
-export async function get_location(rawX, rawY, humidity, croom, noLocWarn = false) {
+export function get_location(rawX, rawY, humidity, croom, noLocWarn = false) {
     let cpt = 0;
     const mx = croom ? croom.lx : (levelState.xsize > 0 ? levelState.xstart : 1);
     const my = croom ? croom.ly : (levelState.ysize > 0 ? levelState.ystart : 0);
@@ -2605,7 +2605,7 @@ export async function get_location(rawX, rawY, humidity, croom, noLocWarn = fals
                 x = mx + rn2(sx);
                 y = my + rn2(sy);
             }
-            if (await isOkLocation(x, y, humidity)) break;
+            if (isOkLocation(x, y, humidity)) break;
         } while (++cpt < 100);
 
         if (cpt >= 100) {
@@ -2613,7 +2613,7 @@ export async function get_location(rawX, rawY, humidity, croom, noLocWarn = fals
                 for (let yy = 0; yy < sy; yy++) {
                     x = mx + xx;
                     y = my + yy;
-                    if (await isOkLocation(x, y, humidity)) return { x, y };
+                    if (isOkLocation(x, y, humidity)) return { x, y };
                 }
             }
             if (noLocWarn || (humidity & GETLOC_NO_LOC_WARN) !== 0) {
@@ -2632,7 +2632,7 @@ export async function get_location(rawX, rawY, humidity, croom, noLocWarn = fals
 }
 const getLocation = get_location;
 
-export async function get_location_coord(rawX, rawY, humidity, croom) {
+export function get_location_coord(rawX, rawY, humidity, croom) {
     const isRandom = rawX === undefined || rawY === undefined || rawX < 0 || rawY < 0;
     if (isRandom) {
         // C ref: get_location_coord() first tries NO_LOC_WARN for random packed coords.
@@ -2650,13 +2650,13 @@ export async function get_location_coord(rawX, rawY, humidity, croom) {
 const getLocationCoord = get_location_coord;
 
 // C ref: sp_lev.c nhl_abs_coord()
-export async function nhl_abs_coord(coord) {
+export function nhl_abs_coord(coord) {
     const unpacked = get_unpacked_coord(coord);
     if (unpacked.x < 0 || unpacked.y < 0) return { x: -1, y: -1 };
     return get_location_coord(unpacked.x, unpacked.y, GETLOC_ANY_LOC, levelState.currentRoom || null);
 }
 
-export async function get_room_loc(rawX, rawY, croom) {
+export function get_room_loc(rawX, rawY, croom) {
     if (!croom) {
         return getLocationCoord(rawX, rawY, GETLOC_DRY, null);
     }
@@ -2677,7 +2677,7 @@ export async function get_room_loc(rawX, rawY, croom) {
 }
 const getRoomLoc = get_room_loc;
 
-export async function get_free_room_loc(rawX, rawY, croom) {
+export function get_free_room_loc(rawX, rawY, croom) {
     let { x, y } = getLocationCoord(rawX, rawY, GETLOC_DRY, croom);
     if (x < 0 || y < 0 || x >= COLNO || y >= ROWNO) return { x, y };
 
@@ -2722,7 +2722,7 @@ export async function terrain(x_or_opts, y_or_type, type) {
     // door orientation, etc.  Use sel_set_ter with clear:false to match.
     async function applyTerrain(px, py, terrainType) {
         if (px >= 0 && px < COLNO && py >= 0 && py < ROWNO) {
-            await sel_set_ter(px, py, terrainType, { clear: false, lit: null });
+            sel_set_ter(px, py, terrainType, { clear: false, lit: null });
         }
     }
 
@@ -2790,7 +2790,7 @@ export async function terrain(x_or_opts, y_or_type, type) {
  *   - region: Optional selection/region to limit replacement (default: whole map)
  *   - chance: Optional percentage chance for each replacement (0-100, default: 100)
  */
-export async function replace_terrain(opts) {
+export function replace_terrain(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -2876,18 +2876,18 @@ export async function replace_terrain(opts) {
             }
         }
     }
-    if (mapfrag) await mapfrag_free(mapfrag);
+    if (mapfrag) mapfrag_free(mapfrag);
 }
 
 // C ref: sp_lev.c sel_set_lit()
-export async function sel_set_lit(x, y, lit) {
+export function sel_set_lit(x, y, lit) {
     const loc = levelState.map?.locations?.[x]?.[y];
     if (!loc) return;
     loc.lit = lit ? 1 : 0;
 }
 
 // C ref: sp_lev.c sel_set_ter()
-export async function sel_set_ter(x, y, terrain, opts = {}) {
+export function sel_set_ter(x, y, terrain, opts = {}) {
     const loc = levelState.map?.locations?.[x]?.[y];
     if (!loc) return;
     const clearMeta = (opts.clear !== undefined) ? !!opts.clear : true;
@@ -2914,15 +2914,15 @@ export async function sel_set_ter(x, y, terrain, opts = {}) {
     } else if (loc.typ === HWALL || loc.typ === IRONBARS) {
         loc.horizontal = 1;
     }
-    if (lit !== null) await sel_set_lit(x, y, lit);
-    await markSpLevMap(x, y);
-    await markSpLevTouched(x, y);
+    if (lit !== null) sel_set_lit(x, y, lit);
+    markSpLevMap(x, y);
+    markSpLevTouched(x, y);
 }
 
 // C ref: sp_lev.c sel_set_feature()
-export async function sel_set_feature(x, y, terrain) {
-    if (!await setLevlTypAt(levelState.map, x, y, terrain)) return false;
-    await markSpLevTouched(x, y);
+export function sel_set_feature(x, y, terrain) {
+    if (!setLevlTypAt(levelState.map, x, y, terrain)) return false;
+    markSpLevTouched(x, y);
     return true;
 }
 
@@ -2933,7 +2933,7 @@ export async function sel_set_feature(x, y, terrain) {
  * @param {string} ch - Single character or terrain name
  * @returns {number} Terrain type constant or -1 for unknown
  */
-async function mapchrToTerrain(ch) {
+function mapchrToTerrain(ch) {
     if (typeof ch !== 'string' || ch.length === 0) {
         return -1;
     }
@@ -2977,25 +2977,25 @@ async function mapchrToTerrain(ch) {
 }
 
 // C ref: nhlua.c check_mapchr()
-export async function check_mapchr(ch) {
+export function check_mapchr(ch) {
     if (typeof ch !== 'string' || ch.length === 0) return false;
     const c = ch[0];
     if (c === 'w' || c === 'x') return true;
-    return await mapchrToTerrain(c) !== -1;
+    return mapchrToTerrain(c) !== -1;
 }
 
 // C ref: nhlua.c get_table_mapchr_opt()
-export async function get_table_mapchr_opt(opts = {}, name = 'typ', defval = -1) {
+export function get_table_mapchr_opt(opts = {}, name = 'typ', defval = -1) {
     const raw = opts?.[name];
     if (raw === undefined || raw === null) return defval;
     if (typeof raw !== 'string' || raw.length === 0) return defval;
     const c = raw[0];
-    if (!await check_mapchr(c)) return defval;
+    if (!check_mapchr(c)) return defval;
     return c;
 }
 
 // C ref: nhlua.c get_table_mapchr()
-export async function get_table_mapchr(opts = {}, name = 'typ') {
+export function get_table_mapchr(opts = {}, name = 'typ') {
     const c = get_table_mapchr_opt(opts, name, null);
     if (c === null) {
         throw new Error(`Expected map character for "${name}"`);
@@ -3004,8 +3004,8 @@ export async function get_table_mapchr(opts = {}, name = 'typ') {
 }
 
 // C ref: nhlsel.c l_selection_filter_mapchar()
-export async function l_selection_filter_mapchar(sel = null, ch = '.') {
-    if (!levelState.map || !await check_mapchr(ch)) return selection.new();
+export function l_selection_filter_mapchar(sel = null, ch = '.') {
+    if (!levelState.map || !check_mapchr(ch)) return selection.new();
 
     let checkCoords = [];
     if (!sel) {
@@ -3045,7 +3045,7 @@ export async function l_selection_filter_mapchar(sel = null, ch = '.') {
 /**
  * Check if a terrain type is any kind of wall.
  */
-async function isWall(typ) {
+function isWall(typ) {
     return typ >= VWALL && typ <= TRWALL;
 }
 
@@ -3053,25 +3053,25 @@ async function isWall(typ) {
  * Directional extension checks for wall types.
  * These determine which directions a wall type connects to neighboring walls.
  */
-async function extendsNorth(typ) {
+function extendsNorth(typ) {
     // Types that have north-going connectivity
     return typ === VWALL || typ === BLCORNER || typ === BRCORNER ||
            typ === TUWALL || typ === CROSSWALL || typ === TRWALL || typ === TLWALL;
 }
 
-async function extendsSouth(typ) {
+function extendsSouth(typ) {
     // Types that have south-going connectivity
     return typ === VWALL || typ === TLCORNER || typ === TRCORNER ||
            typ === TDWALL || typ === CROSSWALL || typ === TRWALL || typ === TLWALL;
 }
 
-async function extendsEast(typ) {
+function extendsEast(typ) {
     // Types that have east-going connectivity
     return typ === HWALL || typ === TLCORNER || typ === BLCORNER ||
            typ === TUWALL || typ === TDWALL || typ === CROSSWALL || typ === TRWALL;
 }
 
-async function extendsWest(typ) {
+function extendsWest(typ) {
     // Types that have west-going connectivity
     return typ === HWALL || typ === TRCORNER || typ === BRCORNER ||
            typ === TUWALL || typ === TDWALL || typ === CROSSWALL || typ === TLWALL;
@@ -3088,7 +3088,7 @@ async function extendsWest(typ) {
  *
  * @param {GameMap} map - The map to wallify
  */
-async function wallification(map) {
+function wallification(map) {
     dungeonWallification(map);
 }
 
@@ -3317,7 +3317,7 @@ export async function build_room(opts = {}) {
             try {
                 await contents(subroom);
             } finally {
-                await spo_endroom();
+                spo_endroom();
             }
         }
 
@@ -3399,7 +3399,7 @@ export async function build_room(opts = {}) {
                 try {
                     await contents(room);
                 } finally {
-                    await spo_endroom();
+                    spo_endroom();
                 }
             }
 
@@ -3516,7 +3516,7 @@ export async function build_room(opts = {}) {
                 try {
                     await contents(room);
                 } finally {
-                    await spo_endroom();
+                    spo_endroom();
                 }
             }
 
@@ -3587,7 +3587,7 @@ export async function build_room(opts = {}) {
                 try {
                     await contents(roomCalc);
                 } finally {
-                    await spo_endroom();
+                    spo_endroom();
                 }
             }
 
@@ -3720,7 +3720,7 @@ export async function build_room(opts = {}) {
             }
         } finally {
             // Restore parent room state
-            await spo_endroom();
+            spo_endroom();
         }
     }
 
@@ -3736,7 +3736,7 @@ export async function room(opts = {}) {
     return await build_room(opts);
 }
 
-async function l_create_stairway(directionOrOpts, x, y, is_ladder = false) {
+function l_create_stairway(directionOrOpts, x, y, is_ladder = false) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -3776,20 +3776,20 @@ async function l_create_stairway(directionOrOpts, x, y, is_ladder = false) {
 
     const isRandom = sx === undefined || sy === undefined || sx < 0 || sy < 0;
     if (isRandom) {
-        await set_ok_location_func(good_stair_loc);
+        set_ok_location_func(good_stair_loc);
     }
     const pos = getLocationCoord(sx, sy, GETLOC_DRY, levelState.currentRoom || null);
-    await set_ok_location_func(null);
+    set_ok_location_func(null);
     const absx = pos.x;
     const absy = pos.y;
     if (absx < 0 || absy < 0 || absx >= COLNO || absy >= ROWNO) return;
 
-    await markSpLevTouched(absx, absy);
+    markSpLevTouched(absx, absy);
 
     const trap = levelState.map.trapAt(absx, absy);
     if (trap) deltrap(levelState.map, trap);
 
-    if (!await canPlaceStair(dir)) return;
+    if (!canPlaceStair(dir)) return;
     if (!isRandom) levelState.map.locations[absx][absy].typ = ROOM;
 
     const up = (dir === 'up') ? 1 : 0;
@@ -3807,7 +3807,7 @@ async function l_create_stairway(directionOrOpts, x, y, is_ladder = false) {
     } else {
         levelState.map.dnstair = { x: absx, y: absy };
     }
-    await markSpLevMap(absx, absy);
+    markSpLevMap(absx, absy);
 }
 
 /**
@@ -3820,8 +3820,8 @@ async function l_create_stairway(directionOrOpts, x, y, is_ladder = false) {
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate
  */
-export async function stair(direction, x, y) {
-    await l_create_stairway(direction, x, y, false);
+export function stair(direction, x, y) {
+    l_create_stairway(direction, x, y, false);
 }
 
 /**
@@ -3832,7 +3832,7 @@ export async function stair(direction, x, y) {
  * Map monster name to monster index.
  * C ref: pm.h PM_* constants are indices into mons[] array
  */
-async function monsterNameToIndex(name) {
+function monsterNameToIndex(name) {
     if (!name) return -1;
     const lowerName = name.toLowerCase().trim();
 
@@ -3848,13 +3848,13 @@ async function monsterNameToIndex(name) {
     return -1;
 }
 
-async function get_table_monclass(opts = {}) {
+function get_table_monclass(opts = {}) {
     const value = opts?.class;
     if (typeof value === 'string' && value.length === 1) return value.charCodeAt(0);
     return -1;
 }
 
-async function resolveNamedMonsterLikeC(monsterId) {
+function resolveNamedMonsterLikeC(monsterId) {
     if (!monsterId) {
         return { mndx: -1, female: undefined };
     }
@@ -3893,7 +3893,7 @@ async function resolveNamedMonsterLikeC(monsterId) {
     return { mndx, female: (namedGender !== undefined) ? namedGender : !!rn2(2) };
 }
 
-async function find_montype(_ctx, name, mgenderRef) {
+function find_montype(_ctx, name, mgenderRef) {
     const resolved = resolveNamedMonsterLikeC(name);
     const mgender = (resolved.female === true) ? FEMALE
         : (resolved.female === false) ? MALE
@@ -3902,12 +3902,12 @@ async function find_montype(_ctx, name, mgenderRef) {
     return (resolved.mndx >= 0) ? resolved.mndx : NON_PM;
 }
 
-async function get_table_montype(opts = {}, mgenderRef) {
+function get_table_montype(opts = {}, mgenderRef) {
     if (typeof opts?.id !== 'string' || !opts.id.length) return NON_PM;
     return find_montype(null, opts.id, mgenderRef);
 }
 
-async function objectNameToType(name, classFilter = null) {
+function objectNameToType(name, classFilter = null) {
     const lowerName = name.toLowerCase().trim();
 
     // Quick checks for common objects
@@ -3974,7 +3974,7 @@ async function objectNameToType(name, classFilter = null) {
 /**
  * Map object class character to class constant.
  */
-async function objectClassToType(classChar) {
+function objectClassToType(classChar) {
     switch (classChar) {
         case '%': return FOOD_CLASS;
         case '?': return SCROLL_CLASS;
@@ -3993,32 +3993,32 @@ async function objectClassToType(classChar) {
 }
 
 // cf. sp_lev.c:206 — reset_xystart_size(): reset map fragment coordinates to full level
-export async function reset_xystart_size() {
+export function reset_xystart_size() {
     levelState.xstart = 1;
     levelState.ystart = 0;
     levelState.xsize = COLNO - 1;
     levelState.ysize = ROWNO;
 }
 
-export async function get_table_objclass(opts = {}) {
+export function get_table_objclass(opts = {}) {
     const value = opts?.class;
     if (typeof value === 'string' && value.length === 1) return value;
     return -1;
 }
 
-async function find_objtype(_ctx, name, oclass = -1) {
+function find_objtype(_ctx, name, oclass = -1) {
     if (typeof name !== 'string' || !name.length) return -1;
     const filter = (oclass === -1 || oclass === undefined) ? null : oclass;
     return objectNameToType(name, filter);
 }
 
-export async function get_table_objtype(opts = {}) {
+export function get_table_objtype(opts = {}) {
     const id = opts?.id;
     const oclass = get_table_objclass(opts);
     return find_objtype(null, id, oclass);
 }
 
-async function installObjectTimerShims(obj) {
+function installObjectTimerShims(obj) {
     if (!obj || typeof obj !== 'object') return;
     obj.start_timer = (timerType, when = 0, kind) => {
         return start_timer(when, kind, timerType, obj);
@@ -4157,7 +4157,7 @@ export async function object(name_or_opts, x, y) {
         || (typeof name_or_opts === 'object'
             && typeof name_or_opts?.id === 'string'
             && name_or_opts.id.toLowerCase() === 'corpse'));
-    await spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=begin call=${getRngCallCount()} class_raw=${JSON.stringify(specClass)} id_raw=${JSON.stringify(specId)} named=${named ? 1 : 0} corpsenm_raw=${JSON.stringify(specCorpsenm)} x=${absX} y=${absY}`);
+    spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=begin call=${getRngCallCount()} class_raw=${JSON.stringify(specClass)} id_raw=${JSON.stringify(specId)} named=${named ? 1 : 0} corpsenm_raw=${JSON.stringify(specCorpsenm)} x=${absX} y=${absY}`);
 
     // Create the object now (triggers next_ident and other creation RNG)
     if (!name_or_opts) {
@@ -4302,9 +4302,9 @@ export async function object(name_or_opts, x, y) {
                 obj.greased = 1;
             }
         }
-        await spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=created call=${getRngCallCount()} otyp=${obj.otyp ?? -1} oclass=${obj.oclass ?? -1} spe=${obj.spe ?? -999} quan=${obj.quan ?? -1}`);
+        spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=created call=${getRngCallCount()} otyp=${obj.otyp ?? -1} oclass=${obj.oclass ?? -1} spe=${obj.spe ?? -999} quan=${obj.quan ?? -1}`);
         if (obj.corpsenm !== undefined && obj.corpsenm !== null && obj.corpsenm !== -1) {
-            await spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=corpsenm call=${getRngCallCount()} got=${obj.corpsenm} otyp=${obj.otyp ?? -1}`);
+            spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=corpsenm call=${getRngCallCount()} got=${obj.corpsenm} otyp=${obj.otyp ?? -1}`);
         }
         // C ref: lspo_object() marks special branch prizes via achievement ids
         // (tracked by object id in context.achieveo for mines/sokoban prizes).
@@ -4351,7 +4351,7 @@ export async function object(name_or_opts, x, y) {
     if (obj) {
         // C/Lua object userdata compatibility needs to be available before
         // contents callbacks execute.
-        await installObjectTimerShims(obj);
+        installObjectTimerShims(obj);
         obj.totable = obj.totable || function() {
             return {
                 ox: this.ox,
@@ -4390,7 +4390,7 @@ export async function object(name_or_opts, x, y) {
         }
 
         if (absX >= 0 && absX < COLNO && absY >= 0 && absY < ROWNO) {
-            await markSpLevTouched(absX, absY);
+            markSpLevTouched(absX, absY);
         }
         // Place object immediately in script order (matching C)
         obj.ox = absX;
@@ -4466,19 +4466,19 @@ export async function object(name_or_opts, x, y) {
             try {
                 await name_or_opts.contents(obj);
             } finally {
-                await spo_pop_container();
+                spo_pop_container();
             }
         }
     }
     // C ref: lspo_object returns the object userdata to Lua.
     // Keep timer methods available for script compatibility.
     if (obj) {
-        await installObjectTimerShims(obj);
+        installObjectTimerShims(obj);
     }
     return obj;
 }
 export 
-async function l_push_wid_hei_table(room) {
+function l_push_wid_hei_table(room) {
     if (!room) return { w: 0, h: 0 };
     const w = (Number.isFinite(room.hx) && Number.isFinite(room.lx))
         ? (room.hx - room.lx + 1)
@@ -4489,7 +4489,7 @@ async function l_push_wid_hei_table(room) {
     return { w, h };
 }
 export 
-async function l_push_mkroom_table(room) {
+function l_push_mkroom_table(room) {
     if (!room) return { x1: 0, y1: 0, x2: 0, y2: 0, w: 0, h: 0 };
     const wh = l_push_wid_hei_table(room);
     return {
@@ -4505,7 +4505,7 @@ async function l_push_mkroom_table(room) {
     };
 }
 
-async function l_table_getset_feature_flag(loc, opts, key, bit) {
+function l_table_getset_feature_flag(loc, opts, key, bit) {
     if (!loc || !opts) return;
     const value = opts[key];
     if (value === undefined) return;
@@ -4522,7 +4522,7 @@ async function l_table_getset_feature_flag(loc, opts, key, bit) {
  * Map trap name to trap type constant.
  * C ref: sp_lev.c get_trap_type()
  */
-async function trapNameToType(name) {
+function trapNameToType(name) {
     if (typeof name !== 'string') return null;
     const lowerName = name.toLowerCase();
 
@@ -4557,12 +4557,12 @@ async function trapNameToType(name) {
     }
 }
 export 
-async function get_traptype_byname(trapname) {
+function get_traptype_byname(trapname) {
     const t = trapNameToType(trapname);
     return (t === null) ? NO_TRAP : t;
 }
 export 
-async function get_trapname_bytype(ttyp) {
+function get_trapname_bytype(ttyp) {
     const names = [
         ['arrow', ARROW_TRAP],
         ['dart', DART_TRAP],
@@ -4592,7 +4592,7 @@ async function get_trapname_bytype(ttyp) {
     return hit ? hit[0] : null;
 }
 
-async function get_table_traptype_opt(opts = {}, name = 'type', defval = -1) {
+function get_table_traptype_opt(opts = {}, name = 'type', defval = -1) {
     const value = opts?.[name];
     if (value === undefined || value === null) return defval;
     if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
@@ -4600,7 +4600,7 @@ async function get_table_traptype_opt(opts = {}, name = 'type', defval = -1) {
     return (trap === null) ? defval : trap;
 }
 
-async function get_table_intarray_entry(arr, entrynum) {
+function get_table_intarray_entry(arr, entrynum) {
     const idx = Math.trunc(entrynum) - 1;
     const value = arr?.[idx];
     if (!Number.isFinite(value)) {
@@ -4609,7 +4609,7 @@ async function get_table_intarray_entry(arr, entrynum) {
     return Math.trunc(value);
 }
 export 
-async function get_table_region(opts = {}, name, optional = false) {
+function get_table_region(opts = {}, name, optional = false) {
     const region = opts?.[name];
     if (region === undefined || region === null) {
         if (optional) return null;
@@ -4624,7 +4624,7 @@ async function get_table_region(opts = {}, name, optional = false) {
     };
 }
 
-async function get_table_coords_or_region(opts = {}) {
+function get_table_coords_or_region(opts = {}) {
     const hasCoords = Number.isFinite(opts.x1) && Number.isFinite(opts.y1)
         && Number.isFinite(opts.x2) && Number.isFinite(opts.y2);
     if (hasCoords) {
@@ -4639,7 +4639,7 @@ async function get_table_coords_or_region(opts = {}) {
     return { x1: region.x1, y1: region.y1, x2: region.x2, y2: region.y2 };
 }
 
-async function get_table_xy_or_coord(opts = {}) {
+function get_table_xy_or_coord(opts = {}) {
     let x = Number.isFinite(opts?.x) ? Math.trunc(opts.x) : -1;
     let y = Number.isFinite(opts?.y) ? Math.trunc(opts.y) : -1;
     if (x === -1 && y === -1 && opts?.coord !== undefined) {
@@ -4773,7 +4773,7 @@ export async function trap(type_or_opts, x, y) {
     return await create_trap(type_or_opts, x, y);
 }
 export 
-async function light_region(x1, y1, x2, y2, litVal) {
+function light_region(x1, y1, x2, y2, litVal) {
     if (!levelState.map) return;
     const lx1 = Math.min(x1, x2);
     const ly1 = Math.min(y1, y2);
@@ -4783,7 +4783,7 @@ async function light_region(x1, y1, x2, y2, litVal) {
         for (let y = ly1; y <= ly2; y++) {
             if (x >= 0 && x < COLNO && y >= 0 && y < ROWNO) {
                 const loc = levelState.map.locations[x][y];
-                await sel_set_lit(x, y, (IS_LAVA(loc.typ) || litVal) ? 1 : 0);
+                sel_set_lit(x, y, (IS_LAVA(loc.typ) || litVal) ? 1 : 0);
             }
         }
     }
@@ -4860,7 +4860,7 @@ export async function region(opts_or_selection, type) {
             for (const c of sel.coords) {
                 if (c.x < 0 || c.x >= COLNO || c.y < 0 || c.y >= ROWNO) continue;
                 const typ = levelState.map.locations[c.x][c.y].typ;
-                await sel_set_lit(c.x, c.y, (IS_LAVA(typ) || targetLit) ? 1 : 0);
+                sel_set_lit(c.x, c.y, (IS_LAVA(typ) || targetLit) ? 1 : 0);
             }
         } else {
             x1 = sourceSel.x1;
@@ -4876,7 +4876,7 @@ export async function region(opts_or_selection, type) {
                 y2 = c2.y;
             }
             const norm = normalizeRegionCoords(x1, y1, x2, y2);
-            await light_region(norm.x1, norm.y1, norm.x2, norm.y2, targetLit);
+            light_region(norm.x1, norm.y1, norm.x2, norm.y2, targetLit);
         }
         return;
     }
@@ -4949,7 +4949,7 @@ export async function region(opts_or_selection, type) {
         // second pass marks already-set edges as SHARED instead of the correct roomno.
 
         if (rlit) {
-            await light_region(rx1 - 1, ry1 - 1, rx2 + 1, ry2 + 1, true);
+            light_region(rx1 - 1, ry1 - 1, rx2 + 1, ry2 + 1, true);
         }
         return room;
     };
@@ -4970,7 +4970,7 @@ export async function region(opts_or_selection, type) {
 
     const norm = normalizeRegionCoords(x1, y1, x2, y2);
     if (roomNotNeeded || (levelState.map.nroom || 0) >= MAXNROFROOMS) {
-        await light_region(norm.x1, norm.y1, norm.x2, norm.y2, rlit);
+        light_region(norm.x1, norm.y1, norm.x2, norm.y2, rlit);
         return;
     }
 
@@ -4988,7 +4988,7 @@ export async function region(opts_or_selection, type) {
         try {
             await opts.contents(createdRoom);
         } finally {
-            await spo_endroom();
+            spo_endroom();
         }
     }
     if (!levelState.map && mapBeforeContents) {
@@ -5000,30 +5000,30 @@ export async function region(opts_or_selection, type) {
 }
 
 // C ref: sp_lev.c sel_set_wall_property()
-export async function sel_set_wall_property(x, y, propKind) {
+export function sel_set_wall_property(x, y, propKind) {
     if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
     const loc = levelState.map?.locations?.[x]?.[y];
     if (!loc) return;
     // C ref: sel_set_wall_property() uses IS_STWALL (includes STONE) plus iron bars.
     if (!(IS_STWALL(loc.typ) || loc.typ === IRONBARS)) return;
     if (propKind === 'nondiggable') {
-        await setWallInfoBits(loc, W_NONDIGGABLE);
+        setWallInfoBits(loc, W_NONDIGGABLE);
         loc.nondiggable = true; // compatibility mirror
     } else if (propKind === 'nonpasswall') {
-        await setWallInfoBits(loc, W_NONPASSWALL);
+        setWallInfoBits(loc, W_NONPASSWALL);
         loc.nonpasswall = true; // compatibility mirror
     }
 }
 
 // C ref: sp_lev.c set_wallprop_in_selection()
-export async function set_wallprop_in_selection(selection, propKind) {
+export function set_wallprop_in_selection(selection, propKind) {
     if (!levelState.map) return;
 
     if (!selection) {
         // C ref: set_wallprop_in_selection() with no args creates a full-map selection.
         for (let x = 0; x < COLNO; x++) {
             for (let y = 0; y < ROWNO; y++) {
-                await sel_set_wall_property(x, y, propKind);
+                sel_set_wall_property(x, y, propKind);
             }
         }
         return;
@@ -5033,7 +5033,7 @@ export async function set_wallprop_in_selection(selection, propKind) {
         // selection.area() already converts coordinates to absolute via
         // _toAbsoluteCoord/getLocationCoord. Do NOT re-convert here.
         for (const c of selection.coords) {
-            await sel_set_wall_property(c.x, c.y, propKind);
+            sel_set_wall_property(c.x, c.y, propKind);
         }
         return;
     }
@@ -5056,18 +5056,18 @@ export async function set_wallprop_in_selection(selection, propKind) {
     }
     for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
         for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
-            await sel_set_wall_property(x, y, propKind);
+            sel_set_wall_property(x, y, propKind);
         }
     }
 }
 
 // C ref: sp_lev.c set_wall_property()
-export async function set_wall_property(x1, y1, x2, y2, propKind) {
-    await set_wallprop_in_selection({ x1, y1, x2, y2 }, propKind);
+export function set_wall_property(x1, y1, x2, y2, propKind) {
+    set_wallprop_in_selection({ x1, y1, x2, y2 }, propKind);
 }
 
 // C ref: sp_lev.c shared_with_room()
-export async function shared_with_room(map, tx, ty, room, rmno) {
+export function shared_with_room(map, tx, ty, room, rmno) {
     if (!isok(tx, ty) || !room || !map) return false;
     const here = map.at ? map.at(tx, ty) : map.locations?.[tx]?.[ty];
     if (here && here.roomno === rmno && !here.edge) return false;
@@ -5086,7 +5086,7 @@ export async function shared_with_room(map, tx, ty, room, rmno) {
 }
 
 // C ref: sp_lev.c search_door()
-export async function search_door(map, x, y, room) {
+export function search_door(map, x, y, room) {
     if (!map || !room || room.hx < 0) return null;
     const rmno = ((room.roomnoidx ?? map.rooms?.indexOf(room) ?? 0) + ROOMOFFSET);
     const inside = (x >= room.lx && x <= room.hx && y >= room.ly && y <= room.hy);
@@ -5099,9 +5099,9 @@ export async function search_door(map, x, y, room) {
 }
 
 // C ref: sp_lev.c maybe_add_door()
-export async function maybe_add_door(map, x, y, room) {
+export function maybe_add_door(map, x, y, room) {
     if (!map || !room) return false;
-    if (!await search_door(map, x, y, room)) return false;
+    if (!search_door(map, x, y, room)) return false;
     // sp_lev ownership helper; concrete door linking is done by mklev/dungeon path.
     return true;
 }
@@ -5114,7 +5114,7 @@ export async function maybe_add_door(map, x, y, room) {
  *
  * @param {Object} opts - Options containing x1/y1/x2/y2 or region and property
  */
-export async function wall_property(opts) {
+export function wall_property(opts) {
     if (!levelState.map || !opts || typeof opts !== 'object') return;
 
     const propName = (typeof opts.property === 'string') ? opts.property : 'nondiggable';
@@ -5140,7 +5140,7 @@ export async function wall_property(opts) {
     if (y2 === -1) y2 = (Number.isFinite(levelState.ystart) && Number.isFinite(levelState.ysize))
         ? levelState.ystart + levelState.ysize + 1 : ROWNO - 1;
 
-    await set_wall_property(x1, y1, x2, y2, propKind);
+    set_wall_property(x1, y1, x2, y2, propKind);
 }
 
 /**
@@ -5151,11 +5151,11 @@ export async function wall_property(opts) {
  *
  * @param {Object} selection - Selection object
  */
-export async function non_diggable(selection) {
+export function non_diggable(selection) {
     if (!levelState.map) {
         return;
     }
-    await set_wallprop_in_selection(selection, 'nondiggable');
+    set_wallprop_in_selection(selection, 'nondiggable');
 }
 
 /**
@@ -5166,7 +5166,7 @@ export async function non_diggable(selection) {
  *
  * @param {string} text - Message to display
  */
-export async function message(text) {
+export function message(text) {
     if (!levelState.map) {
         levelState.map = { messages: [] };
     }
@@ -5184,15 +5184,15 @@ export async function message(text) {
  *
  * @param {Object} selection - Selection object
  */
-export async function non_passwall(selection) {
+export function non_passwall(selection) {
     if (!levelState.map) {
         return;
     }
     // C ref: lspo_non_passwall() reuses set_wallprop_in_selection().
-    await set_wallprop_in_selection(selection, 'nonpasswall');
+    set_wallprop_in_selection(selection, 'nonpasswall');
 }
 
-async function l_get_lregion(opts = {}) {
+function l_get_lregion(opts = {}) {
     const inRegion = get_table_region(opts, 'region', false);
     const delRegionRaw = get_table_region(opts, 'exclude', true);
     const delRegion = delRegionRaw || { x1: -1, y1: -1, x2: -1, y2: -1 };
@@ -5208,7 +5208,7 @@ async function l_get_lregion(opts = {}) {
     };
 }
 
-async function levregion_add(lregion) {
+function levregion_add(lregion) {
     const in1 = lregion.in_islev
         ? { x: lregion.inarea.x1, y: lregion.inarea.y1 }
         : getLocation(lregion.inarea.x1, lregion.inarea.y1, GETLOC_ANY_LOC, null, false);
@@ -5238,7 +5238,7 @@ async function levregion_add(lregion) {
  *
  * @param {Object} opts - Region options
  */
-export async function levregion(opts) {
+export function levregion(opts) {
     if (!opts || typeof opts !== 'object') {
         throw new Error('wrong parameters');
     }
@@ -5266,7 +5266,7 @@ export async function levregion(opts) {
     lregion.rtype = rtype;
     lregion.padding = Number.isFinite(opts.padding) ? Math.trunc(opts.padding) : 0;
     lregion.rname = opts.name || null;
-    await levregion_add(lregion);
+    levregion_add(lregion);
 }
 
 /**
@@ -5277,7 +5277,7 @@ export async function levregion(opts) {
  *
  * @param {Object} opts - Exclusion options
  */
-export async function exclusion(opts) {
+export function exclusion(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -5442,7 +5442,7 @@ export async function monster(opts_or_class, x, y) {
  * @param {number} x - X coordinate (if first param is string)
  * @param {number} y - Y coordinate (if first param is string)
  */
-export async function create_door(state_or_opts, x, y) {
+export function create_door(state_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -5537,25 +5537,25 @@ export async function create_door(state_or_opts, x, y) {
 
     if (!levelState.map.locations[doorX][doorY]) return;
 
-    await sel_set_door(doorX, doorY, doorMask);
-    await markSpLevMap(doorX, doorY);
-    await markSpLevTouched(doorX, doorY);
+    sel_set_door(doorX, doorY, doorMask);
+    markSpLevMap(doorX, doorY);
+    markSpLevTouched(doorX, doorY);
 }
 
 // C ref: sp_lev.c rnddoor()
-export async function rnddoor() {
+export function rnddoor() {
     return [D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED][rn2(5)];
 }
 
 // C ref: sp_lev.c set_door_orientation()
-export async function set_door_orientation(x, y) {
+export function set_door_orientation(x, y) {
     if (x <= 0 || x >= COLNO || y < 0 || y >= ROWNO) return false;
     const left = levelState.map?.locations?.[x - 1]?.[y];
     return !!(left && (IS_WALL(left.typ) || !!left.horizontal));
 }
 
 // C ref: sp_lev.c sel_set_door()
-export async function sel_set_door(x, y, rawDoorMask) {
+export function sel_set_door(x, y, rawDoorMask) {
     const loc = levelState.map?.locations?.[x]?.[y];
     if (!loc) return;
     let doorMask = rawDoorMask;
@@ -5572,7 +5572,7 @@ export async function sel_set_door(x, y, rawDoorMask) {
     loc.flags = doorMask;
 }
 
-export async function door(state_or_opts, x, y) {
+export function door(state_or_opts, x, y) {
     return create_door(state_or_opts, x, y);
 }
 
@@ -5583,7 +5583,7 @@ export async function door(state_or_opts, x, y) {
  *
  * @param {Object} opts - Engraving options (coord, type, text)
  */
-export async function engraving(opts) {
+export function engraving(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -5651,7 +5651,7 @@ export async function engraving(opts) {
         guardobjects: !!guardobjects,
         nowipeout: !wipeout,
     });
-    await markSpLevTouched(pos.x, pos.y);
+    markSpLevTouched(pos.x, pos.y);
 }
 
 /**
@@ -5663,8 +5663,8 @@ export async function engraving(opts) {
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate
  */
-export async function ladder(direction, x, y) {
-    await l_create_stairway(direction, x, y, true);
+export function ladder(direction, x, y) {
+    l_create_stairway(direction, x, y, true);
 }
 
 /**
@@ -5672,7 +5672,7 @@ export async function ladder(direction, x, y) {
  * Place a grave at a location, optionally with epitaph text.
  * C ref: sp_lev.c lspo_grave()
  */
-export async function grave(x_or_opts, y, text) {
+export function grave(x_or_opts, y, text) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -5715,7 +5715,7 @@ export async function grave(x_or_opts, y, text) {
     if (levelState.map.trapAt(xabs, yabs)) return;
 
     levelState.map.locations[xabs][yabs].typ = GRAVE;
-    await markSpLevTouched(xabs, yabs);
+    markSpLevTouched(xabs, yabs);
 
     // C ref: sp_lev.c lspo_grave() calls make_grave(), which writes a
     // HEADSTONE engraving (not a generic ENGRAVE with nowipeout).
@@ -5815,7 +5815,7 @@ export async function create_altar(opts) {
         altarAlign = inducedAlignForCurrentLevel();
     }
 
-    if (!await setLevlTypAt(map, pos.x, pos.y, ALTAR)) return;
+    if (!setLevlTypAt(map, pos.x, pos.y, ALTAR)) return;
     const loc = map.locations[pos.x][pos.y];
     loc.altarAlign = altarAlign;
     loc.flags = Align2amask(altarAlign);
@@ -5833,10 +5833,10 @@ export async function create_altar(opts) {
         if (shrine > 1) loc.flags |= AM_SANCTUM;
         map.flags.has_temple = true;
     }
-    await markSpLevTouched(pos.x, pos.y);
+    markSpLevTouched(pos.x, pos.y);
 }
 
-export async function altar(opts) {
+export function altar(opts) {
     return create_altar(opts);
 }
 
@@ -5845,7 +5845,7 @@ export async function altar(opts) {
  * Place gold at a location.
  * C ref: sp_lev.c lspo_gold()
  */
-export async function gold(amountOrOpts, x, y) {
+export function gold(amountOrOpts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -5907,7 +5907,7 @@ export async function gold(amountOrOpts, x, y) {
     gold.owt = weight(gold);
     if (levelState.map && Array.isArray(levelState.map.objects)) {
         placeFloorObject(levelState.map, gold);
-        await markSpLevTouched(pos.x, pos.y);
+        markSpLevTouched(pos.x, pos.y);
     }
 }
 
@@ -5920,7 +5920,7 @@ export async function gold(amountOrOpts, x, y) {
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate
  */
-export async function feature(type, x, y) {
+export function feature(type, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -5978,7 +5978,7 @@ export async function feature(type, x, y) {
         levelState.currentRoom || null
     );
     if (pos.x < 0 || pos.x >= COLNO || pos.y < 0 || pos.y >= ROWNO) return;
-    if (!await sel_set_feature(pos.x, pos.y, terrain)) return;
+    if (!sel_set_feature(pos.x, pos.y, terrain)) return;
 
     if (terrain === ALTAR) {
         levelState.map.locations[pos.x][pos.y].altarAlign = A_NEUTRAL;
@@ -5992,20 +5992,20 @@ export async function feature(type, x, y) {
         // throne: T_LOOTED=1
         // tree: TREE_LOOTED=1, TREE_SWARM=2
         if (terrain === FOUNTAIN) {
-            await l_table_getset_feature_flag(loc, opts, 'looted', 1);
-            await l_table_getset_feature_flag(loc, opts, 'warned', 2);
+            l_table_getset_feature_flag(loc, opts, 'looted', 1);
+            l_table_getset_feature_flag(loc, opts, 'warned', 2);
         } else if (terrain === SINK) {
-            await l_table_getset_feature_flag(loc, opts, 'pudding', 1);
-            await l_table_getset_feature_flag(loc, opts, 'dishwasher', 2);
-            await l_table_getset_feature_flag(loc, opts, 'ring', 4);
+            l_table_getset_feature_flag(loc, opts, 'pudding', 1);
+            l_table_getset_feature_flag(loc, opts, 'dishwasher', 2);
+            l_table_getset_feature_flag(loc, opts, 'ring', 4);
         } else if (terrain === THRONE) {
-            await l_table_getset_feature_flag(loc, opts, 'looted', 1);
+            l_table_getset_feature_flag(loc, opts, 'looted', 1);
         } else if (terrain === TREE) {
-            await l_table_getset_feature_flag(loc, opts, 'looted', 1);
-            await l_table_getset_feature_flag(loc, opts, 'swarm', 2);
+            l_table_getset_feature_flag(loc, opts, 'looted', 1);
+            l_table_getset_feature_flag(loc, opts, 'swarm', 2);
         }
     }
-    await markSpLevTouched(pos.x, pos.y);
+    markSpLevTouched(pos.x, pos.y);
 }
 
 /**
@@ -6015,7 +6015,7 @@ export async function feature(type, x, y) {
  *
  * @param {Object} opts - { selection } or { region:[x1,y1,x2,y2] }
  */
-export async function gas_cloud(opts = {}) {
+export function gas_cloud(opts = {}) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -6057,7 +6057,7 @@ export async function gas_cloud(opts = {}) {
         create_gas_cloud_selection_mklev(sel, damage, levelState.map);
         for (const c of sel.coords) {
             if (c.x >= 0 && c.x < COLNO && c.y >= 0 && c.y < ROWNO) {
-                await markSpLevTouched(c.x, c.y);
+                markSpLevTouched(c.x, c.y);
             }
         }
         return;
@@ -6082,7 +6082,7 @@ export async function gas_cloud(opts = {}) {
         damage,
         ...(ttl > -2 ? { ttl } : {})
     });
-    await markSpLevTouched(px, py);
+    markSpLevTouched(px, py);
 }
 
 /**
@@ -6092,12 +6092,12 @@ export async function gas_cloud(opts = {}) {
  *
  * @param {Object} opts - Region options (region, dir)
  */
-export async function teleport_region(opts) {
+export function teleport_region(opts) {
     if (!opts || typeof opts !== 'object') {
         throw new Error('wrong parameters');
     }
 
-    await get_table_region(opts, 'region', false);
+    get_table_region(opts, 'region', false);
 
     const dir = String(opts.dir || 'both').toLowerCase();
     const dirMap = {
@@ -6110,7 +6110,7 @@ export async function teleport_region(opts) {
         throw new Error('wrong parameters');
     }
 
-    await levregion({
+    levregion({
         region: opts.region,
         exclude: opts.exclude,
         region_islev: opts.region_islev,
@@ -6206,7 +6206,7 @@ export async function corridor(opts) {
  *
  * @param {Object} opts - Optional table: gem_prob/gold_prob/kelp_moat/kelp_pool
  */
-export async function mineralize(opts = {}) {
+export function mineralize(opts = {}) {
     if (!levelState.map) return;
 
     const parseOpt = (value) => (Number.isFinite(value) ? Math.trunc(value) : -1);
@@ -6224,7 +6224,7 @@ export async function mineralize(opts = {}) {
 
 // C ref: sp_lev.c pm_to_humidity()
 // Autotranslated from sp_lev.c:1884
-export async function pm_to_humidity(pm) {
+export function pm_to_humidity(pm) {
   let loc = GETLOC_DRY;
   if (!pm) return loc;
   if (pm.mlet === S_EEL || amphibious(pm) || is_swimmer(pm)) loc = GETLOC_WET;
@@ -6242,14 +6242,14 @@ export async function pm_to_humidity(pm) {
 
 // C ref: sp_lev.c pm_good_location()
 // Autotranslated from sp_lev.c:1311
-export async function pm_good_location(x, y, pm) {
+export function pm_good_location(x, y, pm) {
   return is_ok_location(x, y, pm_to_humidity(pm));
 }
 
 // C ref: sp_lev.c m_bad_boulder_spot()
-export async function m_bad_boulder_spot(x, y) {
+export function m_bad_boulder_spot(x, y) {
     if (levelState.map?.trapAt?.(x, y)) return true;
-    if (await hasBoulderAt(x, y)) return true;
+    if (hasBoulderAt(x, y)) return true;
     const lev = levelState.map?.locations?.[x]?.[y];
     if (lev && lev.typ === DOOR && ((lev.flags || 0) & (D_CLOSED | D_LOCKED))) {
         return true;
@@ -6258,14 +6258,14 @@ export async function m_bad_boulder_spot(x, y) {
 }
 
 // C ref: sp_lev.c noncoalignment()
-export async function noncoalignment(baseAlign = A_NEUTRAL) {
+export function noncoalignment(baseAlign = A_NEUTRAL) {
     const k = rn2(2);
     if (!baseAlign) return k ? A_CHAOTIC : A_LAWFUL;
     return k ? -baseAlign : A_NEUTRAL;
 }
 
 // C ref: sp_lev.c sp_amask_to_amask()
-export async function sp_amask_to_amask(amask = 'random') {
+export function sp_amask_to_amask(amask = 'random') {
     const raw = (typeof amask === 'string') ? amask.toLowerCase() : amask;
     const originalAlign = Number.isFinite(u.alignment)
         ? u.alignment
@@ -6332,7 +6332,7 @@ async function createScriptMonster(deferred) {
             if (resolvedFemale !== undefined) {
                 mtmp.female = !!resolvedFemale;
             }
-            await markSpLevTouched(mtmp.mx, mtmp.my);
+            markSpLevTouched(mtmp.mx, mtmp.my);
         }
         return mtmp;
     };
@@ -6341,7 +6341,7 @@ async function createScriptMonster(deferred) {
 
     // C ref: sp_lev.c sp_amask_to_amask(AM_SPLEV_RANDOM) -> induced_align(80)
     async function consumeInducedAlignRng() {
-        await sp_amask_to_amask('random');
+        sp_amask_to_amask('random');
     }
 
     const parseAppearAsLikeC = (appearAsSpec) => {
@@ -6599,7 +6599,7 @@ async function createScriptMonster(deferred) {
                 try {
                     await opts.inventory(mtmp);
                 } finally {
-                    await spo_end_moninvent();
+                    spo_end_moninvent();
                 }
             }
             mtmp.has_invent_flags = hasInvent;
@@ -6769,7 +6769,7 @@ async function createScriptTrap(deferred) {
         await withTrapMidlog(async () => {
             await mktrap(levelState.map, 0, MKTRAP_MAZEFLAG | mktrapFlags, null, tm, depth);
         });
-        await markSpLevTouched(trapX, trapY);
+        markSpLevTouched(trapX, trapY);
         return;
     } else {
         ttyp = get_table_traptype_opt({ type: trapType }, 'type', null);
@@ -6808,7 +6808,7 @@ async function createScriptTrap(deferred) {
             createdTrap.teledest = { x: telePt.x, y: telePt.y };
         }
     }
-    await markSpLevTouched(trapX, trapY);
+    markSpLevTouched(trapX, trapY);
 }
 
 /**
@@ -6942,9 +6942,9 @@ export function map_cleanup(map) {
 }
 
 // C ref: sp_lev.c solidify_map()
-export async function solidify_map(map) {
+export function solidify_map(map) {
     if (!map) return;
-    await initSpLevMap();
+    initSpLevMap();
     const spLevMap = levelState.spLevMap;
     if (!spLevMap) return;
     for (let x = 0; x < COLNO; x++) {
@@ -6952,7 +6952,7 @@ export async function solidify_map(map) {
             const loc = map.locations[x][y];
             if (!loc) continue;
             if (IS_STWALL(loc.typ) && !spLevMap[x]?.[y]) {
-                await setWallInfoBits(loc, W_NONDIGGABLE | W_NONPASSWALL);
+                setWallInfoBits(loc, W_NONDIGGABLE | W_NONPASSWALL);
                 loc.nondiggable = true; // compatibility mirror
                 loc.nonpasswall = true; // compatibility mirror
             }
@@ -6992,9 +6992,9 @@ export async function finalize_level() {
         levelState.deferredFinalizeRequested = true;
         return levelState.map;
     }
-    const extraPhaseTrace = (await getProcessEnv('WEBHACK_EXTRA_PHASE_CHECKPOINTS') === '1');
+    const extraPhaseTrace = (getProcessEnv('WEBHACK_EXTRA_PHASE_CHECKPOINTS') === '1');
     if (extraPhaseTrace) {
-        await captureCheckpoint('after_script');
+        captureCheckpoint('after_script');
     }
     // Copy monster requests to map
     if (levelState.monsters && levelState.map) {
@@ -7013,7 +7013,7 @@ export async function finalize_level() {
     // C ref: lspo_finalize_level() calls link_doors_rooms() before cleanup.
     if (levelState.map) link_doors_rooms(levelState.map);
     if (extraPhaseTrace) {
-        await captureCheckpoint('after_link_doors');
+        captureCheckpoint('after_link_doors');
     }
 
     // C ref: sp_lev.c remove_boundary_syms() runs before map_cleanup.
@@ -7021,7 +7021,7 @@ export async function finalize_level() {
         remove_boundary_syms(levelState.map);
     }
     if (extraPhaseTrace) {
-        await captureCheckpoint('after_remove_boundary');
+        captureCheckpoint('after_remove_boundary');
     }
 
     // C ref: sp_lev.c map_cleanup() runs before wallification.
@@ -7029,7 +7029,7 @@ export async function finalize_level() {
         map_cleanup(levelState.map);
     }
     if (extraPhaseTrace) {
-        await captureCheckpoint('after_map_cleanup');
+        captureCheckpoint('after_map_cleanup');
     }
 
     // C ref: mklev.c:1388-1422 — Fill ordinary rooms with random content.
@@ -7068,7 +7068,7 @@ export async function finalize_level() {
     }
 
     if (extraPhaseTrace) {
-        await captureCheckpoint('before_wallification');
+        captureCheckpoint('before_wallification');
     }
 
     // Apply wallification first (before flipping).
@@ -7076,7 +7076,7 @@ export async function finalize_level() {
     // !svl.level.flags.corrmaze (corrmaze is overloaded to suppress wallify
     // for levels with handcrafted wall geometry such as Baalz).
     if (levelState.map && !levelState.flags.corrmaze) {
-        await wallification(levelState.map);
+        wallification(levelState.map);
     }
     // C ref: lspo_finalize_level() emits "after_wallification";
     // load_special() emits "after_wallification_special".
@@ -7084,7 +7084,7 @@ export async function finalize_level() {
     const wallPhase = levelState.finalizeContext?.isSpecialLevel
         ? 'after_wallification_special'
         : 'after_wallification';
-    await captureCheckpoint(wallPhase);
+    captureCheckpoint(wallPhase);
 
     // C ref: lspo_finalize_level(NULL) skips flip_level_rnd() on wiz-load
     // second-stage finalize. Other finalize paths still flip normally.
@@ -7111,7 +7111,7 @@ export async function finalize_level() {
 
     // C ref: sp_lev.c fixup_special() (branch stair placement, etc.)
     if (levelState.map && levelState.coder?.solidify) {
-        await solidify_map(levelState.map);
+        solidify_map(levelState.map);
     }
 
     // C ref: sp_lev.c fixup_special() (branch stair placement, etc.)
@@ -7200,7 +7200,7 @@ export async function finalize_level() {
     }
 
     if (!levelState.finalizeContext?.skipAfterFinalizeCheckpoint) {
-        await captureCheckpoint('after_finalize');
+        captureCheckpoint('after_finalize');
     }
     levelState.deferredFinalizeRequested = false;
     if (levelState._mklevContextEntered) {
@@ -7216,9 +7216,9 @@ export async function finalize_level() {
 // finalize_level() pass.
 export async function finalize_special_checkpoint_stage() {
     if (levelState.map && !levelState.flags.corrmaze) {
-        await wallification(levelState.map);
+        wallification(levelState.map);
     }
-    await captureCheckpoint('after_wallification_special');
+    captureCheckpoint('after_wallification_special');
     // C ref: load_special() always calls flip_level_rnd() (sp_lev.c:6483).
     const flipped = flip_level_rnd();
     if (levelState.map && flipped) {
@@ -7228,28 +7228,28 @@ export async function finalize_special_checkpoint_stage() {
         count_level_features(levelState.map);
     }
     if (levelState.map && levelState.coder?.solidify) {
-        await solidify_map(levelState.map);
+        solidify_map(levelState.map);
     }
     await fixupSpecialLevel();
-    await captureCheckpoint('after_finalize_special');
+    captureCheckpoint('after_finalize_special');
     return levelState.map;
 }
 
 // Wizload parity hook: C emits the single after_finalize checkpoint after
 // hero relocation, not during deferred script finalize.
-export async function capture_wizload_after_finalize_checkpoint() {
-    await captureCheckpoint('after_finalize');
+export function capture_wizload_after_finalize_checkpoint() {
+    captureCheckpoint('after_finalize');
 }
 
 export async function load_special(name) {
-    await create_des_coder();
+    create_des_coder();
     if (typeof name !== 'string' || !name.length) return false;
     const where = findSpecialLevelByName(name);
     if (!where) return false;
     const special = getSpecialLevel(where.dnum, where.dlevel);
     if (!special || typeof special.generator !== 'function') return false;
 
-    await resetLevelState();
+    resetLevelState();
     const map = await withSpecialLevelDepth(where.dlevel, async () =>
         await withFinalizeContext({
             dnum: where.dnum,
@@ -7294,8 +7294,8 @@ export function lspo_wallify(...args) { return wallify(...args); }
 export function lspo_wall_property(...args) { return wall_property(...args); }
 export function lspo_non_diggable(...args) { return non_diggable(...args); }
 // Autotranslated from sp_lev.c:5942
-export async function lspo_non_passwall(L) {
-  await set_wallprop_in_selection(L, W_NONPASSWALL);
+export function lspo_non_passwall(L) {
+  set_wallprop_in_selection(L, W_NONPASSWALL);
   return 0;
 }
 export function lspo_teleport_region(...args) { return teleport_region(...args); }
@@ -8799,7 +8799,7 @@ export function l_selection_sub(a, b) { return sel_clone(a).sub(b); }
  *   - state: State ("open", "closed")
  *   - x, y: Coordinates
  */
-export async function drawbridge(opts) {
+export function drawbridge(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -8834,8 +8834,8 @@ export async function drawbridge(opts) {
     bridgeLoc.drawbridgemask = dbDir | (bridgeLoc.typ === LAVAPOOL ? DB_LAVA : lava);
     const horiz = (dbDir === DB_NORTH || dbDir === DB_SOUTH);
     bridgeLoc.horizontal = !horiz;
-    await markSpLevMap(bx, by);
-    await markSpLevTouched(bx, by);
+    markSpLevMap(bx, by);
+    markSpLevTouched(bx, by);
 
     // C create_drawbridge() also establishes the adjacent drawbridge wall.
     const wx = bx + dx;
@@ -8846,12 +8846,12 @@ export async function drawbridge(opts) {
         if (isOpen) wallLoc.flags = D_NODOOR;
         else {
             wallLoc.flags = 0;
-            await setWallInfoBits(wallLoc, W_NONDIGGABLE);
+            setWallInfoBits(wallLoc, W_NONDIGGABLE);
             wallLoc.nondiggable = true; // compatibility mirror
         }
         wallLoc.horizontal = horiz;
-        await markSpLevMap(wx, wy);
-        await markSpLevTouched(wx, wy);
+        markSpLevMap(wx, wy);
+        markSpLevTouched(wx, wy);
     }
 }
 
@@ -8899,7 +8899,7 @@ export function rndtrap(canDigDown = true, inEndgame = false) {
 }
 
 // C ref: sp_lev.c maze1xy()
-export async function maze1xy(humidity) {
+export function maze1xy(humidity) {
     const maxX = levelState.mazeMaxX || ((COLNO - 1) & ~1);
     const maxY = levelState.mazeMaxY || ((ROWNO - 1) & ~1);
     let x = 3;
@@ -8913,7 +8913,7 @@ export async function maze1xy(humidity) {
         if (--tryct < 0) break;
     } while ((x % 2) === 0 || (y % 2) === 0
              || (!ignoreTouched && spLevMap && spLevMap[x]?.[y])
-             || !await isOkLocation(x, y, humidity));
+             || !isOkLocation(x, y, humidity));
     return { x, y };
 }
 
@@ -9019,7 +9019,7 @@ export async function fill_empty_maze() {
     for (let i = stats.trapCount; i > 0; i--) {
         const pos = maze1xy(GETLOC_DRY);
         let trytrap = rndtrap(canDigDownHere(), inEndgame());
-        if (await hasBoulderAt(pos.x, pos.y)) {
+        if (hasBoulderAt(pos.x, pos.y)) {
             while (is_pit(trytrap) || is_hole(trytrap)) {
                 trytrap = rndtrap(canDigDownHere(), inEndgame());
             }

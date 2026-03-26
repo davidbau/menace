@@ -1617,7 +1617,7 @@ export async function fill_pit(x, y, map) {
 }
 
 // Autotranslated from trap.c:5155
-export async function dountrap() {
+export function dountrap() {
   if (!could_untrap(true, false)) return ECMD_OK;
   return untrap(false, 0, 0,  0) ? ECMD_TIME : ECMD_OK;
 }
@@ -2634,7 +2634,7 @@ export async function trapeffect_web_you(trap, trflags, player, game, map) {
 }
 
 // C ref: trap.c:2257 trapeffect_statue_trap — player branch
-async function trapeffect_statue_trap_you(trap, trflags, player, game, map) {
+function trapeffect_statue_trap_you(trap, trflags, player, game, map) {
     activate_statue_trap(trap, player.x, player.y, false);
     return Trap_Effect_Finished;
 }
@@ -2786,7 +2786,7 @@ async function trapeffect_magic_portal_you(trap, trflags, player, game, map) {
 }
 
 // C ref: trap.c:2653 trapeffect_vibrating_square — player branch
-async function trapeffect_vibrating_square_you(trap, trflags, player, game, map) {
+function trapeffect_vibrating_square_you(trap, trflags, player, game, map) {
     feeltrap(trap);
     // C: messages handled elsewhere; just mark the square
     return Trap_Effect_Finished;
@@ -2826,7 +2826,7 @@ async function trapeffect_selector_you(trap, trflags, player, game, map) {
     case WEB:
         return await trapeffect_web_you(trap, trflags, player, game, map);
     case STATUE_TRAP:
-        return await trapeffect_statue_trap_you(trap, trflags, player, game, map);
+        return trapeffect_statue_trap_you(trap, trflags, player, game, map);
     case MAGIC_TRAP:
         return await trapeffect_magic_trap_you(trap, trflags, player, game, map);
     case ANTI_MAGIC:
@@ -2838,7 +2838,7 @@ async function trapeffect_selector_you(trap, trflags, player, game, map) {
     case ROLLING_BOULDER_TRAP:
         return await trapeffect_rolling_boulder_trap_you(trap, trflags, player, game, map);
     case VIBRATING_SQUARE:
-        return await trapeffect_vibrating_square_you(trap, trflags, player, game, map);
+        return trapeffect_vibrating_square_you(trap, trflags, player, game, map);
     default:
         return Trap_Effect_Finished;
     }
@@ -3083,7 +3083,7 @@ export function mkroll_launch(obj, srcx, srcy, dx, dy, map, game = null) {
 }
 
 // C ref: trap.c:4090
-export async function climb_pit(player, map) {
+export function climb_pit(player, map) {
     if (!player) return false;
     if ((player.utrap || 0) <= 0) return true;
     if (!rn2(3)) {
@@ -3165,12 +3165,12 @@ export async function try_disarm(player, trap, game, map) {
 }
 
 // C ref: trap.c:5460
-export async function disarm_holdingtrap(player, trap, game, map) {
+export function disarm_holdingtrap(player, trap, game, map) {
     return try_disarm(player, trap, game, map);
 }
 
 // C ref: trap.c:5584
-export async function try_lift(player, trap, game, map) {
+export function try_lift(player, trap, game, map) {
     return try_disarm(player, trap, game, map);
 }
 

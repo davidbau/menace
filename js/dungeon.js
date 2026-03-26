@@ -5,6 +5,7 @@
 // The C code uses global state (levl[][], svr.rooms[], gs.smeq[]).
 // In JS we pass the map object explicitly to all functions.
 
+
 import {
     COLNO, ROWNO, STONE, VWALL, HWALL, TLCORNER, TRCORNER,
     BLCORNER, BRCORNER, CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL,
@@ -5269,10 +5270,9 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             // Fallback: should never happen, but safety
             if (DEBUG) console.warn(`⚠️ makerooms() created 0 rooms! Using fallback single room. This is a bug!`);
             add_room(map, 10, 5, 20, 10, true, OROOM, false);
-        } else if (DEBUG) {
-            console.log(`✓ makerooms() created ${map.nroom} rooms`);
+        } else {
+            if (DEBUG) console.log(`✓ makerooms() created ${map.nroom} rooms`);
         }
-
         // Sort rooms left-to-right
         // C ref: mklev.c:1290 sort_rooms()
         sort_rooms(map);
@@ -5673,8 +5673,8 @@ export async function print_level_annotation(map) {
 }
 
 // Autotranslated from dungeon.c:2564
-export async function donamelevel() {
-  await query_annotation(null);
+export function donamelevel() {
+  query_annotation(null);
   return ECMD_OK;
 }
 

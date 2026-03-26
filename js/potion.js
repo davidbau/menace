@@ -328,13 +328,13 @@ async function make_blinded(player, xtime, talk) {
     set_itimeout(player, BLINDED, xtime);
 
     if (u_could_see !== can_see_now) {
-        await toggle_blindness(player);
+        toggle_blindness(player);
     }
 }
 
 // cf. potion.c toggle_blindness()
 // Blindness has just toggled due to timeout or eyewear changes.
-export async function toggle_blindness(player) {
+export function toggle_blindness(player) {
     if (!player) return;
     player._botl = true;
     mark_vision_dirty();
