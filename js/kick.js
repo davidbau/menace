@@ -9,7 +9,7 @@ import { IS_DOOR, D_LOCKED, D_CLOSED, D_ISOPEN, D_BROKEN, D_NODOOR,
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { Luck, acurr } from './attrib.js';
-import { x_monnam } from './do_name.js';
+import { x_monnam, Monnam, mon_nam } from './do_name.js';
 import { is_watch } from './mondata.js';
 import { KICKING_BOOTS } from './objects.js';
 import { mondead, angry_guards, wake_nearto } from './mon.js';
@@ -82,12 +82,12 @@ export async function handleKick(player, map, display, game) {
     // Kick a monster
     const mon = map.monsterAt(nx, ny);
     if (mon) {
-        await display.putstr_message(`You kick the ${x_monnam(mon)}!`);
+        await display.putstr_message(`You kick ${mon_nam(mon)}!`);
         const damage = rnd(4) + player.strDamage;
         mon.mhp -= Math.max(1, damage);
         if (mon.mhp <= 0) {
             mondead(mon, map, player);
-            await display.putstr_message(`The ${x_monnam(mon)} dies!`);
+            await display.putstr_message(`${Monnam(mon)} dies!`);
             map.removeMonster(mon);
         }
         return { moved: false, tookTime: true };

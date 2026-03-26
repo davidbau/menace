@@ -673,7 +673,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
     let promptedForTopline = false;
 
     if (display && canSeeMonsterForMap(mon, map, player, game?.fov)) {
-        const targetName = mtarg ? ` at the ${x_monnam(mtarg)}` : '';
+        const targetName = mtarg ? ` at ${mon_nam(mtarg)}` : '';
         const shooting = ammo_and_launcher(otmp, mwep);
         // C ref: mthrowu.c monshoot() builds the opening message from the
         // base stack object via xname()/singular(..., xname), not from any
@@ -689,7 +689,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
             });
         throwTrace(map, display, 'monshoot:before_throws_msg');
         await display.putstr_message(
-            `The ${x_monnam(mon)} ${shooting ? 'shoots' : 'throws'} ${onm}${targetName}!`
+            `${Monnam(mon)} ${shooting ? 'shoots' : 'throws'} ${onm}${targetName}!`
         );
         throwTrace(map, display, 'monshoot:after_throws_msg');
     }
@@ -979,7 +979,7 @@ export async function thrwmu(mon, map, player, display, game) {
         const range2 = dist2(mon.mx, mon.my, targetX, targetY);
         if (range2 <= 5 && couldsee(map, player, mon.mx, mon.my)) {
             if (display) {
-                await display.putstr_message(`The ${x_monnam(mon)} thrusts ${thrownObjectName(otmp, player)}.`);
+                await display.putstr_message(`${Monnam(mon)} thrusts ${thrownObjectName(otmp, player)}.`);
             }
             const od = objectData[otmp.otyp] || {};
             let dam = (od.oc_wsdam || 0) > 0 ? rnd(od.oc_wsdam || 0) : 1;
@@ -1035,7 +1035,7 @@ export async function thrwmm(mtmp, mtarg, map, player, display, game) {
 export async function spitmm(mtmp, mattk, mtarg, map, player, display, game) {
     if (!mtmp || !mattk || !mtarg) return 0;
     if (mtmp.mcan) {
-        if (display) await display.putstr_message(`A dry rattle comes from the ${x_monnam(mtmp)}'s throat.`);
+        if (display) await display.putstr_message(`A dry rattle comes from ${mon_nam(mtmp)}'s throat.`);
         return 0;
     }
     if (!m_lined_up(mtarg, mtmp, map, player)) return 0;
@@ -1049,7 +1049,7 @@ export async function spitmm(mtmp, mattk, mtarg, map, player, display, game) {
     const denom = Math.max(1, BOLT_LIM - distmin(mtmp.mx, mtmp.my, tx, ty));
     if (rn2(denom)) return 0;
     if (display) {
-        await display.putstr_message(`The ${x_monnam(mtmp)} spits venom!`);
+        await display.putstr_message(`${Monnam(mtmp)} spits venom!`);
     }
     return (await monshoot(mtmp, otmp, null, map, player, display, game, mtarg)) ? 1 : 0;
 }
@@ -1127,14 +1127,14 @@ function breath_zap_type(adtyp) {
 export async function breamm(mtmp, mattk, mtarg, map, player, display, game) {
     if (!m_lined_up(mtarg, mtmp, map, player)) return 0;
     if (mtmp.mcan) {
-        if (display) await display.putstr_message(`The ${x_monnam(mtmp)} coughs.`);
+        if (display) await display.putstr_message(`${Monnam(mtmp)} coughs.`);
         return 0;
     }
     if (mtmp.mspec_used) return 0;
     if (rn2(3)) return 0;
     const adtyp = mattk?.adtyp ?? AD_FIRE;
     if (display) {
-        await display.putstr_message(`The ${x_monnam(mtmp)} breathes ${breathwep_name(adtyp, !!player?.hallucinating)}!`);
+        await display.putstr_message(`${Monnam(mtmp)} breathes ${breathwep_name(adtyp, !!player?.hallucinating)}!`);
     }
     const nd = Math.max(1, mattk?.damn || 6);
     const dx = Math.sign((mtarg?.x ?? mtarg?.mx ?? 0) - (mtmp.mx ?? 0));

@@ -37,7 +37,7 @@ import { more, nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
 import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks, strongmonst } from './mondata.js';
-import { x_monnam, y_monnam, YMonnam, Monnam } from './do_name.js';
+import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_entered_shop, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
@@ -973,26 +973,26 @@ export async function domove_core(dir, player, map, display, game) {
             const escapeRoll = rn2(canMove ? 40 : 8);
             if (escapeRoll <= 2) {
                 // Escape successful (cases 0, 1, 2)
-                await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
+                await display.putstr_message(`You pull free from ${mon_nam(stuckMon)}.`);
                 player.ustuck = null;
             } else if (escapeRoll === 3 && !canMove) {
                 // Wake/release frozen monster, then check tame
                 stuckMon.mfrozen = 1;
                 stuckMon.msleeping = 0;
                 if (stuckMon.mtame && !game?.flags?.conflict) {
-                    await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
+                    await display.putstr_message(`You pull free from ${mon_nam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
-                    await display.putstr_message(`You cannot escape from the ${x_monnam(stuckMon)}!`);
+                    await display.putstr_message(`You cannot escape from ${mon_nam(stuckMon)}!`);
                     return { moved: false, tookTime: true };
                 }
             } else {
                 // Failed to escape
                 if (stuckMon.mtame && !game?.flags?.conflict) {
-                    await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
+                    await display.putstr_message(`You pull free from ${mon_nam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
-                    await display.putstr_message(`You cannot escape from the ${x_monnam(stuckMon)}!`);
+                    await display.putstr_message(`You cannot escape from ${mon_nam(stuckMon)}!`);
                     return { moved: false, tookTime: true };
                 }
             }

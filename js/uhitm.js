@@ -155,9 +155,9 @@ async function abuse_dog_like_c(mon, display = null) {
     }
     if (Number(mon.mx || 0) !== 0 && display) {
         if (Number(mon.mtame || 0) > 0 && rn2(mon.mtame)) {
-            await display.putstr_message(`The ${x_monnam(mon)} yowls!`);
+            await display.putstr_message(`${Monnam(mon)} yowls!`);
         } else {
-            await display.putstr_message(`The ${x_monnam(mon)} growls!`);
+            await display.putstr_message(`${Monnam(mon)} growls!`);
         }
     }
 }
@@ -2349,7 +2349,7 @@ async function hitMonsterWithPotion(player, monster, display, weapon) {
 
     if (potionHealsMonster(potion) && monster.mhp < (monster.mhpmax || monster.mhp)) {
         monster.mhp = monster.mhpmax || monster.mhp;
-        await display.putstr_message(`The ${x_monnam(monster)} looks sound and hale again.`);
+        await display.putstr_message(`${Monnam(monster)} looks sound and hale again.`);
     }
 
     // cf. potion.c:1893 — distance<3 && !rn2((1+DEX)/2) gate for potionbreathe()
@@ -2368,7 +2368,7 @@ export async function handleMonsterKilled(player, monster, display, map) {
     const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
     const killName = monster.mtame
         ? `the poor ${x_monnam(monster)}`
-        : `the ${x_monnam(monster)}`;
+        : `${mon_nam(monster)}`;
     await display.putstr_message(`You ${killVerb} ${killName}!`);
     mondead(monster, map, player);
 
@@ -2750,7 +2750,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
     } else {
         // cf. uhitm.c -- various hit messages
         const hitVerb = (player?.roleMnum === PM_BARBARIAN) ? 'smite' : 'hit';
-        await display.putstr_message(`You ${hitVerb} the ${x_monnam(monster)}${exclam(damage)}`);
+        await display.putstr_message(`You ${hitVerb} ${mon_nam(monster)}${exclam(damage)}`);
         // cf. uhitm.c hmon_hitmon_core():
         // For armed melee hits with damage > 1: mhitm_knockback().
         // For unarmed hits with damage > 1: hmon_hitmon_stagger() → rnd(100).
@@ -2774,7 +2774,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
                     const adj = rn2(2) ? 'forceful' : 'powerful';
                     const noun = rn2(2) ? 'blow' : 'strike';
                     await display.putstr_message(
-                        `You knock the ${x_monnam(monster)} ${knockedhow} with a ${adj} ${noun}!`
+                        `You knock ${mon_nam(monster)} ${knockedhow} with a ${adj} ${noun}!`
                     );
                     // cf. uhitm.c:5384 — stun check after knockback
                     if (monster.mhp > 0 && !rn2(4)) {

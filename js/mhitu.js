@@ -67,7 +67,7 @@ import { mon_explodes } from './explode.js';
 import { spec_dbon, defends } from './artifact.js';
 import { msummon } from './minion.js';
 import { new_were, were_summon, set_ulycn, counter_were } from './were.js';
-import { Mgender, Monnam, pmname, christen_monst, x_monnam } from './do_name.js';
+import { Mgender, Monnam, mon_nam, pmname, christen_monst, x_monnam } from './do_name.js';
 import { makemon } from './makemon.js';
 import { resists_blnd, drain_item, destroy_items_rng_only } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';
@@ -187,7 +187,7 @@ async function maybeMonsterWeaponSwingMessage(monster, player, display, suppress
     const oneOf = ((monster.weapon.quan || 1) > 1) ? 'one of ' : '';
     const seenWeapon = xname({ ...monster.weapon, dknown: true });
     await display.putstr_message(
-        `The ${x_monnam(monster)} ${swingVerb} ${oneOf}${monsterPossessive(monster)} ${seenWeapon}.`
+        `${Monnam(monster)} ${swingVerb} ${oneOf}${monsterPossessive(monster)} ${seenWeapon}.`
     );
 }
 
@@ -301,7 +301,7 @@ async function mhitm_knockback(monster, attack, weaponUsed, display) {
     const noun = rn2(2) ? 'blow' : 'strike';
     if (display) {
         await display.putstr_message(
-            `The ${x_monnam(monster)} knocks you back with a ${adj} ${noun}!`
+            `${Monnam(monster)} knocks you back with a ${adj} ${noun}!`
         );
     }
 
@@ -326,7 +326,7 @@ async function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
         if (!player.ustuck && rn2(2)) {
             // Grabbed
             player.ustuck = monster;
-            await display.putstr_message(`The ${x_monnam(monster)} grabs you!`);
+            await display.putstr_message(`${Monnam(monster)} grabs you!`);
             mhm.hitflags |= M_ATTK_HIT;
         } else if (player.ustuck === monster) {
             await exercise(player, A_STR, false);
@@ -480,7 +480,7 @@ async function mhitu_ad_wrap(monster, attack, player, mhm, ctx) {
             player.ustuck = monster;
             if (!ctx.suppressHitMsg) {
                 await ctx.display.putstr_message(
-                    `The ${x_monnam(monster)} swings itself around you!`
+                    `${Monnam(monster)} swings itself around you!`
                 );
             }
         } else if (player.ustuck === monster) {
@@ -588,7 +588,7 @@ async function mhitu_ad_blnd(monster, attack, player, mhm, ctx) {
     // C: if (can_blnd(magr, mdef, mattk->aatyp, NULL)) — simplified: always can
     if (!player.blind) {
         if (!ctx.suppressHitMsg)
-            await ctx.display.putstr_message(`The ${x_monnam(monster)} blinds you!`);
+            await ctx.display.putstr_message(`${Monnam(monster)} blinds you!`);
     }
     // cf. make_blinded(BlindedTimeout + damage, FALSE)
     const oldTimeout = player.getPropTimeout
@@ -709,12 +709,12 @@ async function mhitu_ad_ston(monster, attack, player, mhm, ctx) {
                 if (hallucinating && !player?.blind) {
                     if (!player?.deaf) await ctx.display.putstr_message('You hear hissing.');
                     await ctx.display.putstr_message(
-                        `The ${x_monnam(monster)} appears to be blowing you a kiss...`
+                        `${Monnam(monster)} appears to be blowing you a kiss...`
                     );
                 } else if (!player?.deaf) {
                     await ctx.display.putstr_message(`You hear ${x_monnam(monster)}'s hissing!`);
                 } else if (!player?.blind) {
-                    await ctx.display.putstr_message(`The ${x_monnam(monster)} seems to grimace.`);
+                    await ctx.display.putstr_message(`${Monnam(monster)} seems to grimace.`);
                 }
             }
             // C: if (!rn2(10) || newmoon) do_stone_u()
@@ -771,7 +771,7 @@ async function mhitu_ad_curs(monster, attack, player, mhm, ctx) {
             if (player?.blind) {
                 await ctx.display.putstr_message('You hear laughter.');
             } else {
-                await ctx.display.putstr_message(`The ${x_monnam(monster)} chuckles.`);
+                await ctx.display.putstr_message(`${Monnam(monster)} chuckles.`);
             }
         }
         if (Number(player?.umonnum ?? -1) === PM_CLAY_GOLEM) {
@@ -896,7 +896,7 @@ async function mhitu_ad_heal(monster, attack, player, mhm, ctx) {
                     player?.shield || player?.gloves || player?.boots || player?.helmet;
     if (!armored) {
         // C ref: uhitm.c:4299-4345 — nurse healing path (unarmored)
-        if (display) await display.putstr_message(`The ${x_monnam(monster)} hits!  (I hope you don't mind.)`);
+        if (display) await display.putstr_message(`${Monnam(monster)} hits!  (I hope you don't mind.)`);
         // C ref: uhitm.c:4312-4324 — heal HP (non-polymorph path)
         const heal = rnd(7);
         if (player) player.uhp = Math.min((player.uhpmax || 0), (player.uhp || 0) + heal);
@@ -1034,7 +1034,7 @@ async function mhitu_ad_ssex(monster, attack, player, mhm, ctx) {
 async function mhitu_ad_deth(monster, attack, player, mhm, ctx) {
     if (!ctx.suppressHitMsg) {
         await ctx.display.putstr_message(
-            `The ${x_monnam(monster)} reaches out with its deadly touch.`
+            `${Monnam(monster)} reaches out with its deadly touch.`
         );
     }
     const pd = player?.data || player?.monst || {};
@@ -1078,7 +1078,7 @@ async function mhitu_ad_deth(monster, attack, player, mhm, ctx) {
 async function mhitu_ad_pest(monster, attack, player, mhm, ctx) {
     if (!ctx.suppressHitMsg) {
         await ctx.display.putstr_message(
-            `The ${x_monnam(monster)} reaches out, and you feel fever and chills.`
+            `${Monnam(monster)} reaches out, and you feel fever and chills.`
         );
     }
     await diseasemu(monster.type || monster.data || {}, player, ctx.display);
@@ -1089,7 +1089,7 @@ async function mhitu_ad_pest(monster, attack, player, mhm, ctx) {
 async function mhitu_ad_famn(monster, attack, player, mhm, ctx) {
     if (!ctx.suppressHitMsg) {
         await ctx.display.putstr_message(
-            `The ${x_monnam(monster)} reaches out, and your body shrivels.`
+            `${Monnam(monster)} reaches out, and your body shrivels.`
         );
     }
     await exercise(player, A_CON, false);
@@ -1703,7 +1703,7 @@ export async function expels(mtmp, mdat, message, player, display) {
         if (digests(mdat)) {
             await display.putstr_message('You get regurgitated!');
         } else if (enfolds(mdat)) {
-            await display.putstr_message(`The ${x_monnam(mtmp)} unfolds and you are released!`);
+            await display.putstr_message(`${Monnam(mtmp)} unfolds and you are released!`);
         } else {
             const attk = dmgtype_fromattack(mdat, AD_WRAP, AT_ENGL)
                       || dmgtype_fromattack(mdat, AD_PHYS, AT_ENGL);
@@ -1717,7 +1717,7 @@ export async function expels(mtmp, mdat, message, player, display) {
                     blast = ' with a squelch';
                 }
             }
-            await display.putstr_message(`You get expelled from the ${x_monnam(mtmp)}${blast}!`);
+            await display.putstr_message(`You get expelled from ${mon_nam(mtmp)}${blast}!`);
         }
     }
     // Unstuck
@@ -1827,7 +1827,7 @@ export async function summonmu(mtmp, youseeit, map, player, display) {
         // Maybe summon compatible critters
         if (!rn2(10)) {
             if (youseeit && display) {
-                await display.putstr_message(`The ${x_monnam(mtmp)} summons help!`);
+                await display.putstr_message(`${Monnam(mtmp)} summons help!`);
             }
             const result = were_summon(
                 mdat,
@@ -1888,7 +1888,7 @@ export async function u_slip_free(mtmp, mattk, player, display) {
             const action = adtyp === AD_WRAP ? 'slips off of' : 'grabs you, but cannot hold onto';
             const adjective = obj.greased ? 'greased' : 'slippery';
             await display.putstr_message(
-                `The ${x_monnam(mtmp)} ${action} your ${adjective} ${xname(obj)}.`
+                `${Monnam(mtmp)} ${action} your ${adjective} ${xname(obj)}.`
             );
         }
         if (obj.greased && !rn2(2)) {
@@ -1917,11 +1917,11 @@ export async function gulpmu(mtmp, mattk, player, map, display) {
         player.uswallow = true;
         if (display) {
             if (digests(mtmp.data || mtmp.type || {})) {
-                await display.putstr_message(`The ${x_monnam(mtmp)} swallows you whole!`);
+                await display.putstr_message(`${Monnam(mtmp)} swallows you whole!`);
             } else if (enfolds(mtmp.data || mtmp.type || {})) {
-                await display.putstr_message(`The ${x_monnam(mtmp)} folds itself around you!`);
+                await display.putstr_message(`${Monnam(mtmp)} folds itself around you!`);
             } else {
-                await display.putstr_message(`The ${x_monnam(mtmp)} engulfs you!`);
+                await display.putstr_message(`${Monnam(mtmp)} engulfs you!`);
             }
         }
         // Compute swallow timer
@@ -1949,13 +1949,13 @@ export async function gulpmu(mtmp, mattk, player, map, display) {
     case AD_DGST:
         physical_damage = true;
         if (player.uswldtim === 0) {
-            if (display) await display.putstr_message(`The ${x_monnam(mtmp)} totally digests you!`);
+            if (display) await display.putstr_message(`${Monnam(mtmp)} totally digests you!`);
             tmp = player.uhp || 999;
         } else {
             const suffix = (player.uswldtim === 2) ? ' thoroughly'
                          : (player.uswldtim === 1) ? ' utterly' : '';
             if (display)
-                await display.putstr_message(`The ${x_monnam(mtmp)}${suffix} digests you!`);
+                await display.putstr_message(`${Monnam(mtmp)}${suffix} digests you!`);
             await exercise(player, A_STR, false);
         }
         break;
@@ -2070,7 +2070,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
     const adtyp = mattk.adtyp ?? AD_PHYS;
 
     if (!ufound) {
-        if (display) await display.putstr_message(`The ${x_monnam(mtmp)} explodes at a spot in thin air!`);
+        if (display) await display.putstr_message(`${Monnam(mtmp)} explodes at a spot in thin air!`);
     } else {
         await hitmsg(mtmp, mattk, display, false);
     }
@@ -2144,16 +2144,16 @@ export async function gazemu(mtmp, mattk, player, map, display) {
         // Medusa stoning gaze
         if (cancelled || mtmp.mcansee === 0 || mtmp.mcansee === false) {
             // Ineffective
-            if (display) await display.putstr_message(`The ${x_monnam(mtmp)} gazes ineffectually.`);
+            if (display) await display.putstr_message(`${Monnam(mtmp)} gazes ineffectually.`);
             break;
         }
         // C: check reflectable, hero stone resistance, etc.
         if (playerHasProp(player, REFLECTING)) {
             if (display)
-                await display.putstr_message(`The ${x_monnam(mtmp)}'s gaze is reflected by your shield!`);
+                await display.putstr_message(`${Monnam(mtmp)}'s gaze is reflected by your shield!`);
             // Reflected gaze petrifies Medusa
             if (mtmp.mcansee) {
-                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} is turned to stone!`);
+                if (display) await display.putstr_message(`${Monnam(mtmp)} is turned to stone!`);
                 mtmp.mhp = 0;
                 mtmp.dead = true;
                 return M_ATTK_AGR_DIED;
@@ -2162,7 +2162,7 @@ export async function gazemu(mtmp, mattk, player, map, display) {
         }
         if (!playerHasProp(player, STONE_RES) && !player.blind) {
             if (display) {
-                await display.putstr_message(`You meet the ${x_monnam(mtmp)}'s gaze.`);
+                await display.putstr_message(`You meet ${mon_nam(mtmp)}'s gaze.`);
                 await display.putstr_message('You turn to stone...');
             }
             // Petrification death
@@ -2176,12 +2176,12 @@ export async function gazemu(mtmp, mattk, player, map, display) {
         if (mtmp.mcansee && !mtmp.mspec_used && rn2(5)) {
             if (cancelled) {
                 // Cancelled — just look confused
-                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks confused.`);
+                if (display) await display.putstr_message(`${Monnam(mtmp)} looks confused.`);
             } else {
                 const conf = c_d(3, 4);
                 mtmp.mspec_used = (mtmp.mspec_used || 0) + conf + rn2(6);
                 if (!player.confused) {
-                    if (display) await display.putstr_message(`The ${x_monnam(mtmp)}'s gaze confuses you!`);
+                    if (display) await display.putstr_message(`${Monnam(mtmp)}'s gaze confuses you!`);
                 } else {
                     if (display) await display.putstr_message('You are getting more and more confused.');
                 }
@@ -2196,11 +2196,11 @@ export async function gazemu(mtmp, mattk, player, map, display) {
         // Stun gaze
         if (mtmp.mcansee && !mtmp.mspec_used && rn2(5)) {
             if (cancelled) {
-                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks stunned.`);
+                if (display) await display.putstr_message(`${Monnam(mtmp)} looks stunned.`);
             } else {
                 const stun = c_d(2, 6);
                 mtmp.mspec_used = (mtmp.mspec_used || 0) + stun + rn2(6);
-                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} stares piercingly at you!`);
+                if (display) await display.putstr_message(`${Monnam(mtmp)} stares piercingly at you!`);
                 const oldTimeout = player.getPropTimeout
                     ? player.getPropTimeout(STUNNED) : 0;
                 await make_stunned(player, oldTimeout + stun, true);
@@ -2214,11 +2214,11 @@ export async function gazemu(mtmp, mattk, player, map, display) {
             if (cancelled) {
                 if (display) {
                     const reaction = rn2(2) ? 'puzzled' : 'dazzled';
-                    await display.putstr_message(`The ${x_monnam(mtmp)} looks ${reaction}.`);
+                    await display.putstr_message(`${Monnam(mtmp)} looks ${reaction}.`);
                 }
             } else {
                 const blnd = c_d(mattk.damn || 1, mattk.damd || 6);
-                if (display) await display.putstr_message(`You are blinded by the ${x_monnam(mtmp)}'s radiance!`);
+                if (display) await display.putstr_message(`You are blinded by ${mon_nam(mtmp)}'s radiance!`);
                 await make_blinded(player, blnd, false);
             }
         }
@@ -2229,10 +2229,10 @@ export async function gazemu(mtmp, mattk, player, map, display) {
         if (mtmp.mcansee && !mtmp.mspec_used && rn2(5)) {
             if (cancelled) {
                 const reaction = rn2(2) ? 'irritated' : 'inflamed';
-                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks ${reaction}.`);
+                if (display) await display.putstr_message(`${Monnam(mtmp)} looks ${reaction}.`);
             } else {
                 let dmg = c_d(2, 6);
-                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} attacks you with a fiery gaze!`);
+                if (display) await display.putstr_message(`${Monnam(mtmp)} attacks you with a fiery gaze!`);
                 if (playerHasProp(player, FIRE_RES)) {
                     if (display) await display.putstr_message("The fire doesn't feel hot!");
                     dmg = 0;
@@ -2342,17 +2342,17 @@ export async function doseduce(mon, player, display) {
         if (display) {
             const pronoun = mon.female ? 'she' : 'he';
             await display.putstr_message(
-                `The ${x_monnam(mon)} acts as though ${pronoun} has got a ${mon.mcan ? 'severe ' : ''}headache.`
+                `${Monnam(mon)} acts as though ${pronoun} has got a ${mon.mcan ? 'severe ' : ''}headache.`
             );
         }
         return 0;
     }
 
-    if (display) await display.putstr_message(`You feel very attracted to the ${x_monnam(mon)}.`);
+    if (display) await display.putstr_message(`You feel very attracted to ${mon_nam(mon)}.`);
 
     // Simplified: skip armor removal dialogue, go straight to outcome
     if (display) await display.putstr_message(
-        `Time stands still while you and the ${x_monnam(mon)} lie in each other's arms...`
+        `Time stands still while you and ${mon_nam(mon)} lie in each other's arms...`
     );
 
     // C: attr_tot = ACURR(A_CHA) + ACURR(A_INT); if (rn2(35) > min(attr_tot, 32)) bad outcome
@@ -2363,7 +2363,7 @@ export async function doseduce(mon, player, display) {
     if (rn2(35) > Math.min(attr_tot, 32)) {
         // Bad outcome
         if (display) await display.putstr_message(
-            `The ${x_monnam(mon)} seems to have enjoyed it more than you...`
+            `${Monnam(mon)} seems to have enjoyed it more than you...`
         );
         switch (rn2(5)) {
         case 0:
@@ -2404,7 +2404,7 @@ export async function doseduce(mon, player, display) {
         // Good outcome
         mon.mspec_used = rnd(100);
         if (display) await display.putstr_message(
-            `You seem to have enjoyed it more than the ${x_monnam(mon)}...`
+            `You seem to have enjoyed it more than ${mon_nam(mon)}...`
         );
         switch (rn2(5)) {
         case 0:
@@ -2419,7 +2419,7 @@ export async function doseduce(mon, player, display) {
             await exercise(player, A_CON, true);
             break;
         case 2:
-            if (display) await display.putstr_message(`You will always remember the ${x_monnam(mon)}...`);
+            if (display) await display.putstr_message(`You will always remember ${mon_nam(mon)}...`);
             if (player.attributes) player.attributes[A_WIS] = (player.attributes[A_WIS] || 10) + 1;
             await exercise(player, A_WIS, true);
             break;
