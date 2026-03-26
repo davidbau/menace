@@ -153,13 +153,23 @@
   }
   .ev-commit.expanded .cm { -webkit-line-clamp: unset; overflow: visible; }
   .ev-commit .commit-body { color: var(--muted); font-size: 0.9em; white-space: pre-wrap; margin-top: 0.1em; }
-  .ev-commit .commit-docs { margin-top: 0.15em; }
-  .ev-commit .doc-link {
-    display: inline-block; font-size: 0.85em; color: var(--accent);
-    text-decoration: none; margin-right: 0.5em;
-  }
-  .ev-commit .doc-link:hover { text-decoration: underline; }
   .ev-commit { cursor: pointer; }
+
+  .ev-doc {
+    padding: 0.2em 0.6em 0.2em 1.8em; font-size: 0.82em;
+    border-left: 3px solid var(--accent-lt); background: rgba(107,44,44,0.03);
+    margin: 0.1em 0; border-radius: 3px; position: relative; cursor: pointer;
+  }
+  .ev-doc::before {
+    content: '📄'; position: absolute; left: 0.3em; top: 0.15em; font-size: 0.85em;
+  }
+  .ev-doc .doc-name { color: var(--accent); font-weight: 600; }
+  .ev-doc .doc-name:hover { text-decoration: underline; }
+  .ev-doc .doc-snippet {
+    color: var(--muted); font-style: italic;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .ev-doc.expanded .doc-snippet { -webkit-line-clamp: unset; overflow: visible; }
   .ev-commit .ct { color: var(--muted); min-width: 5ch; }
   .ev-commit .ch { color: var(--commit); font-weight: 600; }
   .ev-commit .cm { color: var(--text); }
@@ -234,8 +244,8 @@
   .fbtn[data-f="lore"].on { background: rgba(139,105,20,0.08); }
   .fbtn[data-f="watchdog"] { border-color: var(--light); color: var(--light); }
   .fbtn[data-f="watchdog"].on { background: rgba(170,170,170,0.08); }
-  .fbtn[data-f="docs"] { border-color: var(--accent); color: var(--accent); }
-  .fbtn[data-f="docs"].on { background: rgba(107,44,44,0.08); }
+  .fbtn[data-f="doc"] { border-color: var(--accent); color: var(--accent); }
+  .fbtn[data-f="doc"].on { background: rgba(107,44,44,0.08); }
 
   /* --- Right search --- */
   .search-panel {
@@ -289,7 +299,7 @@
         <button class="fbtn on" data-f="agent-directive">Subagents</button>
       <button class="fbtn" data-f="watchdog">Watchdog</button>
         <button class="fbtn on" data-f="commit">Commits</button>
-        <button class="fbtn on" data-f="docs">Docs</button>
+        <button class="fbtn on" data-f="doc">Docs</button>
       </div>
     </div>
     <div class="main-body" id="main-body">
@@ -305,7 +315,7 @@
   </div>
 </div>
 <script>
-let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,lore:false,docs:true};
+let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,lore:false,doc:true};
 
 async function init() {
   // Load timeline data
@@ -454,6 +464,7 @@ function renderEvents(evts){
     else if(e.type==='agent-directive') out.push(renderAgentDirective(e));
     else if(e.type==='watchdog') out.push(renderWatchdog(e));
     else if(e.type==='subagent-work') out.push(renderSubagentWork(e));
+    else if(e.type==='doc') out.push(renderDoc(e));
     else if(e.type==='lore') out.push(renderLore(e));
   }
   flushCommits();
@@ -496,12 +507,18 @@ function renderCommit(c){
     const firstLine = bodyClean.split('\n')[0].trim();
     if (firstLine === (c.subject||'').trim()) bodyClean = bodyClean.split('\n').slice(1).join('\n').trim();
   }
-  const docs = SHOW.docs && c.docs ? c.docs.filter(d => !d.startsWith('_') && d !== 'README.md' && d !== 'REFLECTIONS.md') : [];
-  const docLinks = docs.length ? `<div class="commit-docs">${docs.map(d =>
-    `<a class="doc-link" href="https://github.com/davidbau/menace/blob/${c.hash?.slice(0,12)}/${d}" target="_blank" onclick="event.stopPropagation()">📄 ${d}</a>`
-  ).join('')}</div>` : '';
   return`<div class="ev ev-commit" id="${id}" onclick="this.classList.toggle('expanded')">
-    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}</span>${docLinks}
+    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}</span>
+  </div>`;
+}
+
+function renderDoc(e){
+  const id=stableId(e);
+  e._id=id;
+  const url = `https://github.com/davidbau/menace/blob/${e.hash}/${e.file}`;
+  return`<div class="ev ev-doc" id="${id}" onclick="this.classList.toggle('expanded')">
+    <a class="doc-name" href="${url}" target="_blank" onclick="event.stopPropagation()">${esc(e.file)}</a>
+    ${e.snippet ? `<div class="doc-snippet">${esc(e.snippet)}</div>` : ''}
   </div>`;
 }
 
@@ -586,6 +603,7 @@ function doSearch(q){
       if((e.type==='human'||e.type==='agent-directive')&&test(e.text)) text=e.text;
       else if(e.type==='lore'&&test(e.title)) text=e.title;
       else if(e.type==='commit'&&test(e.subject)) text=e.subject;
+      else if(e.type==='doc'&&(test(e.file)||test(e.snippet))) text=e.file+': '+(e.snippet||'');
       else if(e.type==='ai-work'||e.type==='subagent-work'){
         const snip=(e.snippets||[]).find(s=>test(s));
         if(snip) text=snip;
