@@ -17037,3 +17037,24 @@ source is elsewhere in the moveloop phase ordering.
 - **Game-state (5)**: luck divergences (seed301 kick_door), monster movement (seed332),
   medusa_fixup (seed321/328), zoo filling (seed325)
 - **Deep (2)**: seed032 (level-restore mon_catchup missing), seed033 (tutorial encumbrance)
+
+## seed308 displacement divergence (March 26, 2026)
+
+seed308 (ranger selfplay) diverges at step 10, RNG index 2250. Root cause:
+`set_apparxy()` displacement loop iterates a different number of times in JS vs C.
+
+The ranger starts with a cloak of displacement. Both C and JS detect displacement
+(`notthere=true`, `displ=2`). The displacement loop randomizes the monster's
+perceived hero position via `rn2(2*displ+1)` twice per iteration. C rejects the
+first candidate position and iterates again; JS accepts it. This consumes
+different numbers of RNG calls, breaking alignment.
+
+The acceptance condition depends on `accessible(mx, my)` (C) vs
+`ACCESSIBLE(loc.typ) && !closedDoor` (JS). These should be equivalent but may
+differ for specific terrain types or drawbridge positions. Needs per-cell terrain
+comparison at the specific position to identify the exact mismatch.
+
+Key finding: all 4 remaining failures (seed032, seed033, seed308, seed328) involve
+set_apparxy/displacement when the hero has active displacement or invisibility.
+The displacement loop's position acceptance criteria may have a subtle terrain
+evaluation difference that causes RNG consumption mismatches.
