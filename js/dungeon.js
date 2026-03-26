@@ -743,6 +743,9 @@ export function setGameUbirthday(timestamp) {
         _gameUbirthday = timestamp;
     }
 }
+export function getGameUbirthday() {
+    return _gameUbirthday;
+}
 
 function getLedgerNoForLevel(dnum, dlevel) {
     const cdnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;

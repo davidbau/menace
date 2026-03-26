@@ -50,6 +50,7 @@ import { helpless as monHelpless, angry_guards } from './mon.js';
 import { newsym, canspotmon, canseemon } from './display.js';
 import { y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER, unique_corpstat } from './mondata.js';
 import { game as _gstate } from './gstate.js';
+import { getGameUbirthday } from './dungeon.js';
 import { maybe_reset_pick } from './lock.js';
 import { getpos_async } from './getpos.js';
 import { o_unleash } from './apply.js';
@@ -327,15 +328,30 @@ function get_cost(obj, shkp) {
     // Shopkeeper may notice if player isn't knowledgeable
     if (!obj.dknown || !nameKnown) {
         if (obj.oclass === GEM_CLASS && (od.oc_material || 0) === GLASS) {
-            // Glass gems get priced as if they were real gems
-            // C ref: pseudorand pricing for glass gems
-            const glassIdx = obj.otyp - FIRST_GLASS_GEM;
-            const realGems = [DIAMOND, SAPPHIRE, RUBY, AMBER, JACINTH, CITRINE, BLACK_OPAL, EMERALD, AMETHYST];
-            const fakeGems = [OPAL, AQUAMARINE, JASPER, TOPAZ, AGATE, CHRYSOBERYL, JET, JADE, FLUORITE];
+            // C ref: shk.c get_cost() glass gem pricing — all glass gems
+            // are priced as if real, using a pseudorandom choice based on
+            // ubirthday to pick which real gem to price as.
+            // C: pseudorand = (((int) ubirthday % obj->otyp) >= obj->otyp / 2)
+            const ubirthday = getGameUbirthday();
+            const otyp = Number(obj.otyp);
+            const pseudorand = (Math.trunc(ubirthday) % otyp) >= Math.trunc(otyp / 2);
+            // C ref: switch (obj->otyp - FIRST_GLASS_GEM) maps each glass
+            // gem to either a high-value or moderate-value real gem.
+            const glassGemMap = [
+                [DIAMOND, OPAL],        // 0: white
+                [SAPPHIRE, AQUAMARINE], // 1: blue
+                [RUBY, JASPER],         // 2: red
+                [AMBER, TOPAZ],         // 3: yellowish brown
+                [JACINTH, AGATE],       // 4: orange
+                [CITRINE, CHRYSOBERYL], // 5: yellow
+                [BLACK_OPAL, JET],      // 6: black
+                [EMERALD, JADE],        // 7: green
+                [AMETHYST, FLUORITE],   // 8: violet
+            ];
+            const glassIdx = otyp - FIRST_GLASS_GEM;
             if (glassIdx >= 0 && glassIdx < 9) {
-                const oidx = Number(obj.o_id || 0);
-                const useFake = (oidx + glassIdx) % 4 === 0;
-                const i = (useFake ? fakeGems[glassIdx] : realGems[glassIdx]) || realGems[0];
+                const pair = glassGemMap[glassIdx];
+                const i = pseudorand ? pair[0] : pair[1];
                 tmp = Number((objectData[i] || {}).oc_cost || 0);
             }
         } else if (oid_price_adjustment(obj, Number(obj.o_id || 0)) > 0) {
@@ -1608,7 +1624,9 @@ function getShopQuoteForFloorObject(obj, player, map) {
         return { cost: 0, noCharge: true };
     }
     const units = Math.max(1, Number(obj.quan || 1));
-    return { cost: units * getCost(obj, player, shkp), noCharge: false };
+    // C ref: shk.c get_cost_of_shop_item() calls get_cost(), not a separate
+    // pricing function. Use get_cost for proper glass gem pricing.
+    return { cost: units * get_cost(obj, shkp), noCharge: false };
 }
 
 function residentShopkeeperAvailableForGreeting(shkp, shoproom, map) {
