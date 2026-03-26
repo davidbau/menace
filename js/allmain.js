@@ -15,7 +15,8 @@
 //   newgame(): full new-game setup (role selection, dungeon gen, startup).
 //   welcome(): display character description at game start or restore.
 
-import { movemon, settrack, mon_regen } from './monmove.js';
+import { settrack, mon_regen } from './monmove.js';
+import { movemon } from './mon.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { nh_timeout, do_storms, fall_asleep } from './timeout.js';

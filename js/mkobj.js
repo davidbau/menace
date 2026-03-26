@@ -623,7 +623,7 @@ function mksobj_init(obj, artif, skipErosion) {
             // C ref: mkobj.c:900-910 — retry if G_NOCORPSE
             let tryct = 50;
             do {
-                obj.corpsenm = undead_to_corpse(rndmonnum(_getLevelDepth()));
+                obj.corpsenm = undead_to_corpse(makemon_rndmonnum(_getLevelDepth()));
                 mkobjTrace(`corpse try=${51 - tryct} call=${getRngCallCount()} corpsenm=${obj.corpsenm} nocorpse=${obj.corpsenm >= 0 ? (((mons[obj.corpsenm].geno & G_NOCORPSE) !== 0) ? 1 : 0) : -1}`);
             } while (obj.corpsenm >= 0
                      && (mons[obj.corpsenm].geno & G_NOCORPSE)
@@ -635,7 +635,7 @@ function mksobj_init(obj, artif, skipErosion) {
             mkobjTrace(`egg roll call=${getRngCallCount()} rn2(3)=${eggRoll}`);
             if (!eggRoll) {
                 for (let tryct = 200; tryct > 0; --tryct) {
-                    const base = rndmonnum(_getLevelDepth());
+                    const base = makemon_rndmonnum(_getLevelDepth());
                     const mndx = can_be_hatched(base);
                     obj.corpsenm = mndx;
                     mkobjTrace(`egg try=${201 - tryct} call=${getRngCallCount()} base=${base} hatched=${mndx}`);
@@ -651,7 +651,7 @@ function mksobj_init(obj, artif, skipErosion) {
             } else {
                 // C ref: mkobj.c:930-937 — retry until cnutrit && !G_NOCORPSE
                 for (let tryct = 200; tryct > 0; --tryct) {
-                    const mndx = undead_to_corpse(rndmonnum(_getLevelDepth()));
+                    const mndx = undead_to_corpse(makemon_rndmonnum(_getLevelDepth()));
                     const nutrition = mndx >= 0 ? (mons[mndx].cnutrit || 0) : 0;
                     const nocorpse = mndx >= 0 ? (((mons[mndx].geno & G_NOCORPSE) !== 0) ? 1 : 0) : -1;
                     mkobjTrace(`tin try=${201 - tryct} call=${getRngCallCount()} mndx=${mndx} cnutrit=${nutrition} nocorpse=${nocorpse}`);
@@ -724,7 +724,7 @@ function mksobj_init(obj, artif, skipErosion) {
         } else if (od.oc_name === 'figurine') {
             let tryct = 0;
             do {
-                obj.corpsenm = rndmonnum_adj(5, 10, _getLevelDepth());
+                obj.corpsenm = makemon_rndmonnum_adj(5, 10, _getLevelDepth());
                 mkobjTrace(`figurine try=${tryct + 1} call=${getRngCallCount()} corpsenm=${obj.corpsenm}`);
             } while (tryct++ < 30 && false); // simplified: first attempt ok
             blessorcurse(obj, 4);
@@ -818,7 +818,7 @@ function mksobj_init(obj, artif, skipErosion) {
 
     case ROCK_CLASS:
         if (od.oc_name === 'statue') {
-            obj.corpsenm = rndmonnum(_getLevelDepth()); // Pass depth for correct monster selection
+            obj.corpsenm = makemon_rndmonnum(_getLevelDepth()); // Pass depth for correct monster selection
             mkobjTrace(`statue call=${getRngCallCount()} corpsenm=${obj.corpsenm}`);
             // C ref: !verysmall() && rn2(level_difficulty()/2+10) > 10
             // verysmall = msize < MZ_SMALL (i.e., MZ_TINY)
@@ -942,7 +942,7 @@ function mksobj_postinit(obj) {
     const od = objectData[obj.otyp];
     // Corpse: if corpsenm not set, assign one
     if (od.oc_name === 'corpse' && obj.corpsenm === -1) {
-        obj.corpsenm = undead_to_corpse(rndmonnum(_getLevelDepth()));
+        obj.corpsenm = undead_to_corpse(makemon_rndmonnum(_getLevelDepth()));
     }
     // C ref: mkobj.c mksobj() SPE_NOVEL case:
     // initialize novelidx and consume noveltitle() selection RNG.
@@ -952,7 +952,7 @@ function mksobj_postinit(obj) {
     // Statue/figurine: if corpsenm not set, assign one
     // C ref: mkobj.c:1212 — otmp->corpsenm = rndmonnum()
     if ((od.oc_name === 'statue' || od.oc_name === 'figurine') && obj.corpsenm === -1) {
-        obj.corpsenm = rndmonnum(_getLevelDepth());
+        obj.corpsenm = makemon_rndmonnum(_getLevelDepth());
     }
     // Gender assignment for corpse/statue/figurine.
     // C ref: mkobj.c:1215-1219 — store CORPSTAT_* in spe.
@@ -2393,18 +2393,6 @@ export function unknow_object(obj) {
     obj.bknown = 0;
     obj.rknown = 0;
     return obj;
-}
-
-// C ref: mkobj.c:389
-export function rndmonnum(depth = null) {
-    if (depth === null || depth === undefined) return makemon_rndmonnum(_getLevelDepth());
-    return rndmonnum_adj(0, 0, depth);
-}
-
-// C ref: mkobj.c:396
-export function rndmonnum_adj(minadj = 0, maxadj = 0, depth = null) {
-    const dlev = Number.isInteger(depth) ? depth : _getLevelDepth();
-    return makemon_rndmonnum_adj(minadj, maxadj, dlev);
 }
 
 // C ref: mkobj.c:418

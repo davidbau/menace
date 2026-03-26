@@ -102,6 +102,7 @@ import { record_achievement } from './insight.js';
 import { pmname, Mgender, x_monnam, y_monnam, Monnam } from './do_name.js';
 import { place_monster } from './steed.js';
 import { Role_if } from './role.js';
+import { dochug, m_everyturn_effect } from './monmove.js';
 
 // C macro: ismnum(mndx) — valid monster index check
 // ismnum imported from mondata.js
@@ -2172,7 +2173,7 @@ async function m_calcdistress(mon, map, player) {
 // ========================================================================
 // movemon — C ref: mon.c movemon()
 // ========================================================================
-export async function movemon(map, player, display, fov, game = null, { dochug, handleHiderPremove: hhp, everyturnEffect } = {}) {
+export async function movemon(map, player, display, fov, game = null) {
     if (game) game._suppressMonsterHitMessagesThisTurn = false;
     if (map) map._heardDistantNoiseThisTurn = false;
     let somebodyCanMove = false;
@@ -2198,7 +2199,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
         // C ref: parked vault guards at (0,0) don't take normal turns.
         if (mon.isgd && mon.mx === 0 && mon.my === 0) continue;
         // C ref: mon.c:1230 — m_everyturn_effect called for ALL alive monsters before movement check
-        if (everyturnEffect) await everyturnEffect(mon, map, player, game);
+        await m_everyturn_effect(mon, map, player, game);
         if (mon.movement >= NORMAL_SPEED) {
             pushRngLogEntry(`^movemon_turn[${mon.mndx}@${mon.mx},${mon.my} mv=${mon.movement}->${mon.movement - NORMAL_SPEED}]`);
             const oldx = mon.mx;
@@ -2234,7 +2235,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                     }
                 }
             }
-            if ((hhp || handleHiderPremove)(mon, map, player, fov)) {
+            if (handleHiderPremove(mon, map, player, fov)) {
                 continue;
             }
             // C ref: mon.c:1277-1284 — eel hiding
@@ -2307,30 +2308,6 @@ export function max_mon_load(mtmp) {
   return  maxload;
 }
 
-// Autotranslated from mon.c:1974
-export function can_carry(mtmp, otmp, player) {
-  let iquan, otyp = otmp.otyp, newload = otmp.owt, mdat = mtmp.data, nattk = 0;
-  if (notake(mdat)) return 0;
-  if (!can_touch_safely(mtmp, otmp)) return 0;
-  iquan = (otmp.quan >  LARGEST_INT) ? 20000 + rn2(LARGEST_INT - 20000 + 1) :  otmp.quan;
-  if (iquan > 1) {
-    let glomper = false;
-    if (mtmp.data.mlet === S_DRAGON && (otmp.oclass === COIN_CLASS || otmp.oclass === GEM_CLASS)) glomper = true;
-    else {
-      for (nattk = 0; nattk < NATTK; nattk++) {
-        if (mtmp.data.mattk[nattk].aatyp === AT_ENGL) { glomper = true; break; }
-      }
-    }
-    if ((mtmp.data.mflags1 & M1_NOHANDS) && !glomper) return 1;
-  }
-  if (mtmp === player.usteed) return 0;
-  if (mtmp.isshk) return iquan;
-  if (mtmp.mpeaceful && !mtmp.mtame) return 0;
-  if (throws_rocks(mdat) && otyp === BOULDER) return iquan;
-  if (mdat.mlet === S_NYMPH) return (otmp.oclass === ROCK_CLASS) ? 0 : iquan;
-  if (curr_mon_load(mtmp) + newload > max_mon_load(mtmp)) return 0;
-  return iquan;
-}
 
 // Autotranslated from mon.c:2581
 export function copy_mextra(mtmp2, mtmp1) {

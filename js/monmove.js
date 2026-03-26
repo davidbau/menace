@@ -94,7 +94,7 @@ export { dist2, distmin, monnear, attackVerb, monAttackName, canSpotMonsterForMa
 export { initrack, settrack };
 
 // Re-export mon.c functions
-import { movemon as _movemon, mfndpos, handleHiderPremove,
+import { mfndpos, handleHiderPremove,
          onscary,
          corpse_chance,
          hideunder,
@@ -130,12 +130,6 @@ import { find_defensive, use_defensive, find_misc, use_misc, find_offensive, sea
 import { quest_stat_check } from './quest.js';
 import { is_organic } from './objdata.js';
 
-// ========================================================================
-// movemon — wrapper that binds dochug into mon.js movemon
-// ========================================================================
-export async function movemon(map, player, display, fov, game = null) {
-    return await _movemon(map, player, display, fov, game, { dochug, handleHiderPremove, everyturnEffect: m_everyturn_effect });
-}
 
 // C direction tables (C ref: monmove.c)
 const xdir = [0, 1, 1, 1, 0, -1, -1, -1];
@@ -1247,7 +1241,7 @@ async function maybeCastUndirectedPreMove(mon, mdat, player, map) {
 // dochug — C ref: monmove.c:690
 // ========================================================================
 
-async function dochug(mon, map, player, display, fov, game = null) {
+export async function dochug(mon, map, player, display, fov, game = null) {
     if ((mon.data || mon.type) && (mon.data || mon.type).mlet === S_MIMIC) {
         return;
     }
