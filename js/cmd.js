@@ -1909,7 +1909,7 @@ export async function here_cmd_menu(player) {
 }
 
 // Autotranslated from cmd.c:5385
-export async function readchar(player) {
+export function readchar(player) {
   let ch, x = player.x, y = player.y, mod = 0;
   ch = readchar_core( x, y, mod);
   return ch;

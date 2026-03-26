@@ -936,7 +936,7 @@ async function really_kick_object(x, y, player, map, game) {
         newsym(x, y, map);
         if (costly && (!costly_spot(player.x, player.y, map))) {
             if (!kickedobj.no_charge)
-                addtobill(kickedobj, false, false, false);
+                await addtobill(kickedobj, false, false, false);
             else
                 kickedobj.no_charge = 0;
         }
@@ -1577,7 +1577,7 @@ export async function dokick(player, map, display, game) {
     }
 
     wake_nearby(false, player, map);
-    await u_wipe_engr(2);
+    u_wipe_engr(2);
 
     if (!isok(x, y)) {
         await kick_ouch(x, y, "", game, map, player);
@@ -1644,8 +1644,8 @@ export async function dokick(player, map, display, game) {
 // cf. dokick.c:1472
 // ============================================================================
 
-async function drop_to(cc, loc, x, y, player, map) {
-    const stway = await stairway_at(x, y, map);
+function drop_to(cc, loc, x, y, player, map) {
+    const stway = stairway_at(x, y, map);
 
     switch (loc) {
     case MIGR_RANDOM:
@@ -1685,10 +1685,10 @@ export async function impact_drop(missile, x, y, dlev, player, map, game) {
     if (!OBJ_AT(x, y, map))
         return;
 
-    const toloc_orig = await down_gate(x, y, map, player);
+    const toloc_orig = down_gate(x, y, map, player);
     let toloc = toloc_orig;
     const cc = { x: 0, y: 0 };
-    await drop_to(cc, toloc, x, y, player, map);
+    drop_to(cc, toloc, x, y, player, map);
     if (!cc.y)
         return;
 
@@ -1785,11 +1785,11 @@ export async function impact_drop(missile, x, y, dlev, player, map, game) {
 export async function ship_object(otmp, x, y, shop_floor_obj, player, map, game) {
     if (!otmp) return false;
 
-    const toloc = await down_gate(x, y, map, player);
+    const toloc = down_gate(x, y, map, player);
     if (toloc === MIGR_NOWHERE) return false;
 
     const cc = { x: 0, y: 0 };
-    await drop_to(cc, toloc, x, y, player, map);
+    drop_to(cc, toloc, x, y, player, map);
     if (!cc.y) return false;
 
     const nodrop = (otmp === player.uball) || (otmp === player.uchain)
@@ -1824,7 +1824,7 @@ export async function ship_object(otmp, x, y, shop_floor_obj, player, map, game)
     if (nodrop) {
         if (impact) {
             await impact_drop(otmp, x, y, 0, player, map, game);
-            maybe_unhide_at(x, y, map);
+            await maybe_unhide_at(x, y, map);
         }
         return false;
     }
@@ -1845,7 +1845,7 @@ export async function ship_object(otmp, x, y, shop_floor_obj, player, map, game)
     }
 
     if (otmp.owornmask)
-        remove_worn_item(player, otmp);
+        await remove_worn_item(player, otmp);
 
     if (breaktest(otmp)) {
         let result;
@@ -1926,7 +1926,7 @@ export async function obj_delivery(near_hero, player, map, game) {
             // FALLTHROUGH
         case MIGR_STAIRS_UP:
         case MIGR_SSTAIRS: {
-            const stway = await stairway_find_from(fromdlev, isladder, map);
+            const stway = stairway_find_from(fromdlev, isladder, map);
             if (stway) { nx = stway.sx; ny = stway.sy; }
             break;
         }
@@ -2066,9 +2066,9 @@ export async function otransit_msg(otmp, nodrop, chainthere, num) {
 // cf. dokick.c:1942
 // ============================================================================
 
-export async function down_gate(x, y, map, player) {
+export function down_gate(x, y, map, player) {
     gate_str = null;
-    const stway = await stairway_at(x, y, map);
+    const stway = stairway_at(x, y, map);
 
     // quest level check
     // TODO: qstart_level / ok_to_quest()

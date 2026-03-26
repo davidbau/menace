@@ -155,7 +155,7 @@ export async function placebc_core(player, map) {
 }
 
 // cf. ball.c:146 — unplacebc_core(): remove ball and chain from floor
-export function unplacebc_core(player, map) {
+export async function unplacebc_core(player, map) {
     const uchain = player.uchain;
     const uball = player.uball;
 
@@ -176,7 +176,7 @@ export function unplacebc_core(player, map) {
             const loc = map.at(uball.ox, uball.oy);
             if (loc) loc.glyph = player.bglyph;
         }
-        maybe_unhide_at(uball.ox, uball.oy, map);
+        await maybe_unhide_at(uball.ox, uball.oy, map);
         newsym(uball.ox, uball.oy);
     }
     obj_extract_self(uchain, map);
@@ -184,7 +184,7 @@ export function unplacebc_core(player, map) {
         const loc = map.at(uchain.ox, uchain.oy);
         if (loc) loc.glyph = player.cglyph;
     }
-    maybe_unhide_at(uchain.ox, uchain.oy, map);
+    await maybe_unhide_at(uchain.ox, uchain.oy, map);
 
     newsym(uchain.ox, uchain.oy);
     player.bc_felt = 0; // feel nothing
@@ -214,18 +214,18 @@ export async function placebc(player, map) {
 }
 
 // C ref: ball.c:259 Placebc() — compatibility alias.
-export async function Placebc(player, map) {
+export function Placebc(player, map) {
     return placebc(player, map);
 }
 
 // cf. ball.c:211 — unplacebc(): remove ball and chain
 // Autotranslated from ball.c:211
-export function unplacebc() {
+export async function unplacebc() {
   if (bcrestriction) {
     impossible("unplacebc denied, restriction in_ place");
     return;
   }
-  unplacebc_core();
+  await unplacebc_core();
 }
 
 // C ref: ball.c:287 Unplacebc() — compatibility alias.
@@ -235,12 +235,12 @@ export function Unplacebc() {
 
 // cf. ball.c:221 — unplacebc_and_covet_placebc(): remove and pin bc
 // Autotranslated from ball.c:221
-export function unplacebc_and_covet_placebc() {
+export async function unplacebc_and_covet_placebc() {
   let restriction = 0;
   if (bcrestriction) {
     impossible("unplacebc_and_covet_placebc denied, already restricted");
   }
-  else { restriction = bcrestriction = rnd(400); unplacebc_core(); }
+  else { restriction = bcrestriction = rnd(400); await unplacebc_core(); }
   return restriction;
 }
 
@@ -262,7 +262,7 @@ export async function lift_covet_and_placebc(pin, player, map) {
 }
 
 // C ref: ball.c:327 Lift_covet_and_placebc() — compatibility alias.
-export async function Lift_covet_and_placebc(pin, player, map) {
+export function Lift_covet_and_placebc(pin, player, map) {
     return lift_covet_and_placebc(pin, player, map);
 }
 
@@ -343,7 +343,7 @@ export function set_bc(already_blind, player, map) {
 }
 
 // cf. ball.c:436 — move_bc(): ball/chain movement during hero move
-export function move_bc(before, control, ballx, bally, chainx, chainy, player, map) {
+export async function move_bc(before, control, ballx, bally, chainx, chainy, player, map) {
     const uball = player.uball;
     const uchain = player.uchain;
     if (!uball || !uchain) return;
@@ -368,8 +368,8 @@ export function move_bc(before, control, ballx, bally, chainx, chainy, player, m
                 const cloc = map.at(chainx, chainy);
                 player.cglyph = cloc ? cloc.glyph : -1;
 
-                movobj(uball, ballx, bally, map);
-                movobj(uchain, chainx, chainy, map);
+                await movobj(uball, ballx, bally, map);
+                await movobj(uchain, chainx, chainy, map);
             } else if (control & BC_BALL) {
                 if (player.bc_felt & BC_BALL) {
                     if (player.bc_order === BCPOS_DIFFER) { // ball by itself
@@ -394,7 +394,7 @@ export function move_bc(before, control, ballx, bally, chainx, chainy, player, m
                     player.bglyph = player.cglyph;
                 }
 
-                movobj(uball, ballx, bally, map);
+                await movobj(uball, ballx, bally, map);
             } else if (control & BC_CHAIN) {
                 if (player.bc_felt & BC_CHAIN) {
                     if (player.bc_order === BCPOS_DIFFER) {
@@ -418,7 +418,7 @@ export function move_bc(before, control, ballx, bally, chainx, chainy, player, m
                     player.cglyph = player.bglyph;
                 }
 
-                movobj(uchain, chainx, chainy, map);
+                await movobj(uchain, chainx, chainy, map);
             }
 
             player.bc_order = bc_order_fn(player, map); // reset the order
@@ -433,11 +433,11 @@ export function move_bc(before, control, ballx, bally, chainx, chainy, player, m
             }
 
             remove_object(uchain, map);
-            maybe_unhide_at(uchain.ox, uchain.oy, map);
+            await maybe_unhide_at(uchain.ox, uchain.oy, map);
             newsym(uchain.ox, uchain.oy);
             if (!carried(uball)) {
                 remove_object(uball, map);
-                maybe_unhide_at(uball.ox, uball.oy, map);
+                await maybe_unhide_at(uball.ox, uball.oy, map);
                 newsym(uball.ox, uball.oy);
             }
         } else {
@@ -478,7 +478,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
     let cause_delay = false;
 
     if (dist2(x, y, uchain.ox, uchain.oy) <= 2) { // nothing moved
-        move_bc(1, bc_control, ballx, bally, chainx, chainy, player, map);
+        await move_bc(1, bc_control, ballx, bally, chainx, chainy, player, map);
         return { ret: true, bc_control, ballx, bally, chainx, chainy, cause_delay };
     }
 
@@ -487,7 +487,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
         const oldchainx = uchain.ox, oldchainy = uchain.oy;
 
         bc_control = BC_CHAIN;
-        move_bc(1, bc_control, ballx, bally, chainx, chainy, player, map);
+        await move_bc(1, bc_control, ballx, bally, chainx, chainy, player, map);
         if (carried(uball)) {
             // move chain only if necessary
             if (distmin(x, y, uchain.ox, uchain.oy) > 1) {
@@ -507,10 +507,10 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
 
         // SKIP_TO_DRAG helper — restore chain and jump to drag section
         let skip_to_drag = false;
-        function SKIP_TO_DRAG() {
+        async function SKIP_TO_DRAG() {
             chainx = oldchainx;
             chainy = oldchainy;
-            move_bc(0, bc_control, ballx, bally, chainx, chainy, player, map);
+            await move_bc(0, bc_control, ballx, bally, chainx, chainy, player, map);
             skip_to_drag = true;
         }
 
@@ -520,7 +520,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
             chainx = Math.floor((uball.ox + x) / 2);
             chainy = Math.floor((uball.oy + y) / 2);
             if (IS_CHAIN_ROCK(chainx, chainy, map) && !already_in_rock)
-                SKIP_TO_DRAG();
+                await SKIP_TO_DRAG();
             break;
 
         // player is distance 2/1 from ball
@@ -541,10 +541,10 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
                 if (allow_drag) {
                     if (dist2(player.x, player.y, uball.ox, uball.oy) === 5
                         && dist2(x, y, tempx, tempy) === 1)
-                        SKIP_TO_DRAG();
+                        await SKIP_TO_DRAG();
                     if (!skip_to_drag && dist2(player.x, player.y, uball.ox, uball.oy) === 4
                         && dist2(x, y, tempx, tempy) === 2)
-                        SKIP_TO_DRAG();
+                        await SKIP_TO_DRAG();
                 }
                 if (!skip_to_drag) {
                     chainx = tempx2;
@@ -555,10 +555,10 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
                 if (allow_drag) {
                     if (dist2(player.x, player.y, uball.ox, uball.oy) === 5
                         && dist2(x, y, tempx2, tempy2) === 1)
-                        SKIP_TO_DRAG();
+                        await SKIP_TO_DRAG();
                     if (!skip_to_drag && dist2(player.x, player.y, uball.ox, uball.oy) === 4
                         && dist2(x, y, tempx2, tempy2) === 2)
-                        SKIP_TO_DRAG();
+                        await SKIP_TO_DRAG();
                 }
                 if (!skip_to_drag) {
                     chainx = tempx;
@@ -566,7 +566,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
                 }
             } else if (!skip_to_drag && IS_CHAIN_ROCK(tempx, tempy, map)
                        && IS_CHAIN_ROCK(tempx2, tempy2, map) && !already_in_rock) {
-                SKIP_TO_DRAG();
+                await SKIP_TO_DRAG();
             } else if (!skip_to_drag) {
                 if (dist2(tempx, tempy, uchain.ox, uchain.oy)
                         < dist2(tempx2, tempy2, uchain.ox, uchain.oy)
@@ -591,7 +591,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
             chainx = Math.floor((x + uball.ox) / 2);
             chainy = Math.floor((y + uball.oy) / 2);
             if (IS_CHAIN_ROCK(chainx, chainy, map) && !already_in_rock)
-                SKIP_TO_DRAG();
+                await SKIP_TO_DRAG();
             break;
 
         // ball is one space diagonal from player
@@ -603,7 +603,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
                 else
                     chainy = uball.oy;
                 if (IS_CHAIN_ROCK(chainx, chainy, map) && !already_in_rock)
-                    SKIP_TO_DRAG();
+                    await SKIP_TO_DRAG();
                 break;
             }
             // FALLTHROUGH
@@ -683,10 +683,10 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
             nomul(0, game);
 
             bc_control = BC_BALL;
-            move_bc(1, bc_control, ballx, bally, chainx, chainy, player, map);
+            await move_bc(1, bc_control, ballx, bally, chainx, chainy, player, map);
             ballx = uchain.ox;
             bally = uchain.oy;
-            move_bc(0, bc_control, ballx, bally, chainx, chainy, player, map);
+            await move_bc(0, bc_control, ballx, bally, chainx, chainy, player, map);
             await spoteffects(true, player, map, null, game);
             return { ret: false, bc_control, ballx, bally, chainx, chainy, cause_delay };
         }
@@ -694,7 +694,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
 
     bc_control = BC_BALL | BC_CHAIN;
 
-    move_bc(1, bc_control, ballx, bally, chainx, chainy, player, map);
+    await move_bc(1, bc_control, ballx, bally, chainx, chainy, player, map);
     if (dist2(x, y, player.x, player.y) > 2) {
         // Teleported more than one square — just put everything at target.
         ballx = chainx = x;
@@ -817,7 +817,7 @@ export async function drop_ball(x, y, player, map, game) {
                 player.cglyph = loc ? loc.glyph : -1;
             }
         }
-        movobj(uchain, player.x, player.y, map); // has a newsym
+        await movobj(uchain, player.x, player.y, map); // has a newsym
         if (player.blind) {
             player.bc_order = bc_order_fn(player, map);
         }

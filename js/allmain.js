@@ -1038,7 +1038,7 @@ async function syncTimedTurnPreInputState(game) {
             see_objects();
             see_traps();
             if (player?.uswallow) {
-                swallowed(0);
+                await swallowed(0);
             }
         } else if (
             player?.Blind_telepat
