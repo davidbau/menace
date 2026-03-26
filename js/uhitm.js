@@ -2181,13 +2181,13 @@ export function disguised_as_mon(mtmp) {
 // cf. uhitm.c:6293 — nohandglow(mon):
 //   Reduce hero's umconf counter (hand-glow for confusion touch).
 //   Called after a hand-to-hand hit when umconf > 0 and mon is not confused.
-export function nohandglow(mon, player) {
+export async function nohandglow(mon, player) {
     if (!player || !player.umconf || mon?.mconf) return false;
     // C ref: uhitm.c:6303-6313 — messages depend on umconf count and visibility
     if (player.umconf === 1) {
-        void Your("%s stop glowing.", "hands");
+        await Your("%s stop glowing.", "hands");
     } else {
-        void Your("%s no longer glow so brightly.", "hands");
+        await Your("%s no longer glow so brightly.", "hands");
     }
     player.umconf--;
     return true;
