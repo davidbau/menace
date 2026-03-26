@@ -1100,16 +1100,6 @@ async function runOccupationStep(game) {
     return { ran: true, prompt: cont === 'prompt' };
 }
 
-function hasPendingCommandBoundaryDismiss(game) {
-    const display = game?.display;
-    if (!display) return false;
-    if (!display?.messageNeedsMore) return false;
-    if (display.moreMarkerActive || display.messageNeedsMoreBoundary) return true;
-    if (typeof display.getScreenLines !== 'function') return false;
-    const lines = display.getScreenLines() || [];
-    return (lines[0] || '').includes('--More--') || (lines[1] || '').includes('--More--');
-}
-
 async function finalizeTimedCommand(game, result, coreOpts) {
     if (!(result && result.tookTime)) return;
     await advanceTimedTurn(game, coreOpts);
@@ -2486,19 +2476,6 @@ export class NetHackGame {
             const hasTimedContinuation = hasPositiveMoveContinuation
                 || (this.context?.move && this.multi < 0 && !(this?.playerDied))
                 || (this.multi >= 0 && this.occupation);
-
-            // C-faithful boundary ownership: if the previous iteration left a
-            // command-boundary --More-- pending, consume only that dismiss key
-            // before running any no-input continuation work.
-            if (hasTimedContinuation && hasPendingCommandBoundaryDismiss(this)) {
-                // C ref: tty_clearmsg() fires more() before continuation work.
-                await more(this.display, {
-                    forceVisual: true,
-                    clearAfter: true,
-                    readKey: () => nhgetch(),
-                });
-                continue;
-            }
 
             if (this.context?.move && this.multi < 0 && !(this?.playerDied)) {
                 await runNegativeMultiStep(this, {});
