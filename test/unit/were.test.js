@@ -82,21 +82,21 @@ describe('were_beastie', () => {
 // ========================================================================
 
 describe('were_summon', () => {
-    it('returns zero total for non-lycanthrope ptr (default case in switch)', () => {
+    it('returns zero total for non-lycanthrope ptr (default case in switch)', async () => {
         initRng(42);
         // little_dog is not a lycanthrope — switch hits default every iteration
         const ptr = mons[PM_LITTLE_DOG];
-        const { total, visible, genbuf } = were_summon(ptr, 5, 5, false, null, null, 1);
+        const { total, visible, genbuf } = await were_summon(ptr, 5, 5, false, null, null, 1);
         assert.equal(total, 0);
         assert.equal(visible, 0);
         assert.equal(genbuf, null);
     });
 
-    it('returns zero total when protection_from_shape_changers and !yours', () => {
+    it('returns zero total when protection_from_shape_changers and !yours', async () => {
         initRng(42);
         const ptr = mons[PM_WEREWOLF];
         const ctx = { player: { protectionFromShapeChangers: true } };
-        const { total, genbuf } = were_summon(ptr, 5, 5, false, ctx, null, 1);
+        const { total, genbuf } = await were_summon(ptr, 5, 5, false, ctx, null, 1);
         assert.equal(total, 0);
         assert.equal(genbuf, null);
     });
@@ -112,7 +112,7 @@ describe('were_summon', () => {
         const ptr = mons[PM_WEREWOLF];
         const ctx = { player: { protectionFromShapeChangers: true } };
         // even with protection, yours=true should proceed
-        const { genbuf } = were_summon(ptr, cx, cy, true, ctx, map, 1);
+        const { genbuf } = await were_summon(ptr, cx, cy, true, ctx, map, 1);
         assert.equal(genbuf, 'wolf');
     });
 
@@ -124,7 +124,7 @@ describe('were_summon', () => {
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
         const cy = Math.floor((room.ly + room.hy) / 2);
-        const { genbuf } = were_summon(mons[PM_WEREWOLF], cx, cy, false, null, map, 1);
+        const { genbuf } = await were_summon(mons[PM_WEREWOLF], cx, cy, false, null, map, 1);
         assert.equal(genbuf, 'wolf');
     });
 
@@ -136,7 +136,7 @@ describe('were_summon', () => {
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
         const cy = Math.floor((room.ly + room.hy) / 2);
-        const { genbuf } = were_summon(mons[PM_WERERAT], cx, cy, false, null, map, 1);
+        const { genbuf } = await were_summon(mons[PM_WERERAT], cx, cy, false, null, map, 1);
         assert.equal(genbuf, 'rat');
     });
 
@@ -148,7 +148,7 @@ describe('were_summon', () => {
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
         const cy = Math.floor((room.ly + room.hy) / 2);
-        const { genbuf } = were_summon(mons[PM_WEREJACKAL], cx, cy, false, null, map, 1);
+        const { genbuf } = await were_summon(mons[PM_WEREJACKAL], cx, cy, false, null, map, 1);
         assert.equal(genbuf, 'jackal');
     });
 
@@ -160,7 +160,7 @@ describe('were_summon', () => {
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
         const cy = Math.floor((room.ly + room.hy) / 2);
-        const { genbuf } = were_summon(mons[PM_HUMAN_WEREWOLF], cx, cy, false, null, map, 1);
+        const { genbuf } = await were_summon(mons[PM_HUMAN_WEREWOLF], cx, cy, false, null, map, 1);
         assert.equal(genbuf, 'wolf');
     });
 
@@ -174,7 +174,7 @@ describe('were_summon', () => {
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
         const cy = Math.floor((room.ly + room.hy) / 2);
-        const { total } = were_summon(mons[PM_WEREWOLF], cx, cy, false, null, map, 1);
+        const { total } = await were_summon(mons[PM_WEREWOLF], cx, cy, false, null, map, 1);
         assert.ok(total >= 1, `Expected at least 1 summoned wolf, got ${total}`);
     });
 
@@ -195,7 +195,7 @@ describe('were_summon', () => {
             const r2 = m2.rooms[0];
             const x2 = Math.floor((r2.lx + r2.hx) / 2);
             const y2 = Math.floor((r2.ly + r2.hy) / 2);
-            const { total } = were_summon(mons[PM_WEREWOLF], x2, y2, false, null, m2, 1);
+            const { total } = await were_summon(mons[PM_WEREWOLF], x2, y2, false, null, m2, 1);
             assert.ok(total <= 5, `Expected total <= 5, got ${total} for seed ${seed}`);
         }
     });

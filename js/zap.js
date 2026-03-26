@@ -1914,7 +1914,7 @@ export async function makewish(wishText, player, display, game) {
         player,
         map: player?.map || game?.map || null,
     };
-    let otmp = readobjnam(wishText, false, opts);
+    let otmp = await readobjnam(wishText, false, opts);
     const terrainWish = opts._terrainWish || null;
     if (terrainWish) {
         if (terrainWish.message) {
