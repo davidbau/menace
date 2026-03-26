@@ -207,12 +207,14 @@
   /* Filters */
   .filters { display: flex; gap: 0.5em; flex-wrap: wrap; margin-top: 0.5em; }
   .fbtn {
-    padding: 0.2em 0.7em; border-radius: 12px; border: 3px solid var(--border);
+    padding: 0.2em 0.7em 0.2em 0.4em; border-radius: 12px; border: 3px solid var(--border);
     background: transparent; cursor: pointer; font-size: 0.75em;
     font-family: var(--serif); font-weight: 600; opacity: 0.4;
     transition: opacity 0.15s;
   }
+  .fbtn::before { content: '✓'; visibility: hidden; margin-right: 0.2em; }
   .fbtn.on { opacity: 1; }
+  .fbtn.on::before { visibility: visible; }
   .fbtn:hover { opacity: 0.8; }
   .fbtn[data-f="human"] { border-color: var(--human); color: var(--human); }
   .fbtn[data-f="human"].on { background: rgba(42,85,153,0.1); }
