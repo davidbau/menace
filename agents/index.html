@@ -201,6 +201,27 @@
   }
 
   .ev-time { color: var(--light); font-size: 0.8em; margin-right: 0.3em; }
+  .agent-badge {
+    display: inline-block; font-size: 0.6em; font-weight: 700;
+    width: 1.4em; height: 1.4em; line-height: 1.4em; text-align: center;
+    border-radius: 50%; margin-right: 0.2em; vertical-align: 1px;
+    font-family: -apple-system, sans-serif;
+  }
+  .agent-U { background: #d4e6f9; color: #1a4a7a; } /* quadro ux */
+  .agent-X { background: #fde4c8; color: #8a4a0a; } /* codex */
+  .agent-M { background: #d4f0d4; color: #1a6a1a; } /* mac */
+  .agent-V { background: #e8d4f0; color: #5a1a7a; } /* wave */
+  .agent-A { background: #f0e8d4; color: #6a5a1a; } /* air */
+  .agent-B { background: #f0dce8; color: #6a2a4a; } /* air spoilers */
+  .agent-D { background: #dce8f0; color: #2a4a6a; } /* air playable */
+  .agent-R { background: #f0d4d4; color: #7a1a1a; } /* root */
+  .agent-H { background: #d4f0f0; color: #1a6a6a; } /* webhack */
+  .agent-K { background: #e0f0d4; color: #3a6a1a; } /* webhack2 */
+  .agent-Q { background: #e8e8d4; color: #4a4a1a; } /* quadro bare */
+  .agent-I { background: #d4e0f0; color: #2a3a6a; } /* interface */
+  .agent-S { background: #d4f0e0; color: #1a5a3a; } /* selfplay */
+  .agent-P { background: #e0d4f0; color: #3a1a6a; } /* shops */
+  .agent-W { background: #e0e0e0; color: #555; }     /* watchdog */
   .tag {
     font-size: 0.6em; padding: 0.1em 0.3em; border-radius: 5px;
     font-weight: 600; font-family: -apple-system, sans-serif; margin-right: 0.2em; vertical-align: 1px;
@@ -387,6 +408,8 @@ function classify(t){if(!t)return'';t=t.trim();
   if(/^(let's|lets|now |next|go ahead|please |add |fix |change |update |remove |create |make |implement|write |run |test |check |push|commit)/i.test(t))return'directive';
   return'';}
 function tm(ts){return ts?.slice(11,16)||'';}
+function agentBadge(e){return e.agent?`<span class="agent-badge agent-${e.agent}">${e.agent}</span>`:'';}
+
 
 function renderToc(){
   const mx=Math.max(...DATA.map(d=>d.commits?.length||0));
@@ -481,7 +504,7 @@ function renderHuman(e){
   const id=stableId(e);
   e._id=id;
   return`<div class="ev ev-human${cls?' '+cls:''}" id="${id}" onclick="this.classList.toggle('expanded')">
-    <span class="ev-time">${tm(e.timestamp)}</span>${tag}<span class="ev-text">${esc(e.text)}</span>
+    ${agentBadge(e)}<span class="ev-time">${tm(e.timestamp)}</span>${tag}<span class="ev-text">${esc(e.text)}</span>
   </div>`;
 }
 
@@ -495,7 +518,7 @@ function renderAiWork(e){
   const id=stableId(e);
   e._id=id;
   return`<div class="ev ev-ai" id="${id}" onclick="this.classList.toggle('expanded')">
-    <span class="ev-time">${tm(e.timestamp)}</span>
+    ${agentBadge(e)}<span class="ev-time">${tm(e.timestamp)}</span>
     <span class="tag tag-ai">AI</span>
     ${brief?esc(brief):''}
     ${allText?`<span class="ai-snips-inline">${esc(allText)}</span>`:''}
