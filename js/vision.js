@@ -69,9 +69,20 @@ function getMapCloudVisibility(map, x, y) {
     return false;
 }
 
+// C ref: monst.h is_lightblocker_mappear(mon) — only mimics disguised
+// as boulders, closed doors, or walls block light.
 function isLightblockerMonster(mon) {
     if (!mon) return false;
-    return !!(mon.m_ap_type || mon.appear_as_type || mon.mappearance);
+    const apType = mon.m_ap_type || mon.appear_as_type || 0;
+    // M_AP_OBJECT mimicking BOULDER
+    if (apType === 2 /* M_AP_OBJECT */ && mon.mappearance === BOULDER) return true;
+    // M_AP_FURNITURE mimicking closed doors or walls
+    if (apType === 1 /* M_AP_FURNITURE */) {
+        const app = mon.mappearance;
+        // S_hcdoor=16, S_vcdoor=15, S_ndoor=12 — walls are < S_ndoor
+        if (app === 16 || app === 15 || app < 12) return true;
+    }
+    return false;
 }
 
 function sign(z) { return z < 0 ? -1 : (z ? 1 : 0); }

@@ -2351,11 +2351,20 @@ export function vision_recalc() {
     for (let x = 0; x < COLNO; x++) {
         oldVisible[x] = fov.visible[x].slice();
     }
+    // Save old COULD_SEE state for transition detection
+    // C ref: vision.c:820-825 — newsym is called when IN_SIGHT changes OR
+    // when COULD_SEE changes (cell enters/leaves LOS even without lighting).
+    const oldCs = fov._cs;
     fov.compute(map, player.x, player.y, do_light_sources, player);
     if (ctx.display) {
+        const newCs = fov._cs;
         for (let x = 1; x < COLNO; x++) {
             for (let y = 0; y < ROWNO; y++) {
-                if (oldVisible[x][y] !== fov.visible[x][y]) {
+                const visChanged = (oldVisible[x][y] !== fov.visible[x][y]);
+                // C ref: vision.c:820-825 — also update when COULD_SEE changes
+                const oldCouldSee = oldCs ? (oldCs[y][x] & 1) : 0; // COULD_SEE = 1
+                const newCouldSee = newCs ? (newCs[y][x] & 1) : 0;
+                if (visChanged || (oldCouldSee !== newCouldSee)) {
                     newsym(x, y);
                 }
             }
