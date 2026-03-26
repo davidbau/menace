@@ -94,7 +94,12 @@
   .ev-ai .detail { display: none; margin-top: 0.2em; }
   .ev-ai.open .detail { display: block; }
   .ai-tools { font-family: var(--mono); font-size: 0.85em; color: var(--session); }
-  .ai-inline { color: var(--muted); font-style: italic; }
+  .ai-snips-inline {
+    color: var(--muted); font-style: italic;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: block; max-width: 100%;
+  }
+  .ev-ai.open .ai-snips-inline { white-space: normal; overflow: visible; display: block; }
   .ai-snip { font-style: italic; color: var(--ai); margin-top: 0.1em; }
 
   /* Subagent events — indented to show nesting */
@@ -446,22 +451,19 @@ function renderHuman(e){
 }
 
 function renderAiWork(e){
-  // Build compact summary: skip "0 tool calls", show tools only if present
   let brief = '';
   if (e.toolUses > 0) {
     brief = e.turns > 1 ? `${e.turns} turns, ${e.topTools}` : e.topTools;
   }
   const snips = (e.snippets||[]);
-  const lastSnip = snips.length > 0 ? snips[snips.length - 1] : '';
-  // Show start of last snippet inline (the response to the user)
-  const inlineSnip = lastSnip ? esc(lastSnip.substring(0, 100)).replace(/\n/g,' ') + (lastSnip.length > 100 ? '&hellip;' : '') : '';
+  const allText = snips.map(s => s.replace(/\n/g, ' ')).join(' \u2014 ');
   const id=stableId(e);
   e._id=id;
   return`<div class="ev ev-ai" id="${id}" onclick="this.classList.toggle('open')">
     <span class="ev-time">${tm(e.timestamp)}</span>
     <span class="tag tag-ai">AI</span>
-    ${brief?esc(brief):''}${brief && inlineSnip ? ' &mdash; ' : ''}${inlineSnip ? `<span class="ai-inline">${inlineSnip}</span>` : ''}
-    ${snips.length?`<div class="detail">${snips.map(s=>`<div class="ai-snip">${esc(s)}</div>`).join('')}</div>`:''}
+    ${brief?esc(brief):''}
+    ${allText?`<span class="ai-snips-inline">${esc(allText)}</span>`:''}
   </div>`;
 }
 
@@ -509,15 +511,14 @@ function renderSubagentWork(e){
     brief = e.turns > 1 ? `${e.turns} turns, ${e.topTools}` : e.topTools;
   }
   const snips = (e.snippets||[]);
-  const lastSnip = snips.length > 0 ? snips[snips.length - 1] : '';
-  const inlineSnip = lastSnip ? esc(lastSnip.substring(0, 80)).replace(/\n/g,' ') + (lastSnip.length > 80 ? '&hellip;' : '') : '';
+  const allText = snips.map(s => s.replace(/\n/g, ' ')).join(' \u2014 ');
   const id=stableId(e);
   e._id=id;
   return`<div class="ev ev-subagent-work" id="${id}" onclick="this.classList.toggle('open')">
     <span class="ev-time">${tm(e.timestamp)}</span>
     <span class="tag tag-ai">sub</span>
-    ${brief?esc(brief):''}${brief && inlineSnip ? ' &mdash; ' : ''}${inlineSnip ? `<span class="ai-inline">${inlineSnip}</span>` : ''}
-    ${snips.length?`<div class="detail">${snips.map(s=>`<div class="ai-snip">${esc(s)}</div>`).join('')}</div>`:''}
+    ${brief?esc(brief):''}
+    ${allText?`<span class="ai-snips-inline">${esc(allText)}</span>`:''}
   </div>`;
 }
 
