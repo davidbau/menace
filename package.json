@@ -41,5 +41,9 @@
   "license": "NHPL",
   "dependencies": {
     "puppeteer": "^24.37.2"
+  },
+  "devDependencies": {
+    "acorn": "^8.16.0",
+    "acorn-walk": "^8.3.5"
   }
 }
