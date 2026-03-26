@@ -1829,7 +1829,7 @@ function maybe_usmellmon_after_newcham(mdat, newMndx) {
     }
 }
 
-async function apply_newcham_from_base(mon, baseMndx, depth, map = null, player = null, fov = null, _display = null, _showMsg = false) {
+function apply_newcham_from_base(mon, baseMndx, depth, map = null, player = null, fov = null, _display = null, _showMsg = false) {
     let target = null;
     let tryct = 20;
     do {
@@ -1865,7 +1865,7 @@ async function apply_newcham_from_base(mon, baseMndx, depth, map = null, player 
     mon.m_lev = newLev;
     mon.mac = target.ac;
     // C ref: newcham() post-transform gear handling.
-    await mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
+    mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
     maybe_init_long_worm_after_newcham(mon, newMndx, map, player);
     return true;
 }
@@ -1873,7 +1873,7 @@ async function apply_newcham_from_base(mon, baseMndx, depth, map = null, player 
 // C ref: mon.c newcham() with specific target ptr — apply form change to a known target mndx.
 // Used when the target form was already selected (e.g., pickvampshape was already called).
 // Unlike apply_newcham_from_base, does NOT re-call select_newcham_form/pickvampshape.
-async function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null, fov = null, _display = null, _showMsg = false) {
+function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null, fov = null, _display = null, _showMsg = false) {
     const target = mons[targetMndx];
     if (!target) return false;
 
@@ -1900,7 +1900,7 @@ async function apply_newcham_direct(mon, targetMndx, depth, map = null, player =
     mon.m_lev = newLev;
     mon.mac = target.ac;
     // C ref: newcham() post-transform gear handling.
-    await mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
+    mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
     maybe_init_long_worm_after_newcham(mon, targetMndx, map, player);
     return true;
 }
@@ -2369,7 +2369,7 @@ function makemonVisibleToPlayer(mon, map) {
     return true;
 }
 
-export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
+export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     let mndx;
     let anymon = false;
 
@@ -2645,7 +2645,7 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     // Group formation
     // C ref: makemon.c:1427-1435 — only for anymon (random monster)
     if (anymon && !(mmflags & MM_NOGRP)) {
-        const initgrp = async (n) => {
+        const initgrp = (n) => {
             const ulevel = getMakemonUlevel();
             let cnt = rnd(n);
             cnt = Math.floor(cnt / ((ulevel < 3) ? 4 : (ulevel < 5) ? 2 : 1));
@@ -2658,7 +2658,7 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
                 if (!cc) continue;
                 gx = cc.x;
                 gy = cc.y;
-                const mate = await makemon(mndx, gx, gy, mmflags | MM_NOGRP, depth, map);
+                const mate = makemon(mndx, gx, gy, mmflags | MM_NOGRP, depth, map);
                 if (mate) {
                     mate.mpeaceful = false;
                     mate.mavenge = 0;
@@ -2667,10 +2667,10 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         };
 
         if ((ptr.geno & G_SGROUP) && rn2(2)) {
-            await initgrp(3);
+            initgrp(3);
         } else if (ptr.geno & G_LGROUP) {
-            if (rn2(3)) await initgrp(10);
-            else await initgrp(3);
+            if (rn2(3)) initgrp(10);
+            else initgrp(3);
         }
     }
 
@@ -2684,7 +2684,7 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         if (is_armed(ptr))
             m_initweap(mon, mndx, depth || 1);
         m_initinv(mon, mndx, depth || 1, m_lev, map);
-        await m_dowear(mon, true);
+        m_dowear(mon, true);
 
         // C evaluates !rn2(100) first (always consumed), then is_domestic
         if (!rn2(100) && is_domestic(ptr)) {
@@ -2738,9 +2738,9 @@ export async function makemon(ptr_or_null, x, y, mmflags, depth, map) {
 
 // Async wrapper for makemon — use when the appear message might fire
 // (i.e., outside mklev, monster visible to player, MM_NOMSG not set).
-// Callers in async functions should use this instead of raw await makemon().
+// Callers in async functions should use this instead of raw makemon().
 export async function makemon_appear(ptr_or_null, x, y, mmflags, depth, map) {
-    const mon = await makemon(ptr_or_null, x, y, mmflags | MM_ASYNC, depth, map);
+    const mon = makemon(ptr_or_null, x, y, mmflags | MM_ASYNC, depth, map);
     if (mon?._appearPromise) {
         await mon._appearPromise;
         delete mon._appearPromise;
@@ -2762,7 +2762,7 @@ export function wrong_elem_type(ptr, map) {
 }
 
 // Autotranslated from makemon.c:80
-export async function m_initgrp(mtmp, x, y, n, mmflags, player) {
+export function m_initgrp(mtmp, x, y, n, mmflags, player) {
   let mm = {x, y}, cnt = rnd(n), mon;
   cnt = Math.floor(cnt / ((player.ulevel < 3) ? 4 : (player.ulevel < 5) ? 2 : 1));
   if (!cnt) cnt++;
@@ -2771,7 +2771,7 @@ export async function m_initgrp(mtmp, x, y, n, mmflags, player) {
       continue;
     }
     if (enexto_gpflags( mm, mm.x, mm.y, mtmp.data, mmflags)) {
-      mon = await makemon(mtmp.data, mm.x, mm.y, (mmflags | MM_NOGRP));
+      mon = makemon(mtmp.data, mm.x, mm.y, (mmflags | MM_NOGRP));
       if (mon) {
         mon.mpeaceful = false;
         mon.mavenge = 0;
@@ -2819,7 +2819,7 @@ export function unmakemon(mon, mmflags, game) {
 }
 
 // Autotranslated from makemon.c:1553
-export async function create_critters(cnt, mptr, neverask, player) {
+export function create_critters(cnt, mptr, neverask, player) {
   let c = {x: 0, y: 0}, x, y, mon, known = false, ask = (wizard && !neverask);
   while (cnt--) {
     if (ask) {
@@ -2830,7 +2830,7 @@ export async function create_critters(cnt, mptr, neverask, player) {
     }
     x = player.x, y = player.y;
     if (!mptr && player.uinwater && enexto( c, x, y, mons[PM_GIANT_EEL])) x = c.x, y = c.y;
-    if ((mon = await makemon(mptr, x, y, NO_MM_FLAGS)) == null) {
+    if ((mon = makemon(mptr, x, y, NO_MM_FLAGS)) == null) {
       continue;
     }
     if ((canseemon(mon, player, null, player?.map || null) && (M_AP_TYPE(mon) === M_AP_NOTHING || M_AP_TYPE(mon) === M_AP_MONSTER))
@@ -2887,7 +2887,7 @@ export async function grow_up(mtmp, victim, game) {
     if (game.mvitals[newtype].mvflags & G_GENOD) {
       if (canspotmon(mtmp)) await pline("As %s grows up into %s, %s %s!", mon_nam(mtmp), an(pmname(ptr, Mgender(mtmp))), mhe(mtmp), nonliving(ptr) ? "expires" : "dies");
       set_mon_data(mtmp, ptr);
-      await mondied(mtmp);
+      mondied(mtmp);
       return  0;
     }
     else if (canspotmon(mtmp)) {
@@ -2970,7 +2970,7 @@ export function freemcorpsenm(mtmp) {
 }
 
 // Autotranslated from makemon.c:2548
-export async function bagotricks(bag, tipping, seencount, player) {
+export function bagotricks(bag, tipping, seencount, player) {
   let moncount = 0;
   if (!bag || bag.otyp !== BAG_OF_TRICKS) { impossible("bad bag o' tricks"); }
   else if (bag.spe < 1) {
@@ -2984,7 +2984,7 @@ export async function bagotricks(bag, tipping, seencount, player) {
       creatcnt += rnd(7);
     }
     do {
-      mtmp = await makemon( 0, player.x, player.y, NO_MM_FLAGS);
+      mtmp = makemon( 0, player.x, player.y, NO_MM_FLAGS);
       if (mtmp) {
         ++moncount;
         if ((canseemon(mtmp, player, null, player?.map || null) && (M_AP_TYPE(mtmp) === M_AP_NOTHING || M_AP_TYPE(mtmp) === M_AP_MONSTER))
@@ -2995,7 +2995,7 @@ export async function bagotricks(bag, tipping, seencount, player) {
       if (seencount) {
          seencount += seecount;
       }
-      if (bag.dknown) { await makeknown(BAG_OF_TRICKS); update_inventory(); }
+      if (bag.dknown) { makeknown(BAG_OF_TRICKS); update_inventory(); }
     }
     else if (!tipping) {
       pline1(!moncount ? nothing_happens : nothing_seems_to_happen);
@@ -3005,10 +3005,10 @@ export async function bagotricks(bag, tipping, seencount, player) {
 }
 
 // Autotranslated from makemon.c:2599
-export async function summon_furies(limit, player) {
+export function summon_furies(limit, player) {
   let i = 0;
   while (mk_gen_ok(PM_ERINYS, G_GONE, 0) && (i < limit || !limit)) {
-    await makemon(mons[PM_ERINYS], player.x, player.y, MM_ADJACENTOK | MM_NOWAIT);
+    makemon(mons[PM_ERINYS], player.x, player.y, MM_ADJACENTOK | MM_NOWAIT);
     i++;
   }
 }
