@@ -42,12 +42,12 @@ export async function generate() {
 ----------------------------------------------------------------------------
 `);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Portal arrival point
-    des.levregion({ region: [8,16,8,16], type: "branch" });
+    await des.levregion({ region: [8,16,8,16], type: "branch" });
     // accessible via ^V in wizard mode; arrive near the portal
-    des.teleport_region({ region: [6,15,9,16], dir: "up" });
-    des.teleport_region({ region: [6,15,9,16], dir: "down" });
+    await des.teleport_region({ region: [6,15,9,16], dir: "up" });
+    await des.teleport_region({ region: [6,15,9,16], dir: "down" });
     // Throne room, with Croesus on the throne
     await des.region({ x1: 37,y1: 8,x2: 46,y2: 11, lit: 1, type: "throne", filled: 1 });
     // 50% chance each to move throne &&/|| fort's entry secret door up one row
@@ -55,17 +55,17 @@ export async function generate() {
        await des.monster({ id: "Croesus", x: 43, y: 10, peaceful: 0, parityImmediate: true });
     } else {
        await des.monster({ id: "Croesus", x: 43, y: 9, peaceful: 0, parityImmediate: true });
-       des.terrain(43,9, "\\");
-       des.terrain(43,10, ".");
+       await des.terrain(43,9, "\\");
+       await des.terrain(43,10, ".");
     }
     if (percent(50)) {
-       des.terrain(47,9, "S");
-       des.terrain(47,10, "|");
+       await des.terrain(47,9, "S");
+       await des.terrain(47,10, "|");
     }
 
     // The Vault
     async function treasure_spot(x,y) {
-       des.gold({ x: x, y: y, amount: 600 + (rn2((300) - (0) + 1) + (0)) });
+       await des.gold({ x: x, y: y, amount: 600 + (rn2((300) - (0) + 1) + (0)) });
        if (((rn2((2) - (0) + 1) + (0)) == 0)) {
           if (((rn2((2) - (0) + 1) + (0)) == 0)) {
              await des.trap("spiked pit", x,y);
@@ -81,8 +81,8 @@ export async function generate() {
 
     // Vault entrance also varies
     if (percent(50)) {
-       des.terrain(36,9, "|");
-       des.terrain(36,10, "S");
+       await des.terrain(36,9, "|");
+       await des.terrain(36,10, "S");
     }
     // Corner towers
     await des.region(selection.area(19,6,21,6),"lit");
@@ -123,17 +123,17 @@ await des.region(selection.area(10,17,10,17),"unlit");
 // Barracks
 await des.region({ region: [62,3,71,4],lit: 1,type: "barracks",filled: 1,irregular: 1 });
 // Doors
-des.door("closed",6,14);
-des.door("closed",9,3);
-des.door("open",63,5);
-des.door("open",66,5);
-des.door("open",68,8);
-des.door("locked",8,11);
-des.door("open",68,11);
-des.door("closed",63,14);
-des.door("closed",66,14);
-des.door("closed",4,3);
-des.door("closed",4,9);
+await des.door("closed",6,14);
+await des.door("closed",9,3);
+await des.door("open",63,5);
+await des.door("open",66,5);
+await des.door("open",68,8);
+await des.door("locked",8,11);
+await des.door("open",68,11);
+await des.door("closed",63,14);
+await des.door("closed",66,14);
+await des.door("closed",4,3);
+await des.door("closed",4,9);
 // Soldiers guarding the fort
 await des.monster("soldier",12,14);
 await des.monster("soldier",12,13);

@@ -36,10 +36,10 @@ xPPPPxx                         xxxxPPPP
     // Dungeon Description
     await des.region(selection.area(0,0,39,12), "lit");
     // Stairs
-    des.stair("up", 48,14);
-    des.stair("down", 20,6);
+    await des.stair("up", 48,14);
+    await des.stair("down", 20,6);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,39,12));
+    await des.non_diggable(selection.area(0,0,39,12));
     // Objects
     await des.object();
     await des.object();

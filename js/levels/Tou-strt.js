@@ -55,30 +55,30 @@ export async function generate() {
     await des.region(selection.area(55,2,60,4), "unlit");
     await des.region(selection.area(62,2,67,4), "lit");
     // Stairs
-    des.stair("down", 66,3);
+    await des.stair("down", 66,3);
     // Portal arrival point
-    des.levregion({ region: [68,14,68,14], type: "branch" });
+    await des.levregion({ region: [68,14,68,14], type: "branch" });
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Doors
-    des.door("locked",31,5);
-    des.door("locked",36,5);
-    des.door("locked",41,5);
-    des.door("locked",52,5);
-    des.door("locked",58,5);
-    des.door("locked",28,7);
-    des.door("locked",39,7);
-    des.door("locked",50,7);
-    des.door("locked",61,7);
-    des.door("closed",33,3);
-    des.door("closed",40,3);
-    des.door("closed",54,3);
-    des.door("closed",61,3);
-    des.door("open",12,11);
-    des.door("open",9,17);
-    des.door("open",16,17);
-    des.door("locked",35,7);
-    des.door("locked",36,7);
+    await des.door("locked",31,5);
+    await des.door("locked",36,5);
+    await des.door("locked",41,5);
+    await des.door("locked",52,5);
+    await des.door("locked",58,5);
+    await des.door("locked",28,7);
+    await des.door("locked",39,7);
+    await des.door("locked",50,7);
+    await des.door("locked",61,7);
+    await des.door("closed",33,3);
+    await des.door("closed",40,3);
+    await des.door("closed",54,3);
+    await des.door("closed",61,3);
+    await des.door("open",12,11);
+    await des.door("open",9,17);
+    await des.door("open",16,17);
+    await des.door("locked",35,7);
+    await des.door("locked",36,7);
     // Monsters on siege duty.
     await des.monster("giant spider");
     await des.monster("giant spider");

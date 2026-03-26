@@ -61,11 +61,11 @@ export async function generate() {
  |..|---------
  ----         
 `);
-    des.levregion({ region: [6,4,6,4], type: "branch" });
-    des.stair("up", 6,6);
+    await des.levregion({ region: [6,4,6,4], type: "branch" });
+    await des.stair("up", 6,6);
     await des.region(selection.area(0,0,13,12), "lit");
-    des.non_diggable(selection.area(0,0,13,12));
-    des.non_passwall(selection.area(0,0,13,12));
+    await des.non_diggable(selection.area(0,0,13,12));
+    await des.non_passwall(selection.area(0,0,13,12));
 
     // Boulders
     await des.object("boulder",2,2);
@@ -82,7 +82,7 @@ export async function generate() {
     await des.object("boulder",10,10);
 
     // prevent monster generation over the (filled) pits
-    des.exclusion({ type: "monster-generation", region: [ 1,6, 7,11 ] });
+    await des.exclusion({ type: "monster-generation", region: [ 1,6, 7,11 ] });
     // Traps
     await des.trap("pit",3,6);
     await des.trap("pit",4,6);

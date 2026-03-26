@@ -20,10 +20,10 @@ export async function generate() {
     des.level_init({ style: "maze", corrwid: 3 + nh.rn2(3), wallthick: 1, deadends: t_or_f() });
 
     await des.region(selection.area(0,0,75,18), "lit");
-    des.non_diggable();
+    await des.non_diggable();
 
     async function replace_wall_boulder(x,y) {
-       des.terrain(x, y, ".");
+       await des.terrain(x, y, ".");
        await des.object("boulder", x, y);
     }
 
@@ -34,8 +34,8 @@ export async function generate() {
     sel = selection.match(`.w.`);
     sel.iterate(replace_wall_boulder);
 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
 
     for (let i = 1; i <= 15; i++) {
        await des.object();

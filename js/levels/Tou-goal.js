@@ -69,37 +69,37 @@ export async function generate() {
     await des.region({ region: [60,14,71,15], lit: 1, type: "shop", filled: 1 });
     await des.region({ region: [60,17,71,18], lit: 1, type: "shop", filled: 1 });
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Stairs
-    des.stair("up", 70,8);
+    await des.stair("up", 70,8);
     // Doors
-    des.door("locked",7,3);
-    des.door("locked",2,6);
-    des.door("locked",8,6);
-    des.door("closed",3,8);
-    des.door("closed",6,8);
-    des.door("open",10,12);
-    des.door("closed",3,15);
-    des.door("closed",6,15);
-    des.door("closed",3,17);
-    des.door("closed",6,17);
-    des.door("closed",13,3);
-    des.door("random",25,3);
-    des.door("closed",13,16);
-    des.door("random",25,16);
-    des.door("locked",17,9);
-    des.door("locked",18,12);
-    des.door("locked",21,12);
-    des.door("locked",24,12);
-    des.door("locked",34,10);
-    des.door("locked",36,10);
-    des.door("random",48,4);
-    des.door("random",56,4);
-    des.door("random",70,4);
-    des.door("random",51,9);
-    des.door("random",51,15);
-    des.door("open",59,14);
-    des.door("open",59,17);
+    await des.door("locked",7,3);
+    await des.door("locked",2,6);
+    await des.door("locked",8,6);
+    await des.door("closed",3,8);
+    await des.door("closed",6,8);
+    await des.door("open",10,12);
+    await des.door("closed",3,15);
+    await des.door("closed",6,15);
+    await des.door("closed",3,17);
+    await des.door("closed",6,17);
+    await des.door("closed",13,3);
+    await des.door("random",25,3);
+    await des.door("closed",13,16);
+    await des.door("random",25,16);
+    await des.door("locked",17,9);
+    await des.door("locked",18,12);
+    await des.door("locked",21,12);
+    await des.door("locked",24,12);
+    await des.door("locked",34,10);
+    await des.door("locked",36,10);
+    await des.door("random",48,4);
+    await des.door("random",56,4);
+    await des.door("random",70,4);
+    await des.door("random",51,9);
+    await des.door("random",51,15);
+    await des.door("open",59,14);
+    await des.door("open",59,17);
     // Objects
     await des.object({ id: "credit card", x: 4, y: 1, buc: "blessed", spe: 0, name: "The Platinum Yendorian Express Card" });
     await des.object();
@@ -165,7 +165,7 @@ export async function generate() {
     // 
     await des.monster({ id: "watchman", x: 33, y: 10, peaceful: 0 });
 
-    des.wallify();
+    await des.wallify();
 
 
     return await des.finalize_level();

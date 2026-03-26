@@ -45,10 +45,10 @@ export async function generate() {
     // Doors
     // DOOR:locked.union(closed)|open,(xx,yy)
     // Stairs
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,20));
+    await des.non_diggable(selection.area(0,0,75,20));
     // Objects
     await des.object({ id: "scroll of teleportation", x: 11, y: 18, buc: "cursed", spe: 0 });
     await des.object();

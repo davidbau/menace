@@ -40,20 +40,20 @@ export async function generate() {
 .............        .......................................................
 `);
 
-    des.replace_terrain({ region: [ 0, 0,30,20], fromterrain: ".", toterrain: "C", chance: 15 });
-    des.replace_terrain({ region: [68, 0,75,20], fromterrain: ".", toterrain: "}", chance: 25 });
-    des.replace_terrain({ region: [34, 1,68,19], fromterrain: "}", toterrain: ".", chance: 2 });
+    await des.replace_terrain({ region: [ 0, 0,30,20], fromterrain: ".", toterrain: "C", chance: 15 });
+    await des.replace_terrain({ region: [68, 0,75,20], fromterrain: ".", toterrain: "}", chance: 25 });
+    await des.replace_terrain({ region: [34, 1,68,19], fromterrain: "}", toterrain: ".", chance: 2 });
 
     // Dungeon Description
     await des.region(selection.area(0,0,75,20), "lit");
     await des.region({ region: [37,4,65,16], lit: 0, type: "ordinary", irregular: 1,
                  contents: async function() {
-                    des.door({ state: "secret", wall: "random" });
+                    await des.door({ state: "secret", wall: "random" });
                     }
     })
     await des.region({ region: [39,6,63,14], lit: 0, type: "ordinary", irregular: 1,
                  contents: async function() {
-                    des.door({ state: "secret", wall: "random" });
+                    await des.door({ state: "secret", wall: "random" });
                  }
     })
 
@@ -61,7 +61,7 @@ export async function generate() {
                  contents: async function() {
                     const walls = [ "north", "south", "west" ];
                     const widx = rn2(walls.length);
-                    des.door({ state: "secret", wall: walls[widx] });
+                    await des.door({ state: "secret", wall: walls[widx] });
                  }
     })
 
@@ -69,7 +69,7 @@ export async function generate() {
                  contents: async function() {
                     const walls = [ "north", "south", "east" ];
                     const widx = rn2(walls.length);
-                    des.door({ state: "secret", wall: walls[widx] });
+                    await des.door({ state: "secret", wall: walls[widx] });
                  }
     })
 
@@ -78,21 +78,21 @@ export async function generate() {
 
     await des.region({ region: [48,10,54,10], lit: 0, type: "ordinary", irregular: 1,
                  contents: async function() {
-                    des.door({ state: "secret", wall: "random" });
+                    await des.door({ state: "secret", wall: "random" });
                  }
     })
 
     // Doors
-    des.door("locked",55,8);
-    des.door("locked",55,12);
-    des.door("locked",47,8);
-    des.door("locked",47,12);
+    await des.door("locked",55,8);
+    await des.door("locked",55,12);
+    await des.door("locked",47,8);
+    await des.door("locked",47,12);
     // Stairs
-    des.terrain([3,17], ".");
-    des.stair("up", 3,17);
-    des.stair("down", 48,10);
+    await des.terrain([3,17], ".");
+    await des.stair("up", 3,17);
+    await des.stair("down", 48,10);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,20));
+    await des.non_diggable(selection.area(0,0,75,20));
     // Objects
     await des.object();
     await des.object();

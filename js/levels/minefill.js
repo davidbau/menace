@@ -27,8 +27,8 @@ export async function generate() {
     des.level_init({ style: "mines", fg: ".", bg: " ", smoothed: true, joined: true, walled: true });
 
     // 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
     // 
     for (let i = 1, __end_i = (rn2((5) - (2) + 1) + (2)); i <= __end_i; i++) {
        await des.object("*");

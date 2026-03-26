@@ -38,10 +38,10 @@ xxxxxxxxx.......xxxxxx.....xxxxxxxxxxxxx
     // The top area of the Tor is a holy site.
     await des.region({ region: [9,2, 27,9], lit: 1, type: "temple", filled: 2 });
     // Stairs
-    des.stair("up", 38,0);
-    des.stair("down", 18,5);
+    await des.stair("up", 38,0);
+    await des.stair("down", 18,5);
     // The altar atop the Tor && its attendant (creating altar makes the priest).
-    des.altar({ x: 17, y: 5, align: "neutral", type: "shrine" });
+    await des.altar({ x: 17, y: 5, align: "neutral", type: "shrine" });
     // Objects
     await des.object();
     await des.object();

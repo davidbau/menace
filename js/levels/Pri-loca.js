@@ -41,21 +41,21 @@ export async function generate() {
     await des.region({ region: [31,0, 39,13], lit: 0, type: "morgue", filled: 1 });
     await des.region({ region: [11,3, 29,10], lit: 1, type: "temple", filled: 1, irregular: 1 });
     // The altar inside the temple
-    des.altar({ x: 20,y: 7, align: "noalign", type: "shrine" });
+    await des.altar({ x: 20,y: 7, align: "noalign", type: "shrine" });
     await des.monster({ id: "aligned cleric", x: 20, y: 7, align: "noalign", peaceful: 0 });
     // Doors
-    des.door("locked",10,6);
-    des.door("locked",10,7);
-    des.door("locked",20,2);
-    des.door("locked",20,11);
-    des.door("locked",30,6);
-    des.door("locked",30,7);
+    await des.door("locked",10,6);
+    await des.door("locked",10,7);
+    await des.door("locked",20,2);
+    await des.door("locked",20,11);
+    await des.door("locked",30,6);
+    await des.door("locked",30,7);
     // Stairs
     // Note:  The up stairs are *intentionally* off of the map.
-    des.stair("up", 43,5);
-    des.stair("down", 20,6);
+    await des.stair("up", 43,5);
+    await des.stair("down", 20,6);
     // Non diggable walls
-    des.non_diggable(selection.area(10,2,30,13));
+    await des.non_diggable(selection.area(10,2,30,13));
     // Objects (inside the antechambers).
     await des.object({ coord: [ 14, 3 ] });
     await des.object({ coord: [ 15, 3 ] });

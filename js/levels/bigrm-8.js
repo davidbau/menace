@@ -40,15 +40,15 @@ export async function generate() {
     if (percent(40)) {
        let terrain = [ "L", "}", "T", ".", "-", "C" ];
        let tidx = (rn2((terrain.length) - (1) + 1) + (1));
-       des.replace_terrain({ region: [0,0, 74,17], fromterrain: "F", toterrain: terrain[tidx] });
+       await des.replace_terrain({ region: [0,0, 74,17], fromterrain: "F", toterrain: terrain[tidx] });
     };
 
     await des.region(selection.area(1,1,73,16), "lit");
 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
 
-    des.non_diggable();
+    await des.non_diggable();
 
     for (let i = 1; i <= 15; i++) {
        await des.object();

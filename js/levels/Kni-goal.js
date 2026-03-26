@@ -42,9 +42,9 @@ export async function generate() {
     await des.region(selection.area(0,0,14,19), "lit");
     await des.region(selection.area(15,0,75,19), "unlit");
     // Stairs
-    des.stair("up", 3,8);
+    await des.stair("up", 3,8);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Objects
     await des.object({ id: "mirror", x: 50,y: 6, buc: "blessed", spe: 0, name: "The Magic Mirror of Merlin" });
     await des.object({ coord: [ 33, 1 ] });

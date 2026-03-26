@@ -51,20 +51,20 @@ export async function generate() {
     await des.region({ region: [35,9, 41,10], lit: 0, type: "ordinary", arrival_room: true });
     await des.region(selection.area(31,12,45,12),"unlit");
     // Teleport: down to up stairs island, up to Medusa's island
-    des.teleport_region({ region: [1,1,5,17], dir: "down" });
-    des.teleport_region({ region: [26,4,50,15], dir: "up" });
+    await des.teleport_region({ region: [1,1,5,17], dir: "down" });
+    await des.teleport_region({ region: [26,4,50,15], dir: "up" });
     // Stairs
-    des.stair("up", 5,14);
-    des.stair("down", 36,10);
+    await des.stair("up", 5,14);
+    await des.stair("down", 36,10);
     // Doors
-    des.door("closed",46,7);
-    des.door("locked",38,8);
-    des.door("locked",38,11);
-    des.door("closed",30,12);
+    await des.door("closed",46,7);
+    await des.door("locked",38,8);
+    await des.door("locked",38,11);
+    await des.door("closed",30,12);
     // Branch, ! allowed inside Medusa's building.
-    des.levregion({ region: [1,0,79,20], exclude: [30,6,46,13], type: "branch" });
+    await des.levregion({ region: [1,0,79,20], exclude: [30,6,46,13], type: "branch" });
     // Non diggable walls
-    des.non_diggable(selection.area(30,6,46,13));
+    await des.non_diggable(selection.area(30,6,46,13));
     // Objects
     await des.object({ id: "statue", x: 36,y: 10, buc: "uncursed",
                  montype: "knight", historic: 1, male: 1, name: "Perseus",

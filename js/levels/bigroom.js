@@ -41,11 +41,11 @@ export async function generate() {
     await des.region(selection.area(1, 1, 73, 16), 'lit');
 
     // Stairs
-    des.stair('up');
-    des.stair('down');
+    await des.stair('up');
+    await des.stair('down');
 
     // Non-diggable walls
-    des.non_diggable();
+    await des.non_diggable();
 
     // Lots of random objects (15)
     for (let i = 0; i < 15; i++) {

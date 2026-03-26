@@ -15,7 +15,7 @@ export async function generate() {
     des.level_init({ style: "solidfill", fg: " " });
 
     des.level_flags("mazelevel", "noteleport", "hardfloor", "shortsighted");
-    des.message("You find yourself suspended in an air bubble surrounded by water.");
+    await des.message("You find yourself suspended in an air bubble surrounded by water.");
     // The player lands upon arrival to an air bubble
     // within the leftmost third of the level.  The
     // portal to the next level is randomly located in an air
@@ -43,8 +43,8 @@ WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 `);
-    des.teleport_region({ region: [0,0,25,19] });
-    des.levregion({ type: "portal", region: [51,0,75,19], name: "astral" });
+    await des.teleport_region({ region: [0,0,25,19] });
+    await des.levregion({ type: "portal", region: [51,0,75,19], name: "astral" });
     // A fisherman's dream...args
     await des.monster("giant eel");
     await des.monster("giant eel");

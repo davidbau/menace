@@ -46,12 +46,12 @@ export async function generate() {
 `);
 
     // the forest beyond the river
-    des.replace_terrain({ region: [37,0, 59,19], fromterrain: ".", toterrain: "T", chance: 5 });
-    des.replace_terrain({ region: [60,0, 64,19], fromterrain: ".", toterrain: "T", chance: 10 });
-    des.replace_terrain({ region: [65,0, 75,19], fromterrain: ".", toterrain: "T", chance: 20 });
+    await des.replace_terrain({ region: [37,0, 59,19], fromterrain: ".", toterrain: "T", chance: 5 });
+    await des.replace_terrain({ region: [60,0, 64,19], fromterrain: ".", toterrain: "T", chance: 10 });
+    await des.replace_terrain({ region: [65,0, 75,19], fromterrain: ".", toterrain: "T", chance: 20 });
     // guarantee a path && free spot for the portal
-    des.terrain(selection.randline(selection.new(), 37,7, 62,2, 7), ".");
-    des.terrain([62,2], ".");
+    await des.terrain(selection.randline(selection.new(), 37,7, 62,2, 7), ".");
+    await des.terrain([62,2], ".");
 
     // Dungeon Description
     await des.region(selection.area(0,0,75,19), "lit");
@@ -65,18 +65,18 @@ export async function generate() {
     await des.region(selection.area(15,13,17,14), "lit");
     await des.region(selection.area(22,14,24,15), "lit");
     // Stairs
-    des.stair("down", 9,9);
+    await des.stair("down", 9,9);
     // Portal arrival point
-    des.levregion({ region: [62,2,62,2], type: "branch" });
+    await des.levregion({ region: [62,2,62,2], type: "branch" });
     // Doors
-    des.door("locked",12,5);
-    des.door("locked",12,9);
-    des.door("closed",21,7);
-    des.door("open",7,13);
-    des.door("open",18,13);
-    des.door("open",23,13);
-    des.door("open",25,10);
-    des.door("open",28,5);
+    await des.door("locked",12,5);
+    await des.door("locked",12,9);
+    await des.door("closed",21,7);
+    await des.door("open",7,13);
+    await des.door("open",18,13);
+    await des.door("open",23,13);
+    await des.door("open",25,10);
+    await des.door("open",28,5);
     // Elder
     await des.monster({ id: "Pelias", coord: [10, 7], inventory: async function() {
        await des.object({ id: "runesword", spe: 5 });
@@ -94,7 +94,7 @@ export async function generate() {
     await des.monster("chieftain", 16, 5);
     await des.monster("chieftain", 16, 9);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // One trap to keep the ogres at bay.
     await des.trap("spiked pit",37,7);
     // Eels in the river

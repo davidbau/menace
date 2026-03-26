@@ -49,28 +49,28 @@ export async function generate() {
     await des.region({ region: [6,6,22,9], lit: 1, type: "throne", filled: 2 });
     await des.region(selection.area(27,6,43,9), "lit");
     // Portal arrival point
-    des.levregion({ region: [20,14,20,14], type: "branch" });
+    await des.levregion({ region: [20,14,20,14], type: "branch" });
     // Stairs
-    des.stair("down", 40,7);
+    await des.stair("down", 40,7);
     // Doors
     // Outside Doors
-    des.door("locked",24,3);
-    des.door("locked",25,3);
+    await des.door("locked",24,3);
+    await des.door("locked",25,3);
     // Inside Doors
-    des.door("closed",23,4);
-    des.door("closed",26,4);
-    des.door("locked",24,5);
-    des.door("locked",25,5);
-    des.door("closed",23,7);
-    des.door("closed",26,7);
-    des.door("closed",23,8);
-    des.door("closed",26,8);
-    des.door("closed",36,8);
+    await des.door("closed",23,4);
+    await des.door("closed",26,4);
+    await des.door("locked",24,5);
+    await des.door("locked",25,5);
+    await des.door("closed",23,7);
+    await des.door("closed",26,7);
+    await des.door("closed",23,8);
+    await des.door("closed",26,8);
+    await des.door("closed",36,8);
     // Watchroom Doors
-    des.door("closed",4,3);
-    des.door("closed",45,3);
-    des.door("closed",4,12);
-    des.door("closed",45,12);
+    await des.door("closed",4,3);
+    await des.door("closed",45,3);
+    await des.door("closed",4,12);
+    await des.door("closed",45,12);
     // King Arthur
     await des.monster({ id: "King Arthur", coord: [9, 7], inventory: async function() {
        await des.object({ id: "long sword", spe: 4, buc: "blessed", name: "Excalibur" });
@@ -91,7 +91,7 @@ export async function generate() {
     await des.monster("page", 18, 9);
     await des.monster("page", 20, 9);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,49,15));
+    await des.non_diggable(selection.area(0,0,49,15));
     // Random traps
     await des.trap("sleep gas",24,4);
     await des.trap("sleep gas",25,4);

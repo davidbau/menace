@@ -41,10 +41,10 @@ export async function generate() {
     // Dungeon Description
     await des.region(selection.area(0,0,54,19), "lit");
     // Stairs
-    des.stair("up", 25,5);
-    des.stair("down", 27,18);
+    await des.stair("up", 25,5);
+    await des.stair("down", 27,18);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,54,19));
+    await des.non_diggable(selection.area(0,0,54,19));
     // Objects
     await des.object();
     await des.object();

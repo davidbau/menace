@@ -47,19 +47,19 @@ export async function generate() {
     await des.region(selection.area(56,0,75,8), "unlit");
     await des.region(selection.area(64,9,75,16), "unlit");
     // Doors
-    des.door("open",23,3);
-    des.door("open",30,8);
-    des.door("open",34,14);
-    des.door("locked",38,5);
-    des.door("locked",38,6);
-    des.door("closed",43,3);
-    des.door("closed",43,5);
-    des.door("closed",43,6);
-    des.door("closed",43,8);
-    des.door("locked",55,6);
+    await des.door("open",23,3);
+    await des.door("open",30,8);
+    await des.door("open",34,14);
+    await des.door("locked",38,5);
+    await des.door("locked",38,6);
+    await des.door("closed",43,3);
+    await des.door("closed",43,5);
+    await des.door("closed",43,6);
+    await des.door("closed",43,8);
+    await des.door("locked",55,6);
     // Stairs
-    des.stair("up", 5,2);
-    des.stair("down", 70,13);
+    await des.stair("up", 5,2);
+    await des.stair("down", 70,13);
     // Objects
     await des.object({ x: 42, y: 3 });
     await des.object({ x: 42, y: 3 });

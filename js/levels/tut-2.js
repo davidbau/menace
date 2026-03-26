@@ -26,14 +26,14 @@ export async function generate() {
 
     await des.region(selection.area(1,1, 73, 16), "lit");
 
-    des.stair({ dir: "up", coord: [ 2,2 ] });
+    await des.stair({ dir: "up", coord: [ 2,2 ] });
 
-    des.engraving({ coord: [ 1,1 ], type: "burn", text: "Use '" + nh.eckey("up") + "' to go up the stairs", degrade: false });
+    await des.engraving({ coord: [ 1,1 ], type: "burn", text: "Use '" + nh.eckey("up") + "' to go up the stairs", degrade: false });
 
 
     await des.trap({ type: "magic portal", coord: [ 11,5 ], seen: true });
 
-    des.non_diggable();
+    await des.non_diggable();
 
 
     return await des.finalize_level();

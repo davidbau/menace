@@ -24,12 +24,12 @@ export async function generate() {
                   await des.object({ id: "statue", x: 8, y: 4, montype: "C", historic: true });
 
                   await des.room({ type: "delphi", lit: 1, x: 4,y: 3, w: 3,h: 3, contents: async function() {
-                                des.feature("fountain", 0, 1);
-                                des.feature("fountain", 1, 0);
-                                des.feature("fountain", 1, 2);
-                                des.feature("fountain", 2, 1);
+                                await des.feature("fountain", 0, 1);
+                                await des.feature("fountain", 1, 0);
+                                await des.feature("fountain", 1, 2);
+                                await des.feature("fountain", 2, 1);
                                 await des.monster("Oracle", 1, 1);
-                                des.door({ state: "nodoor", wall: "all" });
+                                await des.door({ state: "nodoor", wall: "all" });
                              }
                   });
 
@@ -39,13 +39,13 @@ export async function generate() {
     });
 
     await des.room({ contents: async function() {
-                     des.stair("up");
+                     await des.stair("up");
                      await des.object();
                   }
     });
 
     await des.room({ contents: async function() {
-                     des.stair("down");
+                     await des.stair("down");
                      await des.object();
                      await des.trap();
                      await des.monster();
@@ -74,7 +74,7 @@ export async function generate() {
                   }
     });
 
-    des.random_corridors();
+    await des.random_corridors();
 
 
     return await des.finalize_level();

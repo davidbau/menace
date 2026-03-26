@@ -63,31 +63,31 @@ export async function generate() {
     let monster = [ "L", "N", "E", "H", "M", "O", "R", "T", "X", "Z" ]
     shuffle(monster)
 
-    des.teleport_region({ region: [1,0,10,20], region_islev: 1, exclude: [1,1,61,15], dir: "down" });
-    des.teleport_region({ region: [69,0,79,20], region_islev: 1, exclude: [1,1,61,15], dir: "up" });
-    des.levregion({ region: [1,0,10,20], region_islev: 1, exclude: [0,0,62,16], type: "stair-up" });
-    des.feature("fountain", 10,8);
+    await des.teleport_region({ region: [1,0,10,20], region_islev: 1, exclude: [1,1,61,15], dir: "down" });
+    await des.teleport_region({ region: [69,0,79,20], region_islev: 1, exclude: [1,1,61,15], dir: "up" });
+    await des.levregion({ region: [1,0,10,20], region_islev: 1, exclude: [0,0,62,16], type: "stair-up" });
+    await des.feature("fountain", 10,8);
     // Doors
-    des.door("closed",7,3);
-    des.door("closed",55,3);
-    des.door("locked",32,4);
-    des.door("locked",26,5);
-    des.door("locked",46,5);
-    des.door("locked",48,5);
-    des.door("locked",47,7);
-    des.door("closed",15,8);
-    des.door("closed",26,8);
-    des.door("locked",38,8);
-    des.door("locked",56,8);
-    des.door("locked",47,9);
-    des.door("locked",26,11);
-    des.door("locked",46,11);
-    des.door("locked",48,11);
-    des.door("locked",32,12);
-    des.door("closed",7,13);
-    des.door("closed",55,13);
+    await des.door("closed",7,3);
+    await des.door("closed",55,3);
+    await des.door("locked",32,4);
+    await des.door("locked",26,5);
+    await des.door("locked",46,5);
+    await des.door("locked",48,5);
+    await des.door("locked",47,7);
+    await des.door("closed",15,8);
+    await des.door("closed",26,8);
+    await des.door("locked",38,8);
+    await des.door("locked",56,8);
+    await des.door("locked",47,9);
+    await des.door("locked",26,11);
+    await des.door("locked",46,11);
+    await des.door("locked",48,11);
+    await des.door("locked",32,12);
+    await des.door("closed",7,13);
+    await des.door("closed",55,13);
     // The drawbridge
-    des.drawbridge({ dir: "east", state: "closed", x: 5,y: 8});
+    await des.drawbridge({ dir: "east", state: "closed", x: 5,y: 8});
     // Storeroom number 1
     await des.object(object[0],39,5);
     await des.object(object[0],40,5);
@@ -157,7 +157,7 @@ export async function generate() {
                  }
     });
     // Prevent monsters from eating it.  (@'s never eat objects)
-    des.engraving({ coord: loc, type: "burn", text: "Elbereth" });
+    await des.engraving({ coord: loc, type: "burn", text: "Elbereth" });
     await des.object({ id: "scroll of scare monster", coord: loc, buc: "cursed" });
     // The treasure of the lord
     await des.object("chest",37,8);
@@ -229,10 +229,10 @@ export async function generate() {
     await des.monster(monster[4],33,11);
     await des.monster(monster[5],36,11);
     // MazeWalks
-    des.mazewalk(0,10,"west");
-    des.mazewalk(62,6,"east");
+    await des.mazewalk(0,10,"west");
+    await des.mazewalk(62,6,"east");
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,62,16));
+    await des.non_diggable(selection.area(0,0,62,16));
     // Subrooms:
     // Entire castle area
     await des.region(selection.area(0,0,62,16),"unlit");

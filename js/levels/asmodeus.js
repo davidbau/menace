@@ -37,13 +37,13 @@ export async function generate() {
 ---------------------
 `, contents: async function(rm) {
        // Doors
-       des.door("closed",4,3);
-       des.door("locked",18,4);
-       des.door("closed",18,8);
+       await des.door("closed",4,3);
+       await des.door("locked",18,4);
+       await des.door("closed",18,8);
        // 
-       des.stair("down", 13,7);
+       await des.stair("down", 13,7);
        // Non diggable walls
-       des.non_diggable(selection.area(0,0,20,11));
+       await des.non_diggable(selection.area(0,0,20,11));
        // Entire main area
        await des.region(selection.area(1,1,20,10),"unlit");
        // The fellow in residence
@@ -77,10 +77,10 @@ export async function generate() {
        await des.monster("V");
     } });
 
-    des.levregion({ region: [1,0,6,20], region_islev: 1, exclude: [6,1,70,16], exclude_islev: 1, type: "stair-up" });
+    await des.levregion({ region: [1,0,6,20], region_islev: 1, exclude: [6,1,70,16], exclude_islev: 1, type: "stair-up" });
 
-    des.levregion({ region: [1,0,6,20], region_islev: 1, exclude: [6,1,70,16], exclude_islev: 1, type: "branch" });
-    des.teleport_region({ region: [1,0,6,20], region_islev: 1, exclude: [6,1,70,16], exclude_islev: 1 });
+    await des.levregion({ region: [1,0,6,20], region_islev: 1, exclude: [6,1,70,16], exclude_islev: 1, type: "branch" });
+    await des.teleport_region({ region: [1,0,6,20], region_islev: 1, exclude: [6,1,70,16], exclude_islev: 1 });
 
     // Second part
     let asmo2 = await des.map({ halign: "half-right", valign: "center", map: `\
@@ -90,10 +90,10 @@ export async function generate() {
 ................................|
 ---------------------------------
 `, contents: async function(rm) {
-       des.mazewalk(32,2,"east");
+       await des.mazewalk(32,2,"east");
        // Non diggable walls
-       des.non_diggable(selection.area(0,0,32,4));
-       des.door("closed",32,2);
+       await des.non_diggable(selection.area(0,0,32,4));
+       await des.door("closed",32,2);
        await des.monster("&");
        await des.monster("&");
        await des.monster("&");

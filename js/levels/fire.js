@@ -44,8 +44,8 @@ LL..........LLLL............LL.L.............L....L...LL.........LLL..LLL......
 LL.....L..........................LL....................LL..................LLL
 L.....LLL......................LLLLL.........L.........LLLLLLLL..............LL
 `);
-    des.teleport_region({ region: [71,16,71,16] });
-    des.levregion({ region: [0,0,78,19], exclude: [67,13,78,19], type: "portal", name: "water" });
+    await des.teleport_region({ region: [71,16,71,16] });
+    await des.levregion({ region: [0,0,78,19], exclude: [67,13,78,19], type: "portal", name: "water" });
 
     await des.trap("fire");
     await des.trap("fire");

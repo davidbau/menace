@@ -57,31 +57,31 @@ export async function generate() {
     await des.region({ region: [46,11, 49,11], lit: 0, type: "ordinary", irregular: 1 });
     await des.region(selection.area(48,13,51,14), "unlit");
     // Doors
-    des.door("closed",31,4);
-    des.door("closed",28,8);
-    des.door("locked",29,10);
-    des.door("closed",28,12);
-    des.door("closed",31,16);
-    des.door("locked",34,5);
-    des.door("locked",35,10);
-    des.door("locked",38,10);
-    des.door("closed",43,10);
-    des.door("closed",45,8);
-    des.door("locked",46,14);
-    des.door("locked",46,15);
-    des.door("locked",49,10);
-    des.door("locked",52,11);
-    des.door("closed",52,13);
-    des.door("closed",54,15);
+    await des.door("closed",31,4);
+    await des.door("closed",28,8);
+    await des.door("locked",29,10);
+    await des.door("closed",28,12);
+    await des.door("closed",31,16);
+    await des.door("locked",34,5);
+    await des.door("locked",35,10);
+    await des.door("locked",38,10);
+    await des.door("closed",43,10);
+    await des.door("closed",45,8);
+    await des.door("locked",46,14);
+    await des.door("locked",46,15);
+    await des.door("locked",49,10);
+    await des.door("locked",52,11);
+    await des.door("closed",52,13);
+    await des.door("closed",54,15);
     // Stairs
-    des.stair("up", 3,17);
-    des.stair("down", 39,10);
+    await des.stair("up", 3,17);
+    await des.stair("down", 39,10);
     // Altars - three types.  All are unattended.
-    des.altar({ x: 26,y: 5,align: align[0], type: "altar" });
-    des.altar({ x: 26,y: 10,align: align[1], type: "altar" });
-    des.altar({ x: 26,y: 15,align: align[2], type: "altar" });
+    await des.altar({ x: 26,y: 5,align: align[0], type: "altar" });
+    await des.altar({ x: 26,y: 10,align: align[1], type: "altar" });
+    await des.altar({ x: 26,y: 15,align: align[2], type: "altar" });
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Objects
     await des.object();
     await des.object();
@@ -99,10 +99,10 @@ export async function generate() {
     await des.object();
     await des.object();
     // Treasure?
-    des.engraving({ type: "engrave", text: "X marks the spot." });
-    des.engraving({ type: "engrave", text: "X marks the spot." });
-    des.engraving({ type: "engrave", text: "X marks the spot." });
-    des.engraving({ type: "engrave", text: "X marks the spot." });
+    await des.engraving({ type: "engrave", text: "X marks the spot." });
+    await des.engraving({ type: "engrave", text: "X marks the spot." });
+    await des.engraving({ type: "engrave", text: "X marks the spot." });
+    await des.engraving({ type: "engrave", text: "X marks the spot." });
     // Random traps
     await des.trap("spiked pit",24,2);
     await des.trap("spiked pit",37,0);

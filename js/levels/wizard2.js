@@ -36,22 +36,22 @@ export async function generate() {
 |............|....S.|......|x
 ----------------------------x
 `, contents: async function(rm) {
-       des.levregion({ type: "stair-up", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.levregion({ type: "stair-down", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.levregion({ type: "branch", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.teleport_region({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,27,12] });
+       await des.levregion({ type: "stair-up", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.levregion({ type: "stair-down", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.levregion({ type: "branch", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.teleport_region({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,27,12] });
        // entire tower in a region, constrains monster migration
        await des.region({ region: [1,1, 26,11], lit: 0, type: "ordinary", arrival_room: true });
        await des.region({ region: [9,3, 17,9], lit: 0, type: "zoo", filled: 1 });
-       des.door("closed",15,2);
-       des.door("closed",11,10);
-       des.mazewalk(28,5,"east");
-       des.ladder("up", 12,1);
-       des.ladder("down", 14,11);
+       await des.door("closed",15,2);
+       await des.door("closed",11,10);
+       await des.mazewalk(28,5,"east");
+       await des.ladder("up", 12,1);
+       await des.ladder("down", 14,11);
        // Non diggable walls everywhere
-       des.non_diggable(selection.area(0,0,27,12));
+       await des.non_diggable(selection.area(0,0,27,12));
        // 
-       des.non_passwall(selection.area(0,0,27,12));
+       await des.non_passwall(selection.area(0,0,27,12));
        // Random traps.
        await des.trap("spiked pit");
        await des.trap("sleep gas");

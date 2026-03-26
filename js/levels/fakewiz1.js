@@ -32,12 +32,12 @@ export async function generate() {
 .}}}}}}}.
 .........
 `, contents: async function(rm) {
-       des.levregion({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,8,8], type: "stair-up" });
-       des.levregion({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,8,8], type: "stair-down" });
-       des.levregion({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,8,8], type: "branch" });
-       des.teleport_region({ region: [1,0,79,20], region_islev: 1,exclude: [2,2,6,6] });
-       des.levregion({ region: [4,4,4,4], type: "portal", name: "wizard3" });
-       des.mazewalk(8,5,"east");
+       await des.levregion({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,8,8], type: "stair-up" });
+       await des.levregion({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,8,8], type: "stair-down" });
+       await des.levregion({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,8,8], type: "branch" });
+       await des.teleport_region({ region: [1,0,79,20], region_islev: 1,exclude: [2,2,6,6] });
+       await des.levregion({ region: [4,4,4,4], type: "portal", name: "wizard3" });
+       await des.mazewalk(8,5,"east");
        await des.region({ region: [4,3,6,6],lit: 0,type: "ordinary",irregular: 1,arrival_room: true });
        await des.monster("L",4,4);
        await des.monster("vampire lord",3,4);

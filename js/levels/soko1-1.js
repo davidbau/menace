@@ -40,10 +40,10 @@ export async function generate() {
     place.set(16,13);
     place.set(16,15);
 
-    des.stair("down", 1, 1);
+    await des.stair("down", 1, 1);
     await des.region(selection.area(0,0,25,17),"lit");
-    des.non_diggable(selection.area(0,0,25,17));
-    des.non_passwall(selection.area(0,0,25,17));
+    await des.non_diggable(selection.area(0,0,25,17));
+    await des.non_passwall(selection.area(0,0,25,17));
 
     // Boulders
     await des.object("boulder", 3, 5);
@@ -69,7 +69,7 @@ export async function generate() {
     await des.object("boulder", 3, 14);
 
     // prevent monster generation over the (filled) holes
-    des.exclusion({ type: "monster-generation", region: [ 8,1, 23,1 ] });
+    await des.exclusion({ type: "monster-generation", region: [ 8,1, 23,1 ] });
     // Traps
     await des.trap("hole", 8, 1);
     await des.trap("hole", 9, 1);
@@ -100,10 +100,10 @@ export async function generate() {
     await des.object({ class: "/" });
 
     // Rewards
-    des.door("locked", 23, 13);
-    des.door("closed", 17, 11);
-    des.door("closed", 17, 13);
-    des.door("closed", 17, 15);
+    await des.door("locked", 23, 13);
+    await des.door("closed", 17, 11);
+    await des.door("closed", 17, 13);
+    await des.door("closed", 17, 15);
 
     await des.region({ region: [18,10, 22,16], lit: 1, type: "zoo", filled: 1, irregular: 1 });
 
@@ -115,7 +115,7 @@ export async function generate() {
        await des.object({ id: "amulet of reflection", coord: pt,
     		buc: "!-cursed", achievement: 1 });
     }
-    des.engraving({ coord: pt, type: "burn", text: "Elbereth" });
+    await des.engraving({ coord: pt, type: "burn", text: "Elbereth" });
     await des.object({ id: "scroll of scare monster", coord: pt, buc: "cursed" });
 
 
