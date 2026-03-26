@@ -31,10 +31,9 @@ import {
 } from './objects.js';
 import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mkobj.js';
 import { mshot_xname, obj_is_pname, the, an } from './objnam.js';
-import { x_monnam, mon_nam, Monnam } from './do_name.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
-    is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
+    x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
     throws_rocks, is_unicorn, hates_silver, resists_poison, resists_acid, can_blnd,
 } from './mondata.js';
 import {

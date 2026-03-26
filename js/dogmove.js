@@ -29,6 +29,7 @@ import { cansee, couldsee, m_cansee, do_clear_area } from './vision.js';
 import { mattackm } from './mhitm.js';
 import { is_animal, is_mindless, nohands, nolimbs, unsolid,
          carnivorous, herbivorous, is_metallivore,
+         y_monnam, YMonnam, Monnam,
          resists_fire, resists_cold, resists_elec, resists_poison, resists_acid, resists_ston,
          completelyburns, completelyrots, completelyrusts,
          monsndx, flesh_petrifies, touch_petrifies,
@@ -38,7 +39,7 @@ import { MAGIC_PORTAL, WT_HUMAN, MAX_CARR_CAP } from './const.js';
 import { gettrack } from './track.js';
 import { On_stairs } from './stairs.js';
 import { helpless, onscary } from './mon.js';
-import { pmname, Mgender, y_monnam, YMonnam, Monnam } from './do_name.js';
+import { pmname, Mgender } from './do_name.js';
 import { eaten_stat } from './eat.js';
 
 // Shared utilities from monmove.js

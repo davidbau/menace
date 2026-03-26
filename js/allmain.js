@@ -32,7 +32,7 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE, TER_DETECT,
          TELEPORT, POLYMORPH, Upolyd } from './const.js';
-import { age_spells } from './spell.js';
+import { ageSpells } from './spell.js';
 import { wipe_engr_at, can_reach_floor, engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
@@ -482,7 +482,7 @@ export async function moveloop_turnend(game) {
     await gethungry((game.u || game.u));
 
     // C ref: allmain.c:354 age_spells() — decrement spell retention each turn
-    age_spells((game.u || game.u));
+    ageSpells((game.u || game.u));
 
     // C ref: allmain.c:355 exerchk() — exercise attribute checks.
     // C's exerchk() calls exerper() internally (attrib.c:601).

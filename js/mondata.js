@@ -312,6 +312,15 @@ export function hasSaddle(mon) {
     return objChainItems(mon?.minvent || null).some(o => o && (o.owornmask & W_SADDLE));
 }
 
+// C ref: do_name.c x_monnam() — returns the base display name for a
+// monster, prepending "saddled " when the monster is wearing a saddle.
+// This mirrors the adjective logic in x_monnam() without articles.
+export function monDisplayName(mon) {
+    const name = String(mon?.name || 'monster');
+    if (hasSaddle(mon)) return `saddled ${name}`;
+    return name;
+}
+
 // C ref: do_name.c — has_mgivenname(mtmp)
 // Returns true when the monster has a user-given name (e.g. "Idefix")
 // that differs from the species name (e.g. "little dog").
@@ -322,6 +331,75 @@ export function hasGivenName(mon) {
     const speciesName = mon.data?.mname || mon.type?.mname;
     if (!speciesName) return false;
     return mon.name !== speciesName;
+}
+
+// C ref: do_name.c y_monnam / mon_nam / Monnam
+// Returns the monster's display name with an article prefix.
+//   article: 'your' -> "your <name>" for generic, name for given-name
+//            'the'  -> "the <name>"  for generic, name for given-name
+//            'a'    -> "a <name>"
+//            null   -> auto: 'your' if tame, 'the' otherwise
+//   capitalize: true -> capitalise the first letter (Monnam / YMonnam)
+//
+// By default, articles are lowercase ("the", "your", "a") matching
+// C's mon_nam() / y_monnam().  Use capitalize=true to get Monnam()
+// / YMonnam() behaviour.
+export function monNam(mon, { capitalize = false, article = null } = {}) {
+    const dname = monDisplayName(mon);
+    const effectiveArticle = article !== null ? article
+        : (mon?.mtame ? 'your' : 'the');
+    let result;
+    if (effectiveArticle === 'your') {
+        result = hasGivenName(mon) ? dname : `your ${dname}`;
+    } else if (effectiveArticle === 'the') {
+        result = hasGivenName(mon) ? dname : `the ${dname}`;
+    } else if (effectiveArticle === 'a') {
+        result = `a ${dname}`;
+    } else {
+        result = dname;
+    }
+    if (capitalize && result.length > 0) {
+        result = result.charAt(0).toUpperCase() + result.slice(1);
+    }
+    return result;
+}
+
+// C-style naming helpers for callsites migrating off legacy monNam().
+export function y_monnam(mon) {
+    return monNam(mon);
+}
+
+export function YMonnam(mon) {
+    return monNam(mon, { capitalize: true });
+}
+
+export function mon_nam(mon) {
+    return monNam(mon, { article: 'the' });
+}
+
+export function Monnam(mon) {
+    return monNam(mon, { article: 'the', capitalize: true });
+}
+
+// Lightweight compatibility for C-style x_monnam callsites that only depend on
+// article selection and optional capitalization.
+export function x_monnam(mon, article = null, _adjective = null, _suppress = 0, capitalize = false) {
+    // Compatibility bridge for migrated callsites that pass options object.
+    if (article && typeof article === 'object') {
+        const opts = article;
+        const optArticle = (opts.article === 'none') ? null : (opts.article ?? null);
+        const optCap = !!opts.capitalize;
+        if (optArticle === null) {
+            const base = monDisplayName(mon);
+            return optCap && base.length ? base.charAt(0).toUpperCase() + base.slice(1) : base;
+        }
+        return monNam(mon, { article: optArticle, capitalize: optCap });
+    }
+    if (article === null || article === undefined) {
+        const base = monDisplayName(mon);
+        return capitalize && base.length ? base.charAt(0).toUpperCase() + base.slice(1) : base;
+    }
+    return monNam(mon, { article, capitalize });
 }
 
 // ========================================================================

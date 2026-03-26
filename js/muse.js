@@ -30,7 +30,7 @@ import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
          haseyes, is_undead, poly_when_stoned,
          resists_ston, touch_petrifies, amorphous, noncorporeal,
          unsolid, resists_fire, resists_acid, dmgtype, attacktype,
-         can_blow, needspick,
+         can_blow, x_monnam, needspick,
          dmgtype_fromattack, is_bat, nonliving, acidic,
          mon_knows_traps, mon_learns_traps } from './mondata.js';
 import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP, AD_HEAL } from './monsters.js';
@@ -59,7 +59,6 @@ import { CORPSE, TIN, EGG, BOULDER,
          objectData, CLOTH, BAG_OF_TRICKS } from './objects.js';
 import { bcsign, splitobj, Is_container, unknow_object, doname } from './mkobj.js';
 import { singular } from './objnam.js';
-import { x_monnam } from './do_name.js';
 import { observeObject } from './o_init.js';
 import { m_carrying } from './mthrowu.js';
 import { cansee, couldsee, mark_vision_dirty } from './vision.js';

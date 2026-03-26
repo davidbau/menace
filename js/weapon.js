@@ -24,7 +24,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, BALL_CLASS, CHAIN_CLAS
 import { rnd, d, c_d, rn2 } from './rng.js';
 import { mon_hates_blessings, mon_hates_silver, mon_hates_light,
          thick_skinned, strongmonst, is_giant, resists_ston, likes_gems,
-         is_animal, is_mindless, touch_petrifies, attacktype,
+         is_animal, is_mindless, touch_petrifies, attacktype, x_monnam,
          throws_rocks,
        } from './mondata.js';
 import { MZ_LARGE, S_EEL, S_SNAKE, S_XORN, S_DRAGON, S_JABBERWOCK,
@@ -54,12 +54,13 @@ import { dist2, s_suffix } from './hacklib.js';
 import { couldsee } from './vision.js';
 import { game as _gstate } from './gstate.js';
 import { pline } from './pline.js';
+import { Monnam } from './mondata.js';
 import { doname, Tobjnam, is_plural } from './objnam.js';
 import { canseemon } from './display.js';
 import { mwelded } from './wield.js';
 import { objChainItems } from './invent.js';
 import { mbodypart } from './polyself.js';
-import { mon_nam, Monnam, x_monnam } from './do_name.js';
+import { mon_nam } from './do_name.js';
 
 // Hero skill state (C: P_SKILL/P_MAX_SKILL/P_ADVANCE).
 let skillSystemActive = false;

@@ -22,9 +22,10 @@ import { monnear, mondead, helpless, unstuck } from './mon.js';
 import { grow_up } from './makemon.js';
 import { game as _gstate } from './gstate.js';
 import { map_invisible, newsym, canSpotMonsterForMap } from './display.js';
-import { monAttackName, rndmonnam, x_monnam } from './do_name.js';
+import { monAttackName, rndmonnam } from './do_name.js';
 import { cansee } from './vision.js';
 import {
+    x_monnam,
     touch_petrifies, unsolid, resists_fire, resists_cold,
     resists_elec, resists_acid, resists_sleep, resists_ston, defended,
     nonliving, sticks, attacktype, dmgtype, is_whirly,
