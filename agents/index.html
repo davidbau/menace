@@ -75,10 +75,12 @@
     content: '→'; position: absolute; left: 0.4em; top: 0.3em;
     color: var(--human); font-weight: 700; font-size: 0.9em;
   }
-  .ev-human.truncated { cursor: pointer; }
-  .ev-human .full-text { display: none; }
-  .ev-human.expanded .full-text { display: inline; }
-  .ev-human.expanded .short-text { display: none; }
+  .ev-human .ev-text {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .ev-human.expanded .ev-text { -webkit-line-clamp: unset; overflow: visible; }
+  .ev-human { cursor: pointer; }
   .ev-human.correction { border-left-color: var(--correction); background: rgba(180,50,50,0.03); }
   .ev-human.correction::before { color: var(--correction); }
   .ev-human.directive { border-left-color: var(--directive); }
@@ -96,10 +98,10 @@
   .ai-tools { font-family: var(--mono); font-size: 0.85em; color: var(--session); }
   .ai-snips-inline {
     color: var(--muted); font-style: italic;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    display: block; max-width: 100%;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-  .ev-ai.open .ai-snips-inline { white-space: normal; overflow: visible; display: block; }
+  .ev-ai.open .ai-snips-inline { -webkit-line-clamp: unset; overflow: visible; }
   .ai-snip { font-style: italic; color: var(--ai); margin-top: 0.1em; }
 
   /* Subagent events — indented to show nesting */
@@ -112,10 +114,12 @@
     content: 'AI →'; position: absolute; left: 0.3em; top: 0.25em;
     color: var(--session); font-weight: 700; font-size: 0.8em;
   }
-  .ev-agent-directive.truncated { cursor: pointer; }
-  .ev-agent-directive .full-text { display: none; }
-  .ev-agent-directive.expanded .full-text { display: inline; }
-  .ev-agent-directive.expanded .short-text { display: none; }
+  .ev-agent-directive .ev-text {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .ev-agent-directive.expanded .ev-text { -webkit-line-clamp: unset; overflow: visible; }
+  .ev-agent-directive { cursor: pointer; }
 
   .ev-subagent-work {
     padding: 0.15em 0.5em; font-size: 0.8em; color: var(--ai);
@@ -145,9 +149,12 @@
     content: '←'; position: absolute; left: 0.35em; top: 0.3em;
     color: var(--commit); font-weight: 700; font-size: 0.9em;
   }
-  .ev-commit.truncated { cursor: pointer; }
-  .ev-commit .full-text { display: none; margin-top: 0.2em; color: var(--muted); font-size: 0.9em; white-space: pre-wrap; }
-  .ev-commit.expanded .full-text { display: block; }
+  .ev-commit .commit-body {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; color: var(--muted); font-size: 0.9em; white-space: pre-wrap; margin-top: 0.2em;
+  }
+  .ev-commit.expanded .commit-body { -webkit-line-clamp: unset; overflow: visible; }
+  .ev-commit { cursor: pointer; }
   .ev-commit .ct { color: var(--muted); min-width: 6ch; }
   .ev-commit .ch { color: var(--commit); font-weight: 600; }
   .ev-commit .cm { color: var(--text); }
@@ -441,12 +448,8 @@ function renderHuman(e){
   const tag=cls?`<span class="tag tag-${cls}">${cls}</span>`:'';
   const id=stableId(e);
   e._id=id;
-  const maxLen = 200;
-  const isTrunc = e.text.length > maxLen;
-  const short = esc(e.text.substring(0, maxLen)) + (isTrunc ? '&hellip;' : '');
-  const full = esc(e.text);
-  return`<div class="ev ev-human${cls?' '+cls:''}${isTrunc?' truncated':''}" id="${id}"${isTrunc?` onclick="this.classList.toggle('expanded')"`:''}">
-    <span class="ev-time">${tm(e.timestamp)}</span>${tag}<span class="short-text">${short}</span>${isTrunc?`<span class="full-text">${full}</span>`:''}
+  return`<div class="ev ev-human${cls?' '+cls:''}" id="${id}" onclick="this.classList.toggle('expanded')">
+    <span class="ev-time">${tm(e.timestamp)}</span>${tag}<span class="ev-text">${esc(e.text)}</span>
   </div>`;
 }
 
@@ -470,10 +473,14 @@ function renderAiWork(e){
 function renderCommit(c){
   const id=stableId(c);
   c._id=id;
-  const hasBody = c.body && c.body.length > 0 && !c.body.startsWith('Co-Authored');
-  const bodyClean = hasBody ? c.body.replace(/Co-Authored-By:.*$/gm, '').trim() : '';
-  return`<div class="ev ev-commit${hasBody?' truncated':''}" id="${id}"${hasBody?` onclick="this.classList.toggle('expanded')"`:''}>
-    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<span class="full-text">${esc(bodyClean)}</span>`:''}</span>
+  // Strip Co-Authored-By and first line if it duplicates the subject
+  let bodyClean = (c.body || '').replace(/Co-Authored-By:.*$/gm, '').trim();
+  if (bodyClean) {
+    const firstLine = bodyClean.split('\n')[0].trim();
+    if (firstLine === (c.subject||'').trim()) bodyClean = bodyClean.split('\n').slice(1).join('\n').trim();
+  }
+  return`<div class="ev ev-commit" id="${id}" onclick="this.classList.toggle('expanded')">
+    <span class="ct">${tm(c.timestamp)}</span> <span class="ch">${c.hash?.slice(0,8)||''}</span> <span class="cm">${esc(c.subject||'')}${bodyClean?`<div class="commit-body">${esc(bodyClean)}</div>`:''}</span>
   </div>`;
 }
 
@@ -496,12 +503,8 @@ function renderWatchdog(e){
 function renderAgentDirective(e){
   const id=stableId(e);
   e._id=id;
-  const maxLen = 150;
-  const isTrunc = e.text.length > maxLen;
-  const short = esc(e.text.substring(0, maxLen)) + (isTrunc ? '&hellip;' : '');
-  const full = esc(e.text);
-  return`<div class="ev ev-agent-directive${isTrunc?' truncated':''}" id="${id}"${isTrunc?` onclick="this.classList.toggle('expanded')"`:''}>
-    <span class="ev-time">${tm(e.timestamp)}</span><span class="short-text">${short}</span>${isTrunc?`<span class="full-text">${full}</span>`:''}
+  return`<div class="ev ev-agent-directive" id="${id}" onclick="this.classList.toggle('expanded')">
+    <span class="ev-time">${tm(e.timestamp)}</span><span class="ev-text">${esc(e.text)}</span>
   </div>`;
 }
 
