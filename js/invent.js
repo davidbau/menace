@@ -3230,8 +3230,8 @@ export function ddoinv(game = null) {
 }
 
 // Autotranslated from invent.c:3455
-export function repopulate_perminvent() {
-  display_pickinv(null,  0,  0, false, false, null);
+export async function repopulate_perminvent() {
+  await display_pickinv(null,  0,  0, false, false, null);
 }
 
 // Autotranslated from invent.c:4916

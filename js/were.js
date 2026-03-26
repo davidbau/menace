@@ -176,7 +176,7 @@ export async function were_change(mon, ctx) {
 // map:   GameMap for makemon placement
 // depth: dungeon depth for makemon
 // Returns { total, visible, genbuf } where genbuf is 'rat'|'jackal'|'wolf'|null
-export function were_summon(ptr, x, y, yours, ctx, map, depth) {
+export async function were_summon(ptr, x, y, yours, ctx, map, depth) {
     const pm = mons.indexOf(ptr);
     let total = 0, visible = 0, genbuf = null;
 
@@ -203,7 +203,7 @@ export function were_summon(ptr, x, y, yours, ctx, map, depth) {
         default:
             continue;
         }
-        const mtmp = makemon(mons[typ], x, y, NO_MM_FLAGS, depth || 1, map);
+        const mtmp = await makemon(mons[typ], x, y, NO_MM_FLAGS, depth || 1, map);
         if (mtmp) {
             total++;
             if (canSeeMonster(mtmp, ctx?.player, ctx?.fov)) visible++;

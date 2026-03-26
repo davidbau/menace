@@ -1831,7 +1831,7 @@ export async function summonmu(mtmp, youseeit, map, player, display) {
             if (youseeit && display) {
                 await display.putstr_message(`${Monnam(mtmp)} summons help!`);
             }
-            const result = were_summon(
+            const result = await were_summon(
                 mdat,
                 mtmp.mx, mtmp.my,
                 false, // not yours

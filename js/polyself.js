@@ -1826,7 +1826,7 @@ export async function dosummon(player, map) {
     await exercise(player, A_WIS, true);
 
     // Call were_summon — matches C's RNG consumption
-    const result = were_summon(player.type, player.x, player.y,
+    const result = await were_summon(player.type, player.x, player.y,
         true, { player }, map, 0);
     if (!result || !result.total) {
         await pline("But none arrive.");

@@ -592,9 +592,9 @@ export function aggravate(map, player) {
 // cf. wizard.c:510
 // ============================================================================
 
-export function clonewiz(map, player, display) {
+export async function clonewiz(map, player, display) {
     const depth = player?.dungeonLevel || 1;
-    const mtmp2 = makemon(mons[PM_WIZARD_OF_YENDOR], player.x, player.y,
+    const mtmp2 = await makemon(mons[PM_WIZARD_OF_YENDOR], player.x, player.y,
                           MM_NOWAIT, depth, map);
     if (mtmp2) {
         mtmp2.msleeping = 0;

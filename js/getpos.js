@@ -669,14 +669,14 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                     await more(display, { site: 'getpos.tip.moreDismiss', forceVisual: true });
                 }
                 const tipWin = create_nhwindow(NHW_TEXT);
-                putstr(tipWin, 0, 'Tip: Farlooking or selecting a map location');
-                putstr(tipWin, 0, '');
-                putstr(tipWin, 0, 'You are now in a "farlook" mode - the movement keys move the cursor,');
-                putstr(tipWin, 0, 'not your character.  Game time does not advance.  This mode is used');
-                putstr(tipWin, 0, 'to look around the map, or to select a location on it.');
-                putstr(tipWin, 0, '');
-                putstr(tipWin, 0, 'When in this mode, you can press ESC to return to normal game mode,');
-                putstr(tipWin, 0, 'and pressing ? will show the key help.');
+                await putstr(tipWin, 0, 'Tip: Farlooking or selecting a map location');
+                await putstr(tipWin, 0, '');
+                await putstr(tipWin, 0, 'You are now in a "farlook" mode - the movement keys move the cursor,');
+                await putstr(tipWin, 0, 'not your character.  Game time does not advance.  This mode is used');
+                await putstr(tipWin, 0, 'to look around the map, or to select a location on it.');
+                await putstr(tipWin, 0, '');
+                await putstr(tipWin, 0, 'When in this mode, you can press ESC to return to normal game mode,');
+                await putstr(tipWin, 0, 'and pressing ? will show the key help.');
                 await display_nhwindow(tipWin, true);
                 destroy_nhwindow(tipWin);
                 tipShownThisCall = true;
