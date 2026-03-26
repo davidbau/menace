@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import { initRng, enableRngLog, disableRngLog, getRngLog } from '../../js/rng.js';
 import { COLNO, ROWNO, ROOM, STONE, HWALL, WATER, W_WEP, MTSZ } from '../../js/const.js';
 import { GameMap } from '../../js/game.js';
-import { movemon, mon_track_add, mon_track_clear, monhaskey, m_can_break_boulder } from '../../js/monmove.js';
+import { mon_track_add, mon_track_clear, monhaskey, m_can_break_boulder } from '../../js/monmove.js';
+import { movemon } from '../../js/mon.js';
 import { Player } from '../../js/player.js';
 import { setGame } from '../../js/gstate.js';
 import { GOLD_PIECE, COIN_CLASS, WEAPON_CLASS, ARMOR_CLASS, ORCISH_DAGGER, ORCISH_HELM,

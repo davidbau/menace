@@ -67,6 +67,8 @@ describe('Death cause: monster attack', () => {
             attacks: [{ dmg: [10, 10] }], // massive damage
             dead: false,
             passive: false,
+            data: { mname: 'dragon' },
+            type: { mname: 'dragon' },
         };
 
         // Attack repeatedly until death
@@ -97,6 +99,8 @@ describe('Death cause: monster attack', () => {
             attacks: [{ dmg: [10, 10] }],
             dead: false,
             passive: false,
+            data: { mname: 'floating eye' },
+            type: { mname: 'floating eye' },
         };
 
         for (let i = 0; i < 100 && p.hp > 0; i++) {
