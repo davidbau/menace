@@ -93,15 +93,13 @@
     border-left: 3px solid #ddd; margin: 0.15em 0; cursor: pointer;
   }
   .ev-ai:hover { background: rgba(0,0,0,0.02); }
-  .ev-ai .detail { display: none; margin-top: 0.2em; }
-  .ev-ai.open .detail { display: block; }
+  .ev-ai.expanded .ai-snips-inline { -webkit-line-clamp: unset; overflow: visible; }
   .ai-tools { font-family: var(--mono); font-size: 0.85em; color: var(--session); }
   .ai-snips-inline {
     color: var(--muted); font-style: italic;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .ev-ai.open .ai-snips-inline { -webkit-line-clamp: unset; overflow: visible; }
   .ai-snip { font-style: italic; color: var(--ai); margin-top: 0.1em; }
 
   /* Subagent events — indented to show nesting */
@@ -127,8 +125,7 @@
     cursor: pointer;
   }
   .ev-subagent-work:hover { background: rgba(0,0,0,0.02); }
-  .ev-subagent-work .detail { display: none; margin-top: 0.2em; }
-  .ev-subagent-work.open .detail { display: block; }
+  .ev-subagent-work.expanded .ai-snips-inline { -webkit-line-clamp: unset; overflow: visible; }
 
   .ev-watchdog {
     padding: 0.15em 0.5em 0.15em 1.8em; font-size: 0.8em; color: var(--light);
@@ -172,7 +169,7 @@
   }
   .clipped { position: relative; }
   .clipped::after {
-    content: '▾'; color: var(--accent-lt); font-size: 0.7em;
+    content: '▾'; color: var(--light); font-size: 0.7em;
     position: absolute; top: 0.2em; right: 0.3em; pointer-events: none;
   }
   .expanded.clipped::after { content: '▴'; }
@@ -470,7 +467,7 @@ function renderAiWork(e){
   const allText = snips.map(s => s.replace(/\n/g, ' ')).join(' \u2014 ');
   const id=stableId(e);
   e._id=id;
-  return`<div class="ev ev-ai" id="${id}" onclick="this.classList.toggle('open')">
+  return`<div class="ev ev-ai" id="${id}" onclick="this.classList.toggle('expanded')">
     <span class="ev-time">${tm(e.timestamp)}</span>
     <span class="tag tag-ai">AI</span>
     ${brief?esc(brief):''}
@@ -525,7 +522,7 @@ function renderSubagentWork(e){
   const allText = snips.map(s => s.replace(/\n/g, ' ')).join(' \u2014 ');
   const id=stableId(e);
   e._id=id;
-  return`<div class="ev ev-subagent-work" id="${id}" onclick="this.classList.toggle('open')">
+  return`<div class="ev ev-subagent-work" id="${id}" onclick="this.classList.toggle('expanded')">
     <span class="ev-time">${tm(e.timestamp)}</span>
     <span class="tag tag-ai">sub</span>
     ${brief?esc(brief):''}
@@ -656,9 +653,8 @@ function jumpTo(date, evId){
   if(evId){
     const cg = target.closest('.commit-group');
     if(cg) cg.classList.add('open');
-    // Expand truncated/collapsed content so search term is visible
-    if(target.classList.contains('truncated')) target.classList.add('expanded');
-    if(target.classList.contains('ev-ai') || target.classList.contains('ev-subagent-work')) target.classList.add('open');
+    // Expand so search match is visible
+    target.classList.add('expanded');
   }
 
   // Jump: day headers go to top, specific events go to center
