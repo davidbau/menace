@@ -3,6 +3,7 @@
 // C ref: mkobj.c — object creation, class initialization, containers
 
 import { strchr } from './hacklib.js';
+import { tin_variety } from './eat.js';
 import { rn2, rnd, rn1, rne, rnz, d, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { isObjectNameKnown } from './o_init.js';
 import {
@@ -1377,7 +1378,10 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             // xname() never includes the monster type; only doname() adds it via corpse_xname().
             base = 'corpse';
         } else if (obj.otyp === TIN && known) {
-            // C ref: eat.c tin_details() — show content/variety when obj->known is set.
+            // C ref: eat.c tin_details() — calls tin_variety(obj, TRUE) which may
+            // consume rn2(TTSZ-1) when obj.spe === 0 (variety not yet determined).
+            // Must call tin_variety for RNG alignment even when we don't display the result.
+            tin_variety(obj, true);
             if (obj.spe === 1) {
                 base = 'tin of spinach';
             } else if (Number.isInteger(obj.corpsenm) && obj.corpsenm >= 0 && mons[obj.corpsenm]) {
