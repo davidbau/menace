@@ -11,7 +11,7 @@
     --text: #333; --muted: #888; --light: #aaa;
     --accent: #6b2c2c; --accent-dk: #4a2020; --accent-lt: #8b4c4c;
     --lore: #8b6914; --commit: #2d6a2d; --human: #2a5599;
-    --session: #6b4c9a; --correction: #b33; --directive: #2a7a5a;
+    --session: #6b4c9a; --correction: #b33; --directive: #2a5599;
     --question: #2a5599; --ai: #555;
     --serif: 'EB Garamond', Georgia, serif;
     --mono: 'Consolas', 'DejaVu Sans Mono', monospace;
@@ -205,8 +205,9 @@
     font-size: 0.6em; padding: 0.1em 0.3em; border-radius: 5px;
     font-weight: 600; font-family: -apple-system, sans-serif; margin-right: 0.2em; vertical-align: 1px;
   }
+  .tag-human { background: rgba(42,85,153,0.1); color: var(--human); }
   .tag-correction { background: rgba(180,50,50,0.12); color: var(--correction); }
-  .tag-directive { background: rgba(42,122,90,0.1); color: var(--directive); }
+  .tag-directive { background: rgba(42,85,153,0.1); color: var(--directive); }
   .tag-question { background: rgba(42,85,153,0.1); color: var(--question); }
   .tag-ai { background: rgba(107,76,154,0.1); color: var(--session); }
 
@@ -472,9 +473,11 @@ function renderEvents(evts){
   return out.join('');
 }
 
+const TAG_LABELS = {correction:'human correction',redirect:'human redirect',question:'human question',directive:'human directive'};
 function renderHuman(e){
   const cls=classify(e.text);
-  const tag=cls?`<span class="tag tag-${cls}">${cls}</span>`:'';
+  const label = TAG_LABELS[cls] || 'human';
+  const tag = `<span class="tag tag-${cls||'human'}">${label}</span>`;
   const id=stableId(e);
   e._id=id;
   return`<div class="ev ev-human${cls?' '+cls:''}" id="${id}" onclick="this.classList.toggle('expanded')">
