@@ -17085,10 +17085,14 @@ The acceptance condition depends on `accessible(mx, my)` (C) vs
 differ for specific terrain types or drawbridge positions. Needs per-cell terrain
 comparison at the specific position to identify the exact mismatch.
 
-Key finding: all 4 remaining failures (seed032, seed033, seed308, seed328) involve
-set_apparxy/displacement when the hero has active displacement or invisibility.
-The displacement loop's position acceptance criteria may have a subtle terrain
-evaluation difference that causes RNG consumption mismatches.
+**RESOLVED (March 26, 2026)**: The displacement loop in JS's set_apparxy was
+missing the `!couldsee(mx, my)` check from C monmove.c:2261. JS had an
+incorrect comment "NO couldsee check here" that caused the omission. C requires
+displacement target positions to be in line-of-sight; JS accepted all accessible
+positions regardless of LOS. This caused JS to accept positions on fewer loop
+iterations, consuming different RNG values. Fixed by adding the couldsee check.
+This resolved seed308. seed328 has an additional divergence at step 226 in
+rndmonst_adj (random monster creation) from accumulated state drift.
 
 ### seed033 Deep Investigation (March 26, 2026)
 
