@@ -330,7 +330,7 @@ async function _gold_detect_outgoldmap(sobj, player, map, display) {
     if (!ugold) newsym(player.x, player.y);
     await You_feel("very greedy, and sense gold!");
     await exercise(player, A_WIS, true);
-    await browse_map(0, 'gold', player, map, display); await map_redisplay(player, map);
+    browse_map(0, 'gold', player, map, display); await map_redisplay(player, map);
     return 0;
 }
 
@@ -403,7 +403,7 @@ export async function food_detect(sobj, player, map, display, game) {
             } else await Your("%s tingles and you smell %s.", body_part(NOSE, player), what);
         } else await You("sense %s.", what);
         await exercise(player, A_WIS, true);
-        await browse_map(0, 'food', player, map, display); await map_redisplay(player, map);
+        browse_map(0, 'food', player, map, display); await map_redisplay(player, map);
     }
     return 0;
 }
@@ -508,7 +508,7 @@ export async function object_detect(detector, oclass, player, map, display, game
         ter_typ |= TER_MON; // C: include hero for autodescribe when no object at hero
     }
     await You("detect the %s of %s.", ct ? 'presence' : 'absence', stuff);
-    await browse_map(ter_typ, 'object', player, map, display); await map_redisplay(player, map);
+    browse_map(ter_typ, 'object', player, map, display); await map_redisplay(player, map);
     return 0;
 }
 
@@ -548,7 +548,7 @@ export async function monster_detect(otmp, mclass, player, map, display, game) {
         if (!swallowed) display_self();
         await You("sense the presence of monsters.");
         if (woken) await pline("Monsters sense the presence of you.");
-        await browse_map(0, 'monster of interest', player, map, display); await map_redisplay(player, map);
+        browse_map(0, 'monster of interest', player, map, display); await map_redisplay(player, map);
     }
     return 0;
 }
@@ -623,7 +623,7 @@ async function display_trap_map(cursed_src, player, map, display) {
     }
     newsym(player.x, player.y);
     await You_feel("%s.", cursed_src ? 'very greedy' : 'entrapped');
-    await browse_map(0, (cursed_src ? 'gold' : 'trap of interest'), player, map, display); await map_redisplay(player, map);
+    browse_map(0, (cursed_src ? 'gold' : 'trap of interest'), player, map, display); await map_redisplay(player, map);
 }
 
 // ========================================================================
@@ -1183,7 +1183,7 @@ export async function reveal_terrain(which_subset, player, map, display) {
             show_map_spot(x, y, false, map);
     flush_screen(1);
     await pline("Showing terrain only...");
-    await browse_map(which_subset, 'anything of interest', player, map, display); await map_redisplay(player, map);
+    browse_map(which_subset, 'anything of interest', player, map, display); await map_redisplay(player, map);
 }
 
 // Autotranslated from detect.c:94

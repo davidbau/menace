@@ -128,86 +128,86 @@ async function emitMessage(message, pflags = 0) {
 export async function custompline(pflags, line, ...args) {
     const flags = Number.isFinite(pflags) ? pflags : 0;
     const text = formatLine(line, args);
-    return emitMessage(text, flags);
+    return await emitMessage(text, flags);
 }
 
-export async function pline(line, ...args) {
+export function pline(line, ...args) {
     return custompline(0, line, ...args);
 }
 
-export async function vpline(line, args) {
+export function vpline(line, args) {
     const actualArgs = Array.isArray(args) ? args : [];
     return pline(line, ...actualArgs);
 }
 
-export async function raw_printf(line, ...args) {
+export function raw_printf(line, ...args) {
     return vraw_printf(line, args);
 }
 
 export async function vraw_printf(line, args) {
     // raw_printf skips repeat suppression/history processing by design in C.
     const text = formatLine(line, Array.isArray(args) ? args : []);
-    return getOutputContext().putstr_message(text);
+    return await getOutputContext().putstr_message(text);
 }
 
-export async function urgent_pline(line, ...args) {
+export function urgent_pline(line, ...args) {
     return custompline(PLINE_URGENT, line, ...args);
 }
 
-export async function Norep(line, ...args) {
+export function Norep(line, ...args) {
     return custompline(PLINE_NOREP, line, ...args);
 }
 
-export async function pline_dir(dir, line, ...args) {
+export function pline_dir(dir, line, ...args) {
     set_msg_dir(dir);
     return pline(line, ...args);
 }
 
-export async function pline_xy(x, y, line, ...args) {
+export function pline_xy(x, y, line, ...args) {
     set_msg_xy(x, y);
     return pline(line, ...args);
 }
 
-export async function pline_mon(mon, line, ...args) {
+export function pline_mon(mon, line, ...args) {
     if (mon && Number.isFinite(mon.mx) && Number.isFinite(mon.my)) {
         return pline_xy(mon.mx, mon.my, line, ...args);
     }
     return pline(line, ...args);
 }
 
-export async function You(line, ...args) {
+export function You(line, ...args) {
     return pline(`You ${formatLine(line, args)}`);
 }
 
-export async function Your(line, ...args) {
+export function Your(line, ...args) {
     return pline(`Your ${formatLine(line, args)}`);
 }
 
-export async function You_feel(line, ...args) {
+export function You_feel(line, ...args) {
     return pline(`You feel ${formatLine(line, args)}`);
 }
 
-export async function You_cant(line, ...args) {
+export function You_cant(line, ...args) {
     return pline(`You can't ${formatLine(line, args)}`);
 }
 
-export async function pline_The(line, ...args) {
+export function pline_The(line, ...args) {
     return pline(`The ${formatLine(line, args)}`);
 }
 
-export async function There(line, ...args) {
+export function There(line, ...args) {
     return pline(`There ${formatLine(line, args)}`);
 }
 
-export async function You_hear(line, ...args) {
+export function You_hear(line, ...args) {
     return pline(`You hear ${formatLine(line, args)}`);
 }
 
-export async function You_see(line, ...args) {
+export function You_see(line, ...args) {
     return pline(`You see ${formatLine(line, args)}`);
 }
 
-export async function verbalize(line, ...args) {
+export function verbalize(line, ...args) {
     return pline(`"${formatLine(line, args)}"`);
 }
 

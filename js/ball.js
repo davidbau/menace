@@ -214,7 +214,7 @@ export async function placebc(player, map) {
 }
 
 // C ref: ball.c:259 Placebc() — compatibility alias.
-export async function Placebc(player, map) {
+export function Placebc(player, map) {
     return placebc(player, map);
 }
 
@@ -262,7 +262,7 @@ export async function lift_covet_and_placebc(pin, player, map) {
 }
 
 // C ref: ball.c:327 Lift_covet_and_placebc() — compatibility alias.
-export async function Lift_covet_and_placebc(pin, player, map) {
+export function Lift_covet_and_placebc(pin, player, map) {
     return lift_covet_and_placebc(pin, player, map);
 }
 

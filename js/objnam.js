@@ -1046,7 +1046,7 @@ export function the(str) {
 }
 
 // cf. objnam.c:2224 — The(str): capitalized "The" + string
-export async function The(str) {
+export function The(str) {
     const tmp = the(str);
     return highc(tmp[0]) + tmp.slice(1);
 }
@@ -1058,7 +1058,7 @@ export async function The(str) {
 
 
 // cf. objnam.c:2234 — aobjnam(otmp, verb): "count cxname verb"
-export async function aobjnam(otmp, verb) {
+export function aobjnam(otmp, verb) {
     let bp = cxname(otmp);
     if ((otmp.quan || 1) !== 1) {
         bp = `${otmp.quan} ${bp}`;
@@ -1070,7 +1070,7 @@ export async function aobjnam(otmp, verb) {
 }
 
 // cf. objnam.c:2252 — yobjnam(obj, verb): "your X verb"
-export async function yobjnam(obj, verb) {
+export function yobjnam(obj, verb) {
     let s = aobjnam(obj, verb);
     if (!carried(obj) || !obj_is_pname(obj)
         || obj.oartifact >= ART_ORB_OF_DETECTION) {
@@ -1081,13 +1081,13 @@ export async function yobjnam(obj, verb) {
 }
 
 // cf. objnam.c:2270 — Yobjnam2(obj, verb): capitalized "Your X verb"
-export async function Yobjnam2(obj, verb) {
+export function Yobjnam2(obj, verb) {
     const s = yobjnam(obj, verb);
     return highc(s[0]) + s.slice(1);
 }
 
 // cf. objnam.c:2280 — Tobjnam(otmp, verb): "The <xname> <verb>"
-export async function Tobjnam(otmp, verb) {
+export function Tobjnam(otmp, verb) {
     let bp = The(xname(otmp));
     if (verb) {
         bp += ' ' + otense(otmp, verb);
@@ -1101,7 +1101,7 @@ export async function Tobjnam(otmp, verb) {
 // ============================================================================
 
 // cf. objnam.c:2303 — paydoname(obj): object name for shop payment menu
-export async function paydoname(obj, player) {
+export function paydoname(obj, player) {
     // Simplified: shop payment formatting not fully ported
     return doname(obj, player);
 }
@@ -1112,7 +1112,7 @@ export async function paydoname(obj, player) {
 // ============================================================================
 
 // cf. objnam.c:2349 — yname(obj): "[your] cxname"
-export async function yname(obj) {
+export function yname(obj) {
     let s = cxname(obj);
     if (!carried(obj) || !obj_is_pname(obj)
         || obj.oartifact >= ART_ORB_OF_DETECTION) {
@@ -1123,13 +1123,13 @@ export async function yname(obj) {
 }
 
 // cf. objnam.c:2368 — Yname2(obj): capitalized "Your cxname"
-export async function Yname2(obj) {
+export function Yname2(obj) {
     const s = yname(obj);
     return highc(s[0]) + s.slice(1);
 }
 
 // Helper: minimal_xname(obj) — xname with user-supplied name suppressed
-async function minimal_xname(obj) {
+function minimal_xname(obj) {
     // Temporarily suppress user-supplied name
     const saveOname = obj.oname;
     obj.oname = '';
@@ -1139,13 +1139,13 @@ async function minimal_xname(obj) {
 }
 
 // cf. objnam.c:2381 — ysimple_name(obj): "your" + minimal name
-export async function ysimple_name(obj) {
+export function ysimple_name(obj) {
     const prefix = shk_your(obj);
     return prefix + minimal_xname(obj);
 }
 
 // cf. objnam.c:2392 — Ysimple_name2(obj): capitalized "Your" + simple name
-export async function Ysimple_name2(obj) {
+export function Ysimple_name2(obj) {
     const s = ysimple_name(obj);
     return highc(s[0]) + s.slice(1);
 }
@@ -1156,14 +1156,14 @@ export async function Ysimple_name2(obj) {
 // ============================================================================
 
 // cf. objnam.c:2418 — simpleonames(obj): plural-aware minimal name
-export async function simpleonames(obj) {
+export function simpleonames(obj) {
     let s = minimal_xname(obj);
     if ((obj.quan || 1) !== 1) s = makeplural(s);
     return s;
 }
 
 // cf. objnam.c:2436 — ansimpleoname(obj): articled simple name
-export async function ansimpleoname(obj) {
+export function ansimpleoname(obj) {
     const simplename = simpleonames(obj);
     let otyp = obj.otyp;
     if (otyp === FAKE_AMULET_OF_YENDOR) otyp = AMULET_OF_YENDOR;
@@ -1176,7 +1176,7 @@ export async function ansimpleoname(obj) {
 }
 
 // cf. objnam.c:2464 — thesimpleoname(obj): "the" + simple name
-export async function thesimpleoname(obj) {
+export function thesimpleoname(obj) {
     return the(simpleonames(obj));
 }
 
@@ -1186,7 +1186,7 @@ export async function thesimpleoname(obj) {
 // ============================================================================
 
 // cf. objnam.c:2480 — actualoname(obj): name as if fully discovered
-export async function actualoname(obj) {
+export function actualoname(obj) {
     // Temporarily force identification
     const saveKnown = obj.known;
     const saveDknown = obj.dknown;
@@ -1198,7 +1198,7 @@ export async function actualoname(obj) {
 }
 
 // cf. objnam.c:2492 — bare_artifactname(obj): artifact name without object type
-export async function bare_artifactname(obj) {
+export function bare_artifactname(obj) {
     if (obj.oartifact) {
         let name = artiname(obj.oartifact);
         if (name.startsWith('The ')) name = lowc(name[0]) + name.slice(1);
@@ -1220,14 +1220,14 @@ const special_subjs = [
 ];
 
 // cf. objnam.c:2521 — otense(otmp, verb): verb conjugated for object plurality
-export async function otense(otmp, verb) {
+export function otense(otmp, verb) {
     if (!is_plural(otmp))
         return vtense(null, verb);
     return verb;
 }
 
 // cf. objnam.c:2553 — vtense(subj, verb): conjugate verb for subject
-export async function vtense(subj, verb) {
+export function vtense(subj, verb) {
     // If subj is provided and appears plural, return verb as-is (plural form)
     if (subj) {
         if (subj.toLowerCase().startsWith('a ') || subj.toLowerCase().startsWith('an '))
@@ -1283,7 +1283,7 @@ export async function vtense(subj, verb) {
 }
 
 // Internal: convert plural verb to singular 3rd person present
-async function _singularize_verb(verb) {
+function _singularize_verb(verb) {
     if (!verb) return '';
     const len = verb.length;
     if (verb.toLowerCase() === 'are') return 'is';
@@ -1359,7 +1359,7 @@ const ch_k = [
     'gastrotrich', 'isopach', 'loch', 'oligarch', 'peritrich',
     'sandarach', 'sumach', 'symposiarch',
 ];
-export async function ch_ksound(basestr) {
+export function ch_ksound(basestr) {
     if (!basestr || basestr.length < 4) return false;
     const lower = basestr.toLowerCase();
     for (const ck of ch_k) {
@@ -1422,7 +1422,7 @@ export function singplur_compound(str) {
 }
 
 // Lookup in as_is/one_off tables
-async function singplur_lookup(basestr, to_plural, alt_as_is) {
+function singplur_lookup(basestr, to_plural, alt_as_is) {
     const lower = basestr.toLowerCase();
     for (const word of as_is) {
         if (lower.endsWith(word.toLowerCase())) return true;
@@ -1474,7 +1474,7 @@ const genders = [
 ];
 
 // cf. objnam.c:2826 — makeplural(oldstr): full English pluralization
-export async function makeplural(oldstr) {
+export function makeplural(oldstr) {
     if (oldstr) {
         while (oldstr.length && oldstr[0] === ' ') oldstr = oldstr.slice(1);
     }
@@ -1618,7 +1618,7 @@ export async function makeplural(oldstr) {
 }
 
 // cf. objnam.c:3027 — makesingular(oldstr): convert plural to singular
-export async function makesingular(oldstr) {
+export function makesingular(oldstr) {
     if (oldstr) {
         while (oldstr.length && oldstr[0] === ' ') oldstr = oldstr.slice(1);
     }
@@ -2012,7 +2012,7 @@ const readobjnam_class_suffixes = [
     [' spellbook', SPBOOK_CLASS],
 ];
 
-async function readobjnam_classify(state, rawText) {
+function readobjnam_classify(state, rawText) {
     let text = (rawText || '').trim();
     let oclass = state.oclass || 0;
     let forcedTyp = state.forcedTyp || 0;
@@ -2222,7 +2222,7 @@ const o_ranges_table = [
     { name: 'grey stone',       first: LUCKSTONE,              last: FLINT },
 ];
 
-export async function readobjnam_postparse2(state) {
+export function readobjnam_postparse2(state) {
     if (!state) return state;
     let actualn = (state.actualn || '').trim();
     if (!actualn) return state;

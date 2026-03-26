@@ -327,7 +327,7 @@ function _normalizeMakemonOverride(playerLike) {
     });
 }
 
-export async function withMakemonPlayerOverride(playerLike, fn) {
+export function withMakemonPlayerOverride(playerLike, fn) {
     const prev = _makemonPlayerOverride;
     _makemonPlayerOverride = _normalizeMakemonOverride(playerLike);
     try {

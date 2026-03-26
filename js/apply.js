@@ -765,7 +765,7 @@ export async function jump(magic, player, map, game) {
 }
 
 // cf. apply.c:1843 -- dojump: entry point for #jump command
-export async function dojump(player, map, game) {
+export function dojump(player, map, game) {
     return jump(0, player, map, game);
 }
 

@@ -987,7 +987,7 @@ async function u_handsy(player) {
 
 // cf. pickup.c:2937 — stash_ok(obj)
 // Autotranslated from pickup.c:2936
-export async function stash_ok(obj) {
+export function stash_ok(obj) {
   if (!obj) return GETOBJ_EXCLUDE;
   if (!ck_bag(obj)) return GETOBJ_EXCLUDE_SELECTABLE;
   return GETOBJ_SUGGEST;
@@ -2432,7 +2432,7 @@ async function do_loot_cont(cobj, cindex, ccount, player, map, game) {
 // Main #loot command handler. JS equivalent: handleLoot.
 // This is a C-named alias that delegates to handleLoot.
 // ---------------------------------------------------------------------------
-async function doloot_core(game) {
+function doloot_core(game) {
     return handleLoot(game);
 }
 
@@ -2697,7 +2697,7 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
 // JS equivalent: doPutIn/doTakeOut in containerMenu.
 // This is a C-named wrapper; in JS the containerMenu handles both styles.
 // ---------------------------------------------------------------------------
-async function traditional_loot(put_in, player, game) {
+function traditional_loot(put_in, player, game) {
     // In JS, Traditional/Full menustyle distinction is not maintained.
     // Delegate to menu_loot which is the common path.
     return menu_loot(0, put_in, player, game);
@@ -2825,7 +2825,7 @@ async function menu_loot(retry, put_in, player, game) {
 // Main container interaction function. JS equivalent: containerMenu.
 // This is a C-named alias for the JS containerMenu function.
 // ---------------------------------------------------------------------------
-async function use_container(game, container) {
+function use_container(game, container) {
     return containerMenu(game, container);
 }
 

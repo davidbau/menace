@@ -845,7 +845,7 @@ export async function handleZap(player, map, display, game) {
 }
 
 // C ref: zap.c dozap() name-parity surface.
-export async function dozap(player, map, display, game) {
+export function dozap(player, map, display, game) {
   return handleZap(player, map, display, game);
 }
 

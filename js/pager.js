@@ -477,7 +477,7 @@ export async function dolook(game) {
         }
     }
 
-    await display.putstr_message(String(build_dolook_message({ map, player, skipTerrainDescription }) || '').substring(0, 79));
+    await display.putstr_message(String(await build_dolook_message({ map, player, skipTerrainDescription }) || '').substring(0, 79));
     return { moved: false, tookTime };
 }
 
@@ -1346,7 +1346,7 @@ export async function doidtrap(player) {
 }
 
 // Autotranslated from pager.c:2572
-export async function dowhatdoes_core(q, cbuf) {
+export function dowhatdoes_core(q, cbuf) {
   let buf, ec_desc;
   if ((ec_desc = key2extcmddesc(q)) !== null) {
     let keybuf;
@@ -1497,12 +1497,12 @@ export async function ia_checkfile(display, filename) {
 }
 
 // C ref: pager.c:830
-export async function checkfile(display, filename) {
+export function checkfile(display, filename) {
   return ia_checkfile(display, filename);
 }
 
 // C ref: pager.c:1975
-export async function look_all(game) {
+export function look_all(game) {
   return do_look(game, 0, null);
 }
 

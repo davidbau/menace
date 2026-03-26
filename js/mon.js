@@ -2560,7 +2560,7 @@ export function valid_vampshiftform(base, form) {
 }
 
 // Autotranslated from mon.c:5225
-export async function accept_newcham_form(mon, mndx, game) {
+export function accept_newcham_form(mon, mndx, game) {
   let mdat;
   if (mndx === NON_PM) return 0;
   mdat = mons[mndx];
@@ -3002,7 +3002,7 @@ export async function monstone(mon, map = null, player = _gstate?.u) {
 }
 
 // C ref: mon.c:1196
-export async function movemon_singlemon(mon, map = null, player = _gstate?.u) {
+export function movemon_singlemon(mon, map = null, player = _gstate?.u) {
     if (!mon || mon.dead) return false;
     mcalcmove(mon, true);
     if (player && monnear(mon, player.x, player.y) && !mon.mpeaceful) {

@@ -465,7 +465,7 @@ export function isObjectEncountered(otyp) {
     return !!ocEncountered[otyp];
 }
 
-async function pushDisco(otyp) {
+function pushDisco(otyp) {
     const od = objectData[otyp];
     if (!od) return;
     const cls = od.oc_class;
@@ -479,7 +479,7 @@ export async function discoverObject(otyp, markAsKnown, markAsEncountered, credi
     if (ocNameKnown.length === 0) initDiscoveryState();
     if (!Number.isInteger(otyp) || otyp < FIRST_OBJECT || otyp >= objectData.length) return;
     if ((!ocNameKnown[otyp] && markAsKnown) || (!ocEncountered[otyp] && markAsEncountered)) {
-        await pushDisco(otyp);
+        pushDisco(otyp);
         if (markAsEncountered) ocEncountered[otyp] = true;
         const newlyKnown = !ocNameKnown[otyp] && markAsKnown;
         if (newlyKnown) {
@@ -586,7 +586,7 @@ export function getDiscoveryState() {
     };
 }
 
-export async function setDiscoveryState(state) {
+export function setDiscoveryState(state) {
     initDiscoveryState();
     if (!state || !Array.isArray(state.ocNameKnown) || !Array.isArray(state.ocEncountered)) {
         return;
@@ -597,10 +597,10 @@ export async function setDiscoveryState(state) {
         ocEncountered[i] = !!state.ocEncountered[i];
     }
     if (Array.isArray(state.disco) && state.disco.length > 0) {
-        for (const otyp of state.disco) await pushDisco(otyp);
+        for (const otyp of state.disco) pushDisco(otyp);
     } else {
         for (let i = 0; i < n; i++) {
-            if (ocNameKnown[i] || ocEncountered[i]) await pushDisco(i);
+            if (ocNameKnown[i] || ocEncountered[i]) pushDisco(i);
         }
     }
 }
@@ -735,12 +735,12 @@ export function disco_append_typename(prefix, otyp) {
 }
 
 // cf. o_init.c:756
-export async function dodiscovered(game) {
+export function dodiscovered(game) {
     return handleDiscoveries(game);
 }
 
 // cf. o_init.c:870
-export async function doclassdisco(_oclass, game) {
+export function doclassdisco(_oclass, game) {
     return handleDiscoveries(game);
 }
 
@@ -752,10 +752,10 @@ export function savenames(nhfp) {
 }
 
 // cf. o_init.c:435
-export async function restnames(nhfp) {
+export function restnames(nhfp) {
     if (!nhfp || typeof nhfp !== 'object' || !nhfp.discoveryState)
         return;
-    await setDiscoveryState(nhfp.discoveryState);
+    setDiscoveryState(nhfp.discoveryState);
 }
 
 // cf. o_init.c:1087

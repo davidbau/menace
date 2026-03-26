@@ -586,7 +586,7 @@ async function newuhs(player, incr) {
 }
 
 // cf. eat.c:1796-1804 Hear_again() — chance to cure deafness
-export async function Hear_again(player) {
+export function Hear_again(player) {
     const game = _gstate;
     if (!rn2(2)) {
         // C: make_deaf(0L, FALSE) — clear deafness
@@ -605,7 +605,7 @@ export async function Hear_again(player) {
 // cf. eat.c:3330-3339 unfaint() — recover from fainting
 export async function unfaint(game, player) {
     if (!player && game) player = game.u;
-    await Hear_again(player);
+    Hear_again(player);
     if (player.uhs > FAINTING) player.uhs = FAINTING;
     if (game) await stop_occupation(game);
     if (game) {
@@ -1695,7 +1695,7 @@ export async function doeat_nonfood(otmp, game, player) {
   else if (!nodelicious) {
     await pline("%s%s is delicious!", (obj_is_pname(otmp) && otmp.oartifact < ART_ORB_OF_DETECTION) ? "" : "This ", (otmp.oclass === COIN_CLASS) ? foodword(otmp) : await singular(otmp, xname));
   }
-  await eatspecial();
+  eatspecial();
   return ECMD_TIME;
 }
 
@@ -1799,7 +1799,7 @@ export function eaten_stat(base, obj) {
 
 // cf. eat.c consume_oeaten() — reduce oeaten field
 // Autotranslated from eat.c:3802
-export async function consume_oeaten(obj, amt, game) {
+export function consume_oeaten(obj, amt, game) {
   if (!obj_nutrition(obj)) {
     let itembuf, otyp = obj.otyp;
     if (otyp === CORPSE || otyp === EGG || otyp === TIN) {
@@ -2346,7 +2346,7 @@ export function leather_cover(otmp) {
 export async function eatfood(game, player) {
   let food = game.svc.context.victual.piece;
   if (food && !carried(food) && !obj_here(food, player.x, player.y, game?.map)) food = 0;
-  if (!food) { await do_reset_eat(); return 0; }
+  if (!food) { do_reset_eat(); return 0; }
   if (!game.svc.context.victual.eating) return 0;
   if (++game.svc.context.victual.usedtime <= game.svc.context.victual.reqtime) {
     if (await bite(game, player)) return 0;
@@ -2396,15 +2396,15 @@ export async function bite(game, player) {
     await choke(game.svc.context.victual.piece, player);
     return 1;
   }
-  if (game.svc.context.victual.doreset) { await do_reset_eat(); return 0; }
+  if (game.svc.context.victual.doreset) { do_reset_eat(); return 0; }
   gf.force_save_hs = true;
   if (game.svc.context.victual.nmod < 0) {
     await lesshungry(player, adj_victual_nutrition(player, game.svc.context.victual.nmod));
-    await consume_oeaten(game.svc.context.victual.piece, game.svc.context.victual.nmod, game);
+    consume_oeaten(game.svc.context.victual.piece, game.svc.context.victual.nmod, game);
   }
   else if (game.svc.context.victual.nmod > 0 && (game.svc.context.victual.usedtime % game.svc.context.victual.nmod)) {
     await lesshungry(player, 1);
-    await consume_oeaten(game.svc.context.victual.piece, -1, game);
+    consume_oeaten(game.svc.context.victual.piece, -1, game);
   }
   gf.force_save_hs = false;
   recalc_wt();

@@ -944,7 +944,7 @@ async function run_dochug_postmove_pipeline_current_js(
                     if (display && canSpotMonsterForMap(mon, map, player, fov)) {
                         await display.putstr_message(`${Monnam(mon)} eats through the iron bars.`);
                     }
-                    await dissolve_bars(mon.mx, mon.my, map);
+                    dissolve_bars(mon.mx, mon.my, map);
                     return MMOVE_DONE;
                 }
             }
@@ -1547,7 +1547,7 @@ export async function dochug(mon, map, player, display, fov, game = null) {
                 // dog_move returns MMOVE_MOVED even when the dog stays put,
                 // so postmov (mdig_tunnel, mintrap, etc.) must always run.
                 if (!mon.dead && moveStatus === MMOVE_MOVED) {
-                    const postmoveStatus = await run_dochug_postmove_pipeline_current_js(
+                    const postmoveStatus = run_dochug_postmove_pipeline_current_js(
                         mon, map, player, display, fov, game, omx, omy, { preTrapDig: true }
                     );
                     if (postmoveStatus === MMOVE_DIED) {
@@ -1556,7 +1556,7 @@ export async function dochug(mon, map, player, display, fov, game = null) {
                     mmoved = true;
                 }
             }
-            ({ moveStatus, mmoved } = await run_dochug_postmove_tail_current_js(
+            ({ moveStatus, mmoved } = run_dochug_postmove_tail_current_js(
                 mon, map, player, display, fov, moveStatus, mmoved
             ));
         } else {
@@ -1581,7 +1581,7 @@ export async function dochug(mon, map, player, display, fov, game = null) {
                     trapDied = true;
                     moveStatus = MMOVE_DIED;
                 } else if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                    const postmoveStatus = await run_dochug_postmove_pipeline_current_js(
+                    const postmoveStatus = run_dochug_postmove_pipeline_current_js(
                         mon, map, player, display, fov, game, omx, omy
                     );
                     if (postmoveStatus === MMOVE_DIED) {
@@ -1593,7 +1593,7 @@ export async function dochug(mon, map, player, display, fov, game = null) {
                     }
                 }
                 if (!trapDied) {
-                    ({ moveStatus, mmoved } = await run_dochug_postmove_tail_current_js(
+                    ({ moveStatus, mmoved } = run_dochug_postmove_tail_current_js(
                         mon, map, player, display, fov, moveStatus, mmoved
                     ));
                 }
@@ -2854,7 +2854,7 @@ export function emitMfndposTrace(kind, mon, positions, allowflags, map) {
 }
 
 // Autotranslated from monmove.c:2172
-export async function dissolve_bars(x, y, map) {
+export function dissolve_bars(x, y, map) {
   if (!map || !isok(x, y)) return;
   const loc = map.locations?.[x]?.[y];
   if (!loc) return;

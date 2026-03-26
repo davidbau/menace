@@ -1926,7 +1926,7 @@ export function create_particular_parse(str, data) {
 // Create the monster specified by create_particular_parse.
 // Stub: wizard mode only, not needed for gameplay parity.
 // ---------------------------------------------------------------------------
-export async function create_particular_creation(data) {
+export function create_particular_creation(data) {
     // Wizard mode function — stub for CODEMATCH completeness
     return false;
 }

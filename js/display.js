@@ -1719,8 +1719,8 @@ export function see_traps() {
 }
 
 // Autotranslated from display.c:1675
-export async function curs_on_u() {
-  await flush_screen(1);
+export function curs_on_u() {
+  flush_screen(1);
 }
 
 
@@ -1730,7 +1730,7 @@ function docrtRecalc(ctx) {
 }
 
 // Autotranslated from display.c:1704
-export async function docrt_flags(recalc = null, ctxOrMap = null) {
+export function docrt_flags(recalc = null, ctxOrMap = null) {
   const ctx = _resolveDisplayCtx(ctxOrMap);
   if (!ctx?.display || !ctx?.map) return;
   cosmic_display_push_owner('docrt_flags');
@@ -1745,8 +1745,8 @@ export async function docrt_flags(recalc = null, ctxOrMap = null) {
 }
 
 // Autotranslated from display.c:1690
-export async function docrt() {
-  await docrt_flags(docrtRecalc);
+export function docrt() {
+  docrt_flags(docrtRecalc);
 }
 
 // Autotranslated from display.c:2207
