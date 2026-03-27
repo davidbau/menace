@@ -1924,7 +1924,8 @@ async function handleEat(player, display, game) {
         const floorDescribed = doname(floorItem, null);
         const floorName = floorDescribed.replace(/^(?:an?|the)\s+/i, '');
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
-        await display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n)`);
+        // C ref: tty_yn_function appends trailing space after (def) for cursor parity.
+        await display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n) `);
         const ans = String.fromCharCode(
             await nhgetch()
         ).toLowerCase();
@@ -2184,7 +2185,8 @@ async function handleEat(player, display, game) {
                     // C ref: eat.c lesshungry()/eatfood() — fullwarn path.
                     if (!fullwarn && bitesLeft > 1 && canchoke(player)) {
                         fullwarn = true;
-                        await display.putstr_message('Continue eating? [yn] (n)');
+                        // C ref: tty_yn_function appends trailing space after (def).
+                        await display.putstr_message('Continue eating? [yn] (n) ');
                         game.pendingPrompt = {
                             type: 'eat_continue',
                             onKey: async (chCode, gameCtx) => {
