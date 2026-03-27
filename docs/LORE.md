@@ -17134,9 +17134,18 @@ generation (between room creation and `find_branch_room`) that shifts the
 RNG position. The per-step comparator says entries "match" but the INTERNAL
 ordering within the step differs at some point.
 
-Next step: bisect the ~2400 level generation RNG entries to find the first
-entry where JS and C consume RNG for different purposes. This requires
-comparing JS's RNG caller tags with C's caller tags within step 11.
+**RNG caller comparison** (March 27, 2026): Direct comparison of JS vs C
+caller tags during level generation revealed **JS consumes 284 MORE regular
+RNG entries** than C (2618 vs 2334). Key differences:
+- JS `level_finalize_topology`: 1046 calls vs C `mineralize`: 652 (net +394)
+- JS `join` (corridor): 310 vs C `dig_corridor`: 391 (net -81)
+- JS `makemon`: 128 vs C: 5 (net +123)
+- JS `build_room`: 79 vs C: 8 (net +71)
+
+The 284 extra calls shift the entire RNG stream, causing `find_branch_room`
+to consume different values and pick a different room for the branch stair.
+This is a **systemic level generation parity issue** involving multiple
+functions consuming different amounts of RNG, not a single-line bug.
 
 **Stalker invisibility** (unrelated fix): JS's eat.js PM_STALKER case had
 `rn1(100,50)` computed but discarded with a TODO. Now properly calls
