@@ -17087,25 +17087,24 @@ comparison at the specific position to identify the exact mismatch.
 
 ### seed032 Invisibility Bug (March 27, 2026)
 
-**Root cause identified via C trace**: At step 300, monster 182 (newt) at
-(62,15) picks position (62,16) in C but (62,14) in JS. C trace from m_move
-shows `target=(62,16) u=(69,15)` — the target is NOT the player position,
-confirming the player IS invisible in C (`set_apparxy` randomizes the target).
+**C trace investigation** (March 27, 2026): initial m_move trace from a
+rerecorded session suggested the player was invisible in C (randomized target).
+However, a second trace added directly to set_apparxy showed `Invis=0,
+notseen=0, notthere=0` — the player is NOT invisible. The first trace was
+from a stale rerecord that produced a different session.
 
-JS trace shows `heroInvis=false` with `uprops[40]=undefined` throughout the
-entire session. The player's INVIS property (`uprops[INVIS]`) is never set.
-`player.Invis` (computed via `hasProp(INVIS)`) returns false because
-`uprops[40]` doesn't exist.
+**LESSON**: C traces with `rerecord.py` overwrite the session file! Always
+`git checkout` the session file after using rerecord for C tracing. The
+rerecord produces a new recording that may differ from the original due to
+timing/capture differences.
 
-The player becomes invisible in C through some game action (potion, spell,
-stalker corpse, or ring) that was not identified from session data. The JS
-code path that should set `incr_itimeout(player, INVIS, ...)` is never
-reached, despite the first 18864 RNG entries matching (indicating the same
-game actions occur in both C and JS).
+The seed032 divergence at step 300 remains unexplained. The monster position
+drift is not from invisibility. It must come from an earlier accumulated state
+difference affecting monster movement decisions despite identical RNG.
 
-Next step: add a C trace to `incr_itimeout(&HInvis, ...)` and all `HInvis`
-assignments (potion.c, spell.c, eat.c) to identify WHEN and HOW C sets the
-invisibility, then check the corresponding JS code path.
+**Stalker invisibility** (unrelated fix): JS's eat.js PM_STALKER case had
+`rn1(100,50)` computed but discarded with a TODO. Now properly calls
+`set_itimeout(player, INVIS, ...)` matching C's eat.c:1162-1172.
 
 **RESOLVED (March 26, 2026)**: The displacement loop in JS's set_apparxy was
 missing the `!couldsee(mx, my)` check from C monmove.c:2261. JS had an
