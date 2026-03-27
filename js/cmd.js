@@ -1071,18 +1071,18 @@ async function handleExtendedCommand(game) {
         // when players type #<cmd> instead of the single-key shortcut.
         case 'w':
         case 'wield':
-            queueRepeatExtcmd((g) => handleWield(g.player, g.display));
+            queueRepeatExtcmd(async (g) => await handleWield(g.player, g.display));
             return await handleWield(player, display);
         case 'wear':
-            queueRepeatExtcmd((g) => handleWear(g.player, g.display, g));
+            queueRepeatExtcmd(async (g) => await handleWear(g.player, g.display, g));
             return await handleWear(player, display, game);
         case 'e':
         case 'eat':
-            queueRepeatExtcmd((g) => handleEat(g.player, g.display, g));
+            queueRepeatExtcmd(async (g) => await handleEat(g.player, g.display, g));
             return await handleEat(player, display, game);
         case 'r':
         case 'read':
-            queueRepeatExtcmd((g) => handleRead(g.player, g.display, g));
+            queueRepeatExtcmd(async (g) => await handleRead(g.player, g.display, g));
             return await handleRead(player, display, game);
         case 'a':
         case 'again':
@@ -1098,7 +1098,7 @@ async function handleExtendedCommand(game) {
             queueRepeatExtcmd(async (g) => await dokick(g.player, g.map, g.display, g));
             return await dokick(player, game.map, display, game);
         case 'twoweapon':
-            queueRepeatExtcmd((g) => handleTwoWeapon(g.player, g.display, g));
+            queueRepeatExtcmd(async (g) => await handleTwoWeapon(g.player, g.display, g));
             return await handleTwoWeapon(player, display, game);
         case 'u':
         case 'untrap':
@@ -1782,11 +1782,11 @@ export function dxdy_moveok(player) {
 // Autotranslated from cmd.c:4042
 export async function get_adjacent_loc(prompt, emsg, x, y, cc, player) {
   let new_x, new_y;
-  if (!await getdir(prompt)) { pline1(Never_mind); return 0; }
+  if (!await getdir(prompt)) { await pline1(Never_mind); return 0; }
   new_x = x + player.dx;
   new_y = y + player.dy;
   if (cc && isok(new_x, new_y)) { cc.x = new_x; cc.y = new_y; }
-  else { if (emsg) pline1(emsg); return 0; }
+  else { if (emsg) await pline1(emsg); return 0; }
   return 1;
 }
 
