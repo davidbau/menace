@@ -15,7 +15,7 @@ import {
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
     RLOC_NOMSG, STRAT_WAITMASK, STRAT_WAITFORU, STUNNED,
-    P_BARE_HANDED_COMBAT, ACCESSIBLE, IS_POOL,
+    P_BARE_HANDED_COMBAT, ACCESSIBLE, IS_POOL, XKILL_NOMSG,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
@@ -2374,94 +2374,23 @@ async function hitMonsterWithPotion(player, monster, display, weapon) {
 // Co-located here with its primary caller hmon().
 // TODO: future mon.js codematch should migrate this to mon.js.
 export async function handleMonsterKilled(player, monster, display, map) {
-    // cf. uhitm.c -> mon.c mondead() -> killed() -> xkilled()
+    // C ref: mon.c killed() → xkilled(XKILL_GIVEMSG).
+    // Show the kill message via display (preserving existing message path),
+    // then delegate to xkilled(XKILL_NOMSG) for all death processing:
+    //   - mondead_full with life-saving
+    //   - LEVEL_SPECIFIC_NOCORPSE gate
+    //   - accessible(x,y) gate
+    //   - treasure drop (rn2(6) + mkobj)
+    //   - AT_BOOM explosion handling
+    //   - corpse creation (corpse_chance + make_corpse)
+    //   - murder/peaceful/tame penalties
+    //   - experience + alignment adjustments
     const mdat = monster.data || monster.type || {};
-    // C ref: uhitm.c — tame pets use "poor" adjective in kill message
     const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
-    const killName = monster.mtame
-        ? `the poor ${x_monnam(monster)}`
-        : `${mon_nam(monster)}`;
+    const killName = !monster.mtame ? mon_nam(monster)
+        : `the poor ${x_monnam(monster)}`;
     await display.putstr_message(`You ${killVerb} ${killName}!`);
-    await mondead(monster, map, player);
-
-    // C ref: mon.c LEVEL_SPECIFIC_NOCORPSE() + xkilled() gate.
-    // This pre-check suppresses both treasure drops and corpse creation.
-    const isRogueLevel = !!map?.flags?.is_rogue_level;
-    // C ref: !svl.level.flags.deathdrops — falsy check (0 or false, not undefined)
-    const deathdropsDisabled = (map?.flags?.deathdrops != null && !map.flags.deathdrops);
-    let graveyardUndeadNoCorpse = false;
-    if (!isRogueLevel && !deathdropsDisabled && map?.flags?.graveyard && is_undead(mdat)) {
-        // C macro term: (graveyard && is_undead(mdat) && rn2(3))
-        graveyardUndeadNoCorpse = rn2(3) !== 0;
-    }
-    const levelSpecificNoCorpse = isRogueLevel || deathdropsDisabled || graveyardUndeadNoCorpse;
-
-    // C ref: mon.c:3576 — accessible(x,y) || is_pool(x,y) gates treasure+corpse
-    const deathLoc = map?.at(monster.mx, monster.my);
-    const tileAccessible = deathLoc && (ACCESSIBLE(deathLoc.typ) || IS_POOL(deathLoc.typ));
-    if (!levelSpecificNoCorpse && tileAccessible) {
-        // cf. mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
-        const treasureRoll = rn2(6);
-        const canDropTreasure = treasureRoll === 0
-            && !((mdat.geno || 0) & G_NOCORPSE)
-            && !monster.mcloned
-            && (monster.mx !== player.x || monster.my !== player.y)
-            && mdat.mlet !== S_KOP;
-        if (canDropTreasure && map) {
-            const otmp = mkobj(RANDOM_CLASS, true, false);
-            const flags2 = mdat.mflags2 || 0;
-            const isSmallMonster = (mdat.msize || 0) < MZ_HUMAN;
-            const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
-            const dropTooBig = isSmallMonster && !!otmp
-                && otmp.otyp !== FIGURINE
-                && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
-            if (isPermaFood && !(flags2 & M2_COLLECT)) {
-                obj_resists(otmp, 0, 0);
-            } else if (dropTooBig) {
-                obj_resists(otmp, 0, 0);
-            } else {
-                otmp.ox = monster.mx;
-                otmp.oy = monster.my;
-                placeFloorObject(map, otmp);
-            }
-        }
-
-        // C ref: mon.c xkilled() calls corpse_chance() first, then
-        // make_corpse() may still return null for G_NOCORPSE species.
-        const speciesNoCorpse = !!((mdat.geno || 0) & G_NOCORPSE);
-        const createCorpseRoll = corpse_chance(monster);
-        if (createCorpseRoll && !speciesNoCorpse) {
-            const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
-                map ? monster.mx : 0, map ? monster.my : 0, map);
-            corpse.age = Math.max((player?.turns || 0) + 1, 1);
-        }
-        // C ref: mon.c:3638 — "monster is gone, corpse or other object might now be visible"
-        // Called ONCE after both treasure drop and corpse creation, regardless of which occurred.
-        if (map) newsym(monster.mx, monster.my);
-    }
-
-    // C ref: mon.c:3724 — malign was already adjusted for alignment and randomization
-    // set_malign is normally called in C makemon; compute lazily if not yet set
-    if (monster.malign === undefined && mdat) {
-        set_malign(monster, player);
-    }
-    adjalign(player, monster.malign || 0);
-
-    // C ref: mon.c cleanup section — award XP via experience() /
-    // more_experienced(), then check for level gain immediately.
-    const mndx = monster.mndx ?? 0;
-    const game = _gstate;
-    const exp = experience(monster, game?.mvitals?.[mndx]?.died || 0);
-    hmonTrace(game?.map || game?.lev || null, monster, 'kill-award',
-        `exp=${exp}`,
-        `mlev=${monster.m_lev ?? '?'}`,
-        `ac=${find_mac(monster)}`,
-        `mvitalsDied=${game?.mvitals?.[mndx]?.died ?? '?'}`);
-    more_experienced(exp, 0, game, player);
-    player.exp = player.uexp;
-    player.score += exp;
-    await newexplevel(player, display);
-
+    await xkilled(monster, XKILL_NOMSG, map, player);
     return true;
 }
 

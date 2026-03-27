@@ -99,7 +99,7 @@ import { experience, more_experienced, newexplevel } from './exper.js';
 import { sgn } from './hacklib.js';
 import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u, m_canseeu, little_to_big } from './mondata.js';
 import { record_achievement } from './insight.js';
-import { pmname, Mgender, x_monnam, y_monnam, Monnam } from './do_name.js';
+import { pmname, Mgender, x_monnam, y_monnam, mon_nam, Monnam } from './do_name.js';
 import { place_monster } from './steed.js';
 import { Role_if } from './role.js';
 import { dochug, m_everyturn_effect } from './monmove.js';
@@ -1066,6 +1066,11 @@ export async function xkilled(mon, xkill_flags, map, player) {
     const x = mon.mx, y = mon.my;
 
     mon.mhp = 0;
+
+    // C ref: mon.c:3497-3506 — kill message before mondead.
+    // Callers that pass XKILL_GIVEMSG are responsible for showing the
+    // kill message BEFORE calling xkilled (matching C's message timing).
+    // See handleMonsterKilled in uhitm.js for the hero-attack path.
 
     // C ref: mondead() with life-saving
     await mondead_full(mon, map, player);
