@@ -107,6 +107,31 @@ Historical/reference docs:
 3. Treat boundary-only capture artifacts as neutral only when repaint-parity evidence shows the mismatch is ownership/capture timing rather than gameplay-visible behavior.
 4. Use per-session first-divergence step movement as the decision signal for go/no-go commits.
 
+## Step Boundary Offsets
+When testing reveals that JS attributes events to a different step than C,
+do not treat this as a fundamental architectural problem. Despite all the
+async/await in JS, all game logic runs on a single linear thread — this
+models C's single-threaded execution model and has been verified by both
+static program analysis and runtime assertions that monitor and enforce
+single-threaded flow (see `js/modal_guard.js`).
+
+Step boundary offsets mean that certain actions (message display, monster
+turns, turn-end processing) happen at a different point in the linear
+turn sequence than C. The fix is always **moving specific calls earlier
+or later in JS's turn sequence** to match C's ordering — not restructuring
+the architecture.
+
+Common examples:
+- A `--More--` boundary fires (or doesn't fire) because `topMessage`
+  state differs from C's `toplines` at that point in the turn.
+- Monster movement is attributed to the wrong step because
+  `moveloop_turnend` ran before/after the corresponding C code.
+- A floor check message appears one step early because the hero's
+  `domove` triggered `check_here` before a prior `--More--` was dismissed.
+
+Do not fear boundary offsets. Diagnose which call is out of order, and
+move it to the correct point in the turn.
+
 ## Repaint Parity Discipline
 1. For `screen` or `cursor` mismatches, do not rely on vague "boundary artifact" explanations.
 2. Use `docs/REPAINT_PARITY.md` and repaint diagnostics to identify the concrete owner of the visible change:
