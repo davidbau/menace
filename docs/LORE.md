@@ -17240,3 +17240,94 @@ Next steps for seed033:
 3. If the key offset is due to --More-- boundaries during travel
    (engraving reads that trigger more()), the putstr_message fix may
    resolve it — but requires removing compensating more() calls first
+
+---
+
+## Step Boundary Offset (Session 35, March 27 2026)
+
+### Discovery
+All monsters in seed032 have `^movemon_turn` events attributed **1 step
+earlier** in JS than in C. Positions are identical — same sequence, same
+movements, same RNG — but the recording step counter is off by 1.
+
+Example (pet monster 32):
+| Step | C position | JS position |
+|------|-----------|-------------|
+| 256  | (54,12)   | (55,12)     |
+| 257  | (55,12)   | (55,11)     |
+| 258  | (55,11)   | (55,10)     |
+
+### Cause
+`moveloop_turnend()` events (mcalcmove, makemon random spawn, u_calc_moveamt)
+are attributed to the **current step's** RNG log in JS, but to the **next
+step's** RNG log in C.  The game loop structures are architecturally identical
+(both run moveloop_turnend at the bottom of the inner "hero can't move" loop).
+The difference is in when the step counter advances relative to the key event:
+
+- **C recording**: key → process → monsters → [capture] → turnend → monsters → [capture]
+- **JS replay**: key → process → monsters → turnend → [step boundary]
+
+### Impact
+- Random monster spawn (`makemon_appear`) appears 1 step earlier in JS traces
+- `mcalcmove` budget allocation appears 1 step earlier
+- Cumulative RNG comparison stays aligned because RNG values match
+- But per-step comparison shows monsters "ahead by 1 step" in JS
+- At late steps (300+), the 1-step offset means monsters interact at
+  slightly different game states, causing eventual position drift
+
+### Affected sessions
+seed032, seed328, and likely any session with late-stage monster drift
+where per-step RNG matches but monster positions are offset by 1.
+
+### Fix direction
+Adjust the JS replay step boundary so that moveloop_turnend events are
+attributed to the following step, matching C's behavior. This could be done
+by splitting the RNG log at the point where moveloop_turnend begins.
+
+---
+
+## m_move Audit Findings (Session 35, March 27 2026)
+
+Systematic comparison of `m_move()` between JS (monmove.js) and C (monmove.c)
+for non-RNG behavioral differences that could cause monster position drift:
+
+### Missing: Unicorn NOTONL avoidance (C monmove.c:1938-1948)
+C checks if any candidate position is off the hero's line, sets `avoid=TRUE`,
+then skips NOTONL positions during selection. JS has no NOTONL logic. Affects
+unicorns on noteleport levels.
+
+### Missing: Hero appearance checks (C monmove.c:1864-1871)
+C has two `appr=0` conditions for hero appearance mimicking:
+- `is_obj_mappear(&gy.youmonst, STRANGE_OBJECT)` — hero disguised as object
+- `is_obj_mappear(&gy.youmonst, GOLD_PIECE) && !likes_gold(ptr)` — gold disguise
+JS has neither. Affects sessions where hero uses polymorph/mimic abilities.
+
+### Difference: itsstuck guard (C monmove.c:1986)
+C checks `mmoved == MMOVE_MOVED` before `itsstuck`; JS checks
+`nix !== omx || niy !== omy`. These are functionally equivalent in practice
+since mfndpos never returns the current position.
+
+---
+
+## seed033 Spell Knowledge Bug (Session 35, March 27 2026)
+
+### Discovery
+At step 583, C says "You learn 'light'" (new spell) while JS says
+"You know 'light' quite well already." (already known).
+
+### Investigation
+Both C and JS Priest characters have spellbook of light in starting inventory.
+JS correctly auto-learns it via `initialSpell()`. The startup RNG matches
+perfectly (2256/2256 values identical). But C doesn't know the spell.
+
+### Root cause
+The C session was recorded with `nethack_c: '79c688cc6'`. That C binary
+version apparently has a bug or different behavior where `initialspell()` in
+`u_init_skills_discoveries()` doesn't properly register the starting spell.
+Re-recording with the current C binary produces a WORSE result (level
+generation diverges), indicating the binary has been updated.
+
+### Conclusion
+This is a C recording artifact, not a JS code bug. The session cannot be
+fixed from the JS side.
+
