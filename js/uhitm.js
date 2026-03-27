@@ -15,7 +15,7 @@ import {
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
     RLOC_NOMSG, STRAT_WAITMASK, STRAT_WAITFORU, STUNNED,
-    P_BARE_HANDED_COMBAT,
+    P_BARE_HANDED_COMBAT, ACCESSIBLE, IS_POOL,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
@@ -2396,7 +2396,10 @@ export async function handleMonsterKilled(player, monster, display, map) {
     }
     const levelSpecificNoCorpse = isRogueLevel || deathdropsDisabled || graveyardUndeadNoCorpse;
 
-    if (!levelSpecificNoCorpse) {
+    // C ref: mon.c:3576 — accessible(x,y) || is_pool(x,y) gates treasure+corpse
+    const deathLoc = map?.at(monster.mx, monster.my);
+    const tileAccessible = deathLoc && (ACCESSIBLE(deathLoc.typ) || IS_POOL(deathLoc.typ));
+    if (!levelSpecificNoCorpse && tileAccessible) {
         // cf. mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
         const treasureRoll = rn2(6);
         const canDropTreasure = treasureRoll === 0
