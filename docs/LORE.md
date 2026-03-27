@@ -17115,9 +17115,16 @@ to be 1 row higher.
 **somexyspace** ACCESSIBLE fix (committed): JS checked `typ === ROOM || CORR
 || ICE` but C checks `ACCESSIBLE(typ)` which includes DOOR. Fixed.
 
-Next step: find the room creation code where the y-coordinate offset
-originates. Check `create_room`, `add_room`, or the room parameter generation
-in `makelevel`.
+**Room bounds match** (March 27, 2026): C trace confirmed room #6 bounds are
+IDENTICAL between JS and C: both (3,2)-(9,4). The stair position difference
+(JS (6,4) vs C (5,5)) comes from `somexy` consuming rn2 values at a DIFFERENT
+position in the global RNG stream. This means JS and C consume different
+amounts of RNG between room creation and branch stair placement — a subtle
+RNG ordering difference within level generation.
+
+Next step: compare the RNG log within the level generation phase (step 11's
+2496 entries) to find where the consumption order first diverges. This is a
+per-call comparison of JS vs C RNG entries during makelevel().
 
 **Stalker invisibility** (unrelated fix): JS's eat.js PM_STALKER case had
 `rn1(100,50)` computed but discarded with a TODO. Now properly calls
