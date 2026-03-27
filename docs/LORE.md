@@ -17353,3 +17353,26 @@ generation diverges), indicating the binary has been updated.
 ### Conclusion
 This is a C recording artifact, not a JS code bug. The session cannot be
 fixed from the JS side.
+
+### Deeper analysis: _gameLoopStep key consumption
+
+The JS replay step 252 (key "u") processes 5 game turns including a
+`runmode_delay_output` animation, while C step 252 processes only 1
+turn. JS step 253 (key "K") has only 2 events instead of C's 289.
+
+This confirms the root cause: `_gameLoopStep()` for the "u" key
+internally calls `nhgetch()` (for a --More--, continuation, or run
+direction prompt), which reads the next key "K" from the input buffer.
+The "K" key is consumed as a run direction within the "u" step's
+processing, causing all run events to be attributed to step 252.
+
+In C, each nhgetch() call advances the recording step boundary.
+In JS replay, all nhgetch() calls within one `_gameLoopStep()` call
+share the same step — they don't advance the step counter.
+
+**Fix direction**: The replay engine would need to either:
+1. Split steps at every nhgetch() call (matching C's recording)
+2. Or pre-feed all keys a step needs based on the C step boundary
+
+This is an architectural change to replay_core.js that requires
+careful design to avoid breaking 567 passing sessions.
