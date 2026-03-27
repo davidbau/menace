@@ -17122,9 +17122,21 @@ position in the global RNG stream. This means JS and C consume different
 amounts of RNG between room creation and branch stair placement — a subtle
 RNG ordering difference within level generation.
 
-Next step: compare the RNG log within the level generation phase (step 11's
-2496 entries) to find where the consumption order first diverges. This is a
-per-call comparison of JS vs C RNG entries during makelevel().
+C's starting position (5,5) is on room #6's WALL (y=hy+1=5), not inside the
+interior [ly=2,hy=4]. This proves C selected a DIFFERENT room for the branch
+stair than JS, despite identical room bounds and identical `generate_stairs_
+find_room` logic. The `rn2(candidates.length)` in C picks a different room
+index because the RNG stream is at a different global position by the time
+`find_branch_room` is called.
+
+This means there's a subtle RNG consumption difference earlier in level
+generation (between room creation and `find_branch_room`) that shifts the
+RNG position. The per-step comparator says entries "match" but the INTERNAL
+ordering within the step differs at some point.
+
+Next step: bisect the ~2400 level generation RNG entries to find the first
+entry where JS and C consume RNG for different purposes. This requires
+comparing JS's RNG caller tags with C's caller tags within step 11.
 
 **Stalker invisibility** (unrelated fix): JS's eat.js PM_STALKER case had
 `rn1(100,50)` computed but discarded with a TODO. Now properly calls
