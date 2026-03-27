@@ -15,12 +15,13 @@ import {
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
     RLOC_NOMSG, STRAT_WAITMASK, STRAT_WAITFORU, STUNNED,
+    P_BARE_HANDED_COMBAT,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
     PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
-    M1_FLY, M1_NOHEAD, M1_UNSOLID,
+    M1_FLY, M1_NOHEAD, M1_UNSOLID, M1_THICK_HIDE,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN, S_FUNGUS,
     PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN, PM_CLAY_GOLEM, PM_STEAM_VORTEX,
@@ -46,7 +47,7 @@ import {
     WEAPON_CLASS, GEM_CLASS, TOOL_CLASS, SPBOOK_CLASS, COIN_CLASS, RANDOM_CLASS,
 } from './objects.js';
 import { mkobj, mkcorpstat, next_ident, xname } from './mkobj.js';
-import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus } from './weapon.js';
+import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus, P_SKILL } from './weapon.js';
 import { near_capacity, overexertion } from './hack.js';
 import { will_hurtle, mhurtle, ammo_and_launcher, is_ammo, is_missile } from './dothrow.js';
 import { u_wipe_engr } from './engrave.js';
@@ -57,7 +58,7 @@ import {
     resists_fire, resists_cold, resists_elec, resists_acid,
     resists_poison, resists_sleep, resists_ston, resists_drli,
     defended,
-    thick_skinned, mon_hates_silver, mon_hates_light, hides_under,
+    mon_hates_silver, mon_hates_light, hides_under,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc, is_were,
     carnivorous, herbivorous, is_metallivore,
     is_rider, slimeproof, completelyrusts, completelyrots,
@@ -660,9 +661,20 @@ export function hmon_hitmon_jousting(hmd, mon, obj) {
 //   VERY small chance of stunning opponent if unarmed.
 //   Consumes rnd(100) for RNG parity.
 export function hmon_hitmon_stagger(hmd, mon, obj) {
-    // C: if (rnd(100) < P_SKILL(P_BARE_HANDED_COMBAT) && !bigmonst && !thick_skinned)
-    // In JS, skill levels not tracked, so just consume the RNG
-    rnd(100);
+    // C ref: uhitm.c:1548-1563 — VERY small chance of stunning opponent if unarmed.
+    const mdat = hmd.mdat || mon.data || mon.type || {};
+    const skillLevel = P_SKILL(P_BARE_HANDED_COMBAT);
+    const isThickSkinned = !!((mdat.mflags1 || 0) & M1_THICK_HIDE);
+    const isBig = (mdat.msize || 0) >= MZ_LARGE;
+    if (rnd(100) < skillLevel && !isBig && !isThickSkinned) {
+        // C ref: pline stagger message + mhurtle_to_doom
+        // mhurtle_to_doom is stubbed (needs mhurtle); stun is the important effect
+        mon.mstun = 1;
+        hmd.hittxt = true;
+        if (mhurtle_to_doom(mon, hmd.dmg, mdat)) {
+            hmd.already_killed = true;
+        }
+    }
 }
 
 // cf. uhitm.c:1566 — hmon_hitmon_pet(hmd, mon, obj):
