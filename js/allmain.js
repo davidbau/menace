@@ -769,7 +769,7 @@ export async function run_command(game, ch, opts = {}) {
     if (player) player.umoved = false;
 
     // Emit hero position for parity debugging (env-gated, no production impact).
-    if (process.env.DEBUG_HERO_POS && player) {
+    if (typeof process !== 'undefined' && process.env?.DEBUG_HERO_POS && player) {
         const _step = game?.map?._replayStepIndex ?? -1;
         process.stderr.write(`[hero] step=${_step} pos=(${player.x},${player.y}) key=${JSON.stringify(String.fromCharCode(chCode))}\n`);
     }
