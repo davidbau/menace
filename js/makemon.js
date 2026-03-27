@@ -2974,7 +2974,7 @@ export async function bagotricks(bag, tipping, seencount, player) {
   let moncount = 0;
   if (!bag || bag.otyp !== BAG_OF_TRICKS) { impossible("bad bag o' tricks"); }
   else if (bag.spe < 1) {
-    pline1((tipping && bag.cknown) ? "It's empty." : nothing_happens);
+    await pline1((tipping && bag.cknown) ? "It's empty." : nothing_happens);
     if (bag.dknown && objectData[bag.otyp].oc_name_known) { bag.cknown = 1; update_inventory(); }
   }
   else {
@@ -2998,7 +2998,7 @@ export async function bagotricks(bag, tipping, seencount, player) {
       if (bag.dknown) { await makeknown(BAG_OF_TRICKS); update_inventory(); }
     }
     else if (!tipping) {
-      pline1(!moncount ? nothing_happens : nothing_seems_to_happen);
+      await pline1(!moncount ? nothing_happens : nothing_seems_to_happen);
     }
   }
   return moncount;

@@ -1881,7 +1881,7 @@ export async function create_particular() {
       prompt += " [type name or symbol]";
     }
   } while (--tryct > 0);
-  if (!tryct) pline1(thats_enough_tries);
+  if (!tryct) await pline1(thats_enough_tries);
   else {
     return create_particular_creation( d);
   }

@@ -743,7 +743,7 @@ export async function wiz_level_change(player, display) {
       ret = 0;
     }
   }
-  if (ret !== 1) { pline1(Never_mind); return ECMD_OK; }
+  if (ret !== 1) { await pline1(Never_mind); return ECMD_OK; }
   if (newlevel === player.ulevel) { await You("are already that experienced."); }
   else if (newlevel < player.ulevel) {
     if (player.ulevel === 1) {

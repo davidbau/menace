@@ -237,7 +237,7 @@ export async function outrumor(truth, mechanism, player) {
       await pline("It reads:");
     break;
   }
-  pline1(line);
+  await pline1(line);
 }
 
 // Autotranslated from rumors.c:576

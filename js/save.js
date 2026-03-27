@@ -163,7 +163,7 @@ export function save_gamelog(nhfp) {
 export async function tricked_fileremoved(nhfp, whynot) {
   if (!nhfp) {
     pushRngLogEntry(`^trick[${whynot ? String(whynot) : ''}]`);
-    pline1(whynot);
+    await pline1(whynot);
     await pline("Probably someone removed it.");
     svk.killer.name = whynot;
     await done(TRICKED);
