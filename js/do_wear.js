@@ -207,9 +207,9 @@ function toggle_extrinsic(player, prop, on) {
 export async function clearWornItemEffects(player, obj) {
     if (!player || !obj) return;
     if (obj === player.armor) {
-        Armor_off(player);
+        await Armor_off(player);
     } else if (obj === player.shield) {
-        Shield_off(player);
+        await Shield_off(player);
     } else if (obj === player.helmet) {
         await Helmet_off(player);
     } else if (obj === player.gloves) {
@@ -217,11 +217,11 @@ export async function clearWornItemEffects(player, obj) {
     } else if (obj === player.cloak) {
         await Cloak_off(player);
     } else if (obj === player.shirt) {
-        Shirt_off(player);
+        await Shirt_off(player);
     } else if (obj === player.rightRing || obj === player.leftRing) {
         await Ring_off(player, obj);
     } else if (obj === player.amulet) {
-        Amulet_off(player);
+        await Amulet_off(player);
     } else if (obj === player.boots) {
         switch (obj.otyp) {
         case SPEED_BOOTS:
@@ -264,13 +264,13 @@ export async function armoroff(otmp, player, game) {
     const armcat = objectData[otmp.otyp]?.oc_subtyp;
     const finishArmorOff = async () => {
         switch (armcat) {
-            case ARM_SUIT: Armor_off(player); break;
-            case ARM_SHIELD: Shield_off(player); break;
+            case ARM_SUIT: await Armor_off(player); break;
+            case ARM_SHIELD: await Shield_off(player); break;
             case ARM_HELM: await Helmet_off(player); break;
             case ARM_GLOVES: await Gloves_off(player); break;
             case ARM_BOOTS: await Boots_off(player); break;
             case ARM_CLOAK: await Cloak_off(player); break;
-            case ARM_SHIRT: Shirt_off(player); break;
+            case ARM_SHIRT: await Shirt_off(player); break;
             default: break;
         }
         if (otmp?.owornmask) setnotworn(player, otmp);
@@ -595,25 +595,25 @@ function wielding_corpse(_obj, _how, _voluntary) {
 }
 
 // cf. do_wear.c Shield_on/off — mostly no-ops in C
-function Shield_on(player) {}
-function Shield_off(player) {}
+async function Shield_on(player) {}
+async function Shield_off(player) {}
 
 // cf. do_wear.c Shirt_on/off — mostly no-ops in C
-function Shirt_on(player) {}
-function Shirt_off(player) {}
+async function Shirt_on(player) {}
+async function Shirt_off(player) {}
 
 // cf. do_wear.c Armor_on/off (body armor / suit)
-export function Armor_on(player) {
+export async function Armor_on(player) {
     if (!player || !player.armor) return;
     if (!player.armor.known) player.armor.known = true;
-    dragon_armor_handling(player, player.armor, true);
+    await dragon_armor_handling(player, player.armor, true);
 }
-export function Armor_off(player) {
+export async function Armor_off(player) {
     if (!player || !player.armor) return;
-    dragon_armor_handling(player, player.armor, false);
+    await dragon_armor_handling(player, player.armor, false);
 }
 // cf. do_wear.c dragon_armor_handling() — handle dragon scale armor extra abilities
-function dragon_armor_handling(player, otmp, puton) {
+async function dragon_armor_handling(player, otmp, puton) {
     if (!otmp) return;
     switch (otmp.otyp) {
     case BLACK_DRAGON_SCALES:
@@ -662,11 +662,11 @@ function dragon_armor_handling(player, otmp, puton) {
 }
 
 // cf. do_wear.c Armor_gone() — handle armor being destroyed while worn
-export function Armor_gone(player) {
+export async function Armor_gone(player) {
     if (!player.armor) return;
     const otmp = player.armor;
     player.armor = null;
-    dragon_armor_handling(player, otmp, false);
+    await dragon_armor_handling(player, otmp, false);
     find_ac(player);
 }
 
@@ -726,9 +726,10 @@ async function Amulet_on(player) {
 }
 
 // cf. do_wear.c Amulet_off() — C ref: do_wear.c:1237-1300
-function Amulet_off(player) {
+async function Amulet_off(player) {
     if (!player || !player.amulet) return;
     const otyp = player.amulet.otyp;
+    let mkn = false;
     switch (otyp) {
     case AMULET_OF_ESP:
         toggle_extrinsic(player, TELEPAT, false);
@@ -755,7 +756,15 @@ function Amulet_off(player) {
         break;
     case AMULET_OF_FLYING:
         toggle_extrinsic(player, FLYING, false);
+        // C ref: do_wear.c:1166 — makeknown when landing
+        if (!player.Flying && !player.levitating) {
+            mkn = true;
+        }
         break;
+    }
+    // C ref: do_wear.c:1182 — makeknown after setworn clears the slot
+    if (mkn) {
+        await makeknown(otyp);
     }
 }
 
@@ -1298,9 +1307,9 @@ async function set_wear(player, obj) {
         if (player.amulet) await Amulet_on(player);
 
     if (!obj || obj === player.shirt)
-        if (player.shirt) Shirt_on(player);
+        if (player.shirt) await Shirt_on(player);
     if (!obj || obj === player.armor)
-        if (player.armor) Armor_on(player);
+        if (player.armor) await Armor_on(player);
     if (!obj || obj === player.cloak)
         if (player.cloak) await Cloak_on(player);
     if (!obj || obj === player.boots)
@@ -1310,7 +1319,7 @@ async function set_wear(player, obj) {
     if (!obj || obj === player.helmet)
         if (player.helmet) await Helmet_on(player);
     if (!obj || obj === player.shield)
-        if (player.shield) Shield_on(player);
+        if (player.shield) await Shield_on(player);
 }
 
 // cf. do_wear.c donning() — check if player is in process of putting on armor
@@ -1502,7 +1511,7 @@ export async function armor_or_accessory_off(obj, game, player) {
   reset_remarm();
   if (obj.owornmask & W_ARMOR) { await armoroff(obj); }
   else if (obj === player.rightRing || obj === player.leftRing) { await off_msg(obj); await Ring_off(obj); }
-  else if (obj === player.amulet) { Amulet_off(); }
+  else if (obj === player.amulet) { await Amulet_off(); }
   else if (obj === player.blindfold) { await Blindf_off(player, obj); }
   else {
     impossible("removing strange accessory: %s", safe_typename(obj.otyp));
@@ -1570,7 +1579,7 @@ export async function do_takeoff(game, player) {
   else if (doff.what === WORN_ARMOR) {
     otmp = player.armor;
     if (!await cursed(otmp, player)) {
-      Armor_off();
+      await Armor_off();
     }
   }
   else if (doff.what === WORN_CLOAK) {
@@ -1600,16 +1609,16 @@ export async function do_takeoff(game, player) {
   else if (doff.what === WORN_SHIELD) {
     otmp = player.shield;
     if (!await cursed(otmp, player)) {
-      Shield_off();
+      await Shield_off();
     }
   }
   else if (doff.what === WORN_SHIRT) {
     otmp = player.shirt;
     if (!await cursed(otmp, player)) {
-      Shirt_off();
+      await Shirt_off();
     }
   }
-  else if (doff.what === WORN_AMUL) { otmp = player.amulet; if (!await cursed(otmp, player)) Amulet_off(); }
+  else if (doff.what === WORN_AMUL) { otmp = player.amulet; if (!await cursed(otmp, player)) await Amulet_off(); }
   else if (doff.what === LEFT_RING) { otmp = player.leftRing; if (!await cursed(otmp, player)) await Ring_off(player.leftRing); }
   else if (doff.what === RIGHT_RING) { otmp = player.rightRing; if (!await cursed(otmp, player)) await Ring_off(player.rightRing); }
   else if (doff.what === WORN_BLINDF) { if (!await cursed(player.blindfold, player)) await Blindf_off(player, player.blindfold); }
@@ -1830,12 +1839,12 @@ async function wornarm_destroyed(player, wornarm) {
 
     // Call the appropriate off function
     if (wornarm === player.cloak) { await Cloak_off(player); player.cloak = null; }
-    else if (wornarm === player.armor) { Armor_off(player); player.armor = null; }
-    else if (wornarm === player.shirt) { Shirt_off(player); player.shirt = null; }
+    else if (wornarm === player.armor) { await Armor_off(player); player.armor = null; }
+    else if (wornarm === player.shirt) { await Shirt_off(player); player.shirt = null; }
     else if (wornarm === player.helmet) { await Helmet_off(player); player.helmet = null; }
     else if (wornarm === player.gloves) { await Gloves_off(player); player.gloves = null; }
     else if (wornarm === player.boots) { await Boots_off(player); player.boots = null; }
-    else if (wornarm === player.shield) { Shield_off(player); player.shield = null; }
+    else if (wornarm === player.shield) { await Shield_off(player); player.shield = null; }
 
     find_ac(player);
     // Destroy the item from inventory
@@ -2337,7 +2346,7 @@ async function removeArmorOrAccessory(player, display, game, item) {
         setnotworn(player, item);
     } else if (item === player.amulet) {
         await off_msg(item, player);
-        Amulet_off(player);
+        await Amulet_off(player);
         setnotworn(player, item);
     } else if (item === player.blindfold) {
         await off_msg(item, player);

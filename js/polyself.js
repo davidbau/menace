@@ -1444,7 +1444,7 @@ export async function break_armor(player) {
         if (player.armor) {
             await You("break out of your armor!");
             await exercise(player, A_STR, false);
-            Armor_gone(player);
+            await Armor_gone(player);
             await useup(player.armor);
             player.armor = null;
         }
@@ -1462,7 +1462,7 @@ export async function break_armor(player) {
         // Small/slimy form slips out of armor
         if (player.armor) {
             await Your("armor falls around you!");
-            Armor_gone(player);
+            await Armor_gone(player);
             await dropp(player.armor, player);
             player.armor = null;
         }
