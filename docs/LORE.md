@@ -17244,6 +17244,18 @@ level. This removes the old monster-322 stair-return chase seam and moves
 `seed032_manual_direct` later (`300 -> 361`) without regressing
 `seed033_manual_direct` (still `571`).
 
+**Tended-shop pet blocking must use live shopkeeper lookup** (committed):
+After the per-level track fix, `seed032_manual_direct` next diverged at step
+`361` when JS let the hero displace a tame kitten in a shop square where C
+took the `You stop.  <pet> is in the way!` branch. The root cause was stale
+room metadata: JS checked `monRoom.resident`, but cached levels can revisit a
+shop room whose live shopkeeper is no longer stored there. The correct C-shaped
+question is whether the square belongs to a shop with a live in-shop keeper.
+Fix: in `domove_attackmon_at()`, use `shop_keeper(map, roomno)` and
+`inhishop(...)` instead of relying on `room.resident`. That moves
+`seed032_manual_direct` later again (`361 -> 376`) while leaving
+`seed033_manual_direct` at `571`.
+
 Next steps for seed033:
 1. Understand why C consumes nhgetch keys during travel that JS doesn't
 2. Check if C's travel loop has an explicit nhgetch for interruption
@@ -17341,4 +17353,3 @@ generation diverges), indicating the binary has been updated.
 ### Conclusion
 This is a C recording artifact, not a JS code bug. The session cannot be
 fixed from the JS side.
-

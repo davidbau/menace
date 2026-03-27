@@ -40,7 +40,7 @@ import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, n
 import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_entered_shop, u_left_shop, inhishop, costly_spot, block_door, block_entry } from './shk.js';
+import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_entered_shop, u_left_shop, inhishop, costly_spot, block_door, block_entry, shop_keeper } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
@@ -754,10 +754,11 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
             const monLoc = map?.at ? map.at(mon.mx, mon.my) : null;
             const monRoomNo = Number(monLoc?.roomno || 0);
             const monRoom = (monRoomNo >= ROOMOFFSET) ? map?.rooms?.[monRoomNo - ROOMOFFSET] : null;
+            const roomShkp = monRoomNo >= ROOMOFFSET ? shop_keeper(map, monRoomNo) : null;
             inTendedShop = !!(monRoom
                 && Number(monRoom.rtype || 0) >= SHOPBASE
-                && monRoom.resident
-                && inhishop(monRoom.resident, map));
+                && roomShkp
+                && inhishop(roomShkp, map));
         }
         const blocked = (inTendedShop || foo);
         if (blocked) {
