@@ -404,7 +404,7 @@ export async function dog_starve(mon, map, display, player, fov) {
             await display.putstr_message('You feel sad for a moment.');
         }
     }
-    mondead(mon, map, player);
+    await mondead(mon, map, player);
 }
 
 // ========================================================================
@@ -663,7 +663,7 @@ async function dog_invent(mon, edog, udist, map, turnCount, display, player, fov
                     // observeObject is called first so dknown is set for correct identification.
                     if (canSeePet) await observeObject(dropObj);
                     const dropName = canSeePet ? doname(dropObj, null) : null;
-                    mdrop_obj(mon, dropObj, map);
+                    await mdrop_obj(mon, dropObj, map);
                     if (canSeePet) {
                         // C ref: weapon.c:766 — Monnam(mon) uses ARTICLE_THE
                         const monLabel = Monnam(mon);
