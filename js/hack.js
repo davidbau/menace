@@ -266,11 +266,13 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
                 objectMsg = `You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`;
             }
 
-            if (featureMsg && objectMsg) {
-                await display.putstr_message(`${featureMsg}  ${objectMsg}`);
-            } else if (featureMsg) {
+            // C ref: check_here() sends feature and object as separate pline()
+            // calls, which creates a --More-- boundary between them when the
+            // combined text would overflow one line.
+            if (featureMsg) {
                 await display.putstr_message(featureMsg);
-            } else if (objectMsg) {
+            }
+            if (objectMsg) {
                 await display.putstr_message(objectMsg);
             }
         } else {
