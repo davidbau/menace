@@ -2076,14 +2076,8 @@ export class NetHackGame {
         }
 
         // Update display — C ref: do.c:1840 docrt() + do.c:1841 flush_screen(-1)
-        // C ref: docrt_flags() → cls() → clear_nhwindow(WIN_MESSAGE) clears
-        // the message window during level changes. Without this, stale messages
-        // from before the teleport trigger spurious --More-- boundaries.
-        if (this.display) {
-            this.display.toplin = 0;
-            this.display.topMessage = null;
-            this.display.messageNeedsMore = false;
-        }
+        // Do not clear pending topline state here: in tty, docrt()/cls()
+        // owns any live --More-- boundary inline before repaint proceeds.
         await this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
