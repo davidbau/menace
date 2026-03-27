@@ -267,9 +267,6 @@ export function maybe_extend_timed_resist(prop, player) {
 async function gethungry(player) {
     // C ref: eat.c:3162-3163 — invulnerable or debug_hunger skips all hunger
     if (player.uinvulnerable) return;
-
-    // C ref: eat.c:3162 — invulnerable or debug_hunger: skip all hunger
-    if (player.uinvulnerable) return;
     const game = _gstate;
     if (game?.flags?.debug_hunger) return;
 
@@ -282,10 +279,14 @@ async function gethungry(player) {
         || nomovemsg.startsWith('You are consci'));
     const unaware = ((game?.multi ?? 0) < 0) && (unconsciousNow || is_fainted(player));
     const canEat = !unaware || !rn2(10);
-    // C: (carnivorous || herbivorous || metallivorous) && !Slow_digestion
-    // Humans are omnivorous (carnivorous|herbivorous), so canEat is usually true.
+    // C ref: eat.c:3170-3173 — polymorph into non-eating form skips food consumption.
+    // gy.youmonst.data is the hero's current form (polymorphed or natural).
+    // Normal (non-polymorphed) heroes are always omnivorous (carnivorous + herbivorous).
+    const heroData = player.data || player.type || null;
+    const canDigest = !heroData
+        || carnivorous(heroData) || herbivorous(heroData) || is_metallivore(heroData);
     const slowDigestion = player.Slow_digestion || false;
-    if (canEat && !slowDigestion)
+    if (canEat && canDigest && !slowDigestion)
         player.hunger--; // ordinary food consumption
 
     // C: accessorytime = rn2(20) — randomized ring/amulet hunger trigger
