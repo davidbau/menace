@@ -344,8 +344,8 @@ for (const file of files) {
                 }
             }
 
-            // ✓ return foo() — OK only in async function (returns Promise to caller)
-            if (parent?.type === 'ReturnStatement' && enclosingFnAsync) return;
+            // ✓ return foo() — returns Promise to caller (handled by caller)
+            if (parent?.type === 'ReturnStatement') return;
             // ✓ foo().then(...) — already chained
             if (parent?.type === 'MemberExpression' && parent.object === node) return;
             // ✓ [foo(), bar()] — likely Promise.all
@@ -359,8 +359,17 @@ for (const file of files) {
             }
             // ✓ void foo() — intentional fire-and-forget
             if (parent?.type === 'UnaryExpression' && parent.operator === 'void') return;
-            // ✓ async arrow: () => foo() — implicit return (only if arrow is async)
-            if (parent?.type === 'ArrowFunctionExpression' && parent.body === node && parent.async) return;
+            // ✓ Concise arrow body: () => foo() — implicit return propagates
+            //   the Promise to whoever calls the arrow, regardless of whether
+            //   the arrow itself is declared async.
+            if (parent?.type === 'ArrowFunctionExpression' && parent.body === node) return;
+            // ✓ Passed as argument: someCall(foo()) — the Promise value is consumed
+            //   by the enclosing call, not dropped.  The receiver decides how to
+            //   handle it (e.g., Promise.resolve(asyncFn()), arr.push(asyncFn())).
+            if (parent?.type === 'CallExpression' && parent.arguments?.includes(node)) return;
+            // ✓ Assigned: const p = foo() — the Promise is captured, not dropped.
+            if (parent?.type === 'VariableDeclarator' && parent.init === node) return;
+            if (parent?.type === 'AssignmentExpression' && parent.right === node) return;
             // ✓ Template literal: `${foo()}`
             if (parent?.type === 'TemplateLiteral') return;
 
