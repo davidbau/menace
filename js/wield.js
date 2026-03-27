@@ -4,7 +4,7 @@
 import { more, nhgetch, ynFunction } from './input.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, COIN_CLASS, HEAVY_IRON_BALL, IRON_CHAIN,
-         TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
+         TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE, STRANGE_OBJECT } from './objects.js';
 import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
 import { exercise } from './attrib_exercise.js';
@@ -335,6 +335,9 @@ export async function chwepon(player, display, otmp, amount) {
             uwep.quan = 1;
             uwep.owt = weight(uwep);
         }
+        // C ref: wield.c:975-976 — crysknife→worm tooth reveals scroll type when bknown
+        if (otmp && otmp.otyp !== STRANGE_OBJECT && otmp.bknown)
+            await makeknown(otmp.otyp);
         return 1;
     }
 
@@ -355,6 +358,10 @@ export async function chwepon(player, display, otmp, amount) {
     }
     uwep.spe = (uwep.spe || 0) + amount;
     if (amount > 0 && uwep.cursed) uwep.cursed = false;
+    // C ref: wield.c:1007-1009 — enchant/disenchant glow reveals scroll type
+    if (otmp && otmp.otyp !== STRANGE_OBJECT && uwep.known
+        && (amount > 0 || (amount < 0 && uwep.bknown)))
+        await makeknown(otmp.otyp);
 
     // Vibration warning at high enchant
     if ((uwep.spe > 5) && !rn2(7)) {

@@ -583,6 +583,8 @@ export async function catch_lit(obj) {
             && obj.cursed && !rn2(2))
             return false;
         await pline("%s catches light!", xname(obj));
+        // C ref: apply.c:1602-1603 — lighting a potion of oil reveals its type
+        if (obj.otyp === POT_OIL) await makeknown(obj.otyp);
         begin_burn(obj, false);
         return true;
     }
@@ -1444,6 +1446,8 @@ export async function flip_through_book(obj) {
         await You_hear("the pages make an unpleasant rustling sound.");
     } else if (obj.otyp === SPE_BLANK_PAPER) {
         await pline("This spellbook has nothing written in it.");
+        // C ref: apply.c:4498 — flipping through blank paper reveals type
+        await makeknown(obj.otyp);
     } else if (obj.otyp === SPE_NOVEL) {
         await pline("This looks like it might be interesting to read.");
     } else {
