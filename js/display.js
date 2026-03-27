@@ -321,7 +321,16 @@ export class Display extends Terminal {
         // C reserves space for " --More--" (9 chars) when checking if messages
         // can be concatenated.  C uses gt.toplines (shared buffer) for the
         // length check, which includes getlin/getobj prompt text.
-        const toplinesRef = (this.topMessage && this.messageNeedsMore)
+        //
+        // If topMessage is from a prior step (stale --More-- not yet cleared),
+        // don't attempt to concatenate with it — C's more() clears toplines
+        // before the next update_topl, so concatenation only happens within
+        // the same command cycle.
+        const currentStep = this._lastMapState?.gameMap?._replayStepIndex;
+        const topMsgStep = this._topMessageStepIndex;
+        const topMsgStale = (Number.isInteger(currentStep) && Number.isInteger(topMsgStep)
+            && currentStep !== topMsgStep);
+        const toplinesRef = (!topMsgStale && this.topMessage && this.messageNeedsMore)
             ? this.topMessage
             : (this.toplines || '');
         if (!this.noConcatenateMessages && toplinesRef.length > 0
