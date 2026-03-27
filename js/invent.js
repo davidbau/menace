@@ -36,7 +36,7 @@ import { pline, You, Your, There } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
 import { touch_petrifies } from './mondata.js';
 import { mons, PM_ARCHEOLOGIST } from './monsters.js';
-import { newsym, flush_screen } from './display.js';
+import { newsym, flush_screen, docrt } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown, setOverrideID } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
 import { clearWornItemEffects } from './do_wear.js';
@@ -944,9 +944,7 @@ export async function handleInventory(player, display, game) {
                 }
                 if (actionKey === 'i') {
                     // cf. invent.c doorganize() / #adjust — reassign inventory letter
-                    if (game && typeof game.docrt === 'function') {
-                        await game.docrt();
-                    }
+                    await docrt();
                     const inv = player.inventory || [];
                     const usedLetters = new Set(inv.map(o => o.invlet));
                     // Build available-letter string for prompt
@@ -996,9 +994,7 @@ export async function handleInventory(player, display, game) {
                     return { moved: false, tookTime: false };
                 }
                 if (actionKey === 'c') {
-                    if (game && typeof game.docrt === 'function') {
-                        await game.docrt();
-                    }
+                    await docrt();
                     const namedInput = await getlin(`What do you want to name this ${baseName}? `, display);
                     if (namedInput !== null) {
                         const nextName = namedInput.trim();

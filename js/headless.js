@@ -20,7 +20,7 @@ import { initrack } from './monmove.js';
 import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
-import { newsym, getCachedMapCell, flush_screen, Display } from './display.js';
+import { newsym, getCachedMapCell, flush_screen, Display, docrt } from './display.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
 import { parseNethackrcFull } from './storage.js';
@@ -371,9 +371,7 @@ async function finalizeHeadlessReadyState(game) {
             game.display.messageNeedsMore = false;
             game.display.messageNeedsMoreBoundary = false;
         }
-        if (typeof game.docrt === 'function') {
-            await game.docrt();
-        }
+        await docrt();
     }
     return game;
 }

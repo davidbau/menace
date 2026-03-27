@@ -43,7 +43,7 @@ import {
 import { x_monnam, mon_nam, Monnam } from './do_name.js';
 import { distmin, dist2 } from './hacklib.js';
 import { mondead, corpse_chance } from './mon.js';
-import { flush_screen, canSeeMonsterForMap, canseemon } from './display.js';
+import { flush_screen, canSeeMonsterForMap, canseemon, docrt } from './display.js';
 import { placeFloorObject, delobj_core } from './invent.js';
 import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
@@ -729,9 +729,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
                 projectile.ox = result.x;
                 projectile.oy = result.y;
                 placeFloorObject(map, projectile);
-                if (game?.docrt) {
-                    await game.docrt();
-                }
+                await docrt();
             }
         }
         if (mon.dead) break;

@@ -1744,33 +1744,55 @@ export function docrt_flags(recalc = null, ctxOrMap = null) {
   cosmic_display_pop_owner('docrt_flags');
 }
 
-// Autotranslated from display.c:1690
-// C ref: docrt() → docrt_flags() → cls() → display_nhwindow(WIN_MESSAGE)
-// In tty, when toplin==TOPLINE_NEED_MORE, display_nhwindow fires more()
-// which consumes the dismiss key inline before repaint proceeds.
-// JS must await this --More-- dismissal so the key is consumed by the
-// repaint flow (matching C) rather than falling through as a fresh command.
+// C ref: display.c:1690 docrt() → docrt_flags()
+// Unified screen refresh: --More-- ownership, vision recalc, newsym grid
+// rebuild, renderMap, renderStatus, cursorOnPlayer.
+// C has one docrt(); JS previously split this across display.docrt() and
+// game.docrt() — now unified here.  game.docrt() forwards to this.
 export async function docrt() {
   const ctx = _resolveDisplayCtx();
   const display = ctx?.display;
-  // C ref: cls() checks toplin before clearing.  Mirror that check here
-  // so docrt's repaint owns the --More-- boundary when one is pending.
-  if (display?.messageNeedsMore) {
+  const player = ctx?.player;
+  const map = ctx?.map;
+  const fov = ctx?.fov;
+  const flags = ctx?.flags;
+  if (!display || !map) return;
+
+  // C ref: docrt_flags() → cls() → display_nhwindow(WIN_MESSAGE)
+  // In tty, when toplin==TOPLINE_NEED_MORE, this fires more() which
+  // consumes the dismiss key inline before repaint proceeds.
+  if (display.messageNeedsMore) {
     if (display._nhgetch) {
       if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
       await more(display, {
-        site: 'display.docrt.message-flush',
+        site: 'docrt.message-flush',
         clearAfter: true,
         readKey: display._nhgetch,
       });
     } else {
-      // No nhgetch available; just reset message state.
       if (typeof display.clearRow === 'function') display.clearRow(MESSAGE_ROW);
       display.messageNeedsMore = false;
       display.topMessage = null;
     }
   }
+
+  // C ref: docrt_flags() newsym grid rebuild
   docrt_flags(docrtRecalc);
+
+  // C ref: vision_recalc(0) → see_monsters → bot/curs_on_u
+  // FOV + renderMap + renderStatus + cursor (was game.docrt's job)
+  if (player && fov && typeof fov.compute === 'function') {
+    fov.compute(map, player.x, player.y, do_light_sources, player);
+  }
+  if (typeof display.renderMap === 'function') {
+    display.renderMap(map, player, fov, flags);
+  }
+  if (player && typeof display.renderStatus === 'function') {
+    display.renderStatus(player);
+  }
+  if (player && typeof display.cursorOnPlayer === 'function') {
+    display.cursorOnPlayer(player);
+  }
 }
 
 // Autotranslated from display.c:2207

@@ -31,7 +31,7 @@ import {
 import { is_lava, is_pool, is_pool_or_lava } from './dbridge.js';
 import { surface } from './dungeon.js';
 import { IS_GRAVE, IS_AIR, A_WIS } from './const.js';
-import { newsym } from './display.js';
+import { newsym, docrt } from './display.js';
 import { goodpos } from './teleport.js';
 import { makemon, makemon_appear } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
@@ -412,9 +412,7 @@ export async function read_engr_at(map, x, y, player, game = null) {
     if (needsMoreBetweenMessages && game?.display && typeof game.display.morePrompt === 'function') {
         // C-parity for in-command engraving prompts: movement side effects have
         // already happened; refresh map/status before waiting for dismissal.
-        if (typeof game.docrt === 'function') {
-            await game.docrt();
-        }
+        await docrt();
         await more(game.display, { game, site: 'engrave.read_engr_at.more' });
     }
     await pline(readMsg);
