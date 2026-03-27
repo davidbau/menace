@@ -156,13 +156,29 @@ for (const file of files) {
                     }
                 }
             }
-            if (node.source && node.specifiers) {
-                const sourcePath = resolveModulePath(node.source.value, file.path);
-                for (const spec of node.specifiers) {
-                    const exportedName = spec.exported?.name;
-                    const importedName = spec.local?.name;
-                    if (exportedName && importedName && sourcePath) {
-                        reExs.set(exportedName, { source: sourcePath, importedName });
+            if (node.specifiers) {
+                if (node.source) {
+                    // export { foo } from './bar.js' — re-export with source
+                    const sourcePath = resolveModulePath(node.source.value, file.path);
+                    for (const spec of node.specifiers) {
+                        const exportedName = spec.exported?.name;
+                        const importedName = spec.local?.name;
+                        if (exportedName && importedName && sourcePath) {
+                            reExs.set(exportedName, { source: sourcePath, importedName });
+                        }
+                    }
+                } else {
+                    // export { foo } — re-export of a local binding.
+                    // If foo was imported from another module and is async there,
+                    // mark it as a local re-export to be resolved in phase 2.
+                    // For now, record it; isAsyncExport will check locals.
+                    for (const spec of node.specifiers) {
+                        const exportedName = spec.exported?.name;
+                        const localName = spec.local?.name;
+                        if (exportedName && localName) {
+                            // Will be resolved after imports are processed
+                            reExs.set(exportedName, { localAlias: localName });
+                        }
                     }
                 }
             }
@@ -193,15 +209,54 @@ for (const file of files) {
     reExports.set(file.path, reExs);
 }
 
+// Map: file path → Map of import bindings: localName → { source, importedName }
+const importBindings = new Map();
+
+// Second pass: collect import bindings for resolving local-alias re-exports
+for (const file of files) {
+    const parsed = parseFile(file.path);
+    if (!parsed) continue;
+    const bindings = new Map();
+    walk.simple(parsed.ast, {
+        ImportDeclaration(node) {
+            const sourcePath = resolveModulePath(node.source?.value, file.path);
+            if (!sourcePath) return;
+            for (const spec of node.specifiers) {
+                const localName = spec.local?.name;
+                const importedName = spec.imported?.name || spec.local?.name;
+                if (localName && importedName) {
+                    bindings.set(localName, { source: sourcePath, importedName });
+                }
+            }
+        },
+    });
+    importBindings.set(file.path, bindings);
+}
+
 // Resolve re-exports transitively
 function isAsyncExport(filePath, name, visited = new Set()) {
     if (visited.has(`${filePath}:${name}`)) return false;
     visited.add(`${filePath}:${name}`);
     const exports = asyncExports.get(filePath);
     if (exports?.has(name)) return true;
+    // Check locals (async function declarations in this file)
+    const locals = asyncLocals.get(filePath);
+    if (locals?.has(name)) return true;
     const reExs = reExports.get(filePath);
     const re = reExs?.get(name);
-    if (re) return isAsyncExport(re.source, re.importedName, visited);
+    if (re) {
+        if (re.source) {
+            // export { foo } from './bar.js'
+            return isAsyncExport(re.source, re.importedName, visited);
+        }
+        if (re.localAlias) {
+            // export { foo } — check if foo is an imported async binding
+            const binding = importBindings.get(filePath)?.get(re.localAlias);
+            if (binding) return isAsyncExport(binding.source, binding.importedName, visited);
+            // Or a locally-defined async function
+            if (locals?.has(re.localAlias)) return true;
+        }
+    }
     return false;
 }
 
