@@ -886,6 +886,16 @@ async function runAcceptedTravelCommandLoop(game, {
     // Do NOT loop here — process only the first travel move. Subsequent moves
     // are handled by _gameLoopStep's hasPositiveMoveContinuation path, which
     // yields between moves so the replay can assign each move to a separate step.
+    //
+    // C ref: allmain.c multi>0 branch decrements multi BEFORE each domove(),
+    // including the first.  The first domove already happened inside the
+    // command handler (dotravel → domove), so we decrement multi here to
+    // keep the total iteration count aligned with C.
+    if (game.multi > 0 && game.multi < COLNO) {
+        if (!--game.multi) {
+            end_running(true, game);
+        }
+    }
     await advanceTimedTurn(game, coreOpts);
 }
 
@@ -934,8 +944,16 @@ async function runMovementRepeatSlice(game, {
     if (!moveResult.moved) return false;
 
     // Decrement multi (C: moveloop_core line 528)
-    if (game.multi < COLNO && !--game.multi) {
+    // C decrements multi BEFORE domove, when multi is guaranteed positive.
+    // JS decrements AFTER domove+turnend, so multi might have been set
+    // negative (e.g., by a trap) and then incremented back to 0 by turnend.
+    // Guard: only decrement when multi is still positive.
+    if (game.multi > 0 && game.multi < COLNO && !--game.multi) {
         end_running(true, game);
+        return false;
+    }
+    // If multi was cleared to 0 or went negative during the turn, stop.
+    if (game.multi <= 0) {
         return false;
     }
 
@@ -2511,10 +2529,21 @@ export class NetHackGame {
                 });
                 this.renderAndAutosave({ autosave: true });
                 if (!moveContin) {
+                    // runMovementRepeatSlice returned false — could be a
+                    // temporary pause (door/engraving/lookaround stop while
+                    // multi is still positive) or a real end of travel/run
+                    // (multi cleared to 0).
+                    //
+                    // C's moveloop doesn't yield between these cases: it
+                    // just loops back and checks multi > 0 again. Only
+                    // yield to the step boundary when travel/run actually
+                    // ended (multi cleared), so all travel iterations stay
+                    // in one step matching C's per-key recording.
+                    if (this.multi > 0 && this.context?.mv && !this?.playerDied) {
+                        continue; // temporary pause, resume travel
+                    }
                     // Travel/run ended. Yield to the step boundary so the
-                    // next replay key gets its own step. Without this, the
-                    // first post-travel command would be batched into the
-                    // travel step, shifting all subsequent step assignments.
+                    // next replay key gets its own step.
                     return;
                 }
                 // C ref: moveloop_core loops without reading a new key for
