@@ -305,7 +305,7 @@ export function autokey(player, opening) {
 
 // cf. lock.c:68 [static] — picklock(void): lock-picking occupation callback
 // This creates and returns the occupation callback function.
-async function makePicklockOccupation(game) {
+function makePicklockOccupation(game) {
     const { u: player, map, display } = game;
     const xlock = getXlock(game);
 
@@ -420,7 +420,7 @@ export async function picklock(game) {
 
 // cf. lock.c:216 [static] — forcelock(void): forced lock occupation callback
 // This creates and returns the occupation callback function.
-async function makeForcelockOccupation(game) {
+function makeForcelockOccupation(game) {
     const { u: player, map, display } = game;
     const xlock = getXlock(game);
 

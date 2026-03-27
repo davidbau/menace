@@ -2707,7 +2707,7 @@ const getFreeRoomLoc = get_free_room_loc;
  * @param {number} y - Y coordinate
  * @param {string} type - Terrain character
  */
-export async function terrain(x_or_opts, y_or_type, type) {
+export function terrain(x_or_opts, y_or_type, type) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }

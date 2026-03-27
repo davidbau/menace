@@ -300,7 +300,7 @@ export async function onquest(game) {
 
 // cf. quest.c:107 — nemdead(): nemesis was killed
 // Autotranslated from quest.c:106
-export async function nemdead() {
+export function nemdead() {
   // TODO: Qstat accessor needs game param; stub for now
   // if (!game.quest_status?.killed_nemesis) { game.quest_status.killed_nemesis = true; await qt_pager("killed_nemesis"); }
 }
