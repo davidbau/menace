@@ -2505,11 +2505,18 @@ export class NetHackGame {
                     const prior = Number.isFinite(this?.heroSeqN) ? (this.heroSeqN | 0) : 0;
                     this.heroSeqN = Math.min(7, prior + 1);
                 };
-                await runMovementRepeatSlice(this, {
+                const moveContin = await runMovementRepeatSlice(this, {
                     coreOpts: {},
                     bumpHeroSeqN,
                 });
                 this.renderAndAutosave({ autosave: true });
+                if (!moveContin) {
+                    // Travel/run ended. Yield to the step boundary so the
+                    // next replay key gets its own step. Without this, the
+                    // first post-travel command would be batched into the
+                    // travel step, shifting all subsequent step assignments.
+                    return;
+                }
                 // C ref: moveloop_core loops without reading a new key for
                 // both run and travel continuation. Use `continue` to batch
                 // all continuation steps within this _gameLoopStep call,
