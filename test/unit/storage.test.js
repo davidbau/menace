@@ -644,7 +644,7 @@ describe('Save/load game (localStorage, v2 format)', () => {
         saveGame(game);
 
         const loaded = loadSave();
-        const restored = restGameState(loaded.gameState);
+        const restored = await restGameState(loaded.gameState);
         assert.equal(restored.player.x, 20);
         assert.equal(restored.player.y, 10);
         assert.equal(restored.player.hp, 5);
@@ -990,7 +990,7 @@ describe('Multi-level save (v2 format)', () => {
 // saveGameState / restGameState -- C ref: savegamestate / restgamestate
 // ========================================================================
 describe('saveGameState/restGameState round-trip', () => {
-    it('round-trips full game state including inventory and equip', () => {
+    it('round-trips full game state including inventory and equip', async () => {
         initRng(42);
         initLevelGeneration();
 
@@ -1018,7 +1018,7 @@ describe('saveGameState/restGameState round-trip', () => {
 
         const gs = saveGameState(game);
         const json = JSON.stringify(gs);
-        const restored = restGameState(JSON.parse(json));
+        const restored = await restGameState(JSON.parse(json));
 
         assert.equal(restored.player.name, 'TestHero');
         assert.equal(restored.player.x, 15);

@@ -633,7 +633,7 @@ function getStatusFns() {
 // Fire expiry effect when an intrinsic timeout reaches zero.
 // C ref: timeout.c nh_timeout() — the big switch on each prop (lines 690-940)
 async function _fireExpiryEffect(player, prop, context = {}) {
-    const fns = getStatusFns();
+    const fns = await getStatusFns();
     const entry = player.uprops[prop];
 
     switch (prop) {
@@ -1085,7 +1085,7 @@ export async function vomiting_dialogue(player) {
     const p = player || _timeoutContext.player;
     if (!p) return;
     const v = p.getPropTimeout(VOMITING);
-    const fns = getStatusFns();
+    const fns = await getStatusFns();
     switch (v - 1) {
     case 14:
         await You(vomiting_texts[0]);
@@ -1283,7 +1283,7 @@ export async function slime_dialogue(player) {
 }
 export async function burn_away_slime(player = _timeoutContext.player) {
     if (!player || !player.getPropTimeout || !player.getPropTimeout(SLIMED)) return;
-    const fns = getStatusFns();
+    const fns = await getStatusFns();
     if (fns.make_slimed) {
         await fns.make_slimed(player, 0, "The slime that covers you is burned away!");
     }
