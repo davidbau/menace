@@ -49,6 +49,7 @@ import { RACE_ORC, RACE_ELF, RACE_DWARF,
          TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP,
          FROMOUTSIDE, INTRINSIC, TIMEOUT,
          SLT_ENCUMBER, DEAF,
+         INVIS, SEE_INVIS,
          REGENERATION, CONFLICT, PROTECTION, HUNGER, STRANGLED, CONFUSION,
          W_RINGL, W_RINGR, W_ARTI, W_WEP, FROMFORM,
          CHOKING, A_LAWFUL,
@@ -65,7 +66,7 @@ import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg, change_luck } from './attrib.js';
 import { nomul, end_running, near_capacity, rounddiv, losehp } from './hack.js';
 import { losestr } from './attrib.js';
-import { incr_itimeout, make_stoned, make_sick, make_blinded, make_stunned } from './potion.js';
+import { set_itimeout, incr_itimeout, make_stoned, make_sick, make_blinded, make_stunned } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
@@ -1005,11 +1006,27 @@ async function cpostfx(player, pm, display) {
         check_intrinsics = true;
         break;
     case PM_STALKER:
-        // C: set_itimeout(&HInvis, rn1(100, 50))
-        {
-            const invisDuration = rn1(100, 50);
-            // TODO: apply temporary invisibility when invis system ported
+        // C ref: eat.c:1162-1172 — eating a stalker grants invisibility.
+        // If not already invisible: timed invisibility.
+        // If already invisible: upgrade to permanent + see invisible.
+        if (!player.Invis) {
+            set_itimeout(player, INVIS, rn1(100, 50));
+            // C: self_invis_message() when !Blind && !BInvis
+            if (!player.blind) {
+                await pline("Gee!  You %s.",
+                    player.See_invisible ? "become transparent" : "vanish");
+            }
+        } else {
+            const entry = player.ensureUProp(INVIS);
+            if (!(entry.intrinsic & INTRINSIC)) {
+                await You_feel("hidden!");
+            }
+            entry.intrinsic |= FROMOUTSIDE;
+            incr_itimeout(player, SEE_INVIS, 0); // ensure entry exists
+            const seeEntry = player.ensureUProp(SEE_INVIS);
+            seeEntry.intrinsic |= FROMOUTSIDE;
         }
+        newsym(player.x, player.y);
         // FALLTHROUGH to stun
     case PM_YELLOW_LIGHT:
     case PM_GIANT_BAT:
