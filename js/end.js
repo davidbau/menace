@@ -500,8 +500,8 @@ async function maybeInstallPossessionsPrompt(how, game) {
 
     const diedByQuit = (how === QUIT);
     const prompt = diedByQuit
-        ? 'Do you want to see what you had when you quit? [ynq] (n)'
-        : 'Do you want your possessions identified? [ynq] (n)';
+        ? 'Do you want to see what you had when you quit? [ynq] (n) '
+        : 'Do you want your possessions identified? [ynq] (n) ';
     await pline(prompt);
 
     const clearEndPrompt = (display) => {
@@ -532,14 +532,14 @@ async function maybeInstallPossessionsPrompt(how, game) {
     const disclosureSteps = [
         {
             type: 'death_attributes',
-            prompt: 'Do you want to see your attributes? [ynq] (n)',
+            prompt: 'Do you want to see your attributes? [ynq] (n) ',
             async action(gameCtx) {
                 await enlightenment(BASICENLIGHTENMENT | MAGICENLIGHTENMENT, ENL_GAMEOVERDEAD, gameCtx);
             },
         },
         {
             type: 'death_vanquished',
-            prompt: 'Do you want an account of creatures vanquished? [ynaq] (n)',
+            prompt: 'Do you want an account of creatures vanquished? [ynaq] (n) ',
             shouldAsk: hasVanquished,
             async action(gameCtx) {
                 return await list_vanquished('y', false, gameCtx, { blocking: false });
@@ -547,14 +547,14 @@ async function maybeInstallPossessionsPrompt(how, game) {
         },
         {
             type: 'death_conduct',
-            prompt: 'Do you want to see your conduct and achievements? [ynq] (n)',
+            prompt: 'Do you want to see your conduct and achievements? [ynq] (n) ',
             async action(gameCtx) {
                 await show_conduct(ENL_GAMEOVERDEAD, gameCtx);
             },
         },
         {
             type: 'death_overview',
-            prompt: 'Do you want to see the dungeon overview? [ynq] (n)',
+            prompt: 'Do you want to see the dungeon overview? [ynq] (n) ',
             shouldAsk: (gameCtx) => !!gameCtx?.map,
             async action(gameCtx) {
                 await show_overview((how >= PANICKED) ? 1 : 2, how, gameCtx.map);

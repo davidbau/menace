@@ -12,7 +12,7 @@ import {
 } from './const.js';
 import { def_monsyms, glyph_is_trap, glyph_to_trap } from './symbols.js';
 import { more, nhgetch, ynFunction } from './input.js';
-import { CLR_WHITE, CLR_GREEN, CLR_CYAN, glyph_at } from './display.js';
+import { CLR_WHITE, CLR_GREEN, CLR_CYAN, glyph_at, docrt } from './display.js';
 import { pline } from './pline.js';
 import { an } from './objnam.js';
 import { describeGroundObjectForPlayer } from './shk.js';
@@ -1022,9 +1022,7 @@ export async function handleHelp(game) {
         else await display.putstr_message('Failed to load options help.');
     } else if (c === 'i') {
         await showMoreTextPages(display, OPTIONS_FULL_COMMAND_HELP_TEXT);
-        if (typeof game.docrt === 'function') {
-            await game.docrt();
-        }
+        await docrt();
     } else if (c === 'j') {
         await showPager(display, keyHelpText, 'Key Bindings');
     } else if (c === 'k') {

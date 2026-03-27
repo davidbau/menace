@@ -99,7 +99,7 @@ import { experience, more_experienced, newexplevel } from './exper.js';
 import { sgn } from './hacklib.js';
 import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u, m_canseeu, little_to_big } from './mondata.js';
 import { record_achievement } from './insight.js';
-import { pmname, Mgender, x_monnam, y_monnam, Monnam } from './do_name.js';
+import { pmname, Mgender, x_monnam, y_monnam, mon_nam, Monnam } from './do_name.js';
 import { place_monster } from './steed.js';
 import { Role_if } from './role.js';
 import { dochug, m_everyturn_effect } from './monmove.js';
@@ -1067,17 +1067,29 @@ export async function xkilled(mon, xkill_flags, map, player) {
 
     mon.mhp = 0;
 
+    // C ref: mon.c:3497-3506 — kill message before mondead.
+    // Callers that pass XKILL_GIVEMSG are responsible for showing the
+    // kill message BEFORE calling xkilled (matching C's message timing).
+    // See handleMonsterKilled in uhitm.js for the hero-attack path.
+
     // C ref: mondead() with life-saving
     await mondead_full(mon, map, player);
     if (mon.mhp > 0) return; // life-saved
 
-    if (nocorpse) return;
+    // C ref: mdat/mndx needed for both treasure/corpse and cleanup sections
+    const mdat = mon?.data || mon?.type || {};
+    const mndx = mon.mndx ?? 0;
+
+    // C ref: nocorpse and LEVEL_SPECIFIC_NOCORPSE both goto cleanup
+    // (skip treasure/corpse but still award XP and apply penalties).
+    // Only life-saved monsters return early without cleanup.
+    if (nocorpse) {
+        // Skip directly to cleanup — no treasure, no corpse
+    } else {
 
     // C ref: mon.c:3573-3574 — LEVEL_SPECIFIC_NOCORPSE
     // Suppress treasure/corpse on Rogue level, levels with deathdrops=false
     // (e.g. tutorial), or undead on graveyard levels.
-    const mdat = mon?.data || mon?.type || {};
-    const mndx = mon.mndx ?? 0;
     const game = _gstate;
     const levelFlags = map?.flags || {};
     // C ref: mon.c LEVEL_SPECIFIC_NOCORPSE — check deathdrops as falsy
@@ -1133,6 +1145,7 @@ export async function xkilled(mon, xkill_flags, map, player) {
             }
         }
     }
+    } // end of !nocorpse else block
     // C ref: mon.c:3641 — monster is gone, corpse or other object might now be visible
     newsym(x, y);
 

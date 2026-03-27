@@ -7,6 +7,7 @@ import { strchr, strstri, strsubst } from './hacklib.js';
 // randomize_gem_colors (3 rn2 calls), shuffle_all, WAN_NOTHING direction (1 rn2 call).
 
 import { rn2 } from './rng.js';
+import { docrt } from './display.js';
 import { exercise } from './attrib_exercise.js';
 import { A_WIS, nul_glyphinfo } from './const.js';
 import { game as _gstate } from './gstate.js';
@@ -685,8 +686,8 @@ export async function handleDiscoveries(game) {
         && savedLines.length > 0
         && typeof display.setScreenLines === 'function') {
         display.setScreenLines(savedLines);
-    } else if (typeof game.docrt === 'function') {
-        await game.docrt();
+    } else {
+        await docrt();
     }
     display.topMessage = null;
     display.messageNeedsMore = false;

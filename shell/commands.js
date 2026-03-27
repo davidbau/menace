@@ -785,7 +785,7 @@ async function talk(args, shell) {
     }
 
     // Run talk session
-    const session = new TalkSession(shell.display, shell.getch, target, character);
+    const session = new TalkSession(shell.display, () => shell.getch(), target, character);
     try {
         await session.run();
     } catch (e) {

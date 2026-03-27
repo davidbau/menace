@@ -41,7 +41,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
          AMULET_CLASS, POTION_CLASS, SCROLL_CLASS, WAND_CLASS, RING_CLASS, SPBOOK_CLASS,
          PICK_AXE, DWARVISH_MATTOCK, AXE, BATTLE_AXE,
-         CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE,
+         CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE, STRANGE_OBJECT,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
          VENOM_CLASS, CORPSE, LUMP_OF_ROYAL_JELLY, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
@@ -81,7 +81,7 @@ import { gd_move } from './vault.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
-import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse, m_consume_obj } from './mon.js';
+import { monnear, helpless, mondead, mondead_full, unstuck, meatmetal, meatobj, meatcorpse, m_consume_obj } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName, YMonnam, Monnam } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym, canspotmon, canseemon } from './display.js';
@@ -1152,9 +1152,9 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
                 `dmg=${m2dmg}`,
                 `hp=${m2.mhp}`);
             if (m2.mhp <= 0) {
-                // C: monkilled(m2, "", AD_DRIN)
+                // C: monkilled(m2, "", AD_DRIN) — includes life-saving
                 // TODO: proper monkilled with death reason
-                await mondead(m2, map, null);
+                await mondead_full(m2, map, null);
             }
         }
     }
@@ -2013,9 +2013,16 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         const heroInvis = !!(player.Invis || player.invisible);
         // C ref: monmove.c:1864-1871 — || chain with short-circuit evaluation.
         // Each condition is only evaluated if all prior conditions were false.
+        // C ref: monmove.c:1864-1871 — is_obj_mappear checks for hero disguised
+        // as an object (STRANGE_OBJECT or GOLD_PIECE).
+        const heroApType = Number(player.m_ap_type || 0);
+        const heroAppear = Number(player.mappearance || 0);
+        const heroObjStrange = (heroApType === M_AP_OBJECT && heroAppear === STRANGE_OBJECT);
+        const heroObjGold = (heroApType === M_AP_OBJECT && heroAppear === GOLD_PIECE);
         if (!monCanSee
             || (should_see && heroInvis && !perceives(ptr) && rn2(11))
-            || !!(player.uundetected)
+            || heroObjStrange || !!(player.uundetected)
+            || (heroObjGold && !likes_gold(ptr))
             || (mon_is_peaceful(mon) && !mon.isshk)
             || ((mon.mndx === PM_STALKER || ptr.mlet === S_BAT
                  || ptr.mlet === S_LIGHT) && !rn2(3))) {
@@ -2151,10 +2158,23 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         && appr === 1) {
         appr = 0;
     }
+    // C ref: monmove.c:1938-1943 — unicorn avoidance on noteleport levels:
+    // if any off-line position exists, skip all on-line positions.
+    let avoidOnLine = false;
+    if (is_unicorn(ptr) && map?.flags?.noteleport) {
+        for (let i = 0; i < cnt; i++) {
+            if (!(positions[i].info & NOTONL)) {
+                avoidOnLine = true;
+                break;
+            }
+        }
+    }
     // C ref: monmove.c:1944-1945 — check if displacement is beneficial
     const betterWithDisplacing = should_displace(mon, positions, ggx, ggy);
 
     for (let i = 0; i < cnt; i++) {
+        // C ref: monmove.c:1947-1948 — skip on-line positions if unicorn avoidance active
+        if (avoidOnLine && (positions[i].info & NOTONL)) continue;
         const nx = positions[i].x;
         const ny = positions[i].y;
 
@@ -2534,7 +2554,7 @@ export async function mb_trapped(mon, map, player) {
     mon.mstun = true;
     mon.mhp = (mon.mhp || 0) - rnd(15);
     if ((mon.mhp || 0) <= 0) {
-        await mondead(mon, map, player);
+        await mondead_full(mon, map, player);
         if (mon.dead || (mon.mhp || 0) <= 0) return true;
     }
     return false;

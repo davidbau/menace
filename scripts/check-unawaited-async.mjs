@@ -408,10 +408,19 @@ for (const file of files) {
         return found;
     }
 
+    // Check for // async-ok suppression comment on the same or preceding line
+    function hasSuppressComment(node) {
+        const lineIdx = node.loc.start.line - 1;
+        const thisLine = lines[lineIdx] || '';
+        if (/\/\/\s*async-ok\b/.test(thisLine)) return true;
+        if (lineIdx > 0 && /\/\/\s*async-ok\b/.test(lines[lineIdx - 1])) return true;
+        return false;
+    }
+
     walk.simple(ast, {
         FunctionDeclaration(node) {
             if (!node.async || !node.id?.name || !node.body) return;
-            if (!bodyContainsAwait(node.body)) {
+            if (!bodyContainsAwait(node.body) && !hasSuppressComment(node)) {
                 needlesslyAsyncViolations.push({
                     file: file.name,
                     line: node.loc.start.line,

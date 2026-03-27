@@ -42,8 +42,8 @@ import {
 } from './monsters.js';
 import { x_monnam, mon_nam, Monnam } from './do_name.js';
 import { distmin, dist2 } from './hacklib.js';
-import { mondead, corpse_chance } from './mon.js';
-import { flush_screen, canSeeMonsterForMap, canseemon } from './display.js';
+import { mondead, mondead_full, corpse_chance } from './mon.js';
+import { flush_screen, canSeeMonsterForMap, canseemon, docrt } from './display.js';
 import { placeFloorObject, delobj_core } from './invent.js';
 import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
@@ -627,7 +627,7 @@ export async function ohitmon(
             if (verbose && display && !player?.blind && couldsee(map, player, mtmp.mx, mtmp.my)) {
                 deathMessage = `${Monnam(mtmp)} is killed!`;
             }
-            await mondead(mtmp, map);
+            await mondead_full(mtmp, map);
             map.removeMonster?.(mtmp);
             if (player) {
                 const exp = ((mtmp.mlevel || 0) + 1) * ((mtmp.mlevel || 0) + 1);
@@ -729,9 +729,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
                 projectile.ox = result.x;
                 projectile.oy = result.y;
                 placeFloorObject(map, projectile);
-                if (game?.docrt) {
-                    await game.docrt();
-                }
+                await docrt();
             }
         }
         if (mon.dead) break;
@@ -948,7 +946,7 @@ export async function return_from_mtoss(magr, otmp, tethered_weapon, map) {
     if (hitsThrower) {
         magr.mhp = (magr.mhp || 0) - dmg;
         if ((magr.mhp || 0) <= 0) {
-            await mondead(magr, map);
+            await mondead_full(magr, map);
         }
     }
 

@@ -85,8 +85,9 @@ async function _playerSelectionImpl(game) {
     }
 
     // Phase 1: "Shall I pick character's race, role, gender and alignment for you?"
+    // C ref: tty_yn_function appends trailing space for cursor positioning.
     await game.display.putstr_message(
-        "Shall I pick character's race, role, gender and alignment for you? [ynaq]"
+        "Shall I pick character's race, role, gender and alignment for you? [ynaq] "
     );
     const pickCh = await nhgetch();
     const pickC = String.fromCharCode(pickCh);
@@ -433,7 +434,7 @@ export async function handleReset(game) {
 // Restore game state from a save.
 // Returns true if restored, false if user declined.
 export async function restoreFromSave(game, saveData, urlOpts) {
-    await game.display.putstr_message('Saved game found. Restore? [yn]');
+    await game.display.putstr_message('Saved game found. Restore? [yn] ');
     const ans = await nhgetch();
     if (String.fromCharCode(ans) !== 'y') {
         await game.display.putstr_message('Save deleted.');

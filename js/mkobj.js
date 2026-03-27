@@ -1532,6 +1532,11 @@ export function doname(obj, player) {
         }
     }
 
+    // C ref: objnam.c:1505-1506 — "partly eaten" prefix for food with oeaten
+    if (obj.oeaten) {
+        prefix += 'partly eaten ';
+    }
+
     // C ref: objnam.c xname() handles "poisoned" prefix for weapons;
     // doname does NOT duplicate it.
 

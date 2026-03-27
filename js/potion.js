@@ -59,7 +59,7 @@ import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head, resists
 import { acurr } from './attrib.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { mon_adjust_speed, mon_set_minvis } from './worn.js';
-import { healmon, mondead } from './mon.js';
+import { healmon, mondead, mondead_full } from './mon.js';
 import { new_were } from './were.js';
 import { mcureblindness } from './muse.js';
 import { do_enlightenment_effect, resist, bhitm } from './zap.js';
@@ -1585,7 +1585,7 @@ async function potionhit(mon, obj, how, player, map) {
                         await pline("%s shrieks in pain!", Monnam(mon));
                     mon.mhp -= c_d(2, 6);
                     if (mon.mhp <= 0) {
-                        await mondead(mon, map);
+                        await mondead_full(mon, map);
                     } else if (is_were(monData) && !is_human(monData)) {
                         await new_were(mon);
                     }
@@ -1605,7 +1605,7 @@ async function potionhit(mon, obj, how, player, map) {
                     await pline("%s rusts.", Monnam(mon));
                 mon.mhp -= c_d(1, 6);
                 if (mon.mhp <= 0)
-                    await mondead(mon, map);
+                    await mondead_full(mon, map);
             }
             break;
         }

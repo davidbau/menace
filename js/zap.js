@@ -80,7 +80,7 @@ import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
 import { mon_nam, x_monnam } from './do_name.js';
 import { xkilled, killed,
-         monkilled, wakeup, healmon, mondead } from './mon.js';
+         monkilled, wakeup, healmon, mondead, mondead_full } from './mon.js';
 import { more, nhgetch } from './input.js';
 import { getdir, losehp } from './hack.js';
 import { nonliving, is_undead, is_demon,
@@ -3094,7 +3094,7 @@ export async function disintegrate_mon(mon, map, player) {
   }
   mon.mhp = 0;
   if (map?.removeMonster) map.removeMonster(mon);
-  await mondead(mon, map, player);
+  await mondead_full(mon, map, player);
   return true;
 }
 export async function flashburn(duration, via_lightning = false, player = null) {

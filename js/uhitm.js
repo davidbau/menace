@@ -15,12 +15,13 @@ import {
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
     RLOC_NOMSG, STRAT_WAITMASK, STRAT_WAITFORU, STUNNED,
+    P_BARE_HANDED_COMBAT, ACCESSIBLE, IS_POOL, XKILL_NOMSG,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
     PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
-    M1_FLY, M1_NOHEAD, M1_UNSOLID,
+    M1_FLY, M1_NOHEAD, M1_UNSOLID, M1_THICK_HIDE,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN, S_FUNGUS,
     PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN, PM_CLAY_GOLEM, PM_STEAM_VORTEX,
@@ -46,7 +47,7 @@ import {
     WEAPON_CLASS, GEM_CLASS, TOOL_CLASS, SPBOOK_CLASS, COIN_CLASS, RANDOM_CLASS,
 } from './objects.js';
 import { mkobj, mkcorpstat, next_ident, xname } from './mkobj.js';
-import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus } from './weapon.js';
+import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus, P_SKILL } from './weapon.js';
 import { near_capacity, overexertion } from './hack.js';
 import { will_hurtle, mhurtle, ammo_and_launcher, is_ammo, is_missile } from './dothrow.js';
 import { u_wipe_engr } from './engrave.js';
@@ -69,7 +70,7 @@ import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
 import { applyMonflee, erode_armor_on_player } from './mhitu.js';
 import { fall_asleep } from './timeout.js';
-import { killed, mondead, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
+import { killed, mondead, mondead_full, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
 import { newsym, canspotmon, map_invisible, canseemon } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
@@ -296,14 +297,14 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
         + player.ulevel;
 
     // cf. uhitm.c:386-393 — monster state adjustments
-    if (mtmp.mstun || mtmp.mstun) tmp += 2;
+    if (mtmp.mstun) tmp += 2;
     if (mtmp.mflee) tmp += 2;
     if (mtmp.msleeping) tmp += 2;
-    if (mtmp.mcanmove === false) tmp += 4;
+    if (!mtmp.mcanmove) tmp += 4;
 
     // cf. uhitm.c:396-404 — role/race adjustments
     // Monk: bonus when unarmed; heavy penalty if armored.
-    if (player.roleMnum === PM_MONK) {
+    if (player.roleMnum === PM_MONK && !player.Upolyd) {
         // C monk handling is specific:
         // - body armor (uarm) applies spell-armor roll penalty
         // - unarmed + no shield grants monk hit bonus
@@ -329,7 +330,7 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
     // cf. uhitm.c:417-423 — weapon bonuses
     if (aatyp === AT_WEAP || aatyp === AT_CLAW) {
         if (weapon) tmp += weapon_hitval(weapon, mtmp);
-        tmp += weapon_hit_bonus(weapon); // skill-based (stub: returns 0)
+        tmp += weapon_hit_bonus(weapon);
     }
 
     return tmp;
@@ -620,7 +621,7 @@ export function hmon_hitmon_dmg_recalc(hmd, obj, player) {
     if (hmd.get_dmg_bonus) {
         // Strength bonus
         dmgbonus += dbon(acurr(player, A_STR));
-        // udaminc (ring of increase damage) — not yet tracked
+        // C ref: uhitm.c — u.udaminc (ring of increase damage bonus)
         dmgbonus += (player.udaminc || 0);
     }
     if (hmd.use_weapon_skill) {
@@ -660,9 +661,20 @@ export function hmon_hitmon_jousting(hmd, mon, obj) {
 //   VERY small chance of stunning opponent if unarmed.
 //   Consumes rnd(100) for RNG parity.
 export function hmon_hitmon_stagger(hmd, mon, obj) {
-    // C: if (rnd(100) < P_SKILL(P_BARE_HANDED_COMBAT) && !bigmonst && !thick_skinned)
-    // In JS, skill levels not tracked, so just consume the RNG
-    rnd(100);
+    // C ref: uhitm.c:1548-1563 — VERY small chance of stunning opponent if unarmed.
+    const mdat = hmd.mdat || mon.data || mon.type || {};
+    const skillLevel = P_SKILL(P_BARE_HANDED_COMBAT);
+    const isThickSkinned = !!((mdat.mflags1 || 0) & M1_THICK_HIDE);
+    const isBig = (mdat.msize || 0) >= MZ_LARGE;
+    if (rnd(100) < skillLevel && !isBig && !isThickSkinned) {
+        // C ref: pline stagger message + mhurtle_to_doom
+        // mhurtle_to_doom is stubbed (needs mhurtle); stun is the important effect
+        mon.mstun = 1;
+        hmd.hittxt = true;
+        if (mhurtle_to_doom(mon, hmd.dmg, mdat)) {
+            hmd.already_killed = true;
+        }
+    }
 }
 
 // cf. uhitm.c:1566 — hmon_hitmon_pet(hmd, mon, obj):
@@ -1792,9 +1804,9 @@ export async function do_stone_mon(magr, mattk, mdef, mhm, game) {
     }
     if (!resists_ston(mdef)) {
         await pline("%s turns to stone!", Monnam(mdef));
-        // monstone(mdef) — full statue creation; fallback to mondead
+        // monstone(mdef) — full statue creation; fallback to mondead_full for life-saving
         mdef.mhp = 0;
-        await mondead(mdef, game);
+        await mondead_full(mdef, game?.map || game, game?.u);
         if (DEADMONSTER(mdef)) {
             if (mdef.mtame) {
                 // "You have a peculiarly sad feeling."
@@ -2362,91 +2374,23 @@ async function hitMonsterWithPotion(player, monster, display, weapon) {
 // Co-located here with its primary caller hmon().
 // TODO: future mon.js codematch should migrate this to mon.js.
 export async function handleMonsterKilled(player, monster, display, map) {
-    // cf. uhitm.c -> mon.c mondead() -> killed() -> xkilled()
+    // C ref: mon.c killed() → xkilled(XKILL_GIVEMSG).
+    // Show the kill message via display (preserving existing message path),
+    // then delegate to xkilled(XKILL_NOMSG) for all death processing:
+    //   - mondead_full with life-saving
+    //   - LEVEL_SPECIFIC_NOCORPSE gate
+    //   - accessible(x,y) gate
+    //   - treasure drop (rn2(6) + mkobj)
+    //   - AT_BOOM explosion handling
+    //   - corpse creation (corpse_chance + make_corpse)
+    //   - murder/peaceful/tame penalties
+    //   - experience + alignment adjustments
     const mdat = monster.data || monster.type || {};
-    // C ref: uhitm.c — tame pets use "poor" adjective in kill message
     const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
-    const killName = monster.mtame
-        ? `the poor ${x_monnam(monster)}`
-        : `${mon_nam(monster)}`;
+    const killName = !monster.mtame ? mon_nam(monster)
+        : `the poor ${x_monnam(monster)}`;
     await display.putstr_message(`You ${killVerb} ${killName}!`);
-    await mondead(monster, map, player);
-
-    // C ref: mon.c LEVEL_SPECIFIC_NOCORPSE() + xkilled() gate.
-    // This pre-check suppresses both treasure drops and corpse creation.
-    const isRogueLevel = !!map?.flags?.is_rogue_level;
-    // C ref: !svl.level.flags.deathdrops — falsy check (0 or false, not undefined)
-    const deathdropsDisabled = (map?.flags?.deathdrops != null && !map.flags.deathdrops);
-    let graveyardUndeadNoCorpse = false;
-    if (!isRogueLevel && !deathdropsDisabled && map?.flags?.graveyard && is_undead(mdat)) {
-        // C macro term: (graveyard && is_undead(mdat) && rn2(3))
-        graveyardUndeadNoCorpse = rn2(3) !== 0;
-    }
-    const levelSpecificNoCorpse = isRogueLevel || deathdropsDisabled || graveyardUndeadNoCorpse;
-
-    if (!levelSpecificNoCorpse) {
-        // cf. mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
-        const treasureRoll = rn2(6);
-        const canDropTreasure = treasureRoll === 0
-            && !((mdat.geno || 0) & G_NOCORPSE)
-            && !monster.mcloned
-            && (monster.mx !== player.x || monster.my !== player.y)
-            && mdat.mlet !== S_KOP;
-        if (canDropTreasure && map) {
-            const otmp = mkobj(RANDOM_CLASS, true, false);
-            const flags2 = mdat.mflags2 || 0;
-            const isSmallMonster = (mdat.msize || 0) < MZ_HUMAN;
-            const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
-            const dropTooBig = isSmallMonster && !!otmp
-                && otmp.otyp !== FIGURINE
-                && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
-            if (isPermaFood && !(flags2 & M2_COLLECT)) {
-                obj_resists(otmp, 0, 0);
-            } else if (dropTooBig) {
-                obj_resists(otmp, 0, 0);
-            } else {
-                otmp.ox = monster.mx;
-                otmp.oy = monster.my;
-                placeFloorObject(map, otmp);
-            }
-        }
-
-        // C ref: mon.c xkilled() calls corpse_chance() first, then
-        // make_corpse() may still return null for G_NOCORPSE species.
-        const speciesNoCorpse = !!((mdat.geno || 0) & G_NOCORPSE);
-        const createCorpseRoll = corpse_chance(monster);
-        if (createCorpseRoll && !speciesNoCorpse) {
-            const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
-                map ? monster.mx : 0, map ? monster.my : 0, map);
-            corpse.age = Math.max((player?.turns || 0) + 1, 1);
-        }
-        // C ref: mon.c:3638 — "monster is gone, corpse or other object might now be visible"
-        // Called ONCE after both treasure drop and corpse creation, regardless of which occurred.
-        if (map) newsym(monster.mx, monster.my);
-    }
-
-    // C ref: mon.c:3724 — malign was already adjusted for alignment and randomization
-    // set_malign is normally called in C makemon; compute lazily if not yet set
-    if (monster.malign === undefined && mdat) {
-        set_malign(monster, player);
-    }
-    adjalign(player, monster.malign || 0);
-
-    // C ref: mon.c cleanup section — award XP via experience() /
-    // more_experienced(), then check for level gain immediately.
-    const mndx = monster.mndx ?? 0;
-    const game = _gstate;
-    const exp = experience(monster, game?.mvitals?.[mndx]?.died || 0);
-    hmonTrace(game?.map || game?.lev || null, monster, 'kill-award',
-        `exp=${exp}`,
-        `mlev=${monster.m_lev ?? '?'}`,
-        `ac=${find_mac(monster)}`,
-        `mvitalsDied=${game?.mvitals?.[mndx]?.died ?? '?'}`);
-    more_experienced(exp, 0, game, player);
-    player.exp = player.uexp;
-    player.score += exp;
-    await newexplevel(player, display);
-
+    await xkilled(monster, XKILL_NOMSG, map, player);
     return true;
 }
 
@@ -2704,7 +2648,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
     if (applyDmgBonus) {
         damage += dbon(acurr(player, A_STR));
         if (weaponLike) {
-            damage += weapon_dam_bonus(player.weapon); // skill-based (stub: returns 0)
+            damage += weapon_dam_bonus(player.weapon);
         }
         // cf. uhitm.c — artifact damage bonus
         if (weaponLike && player.weapon && player.weapon.oartifact) {
@@ -2717,10 +2661,18 @@ export async function do_attack_core(player, monster, display, map, game = null)
     if (damage < 1) damage = 1;
 
     // C ref: uhitm.c hmon_hitmon_stagger() rolls rnd(100) for unarmed hits
-    // with damage > 1 before death handling, so consume it even on kill.
+    // with damage > 1 before death handling — stun if roll < skill level.
     const unarmedStaggerRolled = (!player.weapon && damage > 1);
+    let unarmedStaggerHit = false;
     if (unarmedStaggerRolled) {
-        rnd(100);
+        const mdat = monster.data || monster.type || {};
+        const isThickSkinned = !!((mdat.mflags1 || 0) & M1_THICK_HIDE);
+        const isBig = (mdat.msize || 0) >= MZ_LARGE;
+        const skillLevel = P_SKILL(P_BARE_HANDED_COMBAT);
+        if (rnd(100) < skillLevel && !isBig && !isThickSkinned) {
+            monster.mstun = 1;
+            unarmedStaggerHit = true;
+        }
     }
 
     // Apply damage

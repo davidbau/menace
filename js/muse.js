@@ -22,7 +22,7 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
 import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
-import { mondead, monnear, helpless as monHelpless } from './mon.js';
+import { mondead, mondead_full, monnear, helpless as monHelpless } from './mon.js';
 import { mpickobj } from './steal.js';
 import { newsym, map_invisible, canspotmon, canseemon } from './display.js';
 import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
@@ -402,7 +402,7 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
             if (by_you)
                 await xkilled(mon, XKILL_NOMSG | XKILL_NOCONDUCT, map, player);
             else
-                await mondead(mon, map, player);
+                await mondead_full(mon, map, player);
             return;
         }
     }

@@ -42,8 +42,7 @@ import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
 import { monsterNearby, nomul, unmul, near_capacity, inv_weight, domove, lookaround, end_running, dotravel_target, runmode_delay_output, check_special_room } from './hack.js';
-import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
-import { do_light_sources } from './light.js';
+import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY, docrt } from './display.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
 import { mklev, setGameSeed, setGameUbirthday, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth, level_difficulty, strongholdDepth } from './dungeon.js';
@@ -1148,7 +1147,7 @@ async function finalizeTimedCommand(game, result, coreOpts) {
     await _drainOccupation(game, coreOpts);
 }
 
-async function postRender(game, result) {
+async function postRender(game, result) { // async-ok: called via await; may need await in future
     // C ref: bot() + curs_on_u() — update status line and cursor position
     // after all command processing. In C, bot() runs at end-of-turn and
     // curs_on_u() runs before waiting for the next key.
@@ -1162,9 +1161,17 @@ async function postRender(game, result) {
     // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
     // because docrt() internally calls cursorOnPlayer and would clobber it.
     if (result?.isCountDigitWithDisplay) return;
+    // C ref: normal per-turn rendering uses bot() + curs_on_u(), NOT docrt().
+    // docrt() is only for full screen rebuilds (level change, Ctrl+R).
+    // Calling docrt() here would re-run the newsym loop, consuming display
+    // RNG for hallucinated entities a second time (first time was during
+    // gameplay actions via see_monsters/see_objects).
     const mapReady = !!(game?.lev || game?.map);
-    if (typeof game.docrt === 'function' && mapReady) {
-        await game.docrt();
+    if (mapReady && game.fov && typeof game.fov.compute === 'function') {
+        game.fov.compute(game.map, player.x, player.y);
+    }
+    if (mapReady && typeof game.display.renderMap === 'function') {
+        game.display.renderMap(game.map, player, game.fov, game.flags);
     }
     if (typeof game.display.renderStatus === 'function') {
         game.display.renderStatus(player);
@@ -2076,9 +2083,8 @@ export class NetHackGame {
         }
 
         // Update display — C ref: do.c:1840 docrt() + do.c:1841 flush_screen(-1)
-        // Do not clear pending topline state here: in tty, docrt()/cls()
-        // owns any live --More-- boundary inline before repaint proceeds.
-        await this.docrt();
+        // docrt() handles --More-- ownership inline before repaint (matching C).
+        await docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
         // C ref: do.c:1855 — maybe_lvltport_feedback() BEFORE check_special_room.
@@ -2188,35 +2194,6 @@ export class NetHackGame {
         await this.stop_occupation();
     }
 
-    // Render current screen state
-    async docrt() {
-        // C ref: docrt() → docrt_flags() → cls() which fires more() when
-        // toplin==TOPLINE_NEED_MORE.  Handle the pending --More-- boundary
-        // before repaint so the dismiss key is consumed inline (matching C).
-        const display = this.display;
-        if (display?.messageNeedsMore) {
-            if (display._nhgetch) {
-                if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
-                await more(display, {
-                    site: 'game.docrt.message-flush',
-                    clearAfter: true,
-                    readKey: display._nhgetch,
-                });
-            } else {
-                if (typeof display.clearRow === 'function') display.clearRow(0);
-                display.messageNeedsMore = false;
-                display.topMessage = null;
-            }
-        }
-        // C ref: docrt() calls vision_recalc() which passes do_light_sources
-        // to mark TEMP_LIT tiles for mobile light sources (lanterns, candles, etc.).
-        // Without this, corridors adjacent to the player's light radius stay dark.
-        this.fov.compute(this.map, this.u.x, this.u.y, do_light_sources, this.u);
-        this.display.renderMap(this.map, this.u, this.fov, this.flags);
-        this.display.renderStatus(this.u);
-        this.display.cursorOnPlayer(this.u);
-    }
-
     // Render input-blocked UI state (for example active text popups) without
     // replay-side rendering policy logic.
     async renderInputBlockedState() {
@@ -2225,12 +2202,12 @@ export class NetHackGame {
         // docrt() here can erase temporary detect symbols before dismissal.
         if (this.display?._lastTextPopup?.isTextWindow) return;
         if (this.display?.flags?.terrainmode & TER_DETECT) return;
-        await this.docrt();
+        await docrt();
         redrawActiveTextPopupWindows();
     }
 
     async _renderAll() {
-        await this.docrt();
+        await docrt();
     }
 
     // Return the COLNO×ROWNO terrain type grid
@@ -2362,7 +2339,7 @@ export class NetHackGame {
             showRepeatInterruptMore: false,
         });
 
-        await this.docrt();
+        await docrt();
 
         return {
             tookTime: result?.tookTime || false,
@@ -2414,7 +2391,7 @@ export class NetHackGame {
             return { ok: false, reason: 'invalid-depth' };
         }
         await this.changeLevel(depth, 'teleport');
-        await this.docrt();
+        await docrt();
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
         }
@@ -2432,7 +2409,7 @@ export class NetHackGame {
                 }
             }
         }
-        await this.docrt();
+        await docrt();
     }
 
     // Show game-over screen (tombstone + score). Delegates to nethack.js showGameOver.
@@ -2671,7 +2648,22 @@ export class NetHackGame {
             return;
         }
         if (forceRender || !terminalScreenOwned) {
-            await this.docrt();
+            // C ref: normal per-turn rendering uses bot() + curs_on_u(),
+            // NOT docrt(). See postRender comment for rationale.
+            const player = this.u || this.u;
+            const map = this.map;
+            if (map && this.fov && typeof this.fov.compute === 'function' && player) {
+                this.fov.compute(map, player.x, player.y);
+            }
+            if (map && typeof this.display?.renderMap === 'function') {
+                this.display.renderMap(map, player, this.fov, this.flags);
+            }
+            if (player && typeof this.display?.renderStatus === 'function') {
+                this.display.renderStatus(player);
+            }
+            if (player && typeof this.display?.cursorOnPlayer === 'function') {
+                this.display.cursorOnPlayer(player);
+            }
         }
         if (autosave && !terminalScreenOwned && !this.gameOver) {
             scheduleAutosave(this); // fire-and-forget crash recovery save
