@@ -17417,3 +17417,32 @@ Guardrails:
 The next `seed032` blocker after this fix is later pet/monster behavior:
 - first RNG divergence at step `390`
 - first event divergence at step `391`
+
+---
+
+## seed032 Shop Floor Feedback Combination (March 27 2026)
+
+### Discovery
+After the tin carry-state fix, `seed032` still diverged at step `390` in the
+shop-leash sequence. C combined the floor feedback into one line:
+`There is an open door here.  You see here a leash.`
+JS emitted those as separate messages, leaving a lone `There is an open door here.`
+`--More--` boundary one key too long.
+
+### Fix
+In `postMoveFloorCheck()` for the single-object case, build one combined
+topline when both a location feature and one visible object are present.
+This keeps the shop-entry leash case on the same command boundary as C.
+
+### Validated effect
+On top of `e4c85586e`, this moved `seed032_manual_direct.session.json`:
+- first RNG divergence: `390 -> 392`
+
+Guardrails:
+- `seed033_manual_direct.session.json` stayed at `571`
+- `seed328_ranger_wizard_gameplay.session.json` stayed at `226`
+
+### Next seam
+The next blocker is not that floor-feedback split anymore. The remaining
+step-`392` issue is the pickup result topline `v - a leash.` being left as a
+visible boundary with no live owner after `finishPickupAfterBilling()`.

@@ -248,20 +248,30 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
                 depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
                 dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
             });
+            let featureMsg = null;
             if (dfeature) {
-                await display.putstr_message(`There is ${an(dfeature)} here.`);
+                featureMsg = `There is ${an(dfeature)} here.`;
             }
             const seen = objs[0];
+            let objectMsg;
             if (seen.oclass === COIN_CLASS) {
                 const count = seen.quan || 1;
                 if (count === 1) {
-                    await display.putstr_message(`You ${verb} here a gold piece.`);
+                    objectMsg = `You ${verb} here a gold piece.`;
                 } else {
-                    await display.putstr_message(`You ${verb} here ${count} gold pieces.`);
+                    objectMsg = `You ${verb} here ${count} gold pieces.`;
                 }
             } else {
                 await observeObject(seen);
-                await display.putstr_message(`You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`);
+                objectMsg = `You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`;
+            }
+
+            if (featureMsg && objectMsg) {
+                await display.putstr_message(`${featureMsg}  ${objectMsg}`);
+            } else if (featureMsg) {
+                await display.putstr_message(featureMsg);
+            } else if (objectMsg) {
+                await display.putstr_message(objectMsg);
             }
         } else {
             // C check_here() for non-autopickup reporting uses PICK_SOME == false here.
