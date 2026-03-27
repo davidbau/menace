@@ -1646,8 +1646,11 @@ async function potionhit(mon, obj, how, player, map) {
     if ((distance === 0 || (distance < 3 && !rn2(Math.floor((1 + acurr(player, A_DEX)) / 2))))
         && (!breathless(playerData) || haseyes(playerData))) {
         await potionbreathe(player, obj);
-    } else if (obj.dknown) {
-        // C ref: also checks cansee(tx, ty) but JS doesn't have fov context here
+    }
+    // C ref: potion.c:2113 — if effect was observed, makeknown; else trycall
+    // The per-case discoverObject calls (e.g., POT_SLEEPING) set kn implicitly.
+    // For cases without explicit discovery, fall through to trycall.
+    if (obj.dknown && !obj._potionhitKnown) {
         await trycall(obj);
     }
 }
