@@ -35,6 +35,7 @@ import {
     NODIR,
 } from './objects.js';
 import { discover_object } from './o_init.js';
+import { makeknown } from './do_wear.js';
 import { is_metallic } from './objdata.js';
 import { is_undead, is_vampshifter } from './mondata.js';
 import { nhgetch } from './input.js';
@@ -606,6 +607,7 @@ export async function study_book(spellbook, player) {
     // Blank paper
     if (booktype === SPE_BLANK_PAPER) {
         await pline("This spellbook is all blank.");
+        await makeknown(booktype); // C ref: spell.c:508
         return 1;
     }
 
@@ -637,6 +639,8 @@ export async function study_book(spellbook, player) {
     // Check if already known with good retention
     const idx = spell_idx(booktype, player);
     if (idx !== UNKNOWN_SPELL && spellknow(player, idx) > KEEN / 10) {
+        // C ref: spell.c:570 — makeknown even when already known
+        await makeknown(booktype);
         await You("know \"%s\" quite well already.", od.oc_name || 'this spell');
         return 0;
     }
@@ -813,6 +817,8 @@ export async function learn(player) {
                 sp_lev: od.oc_oc2 || 1,
                 sp_know: KEEN + 1, // incrnknow(i, 1)
             });
+            // C ref: spell.c:441 — makeknown when learning a new spell
+            await makeknown(booktype);
             book.spestudied = studyCount + 1;
             if (newIdx === 0) {
                 await You("learn \"%s\".", spellName);
@@ -1713,6 +1719,8 @@ export async function skill_based_spellbook_id(player) {
 // C ref: spell.c deadbook() — Book of the Dead special entrypoint
 export async function deadbook(book2) {
     await You("turn the pages of the Book of the Dead...");
+    // C ref: spell.c:237 — makeknown(SPE_BOOK_OF_THE_DEAD)
+    await makeknown(SPE_BOOK_OF_THE_DEAD);
     if (book2) book2.known = true;
 }
 

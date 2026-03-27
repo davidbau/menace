@@ -1999,6 +1999,8 @@ function maybe_explode_wand(obj, dx, dy) {
 // ============================================================
 export async function break_wand(obj, player, map) {
   if (!obj || !player) return;
+  // C ref: apply.c:3887 — makeknown when wand is broken
+  await makeknown(obj.otyp);
   // C ref: do_break_wand in zap.c (dozap.c in older versions)
   // Determine explosion type and damage
   const spe = obj.spe || 0;

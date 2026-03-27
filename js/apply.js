@@ -123,6 +123,7 @@ import { objdescr_is } from './o_init.js';
 import { flash_hits_mon } from './uhitm.js';
 import { transient_light_cleanup } from './light.js';
 import { see_monster_closeup } from './mon.js';
+import { makeknown } from './do_wear.js';
 
 // -- Inline helpers --
 
@@ -315,6 +316,7 @@ async function use_stethoscope(obj, player, map, display, game) {
     }
 
     // C ref: apply.c:391-446 — monster at target
+    let revealed = false;
     const mtmp = map.monsterAt ? map.monsterAt(rx, ry) : null;
     if (mtmp && !mtmp.dead && mtmp.mhp > 0) {
         if (mtmp.mundetected) {
@@ -323,8 +325,11 @@ async function use_stethoscope(obj, player, map, display, game) {
             }
             mtmp.mundetected = 0;
             newsym(mtmp.mx, mtmp.my, map);
+            revealed = true;
         }
         await mstatusline(mtmp, game);
+        // C ref: apply.c:629 — makeknown when stethoscope reveals something
+        if (revealed) await makeknown(obj.otyp);
         return true;
     }
 
@@ -336,6 +341,7 @@ async function use_stethoscope(obj, player, map, display, game) {
             loc.typ = DOOR;
             loc.flags = loc.flags || 0;
             newsym(rx, ry, map);
+            await makeknown(obj.otyp); // C ref: apply.c:629
             return true;
         }
         if (loc.typ === SCORR) {
@@ -343,6 +349,7 @@ async function use_stethoscope(obj, player, map, display, game) {
             loc.typ = CORR;
             loc.flags = 0;
             newsym(rx, ry, map);
+            await makeknown(obj.otyp); // C ref: apply.c:629
             return true;
         }
     }

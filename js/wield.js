@@ -8,6 +8,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
 import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
 import { exercise } from './attrib_exercise.js';
+import { makeknown } from './do_wear.js';
 import { W_WEP, W_SWAPWEP, W_QUIVER, W_ARMOR, A_DEX, GETOBJ_SUGGEST } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
@@ -114,7 +115,10 @@ export function welded(obj, player) {
 // cf. wield.c:1052 — weldmsg(obj): print "X is welded to your hand!" message
 export async function weldmsg(player, display) {
     if (!player.weapon) return;
+    const otyp = player.weapon.otyp;
     player.weapon.bknown = true;
+    // C ref: wield.c:959 — makeknown when weapon welds to hand
+    if (otyp !== undefined) await makeknown(otyp);
     await display.putstr_message(`${doname(player.weapon, player)} welded to your hand!`);
 }
 
