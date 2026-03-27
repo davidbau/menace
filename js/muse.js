@@ -2490,6 +2490,8 @@ async function muse_unslime(mon, obj, trap, by_you, map, player) {
         m_useup(mon, obj);
     } else if (obj.otyp === POT_OIL) {
         m_useup(mon, obj);
+        // C ref: muse.c:3162 — using pot of oil to de-slime reveals pot type
+        if (vis) await makeknown(POT_OIL);
     }
 
     if (vis) {
@@ -2497,6 +2499,10 @@ async function muse_unslime(mon, obj, trap, by_you, map, player) {
         if (!DEADMONSTER(mon))
             await pline_mon(mon, `${name}'s slime is burned away!`);
     }
+    // C ref: muse.c:3200-3201 — fire source used for de-sliming reveals type
+    const otyp = obj?.otyp;
+    if (otyp != null && otyp !== STRANGE_OBJECT)
+        await makeknown(otyp);
     return true;
 }
 
