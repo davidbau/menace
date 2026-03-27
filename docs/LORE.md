@@ -17085,6 +17085,28 @@ The acceptance condition depends on `accessible(mx, my)` (C) vs
 differ for specific terrain types or drawbridge positions. Needs per-cell terrain
 comparison at the specific position to identify the exact mismatch.
 
+### seed032 Invisibility Bug (March 27, 2026)
+
+**Root cause identified via C trace**: At step 300, monster 182 (newt) at
+(62,15) picks position (62,16) in C but (62,14) in JS. C trace from m_move
+shows `target=(62,16) u=(69,15)` — the target is NOT the player position,
+confirming the player IS invisible in C (`set_apparxy` randomizes the target).
+
+JS trace shows `heroInvis=false` with `uprops[40]=undefined` throughout the
+entire session. The player's INVIS property (`uprops[INVIS]`) is never set.
+`player.Invis` (computed via `hasProp(INVIS)`) returns false because
+`uprops[40]` doesn't exist.
+
+The player becomes invisible in C through some game action (potion, spell,
+stalker corpse, or ring) that was not identified from session data. The JS
+code path that should set `incr_itimeout(player, INVIS, ...)` is never
+reached, despite the first 18864 RNG entries matching (indicating the same
+game actions occur in both C and JS).
+
+Next step: add a C trace to `incr_itimeout(&HInvis, ...)` and all `HInvis`
+assignments (potion.c, spell.c, eat.c) to identify WHEN and HOW C sets the
+invisibility, then check the corresponding JS code path.
+
 **RESOLVED (March 26, 2026)**: The displacement loop in JS's set_apparxy was
 missing the `!couldsee(mx, my)` check from C monmove.c:2261. JS had an
 incorrect comment "NO couldsee check here" that caused the omission. C requires
