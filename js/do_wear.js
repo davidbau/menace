@@ -752,8 +752,14 @@ export function adj_abon(player, obj, attr, delta) {
 }
 
 // Helper: learn ring type from wearing effects — C ref: do_wear.c learnring()
-export function learnring(obj, _seen) {
-    if (obj) obj.known = true;
+export async function learnring(obj, seen) {
+    if (!obj) return;
+    if (seen) {
+        // C ref: do_wear.c learnring() — makeknown discovers the ring type
+        // and fires exercise(A_WIS) via discoverObject.
+        await makeknown(obj.otyp);
+    }
+    obj.known = true;
 }
 
 // C ref: objects[].oc_oprop — maps ring otyp to property index
