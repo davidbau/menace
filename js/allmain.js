@@ -1147,7 +1147,7 @@ async function finalizeTimedCommand(game, result, coreOpts) {
     await _drainOccupation(game, coreOpts);
 }
 
-async function postRender(game, result) {
+async function postRender(game, result) { // async-ok: called via await; may need await in future
     // C ref: bot() + curs_on_u() — update status line and cursor position
     // after all command processing. In C, bot() runs at end-of-turn and
     // curs_on_u() runs before waiting for the next key.

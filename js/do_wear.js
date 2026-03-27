@@ -629,7 +629,7 @@ async function Helmet_on(player) {
 }
 
 // cf. do_wear.c Helmet_off() — C ref: do_wear.c:517-563
-async function Helmet_off(player) {
+async function Helmet_off(player) { // async-ok: called via await in SLOT_OFF; C Helmet_off has pline paths not yet wired
     if (!player || !player.helmet) return;
     const otyp = player.helmet.otyp;
     switch (otyp) {
@@ -753,26 +753,26 @@ function wielding_corpse(_obj, _how, _voluntary) {
 }
 
 // cf. do_wear.c Shield_on() — C ref: do_wear.c:704-727
-async function Shield_on(player) {
+async function Shield_on(player) { // async-ok: called via await in SLOT_ON
     // C ref: no shield currently requires special handling
     if (player?.shield && !player.shield.known) {
         player.shield.known = true;
     }
 }
 // cf. do_wear.c Shield_off() — C ref: do_wear.c:730-751
-async function Shield_off(player) {
+async function Shield_off(player) { // async-ok: called via await in SLOT_OFF
     // C ref: no shield currently requires special handling
 }
 
 // cf. do_wear.c Shirt_on() — C ref: do_wear.c:754-770
-async function Shirt_on(player) {
+async function Shirt_on(player) { // async-ok: called via await in SLOT_ON
     // C ref: no shirt currently requires special handling
     if (player?.shirt && !player.shirt.known) {
         player.shirt.known = true;
     }
 }
 // cf. do_wear.c Shirt_off() — C ref: do_wear.c:773-789
-async function Shirt_off(player) {
+async function Shirt_off(player) { // async-ok: called via await in SLOT_OFF
     // C ref: no shirt currently requires special handling
 }
 
