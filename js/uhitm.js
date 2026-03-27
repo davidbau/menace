@@ -3,6 +3,7 @@
 // engulfment, passive defense, mimic discovery, light attacks
 
 import { rn2, rnd, d, c_d } from './rng.js';
+import { mshot_xname } from './objnam.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, adjalign } from './attrib.js';
 import { corpse_chance, mon_to_stone } from './mon.js';
@@ -77,7 +78,7 @@ import { addToMonsterInventory } from './invent.js';
 import { possibly_unwield } from './weapon.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { find_mac, extract_from_minvent } from './worn.js';
-import { destroy_items_rng_only, resist } from './zap.js';
+import { destroy_items_rng_only, resist, hit } from './zap.js';
 import { findgold } from './steal.js';
 import { make_stunned, make_stoned } from './potion.js';
 import {
@@ -702,11 +703,18 @@ export function hmon_hitmon_splitmon(hmd, mon, obj) {
 }
 
 // cf. uhitm.c:1615 — hmon_hitmon_msg_hit(hmd, mon, obj):
-//   Generate "You hit the <monster>" message.
+//   Generate hit message: "The <projectile> hits <monster>" for thrown,
+//   "You hit the <monster>" for melee.
 export async function hmon_hitmon_msg_hit(hmd, mon, obj, display) {
     if (!hmd.hittxt && !hmd.destroyed) {
-        const name = x_monnam(mon);
-        await display.putstr_message(`You hit the ${name}${exclam(hmd.dmg)}`);
+        // C ref: uhitm.c:1622 — thrown weapons use hit(mshot_xname) which
+        // generates "The <projectile> hits <monster>!".
+        if (hmd.thrown) {
+            await hit(mshot_xname(obj), mon, exclam(hmd.dmg));
+        } else {
+            const name = x_monnam(mon);
+            await display.putstr_message(`You hit the ${name}${exclam(hmd.dmg)}`);
+        }
     }
 }
 
