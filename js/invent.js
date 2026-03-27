@@ -39,7 +39,7 @@ import { mons, PM_ARCHEOLOGIST } from './monsters.js';
 import { newsym, flush_screen, docrt } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown, setOverrideID } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
-import { clearWornItemEffects } from './do_wear.js';
+import { clearWornItemEffects, makeknown } from './do_wear.js';
 import { acurr, acurrstr, set_moreluck } from './attrib.js';
 import { confers_luck, touch_artifact, set_artifact_intrinsic } from './artifact.js';
 import { game as _gstate } from './gstate.js';
@@ -1370,8 +1370,10 @@ export async function addinv_core2(obj, player) {
         && !player.blind
         && !isObjectNameKnown(obj.otyp)) {
         await observeObject(obj);
-        await discoverObject(obj.otyp, true, true);
-        await exercise(player, A_WIS, true);
+        // C ref: makeknown(obj->otyp) — discover_object with credit_hero=TRUE.
+        // discoverObject already calls exercise(A_WIS) internally when creditClue
+        // is true, so don't call exercise separately (was double-exercising).
+        await makeknown(obj.otyp);
         if (!player.uconduct) player.uconduct = {};
         player.uconduct.literate = (player.uconduct.literate || 0) + 1;
     }
