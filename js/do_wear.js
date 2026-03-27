@@ -478,9 +478,10 @@ function Helmet_on(player) {
         }
         break;
     case HELM_OF_BRILLIANCE:
-        // Adjust INT and WIS by spe
+        // C ref: do_wear.c:459 — adjust INT/WIS and makeknown
         adj_abon(player, player.helmet, A_INT, player.helmet.spe || 0);
         adj_abon(player, player.helmet, A_WIS, player.helmet.spe || 0);
+        makeknown(otyp);
         break;
     case HELM_OF_TELEPATHY:
         toggle_extrinsic(player, TELEPAT, true);
@@ -505,8 +506,10 @@ function Helmet_off(player) {
         }
         break;
     case HELM_OF_BRILLIANCE:
+        // C ref: do_wear.c — adjust INT/WIS and makeknown on removal
         adj_abon(player, player.helmet, A_INT, -(player.helmet.spe || 0));
         adj_abon(player, player.helmet, A_WIS, -(player.helmet.spe || 0));
+        makeknown(otyp);
         break;
     case HELM_OF_TELEPATHY:
         toggle_extrinsic(player, TELEPAT, false);
@@ -542,7 +545,9 @@ async function Gloves_on(player) {
         player.attributes[A_STR] = 25;
         break;
     case GAUNTLETS_OF_DEXTERITY:
+        // C ref: do_wear.c:588 — adjust DEX and makeknown
         adj_abon(player, player.gloves, A_DEX, player.gloves.spe || 0);
+        await makeknown(otyp);
         break;
     }
     if (player.gloves && !player.gloves.known) {
@@ -573,7 +578,9 @@ function Gloves_off(player) {
         }
         break;
     case GAUNTLETS_OF_DEXTERITY:
+        // C ref: do_wear.c:662 — adjust DEX and makeknown
         adj_abon(player, player.gloves, A_DEX, -(player.gloves.spe || 0));
+        makeknown(otyp);
         break;
     }
 }
