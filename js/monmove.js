@@ -81,7 +81,7 @@ import { gd_move } from './vault.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
-import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse, m_consume_obj } from './mon.js';
+import { monnear, helpless, mondead, mondead_full, unstuck, meatmetal, meatobj, meatcorpse, m_consume_obj } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName, YMonnam, Monnam } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym, canspotmon, canseemon } from './display.js';
@@ -1152,9 +1152,9 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
                 `dmg=${m2dmg}`,
                 `hp=${m2.mhp}`);
             if (m2.mhp <= 0) {
-                // C: monkilled(m2, "", AD_DRIN)
+                // C: monkilled(m2, "", AD_DRIN) — includes life-saving
                 // TODO: proper monkilled with death reason
-                await mondead(m2, map, null);
+                await mondead_full(m2, map, null);
             }
         }
     }
@@ -2554,7 +2554,7 @@ export async function mb_trapped(mon, map, player) {
     mon.mstun = true;
     mon.mhp = (mon.mhp || 0) - rnd(15);
     if ((mon.mhp || 0) <= 0) {
-        await mondead(mon, map, player);
+        await mondead_full(mon, map, player);
         if (mon.dead || (mon.mhp || 0) <= 0) return true;
     }
     return false;
