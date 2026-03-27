@@ -1161,9 +1161,17 @@ async function postRender(game, result) {
     // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
     // because docrt() internally calls cursorOnPlayer and would clobber it.
     if (result?.isCountDigitWithDisplay) return;
+    // C ref: normal per-turn rendering uses bot() + curs_on_u(), NOT docrt().
+    // docrt() is only for full screen rebuilds (level change, Ctrl+R).
+    // Calling docrt() here would re-run the newsym loop, consuming display
+    // RNG for hallucinated entities a second time (first time was during
+    // gameplay actions via see_monsters/see_objects).
     const mapReady = !!(game?.lev || game?.map);
-    if (mapReady) {
-        await docrt();
+    if (mapReady && game.fov && typeof game.fov.compute === 'function') {
+        game.fov.compute(game.map, player.x, player.y);
+    }
+    if (mapReady && typeof game.display.renderMap === 'function') {
+        game.display.renderMap(game.map, player, game.fov, game.flags);
     }
     if (typeof game.display.renderStatus === 'function') {
         game.display.renderStatus(player);
@@ -2640,7 +2648,22 @@ export class NetHackGame {
             return;
         }
         if (forceRender || !terminalScreenOwned) {
-            await docrt();
+            // C ref: normal per-turn rendering uses bot() + curs_on_u(),
+            // NOT docrt(). See postRender comment for rationale.
+            const player = this.u || this.u;
+            const map = this.map;
+            if (map && this.fov && typeof this.fov.compute === 'function' && player) {
+                this.fov.compute(map, player.x, player.y);
+            }
+            if (map && typeof this.display?.renderMap === 'function') {
+                this.display.renderMap(map, player, this.fov, this.flags);
+            }
+            if (player && typeof this.display?.renderStatus === 'function') {
+                this.display.renderStatus(player);
+            }
+            if (player && typeof this.display?.cursorOnPlayer === 'function') {
+                this.display.cursorOnPlayer(player);
+            }
         }
         if (autosave && !terminalScreenOwned && !this.gameOver) {
             scheduleAutosave(this); // fire-and-forget crash recovery save
