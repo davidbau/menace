@@ -1,7 +1,7 @@
 // attrib_exercise.js -- C-faithful exercise/exerchk RNG flow
 // Mirrors relevant parts of attrib.c (exercise(), exerper(), exerchk()).
 
-import { rn2, rn1 } from './rng.js';
+import { rn2, rn1, pushRngLogEntry } from './rng.js';
 import { A_STR, A_INT, A_CHA, A_DEX, A_CON, A_WIS,
     MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER,
     CLAIRVOYANT, REGENERATION, STUNNED, INTRINSIC, TIMEOUT, Upolyd } from './const.js';
@@ -90,6 +90,12 @@ export async function exerchk(player, moves) {
 
     // C ref: attrib.c:601 — exerper() called at start of exerchk
     await exerper(player, moves);
+
+    // Parity instrumentation: log exerchk state for C-vs-JS comparison.
+    // Fires every turn so we can detect nextAttrCheck or accumulator drift.
+    const _fired = (moves >= player.nextAttrCheck && !_gstate?.multi) ? 1 : 0;
+    const _ax = player.aexercise.slice(0, ATTR_COUNT).join(',');
+    pushRngLogEntry(`^exerchk[mv=${moves} nac=${player.nextAttrCheck} fired=${_fired} ax=${_ax}]`);
 
     if (moves < player.nextAttrCheck) return;
     // C ref: attrib.c:610 — if (multi) return; (skip while multi-turn action)

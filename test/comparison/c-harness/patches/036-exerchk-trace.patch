@@ -1,0 +1,21 @@
+diff --git a/src/attrib.c b/src/attrib.c
+--- a/src/attrib.c
++++ b/src/attrib.c
+@@ -603,6 +603,17 @@
+     /*  Check out the periodic accumulations */
+     exerper();
+
++    /* Parity instrumentation (036-exerchk-trace): log exerchk state every
++     * turn so C-vs-JS comparison can detect nextAttrCheck or accumulator
++     * drift.  Format matches JS attrib_exercise.js ^exerchk event. */
++    {
++        int _fired = (svm.moves >= svc.context.next_attrib_check
++                       && !gm.multi) ? 1 : 0;
++        event_log("exerchk[mv=%ld nac=%ld fired=%d ax=%d,%d,%d,%d,%d,%d]",
++                  svm.moves, svc.context.next_attrib_check, _fired,
++                  AEXE(0), AEXE(1), AEXE(2), AEXE(3), AEXE(4), AEXE(5));
++    }
++
+     if (svm.moves >= svc.context.next_attrib_check) {
+         debugpline1("exerchk: ready to test. multi = %ld.", gm.multi);
+     }

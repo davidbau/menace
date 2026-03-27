@@ -648,6 +648,7 @@ export function getComparableEventStreams(jsRng = [], sessionRng = []) {
     // older non-instrumented sessions remain comparable to newer rerecords.
     const optionalPrefixes = [
         '^moveamt[',
+        '^exerchk[',
         '^fog_everyturn[',
         '^add_region[',
         '^catchup[',
