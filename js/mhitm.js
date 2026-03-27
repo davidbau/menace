@@ -18,7 +18,7 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { distmin, s_suffix } from './hacklib.js';
-import { monnear, mondead, monkilled, helpless, unstuck, healmon, golemeffects } from './mon.js';
+import { monnear, mondead, mondead_full, monkilled, helpless, unstuck, healmon, golemeffects } from './mon.js';
 import { grow_up } from './makemon.js';
 import { game as _gstate } from './gstate.js';
 import { map_invisible, newsym, canSpotMonsterForMap, canseemon } from './display.js';
@@ -515,8 +515,9 @@ export async function explmm(magr, mdef, mattk, display, vis, map, ctx) {
     let result = await mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
 
     // Kill off aggressor (self-destruct)
+    // C ref: mondead() in C includes life-saving; use mondead_full in JS.
     if (!(result & M_ATTK_AGR_DIED)) {
-        await mondead(magr, map, ctx?.player);
+        await mondead_full(magr, map, ctx?.player);
         if (!DEADMONSTER(magr)) {
             return result; // lifesaved
         }
@@ -679,7 +680,8 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
                 `${monCombatName(mdef, ctx?.defVisible, { article: ARTICLE_THE, capitalize: true, player: ctx?.player || null })} is ${killVerb}!`
             );
         }
-        await mondead(mdef, map, ctx?.player);
+        // C ref: mondead() in C includes life-saving; use mondead_full in JS.
+        await mondead_full(mdef, map, ctx?.player);
         if (!DEADMONSTER(mdef)) {
             return mhm.hitflags; // lifesaved
         }
@@ -802,8 +804,10 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
             if (!mwep && mattk.aatyp !== AT_WEAP
                 && touch_petrifies(pd) && !resists_ston(magr)) {
                 // Attacker turns to stone from bare-handed contact
+                // C ref: mondead() in C includes life-saving; use mondead_full in JS.
                 magr.mhp = 0;
-                await mondead(magr, map);
+                await mondead_full(magr, map);
+                if (!DEADMONSTER(magr)) return 0; // lifesaved
                 return M_ATTK_AGR_DIED;
             }
 

@@ -70,7 +70,7 @@ import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
 import { applyMonflee, erode_armor_on_player } from './mhitu.js';
 import { fall_asleep } from './timeout.js';
-import { killed, mondead, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
+import { killed, mondead, mondead_full, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
 import { newsym, canspotmon, map_invisible, canseemon } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
@@ -1804,9 +1804,9 @@ export async function do_stone_mon(magr, mattk, mdef, mhm, game) {
     }
     if (!resists_ston(mdef)) {
         await pline("%s turns to stone!", Monnam(mdef));
-        // monstone(mdef) — full statue creation; fallback to mondead
+        // monstone(mdef) — full statue creation; fallback to mondead_full for life-saving
         mdef.mhp = 0;
-        await mondead(mdef, game);
+        await mondead_full(mdef, game?.map || game, game?.u);
         if (DEADMONSTER(mdef)) {
             if (mdef.mtame) {
                 // "You have a peculiarly sad feeling."
