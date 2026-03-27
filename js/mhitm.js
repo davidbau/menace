@@ -18,10 +18,10 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { distmin, s_suffix } from './hacklib.js';
-import { monnear, mondead, helpless, unstuck } from './mon.js';
+import { monnear, mondead, monkilled, helpless, unstuck, healmon, golemeffects } from './mon.js';
 import { grow_up } from './makemon.js';
 import { game as _gstate } from './gstate.js';
-import { map_invisible, newsym, canSpotMonsterForMap } from './display.js';
+import { map_invisible, newsym, canSpotMonsterForMap, canseemon } from './display.js';
 import { monAttackName, rndmonnam, x_monnam } from './do_name.js';
 import { ARTICLE_THE, ARTICLE_A } from './const.js';
 import { cansee } from './vision.js';
@@ -29,11 +29,11 @@ import {
     touch_petrifies, unsolid, resists_fire, resists_cold,
     resists_elec, resists_acid, resists_sleep, resists_ston, defended,
     nonliving, sticks, attacktype, dmgtype, is_whirly,
-    DEADMONSTER, is_elf, is_orc,
+    DEADMONSTER, is_elf, is_orc, haseyes, perceives,
 } from './mondata.js';
 import { erode_obj, acid_damage } from './trap.js';
 import { erode_armor } from './uhitm.js';
-import { mons, AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_ENCH, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX, PM_FLOATING_EYE } from './monsters.js';
+import { mons, AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, AT_MAGC, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_ENCH, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX, PM_FLOATING_EYE } from './monsters.js';
 import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
@@ -47,6 +47,7 @@ import { find_mac } from './worn.js';
 import { mon_wield_item, possibly_unwield, hitval } from './weapon.js';
 import { spec_dbon } from './artifact.js';
 import { resist, drain_item } from './zap.js';
+import { mon_reflects } from './muse.js';
 import { breamm, spitmm, thrwmm } from './mthrowu.js';
 
 // NATTK, STRAT_WAITFORU imported from const.js
@@ -269,7 +270,9 @@ export function rustm(mdef, obj) {
 
 // cf. mhitm.c:1460 — xdrainenergym(mon, vis)
 export function xdrainenergym(mon, vis) {
-    if ((mon.mspec_used || 0) < 20) {
+    const mdat = mon.data || mon.type || {};
+    if ((mon.mspec_used || 0) < 20
+        && (attacktype(mdat, AT_MAGC) || attacktype(mdat, AT_BREA))) {
         mon.mspec_used = (mon.mspec_used || 0) + c_d(2, 2);
     }
 }
@@ -281,11 +284,12 @@ export function xdrainenergym(mon, vis) {
 // cf. mhitm.c:1303 — passivemm(magr, mdef, mhitb, mdead, mwep)
 export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vis, ctx) {
     const mddat = mdef.data || mdef.type || {};
+    const madat = magr.data || magr.type || {};
     const attacks = mddat.attacks || [];
     let mhit = mhitb ? M_ATTK_HIT : M_ATTK_MISS;
 
     // Find the AT_NONE (passive) attack
-    // C ref: in C, unused attack slots are NO_ATTK = {AT_NONE, AD_NONE, 0, 0}.
+    // C ref: mhitm.c:1317-1322 — scan for AT_NONE slot
     // JS attacks arrays are compact (no NO_ATTK padding), so if no explicit
     // AT_NONE passive is found but attacks.length < NATTK, synthesize a NO_ATTK
     // entry to match C's behavior (which still consumes rn2(3) for the no-op).
@@ -300,119 +304,145 @@ export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vi
     }
     if (!passiveAttk) {
         if (attacks.length >= NATTK) return (mdead | mhit);
-        // Synthesize NO_ATTK: C would find AT_NONE/AD_PHYS(=AD_NONE)/0/0
         passiveAttk = { aatyp: AT_NONE, adtyp: AD_PHYS, damn: 0, damd: 0 };
     }
 
-    // Roll damage
+    // Roll damage — C ref: mhitm.c:1323-1328
     let tmp;
     if (passiveAttk.damn) {
         tmp = c_d(passiveAttk.damn, passiveAttk.damd || 0);
     } else if (passiveAttk.damd) {
-        const mlev = mddat.mlevel || 0;  // C: mddat->mlevel (species base, not adjusted)
-        tmp = c_d(mlev + 1, passiveAttk.damd);
+        tmp = c_d((mddat.mlevel || 0) + 1, passiveAttk.damd);
     } else {
         tmp = 0;
     }
 
     const adtyp = passiveAttk.adtyp;
+    const player = ctx?.player || null;
 
-    // Effects that work even if defender died
-    if (adtyp === AD_ACID) {
+    // C ref: mhitm.c:1331-1358 — first switch: effects that work even if
+    // defender died (AD_ACID, AD_ENCH handled here, before rn2(3) gate)
+    switch (adtyp) {
+    case AD_ACID:
+        // C ref: mhitm.c:1332-1349
         if (mhitb && !rn2(2)) {
+            if (display && canseemon(magr, player))
+                await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is splashed by ${s_suffix(monCombatName(mdef, true, { player }))} acid!`);
             if (resists_acid(magr)) {
+                if (display && canseemon(magr, player))
+                    await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is not affected.`);
                 tmp = 0;
             }
         } else {
             tmp = 0;
         }
-        // C ref: mhitm.c passivemm AD_ACID — visibility message
-        if (vis && display && ctx?.agrVisible) {
-            const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
-            const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
-            await display.putstr_message(`${agrName} is splashed by ${defName}'s acid!`);
-        }
         if (!rn2(30)) erode_armor(magr, ERODE_CORRODE);
         if (!rn2(6)) acid_damage(magr.weapon || null);
-        // Apply acid damage and return
-        if (tmp > 0) {
-            magr.mhp -= tmp;
-            if (magr.mhp <= 0) {
-                await mondead(magr, map);
-                return (mdead | mhit | M_ATTK_AGR_DIED);
-            }
+        // goto assess_dmg
+        if ((magr.mhp -= tmp) <= 0) {
+            await monkilled(magr, '', adtyp, map, player);
+            return (mdead | mhit | M_ATTK_AGR_DIED);
         }
         return (mdead | mhit);
+    case AD_ENCH:
+        // C ref: mhitm.c:1350-1355 — drain weapon enchantment
+        // Note: in C this is BEFORE the rn2(3) gate, not inside it
+        if (mhitb && !mdef.mcan && mwep) {
+            drain_item(mwep, false);
+        }
+        break;
+    default:
+        break;
     }
 
+    // C ref: mhitm.c:1359-1360
     if (mdead || mdef.mcan) return (mdead | mhit);
 
-    // Effects only if defender alive and rn2(3) passes
+    // C ref: mhitm.c:1363-1449 — second switch: effects only if defender alive
     if (rn2(3)) {
         switch (adtyp) {
-        case AD_ENCH:
-            // C ref: mhitm.c passivemm AD_ENCH — drain weapon enchantment
-            if (mhitb && mwep) {
-                drain_item(mwep, false);
-            }
-            tmp = 0;
-            break;
         case AD_PLYS: {
-            // Floating eye / gelatinous cube
-            // C ref: mhitm.c passivemm AD_PLYS — "is frozen by" message
-            // Floating eye: "is frozen by {mon}'s gaze!", others: "is frozen by {mon}!"
-            if (vis && display && ctx?.agrVisible) {
-                const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
-                const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
-                const mdefData = mdef.data || mdef.type || {};
-                if (mdefData === mons[PM_FLOATING_EYE]) {
-                    await display.putstr_message(`${agrName} is frozen by ${s_suffix(defName)} gaze!`);
-                } else {
-                    await display.putstr_message(`${agrName} is frozen by ${defName}!`);
-                }
-            }
+            // C ref: mhitm.c:1365-1394 — Floating eye / gelatinous cube
             if (tmp > 127) tmp = 127;
-            if (!rn2(4)) tmp = 127;
-            paralyze_monst(magr, tmp);
-            return (mdead | mhit);
+            if (mddat === mons[PM_FLOATING_EYE]) {
+                if (!rn2(4)) tmp = 127;
+                if (magr.mcansee !== 0 && magr.mcansee !== false
+                    && haseyes(madat)
+                    && mdef.mcansee !== 0 && mdef.mcansee !== false
+                    && (perceives(madat) || !mdef.minvis)) {
+                    // C ref: mhitm.c:1377-1379 — check reflection
+                    if (await mon_reflects(magr,
+                            (display && canseemon(magr, player))
+                                ? `${s_suffix(monCombatName(mdef, true, { capitalize: true, player }))} gaze is reflected by %s %s.`
+                                : null)) {
+                        return (mdead | mhit);
+                    }
+                    if (display && canseemon(magr, player))
+                        await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is frozen by ${s_suffix(monCombatName(mdef, true, { player }))} gaze!`);
+                    paralyze_monst(magr, tmp);
+                    return (mdead | mhit);
+                }
+            } else {
+                // gelatinous cube etc.
+                if (display && canseemon(magr, player))
+                    await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is frozen by ${monCombatName(mdef, true, { player })}.`);
+                paralyze_monst(magr, tmp);
+                return (mdead | mhit);
+            }
+            return (mdead | mhit); // C: return 1 (floating eye, gaze conditions not met)
         }
         case AD_COLD:
+            // C ref: mhitm.c:1395-1409
             if (resists_cold(magr)) {
+                if (display && canseemon(magr, player)) {
+                    await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is mildly chilly.`);
+                    await golemeffects(magr, AD_COLD, tmp);
+                }
                 tmp = 0;
+                break;
             }
-            // C ref: mhitm.c passivemm AD_COLD — "is frozen by" message
-            if (vis && display && ctx?.agrVisible) {
-                const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
-                const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
-                await display.putstr_message(`${agrName} is frozen by ${defName}!`);
+            if (display && canseemon(magr, player))
+                await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is suddenly very cold!`);
+            healmon(mdef, Math.floor(tmp / 2), Math.floor(tmp / 2));
+            if ((mdef.mhpmax || 0) > ((mdef.m_lev ?? (mddat.mlevel || 0)) + 1) * 8) {
+                // split_mon is a stub (clone_mon not yet ported)
+                // TODO: implement split_mon/clone_mon for full parity
             }
             break;
         case AD_STUN:
+            // C ref: mhitm.c:1410-1418
             if (!magr.mstun) {
                 magr.mstun = 1;
+                if (display && canseemon(magr, player))
+                    await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} staggers...`);
             }
             tmp = 0;
             break;
         case AD_FIRE:
+            // C ref: mhitm.c:1419-1430
             if (resists_fire(magr)) {
+                if (display && canseemon(magr, player)) {
+                    await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is mildly warmed.`);
+                    await golemeffects(magr, AD_FIRE, tmp);
+                }
                 tmp = 0;
+                break;
             }
-            // C ref: mhitm.c passivemm AD_FIRE — "is burned by" message
-            if (vis && display && ctx?.agrVisible) {
-                const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
-                const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
-                await display.putstr_message(`${agrName} is burned by ${defName}!`);
-            }
+            if (display && canseemon(magr, player))
+                await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is suddenly very hot!`);
             break;
         case AD_ELEC:
+            // C ref: mhitm.c:1431-1443
             if (resists_elec(magr)) {
+                if (display && canseemon(magr, player)) {
+                    await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is mildly tingled.`);
+                    await golemeffects(magr, AD_ELEC, tmp);
+                }
                 tmp = 0;
+                break;
             }
-            // C ref: mhitm.c passivemm AD_ELEC — "gets zapped!" message
-            if (vis && display && ctx?.agrVisible) {
-                const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
-                await display.putstr_message(`${agrName} gets zapped!`);
-            }
+            if (display && canseemon(magr, player))
+                await display.putstr_message(`${monCombatName(magr, true, { capitalize: true, player })} is jolted with electricity!`);
             break;
         default:
             tmp = 0;
@@ -422,13 +452,10 @@ export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vi
         tmp = 0;
     }
 
-    // Apply passive damage
-    if (tmp > 0) {
-        magr.mhp -= tmp;
-        if (magr.mhp <= 0) {
-            await mondead(magr, map);
-            return (mdead | mhit | M_ATTK_AGR_DIED);
-        }
+    // C ref: mhitm.c:1451-1457 — assess_dmg
+    if ((magr.mhp -= tmp) <= 0) {
+        await monkilled(magr, '', adtyp, map, player);
+        return (mdead | mhit | M_ATTK_AGR_DIED);
     }
     return (mdead | mhit);
 }
