@@ -14,6 +14,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          POLYMORPH, POLYMORPH_CONTROL, AGGRAVATE_MONSTER, WARNING,
          WARN_OF_MON, NOT_HUNGRY } from './const.js';
 import { COIN_CLASS } from './objects.js';
+import { OBJ_INVENT } from './const.js';
 import { NORMAL_SPEED } from './const.js';
 import { weight, mergable } from './mkobj.js';
 import { skill_init, skills_for_role } from './weapon.js';
@@ -292,11 +293,13 @@ export class Player {
             if (existingCoin) {
                 existingCoin.quan = (existingCoin.quan || 1) + (obj.quan || 1);
                 existingCoin.invlet = '$';
+                existingCoin.where = OBJ_INVENT;
                 return withMeta
                     ? { item: existingCoin, merged: true, discoveredByCompare: false }
                     : existingCoin;
             }
             obj.invlet = '$';
+            obj.where = OBJ_INVENT;
             this.inventory.push(obj);
             return withMeta
                 ? { item: obj, merged: false, discoveredByCompare: false }
@@ -323,6 +326,7 @@ export class Player {
             if (!!existing.bknown !== !!obj.bknown) existing.bknown = true;
             existing.quan = (existing.quan || 1) + (obj.quan || 1);
             existing.owt = weight(existing);
+            existing.where = OBJ_INVENT;
             return withMeta
                 ? { item: existing, merged: true, discoveredByCompare }
                 : existing;
@@ -339,6 +343,7 @@ export class Player {
         const isAlphabeticInvlet = /^[a-zA-Z]$/.test(currentInvlet);
         if (isAlphabeticInvlet && !usedLetters.has(currentInvlet)) {
             obj.invlet = currentInvlet;
+            obj.where = OBJ_INVENT;
             this.inventory.push(obj);
             return withMeta
                 ? { item: obj, merged: false, discoveredByCompare: false }
@@ -363,6 +368,7 @@ export class Player {
         } else {
             obj.invlet = '?';
         }
+        obj.where = OBJ_INVENT;
         this.inventory.push(obj);
         return withMeta
             ? { item: obj, merged: false, discoveredByCompare: false }

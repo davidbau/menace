@@ -17376,3 +17376,44 @@ share the same step — they don't advance the step counter.
 
 This is an architectural change to replay_core.js that requires
 careful design to avoid breaking 567 passing sessions.
+
+---
+
+## seed032 Tin Carry-State Bug (March 27 2026)
+
+### Discovery
+After the stair-message, hero-track, and live-shopkeeper fixes, `seed032`
+still first diverged at step `376` when C entered `start_tin()` but JS stayed
+on ordinary command flow.
+
+### Root cause
+The selected tin object was being added to inventory without setting
+`obj.where = OBJ_INVENT` in `player.addToInventory()`. That left the tin
+looking like a floor object during `start_tin()` / `opentin()`, so the first
+occupation tick aborted as unreachable and JS never reached the real
+`consume_tin()` path.
+
+### Fix
+Set `where = OBJ_INVENT` on all inventory insertion/merge paths in
+`player.addToInventory()`, then route tins through the real tin code in
+`eat.js`:
+- `handleEat()` dispatches tins to `start_tin()`
+- `start_tin()` records tin occupation state
+- `opentin()` continues until the open succeeds
+- `consume_tin()` now handles ordinary non-spinach tins, including smell,
+  `Eat it?`, corpse effects via `cprefx()` / `cpostfx()`, and empty/spinach
+  tins
+
+### Validated effect
+On current `origin/main` (`f133e84c`), this moved
+`seed032_manual_direct.session.json` first RNG divergence:
+- `376 -> 390`
+
+Guardrails:
+- `seed033_manual_direct.session.json` stayed at `571`
+- `seed328_ranger_wizard_gameplay.session.json` stayed at `226`
+
+### Next seam
+The next `seed032` blocker after this fix is later pet/monster behavior:
+- first RNG divergence at step `390`
+- first event divergence at step `391`
