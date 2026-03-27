@@ -1,7 +1,7 @@
 // mkroom.c helper functions moved out of dungeon.js to mirror C file layout.
 
 import {
-    SDOOR, IS_DOOR, ROOMOFFSET, ROOM, CORR, ICE,
+    SDOOR, IS_DOOR, ROOMOFFSET, ROOM, CORR, ICE, ACCESSIBLE,
     IS_WALL, IS_FURNITURE, IS_LAVA, IS_POOL, IS_ROOM,
     OROOM, SWAMP, POOL, SHOPBASE,
     COURT, ZOO, BEEHIVE, MORGUE, BARRACKS, LEPREHALL, COCKNEST, ANTHOLE, TEMPLE,
@@ -191,7 +191,9 @@ export function somexyspace(map, croom) {
         okay = pos && isok(pos.x, pos.y) && !occupied_for_roompos(map, pos.x, pos.y);
         if (okay) {
             const loc = map.at(pos.x, pos.y);
-            okay = loc && (loc.typ === ROOM || loc.typ === CORR || loc.typ === ICE);
+            // C ref: mkroom.c somexyspace() checks ACCESSIBLE(lev->typ)
+            // which is (typ >= DOOR). This includes ROOM, CORR, ICE, DOOR, etc.
+            okay = loc && ACCESSIBLE(loc.typ);
         }
         if (okay) return pos;
     } while (trycnt++ < 100);
