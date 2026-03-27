@@ -673,8 +673,9 @@ async function Amulet_on(player) {
         toggle_extrinsic(player, LIFESAVED, true);
         break;
     case AMULET_OF_STRANGULATION:
-        // Start strangulation timer
+        // C ref: do_wear.c:1033-1040 — makeknown + strangulation
         toggle_extrinsic(player, STRANGLED, true);
+        await makeknown(otyp);
         await pline("It constricts your throat!");
         break;
     case AMULET_OF_RESTFUL_SLEEP:
@@ -684,9 +685,15 @@ async function Amulet_on(player) {
         // Passive poison resistance — tracked via extrinsic
         break;
     case AMULET_OF_CHANGE:
-        // Gender swap — simplified
-        player.gender = player.gender === 0 ? 1 : 0;
-        await pline("You are suddenly very %s!", player.gender === 0 ? "masculine" : "feminine");
+        // C ref: do_wear.c:995-1029 — gender change + makeknown
+        {
+            const origGender = player.gender;
+            player.gender = player.gender === 0 ? 1 : 0;
+            if (player.gender !== origGender) {
+                await makeknown(otyp);
+                await pline("You are suddenly very %s!", player.gender === 0 ? "masculine" : "feminine");
+            }
+        }
         break;
     case AMULET_OF_UNCHANGING:
         toggle_extrinsic(player, UNCHANGING, true);
@@ -698,10 +705,13 @@ async function Amulet_on(player) {
         toggle_extrinsic(player, MAGICAL_BREATHING, true);
         break;
     case AMULET_OF_GUARDING:
-        // AC bonus handled by find_ac()
+        // C ref: do_wear.c:1073 — always makeknown
+        await makeknown(otyp);
         break;
     case AMULET_OF_FLYING:
         toggle_extrinsic(player, FLYING, true);
+        // C ref: do_wear.c:1063-1064 — makeknown when newly flying
+        await makeknown(otyp);
         break;
     }
 }
