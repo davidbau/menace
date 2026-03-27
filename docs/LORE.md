@@ -17446,3 +17446,31 @@ Guardrails:
 The next blocker is not that floor-feedback split anymore. The remaining
 step-`392` issue is the pickup result topline `v - a leash.` being left as a
 visible boundary with no live owner after `finishPickupAfterBilling()`.
+
+### putstr_message --More-- boundary: toplines retention (Session 35)
+
+C's `toplines` buffer retains text after the screen row is cleared.
+When a new pline arrives, `update_topl()` checks `toplin` state and
+`strlen(toplines)` for concatenation. The retained text causes overflow
+when a long prior message + a new message exceeds 80 columns.
+
+Example (seed032 step 388-390): shopkeeper greeting "Hello Sarah!
+Welcome again to Kabalebo's general store!" is ~58 chars. It arrives
+via `verbalize()` → `pline()`. C's `update_topl()` concatenates it with
+whatever was in `toplines` from a prior pline in the same turn. If the
+prior text + "  " + greeting > 71 chars (80 - 9 for --More--), C shows
+--More--.
+
+JS's `putstr_message` has the same concatenation logic but the
+`topMessage` state may differ from C's `toplines` because:
+1. JS clears `topMessage` at different points than C clears `toplines`
+2. JS's `flush_screen(1)` at line 286 doesn't match C's `more()` call
+   in `update_topl` line 273-274
+
+The fix: ensure `topMessage` tracks the same lifecycle as C's `toplines`.
+Specifically, after a `more()` dismissal, both C and JS should have
+cleared toplines. But implicit --More-- dismissals (where the replay
+engine feeds a key that happens to dismiss --More--) may leave
+JS's `topMessage` in an inconsistent state.
+
+This is the root cause of the --More-- boundary mismatches in #392.
