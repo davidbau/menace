@@ -297,14 +297,14 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
         + player.ulevel;
 
     // cf. uhitm.c:386-393 — monster state adjustments
-    if (mtmp.mstun || mtmp.mstun) tmp += 2;
+    if (mtmp.mstun) tmp += 2;
     if (mtmp.mflee) tmp += 2;
     if (mtmp.msleeping) tmp += 2;
-    if (mtmp.mcanmove === false) tmp += 4;
+    if (!mtmp.mcanmove) tmp += 4;
 
     // cf. uhitm.c:396-404 — role/race adjustments
     // Monk: bonus when unarmed; heavy penalty if armored.
-    if (player.roleMnum === PM_MONK) {
+    if (player.roleMnum === PM_MONK && !player.Upolyd) {
         // C monk handling is specific:
         // - body armor (uarm) applies spell-armor roll penalty
         // - unarmed + no shield grants monk hit bonus
