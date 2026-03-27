@@ -17105,9 +17105,19 @@ the staircase placement differs during level generation despite identical RNG
 (2496 entries at step 11 all match). This is a **level generation parity bug**
 in staircase positioning, not an accumulated drift from gameplay code.
 
-Next step: compare JS and C staircase placement in `mkstairs()` / level
-generation. The bug causes ALL positions to be offset by (1,-1) from the start,
-which eventually leads to different monster movement decisions at step 300.
+**Room coordinate investigation** (March 27, 2026): JS room 0 bounds are
+(3,2)-(9,4). C map shows the same room at approximately (3,3)-(9,5) based
+on the screen layout at step 15. This is a systematic **y-coordinate offset
+of -1** in JS room creation. The `somexy` function uses room bounds to pick
+stair/object positions, so a 1-row offset causes ALL placements in that room
+to be 1 row higher.
+
+**somexyspace** ACCESSIBLE fix (committed): JS checked `typ === ROOM || CORR
+|| ICE` but C checks `ACCESSIBLE(typ)` which includes DOOR. Fixed.
+
+Next step: find the room creation code where the y-coordinate offset
+originates. Check `create_room`, `add_room`, or the room parameter generation
+in `makelevel`.
 
 **Stalker invisibility** (unrelated fix): JS's eat.js PM_STALKER case had
 `rn1(100,50)` computed but discarded with a TODO. Now properly calls
