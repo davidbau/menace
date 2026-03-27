@@ -129,8 +129,8 @@ Common examples:
 - A floor check message appears one step early because the hero's
   `domove` triggered `check_here` before a prior `--More--` was dismissed.
 
-Do not fear boundary offsets. Diagnose which call is out of order, and
-move it to the correct point in the turn.
+Do not fear boundary offsets. Diagnose which action is out of order,
+and move it to the correct point in the turn.
 
 ## Repaint Parity Discipline
 1. For `screen` or `cursor` mismatches, do not rely on vague "boundary artifact" explanations.
