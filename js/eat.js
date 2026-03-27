@@ -19,7 +19,7 @@ import { doname, next_ident, xname, weight, costly_alteration } from './mkobj.js
 import { corpse_xname, singular, the, an, obj_is_pname, safe_qbuf } from './objnam.js';
 import { pmname } from './do_name.js';
 import { ART_ORB_OF_DETECTION } from './artifacts.js';
-import { newsym } from './display.js';
+import { newsym, see_monsters } from './display.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
          PM_ACID_BLOB, PM_COCKATRICE, PM_CHICKATRICE,
          PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG,
@@ -791,7 +791,7 @@ async function givit(player, type, ptr) {
     if (!should_givit(type, ptr) && !temp_givit(type, ptr))
         return;
 
-    const prop = player.getProp(type);
+    const prop = player.ensureUProp(type);
     switch (type) {
     case FIRE_RES:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
@@ -843,21 +843,28 @@ async function givit(player, type, ptr) {
         break;
     case TELEPAT:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            await You_feel('a strange mental acuity.');
+            await You_feel(player.hallucinating ? 'in touch with the cosmos.'
+                                               : 'a strange mental acuity.');
             prop.intrinsic |= FROMOUTSIDE;
+            // C ref: eat.c — if Blind, update monster display for telepathy
+            if (player.blind || player.Blind) {
+                see_monsters();
+            }
         }
         break;
     case ACID_RES:
-        // Timed resistance
-        await You_feel('less concerned about being harmed by acid.');
-        prop.intrinsic = (prop.intrinsic & ~TIMEOUT)
-            | Math.min(((prop.intrinsic & TIMEOUT) + c_d(3, 6)), TIMEOUT);
+        // C ref: eat.c — timed; message only if !Acid_resistance (no current source)
+        if (!player.hasProp(ACID_RES)) {
+            await You_feel('less concerned about being harmed by acid.');
+        }
+        incr_itimeout(player, ACID_RES, c_d(3, 6));
         break;
     case STONE_RES:
-        // Timed resistance
-        await You_feel('less concerned about becoming petrified.');
-        prop.intrinsic = (prop.intrinsic & ~TIMEOUT)
-            | Math.min(((prop.intrinsic & TIMEOUT) + c_d(3, 6)), TIMEOUT);
+        // C ref: eat.c — timed; message only if !Stone_resistance
+        if (!player.hasProp(STONE_RES)) {
+            await You_feel('less concerned about becoming petrified.');
+        }
+        incr_itimeout(player, STONE_RES, c_d(3, 6));
         break;
     }
 }
