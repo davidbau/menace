@@ -1,0 +1,31 @@
+diff --git a/src/eat.c b/src/eat.c
+--- a/src/eat.c
++++ b/src/eat.c
+@@ -3158,8 +3158,17 @@
+ gethungry(void)
+ {
+     int accessorytime;
+
+-    if (u.uinvulnerable || iflags.debug_hunger)
++    /* 034-gethungry-trace: log entry and early-return conditions */
++    event_log("gethungry[moves=%ld invuln=%d dbghunger=%d uhunger=%ld]",
++              svm.moves, (int)u.uinvulnerable,
++              (int)iflags.debug_hunger, (long)u.uhunger);
++
++    if (u.uinvulnerable || iflags.debug_hunger) {
++        event_log("gethungry_skip[invuln=%d dbg=%d]",
++                  (int)u.uinvulnerable, (int)iflags.debug_hunger);
+         return; /* you don't feel hungrier */
++    }
+
+     /* being polymorphed into a creature which doesn't eat prevents
+        this first uhunger decrement, but to stay in such form the hero
+@@ -3183,6 +3192,8 @@
+      * instead of just replicating that.
+      */
+     accessorytime = rn2(20); /* rn2(20) replaces (int) (svm.moves % 20L) */
++    event_log("gethungry_rn2[accessorytime=%d moves=%ld]",
++              accessorytime, svm.moves);
+     if (accessorytime % 2) { /* odd */
+         /* Regeneration uses up food, unless due to an artifact */
+         if ((HRegeneration & ~FROMFORM)

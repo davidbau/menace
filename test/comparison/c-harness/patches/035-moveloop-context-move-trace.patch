@@ -1,0 +1,13 @@
+diff --git a/src/allmain.c b/src/allmain.c
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -197,6 +197,9 @@
+     if (svc.context.resume_wish)
+         makewish(); /* clears resume_wish */
+
++    /* 035-moveloop-context-move-trace: log whether turn-end block runs */
++    event_log("moveloop_ctxmove[move=%d moves=%ld]",
++              (int)svc.context.move, svm.moves);
+     if (svc.context.move) {
+         /* actual time passed */
+         u.umovement -= NORMAL_SPEED;
