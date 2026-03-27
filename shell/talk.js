@@ -35,13 +35,34 @@ class EventMux {
         this._resolvers = [];
         this._stopped = false;
         this._pump();
+        // Direct DOM listener as belt-and-suspenders for ESC/Ctrl-C.
+        // If the getch chain (which may go through nhgetch, proxy wrappers,
+        // etc.) fails to deliver quit keys, this ensures the session exits.
+        this._domListener = null;
+        if (typeof document !== 'undefined') {
+            this._domListener = (e) => {
+                if (this._stopped) return;
+                if (e.key === 'Escape') {
+                    this._deliver({ type: 'key', ch: 27 });
+                    e.preventDefault();
+                } else if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+                    this._deliver({ type: 'key', ch: 3 });
+                    e.preventDefault();
+                }
+            };
+            document.addEventListener('keydown', this._domListener, true);
+        }
     }
 
     async _pump() {
-        while (!this._stopped) {
-            let ch;
-            try { ch = await this._getch(); } catch (e) { break; }
-            this._deliver({ type: 'key', ch });
+        try {
+            while (!this._stopped) {
+                const ch = await this._getch();
+                if (!this._stopped) this._deliver({ type: 'key', ch });
+            }
+        } catch (e) {
+            // getch failure — deliver stop so the main loop doesn't hang
+            if (!this._stopped) this._deliver({ type: 'stop' });
         }
     }
 
@@ -65,6 +86,10 @@ class EventMux {
 
     stop() {
         this._stopped = true;
+        if (this._domListener && typeof document !== 'undefined') {
+            document.removeEventListener('keydown', this._domListener, true);
+            this._domListener = null;
+        }
         for (const r of this._resolvers) r({ type: 'stop' });
         this._resolvers = [];
     }

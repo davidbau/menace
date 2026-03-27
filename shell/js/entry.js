@@ -44,12 +44,12 @@ function makeGetch() {
         let code = null;
         if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.length === 1) {
             const c = e.key.toLowerCase().charCodeAt(0);
-            if (c >= 97 && c <= 122) code = c - 96; // Ctrl-A … Ctrl-Z
+            if (c >= 97 && c <= 122) { code = c - 96; e.preventDefault(); } // Ctrl-A … Ctrl-Z
         } else if (!e.ctrlKey && !e.altKey && !e.metaKey) {
             if (e.key === 'Enter')     { code = 13; }
             else if (e.key === 'Backspace') { code = 8;  e.preventDefault(); }
             else if (e.key === 'Delete')    { code = 127; }
-            else if (e.key === 'Escape')    { code = 27; }
+            else if (e.key === 'Escape')    { code = 27; e.preventDefault(); }
             else if (e.key === 'Tab')       { code = 9;  e.preventDefault(); }
             else if (e.key === 'ArrowUp')   { code = 16; e.preventDefault(); } // ≈ Ctrl-P
             else if (e.key === 'ArrowDown') { code = 14; e.preventDefault(); } // ≈ Ctrl-N
