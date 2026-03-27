@@ -680,7 +680,7 @@ export async function run_command(game, ch, opts = {}) {
                 await finalizeTimedCommand(game, promptFinalized, coreOpts);
             }
         }
-        postRender(game, promptFinalized);
+        await postRender(game, promptFinalized);
         return promptFinalized;
     }
 
@@ -819,7 +819,7 @@ export async function run_command(game, ch, opts = {}) {
         }
     }
 
-    postRender(game, result);
+    await postRender(game, result);
 
     return result;
     } finally {
@@ -1148,7 +1148,7 @@ async function finalizeTimedCommand(game, result, coreOpts) {
     await _drainOccupation(game, coreOpts);
 }
 
-function postRender(game, result) {
+async function postRender(game, result) {
     // C ref: bot() + curs_on_u() — update status line and cursor position
     // after all command processing. In C, bot() runs at end-of-turn and
     // curs_on_u() runs before waiting for the next key.
@@ -1164,7 +1164,7 @@ function postRender(game, result) {
     if (result?.isCountDigitWithDisplay) return;
     const mapReady = !!(game?.lev || game?.map);
     if (typeof game.docrt === 'function' && mapReady) {
-        game.docrt();
+        await game.docrt();
     }
     if (typeof game.display.renderStatus === 'function') {
         game.display.renderStatus(player);
@@ -1765,9 +1765,9 @@ export class NetHackGame {
             this.input.setDisplay(this.display);
         }
         if (this.input && typeof this.input.setOnWaitStarted === 'function') {
-            this.input.setOnWaitStarted(() => {
+            this.input.setOnWaitStarted(async () => {
                 if (typeof this.renderInputBlockedState === 'function') {
-                    this.renderInputBlockedState();
+                    await this.renderInputBlockedState();
                 }
             });
         }
@@ -2084,7 +2084,7 @@ export class NetHackGame {
             this.display.topMessage = null;
             this.display.messageNeedsMore = false;
         }
-        this.docrt();
+        await this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
         // C ref: do.c:1855 — maybe_lvltport_feedback() BEFORE check_special_room.
@@ -2195,7 +2195,25 @@ export class NetHackGame {
     }
 
     // Render current screen state
-    docrt() {
+    async docrt() {
+        // C ref: docrt() → docrt_flags() → cls() which fires more() when
+        // toplin==TOPLINE_NEED_MORE.  Handle the pending --More-- boundary
+        // before repaint so the dismiss key is consumed inline (matching C).
+        const display = this.display;
+        if (display?.messageNeedsMore) {
+            if (display._nhgetch) {
+                if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
+                await more(display, {
+                    site: 'game.docrt.message-flush',
+                    clearAfter: true,
+                    readKey: display._nhgetch,
+                });
+            } else {
+                if (typeof display.clearRow === 'function') display.clearRow(0);
+                display.messageNeedsMore = false;
+                display.topMessage = null;
+            }
+        }
         // C ref: docrt() calls vision_recalc() which passes do_light_sources
         // to mark TEMP_LIT tiles for mobile light sources (lanterns, candles, etc.).
         // Without this, corridors adjacent to the player's light radius stay dark.
@@ -2207,18 +2225,18 @@ export class NetHackGame {
 
     // Render input-blocked UI state (for example active text popups) without
     // replay-side rendering policy logic.
-    renderInputBlockedState() {
+    async renderInputBlockedState() {
         if (!hasActiveTextPopupWindow()) return;
         // Preserve detect/getpos NHW_TEXT overlays while blocked on input:
         // docrt() here can erase temporary detect symbols before dismissal.
         if (this.display?._lastTextPopup?.isTextWindow) return;
         if (this.display?.flags?.terrainmode & TER_DETECT) return;
-        this.docrt();
+        await this.docrt();
         redrawActiveTextPopupWindows();
     }
 
-    _renderAll() {
-        this.docrt();
+    async _renderAll() {
+        await this.docrt();
     }
 
     // Return the COLNO×ROWNO terrain type grid
@@ -2350,7 +2368,7 @@ export class NetHackGame {
             showRepeatInterruptMore: false,
         });
 
-        this.docrt();
+        await this.docrt();
 
         return {
             tookTime: result?.tookTime || false,
@@ -2402,14 +2420,14 @@ export class NetHackGame {
             return { ok: false, reason: 'invalid-depth' };
         }
         await this.changeLevel(depth, 'teleport');
-        this.docrt();
+        await this.docrt();
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
         }
         return { ok: true, depth };
     }
 
-    revealMap() {
+    async revealMap() {
         if (!this.map) return;
         for (let y = 0; y < ROWNO; y++) {
             for (let x = 0; x < COLNO; x++) {
@@ -2420,7 +2438,7 @@ export class NetHackGame {
                 }
             }
         }
-        this.docrt();
+        await this.docrt();
     }
 
     // Show game-over screen (tombstone + score). Delegates to nethack.js showGameOver.
@@ -2450,7 +2468,7 @@ export class NetHackGame {
                         `Program in disorder! Please report to the Menace team. (${e?.message || e})`
                     );
                     await nhgetch();
-                    this.renderAndAutosave({ autosave: false, forceRender: true });
+                    await this.renderAndAutosave({ autosave: false, forceRender: true });
                 } catch (displayErr) {
                     console.error('gameLoop recovery failed:', displayErr);
                 }
@@ -2503,7 +2521,7 @@ export class NetHackGame {
                 if (result.tookTime) {
                     await moveloop_core(this);
                 }
-                this.renderAndAutosave({ autosave: false, forceRender: true });
+                await this.renderAndAutosave({ autosave: false, forceRender: true });
                 return;
             }
 
@@ -2513,14 +2531,14 @@ export class NetHackGame {
 
             if (this.context?.move && this.multi < 0 && !(this?.playerDied)) {
                 await runNegativeMultiStep(this, {});
-                this.renderAndAutosave({ autosave: true });
+                await this.renderAndAutosave({ autosave: true });
                 continue;
             }
 
             if (this.multi >= 0 && this.occupation) {
                 await advanceTimedTurn(this, {});
                 await runOccupationStep(this);
-                this.renderAndAutosave({ autosave: true });
+                await this.renderAndAutosave({ autosave: true });
                 continue;
             }
 
@@ -2533,7 +2551,7 @@ export class NetHackGame {
                     coreOpts: {},
                     bumpHeroSeqN,
                 });
-                this.renderAndAutosave({ autosave: true });
+                await this.renderAndAutosave({ autosave: true });
                 if (!moveContin) {
                     // runMovementRepeatSlice returned false — could be a
                     // temporary pause (door/engraving/lookaround stop while
@@ -2571,7 +2589,7 @@ export class NetHackGame {
                         readKey: () => nhgetch(),
                     });
                     if (this.u?.Hallucination) return;
-                    this.renderAndAutosave({ autosave: false, forceRender: true });
+                    await this.renderAndAutosave({ autosave: false, forceRender: true });
                     continue;
                 }
             }
@@ -2581,13 +2599,13 @@ export class NetHackGame {
             if (cmdq_peek(CQ_CANNED)) {
                 const commandResult = await this.runOneCommandCycle(0);
                 if (!commandResult) return;
-                this.renderAndAutosave({ commandResult, autosave: true });
+                await this.renderAndAutosave({ commandResult, autosave: true });
                 continue;
             }
             const firstCh = await nhgetch();
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
-            this.renderAndAutosave({ commandResult, autosave: true });
+            await this.renderAndAutosave({ commandResult, autosave: true });
             // C ref: moveloop loops for: negative multi, occupation,
             // AND positive-multi movement (run/travel continuation).
             if (!(this.context?.move && this.multi < 0 && !(this?.playerDied))
@@ -2631,7 +2649,7 @@ export class NetHackGame {
         });
     }
 
-    renderAndAutosave({
+    async renderAndAutosave({
         commandResult = null,
         autosave = false,
         forceRender = false,
@@ -2659,7 +2677,7 @@ export class NetHackGame {
             return;
         }
         if (forceRender || !terminalScreenOwned) {
-            this.docrt();
+            await this.docrt();
         }
         if (autosave && !terminalScreenOwned && !this.gameOver) {
             scheduleAutosave(this); // fire-and-forget crash recovery save

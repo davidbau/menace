@@ -1745,7 +1745,31 @@ export function docrt_flags(recalc = null, ctxOrMap = null) {
 }
 
 // Autotranslated from display.c:1690
-export function docrt() {
+// C ref: docrt() → docrt_flags() → cls() → display_nhwindow(WIN_MESSAGE)
+// In tty, when toplin==TOPLINE_NEED_MORE, display_nhwindow fires more()
+// which consumes the dismiss key inline before repaint proceeds.
+// JS must await this --More-- dismissal so the key is consumed by the
+// repaint flow (matching C) rather than falling through as a fresh command.
+export async function docrt() {
+  const ctx = _resolveDisplayCtx();
+  const display = ctx?.display;
+  // C ref: cls() checks toplin before clearing.  Mirror that check here
+  // so docrt's repaint owns the --More-- boundary when one is pending.
+  if (display?.messageNeedsMore) {
+    if (display._nhgetch) {
+      if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
+      await more(display, {
+        site: 'display.docrt.message-flush',
+        clearAfter: true,
+        readKey: display._nhgetch,
+      });
+    } else {
+      // No nhgetch available; just reset message state.
+      if (typeof display.clearRow === 'function') display.clearRow(MESSAGE_ROW);
+      display.messageNeedsMore = false;
+      display.topMessage = null;
+    }
+  }
   docrt_flags(docrtRecalc);
 }
 

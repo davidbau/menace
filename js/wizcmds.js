@@ -686,7 +686,7 @@ export async function you_sanity_check(player) {
     await display_nhwindow(WIN_MESSAGE, true);
     player.uswallow = 0;
     player.uswldtim = 0;
-    docrt();
+    await docrt();
   }
   if ((mtmp = m_at(player.x, player.y)) != null) {
     if (player.ustuck !== mtmp) impossible("sanity_check: you over monster");

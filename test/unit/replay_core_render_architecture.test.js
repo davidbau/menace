@@ -27,7 +27,7 @@ describe('replay render architecture contracts', () => {
         assert.doesNotMatch(replaySrc, /renderAfterCommand/);
         assert.doesNotMatch(replaySrc, /renderInputBlockedState/);
 
-        assert.match(mainSrc, /renderInputBlockedState\(\)\s*\{/);
-        assert.match(mainSrc, /setOnWaitStarted\(\(\)\s*=>\s*\{/);
+        assert.match(mainSrc, /(?:async\s+)?renderInputBlockedState\(\)\s*\{/);
+        assert.match(mainSrc, /setOnWaitStarted\(async\s*\(\)\s*=>\s*\{/);
     });
 });

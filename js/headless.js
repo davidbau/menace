@@ -360,7 +360,7 @@ async function headlessFromSeed(seed, roleIndex = 11, opts = {}) {
     return game;
 }
 
-function finalizeHeadlessReadyState(game) {
+async function finalizeHeadlessReadyState(game) {
     if (game?.pendingPrompt?.source === 'startup_lore') {
         // Public headless helpers should return a command-ready game rather
         // than one still owning input with the startup lore overlay.
@@ -372,7 +372,7 @@ function finalizeHeadlessReadyState(game) {
             game.display.messageNeedsMoreBoundary = false;
         }
         if (typeof game.docrt === 'function') {
-            game.docrt();
+            await game.docrt();
         }
     }
     return game;
@@ -387,7 +387,7 @@ export async function headlessStart(seed, options = {}) {
     const alignment = normalizeAlignment(character.align ?? options.align ?? options.alignment);
     const race = normalizeRace(character.race ?? options.race, RACE_HUMAN);
     const name = character.name ?? options.name ?? (options.wizard ? 'Wizard' : 'Agent');
-    return finalizeHeadlessReadyState(await headlessFromSeed(seed, roleIndex, {
+    return await finalizeHeadlessReadyState(await headlessFromSeed(seed, roleIndex, {
         ...options,
         name,
         gender,
