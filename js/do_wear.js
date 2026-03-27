@@ -211,15 +211,15 @@ export async function clearWornItemEffects(player, obj) {
     } else if (obj === player.shield) {
         Shield_off(player);
     } else if (obj === player.helmet) {
-        Helmet_off(player);
+        await Helmet_off(player);
     } else if (obj === player.gloves) {
-        Gloves_off(player);
+        await Gloves_off(player);
     } else if (obj === player.cloak) {
         await Cloak_off(player);
     } else if (obj === player.shirt) {
         Shirt_off(player);
     } else if (obj === player.rightRing || obj === player.leftRing) {
-        Ring_off(player, obj);
+        await Ring_off(player, obj);
     } else if (obj === player.amulet) {
         Amulet_off(player);
     } else if (obj === player.boots) {
@@ -266,8 +266,8 @@ export async function armoroff(otmp, player, game) {
         switch (armcat) {
             case ARM_SUIT: Armor_off(player); break;
             case ARM_SHIELD: Shield_off(player); break;
-            case ARM_HELM: Helmet_off(player); break;
-            case ARM_GLOVES: Gloves_off(player); break;
+            case ARM_HELM: await Helmet_off(player); break;
+            case ARM_GLOVES: await Gloves_off(player); break;
             case ARM_BOOTS: await Boots_off(player); break;
             case ARM_CLOAK: await Cloak_off(player); break;
             case ARM_SHIRT: Shirt_off(player); break;
@@ -469,7 +469,7 @@ async function Cloak_off(player) {
 }
 
 // cf. do_wear.c Helmet_on() — C ref: do_wear.c:432-490
-function Helmet_on(player) {
+async function Helmet_on(player) {
     if (!player || !player.helmet) return;
     const otyp = player.helmet.otyp;
     switch (otyp) {
@@ -483,7 +483,7 @@ function Helmet_on(player) {
         // C ref: do_wear.c:459 — adjust INT/WIS and makeknown
         adj_abon(player, player.helmet, A_INT, player.helmet.spe || 0);
         adj_abon(player, player.helmet, A_WIS, player.helmet.spe || 0);
-        makeknown(otyp);
+        await makeknown(otyp);
         break;
     case HELM_OF_TELEPATHY:
         toggle_extrinsic(player, TELEPAT, true);
@@ -497,7 +497,7 @@ function Helmet_on(player) {
 }
 
 // cf. do_wear.c Helmet_off() — C ref: do_wear.c:492-540
-function Helmet_off(player) {
+async function Helmet_off(player) {
     if (!player || !player.helmet) return;
     const otyp = player.helmet.otyp;
     switch (otyp) {
@@ -511,7 +511,7 @@ function Helmet_off(player) {
         // C ref: do_wear.c — adjust INT/WIS and makeknown on removal
         adj_abon(player, player.helmet, A_INT, -(player.helmet.spe || 0));
         adj_abon(player, player.helmet, A_WIS, -(player.helmet.spe || 0));
-        makeknown(otyp);
+        await makeknown(otyp);
         break;
     case HELM_OF_TELEPATHY:
         toggle_extrinsic(player, TELEPAT, false);
@@ -558,7 +558,7 @@ async function Gloves_on(player) {
 }
 
 // cf. do_wear.c Gloves_off() — C ref: do_wear.c:592-640
-function Gloves_off(player) {
+async function Gloves_off(player) {
     if (!player || !player.gloves) return;
     const otyp = player.gloves.otyp;
     switch (otyp) {
@@ -582,7 +582,7 @@ function Gloves_off(player) {
     case GAUNTLETS_OF_DEXTERITY:
         // C ref: do_wear.c:662 — adjust DEX and makeknown
         adj_abon(player, player.gloves, A_DEX, -(player.gloves.spe || 0));
-        makeknown(otyp);
+        await makeknown(otyp);
         break;
     }
 }
@@ -802,7 +802,7 @@ const RING_OPROP_MAP = {
 // cf. do_wear.c Ring_on() — C ref: do_wear.c:1237-1340
 // Matches C's exact switch structure. Most rings are passive extrinsic
 // toggles handled by toggle_extrinsic; special cases get additional logic.
-export function Ring_on(player, ring) {
+export async function Ring_on(player, ring) {
     if (!player) return;
     const r = ring || player.leftRing || player.rightRing;
     if (!r) return;
@@ -881,13 +881,13 @@ export function Ring_on(player, ring) {
         mark_vision_dirty();
         if (!oldprop && !player.blind) {
             // C ref: "Suddenly you are transparent, but there!"
-            learnring(r, true);
+            await learnring(r, true);
         }
         break;
     case RIN_INVISIBILITY:
         toggle_extrinsic(player, INVIS, true);
         if (!oldprop && !player.blind) {
-            learnring(r, true);
+            await learnring(r, true);
             // C ref: self_invis_message()
         }
         break;
@@ -895,20 +895,20 @@ export function Ring_on(player, ring) {
         toggle_extrinsic(player, LEVITATION, true);
         if (!oldprop) {
             // C ref: float_up(); learnring(obj, TRUE);
-            learnring(r, true);
+            await learnring(r, true);
         }
         break;
     case RIN_GAIN_STRENGTH:
         adj_abon(player, r, A_STR, r.spe || 0);
-        learnring(r, true);
+        await learnring(r, true);
         break;
     case RIN_GAIN_CONSTITUTION:
         adj_abon(player, r, A_CON, r.spe || 0);
-        learnring(r, true);
+        await learnring(r, true);
         break;
     case RIN_ADORNMENT:
         adj_abon(player, r, A_CHA, r.spe || 0);
-        learnring(r, true);
+        await learnring(r, true);
         break;
     case RIN_INCREASE_ACCURACY:
         player.uhitinc = (player.uhitinc || 0) + (r.spe || 0);
@@ -921,14 +921,14 @@ export function Ring_on(player, ring) {
         break;
     case RIN_PROTECTION:
         toggle_extrinsic(player, PROTECTION, true);
-        learnring(r, (r.spe || 0) !== 0);
+        await learnring(r, (r.spe || 0) !== 0);
         if (r.spe) find_ac(player);
         break;
     }
 }
 
 // cf. do_wear.c Ring_off_or_gone() — C ref: do_wear.c:1345-1441
-export function Ring_off(player, ring) {
+export async function Ring_off(player, ring) {
     if (!player || !ring) return;
     const otyp = ring.otyp;
 
@@ -991,19 +991,19 @@ export function Ring_off(player, ring) {
         toggle_extrinsic(player, SEE_INVIS, false);
         mark_vision_dirty();
         if (!player.blind) {
-            learnring(ring, true);
+            await learnring(ring, true);
         }
         break;
     case RIN_INVISIBILITY:
         toggle_extrinsic(player, INVIS, false);
         if (!player.blind) {
-            learnring(ring, true);
+            await learnring(ring, true);
         }
         break;
     case RIN_LEVITATION:
         toggle_extrinsic(player, LEVITATION, false);
         // C ref: float_down(0L, 0L);
-        learnring(ring, true);
+        await learnring(ring, true);
         break;
     case RIN_GAIN_STRENGTH:
         adj_abon(player, ring, A_STR, -(ring.spe || 0));
@@ -1025,7 +1025,7 @@ export function Ring_off(player, ring) {
         break;
     case RIN_PROTECTION:
         toggle_extrinsic(player, PROTECTION, false);
-        learnring(ring, (ring.spe || 0) !== 0);
+        await learnring(ring, (ring.spe || 0) !== 0);
         if (ring.spe) find_ac(player);
         break;
     }
@@ -1291,9 +1291,9 @@ async function set_wear(player, obj) {
     if (!obj || obj === player.blindfold)
         if (player.blindfold) await Blindf_on(player, player.blindfold);
     if (!obj || obj === player.rightRing)
-        if (player.rightRing) Ring_on(player, player.rightRing);
+        if (player.rightRing) await Ring_on(player, player.rightRing);
     if (!obj || obj === player.leftRing)
-        if (player.leftRing) Ring_on(player, player.leftRing);
+        if (player.leftRing) await Ring_on(player, player.leftRing);
     if (!obj || obj === player.amulet)
         if (player.amulet) await Amulet_on(player);
 
@@ -1308,7 +1308,7 @@ async function set_wear(player, obj) {
     if (!obj || obj === player.gloves)
         if (player.gloves) await Gloves_on(player);
     if (!obj || obj === player.helmet)
-        if (player.helmet) Helmet_on(player);
+        if (player.helmet) await Helmet_on(player);
     if (!obj || obj === player.shield)
         if (player.shield) Shield_on(player);
 }
@@ -1389,11 +1389,11 @@ async function glibr(player) {
             (leftfall && rightfall) ? "rings slip" : "ring slips",
             (leftfall && rightfall) ? fingers_or_gloves(player, false) : "finger");
         if (leftfall) {
-            Ring_off(player, player.leftRing);
+            await Ring_off(player, player.leftRing);
             player.leftRing = null;
         }
         if (rightfall) {
-            Ring_off(player, player.rightRing);
+            await Ring_off(player, player.rightRing);
             player.rightRing = null;
         }
     }
@@ -1501,7 +1501,7 @@ export async function armor_or_accessory_off(obj, game, player) {
   if (!game.svc.context.takeoff.mask) return ECMD_OK;
   reset_remarm();
   if (obj.owornmask & W_ARMOR) { await armoroff(obj); }
-  else if (obj === player.rightRing || obj === player.leftRing) { await off_msg(obj); Ring_off(obj); }
+  else if (obj === player.rightRing || obj === player.leftRing) { await off_msg(obj); await Ring_off(obj); }
   else if (obj === player.amulet) { Amulet_off(); }
   else if (obj === player.blindfold) { await Blindf_off(player, obj); }
   else {
@@ -1588,13 +1588,13 @@ export async function do_takeoff(game, player) {
   else if (doff.what === WORN_GLOVES) {
     otmp = player.gloves;
     if (!await cursed(otmp, player)) {
-      Gloves_off();
+      await Gloves_off();
     }
   }
   else if (doff.what === WORN_HELMET) {
     otmp = player.helmet;
     if (!await cursed(otmp, player)) {
-      Helmet_off();
+      await Helmet_off();
     }
   }
   else if (doff.what === WORN_SHIELD) {
@@ -1610,8 +1610,8 @@ export async function do_takeoff(game, player) {
     }
   }
   else if (doff.what === WORN_AMUL) { otmp = player.amulet; if (!await cursed(otmp, player)) Amulet_off(); }
-  else if (doff.what === LEFT_RING) { otmp = player.leftRing; if (!await cursed(otmp, player)) Ring_off(player.leftRing); }
-  else if (doff.what === RIGHT_RING) { otmp = player.rightRing; if (!await cursed(otmp, player)) Ring_off(player.rightRing); }
+  else if (doff.what === LEFT_RING) { otmp = player.leftRing; if (!await cursed(otmp, player)) await Ring_off(player.leftRing); }
+  else if (doff.what === RIGHT_RING) { otmp = player.rightRing; if (!await cursed(otmp, player)) await Ring_off(player.rightRing); }
   else if (doff.what === WORN_BLINDF) { if (!await cursed(player.blindfold, player)) await Blindf_off(player, player.blindfold); }
   else {
     impossible("do_takeoff: taking off %lx", doff.what);
@@ -1832,8 +1832,8 @@ async function wornarm_destroyed(player, wornarm) {
     if (wornarm === player.cloak) { await Cloak_off(player); player.cloak = null; }
     else if (wornarm === player.armor) { Armor_off(player); player.armor = null; }
     else if (wornarm === player.shirt) { Shirt_off(player); player.shirt = null; }
-    else if (wornarm === player.helmet) { Helmet_off(player); player.helmet = null; }
-    else if (wornarm === player.gloves) { Gloves_off(player); player.gloves = null; }
+    else if (wornarm === player.helmet) { await Helmet_off(player); player.helmet = null; }
+    else if (wornarm === player.gloves) { await Gloves_off(player); player.gloves = null; }
     else if (wornarm === player.boots) { await Boots_off(player); player.boots = null; }
     else if (wornarm === player.shield) { Shield_off(player); player.shield = null; }
 
@@ -2213,7 +2213,7 @@ async function putOnSelectedItem(player, display, game, item) {
             return { moved: false, tookTime: true };
         }
         setworn(player, item, ringMask);
-        Ring_on(player, item);
+        await Ring_on(player, item);
     } else if (item.oclass === AMULET_CLASS) {
         if (player.amulet) {
             await display.putstr_message("You're already wearing an amulet.");
@@ -2277,7 +2277,7 @@ async function wearArmorItem(player, display, game, item) {
 
     // C ref: set afternmv based on which slot
     const onFn = SLOT_ON[sub];
-    const afternmvFn = onFn ? (async () => { onFn(player); }) : null;
+    const afternmvFn = onFn ? (async () => { await onFn(player); }) : null;
 
     // C parity: armor donning uses nomul(delay) + afternmv, not occupation
     if (game && delay) {
@@ -2333,7 +2333,7 @@ async function removeArmorOrAccessory(player, display, game, item) {
 
     if (item === player.rightRing || item === player.leftRing) {
         await off_msg(item, player);
-        Ring_off(player, item);
+        await Ring_off(player, item);
         setnotworn(player, item);
     } else if (item === player.amulet) {
         await off_msg(item, player);
@@ -2694,14 +2694,14 @@ export { handleWear, handlePutOn, handleTakeOff, handleRemove, canwearobj, curse
 export { handleWear as dowear, handlePutOn as doputon, handleTakeOff as dotakeoff };
 
 // C ref: do_wear.c:1217 adjust_attrib() — adjust ABON for ring/amulet
-export function adjust_attrib(obj, which, val, game, player) {
+export async function adjust_attrib(obj, which, val, game, player) {
   const old_attrib = acurr(player, which);
   if (!player.abon || player.abon.length < 7) {
       player.abon = new Array(7).fill(0);
   }
   player.abon[which] = (player.abon[which] || 0) + val;
   const observable = (old_attrib !== acurr(player, which));
-  if (observable || !extremeattr(player, which)) learnring(obj, observable);
+  if (observable || !extremeattr(player, which)) await learnring(obj, observable);
   if (game.disp) game.disp.botl = true;
 }
 
@@ -2754,16 +2754,16 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
     case RIN_LEVITATION:
       // C: checks blocked-levitation via B() macro; not wired in JS
       await float_down(0, 0, player, game);
-      if (!(player?.levitating)) learnring(obj, true);
+      if (!(player?.levitating)) await learnring(obj, true);
     break;
     case RIN_GAIN_STRENGTH:
-      adjust_attrib(obj, A_STR, -obj.spe, game, player);
+      await adjust_attrib(obj, A_STR, -obj.spe, game, player);
     break;
     case RIN_GAIN_CONSTITUTION:
-      adjust_attrib(obj, A_CON, -obj.spe, game, player);
+      await adjust_attrib(obj, A_CON, -obj.spe, game, player);
     break;
     case RIN_ADORNMENT:
-      adjust_attrib(obj, A_CHA, -obj.spe, game, player);
+      await adjust_attrib(obj, A_CHA, -obj.spe, game, player);
     break;
     case RIN_INCREASE_ACCURACY:
       player.uhitinc -= obj.spe;
@@ -2773,7 +2773,7 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
     break;
     case RIN_PROTECTION:
       observable = (obj.spe !== 0);
-    learnring(obj, observable);
+    await learnring(obj, observable);
     if (obj.spe) find_ac(player);
     break;
     case RIN_PROTECTION_FROM_SHAPE_CHAN:
