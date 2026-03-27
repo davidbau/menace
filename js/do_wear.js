@@ -462,6 +462,8 @@ async function Cloak_off(player) {
         toggle_extrinsic(player, ANTIMAGIC, false);
         break;
     case CLOAK_OF_PROTECTION:
+        // C ref: do_wear.c:338 — makeknown on removal
+        await makeknown(otyp);
         break;
     }
 }
