@@ -17098,9 +17098,16 @@ from a stale rerecord that produced a different session.
 rerecord produces a new recording that may differ from the original due to
 timing/capture differences.
 
-The seed032 divergence at step 300 remains unexplained. The monster position
-drift is not from invisibility. It must come from an earlier accumulated state
-difference affecting monster movement decisions despite identical RNG.
+**Root cause found** (March 27, 2026): Hero position tracing revealed the
+player position diverges at the VERY FIRST step (step 14). C player starts
+at (5,5), JS at (6,4). JS's upstair is at (6,4). If C's upstair is at (5,5),
+the staircase placement differs during level generation despite identical RNG
+(2496 entries at step 11 all match). This is a **level generation parity bug**
+in staircase positioning, not an accumulated drift from gameplay code.
+
+Next step: compare JS and C staircase placement in `mkstairs()` / level
+generation. The bug causes ALL positions to be offset by (1,-1) from the start,
+which eventually leads to different monster movement decisions at step 300.
 
 **Stalker invisibility** (unrelated fix): JS's eat.js PM_STALKER case had
 `rn1(100,50)` computed but discarded with a TODO. Now properly calls
