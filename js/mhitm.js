@@ -971,7 +971,8 @@ export async function mdisplacem(magr, mdef, quietly, map) {
         if (!gloves) {
             // Aggressor turns to stone
             magr.mhp = 0;
-            await mondead(magr, map);
+            await mondead_full(magr, map);
+            if (!DEADMONSTER(magr)) return 0; // lifesaved
             return M_ATTK_AGR_DIED;
         }
     }

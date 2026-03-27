@@ -61,7 +61,7 @@ import { morehungry } from './eat.js';
 import { stealgold, steal, stealamulet } from './steal.js';
 import { erode_obj, acid_damage, t_at } from './trap.js';
 import { erode_armor } from './uhitm.js';
-import { xkilled, mondead } from './mon.js';
+import { xkilled, mondead, mondead_full } from './mon.js';
 import { flush_screen, newsym, map_invisible, canSpotMonsterForMap, mon_visible, canseemon } from './display.js';
 import { mon_explodes } from './explode.js';
 import { spec_dbon, defends } from './artifact.js';
@@ -2111,7 +2111,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
         if (ufound && !not_affected) {
             if (display) await display.putstr_message('You are caught in a blast of kaleidoscopic light!');
             // Kill the monster immediately
-            await mondead(mtmp, map, player);
+            await mondead_full(mtmp, map, player);
             kill_agr = false; // already killed
             // C: make_hallucinated(HHallucination + tmp, FALSE, 0L)
             // Hallucination not fully ported
@@ -2127,7 +2127,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
     }
 
     if (kill_agr && !mtmp.dead && mtmp.mhp > 0) {
-        await mondead(mtmp, map, player);
+        await mondead_full(mtmp, map, player);
     }
 
     return (mtmp.dead || mtmp.mhp <= 0) ? M_ATTK_AGR_DIED : M_ATTK_MISS;

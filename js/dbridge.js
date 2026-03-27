@@ -30,7 +30,7 @@ import { block_point, unblock_point } from './vision.js';
 import { passes_walls, noncorporeal, is_flyer, is_floater,
          is_swimmer, likes_lava } from './mondata.js';
 import { x_monnam, y_monnam } from './do_name.js';
-import { mondead } from './mon.js';
+import { mondead, mondead_full } from './mon.js';
 import { newsym, canseemon } from './display.js';
 
 // ============================================================================
@@ -335,7 +335,7 @@ async function e_died(etmp, xkill_flags, how, map) {
     }
     // Monster death
     if (etmp.emon && etmp.emon.mhp > 0) {
-        await mondead(etmp.emon, map);
+        await mondead_full(etmp.emon, map);
         etmp.edata = null;
     }
 }

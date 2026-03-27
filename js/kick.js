@@ -12,7 +12,7 @@ import { Luck, acurr } from './attrib.js';
 import { x_monnam, Monnam, mon_nam } from './do_name.js';
 import { is_watch } from './mondata.js';
 import { KICKING_BOOTS } from './objects.js';
-import { mondead, angry_guards, wake_nearto } from './mon.js';
+import { mondead, mondead_full, angry_guards, wake_nearto } from './mon.js';
 import { newsym } from './display.js';
 import { more, nhgetch } from './input.js';
 import { DIRECTION_KEYS } from './const.js';
@@ -86,7 +86,7 @@ export async function handleKick(player, map, display, game) {
         const damage = rnd(4) + player.strDamage;
         mon.mhp -= Math.max(1, damage);
         if (mon.mhp <= 0) {
-            await mondead(mon, map, player);
+            await mondead_full(mon, map, player);
             await display.putstr_message(`${Monnam(mon)} dies!`);
             map.removeMonster(mon);
         }

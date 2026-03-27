@@ -37,7 +37,7 @@ import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE, 
 import { MAGIC_PORTAL, WT_HUMAN, MAX_CARR_CAP } from './const.js';
 import { gettrack } from './track.js';
 import { On_stairs } from './stairs.js';
-import { helpless, onscary } from './mon.js';
+import { helpless, onscary, mondead_full } from './mon.js';
 import { pmname, Mgender, y_monnam, YMonnam, Monnam } from './do_name.js';
 import { eaten_stat } from './eat.js';
 
@@ -404,7 +404,7 @@ export async function dog_starve(mon, map, display, player, fov) {
             await display.putstr_message('You feel sad for a moment.');
         }
     }
-    await mondead(mon, map, player);
+    await mondead_full(mon, map, player);
 }
 
 // ========================================================================
