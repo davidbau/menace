@@ -531,9 +531,16 @@ export class Display extends Terminal {
             for (let x = 1; x < COLNO; x++) {
                 const loc = gameMap.at?.(x, y);
                 const cached = getCachedMapCell(loc, gameMap);
-                if (cached && !(player && x === player.x && y === player.y && !player.usteed)) {
+                if (cached) {
                     this.setCell(x - 1, row, cached.ch, cached.color, cached.attr || 0);
-                } else {
+                } else if (!player?.Hallucination && !player?.hallucinating) {
+                    // Only fall through to newsym when NOT hallucinating.
+                    // During hallucination, newsym consumes display RNG for
+                    // random monster/object glyphs.  C's per-turn rendering
+                    // uses see_monsters/see_objects (which cache their cells)
+                    // and does NOT re-newsym all cells afterward.  The
+                    // terminal grid already has correct content from prior
+                    // newsym calls during the game action phase.
                     newsym(x, y, renderCtx);
                 }
             }
@@ -2389,6 +2396,7 @@ export function see_monsters(map) {
 
 // C ref: vision.c:511 vision_recalc()
 export function vision_recalc() {
+    cosmic_display_push_owner('vision_recalc');
     clear_vision_full_recalc();
     const ctx = _getDisplayCtx();
     if (!ctx || !ctx.fov || !ctx.fov.visible || !ctx.map || !ctx.player) return;
@@ -2416,6 +2424,7 @@ export function vision_recalc() {
             }
         }
     }
+    cosmic_display_pop_owner('vision_recalc');
 }
 
 // C ref: display.c:2200 flush_screen(cursor_on_u)

@@ -33,7 +33,7 @@ import { drinkfountain, drinksink, dipfountain, dipsink } from './fountain.js';
 import { pline, You, Your, You_feel, You_cant, impossible } from './pline.js';
 import { tmp_at } from './animation.js';
 import { DISP_ALWAYS, DISP_END } from './const.js';
-import { mark_vision_dirty } from './vision.js';
+import { mark_vision_dirty, clear_vision_full_recalc } from './vision.js';
 import { float_up, float_down } from './trap.js';
 import { float_vs_flight, polyself } from './polyself.js';
 import { rndexp, pluslvl } from './exper.js';
@@ -390,6 +390,11 @@ async function make_hallucinated(player, xtime, talk, mask) {
             see_objects();
             see_traps();
             cosmic_display_pop_owner('make_hallucinated');
+            // C ref: after see_monsters/see_objects/see_traps refresh all
+            // visible cells, clear the vision dirty flag so the next
+            // moveloop_core doesn't re-run vision_recalc (which would
+            // trigger a full newsym grid walk consuming display RNG).
+            clear_vision_full_recalc();
         }
         update_inventory(player);
         // C ref: potion.c:433 — disp.botl = TRUE is set BEFORE pline().
