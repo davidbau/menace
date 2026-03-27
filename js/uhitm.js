@@ -58,7 +58,7 @@ import {
     resists_fire, resists_cold, resists_elec, resists_acid,
     resists_poison, resists_sleep, resists_ston, resists_drli,
     defended,
-    mon_hates_silver, mon_hates_light, hides_under,
+    thick_skinned, mon_hates_silver, mon_hates_light, hides_under,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc, is_were,
     carnivorous, herbivorous, is_metallivore,
     is_rider, slimeproof, completelyrusts, completelyrots,
@@ -330,7 +330,7 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
     // cf. uhitm.c:417-423 — weapon bonuses
     if (aatyp === AT_WEAP || aatyp === AT_CLAW) {
         if (weapon) tmp += weapon_hitval(weapon, mtmp);
-        tmp += weapon_hit_bonus(weapon); // skill-based (stub: returns 0)
+        tmp += weapon_hit_bonus(weapon);
     }
 
     return tmp;
@@ -621,7 +621,7 @@ export function hmon_hitmon_dmg_recalc(hmd, obj, player) {
     if (hmd.get_dmg_bonus) {
         // Strength bonus
         dmgbonus += dbon(acurr(player, A_STR));
-        // udaminc (ring of increase damage) — not yet tracked
+        // C ref: uhitm.c — u.udaminc (ring of increase damage bonus)
         dmgbonus += (player.udaminc || 0);
     }
     if (hmd.use_weapon_skill) {
@@ -2716,7 +2716,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
     if (applyDmgBonus) {
         damage += dbon(acurr(player, A_STR));
         if (weaponLike) {
-            damage += weapon_dam_bonus(player.weapon); // skill-based (stub: returns 0)
+            damage += weapon_dam_bonus(player.weapon);
         }
         // cf. uhitm.c — artifact damage bonus
         if (weaponLike && player.weapon && player.weapon.oartifact) {
@@ -2729,10 +2729,18 @@ export async function do_attack_core(player, monster, display, map, game = null)
     if (damage < 1) damage = 1;
 
     // C ref: uhitm.c hmon_hitmon_stagger() rolls rnd(100) for unarmed hits
-    // with damage > 1 before death handling, so consume it even on kill.
+    // with damage > 1 before death handling — stun if roll < skill level.
     const unarmedStaggerRolled = (!player.weapon && damage > 1);
+    let unarmedStaggerHit = false;
     if (unarmedStaggerRolled) {
-        rnd(100);
+        const mdat = monster.data || monster.type || {};
+        const isThickSkinned = !!((mdat.mflags1 || 0) & M1_THICK_HIDE);
+        const isBig = (mdat.msize || 0) >= MZ_LARGE;
+        const skillLevel = P_SKILL(P_BARE_HANDED_COMBAT);
+        if (rnd(100) < skillLevel && !isBig && !isThickSkinned) {
+            monster.mstun = 1;
+            unarmedStaggerHit = true;
+        }
     }
 
     // Apply damage
