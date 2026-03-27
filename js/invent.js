@@ -2223,6 +2223,9 @@ export function not_fully_identified(obj) {
 // C ref: invent.c fully_identify_obj() — fully identify an object
 export async function fully_identify_obj(otmp, creditClue = true) {
     await discoverObject(otmp.otyp, true, true, creditClue);  // C ref: makeknown → discover_object → exercise(A_WIS)
+    // C ref: invent.c:2640-2642 — discover artifact + observe object
+    // discover_artifact not yet ported; observeObject sets individual obj flags.
+    await observeObject(otmp);
     otmp.known = true;
     otmp.bknown = true;
     otmp.rknown = true;
