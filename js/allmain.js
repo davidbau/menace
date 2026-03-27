@@ -500,12 +500,18 @@ export async function moveloop_turnend(game) {
         await amulet((game.map || game.map), (game.u || game.u), game.display);
     }
 
-    // C ref: allmain.c:364 — engrave wipe check (ACURR(A_DEX))
-    const dex = acurr((game.u || game.u), A_DEX);
-    if (!rn2(40 + dex * 3)) {
-        // C ref: engrave.c u_wipe_engr() — only wipe if can reach floor
-        if (can_reach_floor((game.u || game.u), (game.map || game.map), true)) {
-            await wipe_engr_at((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y, rnd(3), false);
+    // C ref: allmain.c:370-371 — engrave wipe check (ACURR(A_DEX))
+    // C: if (!rn2(40+DEX*3)) u_wipe_engr(rnd(3));
+    // C's u_wipe_engr(cnt) receives rnd(3) as parameter THEN checks
+    // can_reach_floor internally. The rnd(3) is consumed regardless of
+    // whether can_reach_floor succeeds. Match C's call order.
+    {
+        const dex = acurr((game.u || game.u), A_DEX);
+        if (!rn2(40 + dex * 3)) {
+            const cnt = rnd(3); // consumed unconditionally, matching C
+            if (can_reach_floor((game.u || game.u), (game.map || game.map), true)) {
+                await wipe_engr_at((game.map || game.map), (game.u || game.u).x, (game.u || game.u).y, cnt, false);
+            }
         }
     }
 
