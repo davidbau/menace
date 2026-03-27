@@ -43,14 +43,14 @@ export async function generate() {
        let terrain = [ "L", "}", "T", "-", "F" ];
        let tidx = (rn2((terrain.length) - (1) + 1) + (1));
        // break it up a bit
-       des.replace_terrain({ region: [0, 0, 70, 18], fromterrain: "C", toterrain: ".", chance: 5 });
-       des.replace_terrain({ region: [0, 0, 70, 18], fromterrain: "C", toterrain: terrain[tidx] });
+       await des.replace_terrain({ region: [0, 0, 70, 18], fromterrain: "C", toterrain: ".", chance: 5 });
+       await des.replace_terrain({ region: [0, 0, 70, 18], fromterrain: "C", toterrain: terrain[tidx] });
     };
 
     await des.region(selection.area(0,0,70,18), "lit");
 
     // when falling down on this level, never } up in the fog maze
-    des.teleport_region({ region: [0,0,70,18], exclude: [2,3,68,15], dir: "down" });
+    await des.teleport_region({ region: [0,0,70,18], exclude: [2,3,68,15], dir: "down" });
 
     for (let i = 1; i <= 15; i++) {
        await des.object();
@@ -64,11 +64,11 @@ export async function generate() {
       await des.monster();
     }
 
-    des.mazewalk({ x: 4, y: 2, dir: "south", stocked: 0 });
+    await des.mazewalk({ x: 4, y: 2, dir: "south", stocked: 0 });
 
     // Stairs up, ! in the fog maze
-    des.levregion({ region: [0,0,70,18], exclude: [2,3,68,15], type: "stair-up"});
-    des.stair("down");
+    await des.levregion({ region: [0,0,70,18], exclude: [2,3,68,15], type: "stair-up"});
+    await des.stair("down");
 
 
     return await des.finalize_level();

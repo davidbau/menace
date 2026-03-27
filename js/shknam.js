@@ -496,7 +496,7 @@ function nameshk(shk, nlp, ubirthday, ledgerNo) {
 // shkinit — C ref: shknam.c:628-692
 // ========================================================================
 
-function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
+async function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     // C ref: shknam.c:636 — find good door
     const door = good_shopdoor(sroom, map);
     if (!door) return -1;
@@ -507,7 +507,7 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     // MM_ESHK = 0x08 in C, but in our JS makemon it's just NO_MM_FLAGS
     // The shopkeeper creation consumes: next_ident (rnd(2)), newmonhp,
     // gender rn2(2), m_initweap, m_initinv, saddle rn2(100)
-    const shk = makemon(PM_SHOPKEEPER, sx, sy, NO_MM_FLAGS, depth, map);
+    const shk = await makemon(PM_SHOPKEEPER, sx, sy, NO_MM_FLAGS, depth, map);
     if (!shk) return -1;
     neweshk(shk);
     const eshkp = shk.mextra.eshk;
@@ -566,7 +566,7 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
 // mkshobj_at — C ref: shknam.c:453-483
 // ========================================================================
 
-function mkshobj_at(shp, shpIndex, sx, sy, mkspecl, map, depth) {
+async function mkshobj_at(shp, shpIndex, sx, sy, mkspecl, map, depth) {
     // C ref: shknam.c:461-468 — tribute novel for bookstores
     if (mkspecl && (shp.name === "rare books" || shp.name === "second-hand bookstore")) {
         const obj = mksobj(SPE_NOVEL, false, false);
@@ -587,7 +587,7 @@ function mkshobj_at(shp, shpIndex, sx, sy, mkspecl, map, depth) {
         const ptr = mkclass(S_MIMIC, 0, depth);
         if (ptr !== null && ptr >= 0) {
             // C ref: makemon(ptr, sx, sy, NO_MM_FLAGS)
-            makemon(ptr, sx, sy, NO_MM_FLAGS, depth, map);
+            await makemon(ptr, sx, sy, NO_MM_FLAGS, depth, map);
         }
     } else {
         // C ref: shknam.c:475-482 — create shop item
@@ -621,11 +621,11 @@ function mon_at(sx, sy, map) {
 // stock_room — C ref: shknam.c:718-801
 // ========================================================================
 
-export function stock_room(shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
+export async function stock_room(shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     const shp = shtypes[shp_indx];
 
     // C ref: shknam.c:733 — create shopkeeper
-    const sh = shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo);
+    const sh = await shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo);
     if (sh < 0) return;
 
     // C ref: shknam.c:737-748 — fix door
@@ -667,7 +667,7 @@ export function stock_room(shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
         for (let sy = sroom.ly; sy <= sroom.hy; sy++) {
             if (stock_room_goodpos(sroom, sh, sx, sy, map)) {
                 stockcount++;
-                mkshobj_at(shp, shp_indx, sx, sy,
+                await mkshobj_at(shp, shp_indx, sx, sy,
                     (stockcount !== 0) && (stockcount === specialspot),
                     map, depth);
             }

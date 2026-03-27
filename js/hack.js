@@ -178,7 +178,7 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
         const obj = objs.find(o => o.oclass !== COIN_CLASS
             && shouldAutopickupAtCurrentSquare(o, pickupTypes, costly, game));
         if (obj) {
-            observeObject(obj);
+            await observeObject(obj);
             const addResult = player.addToInventory(obj, { withMeta: true });
             const inventoryObj = addResult.item;
             map.removeObject(obj);
@@ -260,7 +260,7 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
                     await display.putstr_message(`You ${verb} here ${count} gold pieces.`);
                 }
             } else {
-                observeObject(seen);
+                await observeObject(seen);
                 await display.putstr_message(`You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`);
             }
         } else {
@@ -526,7 +526,7 @@ export async function dopush(sx, sy, rx, ry, otmp, _costly, map, display, player
         const effort = throws_rocks(hero_data(player) || {}) ? 'little' : 'great';
         await display?.putstr_message(`With ${effort} effort you move ${name}.`);
     }
-    movobj(otmp, rx, ry, map);
+    await movobj(otmp, rx, ry, map);
     return { sx, sy, rx, ry };
 }
 
@@ -542,7 +542,7 @@ export async function moverock_core(sx, sy, dx, dy, player, map, display, game) 
     if (!otmp) return 0;
     // C ref: hack.c moverock_core() — ensure this boulder is top object.
     const here = map.objectsAt ? map.objectsAt(sx, sy) : [];
-    if (here.length > 0 && here[here.length - 1] !== otmp) movobj(otmp, sx, sy, map);
+    if (here.length > 0 && here[here.length - 1] !== otmp) await movobj(otmp, sx, sy, map);
     const rx = sx + dx;
     const ry = sy + dy;
     if (await cannot_push(otmp, rx, ry, map, display, player)) {
@@ -551,7 +551,7 @@ export async function moverock_core(sx, sy, dx, dy, player, map, display, game) 
     // C ref: hack.c moverock_core() — relink at top of fobj chain before dopush.
     if (Array.isArray(map?.objects) && map.objects.length > 0
         && map.objects[map.objects.length - 1] !== otmp) {
-        movobj(otmp, sx, sy, map);
+        await movobj(otmp, sx, sy, map);
     }
     // C ref: hack.c dopush() — strength exercise happens before moving rock.
     if (player && !throws_rocks(hero_data(player) || {})) await exercise(player, A_STR, true);
@@ -688,7 +688,7 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
 
     // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() (stale FOV).
     if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
-        see_nearby_objects();
+        await see_nearby_objects();
     }
     // C ref: player moved — recompute FOV immediately (see domove_core comment).
     if (game.fov) {
@@ -1228,7 +1228,7 @@ export async function domove_core(dir, player, map, display, game) {
         // FOV (old player position). This matches C where see_nearby_objects runs inside
         // u_on_newpos at hack.c:2915, and vision_recalc() is called later at hack.c:2953.
         if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
-            see_nearby_objects();
+            await see_nearby_objects();
         }
 
         // C ref: player moved — recompute FOV immediately so newsym sees correct visibility.
@@ -1335,7 +1335,7 @@ export async function domove_core(dir, player, map, display, game) {
                 }
             } else {
                 place_object(otmp, player.x, player.y, map);
-                if (!player.blind) observeObject(otmp);
+                if (!player.blind) await observeObject(otmp);
                 stackobj(otmp, map);
                 newsym(player.x, player.y);
             }
@@ -1555,7 +1555,7 @@ export async function domove(dir, player, map, display, game) {
     if (!Array.isArray(dir) || dir.length < 2) {
         return { moved: false, tookTime: false };
     }
-    return domove_core(dir, player, map, display, game);
+    return await domove_core(dir, player, map, display, game);
 }
 
 // C ref: cmd.c do_run() -> hack.c domove() with context.run
@@ -1651,7 +1651,7 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
 
 // C ref: cmd.c do_rush()
 export async function do_rush(dir, player, map, display, fov, game) {
-    return do_run(dir, player, map, display, fov, game, 'rush');
+    return await do_run(dir, player, map, display, fov, game, 'rush');
 }
 
 function pickRunContinuationDir(map, player, dir) {
@@ -3929,12 +3929,12 @@ function revive_nasty(_x, _y, _msg, _map) {
 }
 
 // C ref: hack.c movobj() — move an object to new position
-export function movobj(obj, ox, oy, map) {
+export async function movobj(obj, ox, oy, map) {
     if (!obj || !map?.objects) return;
     // C ref: remove_object() — unlink from floor list without logging ^remove.
     const idx = map.objects.indexOf(obj);
     if (idx >= 0) map.objects.splice(idx, 1);
-    maybe_unhide_at(obj.ox, obj.oy, map);
+    await maybe_unhide_at(obj.ox, obj.oy, map);
     newsym(obj.ox, obj.oy);
     place_object(obj, ox, oy, map);
     newsym(ox, oy);

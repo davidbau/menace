@@ -391,7 +391,7 @@ describe('savebones (full pipeline)', () => {
         game.u.addToInventory(sword);
         game.u.weapon = sword;
 
-        savebones(game);
+        await savebones(game);
 
         // Player inventory should be emptied
         assert.equal(game.u.inventory.length, 0);
@@ -402,7 +402,7 @@ describe('savebones (full pipeline)', () => {
         const game = await makeTestGame(1);
         // Override depth to 1
         game.u.dungeonLevel = 1;
-        savebones(game);
+        await savebones(game);
         // No bones should be stored for depth 1
         assert.equal(loadBones(1), null);
     });
@@ -423,7 +423,7 @@ describe('savebones (full pipeline)', () => {
         player.level = 3;
 
         const game = { u: player, map, gameOverReason: 'killed' };
-        savebones(game);
+        await savebones(game);
 
         const bonesData = loadBones(2);
         if (bonesData) {
@@ -439,7 +439,7 @@ describe('savebones (full pipeline)', () => {
         const game = await makeTestGame(3);
         // Ensure empty inventory
         game.u.inventory = [];
-        savebones(game);
+        await savebones(game);
         // No crash = success
     });
 });

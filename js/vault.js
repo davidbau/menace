@@ -275,7 +275,7 @@ export function parkguard(grd, map) {
 export async function grddead(grd) {
   let dispose = await clear_fcorr(grd, true);
   if (!dispose) {
-    relobj(grd, 0, false);
+    await relobj(grd, 0, false);
     grd.mhp = 0;
     parkguard(grd);
     dispose = await clear_fcorr(grd, true);
@@ -721,7 +721,7 @@ export async function invault(map, player, fov) {
     }
 
     // Create the guard
-    guard = makemon(PM_GUARD, x, y, MM_EGD | MM_NOMSG,
+    guard = await makemon(PM_GUARD, x, y, MM_EGD | MM_NOMSG,
         player.depth || 1, map);
     if (!guard) return;
 

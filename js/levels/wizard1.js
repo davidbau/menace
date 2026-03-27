@@ -40,29 +40,29 @@ export async function generate() {
 |..|.......S...............|x
 ----------------------------x
 `, contents: async function(rm) {
-       des.levregion({ type: "stair-up", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.levregion({ type: "stair-down", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.levregion({ type: "branch", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.teleport_region({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,27,12] });
+       await des.levregion({ type: "stair-up", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.levregion({ type: "stair-down", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.levregion({ type: "branch", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.teleport_region({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,27,12] });
        await des.region({ region: [12,1, 20,9], lit: 0, type: "morgue", filled: 2, contents: async function() {
                        let sdwall = [ "south", "west", "east" ];
-                       des.door({ wall: sdwall[rn2(sdwall.length)], state: "secret" });
+                       await des.door({ wall: sdwall[rn2(sdwall.length)], state: "secret" });
        } })
        // another region to constrain monster arrival
        await des.region({ region: [1,1, 10,11], lit: 0, type: "ordinary", arrival_room: true });
-       des.mazewalk(28,5,"east");
-       des.ladder("down", 6,5);
+       await des.mazewalk(28,5,"east");
+       await des.ladder("down", 6,5);
        // Non diggable walls
        // Walls inside the moat stay diggable
-       des.non_diggable(selection.area(0,0,11,12));
-       des.non_diggable(selection.area(11,0,21,0));
-       des.non_diggable(selection.area(11,10,27,12));
-       des.non_diggable(selection.area(21,0,27,10));
+       await des.non_diggable(selection.area(0,0,11,12));
+       await des.non_diggable(selection.area(11,0,21,0));
+       await des.non_diggable(selection.area(11,10,27,12));
+       await des.non_diggable(selection.area(21,0,27,10));
        // Non passable walls
-       des.non_passwall(selection.area(0,0,11,12));
-       des.non_passwall(selection.area(11,0,21,0));
-       des.non_passwall(selection.area(11,10,27,12));
-       des.non_passwall(selection.area(21,0,27,10));
+       await des.non_passwall(selection.area(0,0,11,12));
+       await des.non_passwall(selection.area(11,0,21,0));
+       await des.non_passwall(selection.area(11,10,27,12));
+       await des.non_passwall(selection.area(21,0,27,10));
        // The wizard && his guards
        await des.monster({ id: "Wizard of Yendor", x: 16, y: 5, asleep: 1 });
        await des.monster("hell hound", 15, 5);

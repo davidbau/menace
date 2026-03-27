@@ -41,9 +41,9 @@ export async function generate() {
     // Dungeon Description
     await des.region(selection.area(0,0,75,19), "lit");
     // Stairs
-    des.stair("up");
+    await des.stair("up");
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Objects
     await des.object({ id: "mace", x: 23, y: 10, buc: "blessed", spe: 0, name: "The Sceptre of Might" });
     await des.object();
@@ -65,7 +65,7 @@ export async function generate() {
     await des.monster("shrieker", 26, 13);
     await des.monster("shrieker", 25, 8);
     await des.monster("shrieker", 45, 11);
-    des.wallify();
+    await des.wallify();
 
 
     return await des.finalize_level();

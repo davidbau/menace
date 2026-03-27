@@ -256,7 +256,7 @@ export async function use_towel(obj, player) {
     player.ucreamed = 0;
     if (!player.Blind) {
       await pline("You've got the glop off.");
-      if (!gulp_blnd_check()) { set_itimeout(player, BLINDED, 1); await make_blinded(player, 0, true); }
+      if (!await gulp_blnd_check()) { set_itimeout(player, BLINDED, 1); await make_blinded(player, 0, true); }
     }
     else { await Your("%s feels clean now.", body_part(FACE)); }
     if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
@@ -766,7 +766,7 @@ export async function jump(magic, player, map, game) {
 
 // cf. apply.c:1843 -- dojump: entry point for #jump command
 export async function dojump(player, map, game) {
-    return jump(0, player, map, game);
+    return await jump(0, player, map, game);
 }
 
 // cf. apply.c:2163 -- tinnable
@@ -907,15 +907,15 @@ async function use_trap(obj, player, map, display, game) {
 
     game.occupation = {
         occtxt: `setting a ${obj.otyp === LAND_MINE ? 'land mine' : 'bear trap'}`,
-        fn() {
-            return set_trap(game, player, map, display);
+        async fn() {
+            return await set_trap(game, player, map, display);
         },
     };
     return { moved: false, tookTime: true };
 }
 
 // cf. apply.c:2912 -- set_trap occupation callback
-function set_trap(game, player, map, display) {
+async function set_trap(game, player, map, display) {
     const info = game?.trapinfo;
     const obj = info?.tobj;
     if (!info || !obj || !player || !map) return false;
@@ -930,7 +930,7 @@ function set_trap(game, player, map, display) {
     const depth = Number.isInteger(map?._genDlevel)
         ? map._genDlevel
         : (Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel : 1);
-    const placed = maketrap(map, player.x, player.y, trapType, depth);
+    const placed = await maketrap(map, player.x, player.y, trapType, depth);
     if (!placed) {
         display?.putstr_message?.('You fail to set the trap here.');
         reset_trapset(game);
@@ -983,7 +983,7 @@ async function use_cream_pie(obj, player) {
     if (obj.quan > 1) obj.quan--;
     await You("immerse your face in %s.", xname(obj));
     rnd(25); // blindinc RNG consumption
-    if (obj.quan <= 0) clearWornItemEffects(player, obj);
+    if (obj.quan <= 0) await clearWornItemEffects(player, obj);
 }
 
 // cf. apply.c:3603 -- jelly_ok
@@ -1056,7 +1056,7 @@ async function do_break_wand(obj, player, map, display) {
     );
     if (!obj.spe) obj.spe = rnd(3);
     await break_wand(obj, player, map);
-    useupall(obj, player);
+    await useupall(obj, player);
     return true;
 }
 
@@ -1221,7 +1221,7 @@ export async function handleApply(player, map, display, game) {
                 if (!await wield_tool(player, display, selected, "dig")) {
                     return { moved: false, tookTime: false };
                 }
-                cmdq_add_ec(CQ_CANNED, (g) => handleApply(g.player, g.map, g.display, g));
+                cmdq_add_ec(CQ_CANNED, async (g) => await handleApply(g.player, g.map, g.display, g));
                 cmdq_add_key(CQ_CANNED, selected.invlet.charCodeAt(0));
                 return { moved: false, tookTime: true };
             }
@@ -1457,12 +1457,12 @@ export async function flip_coin() {
 }
 
 // Autotranslated from apply.c:1954
-export function get_valid_jump_position(x, y, map) {
-  return (isok(x, y) && (ACCESSIBLE(map.locations[x][y].typ) || Passes_walls) && is_valid_jump_pos(x, y, gj.jumping_is_magic, false));
+export async function get_valid_jump_position(x, y, map) {
+  return (isok(x, y) && (ACCESSIBLE(map.locations[x][y].typ) || Passes_walls) && await is_valid_jump_pos(x, y, gj.jumping_is_magic, false));
 }
 
 // Autotranslated from apply.c:1962
-export function display_jump_positions(on_off, player) {
+export async function display_jump_positions(on_off, player) {
   let x, y, dx, dy;
   if (on_off) {
     tmp_at(DISP_BEAM, cmap_to_glyph(S_goodpos));
@@ -1470,7 +1470,7 @@ export function display_jump_positions(on_off, player) {
       for (dy = -4; dy <= 4; dy++) {
         x = dx + player.x;
         y = dy + player.y;
-        if (get_valid_jump_position(x, y) && !u_at(player, x, y)) tmp_at(x, y);
+        if (await get_valid_jump_position(x, y) && !u_at(player, x, y)) tmp_at(x, y);
       }
     }
   }

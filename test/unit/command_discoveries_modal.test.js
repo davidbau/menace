@@ -74,9 +74,9 @@ describe('discoveries modal command', () => {
         const { game } = makeGame();
         const before = game.display.getScreenLines();
 
-        discoverObject(POT_HEALING, true, true);
-        discoverObject(POT_EXTRA_HEALING, true, true);
-        discoverObject(POT_SICKNESS, true, true);
+        await discoverObject(POT_HEALING, true, true);
+        await discoverObject(POT_EXTRA_HEALING, true, true);
+        await discoverObject(POT_SICKNESS, true, true);
 
         pushInput(' '.charCodeAt(0)); // next page
         pushInput(' '.charCodeAt(0)); // dismiss

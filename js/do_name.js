@@ -953,7 +953,7 @@ export function objtyp_is_callable(i) {
 // JS equivalent: handleCallObjectTypePrompt (defined below)
 
 // cf. do_name.c:679 — namefloorobj: name type of object on floor
-export async function namefloorobj(player, map, display) {
+export function namefloorobj(player, map, display) {
     // Simplified: in full C, this uses getpos to select a floor tile
     // and then calls docall on the object there.
     // Stub for CODEMATCH — full implementation requires getpos infrastructure.
@@ -1017,7 +1017,7 @@ export async function do_mgivenname(player) {
   }
   if (!do_swallow && (!mtmp || (!sensemon(mtmp) && (!(cansee(cx, cy) || see_with_infrared(mtmp)) || mtmp.mundetected || M_AP_TYPE(mtmp) === M_AP_FURNITURE || M_AP_TYPE(mtmp) === M_AP_OBJECT || (mtmp.minvis && !(player?.seeInvisible)))))) { await pline("I see no monster there."); return; }
   qbuf = `What do you want to call ${distant_monnam(mtmp, ARTICLE_THE, monnambuf)}?`;
-  if (!name_from_player(buf, qbuf, has_mgivenname(mtmp) ? MGIVENNAME(mtmp) : null)) return;
+  if (!await name_from_player(buf, qbuf, has_mgivenname(mtmp) ? MGIVENNAME(mtmp) : null)) return;
   if ((mtmp.data.geno & G_UNIQ) && !mtmp.ispriest) {
     if (!alreadynamed(mtmp, monnambuf, buf)) await pline("%s doesn't like being called names!", upstart(monnambuf));
   }

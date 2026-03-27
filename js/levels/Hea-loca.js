@@ -34,17 +34,17 @@ PPPPPPPPPPP........PPPPPPPPPPPP
     await des.region(selection.area(0,0,30,9), "lit");
     await des.region({ region: [12,3, 20,6], lit: 1, type: "temple", filled: 1 });
     // Doors
-    des.door("closed",9,4);
-    des.door("closed",9,5);
-    des.door("locked",11,3);
-    des.door("locked",11,6);
+    await des.door("closed",9,4);
+    await des.door("closed",9,5);
+    await des.door("locked",11,3);
+    await des.door("locked",11,6);
     // Stairs
-    des.stair("up", 4,4);
-    des.stair("down", 20,6);
+    await des.stair("up", 4,4);
+    await des.stair("down", 20,6);
     // Non diggable walls
-    des.non_diggable(selection.area(11,2,21,7));
+    await des.non_diggable(selection.area(11,2,21,7));
     // Altar in the temple.
-    des.altar({ x: 13,y: 5, align: "chaos", type: "shrine" });
+    await des.altar({ x: 13,y: 5, align: "chaos", type: "shrine" });
     // Objects
     await des.object();
     await des.object();

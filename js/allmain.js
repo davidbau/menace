@@ -1042,7 +1042,7 @@ async function syncTimedTurnPreInputState(game) {
             see_objects();
             see_traps();
             if (player?.uswallow) {
-                swallowed(0);
+                await swallowed(0);
             }
         } else if (
             player?.Blind_telepat
@@ -1767,7 +1767,7 @@ export class NetHackGame {
 
         // Check for saved game before RNG init.
         // Prefer manual save; fall back to autosave (crash recovery).
-        const saveData = loadSave() || await nhload(() => loadAutosave());
+        const saveData = loadSave() || await nhload(async () => await loadAutosave());
         if (saveData) {
             const restored = await _restoreFromSave(this, saveData, urlOpts);
             if (restored) return;

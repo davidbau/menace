@@ -1373,7 +1373,7 @@ export async function addinv_core2(obj, player) {
         && obj?.otyp !== SCR_BLANK_PAPER
         && !player.blind
         && !isObjectNameKnown(obj.otyp)) {
-        observeObject(obj);
+        await observeObject(obj);
         await discoverObject(obj.otyp, true, true);
         await exercise(player, A_WIS, true);
         if (!player.uconduct) player.uconduct = {};
@@ -1601,14 +1601,14 @@ export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_
 // ============================================================
 
 // C ref: invent.c useupall() — consume entire stack of an object
-export function useupall(obj, player) {
-    setnotworn(obj, player);
+export async function useupall(obj, player) {
+    await setnotworn(obj, player);
     freeinv(obj, player);
 }
 
 // C ref: invent.c useup() — consume one item from a stack
 // Autotranslated from invent.c:1320
-export function useup(obj, player) {
+export async function useup(obj, player) {
   if (!player) player = _gstate?.u;
   if (obj.quan > 1) {
     obj.in_use = false;
@@ -1616,7 +1616,7 @@ export function useup(obj, player) {
     obj.owt = weight(obj);
     update_inventory(player);
   }
-  else { useupall(obj, player); }
+  else { await useupall(obj, player); }
 }
 
 // C ref: invent.c consume_obj_charge() — consume a charge from a wand/tool
@@ -3180,9 +3180,9 @@ export function removeObjFromChain(head, target) {
 }
 
 // Helper: safely un-wear an object
-function setnotworn(obj, player) {
+async function setnotworn(obj, player) {
     if (!player) return;
-    clearWornItemEffects(player, obj);
+    await clearWornItemEffects(player, obj);
 }
 
 // Autotranslated from invent.c:390
@@ -3235,8 +3235,8 @@ export async function ddoinv(game = null) {
 }
 
 // Autotranslated from invent.c:3455
-export function repopulate_perminvent() {
-  display_pickinv(null,  0,  0, false, false, null);
+export async function repopulate_perminvent() {
+  await display_pickinv(null,  0,  0, false, false, null);
 }
 
 // Autotranslated from invent.c:4916
@@ -3315,7 +3315,7 @@ export function addToMonsterInventory(mon, obj) {
 // cf. invent.c:1056 — addinv_core0(obj, other_obj, update_perm_invent)
 // Core inventory addition with merge logic. JS equivalent: addinv() above.
 export async function addinv_core0(obj, player) {
-    return addinv(obj, player);
+    return await addinv(obj, player);
 }
 
 // cf. invent.c:1152 — addinv(obj) [C version]
@@ -3325,7 +3325,7 @@ export async function addinv_core0(obj, player) {
 // Add to inventory before a specific object. JS uses array-based inventory.
 export async function addinv_before(obj, other_obj, player) {
     // JS inventory is array-based; position doesn't affect gameplay.
-    return addinv(obj, player);
+    return await addinv(obj, player);
 }
 
 // cf. invent.c:5008 — adjust_split()

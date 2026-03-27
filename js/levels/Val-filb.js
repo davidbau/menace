@@ -18,8 +18,8 @@ export async function generate() {
     des.level_init({ style: "mines", fg: ".", bg: "L", smoothed: true, joined: true, lit: 1, walled: false });
 
     // 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
     // 
     await des.object();
     await des.object();

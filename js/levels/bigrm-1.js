@@ -44,27 +44,27 @@ export async function generate() {
        let choice = (rn2((5) - (0) + 1) + (0));
        if (choice == 0) {
           // one horizontal line
-          des.terrain(selection.line(10,8, 65,8), terrains[tidx]);
+          await des.terrain(selection.line(10,8, 65,8), terrains[tidx]);
        } else if (choice == 1) {
           // two vertical lines
           let sel = selection.line(15,4, 15, 13).union(selection.line(59,4, 59, 13));
-          des.terrain(sel, terrains[tidx]);
+          await des.terrain(sel, terrains[tidx]);
        } else if (choice == 2) {
           // plus sign
           sel = selection.line(10,8, 64, 8).union(selection.line(37,3, 37, 14));
-          des.terrain(sel, terrains[tidx]);
+          await des.terrain(sel, terrains[tidx]);
        } else if (choice == 3) {
           // brackets:  [  ]
-          des.terrain(selection.rect(4,4, 70,13), terrains[tidx]);
+          await des.terrain(selection.rect(4,4, 70,13), terrains[tidx]);
           sel = selection.line(25,4, 50,4).union(selection.line(25,13, 50,13));
-          des.terrain(sel, '.');
+          await des.terrain(sel, '.');
        } else if (choice == 4) {
           // snake
-          des.terrain(selection.fillrect(5,5, 69, 12), terrains[tidx]);
+          await des.terrain(selection.fillrect(5,5, 69, 12), terrains[tidx]);
           for (let i = 0; i <= 7; i++) {
              let x = 6 + i*8;
              let y = 5 + (i%2);
-             des.terrain(selection.fillrect(x, y, x+6, y+6), '.');
+             await des.terrain(selection.fillrect(x, y, x+6, y+6), '.');
           }
        } else {
           // nothing
@@ -73,10 +73,10 @@ export async function generate() {
 
     await des.region(selection.area(1,1, 73, 16), "lit");
 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
 
-    des.non_diggable();
+    await des.non_diggable();
 
     for (let i = 1; i <= 15; i++) {
        await des.object();

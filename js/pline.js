@@ -128,87 +128,87 @@ async function emitMessage(message, pflags = 0) {
 export async function custompline(pflags, line, ...args) {
     const flags = Number.isFinite(pflags) ? pflags : 0;
     const text = formatLine(line, args);
-    return emitMessage(text, flags);
+    return await emitMessage(text, flags);
 }
 
 export async function pline(line, ...args) {
-    return custompline(0, line, ...args);
+    return await custompline(0, line, ...args);
 }
 
 export async function vpline(line, args) {
     const actualArgs = Array.isArray(args) ? args : [];
-    return pline(line, ...actualArgs);
+    return await pline(line, ...actualArgs);
 }
 
 export async function raw_printf(line, ...args) {
-    return vraw_printf(line, args);
+    return await vraw_printf(line, args);
 }
 
 export async function vraw_printf(line, args) {
     // raw_printf skips repeat suppression/history processing by design in C.
     const text = formatLine(line, Array.isArray(args) ? args : []);
-    return getOutputContext().putstr_message(text);
+    return await getOutputContext().putstr_message(text);
 }
 
 export async function urgent_pline(line, ...args) {
-    return custompline(PLINE_URGENT, line, ...args);
+    return await custompline(PLINE_URGENT, line, ...args);
 }
 
 export async function Norep(line, ...args) {
-    return custompline(PLINE_NOREP, line, ...args);
+    return await custompline(PLINE_NOREP, line, ...args);
 }
 
 export async function pline_dir(dir, line, ...args) {
     set_msg_dir(dir);
-    return pline(line, ...args);
+    return await pline(line, ...args);
 }
 
 export async function pline_xy(x, y, line, ...args) {
     set_msg_xy(x, y);
-    return pline(line, ...args);
+    return await pline(line, ...args);
 }
 
 export async function pline_mon(mon, line, ...args) {
     if (mon && Number.isFinite(mon.mx) && Number.isFinite(mon.my)) {
-        return pline_xy(mon.mx, mon.my, line, ...args);
+        return await pline_xy(mon.mx, mon.my, line, ...args);
     }
-    return pline(line, ...args);
+    return await pline(line, ...args);
 }
 
 export async function You(line, ...args) {
-    return pline(`You ${formatLine(line, args)}`);
+    return await pline(`You ${formatLine(line, args)}`);
 }
 
 export async function Your(line, ...args) {
-    return pline(`Your ${formatLine(line, args)}`);
+    return await pline(`Your ${formatLine(line, args)}`);
 }
 
 export async function You_feel(line, ...args) {
-    return pline(`You feel ${formatLine(line, args)}`);
+    return await pline(`You feel ${formatLine(line, args)}`);
 }
 
 export async function You_cant(line, ...args) {
-    return pline(`You can't ${formatLine(line, args)}`);
+    return await pline(`You can't ${formatLine(line, args)}`);
 }
 
 export async function pline_The(line, ...args) {
-    return pline(`The ${formatLine(line, args)}`);
+    return await pline(`The ${formatLine(line, args)}`);
 }
 
 export async function There(line, ...args) {
-    return pline(`There ${formatLine(line, args)}`);
+    return await pline(`There ${formatLine(line, args)}`);
 }
 
 export async function You_hear(line, ...args) {
-    return pline(`You hear ${formatLine(line, args)}`);
+    return await pline(`You hear ${formatLine(line, args)}`);
 }
 
 export async function You_see(line, ...args) {
-    return pline(`You see ${formatLine(line, args)}`);
+    return await pline(`You see ${formatLine(line, args)}`);
 }
 
 export async function verbalize(line, ...args) {
-    return pline(`"${formatLine(line, args)}"`);
+    return await pline(`"${formatLine(line, args)}"`);
 }
 
 // C's pline1(line) = pline("%s", line) — avoids format-string interpretation.

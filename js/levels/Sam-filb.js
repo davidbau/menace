@@ -36,13 +36,13 @@ export async function generate() {
 `);
     await des.region(selection.area(0,0,59,15), "unlit");
     // Doors
-    des.door("closed",16,7);
-    des.door("closed",16,8);
-    des.door("closed",43,7);
-    des.door("closed",43,8);
+    await des.door("closed",16,7);
+    await des.door("closed",16,8);
+    await des.door("closed",43,7);
+    await des.door("closed",43,8);
     // 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
     // 
     await des.object();
     await des.object();

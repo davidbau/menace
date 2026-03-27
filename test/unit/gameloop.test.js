@@ -24,7 +24,7 @@ async function setupTestGame() {
     player.x = map.upstair.x;
     player.y = map.upstair.y;
     player.dungeonLevel = 1;
-    simulatePostLevelInit(player, map, 1);
+    await simulatePostLevelInit(player, map, 1);
 
     return {
         u: player,

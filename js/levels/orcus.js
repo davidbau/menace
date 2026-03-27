@@ -42,10 +42,10 @@ export async function generate() {
 .|....+.......|......|....|....|.............
 .|....|.......|......|....|....|.............
 `, contents: async function(rm) {
-       des.mazewalk(0,6,"west");
+       await des.mazewalk(0,6,"west");
        // Entire main area
        await des.region(selection.area(1,0,44,16),"unlit");
-       des.stair("down", 33,15);
+       await des.stair("down", 33,15);
        // Wall "ruins"
        await des.object("boulder",19,2);
        await des.object("boulder",20,2);
@@ -72,24 +72,24 @@ export async function generate() {
        await des.object("boulder",15,13);
        await des.object("boulder",14,14);
        // Doors
-       des.door("closed",23,2);
-       des.door("open",31,3);
-       des.door("nodoor",3,5);
-       des.door("closed",9,5);
-       des.door("closed",14,5);
-       des.door("closed",41,5);
-       des.door("open",3,8);
-       des.door("nodoor",13,8);
-       des.door("open",41,8);
-       des.door("closed",24,9);
-       des.door("closed",31,11);
-       des.door("open",11,13);
-       des.door("closed",18,13);
-       des.door("closed",41,13);
-       des.door("open",26,14);
-       des.door("closed",6,15);
+       await des.door("closed",23,2);
+       await des.door("open",31,3);
+       await des.door("nodoor",3,5);
+       await des.door("closed",9,5);
+       await des.door("closed",14,5);
+       await des.door("closed",41,5);
+       await des.door("open",3,8);
+       await des.door("nodoor",13,8);
+       await des.door("open",41,8);
+       await des.door("closed",24,9);
+       await des.door("closed",31,11);
+       await des.door("open",11,13);
+       await des.door("closed",18,13);
+       await des.door("closed",41,13);
+       await des.door("open",26,14);
+       await des.door("closed",6,15);
        // Special rooms
-       des.altar({ x: 24,y: 7,align: "noalign",type: "sanctum" });
+       await des.altar({ x: 24,y: 7,align: "noalign",type: "sanctum" });
        await des.region({ region: [22,12,25,16],lit: 0,type: "morgue",filled: 1 });
        await des.region({ region: [32,9,37,12],lit: 1,type: "shop",filled: 1 });
        await des.region({ region: [12,0,15,4],lit: 1,type: "shop",filled: 1 });
@@ -162,9 +162,9 @@ export async function generate() {
        await des.monster();
     } });
 
-    des.levregion({ region: [1,0,12,20], region_islev: 1, exclude: [20,1,70,20], exclude_islev: 1, type: "stair-up" });
-    des.levregion({ region: [1,0,12,20], region_islev: 1, exclude: [20,1,70,20], exclude_islev: 1, type: "branch" });
-    des.teleport_region({ region: [1,0,12,20], region_islev: 1, exclude: [20,1,70,20], exclude_islev: 1 });
+    await des.levregion({ region: [1,0,12,20], region_islev: 1, exclude: [20,1,70,20], exclude_islev: 1, type: "stair-up" });
+    await des.levregion({ region: [1,0,12,20], region_islev: 1, exclude: [20,1,70,20], exclude_islev: 1, type: "branch" });
+    await des.teleport_region({ region: [1,0,12,20], region_islev: 1, exclude: [20,1,70,20], exclude_islev: 1 });
 
     let protected_region = bounds2.negate().union(orcus1);
     hell_tweaks(protected_region);

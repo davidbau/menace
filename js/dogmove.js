@@ -404,7 +404,7 @@ export async function dog_starve(mon, map, display, player, fov) {
             await display.putstr_message('You feel sad for a moment.');
         }
     }
-    mondead(mon, map, player);
+    await mondead(mon, map, player);
 }
 
 // ========================================================================
@@ -661,9 +661,9 @@ async function dog_invent(mon, edog, udist, map, turnCount, display, player, fov
                     // C ref: steal.c:824 — name captured BEFORE extract_from_minvent/stackobj,
                     // so quantity reflects the pre-merge state of the dropped item.
                     // observeObject is called first so dknown is set for correct identification.
-                    if (canSeePet) observeObject(dropObj);
+                    if (canSeePet) await observeObject(dropObj);
                     const dropName = canSeePet ? doname(dropObj, null) : null;
-                    mdrop_obj(mon, dropObj, map);
+                    await mdrop_obj(mon, dropObj, map);
                     if (canSeePet) {
                         // C ref: weapon.c:766 — Monnam(mon) uses ARTICLE_THE
                         const monLabel = Monnam(mon);
@@ -740,7 +740,7 @@ async function dog_invent(mon, edog, udist, map, turnCount, display, player, fov
                             // cansee(ox,oy) && distu(ox,oy) <= neardist (neardist=6 for r=2).
                             // distu(ox,oy) = dist2(ox,oy,u.ux,u.uy) where ox,oy = mon position.
                             const isNearby = dist2(mon.mx, mon.my, player.x, player.y) <= 6;
-                            if (isNearby) observeObject(picked);
+                            if (isNearby) await observeObject(picked);
                             // C ref: dogmove.c:454 — Monnam(mtmp) uses ARTICLE_THE
                             const monLabel = Monnam(mon);
                             await display.putstr_message(`${monLabel} picks up ${doname(picked, null)}.`);

@@ -43,9 +43,9 @@ const nh = {
 const align = ['lawful', 'neutral', 'chaotic']; // Will be shuffled by caller
 const obj = {
     // C ref: nhlobj.c l_obj_new_readobjnam() — obj.new("...") uses readobjnam.
-    new: (id) => {
+    new: async (id) => {
         const name = String(id || '');
-        const otmp = readobjnam(name, null);
+        const otmp = await readobjnam(name, null);
         if (!otmp) return null;
         otmp.class = () => ({
             material: (objectData[otmp.otyp]?.oc_material === GLASS) ? 'glass' : 'unknown',
@@ -882,7 +882,7 @@ xx|.....|xx
             ];
             // C ref: themerms.lua uses obj.new(...) here, then box:addcontent(itm).
             // This consumes readobjnam RNG before chest creation.
-            const itm = obj.new(escape_items[rn2(escape_items.length)]);
+            const itm = await obj.new(escape_items[rn2(escape_items.length)]);
             const box = await des.object({
                id: "chest",
                coord: chest_spots[0],

@@ -49,17 +49,17 @@ export async function generate() {
     await des.region(selection.area(20,8,21,8),"unlit");
     await des.region(selection.area(23,8,25,8),"unlit");
     // Secret doors
-    des.door("locked",7,16);
-    des.door("locked",22,8);
-    des.door("locked",26,8);
-    des.door("locked",40,14);
-    des.door("locked",50,3);
-    des.door("locked",51,16);
-    des.door("locked",66,2);
+    await des.door("locked",7,16);
+    await des.door("locked",22,8);
+    await des.door("locked",26,8);
+    await des.door("locked",40,14);
+    await des.door("locked",50,3);
+    await des.door("locked",51,16);
+    await des.door("locked",66,2);
     // Stairs
-    des.stair("up", 36,4);
+    await des.stair("up", 36,4);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,74,17));
+    await des.non_diggable(selection.area(0,0,74,17));
     // Niches
     // Note: place[5] empty
     await des.object("diamond",place[6]);

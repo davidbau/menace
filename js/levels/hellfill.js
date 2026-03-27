@@ -96,7 +96,7 @@ export async function generate() {
 
    const goldCount = rnd(6) + 7;
    for (let i = 1; i <= goldCount; i++) {
-      des.gold();
+      await des.gold();
    }
 
    const trapCount = rnd(6) + 7;
@@ -182,11 +182,11 @@ xL---------Lx
 xLLLLLLLLLLLx
 xxxxxx.xxxxxx
 `, contents: async function() {
-   des.non_diggable(selection.area(2,2, 10,8));
+   await des.non_diggable(selection.area(2,2, 10,8));
    await des.region(selection.area(4,4, 8,6), "lit");
-   des.exclusion({ type: "teleport", region: [ 2,2, 10,8 ] });
+   await des.exclusion({ type: "teleport", region: [ 2,2, 10,8 ] });
    if ((coldhell)) {
-      des.replace_terrain({ region: [1,1, 11,9], fromterrain: "L", toterrain: "P" });
+      await des.replace_terrain({ region: [1,1, 11,9], fromterrain: "L", toterrain: "P" });
    }
    let dblocs = [
       { x: 1, y: 5, dir: "east", state: "closed" },
@@ -197,7 +197,7 @@ xxxxxx.xxxxxx
    shuffle(dblocs);
    const drawbridgeCount = (rn2((dblocs.length) - (1) + 1) + (1));
    for (let i = 1; i <= drawbridgeCount; i++) {
-      des.drawbridge(dblocs[i - 1]);
+      await des.drawbridge(dblocs[i - 1]);
    }
    let mons = [ "H", "T", "@" ];
    shuffle(mons);
@@ -241,7 +241,7 @@ B.....B
 B.....B
 BBBBBBB`, contents: async function() {
    await des.region({ region: [2,2, 2,2], type: "temple", filled: 1, irregular: 1 });
-   des.altar({ x: 3, y: 3, align: "noalign", type: percent(75) && "altar" || "shrine" });
+   await des.altar({ x: 3, y: 3, align: "noalign", type: percent(75) && "altar" || "shrine" });
       }  });
    },
    async function() {
@@ -256,7 +256,7 @@ BBBBBBB`, contents: async function() {
 ..........
 ..........
 ..........`, contents: async function() {
-   des.exclusion({ type: "teleport", region: [ 4,4, 5,5 ] });
+   await des.exclusion({ type: "teleport", region: [ 4,4, 5,5 ] });
    const mons = [ "Angel", "D", "H", "L" ];
    await des.monster(mons[rn2(mons.length)], 4,4);
       } });
@@ -274,7 +274,7 @@ BBBBBBB`, contents: async function() {
 .}}}}}}}.
 .........
 `, contents: async function(rm) {
-   des.exclusion({ type: "teleport", region: [ 3,3, 5,5 ] });
+   await des.exclusion({ type: "teleport", region: [ 3,3, 5,5 ] });
    await des.monster("L",4,4);
       } })
    },
@@ -345,14 +345,14 @@ async function rnd_hell_prefab(coldhell) {
 
 let hells = [
    // 1: "mines" style with lava
-   function() {
+   async function() {
       des.level_init({ style: "solidfill", fg: " ", lit: 0 });
       des.level_flags("mazelevel", "noflip");
       des.level_init({ style: "mines", fg: ".", smoothed: true ,joined: true, lit: 0, walled: true });
-      des.replace_terrain({ fromterrain: " ", toterrain: "L" });
-      des.replace_terrain({ fromterrain: ".", toterrain: "L", chance: 5 });
-      des.replace_terrain({ mapfragment: `w`, toterrain: "L", chance: 20 });
-      des.replace_terrain({ mapfragment: `w`, toterrain: ".", chance: 15 });
+      await des.replace_terrain({ fromterrain: " ", toterrain: "L" });
+      await des.replace_terrain({ fromterrain: ".", toterrain: "L", chance: 5 });
+      await des.replace_terrain({ mapfragment: `w`, toterrain: "L", chance: 20 });
+      await des.replace_terrain({ mapfragment: `w`, toterrain: ".", chance: 15 });
    },
 
    // 2: mazes like original, with some hell_tweaks
@@ -360,7 +360,7 @@ let hells = [
       des.level_init({ style: "solidfill", fg: " ", lit: 0 });
       des.level_flags("mazelevel", "noflip");
       des.level_init({ style: "mazegrid", bg: "-" });
-      des.mazewalk({ coord: [1,10], dir: "east", stocked: false});
+      await des.mazewalk({ coord: [1,10], dir: "east", stocked: false});
       let tmpbounds = selection.match("-");
       let bnds = tmpbounds.bounds();
       let protected_area = selection.fillrect(bnds.lx, bnds.ly + 1, bnds.hx - 2, bnds.hy - 1);
@@ -386,31 +386,31 @@ let hells = [
       let outside_walls = selection.match(" ");
       let wallterrain = [ "F", "L" ];
       shuffle(wallterrain);
-      des.replace_terrain({ mapfragment: "w", toterrain: wallterrain[0] });
+      await des.replace_terrain({ mapfragment: "w", toterrain: wallterrain[0] });
       if ((cwid == 1)) {
          if ((wallterrain[0] == "F" && percent(80))) {
             // replace some horizontal iron bars walls with floor
-            des.replace_terrain({ mapfragment: ".\nF\n.", toterrain: ".", chance: 25 * rnd(4) });
+            await des.replace_terrain({ mapfragment: ".\nF\n.", toterrain: ".", chance: 25 * rnd(4) });
          } else if ((percent(25))) {
             await rnd_hell_prefab(false);
          }
       }
-      des.terrain(outside_walls, " ");  // return the outside back to solid wall;
+      await des.terrain(outside_walls, " ");  // return the outside back to solid wall;
    },
 
    // 5: mazes, thick walls, occasionally lava instead of walls
-   function() {
+   async function() {
       let wwid = 1 + rnd(2);
       des.level_init({ style: "solidfill", fg: " ", lit: 0 });
       des.level_flags("mazelevel", "noflip");
       des.level_init({ style: "maze", wallthick: wwid, corrwid: rnd(2) });
       if ((percent(50))) {
          const outside_walls = selection.match(" ");
-         des.replace_terrain({ mapfragment: "w", toterrain: "L" });
-         des.terrain(outside_walls, " ");  // return the outside back to solid wall;
+         await des.replace_terrain({ mapfragment: "w", toterrain: "L" });
+         await des.terrain(outside_walls, " ");  // return the outside back to solid wall;
          if ((wwid == 3 && percent(40))) {
             let sel = selection.match("LLL\nLLL\nLLL");
-            des.terrain(sel.percentage(30 * rnd(4)), "Z");
+            await des.terrain(sel.percentage(30 * rnd(4)), "Z");
          }
       }
    },
@@ -423,32 +423,32 @@ let hells = [
       des.level_init({ style: "maze", wallthick: 1, corrwid: cwid });
       let outside_walls = selection.match(" ");
       let icey = selection.negate().percentage(10).grow().filter_mapchar(".");
-      des.terrain(icey, "I");
+      await des.terrain(icey, "I");
       if ((cwid > 1)) {
          // turn some ice into wall of water
-         des.terrain(icey.percentage(1), "W");
+         await des.terrain(icey.percentage(1), "W");
       }
-      des.terrain(icey.percentage(5), "P");
+      await des.terrain(icey.percentage(5), "P");
       if ((percent(25))) {
-         des.terrain(selection.match("w"), "W"); // walls of water;
+         await des.terrain(selection.match("w"), "W"); // walls of water;
       }
       if ((cwid == 1 && percent(25))) {
          await rnd_hell_prefab(true);
       }
-      des.terrain(outside_walls, " ");  // return the outside back to solid wall;
+      await des.terrain(outside_walls, " ");  // return the outside back to solid wall;
    },
 
    // 7: open cavern, "mines" with more space
-   function() {
+   async function() {
       des.level_init({ style: "solidfill", fg: " ", lit: 0 });
       des.level_flags("mazelevel", "noflip");
       des.level_init({ style: "mines", fg: ".", smoothed: true ,joined: true, lit: 0 });
       const sel = selection.match(".").grow();
-      des.terrain({ selection: sel, typ: "." });
+      await des.terrain({ selection: sel, typ: "." });
 
       let border = selection.rect(0,0, 78, 20);
-      des.terrain({ selection: border, typ: " " });
-      des.wallify();
+      await des.terrain({ selection: border, typ: " " });
+      await des.wallify();
    },
 
 ];
@@ -458,11 +458,11 @@ await hells[hellno]();
 
 // 
 
-des.stair("up");
+await des.stair("up");
 if ((u.invocation_level)) {
    await des.trap("vibrating square");
 } else {
-   des.stair("down");
+   await des.stair("down");
 }
 
 await populatemaze();

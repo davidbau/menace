@@ -26,13 +26,13 @@ export async function generate() {
     await des.room({ type: "ordinary", lit: 1, x: 3,y: 3,
                xalign: "center",yalign: "center", w: 30,h: 15,
                contents: async function() {
-                  des.feature("fountain", 12, 7);
-                  des.feature("fountain", 11, 13);
+                  await des.feature("fountain", 12, 7);
+                  await des.feature("fountain", 11, 13);
 
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 2,y: 2, w: 4,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "closed", wall: "south" });
+                                   await des.door({ state: "closed", wall: "south" });
                                 }
                      })
                   }
@@ -40,7 +40,7 @@ export async function generate() {
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 7,y: 2, w: 2,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "closed", wall: "north" });
+                                   await des.door({ state: "closed", wall: "north" });
                                 }
                      })
                   }
@@ -48,7 +48,7 @@ export async function generate() {
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 7,y: 5, w: 2,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "closed", wall: "south" });
+                                   await des.door({ state: "closed", wall: "south" });
                                 }
                      })
                   }
@@ -60,7 +60,7 @@ export async function generate() {
                                    await des.monster("monkey");
                                    await des.monster("monkey");
                                    await des.monster("monkey");
-                                   des.door({ state: "closed", wall: "south" });
+                                   await des.door({ state: "closed", wall: "south" });
                                 }
                      })
                   }
@@ -68,7 +68,7 @@ export async function generate() {
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 14,y: 2, w: 4,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "closed", wall: "south", pos: 0 });
+                                   await des.door({ state: "closed", wall: "south", pos: 0 });
                                    await des.monster("n");
                                 }
                      })
@@ -77,7 +77,7 @@ export async function generate() {
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 16,y: 5, w: 2,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "closed", wall: "south" });
+                                   await des.door({ state: "closed", wall: "south" });
                                 }
                      })
                   }
@@ -85,7 +85,7 @@ export async function generate() {
                   if (percent(75)) {
                      await des.room({ type: "ordinary", lit: 0, x: 19,y: 2, w: 2,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "locked", wall: "east" });
+                                   await des.door({ state: "locked", wall: "east" });
                                    await des.monster("gnome king");
                                 }
                      })
@@ -93,34 +93,34 @@ export async function generate() {
 
                   await des.room({ type: monkfoodshop(), chance: 50, lit: 1, x: 19,y: 5, w: 2,h: 3,
                              contents: async function() {
-                                des.door({ state: "closed", wall: "south" });
+                                await des.door({ state: "closed", wall: "south" });
                              }
                   })
 
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 2,y: 7, w: 2,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "closed", wall: "east" });
+                                   await des.door({ state: "closed", wall: "east" });
                                 }
                      })
                   }
 
                   await des.room({ type: "tool shop", chance: 50, lit: 1, x: 2,y: 10, w: 2,h: 3,
                              contents: async function() {
-                                des.door({ state: "closed", wall: "south" });
+                                await des.door({ state: "closed", wall: "south" });
                              }
                   })
 
                   await des.room({ type: "candle shop", lit: 1, x: 5,y: 10, w: 3,h: 3,
                              contents: async function() {
-                                des.door({ state: "closed", wall: "north" });
+                                await des.door({ state: "closed", wall: "north" });
                              }
                   })
 
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 11,y: 10, w: 2,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "locked", wall: "west" });
+                                   await des.door({ state: "locked", wall: "west" });
                                    await des.monster("G");
                                 }
                      })
@@ -128,14 +128,14 @@ export async function generate() {
 
                   await des.room({ type: "shop", chance: 60, lit: 1, x: 14,y: 10, w: 2,h: 3,
                              contents: async function() {
-                                des.door({ state: "closed", wall: "north" });
+                                await des.door({ state: "closed", wall: "north" });
                              }
                   })
 
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 17,y: 11, w: 4,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "closed", wall: "north" });
+                                   await des.door({ state: "closed", wall: "north" });
                                 }
                      })
                   }
@@ -143,28 +143,28 @@ export async function generate() {
                   if (percent(75)) {
                      await des.room({ type: "ordinary", x: 22,y: 11, w: 2,h: 2,
                                 contents: async function() {
-                                   des.door({ state: "closed", wall: "south" });
-                                   des.feature("sink", 0,0);
+                                   await des.door({ state: "closed", wall: "south" });
+                                   await des.feature("sink", 0,0);
                                 }
                      })
                   }
 
                   await des.room({ type: monkfoodshop(), chance: 50, lit: 1, x: 25,y: 11, w: 3,h: 2,
                              contents: async function() {
-                                des.door({ state: "closed", wall: "east" });
+                                await des.door({ state: "closed", wall: "east" });
                              }
                   })
 
                   await des.room({ type: "tool shop", chance: 30, lit: 1, x: 25,y: 2, w: 3,h: 3,
                              contents: async function() {
-                                des.door({ state: "closed", wall: "west" });
+                                await des.door({ state: "closed", wall: "west" });
                              }
                   })
 
                   await des.room({ type: "temple", lit: 1, x: 24,y: 6, w: 4,h: 4,
                              contents: async function() {
-                                des.door({ state: "closed", wall: "west" });
-                                des.altar({ x: 2, y: 1, align: align[0], type: "shrine" });
+                                await des.door({ state: "closed", wall: "west" });
+                                await des.altar({ x: 2, y: 1, align: align[0], type: "shrine" });
                                 await des.monster("gnomish wizard");
                                 await des.monster("gnomish wizard");
                              }
@@ -187,13 +187,13 @@ export async function generate() {
 
     await des.room({ type: "ordinary",
                contents: async function() {
-                  des.stair("up");
+                  await des.stair("up");
                }
     })
 
     await des.room({ type: "ordinary",
                contents: async function() {
-                  des.stair("down");
+                  await des.stair("down");
                   await des.trap();
                   await des.monster("gnome");
                   await des.monster("gnome");
@@ -213,7 +213,7 @@ export async function generate() {
                }
     })
 
-    des.random_corridors();
+    await des.random_corridors();
 
 
     return await des.finalize_level();

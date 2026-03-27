@@ -309,9 +309,9 @@ describe('undiscoverObject', () => {
         assert.ok(!found, 'POT_HEALING should not appear in discoveries');
     });
 
-    it('no-op when oc_name_known is true (guard condition prevents removal)', () => {
+    it('no-op when oc_name_known is true (guard condition prevents removal)', async () => {
         initDiscoveryState();
-        discoverObject(POT_HEALING, true, false);
+        await discoverObject(POT_HEALING, true, false);
         // name_known=true: undiscoverObject guard condition (!name_known && !encountered) is false
         undiscoverObject(POT_HEALING);
         // Flag should be untouched — undiscoverObject only removes from disco list, not flags
@@ -322,9 +322,9 @@ describe('undiscoverObject', () => {
             'ocEncountered should be unchanged (false) after undiscoverObject');
     });
 
-    it('no-op when oc_encountered is true (guard condition prevents removal)', () => {
+    it('no-op when oc_encountered is true (guard condition prevents removal)', async () => {
         initDiscoveryState();
-        discoverObject(POT_HEALING, false, true);
+        await discoverObject(POT_HEALING, false, true);
         // encountered=true: undiscoverObject guard condition (!name_known && !encountered) is false
         undiscoverObject(POT_HEALING);
         // Flag should be untouched — undiscoverObject only removes from disco list, not flags

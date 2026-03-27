@@ -13,7 +13,7 @@ export async function generate() {
     // 
     await des.room({ type: "ordinary",
                contents: async function() {
-                  des.stair("up");
+                  await des.stair("up");
                   await des.object();
                   await des.monster({ class: "i", peaceful: 0 });
                }
@@ -39,7 +39,7 @@ export async function generate() {
 
     await des.room({ type: "ordinary",
                contents: async function() {
-                  des.stair("down");
+                  await des.stair("down");
                   await des.object();
                   await des.trap();
                   await des.monster({ class: "i", peaceful: 0 });
@@ -64,7 +64,7 @@ export async function generate() {
                }
     })
 
-    des.random_corridors();
+    await des.random_corridors();
 
 
     return await des.finalize_level();

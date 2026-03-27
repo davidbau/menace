@@ -449,8 +449,8 @@ export function saveGameState(game) {
 
 // C ref: restgamestate() — restore game context + you + inventory + equip + flags
 // Returns { player, turnCount, wizard, seerTurn, seed, rng, rngCallCount, messages, flags }
-export function restGameState(gameState) {
-    setDiscoveryState(gameState.discovery || null);
+export async function restGameState(gameState) {
+    await setDiscoveryState(gameState.discovery || null);
     const player = restYou(gameState.you);
     player.inventory = restObjChn(gameState.invent);
     wireEquip(player, gameState.equip || {});

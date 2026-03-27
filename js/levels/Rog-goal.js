@@ -43,10 +43,10 @@ export async function generate() {
     // Dungeon Description
     await des.region(selection.area(0,0,75,20), "lit");
     // Stairs
-    des.levregion({ region: [1,0,15,20], region_islev: 1, exclude: [1,18,4,20], type: "stair-up" });
+    await des.levregion({ region: [1,0,15,20], region_islev: 1, exclude: [1,18,4,20], type: "stair-up" });
     // Doors
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,20));
+    await des.non_diggable(selection.area(0,0,75,20));
     // One trap to keep the gnomes at bay.
     await des.trap("spiked pit",37,7);
     // Objects

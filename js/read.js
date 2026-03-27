@@ -1788,7 +1788,7 @@ export async function drop_boulder_on_monster(x, y, confused, byu, player, map, 
     mtmp.mhp -= mdmg;
     if (DEADMONSTER(mtmp)) {
       if (byu) { await killed(mtmp); }
-      else { await pline("%s is killed.", Monnam(mtmp)); mondied(mtmp); }
+      else { await pline("%s is killed.", Monnam(mtmp)); await mondied(mtmp); }
     }
     else { wakeup(mtmp, byu); }
     wake_nearto(x, y, 4 * 4, map, game, player);
@@ -1881,7 +1881,7 @@ export async function create_particular() {
       prompt += " [type name or symbol]";
     }
   } while (--tryct > 0);
-  if (!tryct) pline1(thats_enough_tries);
+  if (!tryct) await pline1(thats_enough_tries);
   else {
     return create_particular_creation( d);
   }
@@ -1926,7 +1926,7 @@ export function create_particular_parse(str, data) {
 // Create the monster specified by create_particular_parse.
 // Stub: wizard mode only, not needed for gameplay parity.
 // ---------------------------------------------------------------------------
-export async function create_particular_creation(data) {
+export function create_particular_creation(data) {
     // Wizard mode function — stub for CODEMATCH completeness
     return false;
 }

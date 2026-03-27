@@ -43,10 +43,10 @@ export async function generate() {
     await des.region(selection.area(21,5,51,13),"lit");
     await des.region(selection.area(19,6,54,12),"lit");
 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
 
-    des.non_diggable();
+    await des.non_diggable();
 
     for (let i = 1; i <= 15; i++) {
        await des.object();

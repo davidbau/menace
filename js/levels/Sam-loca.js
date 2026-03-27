@@ -41,35 +41,35 @@ export async function generate() {
     // Dungeon Description
     await des.region(selection.area(0,0,75,19), "lit");
     // Doors
-    des.door("locked",22,4);
-    des.door("locked",22,15);
-    des.door("locked",53,4);
-    des.door("locked",53,15);
-    des.door("locked",49,6);
-    des.door("locked",26,13);
-    des.door("locked",28,7);
-    des.door("locked",30,12);
-    des.door("locked",33,7);
-    des.door("locked",32,12);
-    des.door("locked",35,7);
-    des.door("locked",40,12);
-    des.door("locked",43,7);
-    des.door("locked",42,12);
-    des.door("locked",45,7);
-    des.door("locked",47,12);
-    des.door("closed",15,9);
-    des.door("closed",15,10);
-    des.door("closed",24,9);
-    des.door("closed",24,10);
-    des.door("closed",51,9);
-    des.door("closed",51,10);
-    des.door("closed",60,9);
-    des.door("closed",60,10);
+    await des.door("locked",22,4);
+    await des.door("locked",22,15);
+    await des.door("locked",53,4);
+    await des.door("locked",53,15);
+    await des.door("locked",49,6);
+    await des.door("locked",26,13);
+    await des.door("locked",28,7);
+    await des.door("locked",30,12);
+    await des.door("locked",33,7);
+    await des.door("locked",32,12);
+    await des.door("locked",35,7);
+    await des.door("locked",40,12);
+    await des.door("locked",43,7);
+    await des.door("locked",42,12);
+    await des.door("locked",45,7);
+    await des.door("locked",47,12);
+    await des.door("closed",15,9);
+    await des.door("closed",15,10);
+    await des.door("closed",24,9);
+    await des.door("closed",24,10);
+    await des.door("closed",51,9);
+    await des.door("closed",51,10);
+    await des.door("closed",60,9);
+    await des.door("closed",60,10);
     // Stairs
-    des.stair("up", 10,10);
-    des.stair("down", 25,14);
+    await des.stair("up", 10,10);
+    await des.stair("down", 25,14);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Objects
     await des.object("*", 25, 5);
     await des.object("*", 26, 5);

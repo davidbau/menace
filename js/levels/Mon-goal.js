@@ -38,7 +38,7 @@ xxxxx...xxxxxx....xxxxxxxx
 
     await des.region(selection.area(0,0,25,10), "unlit");
     // Stairs
-    des.stair("up", 20,5);
+    await des.stair("up", 20,5);
     // Objects
     await des.object({ id: "lenses", coord: place[placeidx], buc: "blessed", spe: 0, name: "The Eyes of the Overworld" });
     await des.object();
@@ -64,7 +64,7 @@ xxxxx...xxxxxx....xxxxxxxx
     await des.trap();
     // Random monsters.
     await des.monster("Master Kaen",place[placeidx]);
-    des.altar({ coord: place[placeidx], align: "noalign", type: "altar" });
+    await des.altar({ coord: place[placeidx], align: "noalign", type: "altar" });
     await des.monster("earth elemental");
     await des.monster("earth elemental");
     await des.monster("earth elemental");

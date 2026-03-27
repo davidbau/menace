@@ -64,11 +64,11 @@ export async function generate() {
     await des.region({ region: [43,13, 50,15], lit: 0, type: "temple", filled: 2 });
     await des.region(selection.area(52,13,52,15), "unlit");
     // Stairs
-    des.stair("up", 38,10);
+    await des.stair("up", 38,10);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // The altar of Huhetotl.  Unattended.
-    des.altar({ x: 50,y: 14,align: "chaos",type: "altar" });
+    await des.altar({ x: 50,y: 14,align: "chaos",type: "altar" });
     // Objects
     await des.object({ id: "crystal ball", x: 50, y: 14,buc: "blessed",spe: 5,name: "The Orb of Detection" });
     await des.object();

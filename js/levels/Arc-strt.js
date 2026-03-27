@@ -62,22 +62,22 @@ export async function generate() {
     await des.region(selection.area(25,14,30,14), "unlit");
     await des.region(selection.area(32,14,48,14), "unlit");
     // Stairs
-    des.stair("down", 55,7);
+    await des.stair("down", 55,7);
     // Portal arrival point
-    des.levregion({ region: [63,6,63,6], type: "branch" });
+    await des.levregion({ region: [63,6,63,6], type: "branch" });
     // Doors
-    des.door("closed",22,7);
-    des.door("closed",38,7);
-    des.door("locked",47,8);
-    des.door("locked",23,10);
-    des.door("locked",39,10);
-    des.door("locked",57,10);
-    des.door("locked",47,12);
-    des.door("closed",22,13);
-    des.door("closed",38,13);
-    des.door("locked",24,14);
-    des.door("closed",31,14);
-    des.door("locked",49,14);
+    await des.door("closed",22,7);
+    await des.door("closed",38,7);
+    await des.door("locked",47,8);
+    await des.door("locked",23,10);
+    await des.door("locked",39,10);
+    await des.door("locked",57,10);
+    await des.door("locked",47,12);
+    await des.door("closed",22,13);
+    await des.door("closed",38,13);
+    await des.door("locked",24,14);
+    await des.door("closed",31,14);
+    await des.door("locked",49,14);
     // Lord Carnarvon
     await des.monster({ id: "Lord Carnarvon", coord: [25, 10], inventory: async function() {
        await des.object({ id: "fedora", spe: 5 });
@@ -102,7 +102,7 @@ export async function generate() {
     await des.monster("giant eel", 45, 4);
     await des.monster("giant eel", 33, 16);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,19));
+    await des.non_diggable(selection.area(0,0,75,19));
     // Random traps
     await des.trap();
     await des.trap();

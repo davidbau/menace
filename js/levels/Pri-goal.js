@@ -38,7 +38,7 @@ xxxxx...xxxxxx....xxxxxxxx
 
     await des.region(selection.area(0,0,25,10), "unlit");
     // Stairs
-    des.stair("up", 20,5);
+    await des.stair("up", 20,5);
     // Objects [note: eroded=-1 => obj->oerodeproof=1]
     await des.object({ id: "helm of brilliance", coord: place[placeidx],
                  buc: "blessed", spe: 0, eroded: -1, name: "The Mitre of Holiness" })

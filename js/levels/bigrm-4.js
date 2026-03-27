@@ -41,20 +41,20 @@ export async function generate() {
     let tidx = (rn2((terrains.length) - (1) + 1) + (1));
     let toterr = terrains[tidx];
     if ((toterr !== "L")) {
-       des.replace_terrain({ fromterrain: "L", toterrain: toterr });
+       await des.replace_terrain({ fromterrain: "L", toterrain: toterr });
     }
 
-    des.feature("fountain", 5,2);
-    des.feature("fountain", 5,15);
-    des.feature("fountain", 69,2);
-    des.feature("fountain", 69,15);
+    await des.feature("fountain", 5,2);
+    await des.feature("fountain", 5,15);
+    await des.feature("fountain", 69,2);
+    await des.feature("fountain", 69,15);
 
     await des.region(selection.area(1,1,73,16), "lit");
 
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
 
-    des.non_diggable();
+    await des.non_diggable();
 
     for (let i = 1; i <= 15; i++) {
        await des.object();

@@ -425,7 +425,7 @@ export function set_wallprop_from_str(str) {
 }
 
 // cf. objnam.c:3544 — wizterrainwish(): wizard terrain wish parser
-export function wizterrainwish(ctx) {
+export async function wizterrainwish(ctx) {
     const text = String(ctx?.text || '').trim().toLowerCase();
     if (!text) return null;
 
@@ -520,7 +520,7 @@ export function wizterrainwish(ctx) {
     };
 
     if (result.trap) {
-        const t = maketrap(map, x, y, result.trap);
+        const t = await maketrap(map, x, y, result.trap);
         result.applied = !!t;
         result.kind = 'trapwish';
         if (t) {
@@ -569,10 +569,10 @@ export function wizterrainwish(ctx) {
         }
     } else if (result.terrain === 'tree') {
         loc.typ = TREE;
-        setWallProps();
+        await setWallProps();
     } else if (result.terrain === 'iron bars') {
         loc.typ = IRONBARS;
-        setWallProps();
+        await setWallProps();
     } else if (result.terrain === 'cloud') {
         loc.typ = CLOUD;
         del_engr_at(map, x, y);
@@ -593,7 +593,7 @@ export function wizterrainwish(ctx) {
         if (secret) loc.flags |= D_SECRET;
     } else if (result.terrain === 'wall') {
         loc.typ = HWALL;
-        setWallProps();
+        await setWallProps();
     } else if (result.terrain === 'secret corridor') {
         loc.typ = SCORR;
     } else if (result.terrain === 'room') {
@@ -2359,7 +2359,7 @@ const alt_spellings = [
 ];
 
 // cf. objnam.c:4900 — readobjnam(bp, no_wish): parse wish string into object
-export function readobjnam(bp, no_wish, opts = {}) {
+export async function readobjnam(bp, no_wish, opts = {}) {
     if (typeof bp !== 'string') return null;
     const state = readobjnam_init();
     if (!readobjnam_preparse(state, bp)) return null;
@@ -2442,7 +2442,7 @@ export function readobjnam(bp, no_wish, opts = {}) {
         const wizard = !!opts.wizard;
         const wizkit_wishing = !!opts.wizkit_wishing;
         if (wizard && !wizkit_wishing && !oclass) {
-            const terrain = wizterrainwish({
+            const terrain = await wizterrainwish({
                 text: bp,
                 player: opts.player || null,
                 map: opts.map || opts.player?.map || null,

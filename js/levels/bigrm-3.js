@@ -45,15 +45,15 @@ export async function generate() {
        let sel = selection.match("[.w.]");
        let terrains = [ "F", "T", "W", "Z" ];
        let choice = terrains[rn2(terrains.length)];
-       des.terrain(sel, choice);
+       await des.terrain(sel, choice);
     }
 
     // Stairs
-    des.stair("up");
-    des.stair("down");
+    await des.stair("up");
+    await des.stair("down");
 
     // Non diggable walls
-    des.non_diggable();
+    await des.non_diggable();
 
     for (let i = 1; i <= 15; i++) {
        await des.object();

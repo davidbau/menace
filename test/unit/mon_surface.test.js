@@ -99,7 +99,7 @@ describe('mon compatibility surface', () => {
     assert.equal(shapeshiftDecision === true || shapeshiftDecision === false, true);
   });
 
-  it('supports leaving-level, pickup, peaceful response, overcrowding, smell', () => {
+  it('supports leaving-level, pickup, peaceful response, overcrowding, smell', async () => {
     const mon = { mx: 2, my: 2, mndx: PM_KILLER_BEE, data: mons[PM_KILLER_BEE], mpeaceful: 1, minvent: [] };
     const player = { x: 2, y: 2, ustuck: mon };
     const obj = { ox: 2, oy: 2, oclass: ROCK_CLASS, where: 'OBJ_FLOOR' };
@@ -110,7 +110,7 @@ describe('mon compatibility surface', () => {
 
     assert.equal(mon_leaving_level(mon, map, player), true);
     map.monsters.push(mon);
-    assert.equal(monstone(mon, map, player), 1);
+    assert.equal(await monstone(mon, map, player), 1);
 
     map.monsters.push({ mpeaceful: 1, mx: 1, my: 1 }, { mpeaceful: 1, mx: 2, my: 2 });
     assert.equal(peacefuls_respond(map) >= 2, true);

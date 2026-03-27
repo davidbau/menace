@@ -57,61 +57,61 @@ export async function generate() {
     let place = [ [33,0], [0,12], [25,20], [75,5] ]
     shuffle(place)
 
-    des.stair({ dir: "down", coord: place[0] });
+    await des.stair({ dir: "down", coord: place[0] });
     await des.monster({ id: "giant mimic", coord: place[1], appear_as: "ter:staircase down" });
     await des.monster({ id: "large mimic", coord: place[2], appear_as: "ter:staircase down" });
     await des.monster({ id: "small mimic", coord: place[3], appear_as: "ter:staircase down" });
     // Portal arrival point
-    des.levregion({ region: [19,9,19,9], type: "branch" });
+    await des.levregion({ region: [19,9,19,9], type: "branch" });
     // Doors (secret)
     // DOOR:locked.union(closed)|open,(xx,yy)
-    des.door("locked", 32, 2);
-    des.door("locked", 63, 9);
-    des.door("locked", 27,10);
-    des.door("locked", 31,12);
-    des.door("locked", 35,13);
-    des.door("locked", 69,15);
-    des.door("locked", 56,17);
-    des.door("locked", 57,17);
-    des.door("locked", 11,19);
-    des.door("locked", 37,19);
-    des.door("locked", 39, 2);
-    des.door("locked", 49, 5);
-    des.door("locked", 10, 9);
-    des.door("locked", 14,12);
+    await des.door("locked", 32, 2);
+    await des.door("locked", 63, 9);
+    await des.door("locked", 27,10);
+    await des.door("locked", 31,12);
+    await des.door("locked", 35,13);
+    await des.door("locked", 69,15);
+    await des.door("locked", 56,17);
+    await des.door("locked", 57,17);
+    await des.door("locked", 11,19);
+    await des.door("locked", 37,19);
+    await des.door("locked", 39, 2);
+    await des.door("locked", 49, 5);
+    await des.door("locked", 10, 9);
+    await des.door("locked", 14,12);
     // Doors (regular)
-    des.door("closed", 52, 1);
-    des.door("closed",  9, 2);
-    des.door("closed", 20, 2);
-    des.door("closed", 65, 2);
-    des.door("closed", 67, 2);
-    des.door("closed",  6, 3);
-    des.door("closed", 21, 5);
-    des.door("closed", 38, 5);
-    des.door("closed", 69, 6);
-    des.door("closed",  4, 7);
-    des.door("closed", 39, 7);
-    des.door("closed", 58, 7);
-    des.door("closed", 60, 7);
-    des.door("closed", 18, 8);
-    des.door("closed", 20, 9);
-    des.door("closed", 48,10);
-    des.door("closed", 46,12);
-    des.door("closed", 62,12);
-    des.door("closed", 74,12);
-    des.door("closed", 23,14);
-    des.door("closed", 23,14);
-    des.door("closed", 50,14);
-    des.door("closed", 68,14);
-    des.door("closed", 74,14);
-    des.door("closed", 14,15);
-    des.door("closed", 63,15);
-    des.door("closed",  9,17);
-    des.door("closed", 21,17);
-    des.door("closed", 50,17);
-    des.door("closed",  6,18);
-    des.door("closed", 65,18);
-    des.door("closed", 68,18);
+    await des.door("closed", 52, 1);
+    await des.door("closed",  9, 2);
+    await des.door("closed", 20, 2);
+    await des.door("closed", 65, 2);
+    await des.door("closed", 67, 2);
+    await des.door("closed",  6, 3);
+    await des.door("closed", 21, 5);
+    await des.door("closed", 38, 5);
+    await des.door("closed", 69, 6);
+    await des.door("closed",  4, 7);
+    await des.door("closed", 39, 7);
+    await des.door("closed", 58, 7);
+    await des.door("closed", 60, 7);
+    await des.door("closed", 18, 8);
+    await des.door("closed", 20, 9);
+    await des.door("closed", 48,10);
+    await des.door("closed", 46,12);
+    await des.door("closed", 62,12);
+    await des.door("closed", 74,12);
+    await des.door("closed", 23,14);
+    await des.door("closed", 23,14);
+    await des.door("closed", 50,14);
+    await des.door("closed", 68,14);
+    await des.door("closed", 74,14);
+    await des.door("closed", 14,15);
+    await des.door("closed", 63,15);
+    await des.door("closed",  9,17);
+    await des.door("closed", 21,17);
+    await des.door("closed", 50,17);
+    await des.door("closed",  6,18);
+    await des.door("closed", 65,18);
+    await des.door("closed", 68,18);
     // Master of Thieves
     await des.monster({ id: "Master of Thieves", coord: [36, 11], inventory: async function() {
        await des.object({ id: "leather armor", spe: 5 });
@@ -133,7 +133,7 @@ export async function generate() {
     await des.monster("thug", 35, 9);
     await des.monster("thug", 36, 13);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,75,20));
+    await des.non_diggable(selection.area(0,0,75,20));
     // Random traps
     await des.trap();
     await des.trap();

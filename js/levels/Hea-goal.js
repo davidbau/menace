@@ -36,9 +36,9 @@ PPP..................................PPP.
     // Dungeon Description
     await des.region(selection.area(0,0,40,11), "lit");
     // Stairs
-    des.stair("up", 39,10);
+    await des.stair("up", 39,10);
     // Non diggable walls
-    des.non_diggable(selection.area(0,0,40,11));
+    await des.non_diggable(selection.area(0,0,40,11));
     // Objects
     await des.object({ id: "quarterstaff", x: 20, y: 6, buc: "blessed", spe: 0, name: "The Staff of Aesculapius" });
     await des.object("wand of lightning", 20, 6);

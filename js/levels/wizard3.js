@@ -36,12 +36,12 @@ export async function generate() {
 |.....|.........|..|.......|x
 ----------------------------x
 `, contents: async function(rm) {
-       des.levregion({ type: "stair-up", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.levregion({ type: "stair-down", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.levregion({ type: "branch", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
-       des.teleport_region({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,27,12] });
-       des.levregion({ region: [25,11,25,11], type: "portal", name: "fakewiz1" });
-       des.mazewalk(28,9,"east");
+       await des.levregion({ type: "stair-up", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.levregion({ type: "stair-down", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.levregion({ type: "branch", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
+       await des.teleport_region({ region: [1,0,79,20], region_islev: 1, exclude: [0,0,27,12] });
+       await des.levregion({ region: [25,11,25,11], type: "portal", name: "fakewiz1" });
+       await des.mazewalk(28,9,"east");
        await des.region({ region: [7,3, 15,11], lit: 0 ,type: "morgue", filled: 2 });
        await des.region({ region: [17,6, 18,11], lit: 0, type: "beehive", filled: 1 });
        // make the entry chamber a real room; it affects monster arrival
@@ -49,22 +49,22 @@ export async function generate() {
                     contents: async function() {
                        let w = "north";
                        if (percent(50)) { w = "west" }
-                       des.door({ state: "secret", wall: w });
+                       await des.door({ state: "secret", wall: w });
                     }
        });
-       des.door("closed",18,5);
-       des.ladder("up", 11,7);
+       await des.door("closed",18,5);
+       await des.ladder("up", 11,7);
        // Non diggable walls
        // Walls inside the moat stay diggable
-       des.non_diggable(selection.area(0,0,6,12));
-       des.non_diggable(selection.area(6,0,27,2));
-       des.non_diggable(selection.area(16,2,27,12));
-       des.non_diggable(selection.area(6,12,16,12));
+       await des.non_diggable(selection.area(0,0,6,12));
+       await des.non_diggable(selection.area(6,0,27,2));
+       await des.non_diggable(selection.area(16,2,27,12));
+       await des.non_diggable(selection.area(6,12,16,12));
        // 
-       des.non_passwall(selection.area(0,0,6,12));
-       des.non_passwall(selection.area(6,0,27,2));
-       des.non_passwall(selection.area(16,2,27,12));
-       des.non_passwall(selection.area(6,12,16,12));
+       await des.non_passwall(selection.area(0,0,6,12));
+       await des.non_passwall(selection.area(6,0,27,2));
+       await des.non_passwall(selection.area(16,2,27,12));
+       await des.non_passwall(selection.area(6,12,16,12));
        // 
        await des.monster("L", 10, 7);
        await des.monster("vampire lord", 12, 7);

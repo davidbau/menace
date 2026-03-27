@@ -82,7 +82,11 @@ export function maybeObserveObjectForMap(obj, player, x, y) {
     const dx = player.x - x;
     const dy = player.y - y;
     if ((dx * dx) + (dy * dy) <= neardist) {
-        observeObject(obj);
+        // observeObject sets obj.dknown = true synchronously, then fires
+        // discoverObject (exercise/RNG) as a fire-and-forget Promise.
+        // This matches C where observe_object is sync and the display
+        // path (newsym → map_object) must remain sync.
+        observeObject(obj); // intentional fire-and-forget
     }
 }
 

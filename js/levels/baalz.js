@@ -34,14 +34,14 @@ export async function generate() {
 |                   ----               ----      
 -------------------------------------------------
 ` });
-    des.levregion({ region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1, type: "stair-up" });
-    des.levregion({ region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1, type: "branch" });
-    des.teleport_region({region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1 });
+    await des.levregion({ region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1, type: "stair-up" });
+    await des.levregion({ region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1, type: "branch" });
+    await des.teleport_region({region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1 });
     // this actually leaves the farthest right column diggable
-    des.non_diggable(selection.area(0,0,47,12));
-    des.mazewalk(0,6,"west");
-    des.stair("down", 44,6);
-    des.door("locked",0,6);
+    await des.non_diggable(selection.area(0,0,47,12));
+    await des.mazewalk(0,6,"west");
+    await des.stair("down", 44,6);
+    await des.door("locked",0,6);
     // The fellow in residence
     await des.monster("Baalzebub",35,6);
     // Some random weapons && armor.

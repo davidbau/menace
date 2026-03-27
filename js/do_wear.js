@@ -155,7 +155,7 @@ function toggle_stealth(player, on) {
 
 // C ref: do_wear.c:147 — toggle_displacement(obj, oldprop, on)
 // When called from Cloak_on/off with (player, on), obj defaults to player.cloak.
-export function toggle_displacement(player, on, obj, oldprop) {
+export async function toggle_displacement(player, on, obj, oldprop) {
     if (obj === undefined) obj = player.cloak;
     if (oldprop === undefined) {
         const entry = player.uprops ? player.uprops[DISPLACED] : null;
@@ -180,7 +180,7 @@ export function toggle_displacement(player, on, obj, oldprop) {
             || (player.blind) // Blind_telepat when blind
             || false; // Detect_monsters not checked
         if (canNotice) {
-            if (obj) makeknown(obj.otyp);
+            if (obj) await makeknown(obj.otyp);
             // Message uses You_feel (async) but toggle_displacement is sync in callers;
             // just log the message synchronously via pline if available
         }
@@ -204,7 +204,7 @@ function toggle_extrinsic(player, prop, on) {
 
 // Clear passive hero effects for an item removed outside the normal voluntary
 // takeoff flow (consumed, destroyed, stolen).
-export function clearWornItemEffects(player, obj) {
+export async function clearWornItemEffects(player, obj) {
     if (!player || !obj) return;
     if (obj === player.armor) {
         Armor_off(player);
@@ -215,7 +215,7 @@ export function clearWornItemEffects(player, obj) {
     } else if (obj === player.gloves) {
         Gloves_off(player);
     } else if (obj === player.cloak) {
-        Cloak_off(player);
+        await Cloak_off(player);
     } else if (obj === player.shirt) {
         Shirt_off(player);
     } else if (obj === player.rightRing || obj === player.leftRing) {
@@ -269,7 +269,7 @@ export async function armoroff(otmp, player, game) {
             case ARM_HELM: Helmet_off(player); break;
             case ARM_GLOVES: Gloves_off(player); break;
             case ARM_BOOTS: await Boots_off(player); break;
-            case ARM_CLOAK: Cloak_off(player); break;
+            case ARM_CLOAK: await Cloak_off(player); break;
             case ARM_SHIRT: Shirt_off(player); break;
             default: break;
         }
@@ -346,7 +346,7 @@ async function Boots_on(player) {
         toggle_extrinsic(player, FAST, true);
         // C ref: if (!oldprop && !(HFast & TIMEOUT)) { makeknown(); message }
         if (!oldprop && !(player.getPropTimeout(FAST))) {
-            makeknown(otyp);
+            await makeknown(otyp);
             await You_feel("yourself speed up%s.",
                      player.fast ? " a bit more" : "");
         }
@@ -365,7 +365,7 @@ async function Boots_on(player) {
         toggle_extrinsic(player, LEVITATION, true);
         // C ref: if (!oldprop && !HLevitation && !(BLevitation & FROMOUTSIDE))
         //     makeknown(otyp); float_up();
-        makeknown(otyp);
+        await makeknown(otyp);
         break;
     }
     // C ref: player.boots->known = 1 (boots +/- evident from AC)
@@ -382,7 +382,7 @@ async function Boots_off(player) {
         toggle_extrinsic(player, FAST, false);
         // C ref: if (!Very_fast) { makeknown(otyp); message }
         if (!player.veryFast) {
-            makeknown(otyp);
+            await makeknown(otyp);
             await You_feel("yourself slow down%s.",
                      player.fast ? " a bit" : "");
         }
@@ -404,13 +404,13 @@ async function Boots_off(player) {
     case LEVITATION_BOOTS:
         toggle_extrinsic(player, LEVITATION, false);
         // C ref: float_down(0L, 0L); makeknown(otyp);
-        makeknown(otyp);
+        await makeknown(otyp);
         break;
     }
 }
 
 // cf. do_wear.c Cloak_on() — C ref: do_wear.c:332-390
-function Cloak_on(player) {
+async function Cloak_on(player) {
     if (!player || !player.cloak) return;
     const otyp = player.cloak.otyp;
     switch (otyp) {
@@ -418,12 +418,12 @@ function Cloak_on(player) {
         toggle_stealth(player, true);
         break;
     case CLOAK_OF_DISPLACEMENT:
-        toggle_displacement(player, true);
+        await toggle_displacement(player, true);
         break;
     case CLOAK_OF_INVISIBILITY:
         toggle_extrinsic(player, INVIS, true);
         if (!player.blind) {
-            makeknown(otyp);
+            await makeknown(otyp);
         }
         break;
     case CLOAK_OF_MAGIC_RESISTANCE:
@@ -432,7 +432,7 @@ function Cloak_on(player) {
         break;
     case CLOAK_OF_PROTECTION:
         // C ref: makeknown(player.cloak->otyp);
-        makeknown(otyp);
+        await makeknown(otyp);
         break;
     }
     if (player.cloak && !player.cloak.known) {
@@ -441,7 +441,7 @@ function Cloak_on(player) {
 }
 
 // cf. do_wear.c Cloak_off() — C ref: do_wear.c:392-430
-function Cloak_off(player) {
+async function Cloak_off(player) {
     if (!player || !player.cloak) return;
     const otyp = player.cloak.otyp;
     switch (otyp) {
@@ -449,12 +449,12 @@ function Cloak_off(player) {
         toggle_stealth(player, false);
         break;
     case CLOAK_OF_DISPLACEMENT:
-        toggle_displacement(player, false);
+        await toggle_displacement(player, false);
         break;
     case CLOAK_OF_INVISIBILITY:
         toggle_extrinsic(player, INVIS, false);
         if (!player.blind) {
-            makeknown(otyp);
+            await makeknown(otyp);
         }
         break;
     case CLOAK_OF_MAGIC_RESISTANCE:
@@ -525,7 +525,7 @@ export function hard_helmet(obj) {
 }
 
 // cf. do_wear.c Gloves_on() — C ref: do_wear.c:542-590
-function Gloves_on(player) {
+async function Gloves_on(player) {
     if (!player || !player.gloves) return;
     const otyp = player.gloves.otyp;
     switch (otyp) {
@@ -537,7 +537,7 @@ function Gloves_on(player) {
     case GAUNTLETS_OF_POWER:
         // C ref: makeknown(otyp); botl = TRUE;
         // STR becomes 25 while wearing — store old value
-        makeknown(otyp);
+        await makeknown(otyp);
         player._savedStr = player.attributes[A_STR];
         player.attributes[A_STR] = 25;
         break;
@@ -1277,11 +1277,11 @@ async function set_wear(player, obj) {
     if (!obj || obj === player.armor)
         if (player.armor) Armor_on(player);
     if (!obj || obj === player.cloak)
-        if (player.cloak) Cloak_on(player);
+        if (player.cloak) await Cloak_on(player);
     if (!obj || obj === player.boots)
         if (player.boots) await Boots_on(player);
     if (!obj || obj === player.gloves)
-        if (player.gloves) Gloves_on(player);
+        if (player.gloves) await Gloves_on(player);
     if (!obj || obj === player.helmet)
         if (player.helmet) Helmet_on(player);
     if (!obj || obj === player.shield)
@@ -1475,7 +1475,7 @@ export async function armor_or_accessory_off(obj, game, player) {
   await select_off(obj);
   if (!game.svc.context.takeoff.mask) return ECMD_OK;
   reset_remarm();
-  if (obj.owornmask & W_ARMOR) { armoroff(obj); }
+  if (obj.owornmask & W_ARMOR) { await armoroff(obj); }
   else if (obj === player.rightRing || obj === player.leftRing) { await off_msg(obj); Ring_off(obj); }
   else if (obj === player.amulet) { Amulet_off(); }
   else if (obj === player.blindfold) { await Blindf_off(player, obj); }
@@ -1551,7 +1551,7 @@ export async function do_takeoff(game, player) {
   else if (doff.what === WORN_CLOAK) {
     otmp = player.cloak;
     if (!await cursed(otmp, player)) {
-      Cloak_off();
+      await Cloak_off();
     }
   }
   else if (doff.what === WORN_BOOTS) {
@@ -1804,7 +1804,7 @@ async function wornarm_destroyed(player, wornarm) {
     if (donning(wornarm)) cancel_don();
 
     // Call the appropriate off function
-    if (wornarm === player.cloak) { Cloak_off(player); player.cloak = null; }
+    if (wornarm === player.cloak) { await Cloak_off(player); player.cloak = null; }
     else if (wornarm === player.armor) { Armor_off(player); player.armor = null; }
     else if (wornarm === player.shirt) { Shirt_off(player); player.shirt = null; }
     else if (wornarm === player.helmet) { Helmet_off(player); player.helmet = null; }
@@ -1814,7 +1814,7 @@ async function wornarm_destroyed(player, wornarm) {
 
     find_ac(player);
     // Destroy the item from inventory
-    useup(wornarm, player);
+    await useup(wornarm, player);
 }
 
 // cf. do_wear.c maybe_destroy_armor() — check if armor resists destruction
@@ -2115,7 +2115,7 @@ async function putOnSelectedItem(player, display, game, item) {
                     await You('are suddenly overcome with shame and change your mind.');
                 }
                 player.ublessed = 0;
-                makeknown(item.otyp);
+                await makeknown(item.otyp);
                 return { moved: false, tookTime: true };
             }
         }

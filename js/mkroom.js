@@ -238,7 +238,7 @@ export function mkzoo(map, type) {
 }
 
 // C ref: mkroom.c:530-575 mkswamp() — turn up to 5 rooms into swamps.
-export function mkswamp(map, depth) {
+export async function mkswamp(map, depth) {
     let eelct = 0;
     for (let i = 0; i < 5; i++) {
         const sroom = map.rooms[rn2(map.nroom)];
@@ -267,12 +267,12 @@ export function mkswamp(map, depth) {
                             : rn2(2)
                                 ? mons[PM_PIRANHA]
                                 : mons[PM_ELECTRIC_EEL];
-                        makemon(eelmon, sx, sy, NO_MM_FLAGS, depth, map);
+                        await makemon(eelmon, sx, sy, NO_MM_FLAGS, depth, map);
                         eelct++;
                     }
                 } else if (!rn2(4)) {
                     const fungusMndx = mkclass(S_FUNGUS, 0, depth);
-                    makemon(fungusMndx >= 0 ? mons[fungusMndx] : null, sx, sy, NO_MM_FLAGS, depth, map);
+                    await makemon(fungusMndx >= 0 ? mons[fungusMndx] : null, sx, sy, NO_MM_FLAGS, depth, map);
                 }
             }
         }
@@ -343,7 +343,7 @@ export function mkshop(map) {
 }
 
 // C ref: mkroom.c:52-92 do_mkroom()
-export function do_mkroom(map, roomtype, depth, mktemple_opts = null) {
+export async function do_mkroom(map, roomtype, depth, mktemple_opts = null) {
     if (roomtype >= SHOPBASE) {
         mkshop(map);
         return;
@@ -360,17 +360,17 @@ export function do_mkroom(map, roomtype, depth, mktemple_opts = null) {
         mkzoo(map, roomtype);
         return;
     case TEMPLE:
-        mktemple(map, depth, mktemple_opts || {});
+        await mktemple(map, depth, mktemple_opts || {});
         return;
     case SWAMP:
-        mkswamp(map, depth);
+        await mkswamp(map, depth);
         return;
     default:
         return;
     }
 }
 
-export function priestini(sroom, sx, sy, sanctum, depth, map) {
+export async function priestini(sroom, sx, sy, sanctum, depth, map) {
     const si = rn2(N_DIRS);
     const prim = sanctum ? mons[PM_HIGH_CLERIC] : mons[PM_ALIGNED_CLERIC];
 
@@ -388,7 +388,7 @@ export function priestini(sroom, sx, sy, sanctum, depth, map) {
         py = sy;
     }
 
-    const priest = makemon(prim, px, py, NO_MM_FLAGS, depth, map);
+    const priest = await makemon(prim, px, py, NO_MM_FLAGS, depth, map);
     if (!priest) return;
     priest.ispriest = true;
     priest.isminion = false;
@@ -416,7 +416,7 @@ export function priestini(sroom, sx, sy, sanctum, depth, map) {
 }
 
 // C ref: mkroom.c mktemple()
-export function mktemple(map, depth, opts = {}) {
+export async function mktemple(map, depth, opts = {}) {
     const sroom = pick_room(map, true);
     if (!sroom) return;
 
@@ -440,7 +440,7 @@ export function mktemple(map, depth, opts = {}) {
     loc.flags = Align2amask(altarAlignTyp);
     loc.altarAlign = altarAlignTyp;
 
-    priestini(sroom, shrine.x, shrine.y, false, depth, map);
+    await priestini(sroom, shrine.x, shrine.y, false, depth, map);
     loc.flags |= AM_SHRINE;
     map.flags.has_temple = true;
 }
@@ -494,14 +494,14 @@ export function rest_rooms(map, savedRooms) {
 }
 
 // C ref: mkroom.c mkundead() — select/place undead in a room.
-export function mkundead(map, croom, mflags, depth) {
+export async function mkundead(map, croom, mflags, depth) {
     if (!map || !croom) return 0;
     const n = rn2(5) + 1;
     let placed = 0;
     for (let i = 0; i < n; i++) {
         const pos = somexyspace(map, croom);
         if (!pos) continue;
-        const mon = makemon(morguemon(depth), pos.x, pos.y, mflags || NO_MM_FLAGS, depth, map);
+        const mon = await makemon(morguemon(depth), pos.x, pos.y, mflags || NO_MM_FLAGS, depth, map);
         if (mon) placed++;
     }
     return placed;
@@ -574,14 +574,14 @@ export function antholemon(depth) {
 // set_malign imported from makemon.js
 
 // C ref: mkroom.c:257 mk_zoo_thronemon() — place throne ruler for COURT rooms.
-export function mk_zoo_thronemon(map, x, y, depth) {
+export async function mk_zoo_thronemon(map, x, y, depth) {
     const difficulty = Math.max(Math.trunc(depth), 1);
     const i = rnd(difficulty);
     const pm = (i > 9) ? PM_OGRE_TYRANT
         : (i > 5) ? PM_ELVEN_MONARCH
             : (i > 2) ? PM_DWARF_RULER
                 : PM_GNOME_RULER;
-    const mon = makemon(mons[pm], x, y, NO_MM_FLAGS, depth, map);
+    const mon = await makemon(mons[pm], x, y, NO_MM_FLAGS, depth, map);
     if (!mon) return;
     mon.msleeping = 1;
     mon.mpeaceful = false;

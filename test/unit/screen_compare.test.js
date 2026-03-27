@@ -12,7 +12,7 @@ import { initRng, rn2, rnd, rn1 } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { Player } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
-import { movemon } from '../../js/monmove.js';
+import { movemon } from '../../js/mon.js';
 import { FOV } from '../../js/vision.js';
 import { dosearch0 } from '../../js/detect.js';
 import { NORMAL_SPEED } from '../../js/const.js';
@@ -237,14 +237,14 @@ async function setupGame() {
     player.x = map.upstair.x;
     player.y = map.upstair.y;
     player.dungeonLevel = 1;
-    simulatePostLevelInit(player, map, 1);
+    await simulatePostLevelInit(player, map, 1);
     const fov = new FOV();
     fov.compute(map, player.x, player.y);
     return { u: player, map, fov, display: { putstr_message: () => {} }, turnCount: 0, seerTurn: 0 };
 }
 
-function doTurn(game) {
-    movemon(game.map, game.u, game.display, game.fov);
+async function doTurn(game) {
+    await movemon(game.map, game.u, game.display, game.fov);
     simulateTurnEnd(game);
     game.fov.compute(game.map, game.u.x, game.u.y);
 }
@@ -280,11 +280,11 @@ describe('Screen comparison (seed 42)', () => {
                     game.u.x += dir[0];
                     game.u.y += dir[1];
                 } else if (state.step.key === 's') {
-                    dosearch0(game.u, game.map, game.display);
+                    await dosearch0(game.u, game.map, game.display);
                 }
 
                 if (!NON_TURN_KEYS.has(state.step.key)) {
-                    doTurn(game);
+                    await doTurn(game);
                     game.fov.compute(game.map, game.u.x, game.u.y);
                 }
             }

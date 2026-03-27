@@ -18,8 +18,8 @@ export async function generate() {
     des.level_flags("mazelevel", "noteleport", "hardfloor", "shortsighted", "stormy");
     // The following messages are somewhat obtuse, to make then
     // equally meaningful if the player can see || !.
-    des.message("What a strange feeling!");
-    des.message("You notice that there is no gravity here.");
+    await des.message("What a strange feeling!");
+    await des.message("You notice that there is no gravity here.");
     // The player lands, upon arrival, in the
     // lower-left area.  The location of the
     // portal to the next level is randomly chosen.
@@ -51,11 +51,11 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     // teleportation can't cross from one part into another.
     // The up region is where you'll arrive after activating the portal from
     // the preceding level; the exit portal is placed inside the down region.
-    des.teleport_region({ region: [1,0,24,20], region_islev: 1, exclude: [25,0,79,20], exclude_islev: 1, dir: "up" });
-    des.teleport_region({ region: [56,0,79,20], region_islev: 1, exclude: [1,0,55,20], exclude_islev: 1, dir: "down" });
+    await des.teleport_region({ region: [1,0,24,20], region_islev: 1, exclude: [25,0,79,20], exclude_islev: 1, dir: "up" });
+    await des.teleport_region({ region: [56,0,79,20], region_islev: 1, exclude: [1,0,55,20], exclude_islev: 1, dir: "down" });
 
     // des.portal(levregion(57,1,78,19),(0,0,0,0),"fire")
-    des.levregion({ region: [57,1,78,19], region_islev: 1, type: "portal", name: "fire" });
+    await des.levregion({ region: [57,1,78,19], region_islev: 1, type: "portal", name: "fire" });
     await des.region(selection.area(0,0,75,19),"lit");
     await des.monster({ id: "air elemental", peaceful: 0 });
     await des.monster({ id: "air elemental", peaceful: 0 });

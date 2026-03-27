@@ -328,7 +328,7 @@ export async function artitouch(obj, game) {
 
 // cf. quest.c:140 — ok_to_quest(): quest dungeon entry eligibility
 // Returns true if player is allowed to enter quest dungeon.
-export async function ok_to_quest(game) {
+export function ok_to_quest(game) {
   const qs = Qstat(game || {});
   return (((qs.got_quest || qs.got_thanks) && is_pure(false) > 0) || qs.killed_leader);
 }

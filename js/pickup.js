@@ -550,7 +550,7 @@ async function pickup_object(obj, count, telekinesis, player, map) {
         return 0;
     }
 
-    observeObject(obj);
+    await observeObject(obj);
 
     if (obj === player.uchain)
         return 0;
@@ -889,7 +889,7 @@ async function out_container(obj, player, map) {
 
     // Add to inventory via addinv (handles merge, invlet assignment, etc.)
     const result = await addinv(obj, player);
-    observeObject(obj);
+    await observeObject(obj);
 
     // cf. C pickup.c:2748 — announce removal
     await pline("%s - %s.", result?.invlet || obj.invlet || '-', doname(result || obj, player));
@@ -987,7 +987,7 @@ async function u_handsy(player) {
 
 // cf. pickup.c:2937 — stash_ok(obj)
 // Autotranslated from pickup.c:2936
-export async function stash_ok(obj) {
+export function stash_ok(obj) {
   if (!obj) return GETOBJ_EXCLUDE;
   if (!ck_bag(obj)) return GETOBJ_EXCLUDE_SELECTABLE;
   return GETOBJ_SUGGEST;
@@ -1368,7 +1368,7 @@ async function handlePickup(player, map, display, game = null) {
                 if (extraResult?.item) extraResult.item.pickup_prev = 1;
                 map.removeObject(extra);
             }
-            observeObject(pickedObj);
+            await observeObject(pickedObj);
             if (addResult.discoveredByCompare) {
                 await displayCtx.putstr_message('You learn more about your items by comparing them.');
             }
@@ -1557,12 +1557,12 @@ function sortSameClassContainerItems(items) {
         .map((entry) => entry.obj);
 }
 
-function buildContainerDisplayRows(items, letters, selected, player) {
+async function buildContainerDisplayRows(items, letters, selected, player) {
     const rows = [];
     let lastHeader = null;
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        observeObject(item);
+        await observeObject(item);
         const sym = CLASS_SYMBOLS[item?.oclass];
         const header = classSymbolLabel(sym);
         if (header !== lastHeader) {
@@ -1827,7 +1827,7 @@ async function containerMenu(game, container) {
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
-            const displayRows = buildContainerDisplayRows(visible, available, selected, player);
+            const displayRows = await buildContainerDisplayRows(visible, available, selected, player);
             overlayEndRow = Math.max(overlayEndRow, 1 + displayRows.length);
             // C tty menus overlay text onto the existing map/status display.
             // Re-rendering the map here re-consumes hallucination display RNG
@@ -2433,7 +2433,7 @@ async function do_loot_cont(cobj, cindex, ccount, player, map, game) {
 // This is a C-named alias that delegates to handleLoot.
 // ---------------------------------------------------------------------------
 async function doloot_core(game) {
-    return handleLoot(game);
+    return await handleLoot(game);
 }
 
 // ---------------------------------------------------------------------------
@@ -2700,7 +2700,7 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
 async function traditional_loot(put_in, player, game) {
     // In JS, Traditional/Full menustyle distinction is not maintained.
     // Delegate to menu_loot which is the common path.
-    return menu_loot(0, put_in, player, game);
+    return await menu_loot(0, put_in, player, game);
 }
 
 // ---------------------------------------------------------------------------
@@ -2826,7 +2826,7 @@ async function menu_loot(retry, put_in, player, game) {
 // This is a C-named alias for the JS containerMenu function.
 // ---------------------------------------------------------------------------
 async function use_container(game, container) {
-    return containerMenu(game, container);
+    return await containerMenu(game, container);
 }
 
 export { handlePickup, handleLoot, handlePay, handleTogglePickup, fatal_corpse_mistake, force_decor, deferred_decor, describe_decor, check_here, n_or_more, menu_class_present, add_valid_menu_class, allow_category, allow_cat_no_uchain, check_autopickup_exceptions, autopick_testobj, carry_count, lift_object, pickup_object, pickup_prinv, encumber_msg, container_at, able_to_loot, do_boh_explosion, in_container, ck_bag, out_container, container_gone, explain_container_prompt, u_handsy, choose_tip_container_menu, dotip, tipcontainer, tipcontainer_gettarget, tipcontainer_checks, collect_obj_classes, count_unpaid, count_buc, simple_look, autopick, count_target_containers, reverse_loot, loot_mon, do_loot_cont, doloot_core, query_classes, query_category, query_objlist, traditional_loot, menu_loot, use_container };
