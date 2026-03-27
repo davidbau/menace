@@ -12,7 +12,10 @@ import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          SPEED_BOOTS, ELVEN_BOOTS, LEVITATION_BOOTS, FUMBLE_BOOTS,
          ELVEN_CLOAK, CLOAK_OF_PROTECTION, CLOAK_OF_INVISIBILITY,
          CLOAK_OF_MAGIC_RESISTANCE, CLOAK_OF_DISPLACEMENT,
-         HELM_OF_BRILLIANCE, HELM_OF_TELEPATHY, HELM_OF_OPPOSITE_ALIGNMENT, DUNCE_CAP, FEDORA,
+         MUMMY_WRAPPING, OILSKIN_CLOAK, ALCHEMY_SMOCK, ORCISH_CLOAK,
+         DWARVISH_CLOAK, ROBE, LEATHER_CLOAK,
+         HELM_OF_BRILLIANCE, HELM_OF_TELEPATHY, HELM_OF_OPPOSITE_ALIGNMENT,
+         HELM_OF_CAUTION, CORNUTHAUM, DUNCE_CAP, FEDORA,
          GAUNTLETS_OF_FUMBLING, GAUNTLETS_OF_POWER, GAUNTLETS_OF_DEXTERITY,
          RIN_ADORNMENT,
          RIN_GAIN_STRENGTH, RIN_GAIN_CONSTITUTION,
@@ -65,7 +68,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          POISON_RES, FIRE_RES, COLD_RES, SHOCK_RES,
          FREE_ACTION, SLOW_DIGESTION,
          TELEPORT, TELEPORT_CONTROL, POLYMORPH, POLYMORPH_CONTROL,
-         PROT_FROM_SHAPE_CHANGERS,
+         PROT_FROM_SHAPE_CHANGERS, ACID_RES,
          DRAIN_RES, SICK_RES, STONE_RES, INFRAVISION, ANTIMAGIC,
          TIMEOUT, TT_BEARTRAP, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
          W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
@@ -73,7 +76,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          W_RING, W_ACCESSORY, W_ARMOR,
          GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_INACCESS } from './const.js';
 import { set_itimeout, incr_itimeout, toggle_blindness } from './potion.js';
-import { float_down } from './trap.js';
+import { float_down, float_up } from './trap.js';
 import { nomul, unmul } from './hack.js';
 import { float_vs_flight } from './polyself.js';
 import { mark_vision_dirty } from './vision.js';
@@ -143,47 +146,66 @@ export async function makeknown(otyp) {
     await discoverObject(otyp, true, true);
 }
 
-// Helper: toggle stealth — C ref: do_wear.c toggle_stealth()
-function toggle_stealth(player, on) {
+// C ref: do_wear.c:106 — toggle_stealth(obj, oldprop, on)
+// oldprop = extrinsic stealth from other sources (excluding the item being toggled)
+async function toggle_stealth(player, on, obj) {
     const entry = player.ensureUProp(STEALTH);
+    // Compute oldprop BEFORE toggling: extrinsic stealth from sources other than this item
+    const oldprop = on
+        ? (entry.extrinsic || 0)          // about to add: current value is "other sources"
+        : Math.max(0, (entry.extrinsic || 0) - 1); // about to remove: value after remove is "other sources"
     if (on) {
         entry.extrinsic = (entry.extrinsic || 0) + 1;
     } else {
         entry.extrinsic = Math.max(0, (entry.extrinsic || 0) - 1);
+    }
+    // C ref: do_wear.c:111-112 — skip during initial equip or cancelled don
+    if (on ? _initialDon : false) return;
+
+    // C ref: do_wear.c:114-138 — message if stealth state is actually changing
+    const hStealth = entry.intrinsic || 0;
+    const bStealth = entry.blocked || 0;
+    if (!oldprop && !hStealth && !bStealth) {
+        if (obj) await makeknown(obj.otyp);
+        if (on) {
+            if (player.Levitation || player.Flying) {
+                await You("float imperceptibly.");
+            } else {
+                await You("walk very quietly.");
+            }
+        } else {
+            await You("sure are noisy.");
+        }
     }
 }
 
 // C ref: do_wear.c:147 — toggle_displacement(obj, oldprop, on)
-// When called from Cloak_on/off with (player, on), obj defaults to player.cloak.
-export async function toggle_displacement(player, on, obj, oldprop) {
+export async function toggle_displacement(player, on, obj) {
     if (obj === undefined) obj = player.cloak;
-    if (oldprop === undefined) {
-        const entry = player.uprops ? player.uprops[DISPLACED] : null;
-        oldprop = entry ? (entry.extrinsic || 0) : 0;
-    }
     const entry = player.ensureUProp(DISPLACED);
+    // Compute oldprop BEFORE toggling
+    const oldprop = on
+        ? (entry.extrinsic || 0)
+        : Math.max(0, (entry.extrinsic || 0) - 1);
     if (on) {
         entry.extrinsic = (entry.extrinsic || 0) + 1;
     } else {
         entry.extrinsic = Math.max(0, (entry.extrinsic || 0) - 1);
     }
-    // C ref: skip message during initial equip or cancelled don
-    // gi.initial_don / svc.context.takeoff.cancelled_don not fully wired; skip guard
-    const uprops = player.uprops || {};
-    const displaced = uprops[DISPLACED] || {};
+    // C ref: do_wear.c:153-154 — skip during initial equip or cancelled don
+    if (on ? _initialDon : false) return;
+
+    // C ref: do_wear.c:156-176 — message if displacement state is actually changing
     if (!oldprop
-        && !(displaced.intrinsic)
-        && !(displaced.blocked)) {
-        // Can notice displacement if not blind+invisible, or have telepathy/detect
-        const canNotice = (!player.blind && !player.uswallow && !player.invisible)
-            || (displaced.extrinsic) // Unblind_telepat-like
-            || (player.blind) // Blind_telepat when blind
-            || false; // Detect_monsters not checked
-        if (canNotice) {
-            if (obj) await makeknown(obj.otyp);
-            // Message uses You_feel (async) but toggle_displacement is sync in callers;
-            // just log the message synchronously via pline if available
-        }
+        && !(entry.intrinsic)
+        && !(entry.blocked)
+        && ((!player.blind && !player.uswallow && !player.Invis)
+            || player.telepathy   // Unblind_telepat
+            || (player.blind && player.telepathy) // Blind_telepat && Blind
+            )) {
+        if (obj) await makeknown(obj.otyp);
+        await You_feel("that monsters%s have difficulty pinpointing your location.",
+            on ? "" : " no longer");
     }
 }
 
@@ -228,7 +250,7 @@ export async function clearWornItemEffects(player, obj) {
             toggle_extrinsic(player, FAST, false);
             break;
         case ELVEN_BOOTS:
-            toggle_stealth(player, false);
+            await toggle_stealth(player, false, obj);
             break;
         case FUMBLE_BOOTS:
             toggle_extrinsic(player, FUMBLING, false);
@@ -335,52 +357,63 @@ export async function ia_dotakeoff(player, display, game) {
     return res;
 }
 
-// cf. do_wear.c Boots_on() — C ref: do_wear.c:186-260
+// cf. do_wear.c Boots_on() — C ref: do_wear.c:186-258
 async function Boots_on(player) {
     if (!player || !player.boots) return;
     const otyp = player.boots.otyp;
-    const oldprop = player.uprops[FAST]?.extrinsic || 0;
+    const propIdx = objectData[otyp]?.oc_oprop;
+    const oldprop = propIdx ? ((player.uprops[propIdx]?.extrinsic || 0)) : 0;
 
     switch (otyp) {
     case SPEED_BOOTS:
         toggle_extrinsic(player, FAST, true);
-        // C ref: if (!oldprop && !(HFast & TIMEOUT)) { makeknown(); message }
+        // C ref: do_wear.c:221-225
         if (!oldprop && !(player.getPropTimeout(FAST))) {
             await makeknown(otyp);
             await You_feel("yourself speed up%s.",
-                     player.fast ? " a bit more" : "");
+                     (oldprop || player.getPropTimeout(FAST)) ? " a bit more" : "");
         }
         break;
     case ELVEN_BOOTS:
-        toggle_stealth(player, true);
+        await toggle_stealth(player, true, player.boots);
         break;
     case FUMBLE_BOOTS:
         toggle_extrinsic(player, FUMBLING, true);
-        // C ref: if (!oldprop && !(HFumbling & ~TIMEOUT))
-        //     incr_itimeout(&HFumbling, rnd(20));
-        if (!(player.getPropTimeout(FUMBLING)))
+        // C ref: do_wear.c:231-232
+        if (!oldprop && !(player.getPropTimeout(FUMBLING)))
             incr_itimeout(player, FUMBLING, rnd(20));
         break;
     case LEVITATION_BOOTS:
         toggle_extrinsic(player, LEVITATION, true);
-        // C ref: if (!oldprop && !HLevitation && !(BLevitation & FROMOUTSIDE))
-        //     makeknown(otyp); float_up();
-        await makeknown(otyp);
+        // C ref: do_wear.c:235-247
+        if (!oldprop && !player.getPropTimeout(LEVITATION)) {
+            if (player.boots) player.boots.known = true;
+            await makeknown(otyp);
+            await float_up(player);
+        } else {
+            float_vs_flight(player);
+        }
+        break;
+    default:
         break;
     }
-    // C ref: player.boots->known = 1 (boots +/- evident from AC)
-    if (player.boots) player.boots.known = true;
+    // C ref: do_wear.c:253-256
+    if (player.boots && !player.boots.known) {
+        player.boots.known = true;
+    }
 }
 
-// cf. do_wear.c Boots_off() — C ref: do_wear.c:262-330
+// cf. do_wear.c Boots_off() — C ref: do_wear.c:261-322
 async function Boots_off(player) {
     if (!player || !player.boots) return;
     const otyp = player.boots.otyp;
+    const propIdx = objectData[otyp]?.oc_oprop;
+    const oldprop = propIdx ? ((player.uprops[propIdx]?.extrinsic || 0)) : 0;
 
     switch (otyp) {
     case SPEED_BOOTS:
         toggle_extrinsic(player, FAST, false);
-        // C ref: if (!Very_fast) { makeknown(otyp); message }
+        // C ref: do_wear.c:273-277
         if (!player.veryFast) {
             await makeknown(otyp);
             await You_feel("yourself slow down%s.",
@@ -388,51 +421,88 @@ async function Boots_off(player) {
         }
         break;
     case ELVEN_BOOTS:
-        toggle_stealth(player, false);
+        await toggle_stealth(player, false, player.boots);
         break;
     case FUMBLE_BOOTS:
         toggle_extrinsic(player, FUMBLING, false);
-        // C ref: if (!oldprop && !(HFumbling & ~TIMEOUT))
-        //     HFumbling = EFumbling = 0;
-        {
+        // C ref: do_wear.c:296-297
+        if (!oldprop) {
             const entry = player.uprops[FUMBLING];
-            if (entry && !entry.extrinsic) {
-                entry.intrinsic = entry.intrinsic & ~TIMEOUT;
+            if (entry && !(entry.intrinsic & ~TIMEOUT)) {
+                entry.intrinsic = 0;
+                entry.extrinsic = 0;
             }
         }
         break;
     case LEVITATION_BOOTS:
         toggle_extrinsic(player, LEVITATION, false);
-        // C ref: float_down(0L, 0L); makeknown(otyp);
-        await makeknown(otyp);
+        // C ref: do_wear.c:300-309
+        if (!oldprop && !player.getPropTimeout(LEVITATION)) {
+            await float_down(0, 0, player);
+            await makeknown(otyp);
+        } else {
+            float_vs_flight(player);
+        }
+        break;
+    default:
         break;
     }
 }
 
-// cf. do_wear.c Cloak_on() — C ref: do_wear.c:332-390
+// cf. do_wear.c Cloak_on() — C ref: do_wear.c:325-379
 async function Cloak_on(player) {
     if (!player || !player.cloak) return;
     const otyp = player.cloak.otyp;
+    const propIdx = objectData[otyp]?.oc_oprop;
+    const oldprop = propIdx ? ((player.uprops[propIdx]?.extrinsic || 0)) : 0;
+
     switch (otyp) {
+    case ORCISH_CLOAK:
+    case DWARVISH_CLOAK:
+    case CLOAK_OF_MAGIC_RESISTANCE:
+    case ROBE:
+    case LEATHER_CLOAK:
+        // C ref: do_wear.c:331-336 — no special handling
+        if (otyp === CLOAK_OF_MAGIC_RESISTANCE)
+            toggle_extrinsic(player, ANTIMAGIC, true);
+        break;
+    case CLOAK_OF_PROTECTION:
+        await makeknown(otyp);
+        break;
     case ELVEN_CLOAK:
-        toggle_stealth(player, true);
+        await toggle_stealth(player, true, player.cloak);
         break;
     case CLOAK_OF_DISPLACEMENT:
         await toggle_displacement(player, true);
         break;
-    case CLOAK_OF_INVISIBILITY:
-        toggle_extrinsic(player, INVIS, true);
-        if (!player.blind) {
-            await makeknown(otyp);
+    case MUMMY_WRAPPING:
+        // C ref: do_wear.c:347-353
+        if ((player.Invis) && !player.blind) {
+            newsym(player.ux, player.uy);
+            await You("can %s!",
+                player.See_invisible ? "no longer see through yourself"
+                                     : "no longer see yourself");
         }
         break;
-    case CLOAK_OF_MAGIC_RESISTANCE:
-        // C ref: EAntimagic (extrinsic ANTIMAGIC while worn)
-        toggle_extrinsic(player, ANTIMAGIC, true);
+    case CLOAK_OF_INVISIBILITY:
+        toggle_extrinsic(player, INVIS, true);
+        // C ref: do_wear.c:357-362
+        if (!oldprop && !player.getPropTimeout(INVIS) && !player.blind) {
+            await makeknown(otyp);
+            newsym(player.ux, player.uy);
+            await pline("Suddenly you can%s yourself.",
+                player.See_invisible ? " see through" : "not see");
+        }
         break;
-    case CLOAK_OF_PROTECTION:
-        // C ref: makeknown(player.cloak->otyp);
-        await makeknown(otyp);
+    case OILSKIN_CLOAK:
+        // C ref: do_wear.c:365
+        await pline("It fits very tightly.");
+        break;
+    case ALCHEMY_SMOCK:
+        // C ref: do_wear.c:368-370 — acid resistance
+        toggle_extrinsic(player, ACID_RES, true);
+        break;
+    default:
         break;
     }
     if (player.cloak && !player.cloak.known) {
@@ -440,85 +510,161 @@ async function Cloak_on(player) {
     }
 }
 
-// cf. do_wear.c Cloak_off() — C ref: do_wear.c:392-430
+// cf. do_wear.c Cloak_off() — C ref: do_wear.c:382-430
 async function Cloak_off(player) {
     if (!player || !player.cloak) return;
     const otyp = player.cloak.otyp;
+    const propIdx = objectData[otyp]?.oc_oprop;
+    const oldprop = propIdx ? ((player.uprops[propIdx]?.extrinsic || 0)) : 0;
+
     switch (otyp) {
+    case ORCISH_CLOAK:
+    case DWARVISH_CLOAK:
+    case CLOAK_OF_PROTECTION:
+    case CLOAK_OF_MAGIC_RESISTANCE:
+    case OILSKIN_CLOAK:
+    case ROBE:
+    case LEATHER_CLOAK:
+        // C ref: do_wear.c:392-399 — no special handling on removal
+        if (otyp === CLOAK_OF_MAGIC_RESISTANCE)
+            toggle_extrinsic(player, ANTIMAGIC, false);
+        break;
     case ELVEN_CLOAK:
-        toggle_stealth(player, false);
+        await toggle_stealth(player, false, player.cloak);
         break;
     case CLOAK_OF_DISPLACEMENT:
         await toggle_displacement(player, false);
         break;
-    case CLOAK_OF_INVISIBILITY:
-        toggle_extrinsic(player, INVIS, false);
-        if (!player.blind) {
-            await makeknown(otyp);
+    case MUMMY_WRAPPING:
+        // C ref: do_wear.c:407-411
+        if (player.Invis && !player.blind) {
+            newsym(player.ux, player.uy);
+            await You("can %s.",
+                player.See_invisible ? "see through yourself"
+                                     : "no longer see yourself");
         }
         break;
-    case CLOAK_OF_MAGIC_RESISTANCE:
-        // C ref: remove EAntimagic when cloak is taken off
-        toggle_extrinsic(player, ANTIMAGIC, false);
+    case CLOAK_OF_INVISIBILITY:
+        toggle_extrinsic(player, INVIS, false);
+        // C ref: do_wear.c:414-420
+        if (!oldprop && !player.getPropTimeout(INVIS) && !player.blind) {
+            await makeknown(CLOAK_OF_INVISIBILITY);
+            newsym(player.ux, player.uy);
+            await pline("Suddenly you can %s.",
+                player.See_invisible ? "no longer see through yourself"
+                                     : "see yourself");
+        }
         break;
-    case CLOAK_OF_PROTECTION:
-        // C ref: do_wear.c:338 — makeknown on removal
-        await makeknown(otyp);
+    case ALCHEMY_SMOCK:
+        // C ref: do_wear.c:423-424 — remove acid resistance
+        toggle_extrinsic(player, ACID_RES, false);
+        break;
+    default:
         break;
     }
 }
 
-// cf. do_wear.c Helmet_on() — C ref: do_wear.c:432-490
+// cf. do_wear.c Helmet_on() — C ref: do_wear.c:433-514
 async function Helmet_on(player) {
     if (!player || !player.helmet) return;
     const otyp = player.helmet.otyp;
     switch (otyp) {
     case FEDORA:
-        // C ref: do_wear.c:436-439 — Archeologists get +1 luck when wearing a fedora
+        // C ref: do_wear.c:436-439
         if (player.roleMnum === PM_ARCHEOLOGIST || player.roleIndex === 3) {
             change_luck(1, player);
         }
         break;
-    case HELM_OF_BRILLIANCE:
-        // C ref: do_wear.c:459 — adjust INT/WIS and makeknown
-        adj_abon(player, player.helmet, A_INT, player.helmet.spe || 0);
-        adj_abon(player, player.helmet, A_WIS, player.helmet.spe || 0);
-        await makeknown(otyp);
-        break;
     case HELM_OF_TELEPATHY:
         toggle_extrinsic(player, TELEPAT, true);
         break;
-    case DUNCE_CAP:
-        // Reduce INT and WIS
-        adj_abon(player, player.helmet, A_INT, -(player.helmet.spe || 1));
-        adj_abon(player, player.helmet, A_WIS, -(player.helmet.spe || 1));
+    case HELM_OF_CAUTION:
+        // C ref: do_wear.c:448 — see_monsters()
+        see_monsters();
         break;
+    case HELM_OF_BRILLIANCE:
+        // C ref: do_wear.c:451 — adj_abon (no makeknown in C)
+        adj_abon(player, player.helmet, A_INT, player.helmet.spe || 0);
+        adj_abon(player, player.helmet, A_WIS, player.helmet.spe || 0);
+        break;
+    case CORNUTHAUM:
+        // C ref: do_wear.c:454-460 — CHA adjustment, makeknown
+        {
+            const isWizard = (player.roleMnum === 10 || player.roleIndex === 11); // PM_WIZARD
+            adj_abon(player, player.helmet, A_CHA, isWizard ? 1 : -1);
+            await makeknown(otyp);
+        }
+        break;
+    case HELM_OF_OPPOSITE_ALIGNMENT:
+        // C ref: do_wear.c:462-503 — alignment change, curse, messages
+        // uchangealign not yet fully ported; mark known and fall through to DUNCE_CAP
+        if (player.helmet) player.helmet.known = true;
+        // FALLTHROUGH to DUNCE_CAP for curse handling
+        /* falls through */
+    case DUNCE_CAP:
+        // C ref: do_wear.c:474-504 — auto-curse, messages
+        if (player.helmet && !player.helmet.cursed) {
+            if (player.blind) {
+                await pline("%s for a moment.", player.helmet.oartifact ? "It vibrates" : "Your helmet vibrates");
+            } else {
+                await pline("%s for a moment.", player.helmet.oartifact ? "It glows black" : "Your helmet glows black");
+            }
+            player.helmet.cursed = true;
+        }
+        if (otyp === DUNCE_CAP) {
+            // C ref: do_wear.c:492-499
+            if (player.Hallucination) {
+                await pline("My brain hurts!");
+            } else {
+                await You_feel("like sitting in a corner.");
+            }
+        }
+        break;
+    default:
+        break;
+    }
+    if (player.helmet && !player.helmet.known) {
+        player.helmet.known = true;
     }
 }
 
-// cf. do_wear.c Helmet_off() — C ref: do_wear.c:492-540
+// cf. do_wear.c Helmet_off() — C ref: do_wear.c:517-563
 async function Helmet_off(player) {
     if (!player || !player.helmet) return;
     const otyp = player.helmet.otyp;
     switch (otyp) {
     case FEDORA:
-        // C ref: do_wear.c:522-525 — Archeologists lose +1 luck when removing fedora
+        // C ref: do_wear.c:522-525
         if (player.roleMnum === PM_ARCHEOLOGIST || player.roleIndex === 3) {
             change_luck(-1, player);
         }
         break;
-    case HELM_OF_BRILLIANCE:
-        // C ref: do_wear.c — adjust INT/WIS and makeknown on removal
-        adj_abon(player, player.helmet, A_INT, -(player.helmet.spe || 0));
-        adj_abon(player, player.helmet, A_WIS, -(player.helmet.spe || 0));
-        await makeknown(otyp);
+    case DUNCE_CAP:
+        // C ref: do_wear.c:532-534 — just needs botl update
+        break;
+    case CORNUTHAUM:
+        // C ref: do_wear.c:535-539 — reverse CHA adjustment
+        {
+            const isWizard = (player.roleMnum === 10 || player.roleIndex === 11);
+            adj_abon(player, player.helmet, A_CHA, isWizard ? -1 : 1);
+        }
         break;
     case HELM_OF_TELEPATHY:
+    case HELM_OF_CAUTION:
+        // C ref: do_wear.c:541-546 — setworn then see_monsters, return early
         toggle_extrinsic(player, TELEPAT, false);
+        see_monsters();
         break;
-    case DUNCE_CAP:
-        adj_abon(player, player.helmet, A_INT, (player.helmet.spe || 1));
-        adj_abon(player, player.helmet, A_WIS, (player.helmet.spe || 1));
+    case HELM_OF_BRILLIANCE:
+        // C ref: do_wear.c:547-549
+        adj_abon(player, player.helmet, A_INT, -(player.helmet.spe || 0));
+        adj_abon(player, player.helmet, A_WIS, -(player.helmet.spe || 0));
+        break;
+    case HELM_OF_OPPOSITE_ALIGNMENT:
+        // C ref: do_wear.c:551-556 — uchangealign back to original
+        // uchangealign not yet fully ported
+        break;
+    default:
         break;
     }
 }
@@ -529,27 +675,31 @@ export function hard_helmet(obj) {
     return is_metallic(obj) || is_crackable(obj);
 }
 
-// cf. do_wear.c Gloves_on() — C ref: do_wear.c:542-590
+// cf. do_wear.c Gloves_on() — C ref: do_wear.c:575-602
 async function Gloves_on(player) {
     if (!player || !player.gloves) return;
     const otyp = player.gloves.otyp;
+    const propIdx = objectData[otyp]?.oc_oprop;
+    const oldprop = propIdx ? ((player.uprops[propIdx]?.extrinsic || 0)) : 0;
+
     switch (otyp) {
     case GAUNTLETS_OF_FUMBLING:
         toggle_extrinsic(player, FUMBLING, true);
-        if (!(player.getPropTimeout(FUMBLING)))
+        // C ref: do_wear.c:584-585
+        if (!oldprop && !(player.getPropTimeout(FUMBLING)))
             incr_itimeout(player, FUMBLING, rnd(20));
         break;
     case GAUNTLETS_OF_POWER:
-        // C ref: makeknown(otyp); botl = TRUE;
-        // STR becomes 25 while wearing — store old value
+        // C ref: do_wear.c:587-589 — makeknown + botl
         await makeknown(otyp);
         player._savedStr = player.attributes[A_STR];
         player.attributes[A_STR] = 25;
         break;
     case GAUNTLETS_OF_DEXTERITY:
-        // C ref: do_wear.c:588 — adjust DEX and makeknown
+        // C ref: do_wear.c:591-592 — adj_abon only (no makeknown in C)
         adj_abon(player, player.gloves, A_DEX, player.gloves.spe || 0);
-        await makeknown(otyp);
+        break;
+    default:
         break;
     }
     if (player.gloves && !player.gloves.known) {
@@ -557,34 +707,42 @@ async function Gloves_on(player) {
     }
 }
 
-// cf. do_wear.c Gloves_off() — C ref: do_wear.c:592-640
+// cf. do_wear.c Gloves_off() — C ref: do_wear.c:645-701
 async function Gloves_off(player) {
     if (!player || !player.gloves) return;
     const otyp = player.gloves.otyp;
+    const propIdx = objectData[otyp]?.oc_oprop;
+    const oldprop = propIdx ? ((player.uprops[propIdx]?.extrinsic || 0)) : 0;
+
     switch (otyp) {
     case GAUNTLETS_OF_FUMBLING:
         toggle_extrinsic(player, FUMBLING, false);
-        // C ref: clear fumbling if no other source
-        {
+        // C ref: do_wear.c:658-659
+        if (!oldprop) {
             const entry = player.uprops[FUMBLING];
-            if (entry && !entry.extrinsic) {
-                entry.intrinsic = entry.intrinsic & ~TIMEOUT;
+            if (entry && !(entry.intrinsic & ~TIMEOUT)) {
+                entry.intrinsic = 0;
+                entry.extrinsic = 0;
             }
         }
         break;
     case GAUNTLETS_OF_POWER:
-        // Restore old STR
+        // C ref: do_wear.c:661-663 — makeknown + botl
+        await makeknown(otyp);
         if (player._savedStr !== undefined) {
             player.attributes[A_STR] = player._savedStr;
             delete player._savedStr;
         }
         break;
     case GAUNTLETS_OF_DEXTERITY:
-        // C ref: do_wear.c:662 — adjust DEX and makeknown
+        // C ref: do_wear.c:665-667 — adj_abon only (no makeknown in C)
         adj_abon(player, player.gloves, A_DEX, -(player.gloves.spe || 0));
-        await makeknown(otyp);
+        break;
+    default:
         break;
     }
+    // C ref: do_wear.c:674 — encumber_msg() for immediate GoP feedback
+    // encumber_msg not wired here yet (would need game context)
 }
 // cf. do_wear.c wielding_corpse() — check if wielding a cockatrice corpse after
 // taking off gloves or losing stoning resistance
@@ -594,13 +752,29 @@ function wielding_corpse(_obj, _how, _voluntary) {
     // For now this is a no-op since instapetrify() is not yet ported
 }
 
-// cf. do_wear.c Shield_on/off — mostly no-ops in C
-async function Shield_on(player) {}
-async function Shield_off(player) {}
+// cf. do_wear.c Shield_on() — C ref: do_wear.c:704-727
+async function Shield_on(player) {
+    // C ref: no shield currently requires special handling
+    if (player?.shield && !player.shield.known) {
+        player.shield.known = true;
+    }
+}
+// cf. do_wear.c Shield_off() — C ref: do_wear.c:730-751
+async function Shield_off(player) {
+    // C ref: no shield currently requires special handling
+}
 
-// cf. do_wear.c Shirt_on/off — mostly no-ops in C
-async function Shirt_on(player) {}
-async function Shirt_off(player) {}
+// cf. do_wear.c Shirt_on() — C ref: do_wear.c:754-770
+async function Shirt_on(player) {
+    // C ref: no shirt currently requires special handling
+    if (player?.shirt && !player.shirt.known) {
+        player.shirt.known = true;
+    }
+}
+// cf. do_wear.c Shirt_off() — C ref: do_wear.c:773-789
+async function Shirt_off(player) {
+    // C ref: no shirt currently requires special handling
+}
 
 // cf. do_wear.c Armor_on/off (body armor / suit)
 export async function Armor_on(player) {
@@ -613,48 +787,64 @@ export async function Armor_off(player) {
     await dragon_armor_handling(player, player.armor, false);
 }
 // cf. do_wear.c dragon_armor_handling() — handle dragon scale armor extra abilities
+// cf. do_wear.c:792-879 — dragon_armor_handling(otmp, puton, on_purpose)
 async function dragon_armor_handling(player, otmp, puton) {
     if (!otmp) return;
     switch (otmp.otyp) {
     case BLACK_DRAGON_SCALES:
     case BLACK_DRAGON_SCALE_MAIL:
+        // C ref: do_wear.c:804-811 — drain resistance
         toggle_extrinsic(player, DRAIN_RES, puton);
         break;
     case BLUE_DRAGON_SCALES:
     case BLUE_DRAGON_SCALE_MAIL:
-        toggle_extrinsic(player, FAST, puton);
+        // C ref: do_wear.c:812-823 — speed with messages
+        if (puton) {
+            if (!player.veryFast)
+                await You("speed up%s.", player.fast ? " a bit more" : "");
+            toggle_extrinsic(player, FAST, true);
+        } else {
+            toggle_extrinsic(player, FAST, false);
+            if (!player.veryFast)
+                await You("slow down.");
+        }
         break;
     case GREEN_DRAGON_SCALES:
     case GREEN_DRAGON_SCALE_MAIL:
+        // C ref: do_wear.c:824-831 — sick resistance
         toggle_extrinsic(player, SICK_RES, puton);
         break;
     case RED_DRAGON_SCALES:
     case RED_DRAGON_SCALE_MAIL:
+        // C ref: do_wear.c:832-840 — infravision + see_monsters
         toggle_extrinsic(player, INFRAVISION, puton);
+        see_monsters();
         break;
     case GOLD_DRAGON_SCALES:
     case GOLD_DRAGON_SCALE_MAIL:
-        // C: make_hallucinated — simplified, no hallucination handling yet
+        // C ref: do_wear.c:841-846 — make_hallucinated
+        // make_hallucinated not fully wired for armor context yet
         break;
     case ORANGE_DRAGON_SCALES:
     case ORANGE_DRAGON_SCALE_MAIL:
+        // C ref: do_wear.c:847-854 — free action
         toggle_extrinsic(player, FREE_ACTION, puton);
         break;
     case YELLOW_DRAGON_SCALES:
     case YELLOW_DRAGON_SCALE_MAIL:
+        // C ref: do_wear.c:855-867 — stone resistance + wielding_corpse on removal
         toggle_extrinsic(player, STONE_RES, puton);
         break;
     case WHITE_DRAGON_SCALES:
     case WHITE_DRAGON_SCALE_MAIL:
+        // C ref: do_wear.c:868-875 — slow digestion
         toggle_extrinsic(player, SLOW_DIGESTION, puton);
         break;
     case SILVER_DRAGON_SCALES:
     case SILVER_DRAGON_SCALE_MAIL:
-        // Silver: no extra effect in C
-        break;
     case GRAY_DRAGON_SCALES:
     case GRAY_DRAGON_SCALE_MAIL:
-        // Grey: no extra effect in C
+        // no extra effect in C
         break;
     default:
         break;
@@ -878,7 +1068,7 @@ export async function Ring_on(player, ring) {
 
     // Special cases with messages/effects
     case RIN_STEALTH:
-        toggle_stealth(player, true);
+        await toggle_stealth(player, true, obj);
         break;
     case RIN_WARNING:
         toggle_extrinsic(player, WARNING, true);
@@ -991,7 +1181,7 @@ export async function Ring_off(player, ring) {
         toggle_extrinsic(player, FIXED_ABIL, false);
         break;
     case RIN_STEALTH:
-        toggle_stealth(player, false);
+        await toggle_stealth(player, false, obj);
         break;
     case RIN_WARNING:
         toggle_extrinsic(player, WARNING, false);
@@ -1293,9 +1483,15 @@ async function cursed_check(obj, display) {
 // 4. Wear-state management stubs
 // ============================================================
 
+// C ref: do_wear.c:1537 — gi.initial_don suppresses messages during startup equip
+let _initialDon = false;
+
 // cf. do_wear.c set_wear() — apply side-effects of all currently worn items
 // Called during game init (moveloop prologue) or when a worn item is transformed.
 async function set_wear(player, obj) {
+    // C ref: gi.initial_don = !obj — suppress messages for bulk init
+    _initialDon = !obj;
+
     // If obj is null, apply effects for all worn items; otherwise just obj.
     if (!obj || obj === player.blindfold)
         if (player.blindfold) await Blindf_on(player, player.blindfold);
@@ -1320,6 +1516,8 @@ async function set_wear(player, obj) {
         if (player.helmet) await Helmet_on(player);
     if (!obj || obj === player.shield)
         if (player.shield) await Shield_on(player);
+
+    _initialDon = false;
 }
 
 // cf. do_wear.c donning() — check if player is in process of putting on armor
@@ -2743,7 +2941,7 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
                                     case MEAT_RING:
                                       break;
     case RIN_STEALTH:
-      toggle_stealth(player, false);
+      await toggle_stealth(player, false, obj);
     break;
     case RIN_WARNING:
       see_monsters(game?.map);
