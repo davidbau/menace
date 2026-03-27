@@ -12,6 +12,7 @@ import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair,
 import { mon_arrive, mon_catchup_elapsed_time } from './dog.js';
 import { encumber_msg } from './pickup.js';
 import { initrack } from './monmove.js';
+import { save_track, rest_track } from './track.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          BOULDER, CORPSE, LOADSTONE, LEASH, CRYSKNIFE, WORM_TOOTH,
          MEAT_RING, MEATBALL, MEAT_STICK, ENORMOUS_MEATBALL,
@@ -1765,6 +1766,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     // on return.  C ref: restore.c getlev() uses (svm.moves - svo.omoves).
     if (currentMap) {
         currentMap._omoves = game.moves || game.turnCount || 0;
+        save_track(currentMap);
         game.levels[(game.u || game.u).dungeonLevel] = currentMap;
         game.levelsByBranch[levelKey(currentDnum, (game.u || game.u).dungeonLevel)] = currentMap;
     }
@@ -1876,8 +1878,12 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     (game.u || game.u).x = pos.x;
     (game.u || game.u).y = pos.y;
 
-    // C ref: cmd.c goto_level() clears hero track history on level change.
-    if (Number.isInteger(previousDepth) && depth !== previousDepth) {
+    // C ref: save.c savelev() / restore.c getlev() persist hero track state
+    // per level. Revisited levels restore their saved buffer; new levels start
+    // empty.
+    if ((game.map || game.map)?.trackState) {
+        rest_track(game.map || game.map);
+    } else if (Number.isInteger(previousDepth) && depth !== previousDepth) {
         initrack();
     }
 

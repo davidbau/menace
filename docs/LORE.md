@@ -17233,6 +17233,17 @@ consuming these keys during travel needs further investigation.
 `u_calc_moveamt()` adds movement. JS was missing this clamp. Added to match
 C's `allmain.c:158-159`.
 
+**Level-change hero tracks are per-level, not globally reset** (committed):
+`seed032_manual_direct`'s old step-300 seam was caused by JS dropping the
+hero track buffer on stair travel. C persists hero track state with the level
+save/restore path (`savelev()` / `getlev()`), so revisiting a cached level can
+restore older local footprints for `gettrack()`. JS `changeLevel()` was only
+calling `initrack()` on level change. Fix: save `trackState` onto the current
+level before caching it, and restore that buffer when revisiting a cached
+level. This removes the old monster-322 stair-return chase seam and moves
+`seed032_manual_direct` later (`300 -> 361`) without regressing
+`seed033_manual_direct` (still `571`).
+
 Next steps for seed033:
 1. Understand why C consumes nhgetch keys during travel that JS doesn't
 2. Check if C's travel loop has an explicit nhgetch for interruption
