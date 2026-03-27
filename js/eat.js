@@ -263,9 +263,13 @@ async function gethungry(player) {
     // C ref: eat.c:3162-3163 — invulnerable or debug_hunger skips all hunger
     if (player.uinvulnerable) return;
 
+    // C ref: eat.c:3162 — invulnerable or debug_hunger: skip all hunger
+    if (player.uinvulnerable) return;
+    const game = _gstate;
+    if (game?.flags?.debug_hunger) return;
+
     // C Unaware macro (youprop.h): gm.multi < 0 && (unconscious() || is_fainted()).
     // unconscious() (trap.c) checks usleep or specific nomovemsg wakeup strings.
-    const game = _gstate;
     const nomovemsg = String(game?.nomovemsg || '');
     const unconsciousNow = !!(player?.usleep
         || nomovemsg.startsWith('You awake')
