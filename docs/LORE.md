@@ -17529,3 +17529,28 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - JS: `rn2(5)=2 @ dochug(monmove.js:847)`
   - C: `rn2(1)=0 @ move_special(priest.c:85)`
   - event seam is nearby on a later priest/pet movement window, not on the old leash interaction anymore
+
+## 2026-03-28 — unpaid shop drops must call `sellobj()` in `dropz()`
+
+- The next `seed032` seam after leash handling was not actually in priest logic.
+- C tracing showed the shared `move_special()` label was misleading:
+  - the visible downstream drift was the shopkeeper (`mndx=271`)
+  - and the important late raw keys were:
+    - `433: ,`
+    - `434: space`
+    - `435: space`
+    - `436: j`
+    - `437: space`
+    - `438: j`
+    - `439: D`
+    - `440: u`
+- The real missing C behavior was in the drop path:
+  - C `do.c:dropz()` calls `sellobj(obj, u.ux, u.uy)` after placing a dropped object on the floor when on a shop level
+  - JS `js/do.js:dropz()` was placing the object but never notifying shop billing
+- For the active `seed032` case, wiring the unpaid drop into `sellobj()` fixed the shopkeeper/billing lifecycle enough to move parity substantially later
+- Validated effect on clean current `main`:
+  - `seed032_manual_direct`: first RNG divergence `437 -> 485`
+  - `seed033_manual_direct`: unchanged at `571`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+- The safe validated increment is the unpaid-item hook in `dropz()`
+  - broader unconditional `sellobj()` wiring exposed separate `sellobj()/set_cost()` issues and was not landed

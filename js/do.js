@@ -55,7 +55,7 @@ import { more_experienced, newexplevel } from './exper.js';
 import { setCurrentLevelStairs, stairway_at } from './stairs.js';
 import { float_down, t_at } from './trap.js';
 import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
-import { describeGroundObjectForPlayer } from './shk.js';
+import { describeGroundObjectForPlayer, sellobj } from './shk.js';
 import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
 import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
@@ -296,6 +296,9 @@ export async function dropz(obj, with_impact, player, map, game = null) {
         obj.ox = player.x;
         obj.oy = player.y;
         placeFloorObject(map, obj);
+        if (map?.flags?.has_shop && obj?.unpaid) {
+            sellobj(obj, player.x, player.y, map);
+        }
         newsym(player.x, player.y);
     }
 }
