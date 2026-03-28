@@ -32,3 +32,5 @@ tmp/session-comparisons/
 js/mailcorpus_plain.js
 # rogue/rogue-c/patched/ — has its own .gitignore
 memory/
+adventure/js/adventure-data.json
+adventure/scripts/dump-messages
