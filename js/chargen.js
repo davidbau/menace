@@ -330,10 +330,15 @@ export async function enterTutorial(game, opts = {}) {
                 blindfold: player.blindfold || null,
                 twoweap: !!player.twoweap,
                 lastInvlet: Number.isInteger(player.lastInvlet) ? player.lastInvlet : null,
+                // C ref: nhlua.c nhl_gamestate("save") — saves and clears spl_book
+                spells: Array.isArray(player.spells) ? player.spells.slice() : [],
             };
         }
 
         player.inventory = [];
+        // C ref: nhlua.c nhl_gamestate("save") — memset(svs.spl_book, 0, ...)
+        // Entering the tutorial clears all spells learned at startup.
+        player.spells = [];
         player.weapon = null;
         player.swapWeapon = null;
         player.quiver = null;

@@ -1020,6 +1020,8 @@ export async function domagicportal(trap, game) {
             player.blindfold  = stored.blindfold;
             player.twoweap    = !!stored.twoweap;
             if (stored.lastInvlet !== null) player.lastInvlet = stored.lastInvlet;
+            // C ref: nhlua.c nhl_gamestate("restore") — restore spl_book
+            if (Array.isArray(stored.spells)) player.spells = stored.spells.slice();
             game._tutorialStoredState = null;
         }
         await game.changeLevel(1, 'teleport', { targetDnum: 0 });

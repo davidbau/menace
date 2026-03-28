@@ -38,7 +38,7 @@ import { discover_object } from './o_init.js';
 import { makeknown } from './do_wear.js';
 import { is_metallic } from './objdata.js';
 import { is_undead, is_vampshifter } from './mondata.js';
-import { nhgetch } from './input.js';
+import { nhgetch, ynFunction } from './input.js';
 import { getdir } from './hack.js';
 import { mksobj } from './mkobj.js';
 import { weffects, zapyourself } from './zap.js';
@@ -53,6 +53,7 @@ import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_CHANGE, DISP_END, CONFUSION, STUNNED } from './const.js';
 import { incr_itimeout, make_confused, make_stunned, peffects } from './potion.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
+import { game as _gstate } from './gstate.js';
 
 // ── Constants ──
 
@@ -639,10 +640,14 @@ export async function study_book(spellbook, player) {
     // Check if already known with good retention
     const idx = spell_idx(booktype, player);
     if (idx !== UNKNOWN_SPELL && spellknow(player, idx) > KEEN / 10) {
-        // C ref: spell.c:570 — makeknown even when already known
-        await makeknown(booktype);
+        // C ref: spell.c:566-571 — already known, ask to refresh
         await You("know \"%s\" quite well already.", od.oc_name || 'this spell');
-        return 0;
+        // C ref: spell.c:570 — makeknown even when already known (via divine gift)
+        await makeknown(booktype);
+        // C ref: spell.c:571 — y_n("Refresh your memory anyway?")
+        const ans = await ynFunction("Refresh your memory anyway?", "yn",
+            'n'.charCodeAt(0), _gstate?.display);
+        if (String.fromCharCode(ans) === 'n') return 0;
     }
 
     // Difficulty check for non-blessed, non-BOTD books

@@ -614,10 +614,10 @@ export function ini_inv(player, table) {
         // Add to player inventory
         player.addToInventory(obj);
 
-        // C ref: u_init.c ini_inv_use_obj() — initial spellbooks are auto-learned
-        if (obj.oclass === SPBOOK_CLASS && obj.otyp !== SPE_BLANK_PAPER) {
-            initialSpell(player, obj);
-        }
+        // NOTE: Do NOT call initialSpell here — C's ini_inv() does not learn spells.
+        // Spells are learned later via u_init_skills_discoveries() → ini_inv_use_obj().
+        // Learning them here causes parity bugs: the hero skips spellbook study
+        // (sees "You know X well already") instead of learning fresh like C.
 
         // Track level-1 spellbooks for filter
         if (obj.oclass === SPBOOK_CLASS && (objectData[otyp].oc_oc2 || 0) === 1) {
@@ -1218,6 +1218,13 @@ export async function simulatePostLevelInit(player, map, depth, opts = {}) {
     player.umoney0 += hiddenGold(player, true);
     player.gold = moneyCount(player) + hiddenGold(player, true);
     equipInitialGear(player);
+    // C ref: u_init.c:1396-1401 u_init_skills_discoveries() → ini_inv_use_obj()
+    // Learn starting spellbooks. C calls this after all items are created.
+    for (const obj of (player.inventory || [])) {
+        if (obj.oclass === SPBOOK_CLASS && obj.otyp !== SPE_BLANK_PAPER) {
+            initialSpell(player, obj);
+        }
+    }
     // C ref: weapon.c:1745-1784 — skill_init reads inventory to set P_BASIC
     // for weapon skills matching starting items. Must happen after all ini_inv.
     skill_init_from_inventory(player.inventory || [], player.roleMnum);
