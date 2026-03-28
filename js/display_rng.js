@@ -32,6 +32,12 @@ function randomObjectGlyph() {
     if (count <= 0) return { ch: '?', color: 7 };
     cosmic_display_prepare_rng_kind('obj');
     const idx = rn2_on_display_rng(count) + firstObject;
+    // C ref: display.h random_obj_to_glyph — if the random object is a CORPSE,
+    // also call random_monster to select the corpse's monster type glyph.
+    // This consumes an additional display RNG call (n=mons.length).
+    if (idx === CORPSE) {
+        randomMonsterGlyph(); // consume the extra display RNG
+    }
     const obj = objectData[idx] || {};
     const ch = obj.symbol || '?';
     const color = Number.isInteger(obj.color) ? obj.color : 7;
