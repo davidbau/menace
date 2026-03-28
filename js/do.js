@@ -1970,15 +1970,10 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     }
 
     // C ref: do.c:1840 — docrt() renders the new level BEFORE arrival messages.
-    // The descent/ascent message ("You descend the stairs") was already shown
-    // by the caller (handleDownstairs/handleUpstairs) via putstr_message.
-    // In C, that message is printed inside goto_level before docrt, and
-    // cls() inside docrt handles --More-- for it. In JS, putstr_message
-    // already handled the --More-- display, so we clear messageNeedsMore
-    // to prevent docrt from re-consuming a key for it.
-    if (game?.display?.messageNeedsMore) {
-        game.display.messageNeedsMore = false;
-    }
+    // The descent/ascent message is pending on the topline. C's docrt() →
+    // cls() → display_nhwindow(WIN_MESSAGE, FALSE) shows --More-- for it
+    // and consumes the dismiss key. JS matches by letting docrt() handle
+    // the pending message naturally.
     await docrt();
 
     // C ref: do.c goto_level() — tourists gain level_difficulty()-based XP

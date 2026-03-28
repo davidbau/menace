@@ -65,9 +65,9 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     const gameplayRawBase = getGameplayRawStepBase(session);
     const pregameStep = Number.isInteger(gameplayRawBase) && gameplayRawBase > 1 && (stepIndex + 1) < gameplayRawBase;
     const highScore = isHighScoreScreen(comparableExpected) || isHighScoreScreen(comparableActual);
-    // Level transition: when C and JS show different Dlvl, the screens are
-    // from different levels due to render timing at level boundaries.
-    // TODO(#396): investigate remaining cases after changeLevel docrt fix.
+    // Level transition mask: C and JS may show different Dlvl on the status
+    // bar during level transitions because JS's renderStatus updates eagerly
+    // while C's bot() is lazy. Blocked on #397 (status bar timing).
     const levelTransitionMismatch = isLevelTransitionMismatch(comparableActual, comparableExpected);
     if (levelTransitionMismatch) {
         return { matched: 1, total: 1, match: true, firstDiff: null, skipCursor: true };
