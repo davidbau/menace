@@ -1062,14 +1062,16 @@ async function promptStep(game, chCode, {
 async function syncTimedTurnPreInputState(game) {
     const player = game.u || game.u;
     find_ac(player);
+    // C ref: allmain.c:564-582 — the see_monsters/see_objects/see_traps
+    // hallucination refresh is now in renderAndAutosave (single call site
+    // matching C's single pre-input block). Non-hallucination see_monsters
+    // for telepathy/warning still runs here.
     const ctx = game.context || {};
     const canUpdateVision = !ctx.mv || player?.blind;
     const hallucinating = !!(player?.Hallucination || player?.hallucinating);
     if (canUpdateVision) {
         if (hallucinating) {
-            see_monsters(game.map);
-            see_objects();
-            see_traps();
+            // Hallu see_monsters/see_objects/see_traps moved to renderAndAutosave.
             if (player?.uswallow) {
                 await swallowed(0);
             }
@@ -2630,10 +2632,15 @@ export class NetHackGame {
         // For timed commands, syncTimedTurnPreInputState already calls these
         // (inside advanceTimedTurn). For non-timed commands (inventory, look,
         // etc.), we need to call them here to match C's pre-input phase.
+        // C ref: allmain.c:564-582 — once-per-player-input: when hallucinating,
+        // see_monsters/see_objects/see_traps refreshes hallucinated glyphs.
+        // In C this is a SINGLE call site that runs after both the timed turn
+        // and the command, before the next nhgetch. JS mirrors this here in
+        // renderAndAutosave (which runs after every command, before screen
+        // capture). NOT also in syncTimedTurnPreInputState — that would double.
         const _ctx = this.context || {};
         const _hallu = !!(this.u?.Hallucination || this.u?.hallucinating);
-        const _timedTurnAlreadyRan = !!commandResult?.tookTime;
-        if (this.map && (!_ctx.mv || this.u?.blind) && _hallu && !_timedTurnAlreadyRan) {
+        if (this.map && (!_ctx.mv || this.u?.blind) && _hallu) {
             see_monsters(this.map);
             see_objects();
             see_traps();
