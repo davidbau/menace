@@ -1664,6 +1664,11 @@ export function see_objects() {
   if (map?.objects) {
     const seen = new Set();
     for (const obj of map.objects) {
+      // C ref: display.c:1551-1553 — iterates fobj (floor chain) with
+      // vobj_at check. Skip objects not on the map (ox/oy out of bounds,
+      // e.g., -1,-1 for objects in transit). This avoids consuming display
+      // RNG for off-map newsym calls during hallucination.
+      if (!isok(obj.ox, obj.oy)) continue;
       const key = obj.ox * 1000 + obj.oy;
       if (!seen.has(key)) {
         seen.add(key);
