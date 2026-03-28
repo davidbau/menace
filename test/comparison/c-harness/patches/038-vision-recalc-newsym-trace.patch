@@ -1,0 +1,106 @@
+diff --git a/src/vision.c b/src/vision.c
+--- a/src/vision.c
++++ b/src/vision.c
+@@ -358,8 +358,11 @@
+                     next[zy][zx] = COULD_SEE | IN_SIGHT;
+                 else
+                     next[zy][zx] = COULD_SEE;
+-                if (next[zy][zx] != oldflags)
++                if (next[zy][zx] != oldflags) {
++                    event_log("^vr_newsym[x=%d y=%d reason=fill_init old=0x%x new=0x%x]",
++                              zx, zy, (unsigned)oldflags, (unsigned)next[zy][zx]);
+                     newsym(zx, zy);
++                }
+             }
+         }
+     } else if (Blind) {
+@@ -576,8 +579,11 @@
+
+             for (col = start; col <= stop; col++)
+-                if (old_row[col] & IN_SIGHT)
++                if (old_row[col] & IN_SIGHT) {
++                    event_log("^vr_newsym[x=%d y=%d reason=blind_old_insight old=0x%x]",
++                              col, row, (unsigned)old_row[col]);
+                     newsym(col, row);
++                }
+         }
+
+         /* skip the normal update loop */
+@@ -651,8 +657,11 @@
+                         levl[col][row].seenv = SVALL; /* see all! */
+                         /* Update if previously not in sight or new angle. */
+-                        if (!(old_row_val & IN_SIGHT) || oldseenv != SVALL)
++                        if (!(old_row_val & IN_SIGHT) || oldseenv != SVALL) {
++                            event_log("^vr_newsym[x=%d y=%d reason=xray old_insight=%d old_seenv=0x%x]",
++                                      col, row, !!(old_row_val & IN_SIGHT), (unsigned)oldseenv);
+                             newsym(col, row);
++                        }
+
+                     next_rmin[row] = min(start, next_rmin[row]);
+                     next_rmax[row] = max(stop, next_rmax[row]);
+@@ -750,8 +759,11 @@
+
+                 /* Update pos if previously not in sight or new angle. */
+-                if (!(old_row[col] & IN_SIGHT) || oldseenv != lev->seenv)
++                if (!(old_row[col] & IN_SIGHT) || oldseenv != lev->seenv) {
++                    event_log("^vr_newsym[x=%d y=%d reason=night_insight old_insight=%d old_seenv=0x%x new_seenv=0x%x]",
++                              col, row, !!(old_row[col] & IN_SIGHT), (unsigned)oldseenv, (unsigned)lev->seenv);
+                     newsym(col, row);
++                }
+
+             } else if ((next_row[col] & COULD_SEE)
+                      && (lev->lit || (next_row[col] & TEMP_LIT))) {
+@@ -779,8 +791,11 @@
+                         /* Update pos if previously not in sight or new
+                          * angle.*/
+-                        if (!(old_row[col] & IN_SIGHT)
+-                            || oldseenv != lev->seenv)
++                        if (!(old_row[col] & IN_SIGHT) || oldseenv != lev->seenv) {
++                            event_log("^vr_newsym[x=%d y=%d reason=lit_door old_insight=%d old_seenv=0x%x new_seenv=0x%x]",
++                                      col, row, !!(old_row[col] & IN_SIGHT), (unsigned)oldseenv, (unsigned)lev->seenv);
+                             newsym(col, row);
++                        }
+                     } else
+                         goto not_in_sight; /* we don't see it */
+
+@@ -791,8 +806,11 @@
+
+                     /* Update pos if previously not in sight or new angle. */
+-                    if (!(old_row[col] & IN_SIGHT) || oldseenv != lev->seenv)
++                    if (!(old_row[col] & IN_SIGHT) || oldseenv != lev->seenv) {
++                        event_log("^vr_newsym[x=%d y=%d reason=lit_cell old_insight=%d old_seenv=0x%x new_seenv=0x%x]",
++                                  col, row, !!(old_row[col] & IN_SIGHT), (unsigned)oldseenv, (unsigned)lev->seenv);
+                         newsym(col, row);
++                    }
+                 }
+             } else if ((next_row[col] & COULD_SEE) && lev->waslit) {
+@@ -802,6 +820,8 @@
+                  */
+                 lev->waslit = 0; /* remember lit condition */
++                event_log("^vr_newsym[x=%d y=%d reason=waslit]",
++                          col, row);
+                 newsym(col, row);
+
+             } else {
+@@ -821,8 +841,12 @@
+             not_in_sight:
+-                if ((old_row[col] & IN_SIGHT)
+-                    || ((next_row[col] & COULD_SEE)
+-                        ^ (old_row[col] & COULD_SEE)))
++                if ((old_row[col] & IN_SIGHT) || ((next_row[col] & COULD_SEE) ^ (old_row[col] & COULD_SEE))) {
++                    event_log("^vr_newsym[x=%d y=%d reason=not_in_sight old_insight=%d old_cs=%d new_cs=%d]",
++                              col, row,
++                              !!(old_row[col] & IN_SIGHT),
++                              !!(old_row[col] & COULD_SEE),
++                              !!(next_row[col] & COULD_SEE));
+                     newsym(col, row);
++                }
+             }
+
+         } /* end for col . . */
+@@ -836,6 +860,7 @@
+     if (!program_state.panicking)
++        event_log("^vr_newsym[x=%d y=%d reason=hero_final]", u.ux, u.uy);
+         newsym(u.ux, u.uy); /* Make sure the hero shows up! */
+
+     /* Set the new min and max pointers. */
