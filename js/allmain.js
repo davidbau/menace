@@ -1167,18 +1167,6 @@ async function postRender(game, result) { // async-ok: called via await; may nee
     // RNG for hallucinated entities a second time (first time was during
     // gameplay actions via see_monsters/see_objects).
     const mapReady = !!(game?.lev || game?.map);
-    // C ref: allmain.c:564-582 — once-per-player-input: when hallucinating,
-    // see_monsters/see_objects/see_traps runs for EVERY command (not just
-    // timed ones) to refresh hallucinated glyphs before screen capture.
-    const ctx = game.context || {};
-    const hallu = !!(player?.Hallucination || player?.hallucinating);
-    if (mapReady && (!ctx.mv || player?.blind)) {
-        if (hallu) {
-            see_monsters(game.map);
-            see_objects();
-            see_traps();
-        }
-    }
     if (mapReady && game.fov && typeof game.fov.compute === 'function') {
         game.fov.compute(game.map, player.x, player.y);
     }
@@ -2637,6 +2625,19 @@ export class NetHackGame {
         autosave = false,
         forceRender = false,
     } = {}) {
+        // C ref: allmain.c:564-582 — once-per-player-input: when hallucinating,
+        // see_monsters/see_objects/see_traps refreshes hallucinated glyphs.
+        // For timed commands, syncTimedTurnPreInputState already calls these
+        // (inside advanceTimedTurn). For non-timed commands (inventory, look,
+        // etc.), we need to call them here to match C's pre-input phase.
+        const _ctx = this.context || {};
+        const _hallu = !!(this.u?.Hallucination || this.u?.hallucinating);
+        const _timedTurnAlreadyRan = !!commandResult?.tookTime;
+        if (this.map && (!_ctx.mv || this.u?.blind) && _hallu && !_timedTurnAlreadyRan) {
+            see_monsters(this.map);
+            see_objects();
+            see_traps();
+        }
         const terminalScreenOwned = !!commandResult?.terminalScreenOwned || !!this._terminalScreenOwnedByInput;
         const suppressUntimedTailRender = !forceRender
             && !terminalScreenOwned
