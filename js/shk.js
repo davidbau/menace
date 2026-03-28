@@ -39,7 +39,8 @@ import { m_next2u } from './muse.js';
 import { isObjectNameKnown } from './o_init.js';
 import { doname, next_ident, weight, Is_container, add_to_minv, dealloc_obj, bill_dummy_object, obj_extract_self, splitobj } from './mkobj.js';
 import { Has_contents, xname, The, the } from './objnam.js';
-import { currency, o_on } from './invent.js';
+import { currency, o_on, carrying } from './invent.js';
+import { makeknown } from './do_wear.js';
 import { Hello } from './player.js';
 import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';
 import { rn2, rnd } from './rng.js';
@@ -1636,6 +1637,17 @@ export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
     const greeting = Hello(shkp, player.roleIndex);
     await display.putstr_message(`"${greeting}, ${plname}!  Welcome${visitct ? ' again' : ''} to ${sSuffix(shkName)} ${shopTypeName}!"`);
     shkp.visitct = visitct + 1;
+
+    // C ref: shk.c:796-829 — shopkeeper asks hero to leave digging tools outside.
+    // The full C implementation checks inside_shop and displays a verbalize message.
+    // For RNG parity, the key effect is: carrying a dwarvish mattock (and not blind)
+    // causes the shopkeeper to identify it via makeknown(DWARVISH_MATTOCK).
+    if (!inside_shop(map, player.x, player.y)) {
+        const hasMattock = carrying(DWARVISH_MATTOCK, player);
+        if (hasMattock && !player.blind && !player.Blind) {
+            await makeknown(DWARVISH_MATTOCK);
+        }
+    }
 }
 
 // ============================================================
