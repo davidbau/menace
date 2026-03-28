@@ -532,15 +532,14 @@ export class Display extends Terminal {
             for (let x = 1; x < COLNO; x++) {
                 const loc = gameMap.at?.(x, y);
                 const cached = getCachedMapCell(loc, gameMap);
-                // C ref: hero cell always needs newsym to render '@' glyph.
-                // Non-hero cells use cached data when available; during
-                // hallucination, skip newsym fallback for non-hero cells to
-                // avoid consuming display RNG (C uses see_monsters/see_objects
-                // cache only). Hero cell always gets newsym regardless of
-                // hallucination state — newsym for the hero position doesn't
-                // consume display RNG (hero glyph is deterministic).
+                // C ref: use cached cell data when available. During
+                // hallucination, see_monsters/see_objects/see_traps populate
+                // the cache; non-hero uncached cells are skipped to avoid
+                // consuming display RNG. Hero cell uses cache if available
+                // (newsym hero branch caches via cacheMapCell). Only fall
+                // through to newsym when there's no cache.
                 const isHeroCell = player && x === player.x && y === player.y && !player.usteed;
-                if (cached && !isHeroCell) {
+                if (cached) {
                     this.setCell(x - 1, row, cached.ch, cached.color, cached.attr || 0);
                 } else if (isHeroCell || (!player?.Hallucination && !player?.hallucinating)) {
                     newsym(x, y, renderCtx);
@@ -1766,6 +1765,9 @@ export function docrt_flags(recalc = null, ctxOrMap = null) {
   // (recompute + newsym for visibility changes).
   // JS: newsym loop first (combines show_glyph + initial display),
   // then vision_recalc (which calls newsym for visibility transitions).
+  // TODO(#395): C's show_glyph uses stored lev->glyph (no display RNG);
+  // JS's newsym recomputes and consumes display RNG. This causes
+  // docrt_flags display RNG divergence during hallucination.
   for (let x = 1; x < COLNO; x++) {
     for (let y = 0; y < ROWNO; y++) {
       newsym(x, y, ctx);

@@ -190,7 +190,7 @@ export async function rhack(ch, game) {
         }
         // isCountDigitWithDisplay: cursor was set to topline by putstr_message;
         // caller must NOT call cursorOnPlayer (would clobber topline cursor pos).
-        return { moved: false, tookTime: false, isCountDigitWithDisplay: game.countAccum > 9 };
+        return { moved: false, tookTime: false, isPrefix: true, isCountDigitWithDisplay: game.countAccum > 9 };
     }
     if (ch === 48 && game.countAccum != null) {
         // '0': extend an in-progress count (not allowed as first digit)
@@ -199,7 +199,7 @@ export async function rhack(ch, game) {
             clearTopline();
             await display.putstr_message(`Count: ${game.countAccum}`);
         }
-        return { moved: false, tookTime: false, isCountDigitWithDisplay: game.countAccum > 9 };
+        return { moved: false, tookTime: false, isPrefix: true, isCountDigitWithDisplay: game.countAccum > 9 };
     }
     // Non-digit: if a count was accumulated, apply it as the command count.
     // C ref: cmd.c:4909-4914 — gm.multi = command_count - 1; clear_nhwindow
@@ -737,7 +737,7 @@ function clearTopline() {
         if (game?.inDoAgain && dispatchedFromQueue) {
             return await rhack(0, game);
         }
-        return { moved: false, tookTime: false };
+        return { moved: false, tookTime: false, isPrefix: true };
     }
 
     // C ref: cmd.c:1671 do_fight() — 'F' prefix
@@ -746,7 +746,7 @@ function clearTopline() {
             await display.putstr_message('Double fight prefix, canceled.');
             setForceFight(false);
             if (game?.inDoAgain && dispatchedFromQueue) {
-                return { moved: false, tookTime: false };
+                return { moved: false, tookTime: false, isPrefix: true };
             }
         } else {
             setForceFight(true);
@@ -755,7 +755,7 @@ function clearTopline() {
                 return await rhack(0, game);
             }
         }
-        return { moved: false, tookTime: false };
+        return { moved: false, tookTime: false, isPrefix: true };
     }
 
     // C ref: cmd.c:1655 do_run() — 'G' prefix (run)
@@ -764,7 +764,7 @@ function clearTopline() {
             await display.putstr_message('Double run prefix, canceled.');
             clearRunMode();
             if (game?.inDoAgain && dispatchedFromQueue) {
-                return { moved: false, tookTime: false };
+                return { moved: false, tookTime: false, isPrefix: true };
             }
         } else {
             setRunMode(3); // run mode
@@ -773,7 +773,7 @@ function clearTopline() {
                 return await rhack(0, game);
             }
         }
-        return { moved: false, tookTime: false };
+        return { moved: false, tookTime: false, isPrefix: true };
     }
 
     // C ref: cmd.c:1639 do_rush() — 'g' prefix (rush)
@@ -782,7 +782,7 @@ function clearTopline() {
             await display.putstr_message('Double rush prefix, canceled.');
             clearRunMode();
             if (game?.inDoAgain && dispatchedFromQueue) {
-                return { moved: false, tookTime: false };
+                return { moved: false, tookTime: false, isPrefix: true };
             }
         } else {
             setRunMode(2); // rush mode
@@ -791,7 +791,7 @@ function clearTopline() {
                 return await rhack(0, game);
             }
         }
-        return { moved: false, tookTime: false };
+        return { moved: false, tookTime: false, isPrefix: true };
     }
 
     // Escape -- ignore silently (cancels pending prompts)

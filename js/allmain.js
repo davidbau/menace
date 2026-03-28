@@ -2650,12 +2650,16 @@ export class NetHackGame {
         forceRender = false,
     } = {}) {
         // C ref: allmain.c:563-593 — once-per-player-input pre-input phase.
-        // For timed commands, syncTimedTurnPreInputState already ran see_monsters
-        // (flag _preInputRanThisStep). For non-timed commands, run it here.
-        // C ref: context.mv is set by movement commands (including 'm' prefix).
-        // C's pre-input checks !context.mv: when mv is true, pre-input is skipped.
-        // This matches C where 'm' prefix doesn't get its own moveloop_core.
-        if (!this._preInputRanThisStep) {
+        // For timed commands, syncTimedTurnPreInputState already ran it.
+        // For non-timed commands, run it here — BUT skip for prefix-only
+        // commands ('m', 'g', 'G', 'F', count digits). In C, prefix keys
+        // loop inside rhack via `goto got_prefix_input` without returning
+        // to moveloop_core, so no pre-input cycle runs for them.
+        // C ref: context.mv gate: if (!context.mv || Blind).
+        const _pi_isPrefix = commandResult && !commandResult.tookTime
+            && !commandResult.moved && !commandResult.terminalScreenOwned
+            && commandResult.isPrefix;
+        if (!this._preInputRanThisStep && !_pi_isPrefix) {
             const _pi_ctx = this.context || {};
             const _pi_canUpdate = !_pi_ctx.mv || this.u?.blind;
             const _pi_hallu = !!(this.u?.Hallucination || this.u?.hallucinating);
