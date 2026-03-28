@@ -532,16 +532,14 @@ export class Display extends Terminal {
             for (let x = 1; x < COLNO; x++) {
                 const loc = gameMap.at?.(x, y);
                 const cached = getCachedMapCell(loc, gameMap);
-                if (cached) {
+                // C ref: hero cell always needs newsym to render '@' glyph.
+                // Non-hero cells use cached data when available; during
+                // hallucination, skip newsym fallback to avoid display RNG
+                // consumption (C uses see_monsters/see_objects cache only).
+                const isHeroCell = player && x === player.x && y === player.y && !player.usteed;
+                if (cached && !isHeroCell) {
                     this.setCell(x - 1, row, cached.ch, cached.color, cached.attr || 0);
-                } else if (!player?.Hallucination && !player?.hallucinating) {
-                    // Only fall through to newsym when NOT hallucinating.
-                    // During hallucination, newsym consumes display RNG for
-                    // random monster/object glyphs.  C's per-turn rendering
-                    // uses see_monsters/see_objects (which cache their cells)
-                    // and does NOT re-newsym all cells afterward.  The
-                    // terminal grid already has correct content from prior
-                    // newsym calls during the game action phase.
+                } else if (isHeroCell || (!player?.Hallucination && !player?.hallucinating)) {
                     newsym(x, y, renderCtx);
                 }
             }
