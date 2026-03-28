@@ -1630,7 +1630,7 @@ export async function seffect_punishment(sobj, player, display) {
         await display.putstr_message('You feel guilty.');
         return false;
     }
-    await punish(sobj, player, player?.map || null);
+    await punish(sobj, player, player?.map || _gstate?.lev || _gstate?.map || null);
     return false;
 }
 
@@ -2106,6 +2106,7 @@ export async function drop_boulder_on_player(confused, helmet_protects, byu, ski
 // Apply punishment (ball & chain).
 // ---------------------------------------------------------------------------
 export async function punish(sobj, player, map = null) {
+    map = map || _gstate?.lev || _gstate?.map || null;
     const reuse_ball = (sobj && sobj.otyp === HEAVY_IRON_BALL) ? sobj : null;
     const cursed_levy = (sobj && sobj.cursed) ? 1 : 0;
     const punished = !!(player?.Punished || player?.punished || player?.uball || player?.ball);

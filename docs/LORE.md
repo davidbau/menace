@@ -17688,3 +17688,33 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - first RNG divergence at `548`
   - JS: `rn2(3)=1 @ dochug(monmove.js:847)`
   - C: `rn2(100)=85 @ obj_resists(zap.c:1467)`
+
+## 2026-03-28 — scroll punishment must use the live game map when calling `punish()`
+
+- The next `seed032` seam after the unpaid-pickup fix looked like pet `dog_move()` drift, but live C rerecording showed the real upstream state mismatch.
+- Fresh C replay for the authoritative seam showed:
+  - key `" "` just before the kitten seam logs `You are being punished for your misbehavior!`
+  - and places both punishment objects on the floor:
+    - `^place[474,70,7]`
+    - `^place[475,70,7]`
+- Those are:
+  - `HEAVY_IRON_BALL`
+  - `IRON_CHAIN`
+- JS was entering `seffect_punishment()` but not placing the ball and chain.
+- Root cause in `js/read.js`:
+  - `seffect_punishment()` called `punish(sobj, player, player?.map || null)`
+  - on this path `player.map` was unset, so `punish()` ran with no map
+  - that prevented `placebc()` from placing the punishment ball and chain on the floor
+  - later kitten `dog_move()` therefore scanned an incomplete pile at `(70,7)` and diverged on `obj_resists()` calls
+- Fix:
+  - use the same live-map fallback already used elsewhere in `read.js`:
+    - `player?.map || _gstate?.lev || _gstate?.map || null`
+  - and normalize `punish()` itself to the same fallback before `placebc()`
+- Validated effect on clean current `main`:
+  - `seed032_manual_direct`: first RNG divergence `548 -> 556`
+  - `seed033_manual_direct`: unchanged at `571`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+- New active `seed032` seam after the fix:
+  - first RNG divergence at `556`
+  - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+  - C: `rn2(100)=15 @ obj_resists(zap.c:1467)`
