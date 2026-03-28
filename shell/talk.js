@@ -155,6 +155,10 @@ class RemoteEngine {
         this._lastPartialCheck = '';
         this._recentResponses = [];  // prevent repeats (last N responses)
 
+        // Shuffled deck for spontaneous messages (no repeats until all seen)
+        this._spontaneousDeck = this._spontaneous.length > 0
+            ? this._makeDeck(this._spontaneous.length) : [];
+
         this._scheduleSpontaneous();
     }
 
@@ -456,14 +460,12 @@ class RemoteEngine {
         const delay = 15000 + Math.random() * 30000;
         setTimeout(() => {
             if (this._state === 'idle') {
-                // Pick a spontaneous message not in recent history
-                let msg = this._spontaneous[Math.floor(Math.random() * this._spontaneous.length)];
-                if (this._recentResponses.includes(msg)) {
-                    for (let attempt = 0; attempt < 3; attempt++) {
-                        const retry = this._spontaneous[Math.floor(Math.random() * this._spontaneous.length)];
-                        if (!this._recentResponses.includes(retry)) { msg = retry; break; }
-                    }
+                // Draw from shuffled deck — see all messages before any repeat
+                if (this._spontaneousDeck.length === 0) {
+                    this._spontaneousDeck = this._makeDeck(this._spontaneous.length);
                 }
+                const idx = this._spontaneousDeck.shift();
+                const msg = this._spontaneous[idx];
                 this._recentResponses.push(msg);
                 if (this._recentResponses.length > 10) this._recentResponses.shift();
                 this._startTyping(msg);
