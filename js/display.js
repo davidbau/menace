@@ -1746,18 +1746,29 @@ export function curs_on_u() {
 
 function docrtRecalc(ctx) {
   if (!ctx?.map || !ctx?.player || !ctx?.fov) return;
-  // C ref: docrt_flags calls vision_recalc(0) AFTER show_glyph loop.
-  // vision_recalc detects visibility changes and calls newsym for each.
-  // To produce the same transitions, clear visible state first (matching
-  // C's vision_recalc(2) at the top of docrt_flags), then recompute.
   const fov = ctx.fov;
+  // C ref: docrt_flags does vision_recalc(2) then vision_recalc(0).
+  //
+  // Phase 1: vision_recalc(2) — shut down vision. C calls newsym for
+  // every cell that WAS in_sight (vision.c:577-579). This consumes
+  // display RNG for hallu objects/monsters at those cells as they
+  // transition from visible to not-visible.
   if (fov.visible) {
-    for (let x = 0; x < COLNO; x++) {
+    const px = ctx.player.x, py = ctx.player.y;
+    for (let x = 1; x < COLNO; x++) {
       for (let y = 0; y < ROWNO; y++) {
+        // C ref: vision.c:577-579 — newsym for cells that were IN_SIGHT
+        // Skip the hero cell — it gets its own newsym below (vision.c:839)
+        if (fov.visible[x][y] && !(x === px && y === py)) {
+          newsym(x, y, ctx);
+        }
         fov.visible[x][y] = 0;
       }
     }
+    // C ref: vision.c:839 — hero newsym at end of vision_recalc(2)
+    newsym(px, py, ctx);
   }
+  // Phase 2: vision_recalc(0) — recompute FOV and newsym for transitions
   vision_recalc(fov, ctx.map, ctx.player);
 }
 
@@ -2470,6 +2481,17 @@ export function vision_recalc() {
     // C ref: vision.c:820-825 — newsym is called when IN_SIGHT changes OR
     // when COULD_SEE changes (cell enters/leaves LOS even without lighting).
     const oldCs = fov._cs;
+    // Save old seenv angles for transition detection.
+    // C ref: vision.c:752-757 — newsym is called when seenv angle changes
+    // (oldseenv != lev->seenv), even if IN_SIGHT was already set. This
+    // matters for wall rendering and hallucination display RNG parity.
+    const oldSeenv = new Uint8Array(COLNO * ROWNO);
+    for (let x = 1; x < COLNO; x++) {
+        for (let y = 0; y < ROWNO; y++) {
+            const loc = map.at?.(x, y);
+            if (loc) oldSeenv[x * ROWNO + y] = loc.seenv || 0;
+        }
+    }
     fov.compute(map, player.x, player.y, do_light_sources, player);
     if (ctx.display) {
         const newCs = fov._cs;
@@ -2479,7 +2501,10 @@ export function vision_recalc() {
                 // C ref: vision.c:820-825 — also update when COULD_SEE changes
                 const oldCouldSee = oldCs ? (oldCs[y][x] & 1) : 0; // COULD_SEE = 1
                 const newCouldSee = newCs ? (newCs[y][x] & 1) : 0;
-                if (visChanged || (oldCouldSee !== newCouldSee)) {
+                // C ref: vision.c:752-757 — also update when seenv angle changes
+                const loc = map.at?.(x, y);
+                const seenvChanged = loc && ((loc.seenv || 0) !== oldSeenv[x * ROWNO + y]);
+                if (visChanged || (oldCouldSee !== newCouldSee) || seenvChanged) {
                     newsym(x, y);
                 }
             }
