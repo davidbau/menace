@@ -247,8 +247,11 @@ export async function moveloop_core(game, opts = {}) {
         }
         if (!monscanmove
             && player.umovement < NORMAL_SPEED
-            && !abortMoveLoop
-            && !(game?.playerDied)) {
+            && !abortMoveLoop) {
+            // C ref: allmain.c:215 — svm.moves++ runs unconditionally here,
+            // even when the hero died during movemon (wizard mode resurrection).
+            // Previously JS skipped this when playerDied, causing 1-turn drift
+            // per wizard-mode death → regen_hp / exercise timing offset.
             pushRngLogEntry(`^mlc[phase=turnend moves=${game.turnCount||0}]`);
             await moveloop_turnend(game);
         }
