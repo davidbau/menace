@@ -121,6 +121,9 @@ class RemoteEngine {
         this._mux = mux;
         // names: from character.names array, plus the username itself
         this._names = (character.names || []).concat(name ? [name] : []);
+        this._screenName = name || '';
+        // First name: first entry in names array that's a single word
+        this._firstName = (character.names || []).find(n => !n.includes(' ')) || '';
         this._wpm = character.wpm || 60;
         this._typoRate = character.typoRate || 0.04;
         this._thinkMs = character.thinkMs || [800, 2000];
@@ -223,6 +226,21 @@ class RemoteEngine {
     }
 
     _pickResponse(text) {
+        // Check if user typed just the character's screen name (or a name variant)
+        // without any other content — offer a first-name introduction.
+        const bare = text.toLowerCase().replace(/[.,!?\s]+/g, ' ').trim();
+        if (bare && this._firstName && this._screenName) {
+            const isJustName = this._names.some(n =>
+                bare === n.toLowerCase() || bare === n.toLowerCase() + '?'
+            );
+            // Only trigger if they used the screen name (surname), not first name
+            const usedFirstName = bare === this._firstName.toLowerCase()
+                || bare === this._firstName.toLowerCase() + '?';
+            if (isJustName && !usedFirstName) {
+                return `(yeah|yes) (that is me|thats me)\n(you can call me|just call me|call me) ${this._firstName}`;
+            }
+        }
+
         // Normalize: strip the character's name when used as a vocative so that
         // "hi jay" and "jay, what are you doing?" match the same patterns as
         // "hi" and "what are you doing?". Also replace possessive "jay's" → "your".
