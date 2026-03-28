@@ -491,45 +491,62 @@ export async function cannot_push_msg(otmp, _rx, _ry, _map, display, player = nu
 }
 
 // C ref: hack.c cannot_push()
-export async function cannot_push(otmp, rx, ry, map, display, player = null) {
+export async function cannot_push(otmp, rx, ry, map, display, player = null, opts = {}) {
+    const quiet = !!opts.quiet;
     const inv = Array.isArray(player?.inventory) ? player.inventory.filter(Boolean) : [];
     const canSqueezeOntoBoulder = (!player?.usteed && inv.length === 0)
         || could_move_onto_boulder(otmp?.ox, otmp?.oy, player);
     if (!isok(rx, ry)) {
         if (canSqueezeOntoBoulder) {
-            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            if (!quiet) {
+                await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            }
             sokoban_guilt();
             return 0;
         }
-        await cannot_push_msg(otmp, rx, ry, map, display, player);
+        if (!quiet) {
+            await cannot_push_msg(otmp, rx, ry, map, display, player);
+        }
         return -1;
     }
     const loc = map.at(rx, ry);
     if (!loc || IS_OBSTRUCTED(loc.typ) || closed_door(rx, ry, map)) {
         if (canSqueezeOntoBoulder) {
-            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            if (!quiet) {
+                await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            }
             sokoban_guilt();
             return 0;
         }
-        await cannot_push_msg(otmp, rx, ry, map, display, player);
+        if (!quiet) {
+            await cannot_push_msg(otmp, rx, ry, map, display, player);
+        }
         return -1;
     }
     if (map.monsterAt(rx, ry)) {
         if (canSqueezeOntoBoulder) {
-            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            if (!quiet) {
+                await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            }
             sokoban_guilt();
             return 0;
         }
-        await cannot_push_msg(otmp, rx, ry, map, display, player);
+        if (!quiet) {
+            await cannot_push_msg(otmp, rx, ry, map, display, player);
+        }
         return -1;
     }
     if (sobj_at(BOULDER, rx, ry, map)) {
         if (canSqueezeOntoBoulder) {
-            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            if (!quiet) {
+                await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            }
             sokoban_guilt();
             return 0;
         }
-        await cannot_push_msg(otmp, rx, ry, map, display, player);
+        if (!quiet) {
+            await cannot_push_msg(otmp, rx, ry, map, display, player);
+        }
         return -1;
     }
     return 1;
@@ -905,12 +922,27 @@ export async function domove_fight_empty(x, y, map, display, game) {
 
 // Handle directional movement
 // C ref: hack.c domove_core() worker
-export async function domove_core(dir, player, map, display, game) {
+export async function domove_core(dir, player, map, display, game, opts = {}) {
     assertNotInModal('domove_core');
     const ctx = ensure_context(game);
     const flags = game.flags || {};
+    const bypassBoulderSqueeze = !!opts?.bypassBoulderSqueeze;
     const oldX = player.x;
     const oldY = player.y;
+    const dismissOwnedMore = (gameCtx) => {
+        const ownedDisplay = gameCtx?.display;
+        if (!ownedDisplay) return;
+        ownedDisplay.messageNeedsMore = false;
+        ownedDisplay.moreMarkerActive = false;
+        ownedDisplay.messageNeedsMoreBoundary = false;
+        if (typeof ownedDisplay.clearRow === 'function') {
+            ownedDisplay.clearRow(0);
+            if (ownedDisplay._topMessageRow1 !== undefined) {
+                ownedDisplay.clearRow(1);
+                ownedDisplay._topMessageRow1 = undefined;
+            }
+        }
+    };
     const domoveNotime = (reason) => {
         if (!runTraceEnabled()) return;
         runTrace(
@@ -1110,7 +1142,45 @@ export async function domove_core(dir, player, map, display, game) {
     }
 
     const sokoban = !!(map?.flags?.is_sokoban || map?.flags?.in_sokoban || game?.flags?.sokoban);
-    if (sobj_at(BOULDER, nx, ny, map) && (sokoban || !player?.passesWalls)) {
+    if (sobj_at(BOULDER, nx, ny, map) && (sokoban || !player?.passesWalls) && !bypassBoulderSqueeze) {
+        const boulder = sobj_at(BOULDER, nx, ny, map);
+        const pushState = await cannot_push(
+            boulder,
+            nx + moveDir[0],
+            ny + moveDir[1],
+            map,
+            display,
+            player,
+            { quiet: true }
+        );
+        if (pushState === 0) {
+            await cannot_push_msg(boulder, nx + moveDir[0], ny + moveDir[1], map, display, player);
+            game.pendingPrompt = {
+                type: 'boulder_squeeze_more',
+                onKey: async (_chCode, gameCtx) => {
+                    dismissOwnedMore(gameCtx);
+                    await gameCtx.display.putstr_message('However, you can squeeze yourself into a small opening.');
+                    gameCtx.pendingPrompt = {
+                        type: 'boulder_squeeze_resume',
+                        onKey: async (_resumeCh, resumeGame) => {
+                            dismissOwnedMore(resumeGame);
+                            resumeGame.pendingPrompt = null;
+                            const resumed = await domove_core(
+                                moveDir,
+                                player,
+                                map,
+                                display,
+                                resumeGame,
+                                { bypassBoulderSqueeze: true }
+                            );
+                            return { handled: true, ...(resumed || { moved: false, tookTime: false }) };
+                        },
+                    };
+                    return { handled: true, moved: false, tookTime: false, prompt: true };
+                },
+            };
+            return { moved: false, tookTime: false, prompt: true };
+        }
         const moved = await moverock(nx, ny, moveDir[0], moveDir[1], player, map, display, game);
         if (moved < 0) {
             // C ref: hack.c — moverock < 0 means can't push. Check squeeze.

@@ -17875,3 +17875,30 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - `seed033_manual_direct`: first divergence `597 -> 628`
   - `seed032_manual_direct`: unchanged at `437`
   - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+
+### `seed033` tutorial boulder squeeze prompt ownership
+- The remaining early `seed033` debt after the falling fix was still in the
+  Tutorial:1 boulder squeeze window, but `session_test_runner`'s nominal `628`
+  label was stale.
+- `comparison-window` showed the true live mismatch earlier:
+  - baseline had non-zero debt at `623/624`
+  - after the fix below, those steps cancel back to zero and the first live
+    mismatch moves to `638`
+- The C-faithful model here is not "move immediately once squeeze is possible".
+  It is:
+  - first key shows `You try to move the boulder, but in vain.`
+  - first dismiss shows `However, you can squeeze yourself into a small opening.`
+  - only the later dismiss resumes the move onto the boulder square
+- Fix in [js/hack.js](/tmp/mazes-seed033-ftjcip/js/hack.js):
+  - probe boulder squeeze eligibility quietly up front
+  - if the move is a squeeze case, install a two-stage prompt owner
+  - the second prompt resume re-enters `domove_core()` with a one-shot
+    boulder-bypass flag so movement/post-move effects happen only after the
+    squeeze text ownership is finished
+- Validated local effect:
+  - `seed033_manual_direct`:
+    - `623/624/627` early debt removed
+    - first live imbalance moves to `638`
+    - `rng_step_diff --step 638` becomes the next real seam
+  - `seed032_manual_direct`: unchanged at `437`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
