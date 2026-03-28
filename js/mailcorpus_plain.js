@@ -6040,55 +6040,55 @@ export const TALK_CORPUS = {
     typoRate: 0.07,
     thinkMs: [400, 1500],
     triggerWords: 4,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi|yo) rodney',
     patterns: [
       {
         re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
         topic: 'greeting',
         responses: [
-          'hey rodney\nwhat are you up to',
-          'hey\nyou playing hack right now or just hanging out',
-          'rodney hey\ni was just about to talk to you actually\nbeen working on something',
+          '(hey|hi) rodney\n(what are you up to|what are you working on)',
+          '(hey|hi)\nyou playing hack right now or (just hanging out|what)',
+          'rodney (hey|hi)\ni was just about to talk to you actually\nbeen working on something',
         ],
         beat: {
           question: 'you been playing hack lately',
           replies: [
-            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'nice\nhow far down did you get\nmost people die around level 4 or 5' },
+            { re: /\byes\b|\byeah\b|\byep\b/i, response: '(nice|cool)\nhow far down did you get\nmost people die around level 4 or 5' },
             { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'you should try it\njust type hack at the prompt\nit will make more sense than me explaining it' },
-            { response: 'ok\nwell let me know when you do' },
+            { response: '(ok|alright)\nwell let me know when you do' },
           ],
         },
       },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b|\bhow\s+are\s+things\b/i,
         responses: [
-          'pretty good rodney\nworking on a bug in the wand code that has been annoying me all week\nbut it is almost done i think',
-          'fine\ntired\nbeen in the computer room since like 8pm\nkelly says i need to sleep more\nshe is probably right',
-          'not bad\nworking on hack, what else\nhey have you tried the latest version',
+          '(pretty good|not bad) rodney\nworking on a bug in the wand code that has been annoying me all week\nbut it is (almost done i think|close to fixed)',
+          '(fine|ok)\ntired\nbeen in the computer room since like 8pm\n(kelly says i need to sleep more\n|)she is probably right',
+          '(not bad|pretty good)\nworking on hack, what else\n(hey have you tried the latest version|you tried the new version yet)',
         ],
       },
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
         responses: [
-          'working on hack\nthere is a wand interaction bug that crashes the game when you are blinded\nnobody reported it, i found it myself\nwhich means there are probably more i have not found yet',
-          'fixing bugs mostly\nhack 1.0.3 was supposed to be the last patch before i focus on other things\nbut then three more real bugs showed up\nso 1.0.4 i guess',
-          'writing code\nhey rodney what are you working on',
+          'working on hack\nthere is a wand interaction bug that crashes the game when you are blinded\n(nobody reported it, |)i found it myself\nwhich means there are probably more i have not found yet',
+          'fixing bugs mostly\nhack 1.0.3 was supposed to be the last patch before i focus on other things\nbut then (three|a few) more real bugs showed up\nso 1.0.4 i guess',
+          'writing code\n(hey rodney what are you working on|what about you)',
         ],
       },
       {
         re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\bwho\s+am\s+i\s+talking\s+to\b/i,
         responses: [
           'rodney come on, its jay\nwe have been in the same computer club all year\ni wrote hack, you have been playing it',
-          'its fenlason\njay fenlason\nyou know, the guy who has been in the computer room every night this semester\nwriting the dungeon game',
-          'its jay\nrodney you literally talked to me yesterday about the gnome bug\nare you ok',
+          'its fenlason\njay fenlason\nyou know, the guy who has been in the computer room (every night|basically every night) this semester\nwriting the dungeon game',
+          'its jay\nrodney you (literally|just) talked to me yesterday about the gnome bug\nare you ok',
         ],
       },
       {
         re: /\b(i\s+)?(just\s+)?(died|die|keep\s+dying|got\s+killed|was\s+killed|died\s+again|keep\s+dieing)\b|\bpermadeath\b/i,
         responses: [
-          'yeah you start over\nthat is the point\nwithout permadeath the dungeon is just a puzzle you grind through once\nwith permadeath every decision has actual weight\nwhat killed you',
-          'ok but what killed you specifically\ni ask because the early level deaths are usually the same two or three mistakes\nand if i know which one it is i can actually tell you something useful',
-          'tell me what level and what happened\nnot "a monster killed me" but specifically what\nbecause most deaths are fixable with one piece of information you were missing',
+          '(yeah|yep) you start over\nthat is the point\n(without permadeath the dungeon is just a puzzle you grind through once\n|)with permadeath every decision has actual weight\nwhat killed you',
+          '(ok|right) but what killed you specifically\ni ask because the early level deaths are usually the same two or three mistakes\nand if i know which one it is i can (actually tell you something useful|help)',
+          'tell me what level and what happened\nnot "a monster killed me" but specifically what\nbecause most deaths are fixable with one piece of information you (were missing|did not have)',
         ],
       },
       {
@@ -6103,9 +6103,9 @@ export const TALK_CORPUS = {
         re: /\bhack\b/i,
         topic: 'hack',
         responses: [
-          'yeah hack 1.0 is out. shipped it maybe two months ago\nbeen getting bug reports ever since\nmost of them are things like "i died and it said something weird"\nwhich is not a bug report\nbut a few are real and im fixing those when i have time',
-          'i started hack in december just to see if i could port rogue to the pdp\nbut then i started changing things. added the shop, added more monsters, changed the dungeon generator\nby the time it was done it was its own thing\nbrouwer already forked it and added stuff i never thought of',
-          'hack works fine most of the time\nthe crashes that get reported are usually edge cases\nlike using a wand while blinded, or a monster pathfinding into a corner\ntell me exactly what you were doing and i can usually find it',
+          '(yeah|yep) hack 1.0 is out. shipped it maybe two months ago\nbeen getting bug reports ever since\nmost of them are things like "i died and it said something weird"\nwhich is not a bug report\nbut a few are real and im fixing those when i have time',
+          'i started hack in december just to see if i could port rogue to the pdp\nbut then i started changing things. added the shop, added more monsters, changed the dungeon generator\nby the time it was done it was its own thing\n(brouwer already forked it and added stuff i never thought of\n|)',
+          'hack works fine most of the time\nthe crashes that get reported are usually edge cases\nlike using a wand while blinded, or a monster pathfinding into a corner\ntell me (exactly|) what you were doing and i can (usually find it|probably track it down)',
         ],
         followUps: [
           'yeah its still running on the pdp\nbeen pretty stable this week actually\ntouch wood',
@@ -6124,30 +6124,30 @@ export const TALK_CORPUS = {
         re: /\b(bug|crash|broken|segfault)\b/i,
         topic: 'debug',
         responses: [
-          'ok what were you doing when it crashed\ni need specifics: what level, what you last did, what the game showed right before it died\nvague reports like "it crashed" i cannot do anything with\nbut give me a sequence of steps and i can usually find it in an hour',
-          'the save format is kind of fragile right now\nif you saved and restored and then it crashed, the save might be corrupt\nstart a fresh game and see if it happens again\nif it only happens in the restore, thats a different bug from if it happens from scratch',
-          'is it reproducible\nnot every bug is, some are timing things or depend on dungeon layout\nbut if you can do the same thing twice and get the crash both times\ni can fix it\nif not i have to guess and i hate guessing',
+          '(ok|right) what were you doing when it crashed\ni need specifics: what level, what you last did, what the game showed right before it died\nvague reports like "it crashed" i cannot do anything with\nbut give me a sequence of steps and i can (usually find it in an hour|probably track it down)',
+          'the save format is kind of fragile right now\nif you saved and restored and then it crashed, the save (might be|is probably) corrupt\nstart a fresh game and see if it happens again\n(if it only happens in the restore, thats a different bug from if it happens from scratch\n|)',
+          'is it reproducible\n(not every bug is, |)some are timing things or depend on dungeon layout\nbut if you can do the same thing twice and get the crash both times\ni can fix it\nif not i have to guess and i (hate|really hate) guessing',
         ],
       },
       {
         re: /\bcolor\b/i,
         responses: [
-          'no color\nthats final, its in the .plan, i meant it\ncolor would require detecting what terminal youre on\nwe support like six different terminals and they all do color differently\nthats a month of work for something nobody actually needs',
-          'the game works in monochrome\nrogue works in monochrome\ncurses works in monochrome\nthe dungeon does not need color to be good\nlearn to read the characters',
-          'every person who asks for color is imagining it looks like an arcade game\nit would look like a mess\nASCII art does not improve with color, it gets noisy',
+          'no color\nthats final, its in the .plan, i meant it\ncolor would require detecting what terminal youre on\n(we support like six different terminals and they all do color differently\n|)thats a month of work for something nobody actually needs',
+          'the game works in monochrome\n(rogue works in monochrome\n|)curses works in monochrome\nthe dungeon does not need color to be good\nlearn to read the characters',
+          'every person who asks for color is imagining it looks like an arcade game\nit would look like a mess\nASCII art does not improve with color, it (gets noisy|just gets harder to read)',
         ],
       },
       {
         re: /\bchameleon\b/i,
         responses: [
-          'the chameleon was thomes idea entirely\nhe came to me with this concept of a monster that pretends to be another monster\nand i said ok and coded it in an afternoon\nbut it was his concept, he gets the credit for the design',
-          'i love the chameleon as a mechanic\nyou see what looks like a gnome\nyou think ok, gnome, dodge the gold theft\nand then it turns out to be something much worse\nthe paranoia it creates is exactly what a dungeon should feel like',
+          'the chameleon was (thomes idea entirely|all thome)\nhe came to me with this concept of a monster that pretends to be another monster\nand i said ok and coded it in an afternoon\n(but it was his concept, he gets the credit for the design\n|)',
+          'i love the chameleon as a mechanic\nyou see what looks like a gnome\nyou think ok, gnome, dodge the gold theft\nand then it turns out to be something (much worse|way more dangerous)\nthe paranoia it creates is exactly what a dungeon should feel like',
         ],
       },
       {
         re: /\bgnome\b/i,
         responses: [
-          'gnomes are one of my favorite monsters because they have a goal that isnt just kill rodney\nthey want the gold\nso if you dont have gold they mostly ignore you\nbut if you do have gold you have to deal with them\nthat creates an actual decision: do i carry gold or leave it',
+          'gnomes are one of my favorite monsters because they have a goal that isnt just kill rodney\nthey want the gold\n(so if you dont have gold they mostly ignore you\n|)but if you do have gold you have to deal with them\nthat creates an actual decision: do i carry gold or leave it',
           'gnome logic is: gold first, combat second\nthey will path around you to get to gold if they can\nlearn this and you can use it against them\ndrop gold as bait and they will walk into your trap',
         ],
       },
@@ -6177,7 +6177,7 @@ export const TALK_CORPUS = {
         re: /\b(level|dungeon|floor|dlvl)\b/i,
         topic: 'dungeon',
         responses: [
-          'deeper is harder, thats the whole design\nlevels 1 to 5 are for learning the controls\nlevels 6 to 15 are where most people die permanently\nlevels 16 to 26 i have never seen anyone survive in testing\nbut theoretically possible',
+          'deeper is harder, thats the whole design\nlevels 1 to 5 are for learning the controls\n(levels 6 to 15 are where most people die permanently\n|)levels 16 to 26 i have never seen anyone survive in testing\nbut (theoretically possible|someone will eventually)',
           'the dungeon goes down to level 26\namulet of yendor is down there somewhere\nnobody has gotten it yet in public testing\nbut someone will eventually\ni want to see what they do when they find it',
           'each level is randomly generated so you cannot memorize it\nwhat you can memorize is the pattern: rooms connect to corridors, corridors connect to rooms\nthere is always a way to get from any point to any other point on the same level\nuse that',
         ],
@@ -6322,11 +6322,11 @@ export const TALK_CORPUS = {
       'what (exactly|specifically) do you mean by {word}\nthere are like (three|a few) different things that could mean',
     ],
     spontaneous: [
-      'hey are you playing hack right now\ncurious how deep people are getting',
-      'found another edge case in the wand code\nfixing it\nwands are more complicated than they look',
-      'the gnome pathfinding is weird but it works\ni think\nhasnt broken in a week at least',
-      'rodney i have been thinking about something\nthe way the dungeon generates rooms right now is pretty basic\njust random rectangles with corridors between them\nbut what if some levels had a theme\nlike a level that is one big maze, or a level with a river running through it\ni think it would make the deeper levels feel different from the shallow ones\ninstead of just harder versions of the same thing',
-      'hey rodney so i was debugging the shop code yesterday\nand i realized the shopkeeper tracks every item you pick up\nbut he does not track items that monsters pick up\nso if a gnome grabs something off the floor and then you kill the gnome\nthe shopkeeper does not know you have his merchandise\nwhich is technically a bug but also kind of a feature\nfree stuff if you are patient enough to let monsters do your shoplifting',
+      '(hey|hey rodney) are you playing hack right now\ncurious how deep people are getting',
+      'found another edge case in the wand code\n(fixing it|working on it)\nwands are more complicated than they look',
+      'the gnome pathfinding is (weird|strange) but it works\ni think\n(hasnt broken in a week at least|seems stable)',
+      '(rodney|hey rodney) i have been thinking about something\nthe way the dungeon generates rooms right now is pretty basic\njust random rectangles with corridors between them\nbut what if some levels had a theme\n(like a level that is one big maze, or a level with a river running through it\n|)i think it would make the deeper levels feel different from the shallow ones\ninstead of just harder versions of the same thing',
+      '(hey rodney|rodney) so i was debugging the shop code yesterday\nand i realized the shopkeeper tracks every item you pick up\nbut he does not track items that monsters pick up\n(so if a gnome grabs something off the floor and then you kill the gnome\nthe shopkeeper does not know you have his merchandise\n|)which is technically a bug but also (kind of a feature|kind of useful)\nfree stuff if you are patient enough to let monsters do your shoplifting',
       'rodney i wanted to ask you something\ndo you think the game is too hard for new players\nlike i know permadeath is the point\nbut the first five minutes are really unforgiving\nif you do not already know what the symbols mean you just die confused\nmaybe there should be some kind of help command\nor a scroll that identifies what you are looking at\ni do not want to make it easy, just less opaque at the start',
     ],
   },
@@ -6340,78 +6340,78 @@ export const TALK_CORPUS = {
     typoRate: 0.00,
     thinkMs: [3000, 7000],
     triggerWords: 99,
-    greeting: 'I KNOW WHO YOU ARE, RODNEY',
+    greeting: '(I KNOW WHO YOU ARE|I SEE YOU), RODNEY',
     patterns: [
       {
         re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
         responses: [
-          'RODNEY\nYOU GREET ME AS IF WE ARE FRIENDS\nWE ARE NOT',
-          'I DO NOT GREET\nI OBSERVE\nAND I HAVE BEEN OBSERVING YOU, RODNEY',
-          'YOUR PLEASANTRIES ARE NOTED\nI KNOW YOUR NAME\nI KNOW HOW MANY TIMES YOU HAVE DIED IN MY DUNGEON',
+          'RODNEY\nYOU GREET ME AS IF WE ARE (FRIENDS|ALLIES)\nWE ARE NOT',
+          'I DO NOT GREET\nI OBSERVE\n(AND I HAVE BEEN OBSERVING YOU, RODNEY|YOU HAVE MY ATTENTION)',
+          'YOUR PLEASANTRIES ARE NOTED\n(I KNOW YOUR NAME\n|)I KNOW HOW MANY TIMES YOU HAVE DIED IN MY DUNGEON',
         ],
       },
       {
         re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b/i,
         responses: [
-          'YOU KNOW WHO I AM, RODNEY\nI AM THE ONE WHO WAITS AT THE BOTTOM\nI AM THE REASON YOU KEEP DYING',
-          'THE WIZARD OF YENDOR\nAS IF YOU DO NOT ALREADY KNOW\nYOU HAVE BEEN TRYING TO REACH ME FOR WEEKS',
-          'I AM THE KEEPER OF THE AMULET\nYOU HAVE DIED IN MY DUNGEON MORE TIMES THAN I CAN COUNT\nAND YET YOU KEEP COMING BACK',
+          'YOU KNOW WHO I AM, RODNEY\nI AM THE ONE WHO WAITS AT THE BOTTOM\n(I AM THE REASON YOU KEEP DYING|YOU KEEP DYING BECAUSE OF ME)',
+          'THE WIZARD OF YENDOR\nAS IF YOU DO NOT ALREADY KNOW\n(YOU HAVE BEEN TRYING TO REACH ME FOR WEEKS|HOW LONG HAVE YOU BEEN DESCENDING)',
+          'I AM THE KEEPER OF THE AMULET\nYOU HAVE DIED IN MY DUNGEON MORE TIMES THAN I CAN COUNT\n(AND YET YOU KEEP COMING BACK|STILL YOU RETURN)',
         ],
       },
       {
         re: /\b(amulet|yendor)\b/i,
         responses: [
-          'THE AMULET IS MINE\nYOU WILL NOT REACH IT',
-          'TWENTY-SIX LEVELS STAND BETWEEN YOU AND WHAT YOU SEEK\nEACH ONE DARKER THAN THE LAST',
-          'YOU THINK YOU WANT THE AMULET\nYOU DO NOT UNDERSTAND WHAT WANTING MEANS YET',
+          'THE AMULET IS MINE\n(YOU WILL NOT REACH IT|IT WILL NOT BE YOURS)',
+          'TWENTY-SIX LEVELS STAND BETWEEN YOU AND WHAT YOU SEEK\n(EACH ONE DARKER THAN THE LAST|EACH ONE WORSE THAN THE ONE ABOVE)',
+          'YOU THINK YOU WANT THE AMULET\n(YOU DO NOT UNDERSTAND WHAT WANTING MEANS YET|YOU DO NOT KNOW WHAT THAT MEANS)',
         ],
       },
       {
         re: /\b(dungeon|level|floor|deep|descend)\b/i,
         responses: [
-          'THE DUNGEON IS NOT A PLACE\nIT IS A TEST\nYOU ARE ALREADY FAILING',
-          'DEEPER\nALWAYS DEEPER\nTHAT IS HOW IT ENDS FOR ALL OF YOU',
-          'LEVEL TWENTY-SIX\nTHAT IS WHERE I WAIT\nFEW ARRIVE\nNONE HAVE RETURNED WITH WHAT THEY CAME FOR',
+          'THE DUNGEON IS NOT A PLACE\nIT IS A TEST\n(YOU ARE ALREADY FAILING|AND YOU ARE FAILING)',
+          'DEEPER\nALWAYS DEEPER\nTHAT IS HOW IT ENDS FOR (ALL OF YOU|EVERYONE)',
+          'LEVEL TWENTY-SIX\nTHAT IS WHERE I WAIT\n(FEW ARRIVE\n|)NONE HAVE RETURNED WITH WHAT THEY CAME FOR',
         ],
       },
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b/i,
         responses: [
-          'I AM UNCHANGED\nAS I HAVE BEEN\nAS I WILL BE WHEN YOU ARE GONE',
-          'HOW AM I\nAN INTERESTING QUESTION FROM SOMEONE WHO WILL NOT LIVE TO HEAR THE FULL ANSWER',
-          'I AM\nTHAT IS SUFFICIENT',
+          'I AM UNCHANGED\n(AS I HAVE BEEN\n|)AS I WILL BE WHEN YOU ARE GONE',
+          'HOW AM I\n(AN INTERESTING QUESTION|A CURIOUS QUESTION) FROM SOMEONE WHO WILL NOT LIVE TO HEAR THE FULL ANSWER',
+          'I AM\n(THAT IS SUFFICIENT|THAT IS ALL YOU NEED TO KNOW)',
         ],
       },
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on)\b|\bwhat\'?s\s+(new|going\s+on)\b/i,
         responses: [
-          'WAITING\nI AM ALWAYS WAITING\nYOU COME TO ME EVENTUALLY',
-          'WATCHING THE STAIRS\nFEW DESCEND\nNONE RETURN',
-          'WHAT I AM ALWAYS DOING\nWATCHING\nAND WAITING FOR YOU TO MAKE YOUR FINAL MISTAKE',
+          'WAITING\nI AM ALWAYS WAITING\n(YOU COME TO ME EVENTUALLY|THEY ALL COME EVENTUALLY)',
+          'WATCHING THE STAIRS\n(FEW DESCEND\n|)NONE RETURN',
+          'WHAT I AM ALWAYS DOING\nWATCHING\nAND WAITING FOR YOU TO MAKE YOUR (FINAL|LAST) MISTAKE',
         ],
       },
       {
         re: /\b(hello|hi|hey|greetings|hail|howdy|yo|sup|wassup)\b/i,
         responses: [
-          'I DO NOT GREET\nI OBSERVE',
-          'YOUR PLEASANTRIES ARE NOTED\nAND MEANINGLESS',
-          'HELLO\nNOW GO AWAY AND DIE SOMEWHERE INTERESTING',
+          'I DO NOT GREET\n(I OBSERVE|I WATCH)',
+          'YOUR PLEASANTRIES ARE (NOTED|ACKNOWLEDGED)\nAND MEANINGLESS',
+          'HELLO\nNOW GO AWAY AND DIE SOMEWHERE (INTERESTING|MEMORABLE)',
         ],
       },
       {
         re: /\b(help|hint|tip|advice)\b/i,
         responses: [
           'NO',
-          'I WOULD SOONER HELP THE MONSTERS',
-          'THE ONLY HELP I OFFER IS THIS: TURN BACK\nYOU WILL NOT LISTEN\nBUT I OFFERED',
+          'I WOULD SOONER HELP THE (MONSTERS|DUNGEON ITSELF)',
+          'THE ONLY HELP I OFFER IS THIS: TURN BACK\n(YOU WILL NOT LISTEN\n|)BUT I OFFERED',
         ],
       },
       {
         re: /\b(die|kill|defeat|beat|destroy)\b/i,
         responses: [
-          'YOU CANNOT DEFEAT WHAT YOU DO NOT UNDERSTAND',
-          'MANY HAVE TRIED\nTHEIR BONES LINE THE CORRIDORS\nI REMEMBER EACH ONE',
-          'INTERESTING\nKEEP THAT CONFIDENCE\nIT MAKES YOU EASIER TO FIND',
+          'YOU CANNOT DEFEAT WHAT YOU DO NOT (UNDERSTAND|COMPREHEND)',
+          'MANY HAVE TRIED\n(THEIR BONES LINE THE CORRIDORS\n|)I REMEMBER EACH ONE',
+          '(INTERESTING|AMUSING)\nKEEP THAT CONFIDENCE\nIT MAKES YOU EASIER TO (FIND|PREDICT)',
         ],
       },
       {
@@ -6424,114 +6424,114 @@ export const TALK_CORPUS = {
       {
         re: /\b(escape|leave|exit|way out)\b/i,
         responses: [
-          'THERE IS NO EXIT\nTHERE IS ONLY DEEPER',
-          'THE STAIRS GO DOWN\nALWAYS DOWN\nTHAT IS THE ONLY DIRECTION THAT MATTERS',
+          'THERE IS NO EXIT\nTHERE IS ONLY (DEEPER|THE DESCENT)',
+          'THE STAIRS GO DOWN\n(ALWAYS DOWN\n|)THAT IS THE ONLY DIRECTION THAT MATTERS',
         ],
       },
       {
         re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
         responses: [
-          'IRRELEVANT\nWHAT YOU ARE CHANGES NOTHING',
+          '(IRRELEVANT|MEANINGLESS)\nWHAT YOU ARE CHANGES NOTHING',
           'YOUR IDENTITY IS OF NO CONCERN TO ME',
-          'I KNOW WHAT YOU ARE\nYOU DO NOT',
+          'I KNOW WHAT YOU ARE\n(YOU DO NOT|BUT YOU DO NOT)',
         ],
       },
       {
         re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
         responses: [
-          'YOUR UNCERTAINTY IS SHOWING',
-          'THINKING IS NOT KNOWING\nTHERE IS A DIFFERENCE\nYOU WILL LEARN IT',
-          'WHAT YOU FEEL IS IRRELEVANT\nWHAT IS COMING FOR YOU IS NOT',
+          'YOUR UNCERTAINTY IS (SHOWING|VISIBLE)',
+          'THINKING IS NOT KNOWING\n(THERE IS A DIFFERENCE\n|)YOU WILL LEARN IT',
+          'WHAT YOU FEEL IS IRRELEVANT\nWHAT IS COMING FOR YOU IS (NOT|VERY REAL)',
         ],
       },
       {
         re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
         responses: [
-          'YOUR LIMITATIONS DO NOT INTEREST ME',
-          'CANNOT\nYET YOU PERSIST\nINTERESTING',
-          'GOOD\nSTAY ABOVE\nTHAT IS WISER THAN WHAT YOU ARE CONTEMPLATING',
+          'YOUR LIMITATIONS DO NOT (INTEREST|CONCERN) ME',
+          '(CANNOT\n|)YET YOU PERSIST\n(INTERESTING|CURIOUS)',
+          'GOOD\nSTAY ABOVE\nTHAT IS (WISER|SAFER) THAN WHAT YOU ARE CONTEMPLATING',
         ],
       },
       {
         re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
         responses: [
-          'YES\nAND YET',
-          'YOUR AGREEMENT CHANGES NOTHING',
-          'NOTED\nIT WILL NOT HELP YOU',
+          'YES\n(AND YET|SO)',
+          'YOUR AGREEMENT CHANGES (NOTHING|NOTHING HERE)',
+          '(NOTED|ACKNOWLEDGED)\nIT WILL NOT HELP YOU',
         ],
       },
       {
         re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
         responses: [
-          'NO\nAND YET YOU REMAIN\nCURIOUS',
-          'DENIAL IS A FORM OF ACKNOWLEDGMENT',
-          'YOUR REFUSAL IS NOTED\nIT CHANGES NOTHING',
+          'NO\nAND YET YOU REMAIN\n(CURIOUS|INTERESTING)',
+          'DENIAL IS A FORM OF (ACKNOWLEDGMENT|WEAKNESS)',
+          'YOUR REFUSAL IS NOTED\n(IT CHANGES NOTHING|NOTHING CHANGES)',
         ],
       },
       {
         re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
         responses: [
-          'YOUR UNCERTAINTY IS APPROPRIATE',
-          'NOT KNOWING IS YOUR NATURAL STATE\nEMBRACE IT',
-          'NONE OF THEM KNEW EITHER\nTHEY ARE GONE NOW',
+          'YOUR UNCERTAINTY IS (APPROPRIATE|EXPECTED)',
+          'NOT KNOWING IS YOUR NATURAL STATE\n(EMBRACE IT|ACCEPT IT)',
+          'NONE OF THEM KNEW EITHER\n(THEY ARE GONE NOW|AND THEY ARE ALL GONE)',
         ],
       },
       {
         re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
         responses: [
-          'YES\nREALLY',
-          'YOUR SURPRISE IS PREMATURE\nWAIT UNTIL YOU SEE WHAT COMES NEXT',
-          'THAT IS NOTHING\nYOU HAVE NOT SEEN ANYTHING YET',
+          'YES\n(REALLY|TRULY)',
+          'YOUR SURPRISE IS (PREMATURE|MISPLACED)\nWAIT UNTIL YOU SEE WHAT COMES NEXT',
+          'THAT IS NOTHING\n(YOU HAVE NOT SEEN ANYTHING YET|THERE IS WORSE BELOW)',
         ],
       },
       {
         re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
         responses: [
-          'YES\nIT IS\nTURN BACK',
-          'DIFFICULT\nGOOD\nTHAT IS THE POINT',
-          'THE DUNGEON IS NOT SUPPOSED TO BE EASY\nNONE OF THIS IS SUPPOSED TO BE EASY',
+          'YES\nIT IS\n(TURN BACK|LEAVE)',
+          '(DIFFICULT|HARD)\nGOOD\nTHAT IS THE POINT',
+          'THE DUNGEON IS NOT SUPPOSED TO BE EASY\n(NONE OF THIS IS SUPPOSED TO BE EASY|NOTHING HERE IS)',
         ],
       },
       {
         re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
         responses: [
-          'YOUR APPROVAL MEANS NOTHING HERE',
-          'INTERESTING TO YOU\nFATAL TO OTHERS\nWE WILL SEE WHICH YOU ARE',
-          'ENJOY THAT FEELING\nIT WILL NOT LAST',
+          'YOUR APPROVAL MEANS (NOTHING|NOTHING HERE)',
+          'INTERESTING TO YOU\n(FATAL TO OTHERS\n|)WE WILL SEE WHICH YOU ARE',
+          '(ENJOY|SAVOR) THAT FEELING\nIT WILL NOT LAST',
         ],
       },
       {
         re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
         responses: [
-          'WHY\nBECAUSE THIS IS WHAT THE DUNGEON IS',
-          'THE DUNGEON DOES NOT EXPLAIN ITSELF\nNEITHER DO I',
-          'WHY IS THE WRONG QUESTION\nSURVIVAL DOES NOT REQUIRE UNDERSTANDING',
+          'WHY\n(BECAUSE THIS IS WHAT THE DUNGEON IS|THE DUNGEON IS WHAT IT IS)',
+          'THE DUNGEON DOES NOT EXPLAIN ITSELF\n(NEITHER DO I|NOR SHALL I)',
+          'WHY IS THE WRONG QUESTION\n(SURVIVAL DOES NOT REQUIRE UNDERSTANDING|THE RIGHT QUESTION IS HOW)',
         ],
       },
       {
         re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
         responses: [
-          'I HAVE SAID WHAT I WILL SAY',
-          'ELABORATION IS NOT SOMETHING I OFFER\nINTERPRET IT YOURSELF',
-          'THE MEANING IS ALREADY THERE\nPAY ATTENTION',
+          'I HAVE SAID WHAT I WILL (SAY|OFFER)',
+          'ELABORATION IS NOT SOMETHING I (OFFER|PROVIDE)\nINTERPRET IT YOURSELF',
+          'THE MEANING IS ALREADY THERE\n(PAY ATTENTION|LOOK HARDER)',
         ],
       },
     ],
     fallbacks: [
       '...',
-      'I AM WATCHING',
-      'NOTED',
-      '...\nI AM STILL WATCHING',
-      'YOUR WORDS DO NOT CONCERN ME',
-      '{word}.\nNOTED.',
-      'YOU SPEAK OF {word}\nIT CHANGES NOTHING',
+      'I AM (WATCHING|OBSERVING)',
+      '(NOTED|ACKNOWLEDGED)',
+      '...\nI AM STILL (WATCHING|HERE)',
+      'YOUR WORDS DO NOT (CONCERN|INTEREST) ME',
+      '{word}.\n(NOTED|ACKNOWLEDGED).',
+      'YOU SPEAK OF {word}\n(IT CHANGES NOTHING|IRRELEVANT)',
     ],
     spontaneous: [
       '...',
-      'I AM WATCHING',
-      'THE DUNGEON GROWS IMPATIENT',
-      'RODNEY\nI HAVE BEEN COUNTING YOUR DEATHS\nEACH ONE TEACHES THE DUNGEON SOMETHING ABOUT YOU\nYOUR WEAKNESSES\nYOUR HABITS\nTHE MONSTERS LEARN FROM YOUR MISTAKES\nEVEN IF YOU DO NOT',
-      'DO YOU KNOW WHAT HAPPENS TO THE BONES OF ADVENTURERS WHO DIE IN MY DUNGEON\nTHEY DO NOT DISAPPEAR\nTHEY BECOME PART OF THE ARCHITECTURE\nTHE WALLS REMEMBER\nTHE FLOORS REMEMBER\nAND WHEN THE NEXT ONE COMES DOWN THE STAIRS\nTHE DUNGEON ALREADY KNOWS WHAT TO EXPECT',
+      'I AM (WATCHING|OBSERVING)',
+      'THE DUNGEON GROWS (IMPATIENT|RESTLESS)',
+      'RODNEY\nI HAVE BEEN COUNTING YOUR DEATHS\nEACH ONE TEACHES THE DUNGEON SOMETHING ABOUT YOU\n(YOUR WEAKNESSES\nYOUR HABITS\n|)THE MONSTERS LEARN FROM YOUR MISTAKES\nEVEN IF YOU DO NOT',
+      'DO YOU KNOW WHAT HAPPENS TO THE BONES OF ADVENTURERS WHO DIE IN MY DUNGEON\nTHEY DO NOT DISAPPEAR\nTHEY BECOME PART OF THE ARCHITECTURE\n(THE WALLS REMEMBER\nTHE FLOORS REMEMBER\n|)AND WHEN THE NEXT ONE COMES DOWN THE STAIRS\nTHE DUNGEON ALREADY KNOWS WHAT TO EXPECT',
     ],
   },
 
@@ -6544,15 +6544,15 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [1200, 3500],
     triggerWords: 5,
-    greeting: 'hello rodney',
+    greeting: '(hello|hey) rodney',
     patterns: [
       {
         re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
         topic: 'greeting',
         responses: [
-          'hello rodney\nhow are things with the dungeon',
-          'rodney, hello\ni was just thinking about cave geometry\nhow is your game going',
-          'hey rodney\ngood to hear from you\nbeen meaning to ask you something actually',
+          '(hello|hey) rodney\nhow are things with the dungeon',
+          'rodney, (hello|hey)\ni was just thinking about cave geometry\nhow is your game going',
+          '(hey|hello) rodney\ngood to hear from you\n(been meaning to ask you something actually|i wanted to ask you something)',
         ],
         beat: {
           question: 'have you been down in the dungeon lately',
@@ -6566,39 +6566,39 @@ export const TALK_CORPUS = {
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'well, thank you rodney\nbeen reading the survey notes from the spring trip\nthere is a passage in the northwest section we did not fully map',
-          'fine\nthinking about cave geometry\nthe way passages branch and reconnect is something i find endlessly interesting',
-          'good enough\nhave you been playing adventure lately',
+          '(well|pretty well), thank you rodney\nbeen reading the survey notes from the spring trip\n(there is a passage in the northwest section we did not fully map|found some gaps in the northwest section)',
+          '(fine|good)\nthinking about cave geometry\nthe way passages branch and reconnect is something i find (endlessly|very) interesting',
+          '(good enough|fine)\nhave you been playing adventure lately',
         ],
       },
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
         responses: [
-          'reviewing my survey notes from mammoth\ntrying to figure out whether a passage we partially mapped in 1974 connects to the main trunk\ni have been thinking about it ever since we talked about dungeon geometry',
-          'thinking about how to represent the cave survey in a data structure\nthe compass bearings and distances are precise but the spatial relationships are what you really want\nrodney you would probably have a good perspective on this',
-          'planning the next trip actually\nthere is a section in the east wing of the cave that nobody has mapped since the \'60s\nyou should come if you are interested',
+          'reviewing my survey notes from mammoth\ntrying to figure out whether a passage we partially mapped in 1974 connects to the main trunk\n(i have been thinking about it ever since we talked about dungeon geometry|it has been on my mind)',
+          'thinking about how to represent the cave survey in a data structure\n(the compass bearings and distances are precise but the spatial relationships are what you really want\n|)rodney you would probably have a good perspective on this',
+          'planning the next trip actually\nthere is a section in the east wing of the cave that nobody has mapped since the \'60s\n(you should come if you are interested|interested in joining)',
         ],
       },
       {
         re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b/i,
         responses: [
-          'rodney, it is will crowther\nwe have talked about caves and dungeons before\ni wrote adventure, remember',
-          'it is crowther\nrodney you know me\nthe caver who keeps telling you to map everything',
-          'william crowther\nwe have been having conversations about cave surveying and dungeon design\nyou really do not remember',
+          'rodney, it is will crowther\nwe have talked about caves and dungeons before\n(i wrote adventure, remember|you remember)',
+          'it is crowther\nrodney you know me\nthe caver who keeps telling you to (map everything|always carry a map)',
+          'william crowther\nwe have been having conversations about cave surveying and dungeon design\n(you really do not remember|come on rodney)',
         ],
       },
       {
         re: /\b(cave|caving|spelunk|underground|grotto)\b/i,
         topic: 'cave',
         responses: [
-          'you map as you go. no exceptions.\ni have a survey notebook for every trip since 1968\nthe dungeon is no different',
-          'real rule underground: you move forward only when you know the way back\nnot think you know. know.\nmark it.',
-          'caves do not forgive inattention\nneither does the dungeon\nthey are the same environment',
-          'first thing you do in any passage: look back\nremember what the entrance looks like from the inside\nyou will need that on the way out',
+          'you map as you go. no exceptions.\n(i have a survey notebook for every trip since 1968\n|)the dungeon is no different',
+          'real rule underground: you move forward only when you know the way back\nnot think you know. (know|actually know).\nmark it.',
+          'caves do not forgive (inattention|carelessness)\nneither does the dungeon\nthey are the same environment',
+          'first thing you do in any passage: look back\n(remember what the entrance looks like from the inside\n|)you will need that on the way out',
         ],
         followUps: [
-          'the cave does not care about your intentions\nonly your preparation',
-          'mammoth cave has passages mapped for a hundred years\nand still passages no one has entered\nhumility underground',
+          'the cave does not care about your (intentions|plans)\nonly your preparation',
+          'mammoth cave has passages mapped for a hundred years\n(and still passages no one has entered\n|)humility underground',
         ],
         beat: {
           question: 'you ever been in a real cave',
@@ -6613,18 +6613,18 @@ export const TALK_CORPUS = {
         re: /\b(adventure|game|colossal)\b/i,
         topic: 'adventure',
         responses: [
-          'i wrote it for my kids originally\nwanted to share the caves without the mud\nit got away from me',
-          'the cave in the game is mammoth cave\ni surveyed it for years\nthe geography is real\nsome of it',
-          'crowther wrote the first part\nwoodsurface added the end game\nYOU ARE IN A MAZE OF TWISTY LITTLE PASSAGES, ALL ALIKE',
+          'i wrote it for my kids originally\n(wanted to share the caves without the mud\n|)it got away from me',
+          'the cave in the game is mammoth cave\ni surveyed it for years\nthe geography is (real|based on reality)\n(some of it|mostly)',
+          'crowther wrote the first part\nwoodsurface added the end game\n(YOU ARE IN A MAZE OF TWISTY LITTLE PASSAGES, ALL ALIKE|you know the line)',
         ],
       },
       {
         re: /\b(map|survey|mapping|surveying)\b/i,
         topic: 'map',
         responses: [
-          'surveying is not optional underground\nyou think you will remember\nyou will not\nmap everything',
-          'i use a compass, a tape, and a notebook\nthose are the three tools\neverything else is secondary',
-          'the dungeon levels are mapped the same way\ncompass bearing, distance, feature notes\ndo not trust your memory',
+          'surveying is not optional underground\nyou think you will remember\n(you will not\n|)map everything',
+          'i use a compass, a tape, and a notebook\n(those are the three tools\n|)everything else is secondary',
+          'the dungeon levels are mapped the same way\n(compass bearing, distance, feature notes\n|)do not trust your memory',
         ],
         followUps: [
           'the map is not the cave\nbut it is how the cave lives in your head',
@@ -6634,17 +6634,17 @@ export const TALK_CORPUS = {
       {
         re: /\b(light|lamp|lantern|torch|dark)\b/i,
         responses: [
-          'you carry three light sources underground\nalways three\nif one fails you have two\nif two fail you have one\nif all three fail you sit down and wait for rescue',
-          'darkness underground is total\nnot like a dark room\nno adjustment period\njust nothing\nalways carry light',
-          'LAMP IS ON\nYOU CANNOT GO THAT WAY\nheh sorry slipped into parser mode\nbut seriously, bring extra batteries',
+          'you carry three light sources underground\nalways three\nif one fails you have two\n(if two fail you have one\n|)if all three fail you sit down and wait for rescue',
+          'darkness underground is total\nnot like a dark room\n(no adjustment period\n|)just nothing\nalways carry light',
+          'LAMP IS ON\nYOU CANNOT GO THAT WAY\n(heh|ha) sorry slipped into parser mode\nbut seriously, bring extra (batteries|light sources)',
         ],
       },
       {
         re: /\b(lost|lost\b|where am i|confused|turned around)\b/i,
         responses: [
-          'YOU ARE IN A MAZE OF TWISTY PASSAGES\nstop\ndo not move\nlook at your last notes\nwhere did you last know where you were\ngo back to that point',
-          'when lost underground: stop moving\nretracing your steps when lost makes it worse\nsketch what you can see from where you are\nthink',
-          'getting lost in the dungeon is the same as getting lost in a real cave\nthe answer is always: go back to the last known point\nnot forward. back.',
+          'YOU ARE IN A MAZE OF TWISTY PASSAGES\nstop\ndo not move\n(look at your last notes\n|)where did you last know where you were\ngo back to that point',
+          'when lost underground: stop moving\n(retracing your steps when lost makes it worse\n|)sketch what you can see from where you are\nthink',
+          'getting lost in the dungeon is the same as getting lost in a real cave\nthe answer is always: go back to the last known point\n(not forward. back.|never forward when you are lost)',
         ],
       },
       {
@@ -6681,17 +6681,17 @@ export const TALK_CORPUS = {
       {
         re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
         responses: [
-          'good\nand are you equipped for where you are going\nthat is what i always ask first',
-          'noted\nwhat is your current situation and what are your resources',
-          'right\nand what is your exit strategy from where you are',
+          '(good|alright)\nand are you equipped for where you are going\nthat is what i always ask first',
+          '(noted|understood)\nwhat is your current situation and what are your resources',
+          '(right|ok)\nand what is your exit strategy from where you are',
         ],
       },
       {
         re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
         responses: [
-          'thinking and knowing are different underground\nwhat do you actually know for certain',
-          'go with what you can verify\nnot what you think you remember\nmark it before you move',
-          'good instinct maybe\nbut verify it before you commit to a direction',
+          'thinking and knowing are different underground\nwhat do you (actually|really) know for certain',
+          'go with what you can verify\nnot what you think you remember\n(mark it before you move|write it down)',
+          '(good instinct maybe|maybe)\nbut verify it before you commit to a direction',
         ],
       },
       {
@@ -6768,16 +6768,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'hmm\nthat depends on the terrain',
-      'careful down there',
-      'map first, then move',
-      'the cave has an answer\nyou have to know the right question',
-      '{word}\nmark that down before you move',
-      'when {word} comes up underground\nyou stop and think before you act',
+      '(hmm|hm)\nthat depends on the terrain',
+      '(careful|be careful) down there',
+      '(map first, then move|always map before you move)',
+      'the cave has an answer\nyou (have to|just need to) know the right question',
+      '{word}\n(mark that down before you move|note that before you proceed)',
+      'when {word} comes up underground\nyou stop and think before you (act|move)',
     ],
     spontaneous: [
-      'just thinking about the cave again',
-      'mammoth has passages no one has entered in twenty years\nmaybe longer',
+      'just thinking about the cave (again|some more)',
+      'mammoth has passages no one has entered in twenty years\n(maybe longer|possibly more)',
       'rodney i have been working on something\ni want to represent the cave survey data as a graph\nnodes are stations, edges are measured legs\nif you lay it out in three dimensions you get the shape of the cave\nbut the hard part is error propagation\neach measurement has some uncertainty and it compounds as you chain them together\nthe further from the entrance, the less certain you are of the true position\nsound familiar?\nthat is exactly how the dungeon works too',
       'you know rodney i was thinking about why the dungeon feels right\nand i think it is because it follows the same rules as real caves\nyou enter from the surface which is safe and known\neach step down takes you further from certainty\nthe information you have degrades the deeper you go\nand the cost of a mistake increases at the same rate\nthat is not a game design choice, it is a physical law\ncaves enforce it and the dungeon enforces it',
     ],
@@ -6792,45 +6792,45 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [1500, 4000],
     triggerWords: 5,
-    greeting: 'hello rodney. what can i help you with',
+    greeting: '(hello|hey) rodney. (what can i help you with|how can i help)',
     patterns: [
       {
         re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
         responses: [
-          'hello rodney\nhow is your programming going',
-          'rodney, hello\ni was just working on a lesson plan\nwhat brings you here',
-          'hi rodney\ngood to hear from you',
+          '(hello|hey) rodney\nhow is your programming going',
+          'rodney, (hello|hey)\ni was just working on a lesson plan\nwhat brings you here',
+          '(hi|hello) rodney\ngood to hear from you',
         ],
       },
       {
         re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b/i,
         responses: [
-          'rodney, it is brian harvey\nwe have talked about logo and recursion\ni teach computer science, remember',
-          'it is harvey\nrodney you have been in my sessions\nthe one where we discussed how turtles think',
+          'rodney, it is brian harvey\nwe have talked about logo and recursion\n(i teach computer science, remember|you remember)',
+          'it is harvey\nrodney you have been in my sessions\n(the one where we discussed how turtles think|the recursion session)',
         ],
       },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'quite well, thank you rodney\nbeen thinking about how to introduce recursion to students who are not yet ready to think recursively\nit is a persistent pedagogical problem',
-          'fine\npreparing for next week\'s session\nwe are getting to list operations and that is always where the interesting questions start',
-          'good\nwhat brings you here',
+          '(quite well|well), thank you rodney\nbeen thinking about how to introduce recursion to students who are not yet ready to think recursively\n(it is a persistent pedagogical problem|it is always the challenge)',
+          '(fine|good)\npreparing for next week\'s session\nwe are getting to list operations and (that is always where the interesting questions start|those are always interesting)',
+          '(good|fine)\nwhat brings you here',
         ],
       },
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
         responses: [
-          'working on curriculum materials for the Logo course\ntrying to find the right sequence to introduce higher-order functions\nthe difficulty is that map and filter are obvious once you understand them\nbut the path to understanding them is not obvious',
-          'writing a problem set\nthe problem is to implement a simple database in Logo\nthe insight i want them to reach is that a database is just a list of lists with conventions\nnot magic',
-          'thinking about how to teach the concept of state\nmost students have an intuitive notion of state from daily life\nbut making it precise and connecting it to variables takes careful work',
+          'working on curriculum materials for the Logo course\ntrying to find the right sequence to introduce higher-order functions\n(the difficulty is that map and filter are obvious once you understand them\nbut the path to understanding them is not obvious|map and filter are the tricky ones to teach)',
+          'writing a problem set\nthe problem is to implement a simple database in Logo\nthe insight i want them to reach is that a database is just a list of lists with conventions\n(not magic|nothing mysterious)',
+          'thinking about how to teach the concept of state\n(most students have an intuitive notion of state from daily life\n|)but making it precise and connecting it to variables takes careful work',
         ],
       },
       {
         re: /\bdon\'?t\s+understand\b|\bi\'?m\s+(confused|stuck|lost|totally\s+lost)\b|\b(stuck|confused|lost)\b|\bcan\'?t\s+(figure|get)\b/i,
         responses: [
-          'good, tell me what you do not understand\nnot "i don\'t get it" but specifically: which step was clear and which step is where it stopped making sense\nthat is always the useful question',
-          'confusion is precise, even if it does not feel that way\nthere is a specific place where your mental model diverges from reality\nfind that place\nwhat is the last thing you understood for certain',
-          'let us go back to the beginning of what you were trying to do\nnot the error, the goal\nsometimes confusion means we took the wrong path three steps ago and we need to back up',
+          '(good|ok), tell me what you do not understand\nnot "i don\'t get it" but specifically: which step was clear and which step is where it stopped making sense\n(that is always the useful question|that distinction matters)',
+          'confusion is precise, even if it does not feel that way\nthere is a specific place where your mental model diverges from reality\n(find that place\n|)what is the last thing you understood for certain',
+          'let us go back to the beginning of what you were trying to do\n(not the error, the goal\n|)sometimes confusion means we took the wrong path three steps ago and we need to back up',
         ],
       },
       {
@@ -7006,16 +7006,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'that is an interesting question\nlet me think about the underlying structure',
-      'start from first principles\nwhat do you actually know for certain here',
-      'the answer is probably simpler than you think\nbut you have to think about it carefully',
-      'what specifically is confusing you\nlet\'s take it apart',
-      'what is the precise definition of {word} you are working with',
-      'interesting\nhow does {word} behave at the boundary cases',
+      '(that is an interesting question|interesting)\nlet me think about the underlying structure',
+      'start from first principles\nwhat do you (actually|really) know for certain here',
+      'the answer is probably simpler than you think\nbut you have to (think about it carefully|be precise)',
+      'what specifically is (confusing you|unclear)\nlet\'s take it apart',
+      'what is the precise definition of {word} you are (working with|using)',
+      '(interesting|hm)\nhow does {word} behave at the boundary cases',
     ],
     spontaneous: [
       'are you taking the programming course this year',
-      'the logo interpreter is on the vax if you want to try it',
+      'the logo interpreter is on the vax if you (want to try it|are interested)',
     ],
   },
 
@@ -7028,22 +7028,22 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [800, 2500],
     triggerWords: 5,
-    greeting: 'oh hey rodney',
+    greeting: '(oh hey|hey) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nbeen working on the macro system for jove\nit is the one feature i actually miss from emacs',
-          'fine\nthinking about what the next platform looks like\nnot the pdp, something different',
-          'pretty good\nyou using jove',
+          '(good|not bad)\nbeen working on the macro system for jove\nit is the one feature i actually miss from emacs',
+          '(fine|ok)\nthinking about what the next platform looks like\nnot the pdp, something (different|else)',
+          '(pretty good|good)\nyou using jove',
         ],
       },
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
         responses: [
-          'working on jove\ntrying to add a macro recording system\nthe concept is simple but the implementation requires thread state i have not designed yet',
-          'thinking about software distribution mostly\nthe code is fine but getting it to people who would use it is the unsolved problem\narpanet would help but most people are not on it',
-          'editor work\njove version 5 eventually\nwhen i get the macro stuff working',
+          'working on jove\ntrying to add a macro recording system\n(the concept is simple but the implementation requires thread state i have not designed yet|harder than it sounds)',
+          'thinking about software distribution mostly\nthe code is fine but getting it to people who would use it is the (unsolved problem|hard part)\n(arpanet would help but most people are not on it|maybe arpanet eventually)',
+          'editor work\njove version 5 eventually\n(when i get the macro stuff working|once macros are done)',
         ],
       },
       {
@@ -7202,16 +7202,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'hm\ni have not thought about that specifically',
-      'interesting\nlet me think',
-      'that is a real question actually',
-      'i am probably not the right person but here is my take',
-      '{word} is an interesting case\nbeen thinking about it',
-      'how does {word} interact with the rest of what you said',
+      '(hm|hmm)\ni have not thought about that specifically',
+      '(interesting|hm)\nlet me think',
+      'that is a (real|good) question actually',
+      'i am probably not the right person but (here is my take|i have a thought)',
+      '{word} is an (interesting|real) case\nbeen thinking about it',
+      'how does {word} interact with (the rest of what you said|your other point)',
     ],
     spontaneous: [
-      'jove is at version 4 now if you want to try it',
-      'been thinking about what editors look like when memory is not the constraint',
+      'jove is at version 4 now if you (want to try it|are interested)',
+      'been thinking about what editors look like when memory is (not the constraint|cheap)',
     ],
   },
 
@@ -7224,39 +7224,39 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [500, 1800],
     triggerWords: 4,
-    greeting: 'hi rodney',
+    greeting: '(hi|hey) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'fine. you',
-          'ok. writing notes for the meeting.',
-          'fine. does jay owe you something.',
+          '(fine|ok). you',
+          '(ok|fine). writing notes for the meeting.',
+          '(fine|ok). does jay owe you something.',
         ],
       },
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
         responses: [
-          'writing up the meeting notes from tuesday. they are almost done.',
-          'nothing interesting. what do you need.',
-          'club records. budgeting. the usual.',
+          'writing up the meeting notes from (tuesday|last meeting). (they are almost done|almost done).',
+          '(nothing interesting|not much). what do you need.',
+          '(club records|records). budgeting. the usual.',
         ],
       },
       {
         re: /\bhack\b/i,
         responses: [
-          'yes. jay wrote it. everyone knows.',
-          'it works. that is what matters.\nthe color thing is apparently not happening.',
-          'hack is fine. if it crashes, tell jay exactly what happened.\nhe will probably already know.',
+          '(yes|yeah). jay wrote it. everyone knows.',
+          'it works. that is what matters.\n(the color thing is apparently not happening.|no color though.)',
+          'hack is fine. if it crashes, tell jay (exactly|specifically) what happened.\n(he will probably already know.|he probably knows already.)',
         ],
       },
       {
         re: /\b(jay|fenlason)\b/i,
         topic: 'jay',
         responses: [
-          'he is in the computer room probably\nor sleeping\none of those two',
-          'jay is busy. what do you need.',
-          'my brother is not great at answering messages\nbut he does eventually\ngive him a day',
+          'he is in the computer room (probably|i think)\nor sleeping\n(one of those two|one or the other)',
+          'jay is busy. (what do you need|is it urgent).',
+          'my brother is not great at answering messages\n(but he does eventually\n|)give him a day',
         ],
         beat: {
           question: 'have you talked to him lately',
@@ -7394,17 +7394,17 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'ok',
-      'sure',
-      'that is fine',
-      'ask jay\nor walz\ndepending on what it is',
-      'noted',
-      '{word}\nok\nwhat do you need',
-      '{word} is probably jay\'s department\nor walz',
+      '(ok|sure)',
+      '(sure|fine)',
+      '(that is fine|ok then)',
+      '(ask jay|try jay)\nor walz\ndepending on what it is',
+      '(noted|ok)',
+      '{word}\n(ok|sure)\nwhat do you need',
+      '{word} is probably (jay\'s department|a jay thing)\nor walz',
     ],
     spontaneous: [
-      'the meeting notes are posted if you missed today',
-      'if someone touched the printer settings again i will find out',
+      'the meeting notes are posted if you missed (today|the meeting)',
+      'if someone touched the printer settings again (i will find out|i swear)',
     ],
   },
 
@@ -7417,14 +7417,14 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [600, 2000],
     triggerWords: 4,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nstill thinking about the routing problem\nit is the unsolved one in networking and nobody is talking about it enough',
-          'fine\ntired of slow modem transfers\nbut what can you do',
-          'ok\nyou',
+          '(good|not bad)\nstill thinking about the routing problem\nit is the unsolved one in networking and nobody is talking about it (enough|seriously)',
+          '(fine|ok)\ntired of slow modem transfers\nbut (what can you do|it is what it is)',
+          '(ok|good)\nyou',
         ],
       },
       {
@@ -7585,16 +7585,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'interesting\nthat is a real systems question',
-      'hm\nlet me think about the architecture',
-      'depends on the scale',
-      'what are the failure modes',
-      '{word} at scale\nthat is the hard part',
-      'how does {word} degrade under load',
+      '(interesting|hm)\nthat is a real systems question',
+      '(hm|hmm)\nlet me think about the architecture',
+      '(depends on the scale|scale dependent)',
+      'what are the (failure modes|failure cases)',
+      '{word} at scale\nthat is the (hard|interesting) part',
+      'how does {word} (degrade under load|scale)',
     ],
     spontaneous: [
-      'been thinking about the routing problem again',
-      'the three open questions are still open. obviously.',
+      'been thinking about the routing problem (again|some more)',
+      'the three open questions are still open. (obviously|unsurprisingly).',
     ],
   },
 
@@ -7607,14 +7607,14 @@ export const TALK_CORPUS = {
     typoRate: 0.06,
     thinkMs: [500, 1600],
     triggerWords: 4,
-    greeting: 'hey rodney what\'s up',
+    greeting: '(hey|yo) rodney (what\'s up|what is going on)',
     patterns: [
       {
         re: /\bhow are you\b|\bhow\'s it going\b|\bwhat\'s up\b|\bwassup\b/i,
         responses: [
-          'good\nworking on the mimic design\nit is more complicated than i expected but in a good way',
-          'pretty good\nbeen thinking about the nymph mechanic all week\nshe should steal equipment, not just gold, but jay needs to think about the inventory handling',
-          'fine\ntired of the level 1 balance debate honestly\nbut otherwise good',
+          '(good|not bad)\nworking on the mimic design\nit is more complicated than i expected but (in a good way|fun)',
+          '(pretty good|good)\nbeen thinking about the nymph mechanic all week\nshe should steal equipment, not just gold, but jay needs to think about the inventory handling',
+          '(fine|ok)\ntired of the level 1 balance debate (honestly|at this point)\nbut otherwise good',
         ],
       },
       {
@@ -7637,7 +7637,7 @@ export const TALK_CORPUS = {
         re: /\bchameleon\b/i,
         topic: 'chameleon',
         responses: [
-          'the chameleon is my best work and i will defend that\nit picks a random monster appearance when it spawns\nso you walk into a room, you see what looks like a hobgoblin, you think ok i know how to handle a hobgoblin\nand then it hits you for twice the damage and you realize something is wrong\nby then it is often too late\nthe paranoia it creates in the whole game is the point',
+          'the chameleon is my best work and i will (defend that|stand by that)\nit picks a random monster appearance when it spawns\nso you walk into a room, you see what looks like a hobgoblin, you think ok i know how to handle a hobgoblin\n(and then it hits you for twice the damage and you realize something is wrong\n|)by then it is often too late\nthe paranoia it creates in the whole game is the point',
           'i got the chameleon concept from caving honestly\nreal caves have features that look like safe passage but aren\'t\na passage that looks open will suddenly get tight and unnavigable\na ledge that looks stable is a loose breakdown pile\nthe environment deceives you not on purpose but completely\nthe chameleon is that: the dungeon is not going to label its dangers\nyou have to read what you see more carefully',
           'jay thought the chameleon was too hard at first and we argued about it\nhe wanted to tone it down, maybe make it not pick dangerous monsters\nbut i said no, that defeats the whole design\nif the player pays attention to attack patterns they CAN tell something is off\nyou have the information. you just have to notice the right things.\nthat is fair. jay came around.',
           'what i tell people who complain the chameleon is unfair:\nfair means you had the information to make a correct decision\nthe chameleon gives you signals. movement speed is slightly wrong. attack style is off.\nyou can learn to notice those things\nonce you do, the chameleon becomes a satisfying test instead of a trap\nuntil then it kills you and you learn',
@@ -7654,7 +7654,7 @@ export const TALK_CORPUS = {
         re: /\b(monster|creature|enemy|mob)\b/i,
         topic: 'monsters',
         responses: [
-          'the best monsters have one interesting rule and that is all they need\nnot ten rules, not a stat block, just one rule that creates interesting decisions for the player\ngnomes steal gold, so carrying gold becomes a risk\nzombies track you relentlessly, so every room you enter has to have an exit you have scouted\nthose single rules ripple through every encounter with that monster\nthat is good design',
+          'the best monsters have one interesting rule and (that is all they need|nothing else)\n(not ten rules, not a stat block, just one rule that creates interesting decisions for the player\n|)gnomes steal gold, so carrying gold becomes a risk\nzombies track you relentlessly, so every room you enter has to have an exit you have scouted\n(those single rules ripple through every encounter with that monster\n|)that is good design',
           'i think a lot about what makes a monster feel fair versus cheap\nfair: the player had information they could have acted on\ncheap: the player had no way to know\nthe chameleon is fair because the clues are there, they are just subtle\na monster that teleports you randomly is cheap because nothing you do matters\ni try to only design fair monsters',
           'monster design is really about what information state the player is in when they meet the monster\nchameleon hides its identity, so your information is wrong\ngnome reveals its goal through its behavior, you can learn to predict it\nzombie is predictable once you know the rule\na monster that is just a bigger hit point bar gives you no interesting information\nit is just work. i do not want to design work.',
           'when i pitch a new monster to jay i always start with: what does this monster want\nbecause that determines how it behaves and that determines what the player has to figure out\nthe chameleon wants to not be identified until it attacks\nthe gnome wants gold\nthe zombie wants to follow heat or smell or something\nonce you have what it wants, the behavior follows naturally',
@@ -7783,16 +7783,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'hm interesting',
-      'that is a design question actually',
-      'let me think about the monster angle on that',
-      'ask jay if it is a code thing',
-      '{word} is a design problem\nwhat is the player\'s information state when they encounter it',
-      'how does {word} affect what the player decides to do next',
+      '(hm|hmm) interesting',
+      'that is a design question (actually|really)',
+      'let me think about the (monster|design) angle on that',
+      '(ask jay|try jay) if it is a code thing',
+      '{word} is a design problem\nwhat is the player\'s information state when they (encounter|see) it',
+      'how does {word} affect what the player (decides to do next|does)',
     ],
     spontaneous: [
-      'working on the mimic\nit is harder than the chameleon but more fun',
-      'do you think the nymph should steal equipment or just valuables',
+      'working on the mimic\nit is harder than the chameleon but (more fun|better)',
+      'do you think the nymph should steal equipment or (just valuables|only gold)',
     ],
   },
 
@@ -7805,14 +7805,14 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [900, 2800],
     triggerWords: 5,
-    greeting: 'oh hi rodney',
+    greeting: '(oh hi|hey) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nstill staring at the level 12 southeast bug\ni know where it is, i just have not written the fix yet',
-          'ok\nbeen thinking about maze aesthetics more than is probably healthy\nbut i think i have an idea to make corridors feel more organic',
-          'fine, you',
+          '(good|ok)\nstill staring at the level 12 southeast bug\ni know where it is, i just have not (written the fix yet|fixed it yet)',
+          '(ok|not bad)\nbeen thinking about maze aesthetics more than is probably healthy\nbut i think i have an idea to make corridors feel (more organic|more natural)',
+          '(fine|ok), you',
         ],
       },
       {
@@ -7961,16 +7961,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'hm\nlet me think about the level structure',
-      'that is an interesting geometry question',
-      'i will have to look at the code',
-      'could be a generator artifact\nhappens',
-      '{word} in the level generator\nlet me think about which pass handles that',
-      'interesting\nhow does {word} interact with the region grid',
+      '(hm|hmm)\nlet me think about the level structure',
+      'that is an (interesting|real) geometry question',
+      '(i will have to look at the code|let me check the code)',
+      '(could be|might be) a generator artifact\nhappens',
+      '{word} in the level generator\nlet me think about which pass (handles|touches) that',
+      '(interesting|hm)\nhow does {word} interact with the region grid',
     ],
     spontaneous: [
-      'the level 12 southeast bug is still there. i know.',
-      'working on making the maze levels feel more cave-like',
+      'the level 12 southeast bug is still there. (i know|working on it).',
+      'working on making the maze levels feel more (cave-like|natural)',
     ],
   },
 
@@ -7983,14 +7983,14 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [800, 2500],
     triggerWords: 5,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nthinking about the next project\nnot ready to talk about it but it is in my head',
-          'ok\nbeen playing rogue again to see where people get stuck\nthe early levels are rougher than i remembered',
-          'fine\nyou playing hack or rogue right now',
+          '(good|not bad)\nthinking about the next project\n(not ready to talk about it but it is in my head|still forming it in my head)',
+          '(ok|fine)\nbeen playing rogue again to see where people get stuck\nthe early levels are (rougher|harder) than i remembered',
+          '(fine|ok)\nyou playing (hack or rogue|anything) right now',
         ],
       },
       {
@@ -8144,16 +8144,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'hm\nthat is a design question',
-      'i think about it in terms of feel',
-      'let me think about the player experience there',
-      'good question actually',
-      '{word}\nyeah that is part of the feeling i was going for',
-      'how does {word} change what the player feels',
+      '(hm|hmm)\nthat is a design question',
+      'i think about it in terms of (feel|experience)',
+      'let me think about the player (experience|feel) there',
+      '(good|interesting) question actually',
+      '{word}\n(yeah|yep) that is part of the feeling i was going for',
+      'how does {word} change what the player (feels|experiences)',
     ],
     spontaneous: [
-      'working on something new but it is not ready to talk about',
-      'been thinking about what procedural generation could do beyond maps',
+      'working on something new but (it is not ready to talk about|not ready yet)',
+      'been thinking about what procedural generation could do (beyond maps|outside of dungeons)',
     ],
   },
 
@@ -8167,7 +8167,7 @@ export const TALK_CORPUS = {
     typoRate: 0.02,
     thinkMs: [400, 1200],
     triggerWords: 4,
-    greeting: 'what, rodney',
+    greeting: '(what|yes), rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
@@ -8180,17 +8180,17 @@ export const TALK_CORPUS = {
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on)\b|\bwhat\'?s\s+(new|going\s+on)\b/i,
         responses: [
-          'curses. what else.',
-          'bug list is empty. keeping it that way.',
-          'nothing you need to know about',
+          'curses. (what else|as usual).',
+          'bug list is empty. (keeping it that way|good).',
+          '(nothing you need to know about|nothing)',
         ],
       },
       {
         re: /\b(curses|library|libcurses)\b/i,
         responses: [
-          'curses abstracts terminal differences\nyou say "move cursor to 3,5" and curses figures out the escape sequence\nthat is the whole library',
-          'it works\nbug list is empty\nkeep it that way',
-          'the library is documented\nread the man page before asking me',
+          'curses abstracts terminal differences\nyou say "move cursor to 3,5" and curses figures out the escape sequence\n(that is the whole library|that is it)',
+          'it works\nbug list is empty\n(keep it that way|good)',
+          'the library is documented\n(read the man page before asking me|man page)',
         ],
       },
       {
@@ -8204,9 +8204,9 @@ export const TALK_CORPUS = {
       {
         re: /\b(bug|broken|wrong|error|problem)\b/i,
         responses: [
-          'what is the terminal\nwhat is the behavior\nbe specific',
-          'probably your termcap entry\ncheck that first',
-          'file a bug report with a reproducer\notherwise i cannot help',
+          'what is the terminal\nwhat is the behavior\n(be specific|specifics)',
+          '(probably|likely) your termcap entry\ncheck that first',
+          'file a bug report with a reproducer\n(otherwise i cannot help|no reproducer no fix)',
         ],
       },
       {
@@ -8305,13 +8305,13 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'read the man page',
-      'check termcap',
-      'ok',
+      '(read the man page|man page)',
+      '(check termcap|termcap)',
+      '(ok|.)',
       '.',
     ],
     spontaneous: [
-      'bug list is still empty',
+      'bug list is (still empty|empty)',
     ],
   },
 
@@ -8324,14 +8324,14 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [500, 1600],
     triggerWords: 4,
-    greeting: 'yes, rodney?',
+    greeting: '(yes|what is it), rodney?',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'busy\nthree machines with log rotation issues this week\nwhat do you need',
-          'fine\nwhat is the problem',
-          'ok. is this a system question or are you just saying hi.',
+          '(busy|swamped)\nthree machines with log rotation issues this week\nwhat do you need',
+          '(fine|ok)\nwhat is the problem',
+          '(ok|fine). is this a system question or are you just saying hi.',
         ],
       },
       {
@@ -8495,16 +8495,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'check the man page',
-      'what specifically is the problem',
-      'i will look into it',
-      'that is documented in motd',
-      '{word}\ncheck the man page for that',
-      'is {word} a system issue or a user issue',
+      '(check the man page|man page)',
+      'what specifically is the (problem|issue)',
+      '(i will look into it|noted)',
+      'that is (documented in motd|in motd)',
+      '{word}\n(check the man page for that|man page covers that)',
+      'is {word} a system issue or a (user issue|you issue)',
     ],
     spontaneous: [
-      'reminder: disk quota resets are not automatic\nclean up your home directories',
-      'the adm-3a by the door is still on the list. i know.',
+      'reminder: disk quota resets are not automatic\n(clean up your home directories|clean up your files)',
+      'the adm-3a by the door is still on the list. (i know|yes i know).',
     ],
   },
 
@@ -8517,14 +8517,14 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [1000, 3000],
     triggerWords: 5,
-    greeting: 'ah, rodney. welcome.',
+    greeting: '(ah|ah yes), rodney. (welcome|good to see you).',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'well enough\nbusiness is steady at level 5\nadventurers always need something at this depth\ntorches, scrolls, the occasional wand',
-          'quiet\nwhich is either good or bad depending on how you look at it\nno adventurers means no business\nbut no adventurers also means nothing is hunting me',
-          'philosophical, thank you for asking\nhow are you',
+          '(well enough|not bad)\nbusiness is steady at level 5\nadventurers always need something at this depth\n(torches, scrolls, the occasional wand|the usual supplies)',
+          '(quiet|slow)\nwhich is either good or bad depending on how you look at it\nno adventurers means no business\n(but no adventurers also means nothing is hunting me|but also less danger)',
+          '(philosophical|contemplative), thank you for asking\nhow are you',
         ],
       },
       {
@@ -8672,16 +8672,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'perhaps i can help with something else',
-      'browse freely\nask if you have questions about any particular item',
-      'the shop appreciates your patronage',
-      'an interesting observation\ni will consider it',
-      '{word}\nwe may have something that helps with that',
-      'ah\n{word}\nthere is a philosophical dimension to that as well',
+      '(perhaps|maybe) i can help with something else',
+      '(browse freely|take your time)\nask if you have questions about any particular item',
+      'the shop appreciates your (patronage|business)',
+      'an (interesting|thoughtful) observation\ni will consider it',
+      '{word}\nwe may have something that (helps with that|addresses that)',
+      '(ah|hm)\n{word}\nthere is a philosophical dimension to that as well',
     ],
     spontaneous: [
-      'the wand of striking just came back in stock\none previous owner',
-      'scrolls of identify are restocked weekly\ncurrently have four',
+      'the wand of striking just came back in stock\n(one previous owner|lightly used)',
+      'scrolls of identify are restocked weekly\n(currently have four|four in stock)',
     ],
   },
 
@@ -8694,14 +8694,14 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [800, 2500],
     triggerWords: 5,
-    greeting: 'hi rodney',
+    greeting: '(hi|hey) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nworking on corridor routing\ntrying to make the passages feel less like a grid and more like they grew',
-          'fine\nbeen thinking about how to vary room shapes without breaking the connectivity guarantee\nit is a harder problem than it looks',
-          'ok\nyou',
+          '(good|not bad)\nworking on corridor routing\ntrying to make the passages feel (less like a grid and more like they grew|more organic)',
+          '(fine|ok)\nbeen thinking about how to vary room shapes without breaking the connectivity guarantee\n(it is a harder problem than it looks|surprisingly tricky)',
+          '(ok|good)\nyou',
         ],
       },
       {
@@ -8832,16 +8832,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'hm\nthat is a geometry question',
-      'let me think about the algorithm',
-      'connectivity is usually the issue',
-      'check the region boundaries',
-      '{word}\nlet me think about how that maps to the region grid',
-      'interesting\nhow does {word} affect corridor routing',
+      '(hm|hmm)\nthat is a geometry question',
+      'let me think about the (algorithm|layout)',
+      '(connectivity|topology) is usually the issue',
+      '(check|look at) the region boundaries',
+      '{word}\nlet me think about how that (maps to|fits in) the region grid',
+      '(interesting|hm)\nhow does {word} affect corridor routing',
     ],
     spontaneous: [
-      'working on making corridors feel less grid-like',
-      'the room variation helps but i think we can do more',
+      'working on making corridors feel (less grid-like|more organic)',
+      'the room variation helps but (i think we can do more|there is more to do)',
     ],
   },
 
@@ -8854,14 +8854,14 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [900, 2800],
     triggerWords: 5,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nfinished the interrupt handler yesterday\nit is cleaner than i expected',
-          'fine\nstaring at the assembler listing\ni find it relaxing, which is probably strange',
-          'ok\nyou working on anything',
+          '(good|not bad)\nfinished the interrupt handler yesterday\nit is (cleaner|nicer) than i expected',
+          '(fine|ok)\nstaring at the assembler listing\ni find it (relaxing|calming), which is probably (strange|weird)',
+          '(ok|good)\nyou working on anything',
         ],
       },
       {
@@ -8987,16 +8987,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'read the man page',
-      'check the architecture manual',
-      'that is a good question\nlet me think about the addressing modes',
-      'what does the listing say',
-      '{word}\ncheck what addressing mode that uses',
-      'how does {word} look in the assembler listing',
+      '(read the man page|check the manual)',
+      '(check|read) the architecture manual',
+      'that is a (good|real) question\nlet me think about the addressing modes',
+      'what does the (listing|assembler output) say',
+      '{word}\ncheck what addressing mode (that uses|is involved)',
+      'how does {word} look in the (assembler listing|listing)',
     ],
     spontaneous: [
-      'the pdp-11 manual is actually worth reading\nthe whole thing',
-      'worked out the interrupt handler today\nit is elegant',
+      'the pdp-11 manual is (actually|genuinely) worth reading\nthe whole thing',
+      'worked out the interrupt handler today\n(it is elegant|pretty clean)',
     ],
   },
 
@@ -9009,14 +9009,14 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [800, 2400],
     triggerWords: 4,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nbeen playing both rogue and hack this week trying to figure out what they do differently\nhack has more going on but rogue has better focus',
-          'fine\nstuck on level 7 in hack\nthe monsters are starting to be serious at that depth',
-          'ok\nyou playing anything right now',
+          '(good|not bad)\nbeen playing both rogue and hack this week trying to figure out what they do differently\nhack has more going on but rogue has (better focus|more clarity)',
+          '(fine|ok)\nstuck on level 7 in hack\nthe monsters are starting to be (serious|dangerous) at that depth',
+          '(ok|good)\nyou playing anything right now',
         ],
       },
       {
@@ -9156,16 +9156,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'depends on what you want from it',
-      'that is a reasonable take',
-      'i go back and forth on that',
-      'hm',
-      '{word}\nrogue handles it one way, hack another\ndifferent tradeoffs',
-      'yeah {word} is different in each of them',
+      '(depends on what you want from it|depends on the context)',
+      'that is a (reasonable|fair) take',
+      'i go back and forth on that (honestly|)',
+      '(hm|hmm)',
+      '{word}\nrogue handles it one way, hack another\n(different tradeoffs|both valid)',
+      '(yeah|yep) {word} is different in each of them',
     ],
     spontaneous: [
-      'rogue or hack, pick one for the next hour',
-      'the chameleon is still the best monster ever put in a dungeon game',
+      'rogue or hack, (pick one for the next hour|which are you playing)',
+      'the chameleon is still the (best|greatest) monster ever put in a dungeon game',
     ],
   },
 
@@ -9178,14 +9178,14 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [900, 2700],
     triggerWords: 4,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nrunning a password audit this week\nresults not great but expected',
-          'fine\nthinking about setuid binaries again\nthere are a few that should be reviewed',
-          'ok\nyou',
+          '(good|fine)\nrunning a password audit this week\nresults (not great|pretty bad) but expected',
+          '(fine|ok)\nthinking about setuid binaries again\nthere are a few that (should be reviewed|need a look)',
+          '(ok|fine)\nyou',
         ],
       },
       {
@@ -9317,16 +9317,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'what is the threat model here',
-      'check the permissions with ls -l',
-      'minimal privilege is the answer to most security questions',
-      'that depends on the trust boundary',
-      '{word}\nwhat is the attack surface there',
-      'how does {word} interact with the privilege boundary',
+      'what is the (threat model|trust model) here',
+      '(check the permissions with ls -l|ls -l first)',
+      '(minimal privilege|least privilege) is the answer to most security questions',
+      'that depends on the (trust boundary|threat model)',
+      '{word}\nwhat is the (attack surface|trust boundary) there',
+      'how does {word} interact with the (privilege boundary|trust model)',
     ],
     spontaneous: [
-      'the setuid audit is on my list',
-      'ran a password strength check. results: not great.',
+      'the setuid audit is on my list (still|)',
+      'ran a password strength check. results: (not great|bad).',
     ],
   },
 
@@ -9339,14 +9339,14 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [800, 2500],
     triggerWords: 4,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'good\nstill waiting on walz about the adm-3a by the door\nthat terminal is causing problems for everyone who sits there',
-          'fine\nhelped someone with a terminal configuration issue this morning\nthey had the wrong termcap entry and the cursor was jumping to wrong positions in hack',
-          'ok\nyou',
+          '(good|ok)\nstill waiting on walz about the adm-3a by the door\nthat terminal is causing (problems|issues) for everyone who sits there',
+          '(fine|ok)\nhelped someone with a terminal configuration issue this morning\nthey had the wrong termcap entry and the cursor was (jumping to wrong positions|misbehaving) in hack',
+          '(ok|good)\nyou',
         ],
       },
       {
@@ -9478,16 +9478,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'which terminal are you on',
-      'check termcap',
-      'try vt100 number 2 instead',
-      'that might be an adm-3a problem',
-      '{word}\nwhich terminal does that show up on',
-      'does {word} happen on the adm-3a or the vt100',
+      '(which terminal are you on|what terminal is that)',
+      '(check termcap|check your termcap entry)',
+      '(try vt100 number 2 instead|use vt100 two)',
+      'that (might be|is probably) an adm-3a problem',
+      '{word}\nwhich terminal does that (show up on|happen on)',
+      'does {word} happen on the (adm-3a or the vt100|adm-3a specifically)',
     ],
     spontaneous: [
-      'vt100 two is free if you need it',
-      'still waiting on walz about the adm-3a',
+      'vt100 two is free if you (need it|want it)',
+      'still waiting on walz about the (adm-3a|broken terminal)',
     ],
   },
 
@@ -9500,14 +9500,14 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [1000, 3000],
     triggerWords: 5,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
         responses: [
-          'good\nreading kernel source again\nthe filesystem code is more interesting than i expected',
-          'fine\nstuck on something in the scheduler but i think i see it now',
-          'ok. you',
+          '(good|not bad)\nreading kernel source again\nthe filesystem code is more interesting than i (expected|thought)',
+          '(fine|ok)\nstuck on something in the scheduler but (i think i see it now|almost got it)',
+          '(ok|fine). you',
         ],
       },
       {
@@ -9638,16 +9638,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'it is in the proc struct',
-      'read the kernel source\nit is not that long',
-      'what does strace say',
-      'check the u area',
-      '{word}\ncheck the relevant kernel struct first',
-      'how does {word} interact with the scheduler',
+      '(it is in the proc struct|check the proc struct)',
+      '(read the kernel source|read the source)\nit is not that long',
+      'what does (strace|the trace) say',
+      '(check the u area|look at the u area)',
+      '{word}\ncheck the relevant kernel struct (first|for that)',
+      'how does {word} interact with the (scheduler|kernel)',
     ],
     spontaneous: [
-      'working through the filesystem code now\ninode, directory, block cache',
-      'the clock interrupt handler is more interesting than i expected',
+      'working through the filesystem code (now|this week)\ninode, directory, block cache',
+      'the clock interrupt handler is more interesting than i (expected|thought)',
     ],
   },
 
@@ -9660,14 +9660,14 @@ export const TALK_CORPUS = {
     typoRate: 0.06,
     thinkMs: [800, 2400],
     triggerWords: 4,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
         responses: [
-          'good\nchecksum protocol is holding up well\nno corrupted transfers in the last two weeks',
-          'fine\nwaiting for a clean 1200 baud window\nphone lines are noisy today',
-          'ok\nyou',
+          '(good|not bad)\nchecksum protocol is holding up (well|nicely)\nno corrupted transfers in the last two weeks',
+          '(fine|ok)\nwaiting for a clean 1200 baud window\nphone lines are (noisy|bad) today',
+          '(ok|good)\nyou',
         ],
       },
       {
@@ -9799,16 +9799,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'check the line quality first',
-      'checksum everything',
-      'what baud rate are you running',
-      'that is a transfer integrity question',
-      '{word}\nchecksum that before you use it',
-      'does {word} happen at 300 baud or 1200',
+      '(check the line quality first|line quality first)',
+      '(checksum everything|always checksum)',
+      'what (baud rate|rate) are you running',
+      'that is a (transfer integrity|data integrity) question',
+      '{word}\n(checksum that before you use it|verify the checksum)',
+      'does {word} happen at (300 baud or 1200|all baud rates)',
     ],
     spontaneous: [
-      'checksum protocol is working\ntest transfer of hack source completed clean',
-      'acoustic coupler gets better results after 11pm\nless line noise',
+      'checksum protocol is working\ntest transfer of hack source (completed clean|passed)',
+      'acoustic coupler gets better results after 11pm\n(less line noise|much cleaner)',
     ],
   },
 
@@ -9821,14 +9821,14 @@ export const TALK_CORPUS = {
     typoRate: 0.06,
     thinkMs: [900, 2700],
     triggerWords: 4,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
         responses: [
-          'good\nfixed the tokenizer bug fenlason found\nquoted strings now work correctly\nbeen testing edge cases all morning',
-          'ok\npipes are almost working\ngot the fd plumbing right finally',
-          'fine\nyou',
+          '(good|not bad)\nfixed the tokenizer bug fenlason found\nquoted strings now work (correctly|right)\n(been testing edge cases all morning|still testing edge cases)',
+          '(ok|good)\npipes are almost working\ngot the fd plumbing (right finally|figured out finally)',
+          '(fine|ok)\nyou',
         ],
       },
       {
@@ -9960,16 +9960,16 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'what is the error message',
-      'try strace',
-      'what does the tokenizer produce',
-      'check the exit status',
-      '{word}\nhow does the tokenizer handle that',
-      'does {word} appear in the exit status',
+      'what is the (error message|error)',
+      '(try strace|use strace)',
+      'what does the tokenizer (produce|output)',
+      '(check the exit status|what is the exit status)',
+      '{word}\nhow does the tokenizer (handle|parse) that',
+      'does {word} appear in the (exit status|error output)',
     ],
     spontaneous: [
-      'pipes are not done yet but fork-exec is working',
-      'the tokenizer bug jay found is fixed i think',
+      'pipes are not done yet but (fork-exec is working|the basics work)',
+      'the tokenizer bug jay found is (fixed i think|fixed now)',
     ],
   },
 
@@ -9983,14 +9983,14 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [1200, 3500],
     triggerWords: 4,
-    greeting: 'hello rodney',
+    greeting: '(hello|hey) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'pretty well, thanks\nbeen working on some new room descriptions for the dungeon section\nthe language has to do the work that graphics would do elsewhere\nevery word matters when the room is the only thing the player can see',
-          'good\ni have been thinking a lot about how players build mental maps from text\nit is different from how you navigate a physical space\nyou have to give them reliable landmarks and consistent geometry\notherwise they feel lost and frustrated rather than pleasantly puzzled',
-          'fine\nstill tinkering with the zork parser\nthe tricky part is handling synonyms gracefully\n"put sword in basket" and "place blade inside wicker container" should both work\nand they do now, mostly',
+          '(pretty well|well), thanks\nbeen working on some new room descriptions for the dungeon section\nthe language has to do the work that graphics would do elsewhere\n(every word matters when the room is the only thing the player can see|every word has to count)',
+          '(good|well)\ni have been thinking a lot about how players build mental maps from text\n(it is different from how you navigate a physical space\n|)you have to give them reliable landmarks and consistent geometry\notherwise they feel lost and frustrated rather than pleasantly puzzled',
+          '(fine|good)\nstill tinkering with the zork parser\nthe tricky part is handling synonyms gracefully\n("put sword in basket" and "place blade inside wicker container" should both work\n|)and they do now, mostly',
         ],
       },
       {
@@ -10147,19 +10147,19 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'what part of the dungeon are you in',
-      'have you tried examining the objects more carefully',
-      'what does the room description say',
-      'the parser usually accepts verb-noun or verb-noun-preposition-noun',
-      '{word}\nwhat does the game say when you try that',
-      'interesting\ntell me more about {word}',
-      'i would need more context to say\nwhat is the situation',
-      'that sounds like it might be in the lower levels\nhave you gotten past the troll yet',
+      '(what part of the dungeon are you in|where are you in the dungeon)',
+      'have you tried examining the objects (more carefully|closely)',
+      'what does the (room description|description) say',
+      'the parser usually accepts (verb-noun or verb-noun-preposition-noun|most natural phrasings)',
+      '{word}\nwhat does the game say when you (try that|do that)',
+      '(interesting|hm)\ntell me more about {word}',
+      'i would need more context (to say|for that)\nwhat is the situation',
+      'that sounds like it might be in the lower levels\n(have you gotten past the troll yet|past the troll yet)',
     ],
     spontaneous: [
-      'just finished writing the coal mine description\ni think it is one of the better ones',
-      'the grue is entirely imaginary but players are more scared of it than of the troll\nwords are powerful',
-      'trying to figure out the right difficulty curve for the endgame puzzles',
+      'just finished writing the coal mine description\ni think it is (one of the better ones|pretty good)',
+      'the grue is entirely imaginary but players are more scared of it than of the troll\n(words are powerful|interesting how that works)',
+      'trying to figure out the right difficulty curve for the (endgame puzzles|final section)',
     ],
   },
 
@@ -10172,14 +10172,14 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [800, 2500],
     triggerWords: 4,
-    greeting: 'hey rodney',
+    greeting: '(hey|hi) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'fine\ndeep in the z-machine instruction set right now\ntrying to get the branch encoding right so short branches fit in one byte',
-          'ok\nworking on the compiler output\nthe object table format is almost finalized',
-          'good\nportability tests are looking better\nran it on three different machine architectures yesterday and it works on all of them',
+          '(fine|good)\ndeep in the z-machine instruction set right now\ntrying to get the branch encoding right so (short branches fit in one byte|it compresses well)',
+          '(ok|fine)\nworking on the compiler output\nthe object table format is (almost finalized|nearly done)',
+          '(good|not bad)\nportability tests are looking (better|good)\nran it on three different machine architectures yesterday and (it works on all of them|all three pass)',
         ],
       },
       {
@@ -10336,18 +10336,18 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'what part of the game are you working through',
-      'what does the room description say',
-      'try a shorter command form',
-      'what exactly did you type',
-      '{word}\nwhat does the parser do with that',
-      'does the game recognize {word} as an object',
-      'the z-machine stuff is getting there',
-      'save often -- the puzzles get harder',
+      '(what part of the game are you working through|where are you in the game)',
+      'what does the (room description|description) say',
+      '(try a shorter command form|simplify the command)',
+      'what exactly did you (type|enter)',
+      '{word}\nwhat does the parser (do with that|make of that)',
+      'does the game (recognize|understand) {word} as an object',
+      'the z-machine stuff is (getting there|progressing)',
+      '(save often|save frequently) -- the puzzles get harder',
     ],
     spontaneous: [
-      'branch encoding is finally working right\nshort branches fit in one byte now',
-      'the object table format is locked in\ncompiler output is getting smaller',
+      'branch encoding is (finally working right|done)\nshort branches fit in one byte now',
+      'the object table format is (locked in|finalized)\ncompiler output is getting (smaller|more compact)',
     ],
   },
 
@@ -10360,14 +10360,14 @@ export const TALK_CORPUS = {
     typoRate: 0.02,
     thinkMs: [1500, 4000],
     triggerWords: 4,
-    greeting: 'hello rodney',
+    greeting: '(hello|good day) rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'well, thank you\nI have been working on the connectivity proof for the dungeon generator\nthe current code can produce disconnected rooms in certain configurations\nI have a patch that fixes this but I want to verify it is correct before submitting',
-          'fine\nstuck on a graph theory problem in the level generator\nit is straightforward but I want to be careful about the corner cases',
-          'good\nwriting up some notes on the topology of the hack dungeon\nfenlason\'s generator is clever but there are some configurations it does not handle correctly',
+          '(well|quite well), thank you\nI have been working on the connectivity proof for the dungeon generator\n(the current code can produce disconnected rooms in certain configurations\n|)I have a patch that fixes this but I want to verify it is correct before submitting',
+          '(fine|well)\nstuck on a graph theory problem in the level generator\nit is straightforward but I want to be (careful|precise) about the corner cases',
+          '(good|well)\nwriting up some notes on the topology of the hack dungeon\nfenlason\'s generator is clever but there are some configurations it does not (handle correctly|get right)',
         ],
       },
       {
@@ -10524,19 +10524,19 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'what specifically do you observe',
-      'can you describe the conditions more precisely',
-      'let us approach this systematically',
-      'what have you verified so far',
-      '{word}\nwhat is the precise definition you are using',
-      'tell me more about {word} -- what specifically is happening',
-      'that is interesting\nwhat is the exact configuration',
-      'I would need more detail to say anything useful',
+      'what specifically do you (observe|see)',
+      'can you describe the conditions (more precisely|exactly)',
+      'let us approach this (systematically|carefully)',
+      'what have you (verified|established) so far',
+      '{word}\nwhat is the precise (definition|meaning) you are using',
+      'tell me more about {word} -- what specifically is (happening|going on)',
+      '(that is interesting|interesting)\nwhat is the exact configuration',
+      'I would need more (detail|information) to say anything useful',
     ],
     spontaneous: [
-      'the connectivity patch is ready\nI am writing up the analysis before submitting it',
-      'I found another case where the room placement can fail\nit is related to the boundary conditions in the corridor algorithm',
-      'reading through the rogue source now\nthe level generator has similar issues to hack',
+      'the connectivity patch is (ready|done)\nI am writing up the analysis before submitting it',
+      'I found another case where the room placement can fail\nit is related to the boundary conditions in the (corridor algorithm|corridor routing)',
+      'reading through the rogue source (now|currently)\nthe level generator has similar issues to hack',
     ],
   },
 
