@@ -104,6 +104,9 @@ import { place_monster } from './steed.js';
 import { Role_if } from './role.js';
 import { dochug, m_everyturn_effect } from './monmove.js';
 import { flooreffects } from './do.js';
+import { artifact_exists } from './artifact.js';
+import { safe_oname } from './do_name.js';
+import { ONAME_NO_FLAGS } from './const.js';
 import { assertNotInModal } from './modal_guard.js';
 
 // C macro: ismnum(mndx) — valid monster index check
@@ -1117,6 +1120,9 @@ export async function xkilled(mon, xkill_flags, map, player) {
                     delobj(otmp);
                 } else if ((mdat.msize || 0) < MZ_HUMAN && otyp !== FIGURINE
                     && (otmp.owt > 30 || objectData[otyp]?.oc_big)) {
+                    // C ref: mon.c:3602-3604 — un-create artifact before deleting
+                    if (otmp.oartifact)
+                        artifact_exists(otmp, safe_oname(otmp), false, ONAME_NO_FLAGS);
                     delobj(otmp);
                 } else if (!await flooreffects(otmp, x, y, nomsg ? '' : 'fall', player, map)) {
                     // C ref: mon.c:3606 — flooreffects checks lava/pool/etc.
