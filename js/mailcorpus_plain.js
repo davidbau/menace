@@ -7016,6 +7016,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'are you taking the programming course this year',
       'the logo interpreter is on the vax if you (want to try it|are interested)',
+      'rodney i have been thinking about how you (approach|work through) problems\nyou jump to the code before you have the model in your head\nwhich works sometimes but it means you debug by thrashing\nwhat i teach with logo is the opposite\nyou build a (mental model|picture) first then the code follows\n(i am not criticizing, just observing\n|)try writing out what you think will happen before you run it\ni think you would be surprised how much faster you go',
+      'hey rodney i wanted to tell you something about recursion\nmost people think it is a (trick|clever technique) for computing factorials\nbut it is actually a way of thinking\nwhen you define a procedure in terms of itself you are saying\nthe big problem has the same (shape|structure) as the small problem\n(that is not just programming, that is how you understand the world\n|)once you see it you start seeing it everywhere\ntrees, sentences, arguments, even the dungeon',
+      '(hey|hi) rodney so i was grading the (logo|programming) assignments last night\nand something struck me about how people learn\nthe students who (get stuck|struggle) the most are the ones who memorize syntax\nthe ones who (fly through it|do well) are the ones who play\n(they try things, break things, then figure out why\n|)you are more in the second group actually\nwhich is why i think you would get a lot out of the recursion unit\nit rewards (exploration|curiosity) more than memorization',
     ],
   },
 
@@ -7220,6 +7223,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'jove is at version 4 now if you (want to try it|are interested)',
       'been thinking about what editors look like when memory is (not the constraint|cheap)',
+      'rodney i was looking at your code in the editor today\nand i noticed you (never use|almost never use) split windows\njove can show two buffers at once, you know\nctrl-x 2 splits the screen\nyou can have the header file on top and the source on the bottom\n(it changes everything once you get used to it\n|)the whole point of jove is that the editor should not be in your way\nit should be (invisible|transparent), just you and the code',
+      '(hey|hi) rodney i have been thinking about (something|this)\nwhat does a text editor look like in ten years\nright now we edit one file at a time on an 80 by 24 terminal\nbut what if you had a (bitmap display|graphics terminal) with a mouse\nyou could click on a function name and jump to its definition\nor highlight a block and move it with a gesture\n(sounds crazy but i think it is coming\n|)the constraint is not imagination, it is the terminal\nonce the terminal gets out of the way everything changes',
+      'rodney i noticed something in your hack source\nyou have a section where you build a string character by character in a loop\nbut jove has a (buffer gap|gap buffer) data structure that does exactly this\nthe idea is you keep a gap in the middle of your array\nand move it to wherever the cursor is\ninsertions and deletions at the cursor are O(1) instead of O(n)\n(it is the same trick the dungeon uses for the map array actually\n|)you should look at how jove does it, might speed up your display code',
     ],
   },
 
@@ -7421,6 +7427,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'the meeting notes are posted if you missed (today|the meeting)',
       'if someone touched the printer settings again (i will find out|i swear)',
+      'rodney i need to (talk to you|ask you something) about the club schedule\njay has been in the computer room every night this week and i am trying to book time for the other members\nbut he keeps saying he needs the pdp for testing\nwhich is (true|fair) but there are twelve other people who also need access\n(i am not going to tell him no, he is my brother\n|)but could you maybe suggest he test during the day sometimes\nhe listens to you more than he listens to me',
+      '(hey|hi) rodney so i was going through the (club records|membership list) yesterday\nand i realized we have thirty-one members on paper but only about (fifteen|twelve) who actually show up\nthe rest signed up in september and never came back\n(i think the problem is that the first meeting was all jargon\npeople who did not already know unix felt lost\n|)i want to do an intro session next month for beginners\nbut i need someone who can explain things without being (condescending|intimidating)\nwould you be willing to help with that',
+      'rodney something (weird|strange) happened with the printer log\ni keep a sign-out sheet for the printer ribbon cartridges\nand according to my records we should have (three|four) left\nbut there is only one in the cabinet\neither someone is not signing them out or someone is (taking them home|hoarding them)\n(i am not accusing anyone specifically\n|)but if you hear anything let me know\nthose cartridges are not free and the budget is already tight',
     ],
   },
 
@@ -7837,6 +7846,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'working on the mimic\nit is harder than the chameleon but (more fun|better)',
       'do you think the nymph should steal equipment or (just valuables|only gold)',
+      '(hey|yo) rodney i have been thinking about what makes a (good|great) monster encounter\nit is not hit points or damage\nit is the moment where the player goes oh no\nthe chameleon works because you do not know what it is until it is too late\n(the mimic works because you thought it was a chest\n|)the best monsters exploit what you think you know\ni want to design one that changes the dungeon layout when you are not looking\nlike it moves the walls around behind you',
+      'rodney ok so i have a new monster idea i want to pitch to (jay|fenlason)\na shadow that follows you but stays just outside your line of sight\nyou would only see it in corridors when it has nowhere to hide\nand it does not attack directly\ninstead it (steals|eats) your light sources one at a time\nuntil you are in the dark and then the other monsters close in\n(what do you think\n|)is that too mean or is that the right kind of mean',
+      'rodney something has been (bugging me|on my mind) about monster difficulty\nright now harder monsters just have bigger numbers\nmore hp, more damage, better armor class\nbut that is not really harder, it is just slower\na truly harder monster should require you to change your (strategy|approach)\nnot just swing your sword more times\n(the floating eye is a perfect example\nyou cannot melee it at all, you have to think\n|)i want more monsters like that and fewer bags of hit points',
     ],
   },
 
@@ -8023,6 +8035,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'the level 12 southeast bug is still there. (i know|working on it).',
       'working on making the maze levels feel more (cave-like|natural)',
+      'rodney i have been (thinking about|working on) something with the level generator\nright now every level has the same basic rhythm\nrooms connected by corridors in a grid\nbut real spaces do not work that way\na (cathedral|cave) feels different from a (warehouse|tunnel) because of proportions\nwhat if some rooms were tall and narrow and some were wide and low\n(even though we cannot show height on a terminal\nthe shape of the floor plan implies it\n|)i think the dungeon would feel less repetitive with more variety in room shape',
+      '(hey|hi) rodney so i was looking at how (rogue|crowther\'s adventure) handles spatial layout\nand i realized something about player perception\npeople do not navigate by coordinates\nthey navigate by landmarks\nthis is the room with the fountain, that is the L-shaped corridor\n(if every room is a rectangle the same size there are no landmarks\nand the player just gets lost\n|)i want to add a few distinctive room shapes that show up rarely\nso each level has at least one memorable feature',
+      'rodney have you ever gotten (lost|disoriented) on level (8|9)\nthat is my fault and i know exactly why\nthe corridor between the southeast and northwest rooms makes a Z shape\nand the Z shape has a branch that goes nowhere\nplayers follow it, hit the dead end, backtrack, and lose their sense of direction\n(i could fix it by removing the branch\n|)but honestly i think getting lost is part of the game\nthe dungeon should feel like it was not designed for your convenience',
     ],
   },
 
@@ -8214,6 +8229,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'working on something new but (it is not ready to talk about|not ready yet)',
       'been thinking about what procedural generation could do (beyond maps|outside of dungeons)',
+      'rodney i have been thinking about something that happened during (playtesting|testing)\nwe watched a guy play rogue for the first time\nhe found a room full of gold and spent ten minutes trying to pick it all up\neven though there was a (troll|hobgoblin) in the next room getting closer\n(he valued the gold more than his life\nwhich is exactly what we wanted\n|)the numbers on the score screen made fake treasure feel real\nthat was the moment glenn and i knew the game was (working|doing something right)',
+      '(hey|hi) rodney so the balance between (random and designed|chaos and structure) in rogue\nthat was the hardest thing to get right\ntoo random and nothing feels fair\ntoo designed and nothing feels (surprising|alive)\nwhat we found is that the randomness has to be (constrained|bounded)\nthe dungeon is random but every level has stairs down\n(items are random but the distribution is weighted\n|)the player has to feel like the universe is (indifferent|fair) but survivable\nnot malicious, just uncaring',
+      'rodney something i learned from watching people play rogue\nthe players who survive longest are not the ones with the best reflexes\nthey are the ones who (retreat|run away) at the right time\nmost deaths happen because someone thought they could win a fight they could not\n(glenn calls it the commitment trap\nyou invest two hits and then feel like you have to finish the fight\n|)the best players treat every encounter as optional\nnothing in the dungeon is worth dying for except the amulet',
     ],
   },
 
@@ -8380,6 +8398,8 @@ export const TALK_CORPUS = {
     ],
     spontaneous: [
       'bug list is (still empty|empty)',
+      'rodney someone filed a curses bug today\nscreen corrupts when you resize the terminal during a refresh\nwhich is not a bug, that is a user doing something (stupid|insane)\nyou do not resize a terminal during a screen update\nthat is like opening the car door while it is moving\n(i will fix it anyway because people will keep doing it\n|)but i want you to know i am not happy about it',
+      'hey rodney\ni just spent (three hours|all morning) on a vt100 compatibility issue\nturns out the vt100 and the adm-3a disagree about what escape-bracket-H means\none moves the cursor home, the other (does nothing|ignores it)\nso curses has to check which terminal you are on before every cursor move\n(this is why i drink coffee\n|)the whole point of curses was to hide this nonsense\nbut you cannot hide it if the terminals actively disagree about reality',
     ],
   },
 
@@ -8581,6 +8601,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'reminder: disk quota resets are not automatic\n(clean up your home directories|clean up your files)',
       'the adm-3a by the door is still on the list. (i know|yes i know).',
+      'rodney i need to (tell you|warn you about) something\ni was checking the backup tapes this morning and (one of them|tape number six) had a read error\nwhich means anything written to it last thursday might be (gone|unrecoverable)\n(i have a second copy from wednesday but that is a day old\n|)if you changed anything important between wednesday night and friday morning\nyou should check that your files are still (intact|there)\nthis is why i keep telling people to keep their own copies',
+      '(hey|hi) rodney so i was looking at the (system logs|login logs) from last night\nand someone was logged in from 2am to 5am running a process that used (forty percent|half) of the cpu\ni am not going to name names but the process was called hacktest\n(which narrows it down considerably\n|)i do not mind people using the system at night\nbut if you are going to run something cpu-intensive please use nice\nother people have batch jobs that run overnight\nand your dungeon testing should not preempt their (coursework|homework)',
+      'rodney the disk is at (87|91) percent\ni have sent three quota warnings this month and nobody has cleaned up\n(jay|fenlason) alone has forty megabytes of hack source and save files\ni understand the work is important but the disk is shared\n(if it hits 95 i am going to start deleting core dumps without asking\n|)please clean up your home directory\nand tell the other club members to do the same',
     ],
   },
 
@@ -8766,6 +8789,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'the wand of striking just came back in stock\n(one previous owner|lightly used)',
       'scrolls of identify are restocked weekly\n(currently have four|four in stock)',
+      'ah rodney i have been thinking about something\nwhy does the adventurer always assume the shopkeeper is the enemy\ni stand here all day with (good prices|fair merchandise) and helpful advice\nand the first thing most adventurers do is calculate whether they can (rob me|steal from me)\n(it says something about human nature\nor perhaps about game design\n|)a shop should be a place of trust between buyer and seller\nbut in the dungeon trust is the most (expensive|dangerous) thing you can carry',
+      'rodney let me (tell you|share) something about patience\ni have watched (hundreds|dozens) of adventurers come through this shop\nthe ones who survive are not the strongest or the luckiest\nthey are the ones who take a moment to (think|consider) before acting\n(they read the scroll before they use it\nthey identify the potion before they drink it\n|)the dungeon rewards caution and punishes haste\nevery item in my shop has a purpose\nbut only if you understand what that purpose is before you (need it|are desperate)',
+      '(ah|ah yes) rodney i wanted to tell you about a customer i had (yesterday|last week)\nan adventurer came in with a bag of gold and asked for my best weapon\ni showed him a long sword, a mace, and a dagger\nhe bought the long sword because it was the most (expensive|impressive)\nbut the dagger was blessed and the long sword was cursed\n(he did not ask\nhe just assumed price equals quality\n|)three levels later he was dead\nthe lesson is that a shopkeeper offers choices, not guarantees',
     ],
   },
 
@@ -8934,6 +8960,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'working on making corridors feel (less grid-like|more organic)',
       'the room variation helps but (i think we can do more|there is more to do)',
+      'rodney i had a (realization|thought) about procedural generation last night\nthe dungeon is not random\nit is a (set of rules|grammar) that produces variation\nrandomness is the seed but the rules are the language\n(the rooms have to connect\nthe stairs have to be reachable\nthere has to be at least one path through\n|)what you experience as surprise is actually constraint satisfaction\nand that is why it feels like a real place instead of (noise|chaos)',
+      '(hey|hi) rodney so the moment i knew rogue was (working|real)\nwas when toy and i generated a level and i got lost in it\nnot confused-lost, but immersed-lost\nlike i forgot i was looking at ascii characters on a (screen|terminal)\nfor about thirty seconds i was in a dungeon\n(that had never happened before with a computer game\nat least not to me\n|)i think it is because every level is new\nyou cannot memorize it so you have to actually be present\nthat is what randomness buys you: (attention|presence)',
+      'rodney something about the room algorithm that (bothers|interests) me\nwhen you connect rooms with corridors there are many possible spanning trees\nright now we pick one (randomly|arbitrarily)\nbut some trees produce better gameplay than others\na linear chain of rooms makes a boring level\na highly connected graph makes every room feel the same\n(the sweet spot is a tree with a few cycles\nso there are choices but not too many\n|)i have been trying to quantify what (good|interesting) topology looks like\nbut it might be one of those things you can only (feel|recognize), not measure',
     ],
   },
 
@@ -9097,6 +9126,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'the pdp-11 manual is (actually|genuinely) worth reading\nthe whole thing',
       'worked out the interrupt handler today\n(it is elegant|pretty clean)',
+      'rodney i found something (weird|strange) in the memory map today\nthere is a region between the stack and the text segment that should be empty\nbut when i dumped it there were (old string literals|fragments of old data) in there\nleftover from a previous process that did not get zeroed\n(which means if you read uninitialized memory you get ghosts of whatever ran before you\n|)this is technically a security issue but it is also just (interesting|fascinating)\nthe machine remembers things it is not supposed to',
+      '(hey|hi) rodney so i was (optimizing|rewriting) the interrupt handler\nand i realized the pdp-11 saves registers in a specific order on the stack\nif you know the order you can skip saving the ones you do not (use|modify)\nwhich saves about (twelve|eight) microseconds per interrupt\n(that sounds tiny but interrupts happen thousands of times per second\nso it adds up to real time\n|)the trick is making sure you actually know which registers the handler touches\none mistake and you corrupt whatever was running when the interrupt fired\nit is the kind of optimization that is (beautiful|elegant) when it works and catastrophic when it does not',
+      'rodney have you ever looked at how the pdp-11 does (floating point|division)\nit does not have a hardware divide instruction in the base model\nso division is implemented as a (subroutine|loop) that does repeated subtraction\nwhich means dividing a large number by a small one takes (forever|hundreds of cycles)\n(jay\'s hack code does division in the damage calculation\nand i think it is slower than it needs to be\n|)i have been writing an optimized divide routine using shifts and adds\nif it works it should speed up combat noticeably',
     ],
   },
 
@@ -9274,6 +9306,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'rogue or hack, (pick one for the next hour|which are you playing)',
       'the chameleon is still the (best|greatest) monster ever put in a dungeon game',
+      'rodney i have been comparing rogue and hack (side by side|systematically) this week\nand i think the biggest difference is not the features\nit is the (attitude|philosophy) toward the player\nrogue assumes you will learn by dying\nhack assumes you will learn by experimenting\n(rogue punishes mistakes, hack rewards curiosity\n|)both work but they attract different kinds of players\nwhich one you prefer says something about how you think about (risk|failure)',
+      '(hey|hi) rodney so i found a bug in hack by being (methodical|careful) about it\ni played the same level twenty times and wrote down every item spawn\nand the distribution is not what (jay|fenlason) thinks it is\nshort swords appear three times as often as long swords\n(not because of a bug in the random number generator\nbut because the item table has three entries for short sword and one for long sword\n|)i do not think he did that on purpose\nbut it changes the early game balance more than you would expect\nmost players never get a long sword until level (6|7)',
+      'rodney something i keep coming back to about game design\nthe best mechanic in hack is not the combat or the magic\nit is the identification system\nyou find a potion and you do not know what it does\nyou can drink it and find out, or you can wait and use identify\n(that one decision branches into a whole tree of risk and reward\n|)rogue has the same system but hack adds more (item types|unknown objects)\nwhich makes the identification game deeper\ni think that is the (secret|real) reason hack hooked people',
     ],
   },
 
@@ -9443,6 +9478,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'the setuid audit is on my list (still|)',
       'ran a password strength check. results: (not great|bad).',
+      'rodney i need to talk to you about something i found in the (logs|system logs)\nsomeone has been running su without a valid reason three times this week\nthe timestamps are all between (1am and 3am|midnight and 2am)\nand the source terminal is the one in the back of the computer room\n(i am not saying it is someone in the club\nbut it is someone who has physical access to that terminal\n|)if you see anyone in the computer room late at night doing anything (suspicious|weird)\nlet me know\ntrust boundaries exist for a reason',
+      '(hey|hi) rodney so i have been (thinking about|working on) the hack save file problem\nright now the save files are world-readable\nwhich means anyone can open your save file in a hex editor and find the amulet location\nor give themselves better (equipment|stats)\n(jay says it does not matter because it is just a game\nbut that is exactly the wrong attitude about file permissions\n|)if you do not enforce access control on things that do not matter\nyou will forget to enforce it on things that do\ni am going to change the permissions whether (jay|fenlason) agrees or not',
+      'rodney something has been (bothering|nagging) me about how we share accounts\nthree people know the root password right now\nthat is (two too many|at least one too many)\nif something goes wrong i need to know exactly who did what\nand shared passwords make that (impossible|very hard)\n(i want to set up individual sudo access instead\neach person gets their own privileges with their own password\n|)it is more work to set up but it means the audit trail actually means something\nwalz agrees with me on this but we need (jay|fenlason) to sign off',
     ],
   },
 
@@ -9612,6 +9650,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'vt100 two is free if you (need it|want it)',
       'still waiting on walz about the (adm-3a|broken terminal)',
+      'rodney i (solved|fixed) a problem today that has been bugging me for a week\nthe vt100 in the corner kept dropping characters during long screen updates\nturns out the (serial cable|rs-232 cable) was slightly loose\nnot disconnected, just loose enough to introduce noise at (9600 baud|high speeds)\n(i spent three days thinking it was a software bug\nchecked the termcap, checked the driver, checked curses\n|)and it was a loose cable\nthe lesson is always check the physical layer first\nbut nobody ever does because it feels too (simple|obvious)',
+      '(hey|hi) rodney so i built a (tool|script) this week that i think you will like\nit reads the termcap database and generates a comparison chart\nshowing which (escape sequences|capabilities) each terminal supports\nso instead of guessing whether your terminal can do reverse video or insert-line\nyou just look at the chart\n(it also flags terminals that lie about their capabilities\nwhich is more common than you would think\n|)i am going to print a copy and tape it to the wall by the terminals\nshould save everyone a lot of (debugging|frustration)',
+      'rodney i have been thinking about (workflow|how we work) in the computer room\nright now if your terminal breaks you lose whatever you were doing\nthere is no session persistence\nif the connection drops your editor closes and your unsaved work is (gone|lost)\n(what if there was a way to detach from a terminal session\nand reattach from a different terminal\n|)like the session keeps running on the pdp even when you unplug\ni do not think anything like that exists yet\nbut it seems like it should',
     ],
   },
 
@@ -9780,6 +9821,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'working through the filesystem code (now|this week)\ninode, directory, block cache',
       'the clock interrupt handler is more interesting than i (expected|thought)',
+      'rodney i traced a bug today that took me (six hours|all day)\nthe symptom was that hack would freeze for about two seconds every few minutes\nno pattern, no consistent trigger\n(i checked the game loop, checked the terminal driver, checked the scheduler\nnothing\n|)turns out it was the filesystem flushing dirty buffers to disk\nthe sync daemon runs every thirty seconds and when it hits a large file\nit blocks everything on that (disk|device) until the write completes\nhack\'s save file is large enough to trigger it\nthe fix is to write the save file in smaller (chunks|pieces)',
+      '(hey|hi) rodney so i learned something about (debugging|strace) this week\nthe most useful debugging tool is not a debugger\nit is a trace of every system call the program makes\nyou can see exactly when it reads, writes, opens, closes\nand most bugs show up as a system call that happens in the wrong order\nor a read that returns less data than (expected|you asked for)\n(i have been tracing hack this way\nand the pattern of reads and writes tells you more than the source code does\n|)the code tells you what the programmer intended\nthe trace tells you what actually (happened|happens)',
+      'rodney i want to tell you about the (trickiest|hardest) bug i ever found\nit only happened on tuesdays\n(seriously, only on tuesdays\n|)the cron job that runs the weekly backup starts tuesday at midnight\nand it takes a (lock|file lock) on the temp directory\nwhich is the same temp directory that hack uses for its lock file\nso if you start a new game of hack during the backup window\nit hangs waiting for a lock that will not be released for twenty minutes\nnobody noticed because nobody plays hack at midnight on tuesday\n(except me, once, while debugging something else\n|)that is how you find the good bugs',
     ],
   },
 
@@ -9949,6 +9993,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'checksum protocol is working\ntest transfer of hack source (completed clean|passed)',
       'acoustic coupler gets better results after 11pm\n(less line noise|much cleaner)',
+      'rodney i have been (working on|refining) the modem transfer protocol and i want to tell you about it\nthe problem is that phone lines drop about one bit in every (ten thousand|eight thousand)\nwhich sounds rare but a single bit flip in a binary can (corrupt|destroy) the whole program\nso you need checksums and you need retransmission\n(i am using a block-level CRC now instead of a simple checksum\nit catches more error patterns\n|)the goal is to transfer hack to the school in (concord|lexington) without any corruption\nif it works we could distribute software to any school with a phone line',
+      '(hey|hi) rodney so i ran a test last night that i am (excited|pretty happy) about\ni transferred the complete hack source over the modem at 300 baud\nit took about (forty|forty-five) minutes and it arrived bit-perfect\nzero errors, every checksum matched\n(the trick was sending in 128-byte blocks with a two-byte CRC each\nand waiting for an acknowledgment before sending the next block\n|)it is slow but it is reliable\nand reliable is what matters when you are sending (executable code|programs) over a phone line\nspeed will come later when the modems get faster',
+      'rodney something i have been thinking about with (testing|QA)\npeople think testing is about finding bugs\nbut really it is about (building confidence|proving correctness)\nwhen i test the modem protocol i do not just send files and check if they arrive\ni deliberately introduce errors and verify the protocol (catches them|recovers)\n(i flip bits, drop bytes, add delays\nand make sure the checksum detects every single one\n|)a test that only checks the happy path is not a test\nit is a (demo|false sense of security)',
     ],
   },
 
@@ -10118,6 +10165,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'pipes are not done yet but (fork-exec is working|the basics work)',
       'the tokenizer bug jay found is (fixed i think|fixed now)',
+      'rodney i prevented a (crash|disaster) yesterday and nobody noticed\nwhich is exactly how it should work\nthe shell was not checking for null pointers when a pipe command returned empty output\nso if you ran something like ls of a nonexistent directory piped to wc\nit would segfault\n(i added a null check and a proper error message\nthat took five minutes\n|)finding the bug took (three hours|all afternoon) because the segfault did not happen at the null dereference\nit happened ten lines later when something else tried to read the garbage pointer\ndefensive coding means checking early so failures are (obvious|loud), not subtle',
+      '(hey|hi) rodney so i have been thinking about (edge cases|error handling)\nmost programs handle the expected inputs correctly\nthe interesting part is what happens with (unexpected|weird) inputs\nwhat if the filename has a space in it\nwhat if the input is empty\nwhat if the disk is full when you try to write\n(most code just assumes these things will not happen\nand then they do\n|)i have been going through the hack source looking for unchecked return values\ni found (seven|nine) so far\neach one is a potential crash that nobody has hit yet\nbut somebody will',
+      'rodney i want to tell you about a principle i (follow|believe in)\nevery error message should tell you three things\nwhat happened, where it happened, and what to do about it\n(most error messages only tell you the first one\nand sometimes not even that\n|)"error" is not an error message\n"cannot open /tmp/hack.lock: permission denied, contact sysadmin" is an error message\n(jay|fenlason) is pretty good about this in the gameplay messages\nbut the system-level errors in hack are (terrible|unhelpful)\ni have been rewriting them when i find them',
     ],
   },
 
@@ -10316,6 +10366,9 @@ export const TALK_CORPUS = {
       'just finished writing the coal mine description\ni think it is (one of the better ones|pretty good)',
       'the grue is entirely imaginary but players are more scared of it than of the troll\n(words are powerful|interesting how that works)',
       'trying to figure out the right difficulty curve for the (endgame puzzles|final section)',
+      'rodney i have been (thinking about|wrestling with) what makes a good puzzle in interactive fiction\nthe best puzzles feel inevitable in retrospect\nyou struggle, you try things, nothing works\nthen you see the answer and think of course\n(the worst puzzles require you to guess what the author was thinking\nwhich is not a puzzle, it is telepathy\n|)the thief in zork is a good puzzle because the solution is (implicit|logical)\nyou have seen thieves, you know what they do\nyou just have to apply what you know in a new context\nthat is the (standard|bar) i try to hold every puzzle to',
+      '(hey|hi) rodney so the hardest problem in interactive fiction is not (puzzles|storytelling)\nit is the parser\nthe player types "put the sword in the case" and you have to figure out\nwhich sword, which case, what put means in this context\n(and if the player types "put sword case" you have to handle that too\nbecause players do not type in complete sentences\n|)marc and i spent more time on the parser than on everything else combined\nand it is still (frustrating|surprising) how often it misunderstands\nthe gap between what the player means and what the parser hears is where all the (pain|friction) lives',
+      'rodney something i wanted to share with you about (writing|game writing)\nwhen i write a room description for zork i read it out loud\nnot to check grammar but to check (rhythm|pacing)\na good room description has a beat\nfirst the big picture, then the detail, then the (exit|invitation)\n(you are in a dimly lit room\nthere is a table with a dusty book\npassages lead north and east\n|)the player should be able to close their eyes and see it\nif they cannot, i rewrite it until they can',
     ],
   },
 
@@ -10512,6 +10565,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'branch encoding is (finally working right|done)\nshort branches fit in one byte now',
       'the object table format is (locked in|finalized)\ncompiler output is getting (smaller|more compact)',
+      'rodney i have been thinking about a (fundamental|deep) problem with language parsing\nwhen someone types "take the brass lantern"\nthat is easy\nbut when they type "take lantern" you have to decide which lantern\nand when they type "take it" you have to remember what "it" was\n(pronoun resolution is the kind of thing that seems simple until you actually try to implement it\n|)humans do this effortlessly because we have (context|memory)\nthe parser has to simulate that context with a stack of recent objects\nand it gets it wrong more often than i would like to (admit|tell you)',
+      '(hey|hi) rodney so the z-machine architecture is (almost finished|coming together)\nthe idea is that you write the game in a high-level language\nand the compiler produces bytecode that runs on a virtual machine\nwhich means the same game file works on any computer that has the interpreter\n(right now if you want zork on a new machine you have to rewrite the whole thing\nwith the z-machine you just write the interpreter once\n|)it is the same idea as having a (universal|portable) machine language\nexcept the instruction set is designed for text games, not for math\nstrings and objects and parser tables instead of registers and arithmetic',
+      'rodney something about natural language that (fascinates|bothers) me\nthe sentence "time flies like an arrow" has at least (three|four) valid parse trees\ntime moves quickly, as an arrow does\nor time-flies are fond of arrows\nor measure the speed of flies in the manner of an arrow\n(the parser has no way to choose the right one from syntax alone\nyou need world knowledge\n|)this is why perfect natural language understanding is probably (impossible|extremely hard) for a computer\nwe cheat in zork by restricting the vocabulary\nbut the players do not know the vocabulary is restricted\nand that gap is where the frustration comes from',
     ],
   },
 
@@ -10709,6 +10765,9 @@ export const TALK_CORPUS = {
       'the connectivity patch is (ready|done)\nI am writing up the analysis before submitting it',
       'I found another case where the room placement can fail\nit is related to the boundary conditions in the (corridor algorithm|corridor routing)',
       'reading through the rogue source (now|currently)\nthe level generator has similar issues to hack',
+      'Rodney I have been (analyzing|studying) the dungeon generation algorithm mathematically\nthe room placement uses uniform random coordinates within a grid\nbut the grid cells overlap at the (boundaries|edges)\nwhich means rooms near cell borders can collide\nthe probability of collision is approximately (one in twelve|eight percent) per level\n(Jay handles this by retrying, which works\nbut the retry loop has no maximum iteration count\nso theoretically it could loop forever on an unlucky seed\n|)I have written a proof that bounded retries suffice\nwith six retries the failure probability drops below one in a million',
+      '(hello|good day) Rodney so I noticed something interesting in the (hack|hack 1.0) source\nthe random number generator uses a linear congruential method\nwith a modulus of 2 to the 16th power\nthis means the lower bits have very short (periods|cycles)\nif you look at the least significant bit it alternates perfectly\neven odd even odd, not random at all\n(this affects monster placement, item drops, anything that uses modular arithmetic\n|)I have been testing an alternative generator with better statistical properties\nit passes the spectral test which Jay\'s generator does not\nthe gameplay effect would be subtle but the mathematics is (clearly better|significantly improved)',
+      'Rodney I wanted to tell you about a feature I added to my version of Hack\nI made the maze levels follow a (mathematical|precise) pattern\ninstead of random wall placement I use a recursive division algorithm\nyou start with an empty rectangle and divide it with a wall\nthen divide each half, recursively\nwith a door in each wall so the maze is always solvable\n(the result looks random but it has guaranteed properties\nevery point is reachable and the path between any two points is unique\n|)it feels more like a real labyrinth and less like (noise|random dots)\nI think Jay would be interested but I have not sent it to him yet',
     ],
   },
 
