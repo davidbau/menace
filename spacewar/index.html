@@ -185,13 +185,16 @@
     const savedSize = currentSize();
     if (savedSize !== 16) setFontSize(savedSize);
 
-    // Title screen
+    // Title screen — center every line in 80 columns
+    function ctr(row, text, color) {
+      display.putstr(Math.floor((80 - text.length) / 2), row, text, color);
+    }
     display.clearScreen();
-    display.putstr(30, 10, 'S P A C E W A R !', 10);
-    display.putstr(23, 12, 'MIT 1962  Russell/Graetz/Wiitanen', 7);
-    display.putstr(30, 15, 'PRESS SPACE TO START', 10);
-    display.putstr(16, 18, 'NEEDLE: A/D W S Q   WEDGE: arrows . /', 7);
-    display.putstr(31, 19, 'P pause  ESC quit', 7);
+    ctr(10, 'S P A C E W A R !', 10);
+    ctr(12, 'MIT 1962', 7);
+    ctr(15, 'PRESS SPACE TO START', 10);
+    ctr(18, 'NEEDLE: A/D W S Q   WEDGE: arrows . /', 7);
+    ctr(19, 'P pause  ESC quit', 7);
     if (typeof display.flush === 'function') display.flush();
 
     async function waitForSpace() {
