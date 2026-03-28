@@ -326,12 +326,18 @@ class RemoteEngine {
         let response = (text === '' && this._greeting)
             ? this._greeting
             : this._pickResponse(text);
-        // Retry up to 3 times to avoid repeating a recent response
+        // Retry up to 3 times; keep the candidate that appeared longest ago
         if (response && this._recentResponses.includes(response)) {
+            let bestCandidate = response;
+            let bestAge = this._recentResponses.indexOf(response); // lower = older = better
             for (let attempt = 0; attempt < 3; attempt++) {
                 const retry = this._pickResponse(text);
-                if (retry && !this._recentResponses.includes(retry)) { response = retry; break; }
+                if (!retry) continue;
+                const age = this._recentResponses.indexOf(retry);
+                if (age === -1) { bestCandidate = retry; break; } // not in recent = perfect
+                if (age < bestAge) { bestCandidate = retry; bestAge = age; } // older = better
             }
+            response = bestCandidate;
         }
         if (!response) { this._state = 'idle'; return; }
         this._recentResponses.push(response);
@@ -364,12 +370,18 @@ class RemoteEngine {
 
         let response = this._pickResponse(partial);
         if (!response) return;
-        // Apply same repeat prevention as onUserMessage
+        // Same longest-ago repeat prevention as onUserMessage
         if (this._recentResponses.includes(response)) {
+            let bestCandidate = response;
+            let bestAge = this._recentResponses.indexOf(response);
             for (let attempt = 0; attempt < 3; attempt++) {
                 const retry = this._pickResponse(partial);
-                if (retry && !this._recentResponses.includes(retry)) { response = retry; break; }
+                if (!retry) continue;
+                const age = this._recentResponses.indexOf(retry);
+                if (age === -1) { bestCandidate = retry; break; }
+                if (age < bestAge) { bestCandidate = retry; bestAge = age; }
             }
+            response = bestCandidate;
         }
         this._recentResponses.push(response);
         if (this._recentResponses.length > 10) this._recentResponses.shift();
