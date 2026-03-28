@@ -40,7 +40,7 @@ import { passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, n
 import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam } from './do_name.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_entered_shop, u_left_shop, inhishop, costly_spot, block_door, block_entry, shop_keeper } from './shk.js';
+import { describeGroundObjectForPlayer, u_entered_shop, u_left_shop, inhishop, costly_spot, block_door, block_entry, shop_keeper } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
@@ -266,15 +266,15 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
                 objectMsg = `You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`;
             }
 
-            // C ref: check_here() sends feature and object as separate pline()
-            // calls. C's update_topl concatenates them with "  " if they fit
-            // on one line; otherwise shows --More-- between them. JS must send
-            // them separately so putstr_message's concatenation logic handles it.
-            if (featureMsg) {
-                await display.putstr_message(featureMsg);
-            }
-            if (objectMsg) {
-                await display.putstr_message(objectMsg);
+            if (featureMsg && objectMsg) {
+                await display.putstr_message(`${featureMsg}  ${objectMsg}`);
+            } else {
+                if (featureMsg) {
+                    await display.putstr_message(featureMsg);
+                }
+                if (objectMsg) {
+                    await display.putstr_message(objectMsg);
+                }
             }
         } else {
             // C check_here() for non-autopickup reporting uses PICK_SOME == false here.
@@ -697,7 +697,6 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     player.umoved = true;
     game.lastMoveDir = dir;
     player.displacedPetThisTurn = true;
-    await maybeHandleShopEntryMessage(game, oldPlayerX, oldPlayerY);
 
     // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() (stale FOV).
     if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
@@ -1236,7 +1235,6 @@ export async function domove_core(dir, player, map, display, game) {
         game.lastMoveDir = moveDir;
         // Clear force-fight prefix after successful movement.
         clear_forcefight_prefix(game, ctx);
-        await maybeHandleShopEntryMessage(game, oldX, oldY);
 
         // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() — uses stale
         // FOV (old player position). This matches C where see_nearby_objects runs inside

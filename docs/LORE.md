@@ -17500,6 +17500,42 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - `seed033_manual_direct` unchanged on its unrelated startup seam
   - `seed328_ranger_wizard_gameplay` unchanged on its unrelated early seam
 
+## 2026-03-28 — duplicate pre-`check_special_room()` shop greeting was stale, but not the active blocker
+
+- Current `main` still had a stale `maybeHandleShopEntryMessage()` call in
+  `hack.js:domove_core()` and `domove_swap_with_pet()`, ahead of the later
+  C-shaped `check_special_room(FALSE)` pass.
+- Message tracing on `seed032_manual_direct` showed the same shop greeting
+  arriving from both paths:
+  - `maybeHandleShopEntryMessage(...)`
+  - `check_special_room(false) -> u_entered_shop(...)`
+- Removing the stale helper calls was structurally correct and did not regress
+  `seed033_manual_direct` or `seed328_ranger_wizard_gameplay`, but it did not
+  move the first `seed032` divergence by itself.
+- The real active blocker was still the single-object floor-feedback split in
+  `postMoveFloorCheck()` on this branch.
+
+## 2026-03-28 — combining single-object floor feedback on current `main` moved `seed032` from 390 to 485
+
+- On the clean `144ab013` branch state, `hack.js:postMoveFloorCheck()` was
+  still emitting single-object feature and object text as two separate
+  `putstr_message()` calls:
+  - `There is an open door here.`
+  - `You see here a leash.`
+- That left a standalone late `display.more.dismiss` step on `seed032`, while C
+  had already advanced into monster turns.
+- Recombining the single-object case into one topline:
+  - `There is an open door here.  You see here a leash.`
+  removed the stale boundary class on this branch.
+- Validated effect:
+  - `seed032_manual_direct`: first RNG divergence `390 -> 485`
+  - `seed033_manual_direct`: unchanged at `571`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+- New `seed032` seam after the fix:
+  - JS: `rn2(2)=0 @ dochug(monmove.js:847)`
+  - C: `rn2(12)=10 @ dog_move(dogmove.c:1302)`
+  - first RNG divergence at step `485`
+
 ## 2026-03-28 — implementing `#apply` leash handling fixed the `seed032` leash seam
 
 - Current `main` had no real leash apply path in `js/apply.js`:
