@@ -128,6 +128,7 @@ export async function explode(x, y, type, dam, olet, expltype, map, player) {
               player.uhp -= damu;
               if (player.uhp < 0) player.uhp = 0;
             }
+            player._botl = true; // C: disp.botl = TRUE
             // C ref: explode.c:678 — exercise STR after taking explosion damage
             await exercise(player, A_STR, false);
           }

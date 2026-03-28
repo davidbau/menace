@@ -65,13 +65,8 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     const gameplayRawBase = getGameplayRawStepBase(session);
     const pregameStep = Number.isInteger(gameplayRawBase) && gameplayRawBase > 1 && (stepIndex + 1) < gameplayRawBase;
     const highScore = isHighScoreScreen(comparableExpected) || isHighScoreScreen(comparableActual);
-    // Level transition mask: C and JS may show different Dlvl on the status
-    // bar during level transitions because JS's renderStatus updates eagerly
-    // while C's bot() is lazy. Blocked on #397 (status bar timing).
-    const levelTransitionMismatch = isLevelTransitionMismatch(comparableActual, comparableExpected);
-    if (levelTransitionMismatch) {
-        return { matched: 1, total: 1, match: true, firstDiff: null, skipCursor: true };
-    }
+    // Level transition mask removed (#396, #397): renderStatus calls now
+    // match C's bot() discipline — only in pre-input and init paths.
     // Disclosure prompt timing: during endgame disclosure one side may show
     // a "Do you want to see your ..." prompt overlaying the map while the
     // other side is blank or in a different disclosure state.
@@ -231,10 +226,7 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, session, { st
     const gameplayRawBase = getGameplayRawStepBase(session);
     const pregameStep = Number.isInteger(gameplayRawBase) && gameplayRawBase > 1 && (stepIndex + 1) < gameplayRawBase;
     const highScore = isHighScoreScreen(expectedPlain) || isHighScoreScreen(actualPlain);
-    const levelTransitionMismatch = isLevelTransitionMismatch(actualPlain, expectedPlain);
-    if (levelTransitionMismatch) {
-        return { matched: 0, total: 0, match: true, diffs: [], firstDiff: null };
-    }
+    // Level transition mask removed (#396, #397).
     if (isDisclosureScreenMismatch(actualPlain, expectedPlain)) {
         return { matched: 0, total: 0, match: true, diffs: [], firstDiff: null };
     }

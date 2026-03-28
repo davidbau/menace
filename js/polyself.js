@@ -375,7 +375,7 @@ export async function ugolemeffects(damtype, dam, game, player) {
   if (heal && (player.mh < player.mhmax)) {
     player.mh += heal;
     if (player.mh > player.mhmax) player.mh = player.mhmax;
-    game.disp.botl = true;
+    player._botl = true; // C: disp.botl = TRUE
     await pline("Strangely, you feel better than before.");
     await exercise(player, A_STR, true);
   }
@@ -612,7 +612,7 @@ export function float_vs_flight(game, player) {
   }
 
   steed_vs_stealth(player);
-  if (game?.disp) game.disp.botl = true;
+  player._botl = true; // C: disp.botl = TRUE (Lev/Fly status condition may change)
 }
 
 // ============================================================================
@@ -641,6 +641,7 @@ async function check_strangling(player, on) {
         if (player.amulet && player.amulet.otyp === AMULET_OF_STRANGULATION
             && can_be_strangled(player.type || mons[PM_HUMAN])) {
             player.strangled = 6;
+            player._botl = true; // C: disp.botl = TRUE
             await Your("%s %s your %s!",
                 player.amulet.oname || "amulet",
                 was_strangled ? "still constricts" : "begins constricting",
@@ -650,6 +651,7 @@ async function check_strangling(player, on) {
         // off -- maybe block strangling
         if (player.strangled && !can_be_strangled(player.type || mons[PM_HUMAN])) {
             player.strangled = 0;
+            player._botl = true; // C: disp.botl = TRUE
             await You("are no longer being strangled.");
         }
     }
@@ -1311,6 +1313,7 @@ export async function polymon(player, mntmp, map) {
 
     await check_strangling(player, true); // maybe start strangling
 
+    player._botl = true; // C: disp.botl = TRUE (polymon end)
     // Encumbrance, retouch equipment, selftouch
     await encumber_msg(player);
     await retouch_equipment(2, player);
@@ -1393,6 +1396,7 @@ export async function rehumanize(player) {
     // nomul(0) — cancel any multi-turn action
     nomul(0, _gstate);
 
+    player._botl = true; // C: disp.botl = TRUE
     await encumber_msg(player);
 
     // Steed landing message
@@ -1617,6 +1621,7 @@ export async function dobreathe(player, map, display, game) {
         return 0;
     }
     player.uen -= 15;
+    player._botl = true; // C: disp.botl = TRUE
 
     // C: if(!getdir((char *)0)) { ... return ECMD_CANCEL; }
     const dir = await getdir(null, display);
@@ -1821,6 +1826,7 @@ export async function dosummon(player, map) {
         return 0;
     }
     player.uen -= 10;
+    player._botl = true; // C: disp.botl = TRUE
 
     await You("call upon your brethren for help!");
     await exercise(player, A_WIS, true);
@@ -1865,6 +1871,7 @@ export async function dogaze(player, map) {
         return 0;
     }
     player.uen -= 15;
+    player._botl = true; // C: disp.botl = TRUE
 
     let looked = 0;
     const monsters = map ? map.monsters || [] : [];

@@ -556,6 +556,12 @@ export async function moveloop_turnend(game) {
     // After turn-end completes, subsequent command processing observes
     // the incremented move counter.
     game.moves = game.turnCount + 1;
+    // C ref: allmain.c:829 — disp.botl = TRUE "in case u.uhs changed".
+    // C sets this after every turn-end processing, ensuring bot() renders
+    // the full status line (including conditions like Burdened, Hungry, etc.)
+    // at the next pre-input boundary.
+    const _p = game?.u;
+    if (_p) _p._botl = true;
 }
 
 // C ref: allmain.c:680 stop_occupation()
@@ -1306,6 +1312,7 @@ async function regen_hp(game, mvl_wtcap) {
             }
         }
         if (heal) {
+            player._botl = true; // C: disp.botl = TRUE
             player.mh = (player.mh || 0) + heal;
             if ((player.mh || 0) > (player.mhmax || 0)) player.mh = player.mhmax || 0;
             reached_full = (player.mh || 0) === (player.mhmax || 0);
@@ -1316,6 +1323,7 @@ async function regen_hp(game, mvl_wtcap) {
         // C ref: allmain.c:664-665 — extra heal when Sleepy and asleep
         if (sleepyRegen) heal++;
         if (heal) {
+            player._botl = true; // C: disp.botl = TRUE
             player.uhp = (player.uhp || 0) + heal;
             if ((player.uhp || 0) > (player.uhpmax || 0)) player.uhp = player.uhpmax || 0;
             reached_full = (player.uhp || 0) === (player.uhpmax || 0);
@@ -1365,6 +1373,7 @@ async function regen_pw_turnend(game, mvl_wtcap) {
             player.uen += rn1(upper, 1);
             if (player.uen > player.uenmax)
                 player.uen = player.uenmax;
+            player._botl = true; // C: disp.botl = TRUE
             // C ref: allmain.c:617-618 — interrupt multi when mana full
             if (player.uen === player.uenmax) {
                 await interrupt_multi('You feel full of energy.', game);

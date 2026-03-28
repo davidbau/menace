@@ -531,8 +531,7 @@ export async function pay(tmp, shkp, game) {
   let balance = ((tmp <= 0) ? tmp : await check_credit(tmp, shkp));
   if (balance > 0) money2mon(shkp, balance);
   else if (balance < 0) money2u(shkp, -balance);
-  if (game?.disp) game.disp.botl = true;
-  if (game?.player) game.u._botl = true;
+  // money2mon/money2u set player._botl = true
   if (robbed) {
     robbed -= tmp;
     if (robbed < 0) robbed = 0;
@@ -577,6 +576,7 @@ export function money2mon(mon, amount) {
     if (mon) {
         mon.mgold = (mon.mgold || 0) + amount;
     }
+    if (player) player._botl = true; // C: disp.botl = TRUE after money2mon
     return amount;
 }
 
@@ -592,6 +592,7 @@ export function money2u(mon, amount) {
     const player = _gstate?.u || null;
     if (player) {
         player.gold = Number(player.gold || 0) + amount;
+        player._botl = true; // C: disp.botl = TRUE after money2u
     }
 }
 

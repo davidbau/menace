@@ -1701,6 +1701,7 @@ async function wildmiss(monster, attack, player, display) {
 // cf. mhitu.c:263 expels() — expel hero from engulfer
 export async function expels(mtmp, mdat, message, player, display) {
     if (!mtmp || !player) return;
+    player._botl = true; // C: disp.botl = TRUE at start of expels()
     if (message && display) {
         if (digests(mdat)) {
             await display.putstr_message('You get regurgitated!');
@@ -2379,11 +2380,13 @@ export async function doseduce(mon, player, display) {
             if (display) await display.putstr_message('You are down in the dumps.');
             if (player.attributes) player.attributes[A_CON] = Math.max(3, (player.attributes[A_CON] || 10) - 1);
             await exercise(player, A_CON, false);
+            player._botl = true; // C: disp.botl = TRUE
             break;
         case 2:
             if (display) await display.putstr_message('Your senses are dulled.');
             if (player.attributes) player.attributes[A_WIS] = Math.max(3, (player.attributes[A_WIS] || 10) - 1);
             await exercise(player, A_WIS, false);
+            player._botl = true; // C: disp.botl = TRUE
             break;
         case 3:
             if (!playerHasProp(player, DRAIN_RES)) {
@@ -2419,11 +2422,13 @@ export async function doseduce(mon, player, display) {
             if (display) await display.putstr_message('You feel good enough to do it again.');
             if (player.attributes) player.attributes[A_CON] = (player.attributes[A_CON] || 10) + 1;
             await exercise(player, A_CON, true);
+            player._botl = true; // C: disp.botl = TRUE
             break;
         case 2:
             if (display) await display.putstr_message(`You will always remember ${mon_nam(mon)}...`);
             if (player.attributes) player.attributes[A_WIS] = (player.attributes[A_WIS] || 10) + 1;
             await exercise(player, A_WIS, true);
+            player._botl = true; // C: disp.botl = TRUE
             break;
         case 3:
             if (display) await display.putstr_message('That was a very educational experience.');
@@ -2434,6 +2439,7 @@ export async function doseduce(mon, player, display) {
             if (display) await display.putstr_message('You feel restored to health!');
             if (player.uhpmax) player.uhp = player.uhpmax;
             await exercise(player, A_STR, true);
+            player._botl = true; // C: disp.botl = TRUE
             break;
         }
     }
@@ -2625,6 +2631,6 @@ export async function cloneu(player, game, map) {
     } else {
         player.uhp -= mon.mhp;
     }
-    if (game.disp) game.disp.botl = true;
+    player._botl = true; // C: disp.botl = TRUE
     return mon;
 }

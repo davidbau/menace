@@ -668,6 +668,7 @@ async function do_improvisation(instr, player, map, display, fov) {
             // Hero_playnotes — sound library, no-op in JS
         }
         await awaken_monsters(ulevel * (mundane ? 5 : 40), map, player);
+        player._botl = true; // C: disp.botl = TRUE
         break;
     default:
         impossible(`What a weird instrument (${instr.otyp})!`);

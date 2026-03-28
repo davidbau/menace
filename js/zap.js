@@ -1113,7 +1113,7 @@ export function drain_item(obj, by_you) {
   default: break;
   }
   // C: if (disp.botl) bot(); if (carried(obj)) update_inventory();
-  if (botl && globalThis.gs?.display) globalThis.gs.display.botl = true;
+  if (botl && player) player._botl = true;
   return true;
 }
 

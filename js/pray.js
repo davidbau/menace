@@ -779,6 +779,7 @@ async function fix_worst_trouble(trouble, player, map) {
         }
         await You("can breathe again.");
         player.strangled = 0;
+        player._botl = true; // C: disp.botl = TRUE
         break;
     case TROUBLE_LAVA:
         if (!await safe_teleds(0, { player, map }))
@@ -798,6 +799,7 @@ async function fix_worst_trouble(trouble, player, map) {
     case TROUBLE_HUNGRY:
         await Your("%s feels content.", body_part(STOMACH, player));
         await init_uhunger(_gstate, player);
+        player._botl = true; // C: disp.botl = TRUE
         break;
     case TROUBLE_SICK:
         await You_feel("better.");
@@ -828,6 +830,7 @@ async function fix_worst_trouble(trouble, player, map) {
         const diff = attrMax[A_STR] - player.attributes[A_STR];
         await You_feel("%sstronger.", diff > 6 ? "much " : "");
         player.attributes[A_STR] = attrMax[A_STR];
+        player._botl = true; // C: disp.botl = TRUE
         if (Fixed_abil(player)) {
             otmp = stuck_ring(player.leftRing, RIN_SUSTAIN_ABILITY);
             if (otmp && otmp === player.leftRing) what = leftglow;
@@ -916,6 +919,7 @@ async function fix_worst_trouble(trouble, player, map) {
             for (let i = 0; i < A_MAX; i++) {
                 if (player.attributes[i] < player.attrMax[i]) {
                     player.attributes[i] = player.attrMax[i];
+                    player._botl = true; // C: disp.botl = TRUE
                 }
             }
         }
@@ -1443,12 +1447,14 @@ async function pleased(g_align, player, map) {
             if (player.attributes && player.attrMax
                 && player.attributes[A_STR] < player.attrMax[A_STR]) {
                 player.attributes[A_STR] = player.attrMax[A_STR];
+                player._botl = true; // C: disp.botl = TRUE (before potential message)
                 await encumber_msg(player);
             }
             if ((player.hunger || 0) < 900) await init_uhunger(_gstate, player);
             if ((player.luck || 0) < 0) player.luck = 0;
             player.ucreamed = 0;
             await make_blinded(player, 0, true);
+            player._botl = true; // C: disp.botl = TRUE
             break;
         case 4: {
             if (player.blind)

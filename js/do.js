@@ -1974,7 +1974,11 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     // cls() → display_nhwindow(WIN_MESSAGE, FALSE) shows --More-- for it
     // and consumes the dismiss key. JS matches by letting docrt() handle
     // the pending message naturally.
+    // C ref: during docrt inside goto_level, bot() hasn't run yet.
+    // Suppress renderStatus so status bar retains old values (old Dlvl).
+    if (game?.display) game.display._botDisabled = true;
     await docrt();
+    if (game?.display) game.display._botDisabled = false;
 
     // C ref: do.c goto_level() — tourists gain level_difficulty()-based XP
     // on first entry to a new level, via the normal experience helpers.
@@ -1986,6 +1990,10 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         }
     }
 
+    // C ref: docrt_flags sets disp.botlx = TRUE (do.c:1813). Mark status
+    // as needing full refresh for the next bot() call.
+    const _p = game?.u;
+    if (_p) _p._botl = true;
 }
 
 // C ref: do.c:1479 goto_level() — level transition core.
@@ -2208,6 +2216,7 @@ export async function set_wounded_legs(side, timex, player) {
 // how: 0 = ordinary, 1 = dismounting steed, 2 = limbs turn to stone
 export async function heal_legs(how, player) {
     if (player.woundedLegs) {
+        player._botl = true; // C: disp.botl = TRUE
         // Restore DEX temp (C: ATEMP(A_DEX) += 1 to restore)
         if (!player.atemp || player.atemp.length < 6) player.atemp = new Array(6).fill(0);
         if ((player.atemp[A_DEX] || 0) < 0)

@@ -388,6 +388,7 @@ async function Boots_on(player) {
         // C ref: do_wear.c:235-247
         if (!oldprop && !player.getPropTimeout(LEVITATION)) {
             if (player.boots) player.boots.known = true;
+            player._botl = true; // C: disp.botl = TRUE (status hilites might mark AC changed)
             await makeknown(otyp);
             await float_up(player);
         } else {
@@ -592,6 +593,7 @@ async function Helmet_on(player) {
         {
             const isWizard = (player.roleMnum === 10 || player.roleIndex === 11); // PM_WIZARD
             adj_abon(player, player.helmet, A_CHA, isWizard ? 1 : -1);
+            player._botl = true; // C: disp.botl = TRUE
             await makeknown(otyp);
         }
         break;
@@ -611,6 +613,7 @@ async function Helmet_on(player) {
             }
             player.helmet.cursed = true;
         }
+        player._botl = true; // C: disp.botl = TRUE (reveal new alignment or INT & WIS)
         if (otyp === DUNCE_CAP) {
             // C ref: do_wear.c:492-499
             if (player.Hallucination) {
@@ -640,13 +643,15 @@ async function Helmet_off(player) { // async-ok: called via await in SLOT_OFF; C
         }
         break;
     case DUNCE_CAP:
-        // C ref: do_wear.c:532-534 — just needs botl update
+        // C ref: do_wear.c:532-534 — botl update
+        player._botl = true; // C: disp.botl = TRUE
         break;
     case CORNUTHAUM:
         // C ref: do_wear.c:535-539 — reverse CHA adjustment
         {
             const isWizard = (player.roleMnum === 10 || player.roleIndex === 11);
             adj_abon(player, player.helmet, A_CHA, isWizard ? -1 : 1);
+            player._botl = true; // C: disp.botl = TRUE
         }
         break;
     case HELM_OF_TELEPATHY:
@@ -692,6 +697,7 @@ async function Gloves_on(player) {
     case GAUNTLETS_OF_POWER:
         // C ref: do_wear.c:587-589 — makeknown + botl
         await makeknown(otyp);
+        player._botl = true; // C: disp.botl = TRUE (taken care of in attrib.c)
         player._savedStr = player.attributes[A_STR];
         player.attributes[A_STR] = 25;
         break;
@@ -729,6 +735,7 @@ async function Gloves_off(player) {
     case GAUNTLETS_OF_POWER:
         // C ref: do_wear.c:661-663 — makeknown + botl
         await makeknown(otyp);
+        player._botl = true; // C: disp.botl = TRUE (taken care of in attrib.c)
         if (player._savedStr !== undefined) {
             player.attributes[A_STR] = player._savedStr;
             delete player._savedStr;
@@ -874,6 +881,7 @@ async function Amulet_on(player) {
     case AMULET_OF_STRANGULATION:
         // C ref: do_wear.c:1033-1040 — makeknown + strangulation
         toggle_extrinsic(player, STRANGLED, true);
+        player._botl = true; // C: disp.botl = TRUE
         await makeknown(otyp);
         await pline("It constricts your throat!");
         break;
@@ -889,6 +897,7 @@ async function Amulet_on(player) {
             const origGender = player.gender;
             player.gender = player.gender === 0 ? 1 : 0;
             if (player.gender !== origGender) {
+                player._botl = true; // C: disp.botl = TRUE (role name or rank title might have changed)
                 await makeknown(otyp);
                 await pline("You are suddenly very %s!", player.gender === 0 ? "masculine" : "feminine");
             }
@@ -910,6 +919,7 @@ async function Amulet_on(player) {
     case AMULET_OF_FLYING:
         toggle_extrinsic(player, FLYING, true);
         // C ref: do_wear.c:1063-1064 — makeknown when newly flying
+        player._botl = true; // C: disp.botl = TRUE (status: 'Fly' On)
         await makeknown(otyp);
         break;
     }
@@ -929,6 +939,7 @@ async function Amulet_off(player) {
         break;
     case AMULET_OF_STRANGULATION:
         toggle_extrinsic(player, STRANGLED, false);
+        player._botl = true; // C: disp.botl = TRUE
         break;
     case AMULET_OF_RESTFUL_SLEEP:
         toggle_extrinsic(player, SLEEPING, false);
@@ -948,6 +959,7 @@ async function Amulet_off(player) {
         toggle_extrinsic(player, FLYING, false);
         // C ref: do_wear.c:1166 — makeknown when landing
         if (!player.Flying && !player.levitating) {
+            player._botl = true; // C: disp.botl = TRUE (status: 'Fly' Off)
             mkn = true;
         }
         break;
@@ -967,6 +979,7 @@ export function adj_abon(player, obj, attr, delta) {
         player.abon = new Array(7).fill(0);
     }
     player.abon[attr] = (player.abon[attr] || 0) + delta;
+    player._botl = true; // C: disp.botl = TRUE in adj_abon
 }
 
 // Helper: learn ring type from wearing effects — C ref: do_wear.c learnring()
@@ -2348,6 +2361,7 @@ async function putOnSelectedItem(player, display, game, item) {
                 }
                 player.ublessed = 0;
                 await makeknown(item.otyp);
+                player._botl = true; // C: disp.botl = TRUE (for AC after zeroing u.ublessed)
                 return { moved: false, tookTime: true };
             }
         }
@@ -2909,7 +2923,7 @@ export async function adjust_attrib(obj, which, val, game, player) {
   player.abon[which] = (player.abon[which] || 0) + val;
   const observable = (old_attrib !== acurr(player, which));
   if (observable || !extremeattr(player, which)) await learnring(obj, observable);
-  if (game.disp) game.disp.botl = true;
+  player._botl = true; // C: disp.botl = TRUE in adjust_attrib
 }
 
 // Autotranslated from do_wear.c:1341

@@ -287,6 +287,7 @@ export async function mount_steed(mtmp, force, player, map, display) {
     // TODO: teleds(mtmp.mx, mtmp.my, TELEDS_ALLOW_DRAG)
     player.x = mtmp.mx;
     player.y = mtmp.my;
+    player._botl = true; // C: disp.botl = TRUE
 
     return true;
 }
@@ -516,6 +517,7 @@ export async function dismount_steed(player, map, display, reason) {
     // Release the steed
     player.usteed = null;
     player.ugallop = 0;
+    player._botl = true; // C: disp.botl = TRUE
 
     // Place the steed back on the map at hero's position
     if (mtmp.mhp > 0) {

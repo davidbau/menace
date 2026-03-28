@@ -665,6 +665,10 @@ export class Display extends Terminal {
     // C ref: botl.c bot(), botl.h
     renderStatus(player) {
         if (!player) return;
+        // C ref: during level transitions, bot() hasn't run yet so the
+        // status bar should retain old values. _botDisabled is set by
+        // changeLevel and cleared at the end of changeLevel.
+        if (this._botDisabled) return;
 
         this.clearRow(STATUS_ROW_1);
         const line1 = formatStatusLine1(player, rankOf);
@@ -1844,13 +1848,10 @@ export async function docrt() {
   if (!display || !map) return;
 
   // C ref: cls() inside docrt_flags clears the message row via
-  // display_nhwindow(WIN_MESSAGE, FALSE). Clear row 0 to match.
-  if (typeof display.clearRow === 'function') display.clearRow(MESSAGE_ROW);
-  display.topMessage = null;
-
-  // C ref: docrt_flags() → cls() → display_nhwindow(WIN_MESSAGE)
-  // In tty, when toplin==TOPLINE_NEED_MORE, this fires more() which
-  // consumes the dismiss key inline before repaint proceeds.
+  // C ref: docrt_flags() → cls() → display_nhwindow(WIN_MESSAGE, FALSE).
+  // In tty, when toplin==TOPLINE_NEED_MORE, this shows --More-- with the
+  // message text visible, waits for dismiss, then clears. The message
+  // text must remain on screen during --More-- so the player can read it.
   if (display.messageNeedsMore) {
     if (display._nhgetch) {
       if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
@@ -1860,11 +1861,13 @@ export async function docrt() {
         readKey: display._nhgetch,
       });
     } else {
-      if (typeof display.clearRow === 'function') display.clearRow(MESSAGE_ROW);
       display.messageNeedsMore = false;
-      display.topMessage = null;
     }
   }
+  // After --More-- dismiss (or if no message pending), clear message row.
+  if (typeof display.clearRow === 'function') display.clearRow(MESSAGE_ROW);
+  display.topMessage = null;
+  display.messageNeedsMore = false;
 
   // C ref: cls() inside docrt_flags clears the message row via
   // display_nhwindow(WIN_MESSAGE, FALSE). Clear row 0 to match.

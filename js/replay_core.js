@@ -423,6 +423,9 @@ export async function replaySession(seed, opts, keys) {
         await Promise.resolve();
         const startupHasLiveMap = !!(game?.map || game?.lev);
         const startupLoreVisible = game?.pendingPrompt?.source === 'startup_lore';
+        // When a command completes (!pendingCommand), C's bot() has run and the
+        // terminal reflects the updated status. Force a renderStatus refresh
+        // to match, since JS only calls renderStatus at explicit boundaries.
         if ((!startupPending || startupHasLiveMap) && !pendingCommand && !startupLoreVisible
             && opts.captureScreens && !game.gameOver) {
             const player = game.u || game.u;

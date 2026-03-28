@@ -749,7 +749,7 @@ export async function seffect_charging(sobj, player, display, game) {
                 player.pw = player.pwmax;
             }
         }
-        if (game?.disp) game.disp.botl = true;
+        player._botl = true; // C: disp.botl = TRUE
         return false;
     }
 

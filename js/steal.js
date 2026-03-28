@@ -134,6 +134,7 @@ export async function stealgold(mon, player, display) {
     }
 
     if (display) await display.putstr_message('Your purse feels lighter.');
+    player._botl = true; // C: disp.botl = TRUE
 
     // C ref: steal.c:111-113 — leprechaun flees after theft
     mon.mflee = true;

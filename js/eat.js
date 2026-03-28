@@ -201,7 +201,8 @@ function obj_nutrition(otmp) {
 // cf. eat.c init_uhunger() — initialize hunger state at game start
 // Autotranslated from eat.c:125
 export async function init_uhunger(game, player) {
-  game.disp.botl = (player.uhs !== NOT_HUNGRY || player.atemp[A_STR] < 0);
+  if (player.uhs !== NOT_HUNGRY || player.atemp[A_STR] < 0)
+    player._botl = true; // C: disp.botl = TRUE
   player.uhunger = 900;
   player.uhs = NOT_HUNGRY;
   if (player.atemp[A_STR] < 0) { player.atemp[A_STR] = 0; await encumber_msg(player); }
@@ -483,10 +484,7 @@ async function newuhs(player, incr) {
                 await You("faint from lack of food.");
                 // C: incr_itimeout(&HDeaf, duration)
                 if (player.ensureUProp) incr_itimeout(player, DEAF, duration);
-                if (game) {
-                    game.disp = game.disp || {};
-                    game.disp.botl = true;
-                }
+                player._botl = true; // C: disp.botl = TRUE
                 if (game) nomul(-duration, game);
                 if (game) game.multi_reason = "fainted from lack of food";
                 // C: nomovemsg = "You regain consciousness."
@@ -499,10 +497,7 @@ async function newuhs(player, incr) {
         } else if (h < -(100 + 10 * acurr(player, A_CON))) {
             player.uhs = STARVED;
             player.hungerState = STARVED;
-            if (game) {
-                game.disp = game.disp || {};
-                game.disp.botl = true;
-            }
+            player._botl = true; // C: disp.botl = TRUE
             await You("die from starvation.");
             setKillerFormat(KILLED_BY);
             setKillerName("starvation");
@@ -578,10 +573,7 @@ async function newuhs(player, incr) {
         // C:3497-3499 — update state
         player.uhs = newhs;
         player.hungerState = newhs;
-        if (game) {
-            game.disp = game.disp || {};
-            game.disp.botl = true;
-        }
+        player._botl = true; // C: disp.botl = TRUE
 
         // C:3500-3505 — death from exhaustion after strength change
         const hp = player.uhp !== undefined ? player.uhp : (player.hp || 0);
@@ -604,10 +596,7 @@ export function Hear_again(player) {
             const entry = player.ensureUProp(DEAF);
             entry.intrinsic = entry.intrinsic & ~TIMEOUT;
         }
-        if (game) {
-            game.disp = game.disp || {};
-            game.disp.botl = true;
-        }
+        player._botl = true; // C: disp.botl = TRUE
     }
     return 0;
 }
@@ -618,10 +607,7 @@ export async function unfaint(game, player) {
     Hear_again(player);
     if (player.uhs > FAINTING) player.uhs = FAINTING;
     if (game) await stop_occupation(game);
-    if (game) {
-        game.disp = game.disp || {};
-        game.disp.botl = true;
-    }
+    player._botl = true; // C: disp.botl = TRUE
     return 0;
 }
 
@@ -887,6 +873,7 @@ export async function eye_of_newt_buzz(player) {
         }
         if ((player.pw || 0) !== oldPw) {
             await You_feel('a mild buzz.');
+            player._botl = true; // C: disp.botl = TRUE
         }
     }
 }
@@ -1198,10 +1185,7 @@ async function rottenfood(player, obj) {
         await pline_The('world spins and goes dark.');
         // C: incr_itimeout(&HDeaf, duration)
         if (player.ensureUProp) incr_itimeout(player, DEAF, duration);
-        if (game) {
-            game.disp = game.disp || {};
-            game.disp.botl = true;
-        }
+        player._botl = true; // C: disp.botl = TRUE
         // C: nomul(-duration)
         if (game) {
             nomul(-duration, game);

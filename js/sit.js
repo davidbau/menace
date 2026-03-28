@@ -57,7 +57,7 @@ export async function take_gold(player, display) {
         await You_feel("a strange sensation.");
     } else {
         await You("notice you have no gold!");
-        // botl update handled by caller
+        player._botl = true; // C: disp.botl = TRUE
     }
 }
 
@@ -220,6 +220,7 @@ async function throne_sit_effect(player, map, display) {
             await make_blinded(player, 0, true);
             await make_sick(player, 0, null, false);
             await heal_legs(0, player);
+            player._botl = true; // C: disp.botl = TRUE
             break;
         case 5:
             // take gold

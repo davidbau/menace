@@ -581,6 +581,9 @@ async function pickup_object(obj, count, telekinesis, player, map) {
     if (res <= 0)
         return res;
 
+    // C ref: pickup.c — "What's left of the special case for gold"
+    if (obj.oclass === COIN_CLASS)
+        player._botl = true; // C: disp.botl = TRUE
     if (obj.quan !== cnt_p.value && obj.otyp !== LOADSTONE)
         obj = splitobj(obj, cnt_p.value);
 
@@ -629,6 +632,7 @@ async function encumber_msg(player) {
         player.encumbrance = newcap;
     }
     if (encMsg) {
+        if (player) player._botl = true; // C: disp.botl = TRUE on encumbrance change
         await pline(encMsg);
     }
     oldcap = newcap;

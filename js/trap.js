@@ -1471,8 +1471,7 @@ function keep_saddle_with_steedcorpse(steed_mid, objchn, saddle) {
 export async function float_up(player, game) {
     const p = player;
     if (!p) return;
-    if (game) game.disp = game.disp || {};
-    if (game) game.disp.botl = true;
+    player._botl = true; // C: disp.botl = TRUE
     // C: trap cases (utrap) — simplified: just handle the common cases
     if (p.utrap) {
         if (p.utraptype === TT_PIT) {
@@ -1509,8 +1508,7 @@ export async function float_down(hmask, emask, player, game) {
         ? ((p.uprops[LEVITATION].intrinsic | p.uprops[LEVITATION].extrinsic) & (TIMEOUT | 0xFFFFFF))
         : 0;
     if (stillLev) return;
-    if (game) game.disp = game.disp || {};
-    if (game) game.disp.botl = true;
+    player._botl = true; // C: disp.botl = TRUE
     float_vs_flight(game || { disp: {} }, p);
     // C: various complex cases (pool, lava, swallowed, Sokoban, air level) — simplified
     if (p.uswallow) {
@@ -2131,6 +2129,7 @@ async function dofiretrap(box, player, game, map) {
             // C: reduce uhpmax by rn2(num+1) — simplified
             if (player?.uhpmax !== undefined) {
                 player.uhpmax = Math.max(1, player.uhpmax - rn2(num + 1));
+                player._botl = true; // C: disp.botl = TRUE
                 if (player.uhp > player.uhpmax) player.uhp = player.uhpmax;
             }
         }

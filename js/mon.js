@@ -1565,6 +1565,7 @@ export function elemental_clog(mon) {
 // C ref: mon.c:3420 set_ustuck() — set stuck-to monster
 export function set_ustuck(mon, player) {
     if (!player) return;
+    player._botl = true; // C: disp.botl = TRUE
     player.ustuck = mon || null;
     if (!player.ustuck) {
         player.uswallow = false;

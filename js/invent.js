@@ -1353,7 +1353,7 @@ export function merged(otmp, obj) {
 // C ref: invent.c addinv_core1() — side effects before adding to inventory
 export function addinv_core1(obj, player) {
     if (obj.oclass === COIN_CLASS) {
-        // botl update — handled elsewhere in JS
+        player._botl = true; // C: disp.botl = TRUE
     } else if (obj.otyp === AMULET_OF_YENDOR) {
         if (!player.uhave) player.uhave = {};
         player.uhave.amulet = true;
@@ -1374,6 +1374,7 @@ export async function addinv_core2(obj, player) {
     // C ref: invent.c:1028-1031 — luckstone in inventory sets moreluck
     if (confers_luck(obj)) {
         set_moreluck(player);
+        player._botl = true; // C: disp.botl = TRUE
     }
     // C ref: invent.c:addinv_core1() — quest-artifact touch and carried
     // artifact intrinsics are applied as soon as the object joins inventory.
@@ -1664,7 +1665,7 @@ export function useupf(obj, numused, map) {
 
 // C ref: invent.c freeinv_core() — intrinsics adjustment when removing from inventory
 export function freeinv_core(obj, player) {
-    if (obj.oclass === COIN_CLASS) return;
+    if (obj.oclass === COIN_CLASS) { player._botl = true; return; } // C: disp.botl = TRUE
     if (!player.uhave) player.uhave = {};
     if (obj.otyp === AMULET_OF_YENDOR) player.uhave.amulet = false;
     else if (obj.otyp === CANDELABRUM_OF_INVOCATION) player.uhave.menorah = false;

@@ -1203,6 +1203,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display, game 
         await spell_backfire(player, idx);
         const drain = rnd(energy);
         player.uen = Math.max(0, (player.uen || 0) - drain);
+        player._botl = true; // C: disp.botl = TRUE
         refreshSpellStatus(display, player);
         return 1; // time elapsed
     }
@@ -1788,7 +1789,7 @@ export async function spelleffects_check(spell, res, energy, game, player) {
     await spell_backfire(player, spell);
     player.uen -= rnd( energy);
     if (player.uen < 0) player.uen = 0;
-    game.disp.botl = true;
+    player._botl = true; // C: disp.botl = TRUE
      res = ECMD_TIME;
     return true;
   }
@@ -1815,7 +1816,7 @@ export async function spelleffects_check(spell, res, energy, game, player) {
     await You_feel("the amulet draining your energy away.");
     player.uen -= rnd(2 * energy);
     if (player.uen < 0) player.uen = 0;
-    game.disp.botl = true;
+    player._botl = true; // C: disp.botl = TRUE
      res = ECMD_TIME;
   }
   if ( energy > player.uen) {
@@ -1853,7 +1854,7 @@ export async function spelleffects_check(spell, res, energy, game, player) {
   if (confused || (rnd(100) > chance)) {
     await You("fail to cast the spell correctly.");
     player.uen -= Math.floor(energy / 2);
-    game.disp.botl = true;
+    player._botl = true; // C: disp.botl = TRUE
      res = ECMD_TIME;
     return true;
   }

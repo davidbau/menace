@@ -26,6 +26,7 @@ import { PM_BARBARIAN, PM_RANGER, PM_ROGUE, PM_SAMURAI, PM_TOURIST, PM_VALKYRIE 
 // cf. wield.c:100 — setuwep(obj): set hero's main weapon slot
 // C clears W_WEP from old uwep->owornmask and sets it on the new one.
 function setuwep(player, obj) {
+    const oldwep = player.weapon;
     if (player.weapon && player.weapon !== obj) {
         player.weapon.owornmask = (player.weapon.owornmask || 0) & ~W_WEP;
     }
@@ -33,6 +34,8 @@ function setuwep(player, obj) {
     if (obj) {
         obj.owornmask = (obj.owornmask || 0) | W_WEP;
     }
+    // C: disp.botl = TRUE for Ogresmasher STR change and bareh condition
+    if (oldwep !== obj) player._botl = true;
 }
 
 // cf. wield.c:280 — setuswapwep(obj): set secondary weapon slot

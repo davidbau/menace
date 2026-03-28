@@ -1390,6 +1390,7 @@ export async function invoke_healing(obj, player) {
   } else if (blindedTimeout > creamed) {
     player.blindedTimeout = creamed;
   }
+  player._botl = true; // C: disp.botl = TRUE
   return ECMD_TIME;
 }
 
@@ -1407,7 +1408,7 @@ export async function invoke_energy_boost(obj, game, player) {
   else if (epboost < 12) epboost = emax - enow;
   if (epboost) {
     setPlayerEnergy(player, enow + epboost);
-    if (game?.disp) game.disp.botl = true;
+    player._botl = true; // C: disp.botl = TRUE
     await You_feel("re-energized.");
   }
   else { await nothing_special(obj); return ECMD_TIME; }
@@ -1514,7 +1515,7 @@ export async function arti_invoke_cost(obj, player, game) {
     } else {
       await You_feel("drained...");
       setPlayerEnergy(player, Math.max(0, en - pw_cost));
-      if (game?.disp) game.disp.botl = true;
+      player._botl = true; // C: disp.botl = TRUE
     }
   } else {
     obj.age = moves + rnz(100);

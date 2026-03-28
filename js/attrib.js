@@ -505,6 +505,7 @@ export async function losestr(player, num, knam, k_format) {
             if ((player.uhpmax || 1) > uhpmin)
                 setuhpmax(player, Math.max((player.uhpmax || 1) - dmg, uhpmin), false);
         }
+        player._botl = true; // C: disp.botl = TRUE after losestr damage
     }
 
     if (num > 0 && (Upolyd(player) || !waspolyd))
@@ -563,6 +564,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
         const loss0 = 6 + c_d(4, 6); // 10..34
         if (player.uhp <= loss0) {
             player.uhp = -1;
+            player._botl = true; // C: disp.botl = TRUE (deadly poison)
             await pline_The("poison was deadly...");
         } else {
             const olduhp = player.uhp;
@@ -945,16 +947,22 @@ export function setuhpmax(player, newmax, even_when_polyd) {
             player.uhpmax = newmax;
             if (player.uhpmax > (player.uhppeak || 0))
                 player.uhppeak = player.uhpmax;
+            player._botl = true; // C: disp.botl = TRUE
         }
-        if (player.uhp > player.uhpmax)
+        if (player.uhp > player.uhpmax) {
             player.uhp = player.uhpmax;
+            player._botl = true; // C: disp.botl = TRUE
+        }
     } else {
         // Upolyd
         if (newmax !== (player.mhmax || 0)) {
             player.mhmax = newmax;
+            player._botl = true; // C: disp.botl = TRUE
         }
-        if ((player.mh || 0) > player.mhmax)
+        if ((player.mh || 0) > player.mhmax) {
             player.mh = player.mhmax;
+            player._botl = true; // C: disp.botl = TRUE
+        }
     }
 }
 
@@ -1016,6 +1024,7 @@ export async function uchangealign(player, newalign, reason) {
     const oldalign = player.alignment;
 
     player.ublessed = 0;
+    player._botl = true; // C: disp.botl = TRUE (status line needs updating)
     if (reason === A_CG_CONVERT) {
         // Conversion via altar
         livelog_printf(0, "permanently converted to %s",
