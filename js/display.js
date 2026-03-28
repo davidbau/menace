@@ -2484,6 +2484,10 @@ export function vision_recalc() {
                 }
             }
         }
+        // C ref: vision.c:839 — always newsym the hero position at the end
+        // of vision_recalc(0) to ensure the hero glyph is up-to-date.
+        // This consumes display RNG at the hero cell during hallucination.
+        newsym(player.x, player.y);
     }
     cosmic_display_pop_owner('vision_recalc');
 }
