@@ -86,6 +86,12 @@ export class Shell {
         const container = display.getPreElement()?.parentElement;
         if (!container) return;
 
+        // Ensure container is a positioning context for the canvas
+        const origPosition = container.style.position;
+        if (!container.style.position || container.style.position === 'static') {
+            container.style.position = 'relative';
+        }
+
         // Create or reuse canvas behind the terminal <pre>
         let canvas = container.querySelector('canvas.shell-game-canvas');
         if (!canvas) {
@@ -109,13 +115,14 @@ export class Shell {
             canvas.width = 1024;
             canvas.height = Math.round(1024 * (preRect.height / preRect.width));
         }
+        canvas.style.display = 'block';
+        // Transparent terminal background so canvas shows through
+        if (pre) pre.style.background = 'transparent';
+        // Wait a frame for layout to compute before measuring
+        await new Promise(r => requestAnimationFrame(r));
         sizeCanvas();
         const resizeHandler = () => requestAnimationFrame(sizeCanvas);
         window.addEventListener('resize', resizeHandler);
-
-        // Transparent terminal background so canvas shows through
-        if (pre) pre.style.background = 'transparent';
-        canvas.style.display = 'block';
 
         try {
             if (gameName === 'spacewar') {
@@ -130,6 +137,7 @@ export class Shell {
         canvas.style.display = 'none';
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
         if (pre) pre.style.background = '';
+        container.style.position = origPosition;
         window.removeEventListener('resize', resizeHandler);
 
         // Restore shell display
