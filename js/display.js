@@ -855,7 +855,8 @@ export class Display extends Terminal {
         if (fullScreenText) {
             moreMarker = '--More--';
         } else if (opts.isTextWindow) {
-            moreMarker = '(end)';
+            // C ref: wintty.c:2748 — morestr is "(end) " with trailing space
+            moreMarker = '(end) ';
         } else {
             moreMarker = ' --More--';
         }
