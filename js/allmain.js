@@ -722,12 +722,16 @@ export async function run_command(game, ch, opts = {}) {
         } else {
             game._extcmdPrecedingMsgLen = 0;
         }
+        // C ref: tty_nhgetch already transitioned toplin 2→1 (acknowledged).
+        // C does NOT have a per-command toplin clear — update_topl handles
+        // the transition when the next pline arrives. Only clear the display
+        // row, not the toplin state, so the next putstr_message sees the
+        // correct toplin for concatenation decisions.
         if (game.display.topMessage) {
             game.display.clearRow(0);
             game.display.topMessage = null;
         }
         game.display.messageNeedsMore = false;
-        game.display.toplin = 0;
     } else if (_isExtCmdPrefix) {
         game._extcmdPrecedingMsgLen = 0;
     }
