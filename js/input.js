@@ -625,9 +625,17 @@ export async function more(display, {
             col: repaintCursorCol(display),
         });
     }
-    if (refreshStatus && statusPlayer && typeof display.renderStatus === 'function') {
+    // C ref: more() (topl.c:205) does NOT call bot(). But C's pline →
+    // vpline → flush_screen (pline.c:275) calls bot() when disp.botl is
+    // set. That flush_screen runs BEFORE more(), so by the time more()
+    // shows --More--, the status is already updated if botl was set.
+    // Match this by only rendering status when _botl is set — this means:
+    // - During attack messages (hitmsg), botl=FALSE → no update (correct)
+    // - During "You die..." (after mdamageu), botl=TRUE → update HP=0 (correct)
+    if (refreshStatus && statusPlayer && statusPlayer._botl
+        && typeof display.renderStatus === 'function') {
         display.renderStatus(statusPlayer);
-        if (statusPlayer._botl) statusPlayer._botl = false;
+        statusPlayer._botl = false;
     }
 
     if (forceVisual && typeof display.renderMoreMarker === 'function') {
