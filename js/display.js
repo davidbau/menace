@@ -282,8 +282,16 @@ export class Display extends Terminal {
         // Urgent messages (death, etc.) force a --More-- boundary before display.
         const isUrgent = !!opts.urgent || msg.startsWith('You die');
         const suppressStatusRefresh = !!this._urgentSuppressStatusRefresh;
+        // C ref: update_topl concatenation check. When a new message arrives
+        // and the previous message needs --More--, C either concatenates or
+        // calls more(). C does NOT call flush_screen()/bot() here — the
+        // status bar retains stale values. Use flush_screen(1) for cursor
+        // positioning but suppress bot/renderStatus to match C.
         if (this.topMessage && this.messageNeedsMore) {
+            const savedBotl = this._lastMapState?.player?._botl;
+            if (this._lastMapState?.player) this._lastMapState.player._botl = false;
             flush_screen(1);
+            if (this._lastMapState?.player && savedBotl) this._lastMapState.player._botl = savedBotl;
         }
         const deferredPlayer = this._lastMapState?.player || null;
         if (this._deferredBotlAfterPendingFlush && deferredPlayer) {
