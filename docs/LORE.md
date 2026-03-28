@@ -17474,3 +17474,28 @@ engine feeds a key that happens to dismiss --More--) may leave
 JS's `topMessage` in an inconsistent state.
 
 This is the root cause of the --More-- boundary mismatches in #392.
+
+## 2026-03-28 — combine single-object floor feedback restored `seed032` gameplay parity
+
+- Current `main` still emitted separate same-step floor-feedback messages for
+  single-object tiles in `hack.js:postMoveFloorCheck()`:
+  - feature text such as `There is an open door here.`
+  - then object text such as `You see here ...`
+- On `seed032_manual_direct`, that stacked with an already-live shop-entry
+  greeting and created extra visible `--More--` boundaries at raw steps
+  `377` and `379`.
+- The authoritative microscope was:
+  - `rng_step_diff --step 377`: JS still dismissing
+    `"Hello, sarah!  Welcome again to Akalapi's general store!"` while C had
+    already finished the step
+  - `rng_step_diff --step 379`: JS still dismissing
+    `There is an open door here.` while C had already entered monster turns
+- Reapplying the earlier combined single-object floor-feedback logic fixed the
+  class:
+  - build one combined message for `feature + object`
+  - do not emit them as two separate topline writes
+- Result on clean current `main`:
+  - `seed032_manual_direct`: `rngFull=1/1`, `eventsFull=1/1`
+  - remaining mismatches are screen/color/cursor only
+  - `seed033_manual_direct` unchanged on its unrelated startup seam
+  - `seed328_ranger_wizard_gameplay` unchanged on its unrelated early seam
