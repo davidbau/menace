@@ -150,6 +150,7 @@ class RemoteEngine {
         this._activeBeat = null;
 
         this._lastPartialCheck = '';
+        this._recentResponses = [];  // prevent repeats (last N responses)
 
         this._scheduleSpontaneous();
     }
@@ -283,10 +284,19 @@ class RemoteEngine {
         // Accept in idle or awaiting_reply; ignore if already typing
         if (this._state !== 'idle' && this._state !== 'awaiting_reply') return;
 
-        const response = (text === '' && this._greeting)
+        let response = (text === '' && this._greeting)
             ? this._greeting
             : this._pickResponse(text);
+        // Retry up to 3 times to avoid repeating a recent response
+        if (response && this._recentResponses.includes(response)) {
+            for (let attempt = 0; attempt < 3; attempt++) {
+                const retry = this._pickResponse(text);
+                if (retry && !this._recentResponses.includes(retry)) { response = retry; break; }
+            }
+        }
         if (!response) { this._state = 'idle'; return; }
+        this._recentResponses.push(response);
+        if (this._recentResponses.length > 10) this._recentResponses.shift();
 
         this._state = 'thinking';
         const beat = this._pendingBeat;   // Feature 4: capture before clearing

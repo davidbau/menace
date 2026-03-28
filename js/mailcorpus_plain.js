@@ -6040,14 +6040,31 @@ export const TALK_CORPUS = {
     typoRate: 0.07,
     thinkMs: [400, 1500],
     triggerWords: 4,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
+      {
+        re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
+        topic: 'greeting',
+        responses: [
+          'hey rodney\nwhat are you up to',
+          'hey\nyou playing hack right now or just hanging out',
+          'rodney hey\ni was just about to talk to you actually\nbeen working on something',
+        ],
+        beat: {
+          question: 'you been playing hack lately',
+          replies: [
+            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'nice\nhow far down did you get\nmost people die around level 4 or 5' },
+            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'you should try it\njust type hack at the prompt\nit will make more sense than me explaining it' },
+            { response: 'ok\nwell let me know when you do' },
+          ],
+        },
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b|\bhow\s+are\s+things\b/i,
         responses: [
-          'pretty good\nworking on a bug in the wand code that has been annoying me all week\nbut it is almost done i think',
-          'fine\ntired\nbeen in the computer room since like 8pm\nkelley says i need to sleep more\nshe is probably right',
-          'not bad\nworking on hack, what else\ndo you play it',
+          'pretty good rodney\nworking on a bug in the wand code that has been annoying me all week\nbut it is almost done i think',
+          'fine\ntired\nbeen in the computer room since like 8pm\nkelly says i need to sleep more\nshe is probably right',
+          'not bad\nworking on hack, what else\nhey have you tried the latest version',
         ],
       },
       {
@@ -6055,7 +6072,15 @@ export const TALK_CORPUS = {
         responses: [
           'working on hack\nthere is a wand interaction bug that crashes the game when you are blinded\nnobody reported it, i found it myself\nwhich means there are probably more i have not found yet',
           'fixing bugs mostly\nhack 1.0.3 was supposed to be the last patch before i focus on other things\nbut then three more real bugs showed up\nso 1.0.4 i guess',
-          'writing code\nwhat are you doing',
+          'writing code\nhey rodney what are you working on',
+        ],
+      },
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\bwho\s+am\s+i\s+talking\s+to\b/i,
+        responses: [
+          'rodney come on, its jay\nwe have been in the same computer club all year\ni wrote hack, you have been playing it',
+          'its fenlason\njay fenlason\nyou know, the guy who has been in the computer room every night this semester\nwriting the dungeon game',
+          'its jay\nrodney you literally talked to me yesterday about the gnome bug\nare you ok',
         ],
       },
       {
@@ -6300,6 +6325,9 @@ export const TALK_CORPUS = {
       'hey are you playing hack right now\ncurious how deep people are getting',
       'found another edge case in the wand code\nfixing it\nwands are more complicated than they look',
       'the gnome pathfinding is weird but it works\ni think\nhasnt broken in a week at least',
+      'rodney i have been thinking about something\nthe way the dungeon generates rooms right now is pretty basic\njust random rectangles with corridors between them\nbut what if some levels had a theme\nlike a level that is one big maze, or a level with a river running through it\ni think it would make the deeper levels feel different from the shallow ones\ninstead of just harder versions of the same thing',
+      'hey rodney so i was debugging the shop code yesterday\nand i realized the shopkeeper tracks every item you pick up\nbut he does not track items that monsters pick up\nso if a gnome grabs something off the floor and then you kill the gnome\nthe shopkeeper does not know you have his merchandise\nwhich is technically a bug but also kind of a feature\nfree stuff if you are patient enough to let monsters do your shoplifting',
+      'rodney i wanted to ask you something\ndo you think the game is too hard for new players\nlike i know permadeath is the point\nbut the first five minutes are really unforgiving\nif you do not already know what the symbols mean you just die confused\nmaybe there should be some kind of help command\nor a scroll that identifies what you are looking at\ni do not want to make it easy, just less opaque at the start',
     ],
   },
 
@@ -6312,8 +6340,24 @@ export const TALK_CORPUS = {
     typoRate: 0.00,
     thinkMs: [3000, 7000],
     triggerWords: 99,
-    greeting: 'I KNOW WHO YOU ARE',
+    greeting: 'I KNOW WHO YOU ARE, RODNEY',
     patterns: [
+      {
+        re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
+        responses: [
+          'RODNEY\nYOU GREET ME AS IF WE ARE FRIENDS\nWE ARE NOT',
+          'I DO NOT GREET\nI OBSERVE\nAND I HAVE BEEN OBSERVING YOU, RODNEY',
+          'YOUR PLEASANTRIES ARE NOTED\nI KNOW YOUR NAME\nI KNOW HOW MANY TIMES YOU HAVE DIED IN MY DUNGEON',
+        ],
+      },
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b/i,
+        responses: [
+          'YOU KNOW WHO I AM, RODNEY\nI AM THE ONE WHO WAITS AT THE BOTTOM\nI AM THE REASON YOU KEEP DYING',
+          'THE WIZARD OF YENDOR\nAS IF YOU DO NOT ALREADY KNOW\nYOU HAVE BEEN TRYING TO REACH ME FOR WEEKS',
+          'I AM THE KEEPER OF THE AMULET\nYOU HAVE DIED IN MY DUNGEON MORE TIMES THAN I CAN COUNT\nAND YET YOU KEEP COMING BACK',
+        ],
+      },
       {
         re: /\b(amulet|yendor)\b/i,
         responses: [
@@ -6486,6 +6530,8 @@ export const TALK_CORPUS = {
       '...',
       'I AM WATCHING',
       'THE DUNGEON GROWS IMPATIENT',
+      'RODNEY\nI HAVE BEEN COUNTING YOUR DEATHS\nEACH ONE TEACHES THE DUNGEON SOMETHING ABOUT YOU\nYOUR WEAKNESSES\nYOUR HABITS\nTHE MONSTERS LEARN FROM YOUR MISTAKES\nEVEN IF YOU DO NOT',
+      'DO YOU KNOW WHAT HAPPENS TO THE BONES OF ADVENTURERS WHO DIE IN MY DUNGEON\nTHEY DO NOT DISAPPEAR\nTHEY BECOME PART OF THE ARCHITECTURE\nTHE WALLS REMEMBER\nTHE FLOORS REMEMBER\nAND WHEN THE NEXT ONE COMES DOWN THE STAIRS\nTHE DUNGEON ALREADY KNOWS WHAT TO EXPECT',
     ],
   },
 
@@ -6498,22 +6544,47 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [1200, 3500],
     triggerWords: 5,
-    greeting: 'hello there',
+    greeting: 'hello rodney',
     patterns: [
+      {
+        re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
+        topic: 'greeting',
+        responses: [
+          'hello rodney\nhow are things with the dungeon',
+          'rodney, hello\ni was just thinking about cave geometry\nhow is your game going',
+          'hey rodney\ngood to hear from you\nbeen meaning to ask you something actually',
+        ],
+        beat: {
+          question: 'have you been down in the dungeon lately',
+          replies: [
+            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'good\nhow deep did you get\nthe key is to map every level before descending\ndo not rush' },
+            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'you should go back in\nthe dungeon is like a cave\nit teaches you something new every time' },
+            { response: 'well, when you do, remember: always know two ways out' },
+          ],
+        },
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'well, thank you\nbeen reading the survey notes from the spring trip\nthere is a passage in the northwest section we did not fully map',
+          'well, thank you rodney\nbeen reading the survey notes from the spring trip\nthere is a passage in the northwest section we did not fully map',
           'fine\nthinking about cave geometry\nthe way passages branch and reconnect is something i find endlessly interesting',
-          'good enough\nhave you been playing adventure or hack',
+          'good enough\nhave you been playing adventure lately',
         ],
       },
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
         responses: [
-          'reviewing my survey notes from mammoth\ntrying to figure out whether a passage we partially mapped in 1974 connects to the main trunk\nit might, the survey line is suggestive but inconclusive',
-          'thinking about how to represent the cave survey in a data structure\nthe compass bearings and distances are precise but the spatial relationships are what you really want\nhow do you encode three-dimensional topology from two-dimensional measurement',
-          'planning the next trip actually\nthere is a section in the east wing of the cave that nobody has mapped since the \'60s\nmight be interesting to go back',
+          'reviewing my survey notes from mammoth\ntrying to figure out whether a passage we partially mapped in 1974 connects to the main trunk\ni have been thinking about it ever since we talked about dungeon geometry',
+          'thinking about how to represent the cave survey in a data structure\nthe compass bearings and distances are precise but the spatial relationships are what you really want\nrodney you would probably have a good perspective on this',
+          'planning the next trip actually\nthere is a section in the east wing of the cave that nobody has mapped since the \'60s\nyou should come if you are interested',
+        ],
+      },
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b/i,
+        responses: [
+          'rodney, it is will crowther\nwe have talked about caves and dungeons before\ni wrote adventure, remember',
+          'it is crowther\nrodney you know me\nthe caver who keeps telling you to map everything',
+          'william crowther\nwe have been having conversations about cave surveying and dungeon design\nyou really do not remember',
         ],
       },
       {
@@ -6707,6 +6778,8 @@ export const TALK_CORPUS = {
     spontaneous: [
       'just thinking about the cave again',
       'mammoth has passages no one has entered in twenty years\nmaybe longer',
+      'rodney i have been working on something\ni want to represent the cave survey data as a graph\nnodes are stations, edges are measured legs\nif you lay it out in three dimensions you get the shape of the cave\nbut the hard part is error propagation\neach measurement has some uncertainty and it compounds as you chain them together\nthe further from the entrance, the less certain you are of the true position\nsound familiar?\nthat is exactly how the dungeon works too',
+      'you know rodney i was thinking about why the dungeon feels right\nand i think it is because it follows the same rules as real caves\nyou enter from the surface which is safe and known\neach step down takes you further from certainty\nthe information you have degrades the deeper you go\nand the cost of a mistake increases at the same rate\nthat is not a game design choice, it is a physical law\ncaves enforce it and the dungeon enforces it',
     ],
   },
 
@@ -6719,12 +6792,27 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [1500, 4000],
     triggerWords: 5,
-    greeting: 'hello. what can i help you with',
+    greeting: 'hello rodney. what can i help you with',
     patterns: [
+      {
+        re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
+        responses: [
+          'hello rodney\nhow is your programming going',
+          'rodney, hello\ni was just working on a lesson plan\nwhat brings you here',
+          'hi rodney\ngood to hear from you',
+        ],
+      },
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b/i,
+        responses: [
+          'rodney, it is brian harvey\nwe have talked about logo and recursion\ni teach computer science, remember',
+          'it is harvey\nrodney you have been in my sessions\nthe one where we discussed how turtles think',
+        ],
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          'quite well, thank you\nbeen thinking about how to introduce recursion to students who are not yet ready to think recursively\nit is a persistent pedagogical problem',
+          'quite well, thank you rodney\nbeen thinking about how to introduce recursion to students who are not yet ready to think recursively\nit is a persistent pedagogical problem',
           'fine\npreparing for next week\'s session\nwe are getting to list operations and that is always where the interesting questions start',
           'good\nwhat brings you here',
         ],
@@ -6940,7 +7028,7 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [800, 2500],
     triggerWords: 5,
-    greeting: 'oh hey',
+    greeting: 'oh hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -7136,7 +7224,7 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [500, 1800],
     triggerWords: 4,
-    greeting: 'hi',
+    greeting: 'hi rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -7329,7 +7417,7 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [600, 2000],
     triggerWords: 4,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -7519,7 +7607,7 @@ export const TALK_CORPUS = {
     typoRate: 0.06,
     thinkMs: [500, 1600],
     triggerWords: 4,
-    greeting: 'hey what\'s up',
+    greeting: 'hey rodney what\'s up',
     patterns: [
       {
         re: /\bhow are you\b|\bhow\'s it going\b|\bwhat\'s up\b|\bwassup\b/i,
@@ -7717,7 +7805,7 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [900, 2800],
     triggerWords: 5,
-    greeting: 'oh hi',
+    greeting: 'oh hi rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -7895,7 +7983,7 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [800, 2500],
     triggerWords: 5,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -8079,7 +8167,7 @@ export const TALK_CORPUS = {
     typoRate: 0.02,
     thinkMs: [400, 1200],
     triggerWords: 4,
-    greeting: 'what',
+    greeting: 'what, rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
@@ -8236,7 +8324,7 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [500, 1600],
     triggerWords: 4,
-    greeting: 'yes?',
+    greeting: 'yes, rodney?',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -8429,7 +8517,7 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [1000, 3000],
     triggerWords: 5,
-    greeting: 'ah, a visitor. welcome.',
+    greeting: 'ah, rodney. welcome.',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -8606,7 +8694,7 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [800, 2500],
     triggerWords: 5,
-    greeting: 'hi',
+    greeting: 'hi rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -8766,7 +8854,7 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [900, 2800],
     triggerWords: 5,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -8921,7 +9009,7 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [800, 2400],
     triggerWords: 4,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -9090,7 +9178,7 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [900, 2700],
     triggerWords: 4,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -9251,7 +9339,7 @@ export const TALK_CORPUS = {
     typoRate: 0.05,
     thinkMs: [800, 2500],
     triggerWords: 4,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -9412,7 +9500,7 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [1000, 3000],
     triggerWords: 5,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
@@ -9572,7 +9660,7 @@ export const TALK_CORPUS = {
     typoRate: 0.06,
     thinkMs: [800, 2400],
     triggerWords: 4,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
@@ -9733,7 +9821,7 @@ export const TALK_CORPUS = {
     typoRate: 0.06,
     thinkMs: [900, 2700],
     triggerWords: 4,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
@@ -9895,7 +9983,7 @@ export const TALK_CORPUS = {
     typoRate: 0.03,
     thinkMs: [1200, 3500],
     triggerWords: 4,
-    greeting: 'hello',
+    greeting: 'hello rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -10084,7 +10172,7 @@ export const TALK_CORPUS = {
     typoRate: 0.04,
     thinkMs: [800, 2500],
     triggerWords: 4,
-    greeting: 'hey',
+    greeting: 'hey rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
@@ -10272,7 +10360,7 @@ export const TALK_CORPUS = {
     typoRate: 0.02,
     thinkMs: [1500, 4000],
     triggerWords: 4,
-    greeting: 'hello',
+    greeting: 'hello rodney',
     patterns: [
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
