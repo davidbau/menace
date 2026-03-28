@@ -17710,9 +17710,9 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - use the same live-map fallback already used elsewhere in `read.js`:
     - `player?.map || _gstate?.lev || _gstate?.map || null`
   - and normalize `punish()` itself to the same fallback before `placebc()`
-- Validated effect on clean current `main`:
+- Validated effect on clean rebased `origin/main`:
   - `seed032_manual_direct`: first RNG divergence `548 -> 556`
-  - `seed033_manual_direct`: unchanged at `571`
+  - `seed033_manual_direct`: first RNG divergence `597` on the rebased guardrail run
   - `seed328_ranger_wizard_gameplay`: unchanged at `226`
 - New active `seed032` seam after the fix:
   - first RNG divergence at `556`
