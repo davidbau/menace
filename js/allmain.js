@@ -1211,6 +1211,8 @@ async function postRender(game, result) { // async-ok: called via await; may nee
     if (mapReady && typeof game.display.renderMap === 'function') {
         game.display.renderMap(game.map, player, game.fov, game.flags);
     }
+    // C ref: allmain.c:574 — find_ac() runs before bot() in pre-input.
+    find_ac(player);
     if (typeof game.display.renderStatus === 'function') {
         game.display.renderStatus(player);
     }
@@ -1493,6 +1495,9 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg, opts = {}) 
                 // C ref: moveloop_preamble() set_wear() runs after welcome().
                 if (g?.u) {
                     await set_wear(g.u, null);
+                    // C ref: find_ac() after set_wear ensures AC is correct
+                    // for the first status line display.
+                    find_ac(g.u);
                 }
                 if (g?.display && typeof g.display.renderStatus === 'function' && g.u) {
                     g.display.renderStatus(g.u);
@@ -1739,6 +1744,8 @@ export class NetHackGame {
         this.fov.compute(this.map, this.u.x, this.u.y);
         this.display.renderMessageWindow();
         this.display.renderMap(this.map, this.u, this.fov, this.flags);
+        // C ref: bot() calls find_ac() before rendering status.
+        find_ac(this.u);
         this.display.renderStatus(this.u);
         this.display.cursorOnPlayer(this.u);
     }
