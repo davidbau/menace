@@ -1135,19 +1135,38 @@ export async function handleDropTypes(player, map, display) {
         return { moved: false, tookTime: false };
     }
 
-    // Show filtered items and accept selection via nhgetch.
-    // C uses a full PICK_ANY menu here; JS uses invlet selection for now.
-    const sel = await nhgetch();
-    if (sel === 27 || sel === 10 || sel === 13 || sel === 32) {
-        return { moved: false, tookTime: false };
+    // C ref: do.c:1069-1099 — query_objlist(..., PICK_ANY, ...)
+    // Keep the filtered object menu active until Enter confirms or Esc cancels.
+    // For now, mirror the visible tty behavior narrowly for this drop path by
+    // toggling selections via inventory letters.
+    const selected = new Set();
+    while (true) {
+        const sel = await nhgetch();
+        if (sel === 27) {
+            return { moved: false, tookTime: false };
+        }
+        if (sel === 10 || sel === 13 || sel === 32) {
+            break;
+        }
+        if (sel < 32 || sel >= 127) {
+            continue;
+        }
+        const invlet = String.fromCharCode(sel);
+        const picked = candidates.find((o) => o.invlet === invlet);
+        if (!picked) {
+            continue;
+        }
+        if (selected.has(picked)) selected.delete(picked);
+        else selected.add(picked);
     }
-    const invlet = String.fromCharCode(sel);
-    const picked = candidates.find((o) => o.invlet === invlet);
-    if (!picked) {
-        await showDropCandidates(candidates, display);
-        return { moved: false, tookTime: false };
+
+    let tookTime = false;
+    for (const picked of candidates) {
+        if (!selected.has(picked)) continue;
+        const result = await dropSelectedItem(picked, player, map, display);
+        tookTime = tookTime || !!result?.tookTime;
     }
-    return await dropSelectedItem(picked, player, map, display);
+    return { moved: false, tookTime };
 }
 
 // C ref: do.c:924 doddrop() — drop by category selection.

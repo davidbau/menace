@@ -17590,3 +17590,41 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - `seed328_ranger_wizard_gameplay`: unchanged at `226`
 - The safe validated increment is the unpaid-item hook in `dropz()`
   - broader unconditional `sellobj()` wiring exposed separate `sellobj()/set_cost()` issues and was not landed
+
+## 2026-03-28 — `menu_drop()` needs a real in-band PICK_ANY selection loop
+
+- The next `seed032` seam after the unpaid-drop fix was not pet AI first.
+- The decisive raw key window was:
+  - `487: D`
+  - `488: u`
+  - `489: Enter`
+  - `490: a`
+  - `491: z`
+  - `492: Enter`
+- The recorded C session showed the real second-stage drop menu interaction:
+  - `489` opens `What would you like to drop?`
+  - `490 "a"` is consumed in-menu and does nothing
+  - `491 "z"` toggles the wand selection from `-` to `+`
+  - `492 Enter` confirms and drops the wand
+- JS `handleDropTypes()` was wrong here:
+  - after filtering candidates, it did only one `nhgetch()`
+  - if that one key was not an inventory letter, it fell into `showDropCandidates()`
+  - that produced a standalone `^more[do.showDropCandidates.more,z - a brass wand.]` boundary and leaked later keys back into ordinary command flow
+- That bad lifecycle shifted the actual drop square:
+  - JS dropped the wand at `72,7`
+  - C dropped it at `71,8`
+  - the later kitten `dog_goal_end` drift was downstream of that location difference
+- Fix:
+  - replace the one-key filtered-drop path in `js/do.js:handleDropTypes()` with a real in-band PICK_ANY-style loop:
+    - keep the menu active
+    - toggle selected items by inventory letter
+    - confirm on Enter/Space
+    - cancel on Escape
+- Validated effect on clean current `main`:
+  - `seed032_manual_direct`: first RNG divergence `485 -> 499`
+  - `seed033_manual_direct`: unchanged at `571`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+- New active `seed032` seam after the fix:
+  - first RNG divergence at `499`
+  - JS: `rn2(3)=0 @ dochug(monmove.js:847)`
+  - C: `rn2(1)=0 @ dog_move(dogmove.c:1300)`
