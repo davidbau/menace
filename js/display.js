@@ -1843,6 +1843,11 @@ export async function docrt() {
   const flags = ctx?.flags;
   if (!display || !map) return;
 
+  // C ref: cls() inside docrt_flags clears the message row via
+  // display_nhwindow(WIN_MESSAGE, FALSE). Clear row 0 to match.
+  if (typeof display.clearRow === 'function') display.clearRow(MESSAGE_ROW);
+  display.topMessage = null;
+
   // C ref: docrt_flags() → cls() → display_nhwindow(WIN_MESSAGE)
   // In tty, when toplin==TOPLINE_NEED_MORE, this fires more() which
   // consumes the dismiss key inline before repaint proceeds.
@@ -1860,6 +1865,11 @@ export async function docrt() {
       display.topMessage = null;
     }
   }
+
+  // C ref: cls() inside docrt_flags clears the message row via
+  // display_nhwindow(WIN_MESSAGE, FALSE). Clear row 0 to match.
+  if (typeof display.clearRow === 'function') display.clearRow(MESSAGE_ROW);
+  display.topMessage = null;
 
   // C ref: docrt_flags() newsym grid rebuild
   docrt_flags(docrtRecalc);
