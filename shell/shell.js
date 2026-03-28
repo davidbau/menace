@@ -203,6 +203,7 @@ export class Shell {
             this._addLine('', OUTPUT_COLOR);
             // Append MOTD and other profile output
             for (const row of profileLines) this.scrollBuffer.push(row);
+            this._renderScrollBuffer();
         } else {
             this.display.clearScreen();
             // Show login banner (generated with current date/time)
