@@ -17751,3 +17751,37 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - first RNG divergence at `578`
   - JS: `rnd(6)=3 @ domove_core(hack.js:...)`
   - C: `rn2(5)=2 @ distfleeck(monmove.c:539)`
+
+## Session 36 Findings (March 28, 2026)
+
+### Tutorial spell clearing (seed033 +112 RNG)
+- C's `nhl_gamestate("save")` in nhlua.c clears `svs.spl_book` (memset to 0) when
+  entering the tutorial. The Priest's starting spells (SPE_LIGHT, SPE_DETECT_MONSTERS)
+  are learned via `initialspell()` during `u_init_skills_discoveries()`, then CLEARED
+  when the tutorial starts.
+- JS wasn't clearing spells → hero saw "You know light quite well already" instead of
+  studying the spellbook fresh → skipped 3-turn study occupation → 22-turn drift.
+- Fix: chargen.js `applyTutorialStrip` saves/clears spells; teleport.js restores on exit.
+
+### Dlvl display bug (seed031 +178 screens)
+- `render.js:formatStatusLine2` used `player.dungeonLevel` (branch-local dlevel) instead
+  of `depth(player.uz)` (canonical depth = depth_start + dlevel - 1).
+- When entering branch dungeons (Mines at depth 5), status showed "Dlvl:1" instead of "Dlvl:5".
+- Fix: import `depth()` from dungeon.js and use it for the Dlvl display.
+
+### HP display timing at --More-- boundaries
+- 12 sessions exposed by upstream mask removal show HP:0 (JS) vs HP:1 (C).
+- Root cause traced precisely: during monster attacks, C's hitmsg ("The fox bites!")
+  fires BEFORE mdamageu (damage application). The --More-- from message overflow fires
+  with pre-damage HP visible on the status line.
+- In JS, the --More-- fires after damage is applied because:
+  (a) flush_screen in JS calls renderStatus when _botl is set
+  (b) _botl gets set by mdamageu BEFORE the --More-- dismiss completes
+  (c) The flush_screen→renderStatus shows post-damage HP at the --More-- boundary
+- C's more() does NOT call bot() — confirmed in win/tty/topl.c:205.
+- C's flush_screen DOES call bot() when disp.botl is set — but in C, the sequence
+  ensures disp.botl from damage is consumed AFTER the --More-- dismiss, not before.
+- Attempted fix (removing renderStatus from more/putstr_message/flush_screen) caused
+  regressions because other code paths depend on flush_screen's status update.
+- Proper fix requires matching C's exact botl flag lifecycle during combat:
+  set botl on damage, but don't consume it in flush_screen until after --More-- dismisses.
