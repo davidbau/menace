@@ -12,24 +12,26 @@
   <link rel="stylesheet" href="../assets/fonts/dejavu-sans-mono.css">
   <style>
     :root {
-      --color-bg: #111;
-      --color-text: #ccc;
-      --color-accent: #6b2c2c;
+      --color-bg: #000;
+      --color-terminal-bg: #000;
+      --color-terminal-border: #1a1a1a;
+      --color-accent: #33ff33;
       --font-mono: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace;
       --font-serif: 'EB Garamond', Georgia, serif;
+      --game-font-size: 16px;
+      --game-line-height: 1.1875;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: #000;
-      color: var(--color-text);
+      color: #33ff33;
       font-family: var(--font-serif);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      overflow: hidden;
     }
 
     #page {
@@ -43,27 +45,24 @@
       position: relative;
       display: inline-block;
       background: #000;
-      border: 2px solid #222;
-      border-radius: 50%;
+      border: 2px solid #1a3a1a;
+      border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 0 40px rgba(100, 200, 100, 0.05),
-                  inset 0 0 80px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Terminal text renders on top of canvas */
+    #spacewar-container pre {
+      position: relative;
+      z-index: 1;
+      background: transparent !important;
+      color: #33ff33;
     }
 
     #spacewar-canvas {
-      display: block;
-      border-radius: 50%;
-    }
-
-    /* PDP-1 scope phosphor glow effect */
-    #spacewar-container::after {
-      content: '';
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      border-radius: 50%;
-      pointer-events: none;
-      box-shadow: inset 0 0 60px rgba(0, 50, 0, 0.15),
-                  inset 0 0 120px rgba(0, 0, 0, 0.5);
+      top: 0;
+      left: 0;
+      z-index: 0;
     }
 
     #controls {
@@ -73,12 +72,13 @@
       display: flex;
       gap: 4px;
       z-index: 10;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
     }
 
     #controls button {
-      background: #222;
-      border: 1px solid #444;
-      color: #888;
+      background: #111;
+      border: 1px solid #333;
+      color: #33ff33;
       padding: 4px 10px;
       border-radius: 4px;
       cursor: pointer;
@@ -87,96 +87,119 @@
     }
 
     #controls button:hover {
-      background: #333;
-      color: #ccc;
+      background: #1a3a1a;
     }
-
-    #title-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    #title-overlay h1 {
-      font-family: var(--font-mono);
-      font-size: 28px;
-      color: #00ff88;
-      text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-      letter-spacing: 4px;
-      margin-bottom: 12px;
-    }
-
-    #title-overlay .subtitle {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 20px;
-    }
-
-    #title-overlay .prompt {
-      font-family: var(--font-mono);
-      font-size: 14px;
-      color: #888;
-      animation: blink 1.2s ease-in-out infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <div id="page">
     <div id="spacewar-container">
-      <canvas id="spacewar-canvas"></canvas>
-      <div id="title-overlay">
-        <h1>SPACEWAR!</h1>
-        <div class="subtitle">MIT 1962 &mdash; Russell, Graetz, Wiitanen</div>
-        <div class="subtitle">Expensive Planetarium by Samson</div>
-        <div class="prompt">PRESS SPACE TO START</div>
-      </div>
+      <canvas id="spacewar-canvas" width="1024" height="608"></canvas>
     </div>
   </div>
 
   <div id="controls">
+    <button id="font-smaller" title="Decrease font size"><span style="font-family:var(--font-mono)">A</span>&minus;</button>
+    <button id="font-larger" title="Increase font size"><span style="font-family:var(--font-mono)">A</span>+</button>
     <button id="btn-shell" title="Return to shell">&#x23CE; Shell</button>
   </div>
 
+  <script>
+  /* Line-height pre-computation (same as shell/logo) */
+  (function() {
+    var FONT_FAMILY = '"DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace';
+    function measureLineHeight(fontSize) {
+      try {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        if (!ctx) return Math.round(fontSize * 1.1875);
+        ctx.font = fontSize + 'px ' + FONT_FAMILY;
+        var m = ctx.measureText('M');
+        if (m.fontBoundingBoxAscent !== undefined && m.fontBoundingBoxDescent !== undefined) {
+          return Math.floor(m.fontBoundingBoxAscent + m.fontBoundingBoxDescent);
+        }
+        return Math.round(fontSize * 1.1875);
+      } catch(e) { return Math.round(fontSize * 1.1875); }
+    }
+    function applyLineHeight() {
+      var sz = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--game-font-size')) || 16;
+      var lh = measureLineHeight(sz);
+      document.documentElement.style.setProperty('--game-line-height', (lh / sz).toFixed(4));
+    }
+    window._applyLineHeight = applyLineHeight;
+    applyLineHeight();
+  })();
+  </script>
+
   <script type="module">
+    import { Terminal } from '../js/terminal.js';
     import { SpacewarGame } from './js/spacewar.js';
 
-    const canvas = document.getElementById('spacewar-canvas');
     const container = document.getElementById('spacewar-container');
-    const titleOverlay = document.getElementById('title-overlay');
+    const canvas = document.getElementById('spacewar-canvas');
 
-    // Size canvas to fit viewport as a circle (PDP-1 round scope)
+    // Detach canvas before Terminal clears innerHTML, then re-add behind <pre>
+    if (canvas) canvas.remove();
+    const display = new Terminal(container);
+    if (canvas) container.insertBefore(canvas, container.firstChild);
+
+    // Make terminal text transparent-background so canvas shows through
+    const pre = display.getPreElement();
+    if (pre) pre.style.background = 'transparent';
+
+    // Size canvas to match the terminal <pre> exactly
     function sizeCanvas() {
-      const maxDim = Math.min(window.innerWidth, window.innerHeight) - 40;
-      const size = Math.max(400, Math.min(900, maxDim));
-      canvas.width = size;
-      canvas.height = size;
-      container.style.width = size + 'px';
-      container.style.height = size + 'px';
+      if (!pre) return;
+      const preRect = pre.getBoundingClientRect();
+      const contRect = container.getBoundingClientRect();
+      // Position canvas under the <pre>
+      canvas.style.left = (preRect.left - contRect.left) + 'px';
+      canvas.style.top = (preRect.top - contRect.top) + 'px';
+      canvas.style.width = preRect.width + 'px';
+      canvas.style.height = preRect.height + 'px';
+      // High-res canvas: 1024 wide, height proportional
+      canvas.width = 1024;
+      canvas.height = Math.round(1024 * (preRect.height / preRect.width));
     }
-    sizeCanvas();
-    window.addEventListener('resize', sizeCanvas);
+    requestAnimationFrame(() => {
+      sizeCanvas();
+      window.addEventListener('resize', sizeCanvas);
+    });
 
-    // Draw initial star field on title screen
-    const game = new SpacewarGame(canvas);
-    game.render();
+    // Font size controls
+    function currentSize() {
+      try { return parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) { return 16; }
+    }
+    function setFontSize(sz) {
+      sz = Math.max(10, Math.min(28, sz));
+      document.documentElement.style.setProperty('--game-font-size', sz + 'px');
+      container.style.fontSize = sz + 'px';
+      try { localStorage.setItem('menace-font-size', String(sz)); } catch(e) {}
+      if (window._applyLineHeight) window._applyLineHeight();
+      requestAnimationFrame(sizeCanvas);
+    }
+    document.getElementById('font-smaller').addEventListener('click', () => setFontSize(currentSize() - 1));
+    document.getElementById('font-larger').addEventListener('click', () => setFontSize(currentSize() + 1));
 
-    // Wait for space to start
-    async function waitForStart() {
+    // Apply saved font size
+    const savedSize = currentSize();
+    if (savedSize !== 16) setFontSize(savedSize);
+
+    // Title screen
+    display.clearScreen();
+    display.putstr(28, 10, 'S P A C E W A R !', 10);
+    display.putstr(20, 12, 'MIT 1962  Russell/Graetz/Wiitanen', 7);
+    display.putstr(20, 13, 'Expensive Planetarium by Samson', 7);
+    display.putstr(23, 16, 'PRESS SPACE TO START', 10);
+    display.putstr(16, 19, 'NEEDLE: A/D W S Q   WEDGE: arrows . /', 7);
+    display.putstr(30, 20, 'P pause  ESC quit', 7);
+    if (typeof display.flush === 'function') display.flush();
+
+    async function waitForSpace() {
       return new Promise(resolve => {
         function onKey(e) {
           if (e.code === 'Space') {
+            e.preventDefault();
             document.removeEventListener('keydown', onKey);
             resolve();
           }
@@ -186,28 +209,18 @@
     }
 
     async function main() {
+      await waitForSpace();
+
       while (true) {
-        // Title screen
-        titleOverlay.classList.remove('hidden');
         sizeCanvas();
-        const titleGame = new SpacewarGame(canvas);
-        titleGame.render();
-        await waitForStart();
-        titleOverlay.classList.add('hidden');
-
-        // Play
-        sizeCanvas();
-        const g = new SpacewarGame(canvas);
-        await g.run();
-
-        // If ESC was pressed, return to shell
-        break;
+        const game = new SpacewarGame(canvas, display);
+        await game.run();
+        break; // ESC pressed — exit to shell
       }
 
       // Return to shell
       try {
-        const ctx = { app: 'spacewar' };
-        localStorage.setItem('menace-shell-context', JSON.stringify(ctx));
+        localStorage.setItem('menace-shell-context', JSON.stringify({ app: 'spacewar' }));
       } catch (e) {}
       window.location.href = '/shell/';
     }
