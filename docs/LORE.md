@@ -17718,3 +17718,36 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - first RNG divergence at `556`
   - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
   - C: `rn2(100)=15 @ obj_resists(zap.c:1467)`
+
+## 2026-03-28 — hero movement must run punishment drag logic in `domove_core()`
+
+- The next `seed032` seam after the punishment-map fix looked like another pet `dog_move()` object-scan mismatch, but the decisive raw window showed the real upstream state bug.
+- On clean rebased `origin/main`, the first divergence was at step `556`, but step-count summary showed:
+  - `556`: fully matched
+  - `557`: JS short by `13` RNG and `14` events
+- Raw comparison at the first bad step showed:
+  - JS step `557` began directly with kitten `dog_move()` from `71,8`
+  - C step `557` first placed the punishment objects:
+    - `^place[474,70,8]`
+    - `^place[475,70,9]`
+  - then entered the same kitten `dog_move()`
+- JS step-557 mapdump confirmed the ball and chain were stale on the floor:
+  - both still stranded at `70,7`
+- Root cause in `js/hack.js`:
+  - `domove_core()` never called the C punishment movement path:
+    - no `drag_ball(...)` before the hero move
+    - no `move_bc(...)` after the hero move
+  - `js/ball.js` had the implementation, but normal movement never invoked it
+- Fix:
+  - import `drag_ball` and `move_bc` into `js/hack.js`
+  - in `domove_core()`, call `drag_ball(nx, ny, true, ...)` after movement viability checks and before the move commits
+  - after the hero move commits, call `move_bc(0, ...)` before the inlined `spoteffects` block
+  - preserve C-style `cause_delay` handling via `nomul(-2, game)` after post-move effects
+- Validated effect on clean rebased `origin/main`:
+  - `seed032_manual_direct`: first RNG divergence `556 -> 578`
+  - `seed033_manual_direct`: unchanged at `597`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+- New active `seed032` seam after the fix:
+  - first RNG divergence at `578`
+  - JS: `rnd(6)=3 @ domove_core(hack.js:...)`
+  - C: `rn2(5)=2 @ distfleeck(monmove.c:539)`

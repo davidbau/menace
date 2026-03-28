@@ -85,6 +85,7 @@ import { is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall } from './dbrid
 import { game as _gstate } from './gstate.js';
 import { notake } from './mondata.js';
 import { enterModal, exitModal, assertNotInModal } from './modal_guard.js';
+import { drag_ball, move_bc } from './ball.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
@@ -921,6 +922,12 @@ export async function domove_core(dir, player, map, display, game) {
     }
     let nx = player.x + moveDir[0];
     let ny = player.y + moveDir[1];
+    let bc_control = 0;
+    let ballx = 0;
+    let bally = 0;
+    let chainx = 0;
+    let chainy = 0;
+    let cause_delay = false;
     player.dx = moveDir[0];
     player.dy = moveDir[1];
     // C ref: cmd.c move-prefix handling is consumed by the attempted move
@@ -1188,6 +1195,19 @@ export async function domove_core(dir, player, map, display, game) {
         domoveNotime('swim-move-danger');
         return { moved: false, tookTime: false };
     }
+    if (player?.Punished || player?.punished) {
+        const dragged = await drag_ball(nx, ny, true, player, map, game);
+        if (!dragged?.ret) {
+            domoveNotime('drag-ball-refused');
+            return { moved: false, tookTime: false };
+        }
+        bc_control = dragged.bc_control;
+        ballx = dragged.ballx;
+        bally = dragged.bally;
+        chainx = dragged.chainx;
+        chainy = dragged.chainy;
+        cause_delay = !!dragged.cause_delay;
+    }
     loc = map.at(nx, ny);
     const steppingTrap = map.trapAt(nx, ny);
     // C ref: hack.c:2533-2561 — paranoid trap confirmation for known traps.
@@ -1255,6 +1275,10 @@ export async function domove_core(dir, player, map, display, game) {
             newsym(player.x, player.y);  // update new player position (show '@')
             display.renderStatus(player);
         }
+    }
+
+    if (player?.Punished || player?.punished) {
+        await move_bc(0, bc_control, ballx, bally, chainx, chainy, player, map);
     }
 
     async function applySteppedTrap(trap) {
@@ -1559,6 +1583,12 @@ export async function domove_core(dir, player, map, display, game) {
     // invault() can detect when the player enters a vault.
     if (player.umoved) {
         await check_special_room(false, player, map, display, game?.fov || null);
+    }
+
+    if (cause_delay) {
+        nomul(-2, game);
+        game.multi_reason = "dragging an iron ball";
+        game.nomovemsg = "";
     }
 
     await runmode_delay_output(game, display);
