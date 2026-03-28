@@ -64,7 +64,7 @@ import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap, domagicportal } from './teleport.js';
-import { trapeffect_bear_trap_you, trapeffect_rust_trap_you, trapeffect_web_you, dotrap } from './trap.js';
+import { trapeffect_bear_trap_you, trapeffect_rust_trap_you, trapeffect_web_you, dotrap, sokoban_guilt } from './trap.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
@@ -492,24 +492,47 @@ export async function cannot_push_msg(otmp, _rx, _ry, _map, display, player = nu
 
 // C ref: hack.c cannot_push()
 export async function cannot_push(otmp, rx, ry, map, display, player = null) {
+    const inv = Array.isArray(player?.inventory) ? player.inventory.filter(Boolean) : [];
+    const canSqueezeOntoBoulder = (!player?.usteed && inv.length === 0)
+        || could_move_onto_boulder(otmp?.ox, otmp?.oy, player);
     if (!isok(rx, ry)) {
+        if (canSqueezeOntoBoulder) {
+            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            sokoban_guilt();
+            return 0;
+        }
         await cannot_push_msg(otmp, rx, ry, map, display, player);
-        return true;
+        return -1;
     }
     const loc = map.at(rx, ry);
     if (!loc || IS_OBSTRUCTED(loc.typ) || closed_door(rx, ry, map)) {
+        if (canSqueezeOntoBoulder) {
+            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            sokoban_guilt();
+            return 0;
+        }
         await cannot_push_msg(otmp, rx, ry, map, display, player);
-        return true;
+        return -1;
     }
     if (map.monsterAt(rx, ry)) {
+        if (canSqueezeOntoBoulder) {
+            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            sokoban_guilt();
+            return 0;
+        }
         await cannot_push_msg(otmp, rx, ry, map, display, player);
-        return true;
+        return -1;
     }
     if (sobj_at(BOULDER, rx, ry, map)) {
+        if (canSqueezeOntoBoulder) {
+            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
+            sokoban_guilt();
+            return 0;
+        }
         await cannot_push_msg(otmp, rx, ry, map, display, player);
-        return true;
+        return -1;
     }
-    return false;
+    return 1;
 }
 
 // C ref: hack.c rock_disappear_msg()
@@ -566,8 +589,12 @@ export async function moverock_core(sx, sy, dx, dy, player, map, display, game) 
     if (here.length > 0 && here[here.length - 1] !== otmp) await movobj(otmp, sx, sy, map);
     const rx = sx + dx;
     const ry = sy + dy;
-    if (await cannot_push(otmp, rx, ry, map, display, player)) {
+    const pushState = await cannot_push(otmp, rx, ry, map, display, player);
+    if (pushState < 0) {
         return -1;
+    }
+    if (pushState === 0) {
+        return 0;
     }
     // C ref: hack.c moverock_core() — relink at top of fobj chain before dopush.
     if (Array.isArray(map?.objects) && map.objects.length > 0
@@ -1510,20 +1537,20 @@ export async function domove_core(dir, player, map, display, game) {
                 ? 'A trap door opens up under you!'
                 : "There's a gaping hole under you!");
             await You('fall down a shaft!');
-            // Falling to another level should pause on the combined trap message
-            // before the level transition redraw.
-            if (display) {
-                await more(display, { game, site: 'hack.fall-through', forceVisual: true });
-            }
             const currentDepth = Number.isInteger(player?.dungeonLevel)
                 ? player.dungeonLevel
                 : (Number.isInteger(map?._genDlevel) ? map._genDlevel : 1);
             const destDepth = Number.isInteger(trap?.dst?.dlevel)
                 ? trap.dst.dlevel
                 : (currentDepth + 1);
-            // C ref: trap.c fall_through() schedules deferred level change with
-            // UTOTYPE_FALLING so goto_level applies fall-damage semantics.
-            schedule_goto(player, destDepth, 0x02, null, null);
+            const destLevel = (Number.isInteger(trap?.dst?.dnum) && Number.isInteger(trap?.dst?.dlevel))
+                ? { dnum: trap.dst.dnum, dlevel: trap.dst.dlevel }
+                : destDepth;
+            // C ref: trap.c fall_through() -> schedule_goto(..., UTOTYPE_FALLING).
+            // JS runOneCommandCycle() already invokes deferred_goto()
+            // immediately after rhackCore when utotype is set, matching the
+            // C post-command lane without an extra prompt boundary here.
+            schedule_goto(player, destLevel, 0x02, null, null);
         } else if (trap.ttyp === WEB) {
             // C ref: trap.c dotrap() — applySteppedTrap already consumed the
             // rn2(5) escape roll above, so call trapeffect_web_you directly

@@ -17842,3 +17842,36 @@ This is the root cause of the --More-- boundary mismatches in #392.
   regressions because other code paths depend on flush_screen's status update.
 - Proper fix requires matching C's exact botl flag lifecycle during combat:
   set botl on damage, but don't consume it in flush_screen until after --More-- dismisses.
+
+### `seed033` tutorial drop and falling parity (`597 -> 628`)
+- The late `seed033` uppercase-`D` flow was still too weakly modeled in JS.
+- C's second-stage filtered drop selection uses `PICK_ANY` menu semantics, not
+  a single raw inventory-letter pick.
+- Fix in [js/do.js](/tmp/mazes-556r-tmj89E/js/do.js):
+  - first-stage uppercase-`D` category selection now uses menu selection state
+  - second-stage filtered item selection now honors `PICK_ANY` commands like
+    `@`, `.`, `,`, `-`, and class-group toggles
+- The next exposed `seed033` seam was the boulder squeeze path after the repaired
+  drop flow.
+- C tracing showed `could_move_onto_boulder()` flips only after the prior drop
+  empties inventory:
+  - before drop: squeeze disallowed
+  - after drop: squeeze allowed
+- Fix in [js/hack.js](/tmp/mazes-556r-tmj89E/js/hack.js):
+  - `cannot_push()` now uses the C-shaped tri-state outcome:
+    - `-1` refuse
+    - `0` squeeze onto the boulder square
+    - `1` actually push
+- The next exposed seam was the trap-door descent into Tutorial:2.
+- C `goto_level(..., falling)` does not place the hero on upstairs/downstairs;
+  it calls `u_on_rndspot()`, which consumes `place_lregion()` RNG.
+- Fix in [js/do.js](/tmp/mazes-556r-tmj89E/js/do.js):
+  - `schedule_goto()` / `deferred_goto()` now preserve full `{ dnum, dlevel }`
+    level refs
+  - falling deferred-goto now uses a distinct `'falling'` arrival mode
+  - `getArrivalPosition()` routes `'falling'` through the random-region
+    `u_on_rndspot()`/`place_lregion()` path instead of deterministic stair placement
+- Validated local effect:
+  - `seed033_manual_direct`: first divergence `597 -> 628`
+  - `seed032_manual_direct`: unchanged at `437`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`

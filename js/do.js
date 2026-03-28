@@ -938,43 +938,68 @@ async function promptDropTypeClass(display, player) {
         }
     }
     const menuLines = new Map();
+    const menuEntries = [];
     const selected = new Set();
+    const selectionCounts = new Map();
+    const registerMenuLine = (key, row, label, options = {}) => {
+        const entry = {
+            key,
+            row,
+            label,
+            skipInvert: !!options.skipInvert,
+        };
+        menuLines.set(key, entry);
+        menuEntries.push(entry);
+        return entry;
+    };
+    const setSelected = (key, shouldSelect) => {
+        if (shouldSelect) selected.add(key);
+        else {
+            selected.delete(key);
+            selectionCounts.delete(key);
+        }
+    };
     const drawMenuChoice = (key, row, label) => {
         if (typeof display?.putstr !== 'function') return;
         const indicator = selected.has(key) ? '+' : '-';
         display.putstr(promptCol, row, `${key} ${indicator} ${label}`);
     };
+    const redrawMenuChoice = (key) => {
+        const entry = menuLines.get(key);
+        if (!entry) return;
+        drawMenuChoice(entry.key, entry.row, entry.label);
+    };
     if (typeof display?.putstr === 'function') {
         display.putstr(promptCol, 0, prompt, undefined, 1);
-        menuLines.set('A', { row: 2, label: 'Auto-select every relevant item' });
+        registerMenuLine('A', 2, 'Auto-select every relevant item', { skipInvert: true });
         drawMenuChoice('A', 2, 'Auto-select every relevant item');
         display.putstr(promptCol + 4, 3, '(ignored unless some other choices are also picked)');
         let row = 5;
-        menuLines.set('a', { row, label: 'All types' });
+        registerMenuLine('a', row, 'All types', { skipInvert: true });
         drawMenuChoice('a', row++, 'All types');
         let accel = 'b'.charCodeAt(0);
         for (const label of typeEntries) {
             const key = String.fromCharCode(accel++);
-            menuLines.set(key, { row, label });
+            registerMenuLine(key, row, label);
             drawMenuChoice(key, row++, label);
         }
         // C ref: pickup.c — BUC categories: B, C, U, X, P
         if (hasKnownBlessed || hasKnownCursed || hasKnownUncursed || hasUnknownBUC || hasJustPickedUp) {
             row++; // blank line before BUC categories
             if (hasKnownBlessed) {
-                menuLines.set('B', { row, label: 'Items known to be Blessed' });
+                registerMenuLine('B', row, 'Items known to be Blessed', { skipInvert: true });
                 drawMenuChoice('B', row++, 'Items known to be Blessed');
             }
             if (hasKnownCursed) {
-                menuLines.set('C', { row, label: 'Items known to be Cursed' });
+                registerMenuLine('C', row, 'Items known to be Cursed', { skipInvert: true });
                 drawMenuChoice('C', row++, 'Items known to be Cursed');
             }
             if (hasKnownUncursed) {
-                menuLines.set('U', { row, label: 'Items known to be Uncursed' });
+                registerMenuLine('U', row, 'Items known to be Uncursed', { skipInvert: true });
                 drawMenuChoice('U', row++, 'Items known to be Uncursed');
             }
             if (hasUnknownBUC) {
-                menuLines.set('X', { row, label: 'Items of unknown Bless/Curse status' });
+                registerMenuLine('X', row, 'Items of unknown Bless/Curse status', { skipInvert: true });
                 drawMenuChoice('X', row++, 'Items of unknown Bless/Curse status');
             }
             if (hasJustPickedUp) {
@@ -986,7 +1011,7 @@ async function promptDropTypeClass(display, player) {
                 } else {
                     pLabel = 'Items you just picked up';
                 }
-                menuLines.set('P', { row, label: pLabel });
+                registerMenuLine('P', row, pLabel, { skipInvert: true });
                 drawMenuChoice('P', row++, pLabel);
             }
         }
@@ -999,41 +1024,64 @@ async function promptDropTypeClass(display, player) {
     } else if (typeof display?.putstr_message === 'function') {
         await display.putstr_message(`${' '.repeat(promptCol)}${prompt}`);
     }
-    let input = '';
+    let pendingDigits = '';
+    const buildSelectionResult = () => menuEntries
+        .filter((entry) => selected.has(entry.key))
+        .map((entry) => `${selectionCounts.get(entry.key) || ''}${entry.key}`)
+        .join('');
     while (true) {
         const ch = await nhgetch();
         if (ch === 10 || ch === 13 || ch === 32) {
             restoreAfterPrompt();
-            return input;
+            return buildSelectionResult();
         }
         if (ch === 27) {
             restoreAfterPrompt();
             return null;
         }
         if (ch === 8 || ch === 127) {
-            if (input.length > 0) input = input.slice(0, -1);
+            pendingDigits = '';
+            continue;
+        }
+        if (ch >= 48 && ch <= 57) {
+            pendingDigits += String.fromCharCode(ch);
             continue;
         }
         if (ch >= 32 && ch < 127) {
             const key = String.fromCharCode(ch);
-            // C ref: wintty.c — '@' is MENU_INVERT_ALL: toggle all items.
-            // Translate to the actual menu keys so handleDropTypes can parse them.
-            if (key === '@') {
-                for (const [k, ml] of menuLines) {
-                    if (selected.has(k)) selected.delete(k);
-                    else selected.add(k);
-                    drawMenuChoice(k, ml.row, ml.label);
-                    input += k; // emit the toggled key
+            if (key === '.' || key === ',') {
+                for (const entry of menuEntries) {
+                    setSelected(entry.key, true);
+                    redrawMenuChoice(entry.key);
                 }
+                pendingDigits = '';
+                continue;
+            }
+            if (key === '-') {
+                for (const entry of menuEntries) {
+                    setSelected(entry.key, false);
+                    redrawMenuChoice(entry.key);
+                }
+                pendingDigits = '';
+                continue;
+            }
+            if (key === '@' || key === '~') {
+                for (const entry of menuEntries) {
+                    if (entry.skipInvert) continue;
+                    setSelected(entry.key, !selected.has(entry.key));
+                    redrawMenuChoice(entry.key);
+                }
+                pendingDigits = '';
                 continue;
             }
             const menuLine = menuLines.get(key);
             if (menuLine) {
-                if (selected.has(key)) selected.delete(key);
-                else selected.add(key);
+                const nowSelected = !selected.has(key);
+                setSelected(key, nowSelected);
+                if (nowSelected && pendingDigits) selectionCounts.set(key, pendingDigits);
                 drawMenuChoice(key, menuLine.row, menuLine.label);
+                pendingDigits = '';
             }
-            input += key;
         }
     }
 }
@@ -1160,6 +1208,16 @@ export async function handleDropTypes(player, map, display) {
     // For now, mirror the visible tty behavior narrowly for this drop path by
     // toggling selections via inventory letters.
     const selected = new Set();
+    let pendingCount = '';
+    const setPicked = (obj, shouldSelect) => {
+        if (shouldSelect) selected.add(obj);
+        else selected.delete(obj);
+    };
+    const toggleAll = (objects) => {
+        for (const obj of objects) {
+            setPicked(obj, !selected.has(obj));
+        }
+    };
     while (true) {
         const sel = await nhgetch();
         if (sel === 27) {
@@ -1168,30 +1226,48 @@ export async function handleDropTypes(player, map, display) {
         if (sel === 10 || sel === 13 || sel === 32) {
             break;
         }
+        if (sel === 8 || sel === 127) {
+            pendingCount = '';
+            continue;
+        }
+        if (sel >= 48 && sel <= 57) {
+            pendingCount += String.fromCharCode(sel);
+            continue;
+        }
         if (sel < 32 || sel >= 127) {
             continue;
         }
         const invlet = String.fromCharCode(sel);
-        // C ref: wintty.c — '@' = MENU_INVERT_ALL: toggle all items
-        if (invlet === '@') {
-            for (const obj of candidates) {
-                if (selected.has(obj)) selected.delete(obj);
-                else selected.add(obj);
-            }
+        if (invlet === '.' || invlet === ',' || invlet === '*') {
+            // C ref: wintty.c MENU_SELECT_PAGE; our filtered drop list is single-page.
+            for (const candidate of candidates) setPicked(candidate, true);
+            pendingCount = '';
             continue;
         }
-        // C ref: wintty.c — '*' = MENU_SELECT_PAGE (select all on current page)
-        // In our single-page implementation, treat as select all.
-        if (invlet === '*') {
-            for (const obj of candidates) selected.add(obj);
+        if (invlet === '-') {
+            for (const candidate of candidates) setPicked(candidate, false);
+            pendingCount = '';
+            continue;
+        }
+        if (invlet === '@' || invlet === '~') {
+            toggleAll(candidates);
+            pendingCount = '';
+            continue;
+        }
+        const grouped = candidates.filter((o) => CLASS_SYMBOLS?.[o?.oclass] === invlet);
+        if (grouped.length > 0) {
+            toggleAll(grouped);
+            pendingCount = '';
             continue;
         }
         const picked = candidates.find((o) => o.invlet === invlet);
         if (!picked) {
+            pendingCount = '';
             continue;
         }
         if (selected.has(picked)) selected.delete(picked);
         else selected.add(picked);
+        pendingCount = '';
     }
 
     let tookTime = false;
@@ -1369,7 +1445,14 @@ async function markCurrentStairTraversed(map, x, y) {
 // at end of turn. In JS we store on the player object.
 export function schedule_goto(player, tolev, utotype_flags, pre_msg, post_msg) {
     player.utotype = (utotype_flags || 0) | UTOTYPE_DEFERRED;
-    player.utolev = tolev;
+    if (tolev && typeof tolev === 'object') {
+        player.utolev = {
+            dnum: Number.isInteger(tolev.dnum) ? tolev.dnum : undefined,
+            dlevel: Number.isInteger(tolev.dlevel) ? tolev.dlevel : undefined,
+        };
+    } else {
+        player.utolev = tolev;
+    }
     player.dfr_pre_msg = pre_msg || null;
     player.dfr_post_msg = post_msg || null;
 }
@@ -1378,7 +1461,9 @@ export function schedule_goto(player, tolev, utotype_flags, pre_msg, post_msg) {
 // Called at end of turn if player.utotype is set.
 export async function deferred_goto(player, game) {
     if (!player.utolev || !player.utotype) return;
-    const dest = player.utolev;
+    const destRef = player.utolev;
+    const dest = Number.isInteger(destRef?.dlevel) ? destRef.dlevel : destRef;
+    const targetDnum = Number.isInteger(destRef?.dnum) ? destRef.dnum : undefined;
     const typmask = Number(player.utotype) || 0;
     const fromDepth = Number(player.dungeonLevel) || 1;
     const fromDnum = Number.isInteger(game?.dnum)
@@ -1394,8 +1479,12 @@ export async function deferred_goto(player, game) {
         // ^V teleport (which doesn't advance moves), the cache retains
         // the PREVIOUS level's alignment. Do NOT force-invalidate here;
         // the cache will naturally refresh when moves advances.
-        // In C this calls goto_level(); in JS we use changeLevel()
-        await game.changeLevel(dest, 'teleport');
+        // In C this calls goto_level() with the transition semantics encoded
+        // in utotype. Falling trapdoors/holes use goto_level(..., falling=TRUE),
+        // which arrives via u_on_rndspot(), not upstairs placement.
+        const transitionDir = (typmask & UTOTYPE_FALLING) ? 'falling' : 'teleport';
+        const changeOpts = Number.isInteger(targetDnum) ? { targetDnum } : {};
+        await game.changeLevel(dest, transitionDir, changeOpts);
         // C ref: do.c deferred_goto() prints dfr_post_msg after goto_level()
         // iff level actually changed. maybe_lvltport_feedback() can consume
         // this early for specific paths (for example Sting side effects).
@@ -1680,12 +1769,16 @@ function getTeleportArrivalPosition(map, opts = {}) {
 
 // Determine the hero arrival position on a level.
 // transitionDir:
-//   'down' -> arriving from above, place on upstair
+//   'down' -> arriving from above via stairs/ladder, place on upstair
 //   'up'   -> arriving from below, place on downstairs
 //   'teleport' -> random placement via place_lregion
+//   'falling' -> trap-door/hole arrival via u_on_rndspot/place_lregion
 //   null   -> normal non-teleport arrival behavior
 export function getArrivalPosition(map, dungeonLevel, transitionDir = null) {
     if (transitionDir === 'teleport') {
+        return getTeleportArrivalPosition(map, { up: false, wasInWTower: false });
+    }
+    if (transitionDir === 'falling') {
         return getTeleportArrivalPosition(map, { up: false, wasInWTower: false });
     }
 
