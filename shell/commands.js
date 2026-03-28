@@ -377,6 +377,7 @@ const MAN_PAGES = {
     dungeon: 'DUNGEON(6)\n\nNAME\n     dungeon - the game of Dungeon\n\nSYNOPSIS\n     dungeon\n\nDESCRIPTION\n     The game of Dungeon is a computer fanstrtasy game running\n     in a PDP environment. In it, you expstrlore an ancient\n     dungeon, seeking the Twenty Treasures of Zork.'.replace(/str/g, ''),
     basic: 'BASIC(6)\n\nNAME\n     basic - Applesoft BASIC interpreter\n\nSYNOPSIS\n     basic\n\nDESCRIPTION\n     Applesoft BASIC is a line-numbered programming language.\n     Type program lines with numbers, then RUN to execute.\n     Type HELP at the ] prompt for a command reference.',
     logo: 'LOGO(6)\n\nNAME\n     logo - Logo programming language\n\nSYNOPSIS\n     logo\n\nDESCRIPTION\n     Logo is a programming language designed for learning.\n     It features turtle graphics: type FORWARD 100 and the\n     turtle draws a line. Type HELP at the ? prompt for\n     a list of commands.',
+    adventure: 'ADVENTURE(6)\n\nNAME\n     adventure - Colossal Cave Adventure\n\nSYNOPSIS\n     adventure\n\nDESCRIPTION\n     The original text adventure game, created by Will Crowther\n     (1975-76) and Don Woods (1977) at Stanford. Explore Colossal\n     Cave, collect treasures, avoid dwarves and the pirate.\n\n     This is the 430-point version (Adventure 2.5, 1995),\n     the last by the original authors.\n\n     Type two-word commands like GO NORTH, GET LAMP, OPEN GRATE.\n     Abbreviations work: N, S, E, W, U, D, LOOK, INVENTORY.',
     spacewar: 'SPACEWAR(6)\n\nNAME\n     spacewar - Spacewar! two-player space combat\n\nSYNOPSIS\n     spacewar\n\nDESCRIPTION\n     Spacewar! is the first video game (MIT, 1962). Two ships\n     orbit a central star with Newtonian physics. Destroy your\n     opponent with torpedoes or let gravity do the work.\n\n     Player 1 (Needle): A/D rotate, W thrust, S fire, Q hyperspace\n     Player 2 (Wedge):  J/L rotate, I thrust, K fire, U hyperspace\n\n     Hyperspace teleports randomly but risks explosion.\n     First to 11 wins. Press P to pause, ESC to quit.',
     more: 'MORE(1)\n\nNAME\n     more - file perusal filter\n\nSYNOPSIS\n     more file\n\nDESCRIPTION\n     More is a filter for paging through text one screenful\n     at a time. Press space for the next page, q to quit.',
     cd: 'CD(1)\n\nNAME\n     cd - change working directory\n\nSYNOPSIS\n     cd [directory]\n\nDESCRIPTION\n     Change the current directory to directory. If no directory\n     is given, change to the home directory.',
@@ -470,6 +471,7 @@ const HELP_DETAILS = {
     nethack: 'nethack  — launch NetHack 3.7\n  Explore the Mazes of Menace. Retrieve the Amulet of Yendor.',
     hack:    'hack  — launch Hack (1982)\n  The original dungeon crawler from Lincoln-Sudbury.',
     rogue:   'rogue  — launch Rogue (1980)\n  The game that started the genre.',
+    adventure: 'adventure  — launch Colossal Cave Adventure (1977)\n  The original text adventure by Crowther and Woods.',
     dungeon: 'dungeon  — launch Dungeon (Zork)\n  The classic text adventure.',
     basic:   'basic  — launch Applesoft BASIC (1982)\n  Line-numbered BASIC interpreter.\n  Type HELP at the ] prompt for commands.',
     logo:    'logo  — launch Logo (1982)\n  Turtle graphics programming language.\n  Type HELP at the ? prompt for Logo commands.',
@@ -520,6 +522,7 @@ async function help(args, shell) {
         ['nethack',  'NetHack'],
         ['hack',     'Hack (1982)'],
         ['rogue',    'Rogue (1980)'],
+        ['adventure', 'Adventure (1977)'],
         ['dungeon',  'Dungeon'],
     ];
     shell.println('Commands (type help <command> for details):');
@@ -1260,7 +1263,7 @@ export function getShellBuiltins(shell) {
             ['vi','text editor'],['finger','user info'],['mail','read/send mail'],
             ['talk','real-time chat'],['help','this help'],['exit','exit shell'],
             ['basic','BASIC'],['logo','Logo'],['spacewar','Spacewar!'],['nethack','NetHack'],
-            ['hack','Hack (1982)'],['rogue','Rogue (1980)'],['dungeon','Dungeon'],
+            ['hack','Hack (1982)'],['rogue','Rogue (1980)'],['adventure','Adventure'],['dungeon','Dungeon'],
         ];
         io.println('Commands (type help <command> for details):');
         const half = Math.ceil(cmds.length / 2);
@@ -1281,7 +1284,8 @@ export function getShellBuiltins(shell) {
                 io.println(GAME_HELP[game] || `${game}: no help available`);
                 return 0;
             }
-            throw new ShAction({ action: game === 'dungeon' ? 'dungeon' : 'launch', game });
+            const inShell = { dungeon: 'dungeon', adventure: 'adventure', zork: 'dungeon' };
+            throw new ShAction({ action: inShell[game] || 'launch', game });
         };
     }
 

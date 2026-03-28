@@ -460,6 +460,7 @@ function buildTree() {
                 type: 'dir', children: {
                     games: {
                         type: 'dir', children: {
+                            adventure: { type: 'exec', game: 'adventure', owner: 'root', group: 'games', date: 'Jun  1  1977', size: 49152,  perms: '-rwxr-sr-x' },
                             rogue:   { type: 'exec', game: 'rogue',   owner: 'root', group: 'games', date: 'Jun 15  1980', size: 61440,  perms: '-rwxr-sr-x' },
                             dungeon: { type: 'exec', game: 'dungeon', owner: 'root', group: 'games', date: 'Dec  2  1981', size: 204800, perms: '-rwxr-sr-x' },
                             zork:    { type: 'exec', game: 'zork',    owner: 'root', group: 'games', date: 'Apr  1  1980', size: 28672,  perms: '-rwxr-sr-x' },

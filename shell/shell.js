@@ -77,7 +77,11 @@ export class Shell {
             await this._runInShellGame(gameName);
             return;
         }
-        throw new ShAction({ action: gameName === 'dungeon' ? 'dungeon' : 'launch', game: gameName });
+        const inShellGames = { dungeon: 'dungeon', adventure: 'adventure', zork: 'dungeon' };
+        if (inShellGames[gameName]) {
+            throw new ShAction({ action: inShellGames[gameName], game: gameName });
+        }
+        throw new ShAction({ action: 'launch', game: gameName });
     }
 
     // Run a canvas-overlay game in-shell (spacewar, etc.)
@@ -562,6 +566,7 @@ export class Shell {
                 const action = e.action;
                 if (action.action === 'vi') return await this._runVi(action.file);
                 if (action.action === 'dungeon') { await this._runDungeon(); return; }
+                if (action.action === 'adventure') { await this._runAdventure(); return; }
                 return action; // launch, exit, etc.
             }
             if (e instanceof ExitSignal) return { action: 'exit' };
@@ -748,6 +753,74 @@ export class Shell {
         }
         if (current) tokens.push(current);
         return tokens;
+    }
+
+    async _runAdventure() {
+        try {
+            const { AdventureGame } = await import('../adventure/js/game.js');
+            const dataModule = await import('../adventure/js/adventure-data.enc.js');
+            const data = dataModule.default;
+
+            const game = new AdventureGame();
+            game.init(data);
+
+            // Wire save/restore to localStorage
+            const SAVE_KEY = 'menace-adventure';
+            game.doSave = () => {
+                try {
+                    localStorage.setItem(SAVE_KEY, JSON.stringify(game.getSaveState()));
+                } catch (e) { /* ignore */ }
+            };
+            game.doRestore = () => {
+                try {
+                    const raw = localStorage.getItem(SAVE_KEY);
+                    if (!raw) return false;
+                    game.setSaveState(JSON.parse(raw));
+                    return true;
+                } catch (e) { return false; }
+            };
+
+            // Auto-restore
+            try {
+                const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(SAVE_KEY) : null;
+                if (raw) {
+                    game.setSaveState(JSON.parse(raw));
+                }
+            } catch (e) { /* start fresh */ }
+
+            // Adventure I/O: buffer output lines, page when input requested
+            const pendingLines = [];
+            const output = (text) => {
+                for (const line of (text || '').split('\n')) {
+                    pendingLines.push(line);
+                }
+            };
+
+            this.display.clearScreen();
+            this.scrollBuffer = [];
+
+            const input = async () => {
+                // Page buffered output
+                await this._flushDungeonBuffer(pendingLines);
+                pendingLines.length = 0;
+
+                // Show prompt
+                this.printPrompt('> ');
+                const line = await this._readLine();
+                this._addLine('> ' + line, PROMPT_COLOR);
+                return line;
+            };
+
+            await game.run(input, output);
+
+            // Flush any remaining output
+            if (pendingLines.length > 0) {
+                await this._flushDungeonBuffer(pendingLines);
+                pendingLines.length = 0;
+            }
+        } catch (e) {
+            this._addLine(`adventure: ${e.message || e}`, OUTPUT_COLOR);
+        }
     }
 }
 
