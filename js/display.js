@@ -1286,14 +1286,16 @@ export function map_background(xOrMap, yOrX, showOrY = 0, ctxOrShow = null) {
   if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
     loc.mem_terrain_ch = ' ';
     loc.mem_terrain_color = CLR_GRAY;
-    if (show) show_glyph(x, y, { ch: ' ', color: CLR_GRAY }, ctx);
+    loc._levGlyph = { ch: ' ', color: CLR_GRAY };
+    if (show) show_glyph(x, y, loc._levGlyph, ctx);
     return;
   }
   const sym = renderTerrainSymbol(loc, map, x, y, ctx?.flags || null);
   const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
   loc.mem_terrain_ch = sym.ch;
   loc.mem_terrain_color = rememberedColor;
-  if (show) show_glyph(x, y, { ch: sym.ch, color: rememberedColor }, ctx);
+  loc._levGlyph = { ch: sym.ch, color: rememberedColor };
+  if (show) show_glyph(x, y, loc._levGlyph, ctx);
 }
 
 // Autotranslated from display.c:313
@@ -1319,7 +1321,8 @@ export function map_engraving(engr, show = 0, ctxOrMap = null) {
   const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
   loc.mem_obj = engrCh;
   loc.mem_obj_color = CLR_BRIGHT_BLUE;
-  if (show) show_glyph(x, y, { ch: engrCh, color: CLR_BRIGHT_BLUE }, ctx);
+  loc._levGlyph = { ch: engrCh, color: CLR_BRIGHT_BLUE };
+  if (show) show_glyph(x, y, loc._levGlyph, ctx);
 }
 
 // Autotranslated from display.c:333
@@ -1343,6 +1346,8 @@ export function map_object(obj, show = 0, ctxOrMap = null) {
   loc.mem_trap_color = 0;
   loc.mem_obj = memGlyph.ch || 0;
   loc.mem_obj_color = Number.isInteger(memGlyph.color) ? memGlyph.color : CLR_GRAY;
+  // C ref: levl[x][y].glyph stores the DISPLAYED glyph (including hallu).
+  loc._levGlyph = { ch: glyph.ch, color: Number.isInteger(glyph.color) ? glyph.color : CLR_GRAY };
   if (show) show_glyph(obj.ox, obj.oy, glyph, ctx);
 }
 
@@ -1363,7 +1368,8 @@ export function map_trap(trap, show = 0, ctxOrMap = null) {
   loc.mem_obj_color = 0;
   loc.mem_trap = tg.ch;
   loc.mem_trap_color = tg.color;
-  if (show) show_glyph(x, y, { ch: tg.ch, color: tg.color }, ctx);
+  loc._levGlyph = { ch: tg.ch, color: tg.color };
+  if (show) show_glyph(x, y, loc._levGlyph, ctx);
 }
 
 // Autotranslated from display.c:488
@@ -1760,17 +1766,25 @@ export function docrt_flags(recalc = null, ctxOrMap = null) {
   const ctx = _resolveDisplayCtx(ctxOrMap);
   if (!ctx?.display || !ctx?.map) return;
   cosmic_display_push_owner('docrt_flags');
-  // C ref: docrt_flags does vision_recalc(2) (shut down vision), then
-  // show_glyph loop (display stored glyphs), then vision_recalc(0)
-  // (recompute + newsym for visibility changes).
-  // JS: newsym loop first (combines show_glyph + initial display),
-  // then vision_recalc (which calls newsym for visibility transitions).
-  // TODO(#395): C's show_glyph uses stored lev->glyph (no display RNG);
-  // JS's newsym recomputes and consumes display RNG. This causes
-  // docrt_flags display RNG divergence during hallucination.
+  // C ref: docrt_flags ordering:
+  //   1. vision_recalc(2) — shut down vision
+  //   2. show_glyph(x, y, lev->glyph) loop — display STORED glyphs from
+  //      hero memory. No recomputation, no display RNG consumed.
+  //   3. vision_recalc(0) — recompute FOV, newsym for visibility changes
+  //   4. see_monsters() — overlay monsters (called by docrt() after this)
+  //
+  // JS equivalent: use _levGlyph (set by map_object/map_trap/map_background/
+  // map_engraving) as the stored hero memory. Fall back to newsym only for
+  // cells that were never mapped (no _levGlyph).
   for (let x = 1; x < COLNO; x++) {
     for (let y = 0; y < ROWNO; y++) {
-      newsym(x, y, ctx);
+      const loc = ctx.map.at?.(x, y);
+      if (loc?._levGlyph) {
+        show_glyph(x, y, loc._levGlyph, ctx);
+      } else {
+        // No stored glyph — fall back to newsym (first-time display)
+        newsym(x, y, ctx);
+      }
     }
   }
   // C ref: vision_recalc(0) after show_glyph loop — recompute FOV and
