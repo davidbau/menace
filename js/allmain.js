@@ -556,12 +556,18 @@ export async function moveloop_turnend(game) {
     // After turn-end completes, subsequent command processing observes
     // the incremented move counter.
     game.moves = game.turnCount + 1;
-    // C ref: allmain.c:829 — disp.botl = TRUE "in case u.uhs changed".
-    // C sets this after every turn-end processing, ensuring bot() renders
-    // the full status line (including conditions like Burdened, Hungry, etc.)
-    // at the next pre-input boundary.
+    // C ref: allmain.c:472-478 — bot() runs when disp.botl is set.
+    // In C this happens at the end of the per-turn block, before the hero
+    // gets input. Render status now so the display reflects current HP,
+    // encumbrance, Dlvl, etc. before the next screen capture.
     const _p = game?.u;
-    if (_p) _p._botl = true;
+    if (_p) {
+        _p._botl = true;
+        if (game?.display && typeof game.display.renderStatus === 'function') {
+            game.display.renderStatus(_p);
+            _p._botl = false;
+        }
+    }
 }
 
 // C ref: allmain.c:680 stop_occupation()
