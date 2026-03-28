@@ -266,15 +266,19 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
                 objectMsg = `You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`;
             }
 
-            if (featureMsg && objectMsg) {
-                await display.putstr_message(`${featureMsg}  ${objectMsg}`);
-            } else {
-                if (featureMsg) {
-                    await display.putstr_message(featureMsg);
-                }
-                if (objectMsg) {
-                    await display.putstr_message(objectMsg);
-                }
+            // C ref: check_here() sends feature and object as TWO SEPARATE
+            // pline() calls. C's update_topl() decides whether to concatenate
+            // them with "  " on one line or show --More-- between them based
+            // on the topline overflow check (strlen(toplines)+n0+3 < CO-8).
+            //
+            // DO NOT combine these into one putstr_message — that bypasses
+            // the overflow/concatenation logic and changes --More-- boundaries.
+            // This has been reverted 3 times; see commits 7f35b9005, 21fa2bdc6.
+            if (featureMsg) {
+                await display.putstr_message(featureMsg);
+            }
+            if (objectMsg) {
+                await display.putstr_message(objectMsg);
             }
         } else {
             // C check_here() for non-autopickup reporting uses PICK_SOME == false here.
