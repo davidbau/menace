@@ -1016,6 +1016,17 @@ async function promptDropTypeClass(display, player) {
         }
         if (ch >= 32 && ch < 127) {
             const key = String.fromCharCode(ch);
+            // C ref: wintty.c — '@' is MENU_INVERT_ALL: toggle all items.
+            // Translate to the actual menu keys so handleDropTypes can parse them.
+            if (key === '@') {
+                for (const [k, ml] of menuLines) {
+                    if (selected.has(k)) selected.delete(k);
+                    else selected.add(k);
+                    drawMenuChoice(k, ml.row, ml.label);
+                    input += k; // emit the toggled key
+                }
+                continue;
+            }
             const menuLine = menuLines.get(key);
             if (menuLine) {
                 if (selected.has(key)) selected.delete(key);
@@ -1161,6 +1172,20 @@ export async function handleDropTypes(player, map, display) {
             continue;
         }
         const invlet = String.fromCharCode(sel);
+        // C ref: wintty.c — '@' = MENU_INVERT_ALL: toggle all items
+        if (invlet === '@') {
+            for (const obj of candidates) {
+                if (selected.has(obj)) selected.delete(obj);
+                else selected.add(obj);
+            }
+            continue;
+        }
+        // C ref: wintty.c — '*' = MENU_SELECT_PAGE (select all on current page)
+        // In our single-page implementation, treat as select all.
+        if (invlet === '*') {
+            for (const obj of candidates) selected.add(obj);
+            continue;
+        }
         const picked = candidates.find((o) => o.invlet === invlet);
         if (!picked) {
             continue;
