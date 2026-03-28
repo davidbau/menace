@@ -128,8 +128,14 @@ export class SpacewarGame {
 
         this.stars = generateStarField(180);
 
-        this.ship1 = new Ship(this.cx - this.gw * 0.18, this.cy, -Math.PI / 2, NEEDLE_PTS);
-        this.ship2 = new Ship(this.cx + this.gw * 0.18, this.cy, Math.PI / 2, WEDGE_PTS);
+        // Ships start in gentle orbit around the star (historically accurate:
+        // the original placed ships in orbit, not stationary)
+        const orbitR = this.gw * 0.18;
+        const orbitV = Math.sqrt(GRAVITY_STRENGTH / orbitR) * 0.7; // sub-orbital for interesting drift
+        this.ship1 = new Ship(this.cx - orbitR, this.cy, -Math.PI / 2, NEEDLE_PTS);
+        this.ship1.vy = -orbitV; // moving up
+        this.ship2 = new Ship(this.cx + orbitR, this.cy, Math.PI / 2, WEDGE_PTS);
+        this.ship2.vy = orbitV; // moving down
 
         // Phosphor persistence: previous frame buffer
         this._prevFrame = null;
@@ -255,9 +261,11 @@ export class SpacewarGame {
 
     _respawn(ship) {
         const side = (ship === this.ship1) ? -1 : 1;
-        ship.x = this.cx + side * this.gw * 0.18;
+        const orbitR = this.gw * 0.18;
+        const orbitV = Math.sqrt(GRAVITY_STRENGTH / orbitR) * 0.7;
+        ship.x = this.cx + side * orbitR;
         ship.y = this.cy;
-        ship.vx = 0; ship.vy = 0;
+        ship.vx = 0; ship.vy = side * orbitV;
         ship.angle = (ship === this.ship1) ? -Math.PI / 2 : Math.PI / 2;
         ship.alive = true; ship.thrusting = false; ship.fuel = 1.0;
         ship.torpedoCooldown = 0; ship.hyperspaceCooldown = 0;

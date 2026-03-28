@@ -124,8 +124,7 @@ export class BasicRepl {
           // At the prompt, Ctrl-C exits to shell (shell adds its own ^C line)
           if (typeof window !== 'undefined') {
             if (window._basicDisplay && window._basicDisplay.captureForShell) window._basicDisplay.captureForShell();
-            var rows = window._basicDisplay ? window._basicDisplay.getRows() : [];
-            try { localStorage.setItem('shell_context', JSON.stringify({ app: 'basic', user: 'rodney', rows: rows })); } catch(e) {}
+            try { localStorage.setItem('menace-shell-context', JSON.stringify({ app: 'basic' })); } catch(e) {}
             window.location.href = '/shell/';
           }
           return null;
