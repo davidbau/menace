@@ -116,8 +116,13 @@ export class Shell {
             canvas.height = Math.round(1024 * (preRect.height / preRect.width));
         }
         canvas.style.display = 'block';
-        // Transparent terminal background so canvas shows through
-        if (pre) pre.style.background = 'transparent';
+        // Transparent terminal background so canvas shows through;
+        // pre needs position:relative + z-index for proper layering above canvas
+        if (pre) {
+            pre.style.background = 'transparent';
+            pre.style.position = 'relative';
+            pre.style.zIndex = '1';
+        }
         // Wait a frame for layout to compute before measuring
         await new Promise(r => requestAnimationFrame(r));
         sizeCanvas();
@@ -136,7 +141,11 @@ export class Shell {
         // Cleanup
         canvas.style.display = 'none';
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-        if (pre) pre.style.background = '';
+        if (pre) {
+            pre.style.background = '';
+            pre.style.position = '';
+            pre.style.zIndex = '';
+        }
         container.style.position = origPosition;
         window.removeEventListener('resize', resizeHandler);
 

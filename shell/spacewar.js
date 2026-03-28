@@ -142,6 +142,7 @@ export class SpacewarGame {
         this.gameOver = false;
         this.winsNeeded = 11;
 
+        this._lastRow23 = null;
         this._onKey = this._onKey.bind(this);
     }
 
@@ -405,15 +406,20 @@ export class SpacewarGame {
         const line0 = left + ' '.repeat(Math.max(1, pad)) + right;
         d.putstr(0, 0, line0.slice(0, 80), 10); // green
 
-        // Row 23: controls or game over
-        d.clearRow(23);
-        if (this.gameOver) {
-            const winner = this.ship1.score >= this.winsNeeded ? 'NEEDLE' : 'WEDGE';
-            const msg = `${winner} WINS -- SPACE TO RESTART -- ESC TO QUIT`;
-            const lpad = Math.max(0, Math.floor((80 - msg.length) / 2));
-            d.putstr(lpad, 23, msg, 10);
-        } else if (this.roundTimer < 10) {
-            d.putstr(0, 23, 'A/D W S Q needle   arrows/Up . / wedge   P pause  ESC quit', 10);
+        // Row 23: controls or game over (only update when state changes)
+        const newRow23 = this.gameOver
+            ? (() => { const w = this.ship1.score >= this.winsNeeded ? 'NEEDLE' : 'WEDGE';
+                       return `${w} WINS -- SPACE TO RESTART -- ESC TO QUIT`; })()
+            : this.roundTimer < 10
+                ? 'A/D W S Q needle   arrows/Up . / wedge   P pause  ESC quit'
+                : '';
+        if (newRow23 !== this._lastRow23) {
+            d.clearRow(23);
+            if (newRow23) {
+                const lpad = Math.max(0, Math.floor((80 - newRow23.length) / 2));
+                d.putstr(lpad, 23, newRow23, 10);
+            }
+            this._lastRow23 = newRow23;
         }
 
         if (typeof d.flush === 'function') d.flush();
