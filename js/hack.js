@@ -487,25 +487,31 @@ export async function cannot_push_msg(otmp, _rx, _ry, _map, display, player = nu
 }
 
 // C ref: hack.c cannot_push()
-export async function cannot_push(otmp, rx, ry, map, display, player = null) {
-    if (!isok(rx, ry)) {
-        await cannot_push_msg(otmp, rx, ry, map, display, player);
-        return true;
+// Called when the boulder can't be pushed to its destination.
+// Checks if the hero can squeeze past onto the boulder's current square.
+// sx,sy = boulder's position (NOT the push destination).
+// Returns: 0 (can squeeze/maneuver past) or -1 (cannot).
+export async function cannot_push(otmp, sx, sy, map, display, player = null) {
+    // C ref: hack.c:264-301 — giants can maneuver over boulders
+    if (throws_rocks(hero_data(player) || {})) {
+        // Simplified: giant maneuvers over it (full pickup/willpickup logic omitted)
+        if (player?.usteed) {
+            // C: riding skill check for giants
+            await display?.putstr_message("However, you maneuver over it.");
+        } else {
+            await display?.putstr_message("However, you maneuver over it.");
+        }
+        return 0;
     }
-    const loc = map.at(rx, ry);
-    if (!loc || IS_OBSTRUCTED(loc.typ) || closed_door(rx, ry, map)) {
-        await cannot_push_msg(otmp, rx, ry, map, display, player);
-        return true;
+
+    // C ref: hack.c:303-308 — could_move_onto_boulder(sx, sy)
+    if (could_move_onto_boulder(sx, sy, player)) {
+        await display?.putstr_message(
+            "However, you can squeeze yourself into a small opening.");
+        return 0;
+    } else {
+        return -1;
     }
-    if (map.monsterAt(rx, ry)) {
-        await cannot_push_msg(otmp, rx, ry, map, display, player);
-        return true;
-    }
-    if (sobj_at(BOULDER, rx, ry, map)) {
-        await cannot_push_msg(otmp, rx, ry, map, display, player);
-        return true;
-    }
-    return false;
 }
 
 // C ref: hack.c rock_disappear_msg()
@@ -562,9 +568,29 @@ export async function moverock_core(sx, sy, dx, dy, player, map, display, game) 
     if (here.length > 0 && here[here.length - 1] !== otmp) await movobj(otmp, sx, sy, map);
     const rx = sx + dx;
     const ry = sy + dy;
-    if (await cannot_push(otmp, rx, ry, map, display, player)) {
-        return -1;
+
+    // C ref: hack.c moverock_core() — check if destination allows the boulder to move
+    let destinationBlocked = false;
+    if (!isok(rx, ry)) {
+        destinationBlocked = true;
+    } else {
+        const dloc = map.at(rx, ry);
+        if (!dloc || IS_OBSTRUCTED(dloc.typ) || closed_door(rx, ry, map)) {
+            destinationBlocked = true;
+        } else if (map.monsterAt(rx, ry)) {
+            destinationBlocked = true;
+        } else if (sobj_at(BOULDER, rx, ry, map)) {
+            destinationBlocked = true;
+        }
     }
+
+    if (destinationBlocked) {
+        // C ref: hack.c — show "can't push" then check squeeze
+        await cannot_push_msg(otmp, sx, sy, map, display, player);
+        // cannot_push checks if hero can squeeze past the boulder at (sx,sy)
+        return await cannot_push(otmp, sx, sy, map, display, player);
+    }
+
     // C ref: hack.c moverock_core() — relink at top of fobj chain before dopush.
     if (Array.isArray(map?.objects) && map.objects.length > 0
         && map.objects[map.objects.length - 1] !== otmp) {
