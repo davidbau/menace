@@ -653,26 +653,30 @@ export function hmon_hitmon_poison(hmd, mon, obj) {
 // cf. uhitm.c:1519 — hmon_hitmon_jousting(hmd, mon, obj):
 //   Jousting bonus damage with lance while riding.
 //   In JS, riding/jousting is not yet implemented.
-export function hmon_hitmon_jousting(hmd, mon, obj) {
+export async function hmon_hitmon_jousting(hmd, mon, obj) {
     hmd.dmg += c_d(2, 10);
     hmd.hittxt = true;
+    // C ref: uhitm.c:1542 — mhurtle_to_doom after jousting bonus
+    if (await mhurtle_to_doom(mon, hmd.dmg, hmd)) {
+        hmd.already_killed = true;
+    }
 }
 
 // cf. uhitm.c:1548 — hmon_hitmon_stagger(hmd, mon, obj):
 //   VERY small chance of stunning opponent if unarmed.
 //   Consumes rnd(100) for RNG parity.
-export function hmon_hitmon_stagger(hmd, mon, obj) {
+export async function hmon_hitmon_stagger(hmd, mon, obj) {
     // C ref: uhitm.c:1548-1563 — VERY small chance of stunning opponent if unarmed.
     const mdat = hmd.mdat || mon.data || mon.type || {};
     const skillLevel = P_SKILL(P_BARE_HANDED_COMBAT);
     const isThickSkinned = !!((mdat.mflags1 || 0) & M1_THICK_HIDE);
     const isBig = (mdat.msize || 0) >= MZ_LARGE;
     if (rnd(100) < skillLevel && !isBig && !isThickSkinned) {
-        // C ref: pline stagger message + mhurtle_to_doom
-        // mhurtle_to_doom is stubbed (needs mhurtle); stun is the important effect
+        // C ref: pline stagger message
         mon.mstun = 1;
         hmd.hittxt = true;
-        if (mhurtle_to_doom(mon, hmd.dmg, mdat)) {
+        // C ref: mhurtle_to_doom — hurtle 1 square, may kill on impact
+        if (await mhurtle_to_doom(mon, hmd.dmg, hmd)) {
             hmd.already_killed = true;
         }
     }
@@ -822,9 +826,9 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
 
     // Phase 5: jousting / stagger / knockback
     if (hmd.jousting) {
-        hmon_hitmon_jousting(hmd, mon, obj);
+        await hmon_hitmon_jousting(hmd, mon, obj);
     } else if (hmd.unarmed && hmd.dmg > 1 && !thrown) {
-        hmon_hitmon_stagger(hmd, mon, obj);
+        await hmon_hitmon_stagger(hmd, mon, obj);
     }
     // knockback for armed melee is handled in hmon
 
@@ -914,10 +918,18 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
 //   Joust or martial arts knockback that might kill 'mon' via trap.
 //   Only hurtles if pending damage won't already kill mon.
 //   Returns true if mon dies from the hurtle.
-function mhurtle_to_doom(mon, tmp, mptr) {
-    // C: if (tmp < mon->mhp) mhurtle(mon, u.dx, u.dy, 1);
-    // In JS, mhurtle (movement into traps) is not yet ported.
-    // Stub: no hurtle, mon doesn't die from it.
+async function mhurtle_to_doom(mon, tmp, hmd) {
+    // C ref: uhitm.c:1920 — only hurtle if pending damage won't kill outright
+    const mhp = Number.isFinite(mon.mhp) ? mon.mhp : (mon.hp || 0);
+    if (tmp < mhp) {
+        const player = _gstate?.u;
+        const map = _gstate?.map;
+        await mhurtle(mon, player?.dx || 0, player?.dy || 0, 1, map, player);
+        // C ref: update caller's cached mon->data in case mon polymorphed
+        // during hurtle (polymorph trap, vampshifter revert, etc.)
+        if (hmd && mon.data) hmd.mdat = mon.data;
+        if (DEADMONSTER(mon)) return true;
+    }
     return false;
 }
 
