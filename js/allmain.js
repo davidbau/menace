@@ -998,7 +998,10 @@ async function runMovementRepeatSlice(game, {
 
     // Update display during run
     _display.renderMap(_map, _p, _fov);
-    _display.renderStatus(_p);
+    if (_p._botl) {
+        _display.renderStatus(_p);
+        _p._botl = false;
+    }
 
     return true;
 }
@@ -1062,8 +1065,9 @@ async function promptStep(game, chCode, {
     if (!game.pendingPrompt && !game.gameOver) {
         const player = game.u || game.u;
         if (game.display && player) {
-            if (typeof game.display.renderStatus === 'function') {
+            if (player._botl && typeof game.display.renderStatus === 'function') {
                 game.display.renderStatus(player);
+                player._botl = false;
             }
             if (typeof game.display.cursorOnPlayer === 'function') {
                 game.display.cursorOnPlayer(player);
@@ -1213,8 +1217,12 @@ async function postRender(game, result) { // async-ok: called via await; may nee
     }
     // C ref: allmain.c:574 — find_ac() runs before bot() in pre-input.
     find_ac(player);
-    if (typeof game.display.renderStatus === 'function') {
+    // C ref: bot() only renders when disp.botl is set. Don't unconditionally
+    // refresh the status line — at --More-- boundaries during monster attacks,
+    // C shows the HP from the last bot() call (pre-damage), not post-damage.
+    if (player._botl && typeof game.display.renderStatus === 'function') {
         game.display.renderStatus(player);
+        player._botl = false;
     }
     if (typeof game.display.cursorOnPlayer === 'function') {
         game.display.cursorOnPlayer(player);
