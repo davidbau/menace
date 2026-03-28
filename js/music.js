@@ -15,6 +15,7 @@
 
 import { rn2, rnd, rn1, d, c_d, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
+import { makeknown } from './do_wear.js';
 import { incr_itimeout } from './potion.js';
 import { acurr as ACURR } from './attrib.js';
 import { pline, pline_The, You, Your, You_hear, You_feel, You_cant,
@@ -648,7 +649,8 @@ async function do_improvisation(instr, player, map, display, fov) {
         await do_earthquake(Math.floor((ulevel - 1) / 3) + 1, map, player, fov);
         // shake up monsters in a much larger radius...
         await awaken_monsters(ROWNO * COLNO, map, player);
-        // makeknown(DRUM_OF_EARTHQUAKE) — discovery not fully tracked
+        // C ref: music.c:701 — playing the drum reveals its type
+        await makeknown(DRUM_OF_EARTHQUAKE);
         break;
     case LEATHER_DRUM: // Awaken monsters
         if (!mundane) {
