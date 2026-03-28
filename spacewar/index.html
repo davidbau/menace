@@ -187,12 +187,11 @@
 
     // Title screen
     display.clearScreen();
-    display.putstr(28, 10, 'S P A C E W A R !', 10);
-    display.putstr(20, 12, 'MIT 1962  Russell/Graetz/Wiitanen', 7);
-    display.putstr(20, 13, 'Expensive Planetarium by Samson', 7);
-    display.putstr(23, 16, 'PRESS SPACE TO START', 10);
-    display.putstr(16, 19, 'NEEDLE: A/D W S Q   WEDGE: arrows . /', 7);
-    display.putstr(30, 20, 'P pause  ESC quit', 7);
+    display.putstr(30, 10, 'S P A C E W A R !', 10);
+    display.putstr(23, 12, 'MIT 1962  Russell/Graetz/Wiitanen', 7);
+    display.putstr(30, 15, 'PRESS SPACE TO START', 10);
+    display.putstr(16, 18, 'NEEDLE: A/D W S Q   WEDGE: arrows . /', 7);
+    display.putstr(31, 19, 'P pause  ESC quit', 7);
     if (typeof display.flush === 'function') display.flush();
 
     async function waitForSpace() {
