@@ -52,6 +52,7 @@ import { newsym, canspotmon, canseemon } from './display.js';
 import { y_monnam } from './do_name.js';
 import { mhe, mhis, mhim, ismnum, DEADMONSTER, unique_corpstat } from './mondata.js';
 import { game as _gstate } from './gstate.js';
+import { ynFunction } from './input.js';
 import { getGameUbirthday } from './dungeon.js';
 import { maybe_reset_pick } from './lock.js';
 import { getpos_async } from './getpos.js';
@@ -2200,7 +2201,7 @@ export function sellobj_state(deliberate) {
 }
 
 // C ref: shk.c sellobj()
-export function sellobj(obj, x, y, map) {
+export async function sellobj(obj, x, y, map) {
     if (!map) return;
     const rooms = in_rooms(map, x, y, SHOPBASE);
     if (rooms.length === 0) return;
@@ -2213,8 +2214,37 @@ export function sellobj(obj, x, y, map) {
         return;
     }
     if (!saleable(shkp, obj) || !shkp.mpeaceful) return;
-    const value = Math.max(0, Number(set_cost(obj, shkp) || 0) * Number(get_pricing_units(obj) || 1));
+    const currentPlayer = _gstate?.u || _gstate?.player || null;
+    const value = Math.max(0, Number(set_cost(obj, shkp, currentPlayer) || 0) * Number(get_pricing_units(obj) || 1));
     if (!value) return;
+    if (sell_how !== SELL_NORMAL) {
+        let response = sell_response;
+        if (!response) {
+            const prompt = `${Shknam(shkp)} offers ${value} gold piece${plur(value)} for ${obj.unpaid ? 'the' : 'your'} ${xname(obj)}.  Sell ${Number(obj.quan || 1) === 1 ? 'it' : 'them'}?`;
+            const ans = await ynFunction(prompt, 'ynaq', 'n'.charCodeAt(0), _gstate?.display || _gstate?.disp);
+            response = String.fromCharCode(ans || 0);
+            if (response === 'a') {
+                sell_response = 'y';
+                response = 'y';
+            } else if (response === 'q') {
+                sell_response = 'n';
+                response = 'n';
+            }
+        }
+        if (response !== 'y') {
+            if (!obj.unpaid) obj.no_charge = 1;
+            return;
+        }
+        obj.no_charge = 1;
+        if (typeof map.removeObject === 'function') map.removeObject(obj);
+        add_to_minv(shkp, obj);
+        await pay(-value, shkp, {
+            u: currentPlayer,
+            player: currentPlayer,
+            disp: _gstate?.display || _gstate?.disp || null,
+        });
+        return;
+    }
     shkp.credit = Number(shkp.credit || 0) + value;
     obj.no_charge = 1;
 }

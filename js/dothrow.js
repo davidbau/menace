@@ -898,7 +898,7 @@ export async function check_shop_obj(obj, x, y, broken, player, map) {
         subfrombill(obj, shkp);
         if (gtg > 0) await donate_gold(gtg, shkp, true);
       }
-      else if (x !== shkp.mx || y !== shkp.my) { sellobj(obj, x, y, map); }
+      else if (x !== shkp.mx || y !== shkp.my) { await sellobj(obj, x, y, map); }
     }
   }
 }

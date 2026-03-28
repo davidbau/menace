@@ -1632,7 +1632,7 @@ export async function cnv_trap_obj(otyp, cnt, ttmp, bury_it, player, mapRef = nu
   place_object(otmp, ttmp.tx, ttmp.ty, map);
   if (bury_it) { bury_an_obj(otmp, map, player); }
   else {
-    if (ttmp.madeby_u) sellobj(otmp, ttmp.tx, ttmp.ty);
+    if (ttmp.madeby_u) await sellobj(otmp, ttmp.tx, ttmp.ty, map);
     stackobj(otmp, map);
   }
   newsym(ttmp.tx, ttmp.ty);

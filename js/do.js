@@ -55,8 +55,8 @@ import { more_experienced, newexplevel } from './exper.js';
 import { setCurrentLevelStairs, stairway_at } from './stairs.js';
 import { float_down, t_at } from './trap.js';
 import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
-import { describeGroundObjectForPlayer, sellobj } from './shk.js';
-import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
+import { describeGroundObjectForPlayer, sellobj, sellobj_state } from './shk.js';
+import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR, SELL_DELIBERATE, SELL_NORMAL } from './const.js';
 import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
 import { finesse_ahriman } from './artifact.js';
@@ -296,8 +296,8 @@ export async function dropz(obj, with_impact, player, map, game = null) {
         obj.ox = player.x;
         obj.oy = player.y;
         placeFloorObject(map, obj);
-        if (map?.flags?.has_shop && obj?.unpaid) {
-            sellobj(obj, player.x, player.y, map);
+        if (map?.flags?.has_shop) {
+            await sellobj(obj, player.x, player.y, map);
         }
         newsym(player.x, player.y);
     }
@@ -707,6 +707,7 @@ export async function handleDrop(player, map, display) {
         await display.putstr_message("You don't have anything to drop.");
         return { moved: false, tookTime: false };
     }
+    if (player.ushops) sellobj_state(SELL_DELIBERATE);
 
     const dropChoices = compactInvletPromptChars(player.inventory.map((o) => o.invlet).join(''));
     let countMode = false;
@@ -724,6 +725,7 @@ export async function handleDrop(player, map, display) {
             site: 'do.handleDrop.moreBoundary',
         });
     };
+    try {
     while (true) {
         replacePromptMessage();
         if (countMode && countDigits.length > 1) {
@@ -797,6 +799,9 @@ export async function handleDrop(player, map, display) {
             return { moved: false, tookTime: !!(result & 1) };
         }
         return await dropSelectedItem(item, player, map, display);
+    }
+    } finally {
+        if (player.ushops) sellobj_state(SELL_NORMAL);
     }
 }
 
@@ -1023,6 +1028,8 @@ async function promptDropTypeClass(display, player) {
 // C ref: do.c menu_drop() — drop by class/category.
 // Flow: query_category → parse selections → auto-drop or query_objlist → drop.
 export async function handleDropTypes(player, map, display) {
+    if (player.ushops) sellobj_state(SELL_DELIBERATE);
+    try {
     if (!player?.inventory || player.inventory.length === 0) {
         await display.putstr_message("You don't have anything to drop.");
         return { moved: false, tookTime: false };
@@ -1167,6 +1174,9 @@ export async function handleDropTypes(player, map, display) {
         tookTime = tookTime || !!result?.tookTime;
     }
     return { moved: false, tookTime };
+    } finally {
+        if (player.ushops) sellobj_state(SELL_NORMAL);
+    }
 }
 
 // C ref: do.c:924 doddrop() — drop by category selection.

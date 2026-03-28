@@ -17628,3 +17628,33 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - first RNG divergence at `499`
   - JS: `rn2(3)=0 @ dochug(monmove.js:847)`
   - C: `rn2(1)=0 @ dog_move(dogmove.c:1300)`
+
+## 2026-03-28 — lowercase shop drops must use deliberate `sellobj_state()`
+
+- The next `seed032` seam after the `menu_drop()` fix was still in shop drop flow, but not in pet AI first.
+- The decisive C-recorded key window was:
+  - `497: d`
+  - `498: y`
+  - `499: Space`
+  - `500: n`
+- Expected C behavior in that window:
+  - `497`: `What do you want to drop? [$a-rtvwy or ?*]`
+  - `498`: `You drop a yellow gem.--More--`
+  - `499`: `Kabalebo offers 6 gold pieces for your yellow gem.  Sell it? [ynaq] (n)`
+- JS had a structural mismatch:
+  - the real live lowercase `d` path is `js/do.js:handleDrop()`
+  - it bypassed `js/do.js:dodrop()`
+  - so it never called `sellobj_state(SELL_DELIBERATE)` / `sellobj_state(SELL_NORMAL)`
+  - shop drops from that path were therefore treated like `SELL_NORMAL`, skipping the in-band sell prompt ownership C uses for deliberate drops
+- Fix:
+  - bracket `handleDrop()` and `handleDropTypes()` with deliberate/normal `sellobj_state(...)`
+  - make `js/shk.js:sellobj()` async so deliberate ordinary sales can own `ynaq` inline
+  - await `sellobj()` from the active JS drop/throw/trap call sites
+- Validated effect on clean current `main`:
+  - `seed032_manual_direct`: first RNG divergence `499 -> 534`
+  - `seed033_manual_direct`: unchanged at `571`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+- New active `seed032` seam after the fix:
+  - first RNG divergence at `534`
+  - JS: `rn2(19)=5 @ seffects(read.js:1662)`
+  - C: `rn2(5)=4 @ distfleeck(monmove.c:539)`
