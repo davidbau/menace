@@ -1805,17 +1805,20 @@ export function docrt_flags(recalc = null, ctxOrMap = null) {
       for (let r = MAP_ROW_START; r < mapEnd; r++) ctx.display.clearRow(r);
     }
   }
-  // Step 2: show_glyph(x, y, lev->glyph) loop — use _levGlyph for stored
-  // hero memory. Fall back to newsym only for unmapped cells.
+  // Step 2: show_glyph(x, y, lev->glyph) loop — display stored hero memory.
+  // C uses lev->glyph which starts as GLYPH_UNEXPLORED (blank/rock) and
+  // gets set by map_* functions when the hero sees a cell. JS equivalent:
+  // use _levGlyph if set, otherwise show blank (matching GLYPH_UNEXPLORED).
+  // Do NOT fall back to newsym — that would compute and display unseen
+  // cells that C leaves as blank.
   for (let x = 1; x < COLNO; x++) {
     for (let y = 0; y < ROWNO; y++) {
       const loc = ctx.map.at?.(x, y);
       if (loc?._levGlyph) {
         show_glyph(x, y, loc._levGlyph, ctx);
-      } else {
-        // No stored glyph — fall back to newsym (first-time display)
-        newsym(x, y, ctx);
       }
+      // No _levGlyph → cell has never been seen → show blank (C's GLYPH_UNEXPLORED)
+      // The cls() call at the top of docrt_flags already cleared the screen.
     }
   }
   // C ref: vision_recalc(0) after show_glyph loop — recompute FOV and

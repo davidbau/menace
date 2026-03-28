@@ -1969,24 +1969,17 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         }
     }
 
-    // C ref: do.c:1837-1840 — vision_reset + docrt renders the new level.
-    // Recompute FOV for the new player position and render the map, so
-    // the screen shows the new level when --More-- appears for messages.
-    {
-        const _map = game?.map;
-        const _player = game?.u;
-        const _fov = game?.fov;
-        const _display = game?.display;
-        if (_map && _player && _fov && typeof _fov.compute === 'function') {
-            _fov.compute(_map, _player.x, _player.y);
-        }
-        if (_display && _map && typeof _display.renderMap === 'function') {
-            _display.renderMap(_map, _player, _fov, _display.flags || {});
-        }
-        if (_display && _player && typeof _display.renderStatus === 'function') {
-            _display.renderStatus(_player);
-        }
+    // C ref: do.c:1840 — docrt() renders the new level BEFORE arrival messages.
+    // The descent/ascent message ("You descend the stairs") was already shown
+    // by the caller (handleDownstairs/handleUpstairs) via putstr_message.
+    // In C, that message is printed inside goto_level before docrt, and
+    // cls() inside docrt handles --More-- for it. In JS, putstr_message
+    // already handled the --More-- display, so we clear messageNeedsMore
+    // to prevent docrt from re-consuming a key for it.
+    if (game?.display?.messageNeedsMore) {
+        game.display.messageNeedsMore = false;
     }
+    await docrt();
 
     // C ref: do.c goto_level() — tourists gain level_difficulty()-based XP
     // on first entry to a new level, via the normal experience helpers.
