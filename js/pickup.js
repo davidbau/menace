@@ -1,4 +1,5 @@
 import { strchr } from './hacklib.js';
+import { objectMapGlyph } from './display_rng.js';
 import { bigmonst } from './mondata.js';
 import { THRONE, SINK, GRAVE, FOUNTAIN, STAIRS, ALTAR, IS_DOOR, D_ISOPEN,
          IS_POOL, IS_LAVA, isok, SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER,
@@ -1557,12 +1558,17 @@ function sortSameClassContainerItems(items) {
         .map((entry) => entry.obj);
 }
 
-async function buildContainerDisplayRows(items, letters, selected, player) {
+async function buildContainerDisplayRows(items, letters, selected, player, { consumeDisplayRng = false } = {}) {
     const rows = [];
     let lastHeader = null;
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
         await observeObject(item);
+        // C ref: invent.c query_objlist/display_inventory calls
+        // obj_to_glyph(otmp, rn2_on_display_rng) for each item's glyph.
+        // During hallucination this consumes display RNG.  Only consume on
+        // the first build (add_menu equivalent); redraws use stored glyphs.
+        if (consumeDisplayRng) objectMapGlyph(item, true);
         const sym = CLASS_SYMBOLS[item?.oclass];
         const header = classSymbolLabel(sym);
         if (header !== lastHeader) {
@@ -1810,6 +1816,7 @@ async function containerMenu(game, container) {
         }
         const selected = new Set();
         let didTake = false;
+        let firstMenuBuild = true;
         while (true) {
             const cur = getContainerContents(container);
             if (!cur.length) break;
@@ -1827,7 +1834,9 @@ async function containerMenu(game, container) {
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
-            const displayRows = await buildContainerDisplayRows(visible, available, selected, player);
+            const consumeDispRng = firstMenuBuild && !!(player?.Hallucination || player?.hallucinating);
+            const displayRows = await buildContainerDisplayRows(visible, available, selected, player, { consumeDisplayRng: consumeDispRng });
+            firstMenuBuild = false;
             overlayEndRow = Math.max(overlayEndRow, 1 + displayRows.length);
             // C tty menus overlay text onto the existing map/status display.
             // Re-rendering the map here re-consumes hallucination display RNG
@@ -2666,6 +2675,12 @@ async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
     for (let curr = olist; curr; curr = FOLLOW(curr)) {
         if (allow_fn(curr)) {
             const itemCh = typeof curr.invlet === 'string' ? curr.invlet.charCodeAt(0) : (curr.invlet || 0);
+            // C ref: invent.c query_objlist/display_inventory calls
+            // obj_to_glyph(otmp, rn2_on_display_rng) for each item's glyph.
+            // During hallucination this consumes display RNG.  Match C's
+            // consumption pattern so the display RNG stream stays aligned.
+            const hallu = !!(player?.Hallucination || player?.hallucinating);
+            if (hallu) objectMapGlyph(curr, true);
             add_menu(win, null, { a_obj: curr }, itemCh, 0, ATR_NONE, 0,
                 doname(curr, player), 0);
         }

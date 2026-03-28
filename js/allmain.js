@@ -1167,6 +1167,18 @@ async function postRender(game, result) { // async-ok: called via await; may nee
     // RNG for hallucinated entities a second time (first time was during
     // gameplay actions via see_monsters/see_objects).
     const mapReady = !!(game?.lev || game?.map);
+    // C ref: allmain.c:564-582 — once-per-player-input: when hallucinating,
+    // see_monsters/see_objects/see_traps runs for EVERY command (not just
+    // timed ones) to refresh hallucinated glyphs before screen capture.
+    const ctx = game.context || {};
+    const hallu = !!(player?.Hallucination || player?.hallucinating);
+    if (mapReady && (!ctx.mv || player?.blind)) {
+        if (hallu) {
+            see_monsters(game.map);
+            see_objects();
+            see_traps();
+        }
+    }
     if (mapReady && game.fov && typeof game.fov.compute === 'function') {
         game.fov.compute(game.map, player.x, player.y);
     }

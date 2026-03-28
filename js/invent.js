@@ -2,6 +2,7 @@
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
 import { nhgetch, getlin, more } from './input.js';
+import { objectMapGlyph } from './display_rng.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, getWinMessage, putstr as win_putstr, start_menu, add_menu, end_menu, select_menu } from './windows.js';
 import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE, W_ART, W_ARMOR, W_ACCESSORY, W_SADDLE, W_WEAPONS, W_TOOL } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
@@ -27,7 +28,7 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          CORPSE, EGG, TIN, POT_OIL, SPE_NOVEL, LEASH, STATUE, SCR_BLANK_PAPER,
          GLASS, GEMSTONE, MINERAL,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
-         CLASS_SYMBOLS } from './objects.js';
+         CLASS_SYMBOLS, GOLD_PIECE } from './objects.js';
 import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object, obj_extract_self } from './mkobj.js';
 import { obj_resists, is_quest_artifact } from './objdata.js';
 import { an, Has_contents, not_fully_identified as objnam_not_fully_identified, aobjnam, The, vtense } from './objnam.js';
@@ -152,6 +153,10 @@ function buildInventoryOverlayLinesFromItems(items, player, options = null) {
         if (includeSyntheticGold && cls === COIN_CLASS && !groups[cls] && (player.gold || 0) > 0) {
             const gold = player.gold || 0;
             const goldLabel = gold === 1 ? 'gold piece' : 'gold pieces';
+            // C ref: gold is a real object in invent with obj_to_glyph
+            if (player?.Hallucination || player?.hallucinating) {
+                objectMapGlyph({ oclass: COIN_CLASS, otyp: GOLD_PIECE }, true);
+            }
             lines.push('Coins');
             lines.push(`$ - ${gold} ${goldLabel}`);
             continue;
@@ -159,6 +164,11 @@ function buildInventoryOverlayLinesFromItems(items, player, options = null) {
         if (!groups[cls]) continue;
         lines.push(CLASS_NAMES[cls] || 'Other');
         for (const item of groups[cls]) {
+            // C ref: invent.c:3322 — obj_to_glyph(otmp, rn2_on_display_rng)
+            // consumes display RNG for each item's glyph during hallucination.
+            if (player?.Hallucination || player?.hallucinating) {
+                objectMapGlyph(item, true);
+            }
             const named = fullyIdentify
                 ? displayOnlyFullyIdentifiedName(item, player)
                 : doname(item, player);
