@@ -42,7 +42,7 @@ import { body_part } from './polyself.js';
 import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED, UTOTYPE_FALLING, LEFT_SIDE, RIGHT_SIDE, BOTH_SIDES } from './const.js';
 import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM,
          FOUNTAIN, THRONE, SINK, GRAVE, ALTAR } from './const.js';
-import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, docrt, flush_screen } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly, levl_follower } from './mondata.js';
 import { mons, S_ZOMBIE, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
          PM_GREEN_SLIME, PM_WRAITH, PM_NURSE, PM_TOURIST } from './monsters.js';
@@ -1966,6 +1966,25 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         const player = game.u || game.u;
         if (newMap && player) {
             move_update(true, player, newMap);
+        }
+    }
+
+    // C ref: do.c:1837-1840 — vision_reset + docrt renders the new level.
+    // Recompute FOV for the new player position and render the map, so
+    // the screen shows the new level when --More-- appears for messages.
+    {
+        const _map = game?.map;
+        const _player = game?.u;
+        const _fov = game?.fov;
+        const _display = game?.display;
+        if (_map && _player && _fov && typeof _fov.compute === 'function') {
+            _fov.compute(_map, _player.x, _player.y);
+        }
+        if (_display && _map && typeof _display.renderMap === 'function') {
+            _display.renderMap(_map, _player, _fov, _display.flags || {});
+        }
+        if (_display && _player && typeof _display.renderStatus === 'function') {
+            _display.renderStatus(_player);
         }
     }
 

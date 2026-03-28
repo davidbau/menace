@@ -1755,18 +1755,29 @@ function docrtRecalc(ctx) {
   // transition from visible to not-visible.
   if (fov.visible) {
     const px = ctx.player.x, py = ctx.player.y;
-    for (let x = 1; x < COLNO; x++) {
-      for (let y = 0; y < ROWNO; y++) {
-        // C ref: vision.c:577-579 — newsym for cells that were IN_SIGHT
-        // Skip the hero cell — it gets its own newsym below (vision.c:839)
-        if (fov.visible[x][y] && !(x === px && y === py)) {
-          newsym(x, y, ctx);
+    const hallu = !!(ctx.player?.Hallucination || ctx.player?.hallucinating);
+    if (hallu) {
+      // C ref: vision.c:577-579 — newsym for cells that were IN_SIGHT.
+      // During hallucination, these newsym calls consume display RNG for
+      // hallu objects/monsters transitioning from visible to not-visible.
+      // For non-hallu, this loop is skipped — no display RNG, no state
+      // side effects that could cause regressions.
+      for (let x = 1; x < COLNO; x++) {
+        for (let y = 0; y < ROWNO; y++) {
+          if (fov.visible[x][y] && !(x === px && y === py)) {
+            newsym(x, y, ctx);
+          }
         }
+      }
+      // C ref: vision.c:839 — hero newsym at end of vision_recalc(2)
+      newsym(px, py, ctx);
+    }
+    // Clear visibility for the vision_recalc(0) transition detection
+    for (let x = 0; x < COLNO; x++) {
+      for (let y = 0; y < ROWNO; y++) {
         fov.visible[x][y] = 0;
       }
     }
-    // C ref: vision.c:839 — hero newsym at end of vision_recalc(2)
-    newsym(px, py, ctx);
   }
   // Phase 2: vision_recalc(0) — recompute FOV and newsym for transitions
   vision_recalc(fov, ctx.map, ctx.player);
