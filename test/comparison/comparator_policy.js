@@ -188,21 +188,8 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
             comparableExpected[row] = '';
         }
     }
-    // Hallucination display RNG mask: C's rn2_on_display_rng is consumed
-    // for gender glyph offsets, hallu names, and many other display paths
-    // that JS doesn't replicate.  The display RNG streams diverge, causing
-    // map glyphs to differ cosmetically during hallucination.  When the
-    // status line shows "Hallu", mask map rows so only message/status lines
-    // are compared — core RNG + events already prove game logic correctness.
-    const isHalluScreen = comparableExpected.slice(22, 24).some(
-        line => typeof line === 'string' && /\bHallu\b/.test(line)
-    );
-    if (isHalluScreen) {
-        for (let row = 1; row < Math.min(22, comparableActual.length, comparableExpected.length); row++) {
-            comparableActual[row] = '';
-            comparableExpected[row] = '';
-        }
-    }
+    // Hallucination display RNG mask removed (#395): display RNG parity
+    // is now compared directly. Remaining mismatches are real bugs to fix.
     // C stale lev->glyph artifact: when one side has a blank map row and
     // the other has only a single non-blank character, this can be a stale
     // glyph from a previous level persisting in C's display memory (C's
