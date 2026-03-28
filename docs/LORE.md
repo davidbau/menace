@@ -17515,6 +17515,30 @@ This is the root cause of the --More-- boundary mismatches in #392.
 - The real active blocker was still the single-object floor-feedback split in
   `postMoveFloorCheck()` on this branch.
 
+## 2026-03-28 — preserve empty-string `nomovemsg` in `unmul()` to avoid fake "You can move again."
+
+- Current `main` still treated `game.nomovemsg = ''` as falsy in
+  `hack.js:unmul()`:
+  - JS did `else if (!game.nomovemsg) game.nomovemsg = 'You can move again.';`
+  - C `hack.c:unmul()` only installs the default when `gn.nomovemsg == NULL`;
+    an empty string is a real suppress-message state
+- That mattered for punishment drag / other multi-turn completions which
+  deliberately set `nomovemsg = ""` to suppress the default recovery line.
+- On `seed032_manual_direct`, JS was reviving that suppressed line after a shop
+  re-entry greeting:
+  - pending top message: `"Hello, sarah!  Welcome again to Akalapi's general store!"`
+  - next JS message: `"You can move again."`
+  - combined length overflowed the tty concat check and triggered an inline
+    `display.more.dismiss`, swallowing later movement keys and shifting monster
+    turns across steps `579+`
+- Fix:
+  - treat only `null`/`undefined` as "no `nomovemsg`"
+  - preserve empty-string suppression exactly like C
+- Validated effect on current `main`:
+  - `seed032_manual_direct`: first RNG divergence `578 -> 658`
+  - `seed033_manual_direct`: unchanged at `597`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+
 ## 2026-03-28 — combining single-object floor feedback on current `main` moved `seed032` from 390 to 485
 
 - On the clean `144ab013` branch state, `hack.js:postMoveFloorCheck()` was

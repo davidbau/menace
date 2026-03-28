@@ -3083,7 +3083,7 @@ export async function unmul(msg_override, player, display, game) {
     game.multi = 0;
     if (msg_override !== undefined && msg_override !== null) {
         game.nomovemsg = msg_override;
-    } else if (!game.nomovemsg) {
+    } else if (game.nomovemsg === undefined || game.nomovemsg === null) {
         game.nomovemsg = 'You can move again.';
     }
     const msg = game.nomovemsg || '';
