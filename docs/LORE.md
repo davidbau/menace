@@ -17539,6 +17539,39 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - `seed033_manual_direct`: unchanged at `597`
   - `seed328_ranger_wizard_gameplay`: unchanged at `226`
 
+## 2026-03-28 — `goto_level()` punished descent must run `drag_down()` before arrival relocation
+
+- After the `unmul()` fix, the next `seed032` gameplay seam moved to the late
+  punished descent path:
+  - JS first bad RNG: `rn2(10)=0 @ changeLevel(do.js:1925)`
+  - C first bad RNG: `rn2(3)=1 @ drag_down(ball.c:999)`
+- The decisive microscope was:
+  - `rng_step_diff --step 658`: fully matched
+  - `step-summary 657..661`: all real drift started on `659+`
+  - C raw `659` restored the target level, then immediately ran:
+    - `rn2(3)=1 @ drag_down(ball.c:999)`
+    - `rn2(2)=1 @ drag_down(ball.c:1015)`
+    - `rnd(20)=15 @ drag_down(ball.c:1018)`
+  - JS skipped straight from restored-level RNG into `changeLevel()` arrival
+    collision/random relocation
+- C source in `do.c:1778-1785` explains it:
+  - on downward stair/ladder travel, if `Punished`, `goto_level()` calls
+    `drag_down()` before later arrival handling
+  - if the ball is not welded, it follows with `ballrelease(FALSE)`
+- JS already had a faithful `drag_down()` implementation in `ball.js`; it just
+  was never invoked from `changeLevel()`.
+- Fix:
+  - in `do.js:changeLevel()`, after choosing the new-level arrival square for a
+    downward transition and before later arrival/collision handling:
+    - call `drag_down(player, map, display, game)` when punished and not
+      levitating/flying
+    - then `ballrelease(false, ...)` when the ball is not welded
+- Validated effect on current `main`:
+  - `seed032_manual_direct`: `rngFull=1/1`, `eventsFull=1/1`
+  - remaining mismatches are screen/color/cursor only
+  - `seed033_manual_direct`: unchanged at `597`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+
 ## 2026-03-28 — combining single-object floor feedback on current `main` moved `seed032` from 390 to 485
 
 - On the clean `144ab013` branch state, `hack.js:postMoveFloorCheck()` was

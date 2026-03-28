@@ -65,6 +65,8 @@ import { ship_object } from './dokick.js';
 import { game as _gstate } from './gstate.js';
 import { record_achievement } from './insight.js';
 import { ACH_MINE } from './const.js';
+import { drag_down, ballrelease } from './ball.js';
+import { welded } from './wield.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
 const gd = {};
@@ -1909,6 +1911,18 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     const pos = getArrivalPosition((game.map || game.map), depth, transitionDir);
     (game.u || game.u).x = pos.x;
     (game.u || game.u).y = pos.y;
+
+    // C ref: do.c goto_level() — punished downward stair/ladder travel can
+    // trigger drag_down() after the new level is restored and arrival square
+    // is chosen, before later arrival/collision handling.
+    if (transitionDir === 'down'
+        && (game.u || game.u)?.punished
+        && !((game.u || game.u)?.levitating || (game.u || game.u)?.flying)) {
+        await drag_down((game.u || game.u), (game.map || game.map), game.display, game);
+        if ((game.u || game.u)?.uball && !welded((game.u || game.u).uball, (game.u || game.u))) {
+            await ballrelease(false, (game.u || game.u), (game.map || game.map));
+        }
+    }
 
     // C ref: save.c savelev() / restore.c getlev() persist hero track state
     // per level. Revisited levels restore their saved buffer; new levels start
