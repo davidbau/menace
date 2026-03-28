@@ -169,20 +169,34 @@ class RemoteEngine {
     // Uses verbosity to bias towards longer (more lines) or shorter responses.
     // verbosity 0.5 = uniform; 1 = prefer longest; 0 = prefer shortest.
     _drawFrom(deck, size, responses) {
-        if (deck.length === 0) deck.push(...this._makeDeck(size));
-        if (!responses || this._verbosity === 0.5) return deck.shift();
-        // Weighted selection: weight = lineCount ^ (2*verbosity - 1)
-        const exp = 2 * this._verbosity - 1;
-        const weights = deck.map(i => Math.pow((responses[i].split('\n').length), exp));
-        const total = weights.reduce((s, w) => s + w, 0);
-        let r = Math.random() * total;
-        let chosen = 0;
-        for (let i = 0; i < weights.length; i++) {
-            r -= weights[i];
-            if (r <= 0) { chosen = i; break; }
+        if (deck.length === 0) {
+            const newDeck = this._makeDeck(size);
+            // Prevent last-of-old-deck === first-of-new-deck
+            if (this._lastDrawnIdx !== undefined && newDeck.length > 1 && newDeck[0] === this._lastDrawnIdx) {
+                const swap = 1 + Math.floor(Math.random() * (newDeck.length - 1));
+                [newDeck[0], newDeck[swap]] = [newDeck[swap], newDeck[0]];
+            }
+            deck.push(...newDeck);
         }
-        deck.splice(chosen, 1);
-        return deck.length === 0 ? (deck.push(...this._makeDeck(size)), chosen) : chosen;
+        let chosenIdx;
+        if (!responses || this._verbosity === 0.5) {
+            chosenIdx = 0;
+        } else {
+            // Weighted selection: weight = lineCount ^ (2*verbosity - 1)
+            const exp = 2 * this._verbosity - 1;
+            const weights = deck.map(i => Math.pow((responses[i].split('\n').length), exp));
+            const total = weights.reduce((s, w) => s + w, 0);
+            let r = Math.random() * total;
+            chosenIdx = 0;
+            for (let i = 0; i < weights.length; i++) {
+                r -= weights[i];
+                if (r <= 0) { chosenIdx = i; break; }
+            }
+        }
+        const result = deck[chosenIdx];
+        deck.splice(chosenIdx, 1);
+        this._lastDrawnIdx = result;
+        return result;
     }
 
     // Push topic to front of stack, keep last 3 (Feature 2)
@@ -323,8 +337,17 @@ class RemoteEngine {
         const words = partial.trim().split(/\s+/).filter(w => w.length > 0);
         if (words.length < this._triggerWords) return;
 
-        const response = this._pickResponse(partial);
+        let response = this._pickResponse(partial);
         if (!response) return;
+        // Apply same repeat prevention as onUserMessage
+        if (this._recentResponses.includes(response)) {
+            for (let attempt = 0; attempt < 3; attempt++) {
+                const retry = this._pickResponse(partial);
+                if (retry && !this._recentResponses.includes(retry)) { response = retry; break; }
+            }
+        }
+        this._recentResponses.push(response);
+        if (this._recentResponses.length > 10) this._recentResponses.shift();
         this._state = 'thinking';
         const thinkDelay = this._thinkMs[0] * 0.5 + Math.random() * this._thinkMs[0];
         const beat = this._pendingBeat;
@@ -412,7 +435,16 @@ class RemoteEngine {
         const delay = 15000 + Math.random() * 30000;
         setTimeout(() => {
             if (this._state === 'idle') {
-                const msg = this._spontaneous[Math.floor(Math.random() * this._spontaneous.length)];
+                // Pick a spontaneous message not in recent history
+                let msg = this._spontaneous[Math.floor(Math.random() * this._spontaneous.length)];
+                if (this._recentResponses.includes(msg)) {
+                    for (let attempt = 0; attempt < 3; attempt++) {
+                        const retry = this._spontaneous[Math.floor(Math.random() * this._spontaneous.length)];
+                        if (!this._recentResponses.includes(retry)) { msg = retry; break; }
+                    }
+                }
+                this._recentResponses.push(msg);
+                if (this._recentResponses.length > 10) this._recentResponses.shift();
                 this._startTyping(msg);
             }
             this._scheduleSpontaneous();
