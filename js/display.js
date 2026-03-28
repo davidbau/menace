@@ -1778,15 +1778,24 @@ export function docrt_flags(recalc = null, ctxOrMap = null) {
   if (!ctx?.display || !ctx?.map) return;
   cosmic_display_push_owner('docrt_flags');
   // C ref: docrt_flags ordering:
+  //   0. cls() — clear screen (fill with rock) + clear_glyph_buffer()
   //   1. vision_recalc(2) — shut down vision
-  //   2. show_glyph(x, y, lev->glyph) loop — display STORED glyphs from
-  //      hero memory. No recomputation, no display RNG consumed.
+  //   2. show_glyph(x, y, lev->glyph) loop — display STORED glyphs
   //   3. vision_recalc(0) — recompute FOV, newsym for visibility changes
   //   4. see_monsters() — overlay monsters (called by docrt() after this)
   //
-  // JS equivalent: use _levGlyph (set by map_object/map_trap/map_background/
-  // map_engraving) as the stored hero memory. Fall back to newsym only for
-  // cells that were never mapped (no _levGlyph).
+  // Step 0: Clear the map area. C's cls() fills the screen with rock
+  // symbols and clears the glyph buffer. This ensures stale content
+  // from a previous level doesn't persist. JS equivalent: clear all
+  // map rows and invalidate display cache.
+  if (ctx.display) {
+    const mapEnd = STATUS_ROW_1;
+    if (typeof ctx.display.clearRow === 'function') {
+      for (let r = MAP_ROW_START; r < mapEnd; r++) ctx.display.clearRow(r);
+    }
+  }
+  // Step 2: show_glyph(x, y, lev->glyph) loop — use _levGlyph for stored
+  // hero memory. Fall back to newsym only for unmapped cells.
   for (let x = 1; x < COLNO; x++) {
     for (let y = 0; y < ROWNO; y++) {
       const loc = ctx.map.at?.(x, y);
@@ -1883,16 +1892,32 @@ export async function cls(ctxOrMap = null) {
       display.topMessage = null;
     }
   }
-  // C ref: cls() calls clear_nhwindow(WIN_MAP) which clears only the MAP area,
-  // NOT the message row (row 0) or status rows. C also calls clear_glyph_buffer().
+  // C ref: cls() calls clear_nhwindow(WIN_MAP) which clears the MAP area,
+  // NOT the message row (row 0) or status rows. C also calls clear_glyph_buffer()
+  // which resets all stored glyphs to GLYPH_UNEXPLORED.
   const mapEnd = STATUS_ROW_1; // rows MAP_ROW_START through STATUS_ROW_1-1
   if (typeof display.clearRow === 'function') {
     for (let r = MAP_ROW_START; r < mapEnd; r++) display.clearRow(r);
-    return;
+  } else {
+    for (let r = MAP_ROW_START; r < mapEnd; r++) {
+      for (let c = 0; c < (display.cols || TERMINAL_COLS); c++) {
+        display.setCell?.(c, r, ' ', CLR_GRAY);
+      }
+    }
   }
-  for (let r = MAP_ROW_START; r < mapEnd; r++) {
-    for (let c = 0; c < (display.cols || TERMINAL_COLS); c++) {
-      display.setCell?.(c, r, ' ', CLR_GRAY);
+  // C ref: clear_glyph_buffer() — invalidate all cached map cells and stored
+  // glyphs so docrt_flags/renderMap don't show stale content from a previous
+  // level or screen state.
+  const map = ctx?.map;
+  if (map) {
+    for (let x = 0; x < COLNO; x++) {
+      for (let y = 0; y < ROWNO; y++) {
+        const loc = map.at?.(x, y);
+        if (loc) {
+          loc._displayCell = null;
+          loc._levGlyph = null;
+        }
+      }
     }
   }
 }
