@@ -374,6 +374,11 @@ export async function enterTutorial(game, opts = {}) {
     game.levels[1] = (game.map || game.map);
     (game.u || game.u).dungeonLevel = 1;
     (game.u || game.u).inTutorial = true;
+    // C ref: schedule_goto(&sp->dlevel) sets the tutorial branch dnum.
+    // game.dnum must track the current branch so changeLevel generates
+    // the correct branch level (tutorial-2, not main dungeon level 2).
+    game.dnum = TUTORIAL;
+    (game.u || game.u).uz = { dnum: TUTORIAL, dlevel: 1 };
     (game.u || game.u).showExp = !!game.flags.showexp;
     if ((game.map || game.map)?.flags?.lit_corridor) game.flags.lit_corridor = true;
     game.placePlayerOnLevel('teleport');
