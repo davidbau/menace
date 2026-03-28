@@ -147,6 +147,9 @@ export class SpacewarGame {
     }
 
     // -- Controls --
+    // Player 1 (Needle): A/D rotate, W thrust, S fire, Q hyperspace
+    // Player 2 (Wedge):  J/L rotate, I thrust, K fire, U hyperspace
+    //                     (arrows also accepted as alternate for P2)
     _onKey(e) {
         const down = e.type === 'keydown';
         this.keys[e.code] = down;
@@ -154,10 +157,12 @@ export class SpacewarGame {
             e.preventDefault();
         }
         if (down) {
+            // P1 fire/hyperspace
             if (e.code === 'KeyS' || e.code === 'KeyF') this._fireTorpedo(this.ship1);
-            if (e.code === 'ArrowDown' || e.code === 'Period') this._fireTorpedo(this.ship2);
             if (e.code === 'KeyQ' || e.code === 'KeyR') this._hyperspace(this.ship1);
-            if (e.code === 'Slash' || e.code === 'ShiftRight') this._hyperspace(this.ship2);
+            // P2 fire/hyperspace (IJKL primary, arrows alternate)
+            if (e.code === 'KeyK' || e.code === 'ArrowDown' || e.code === 'Period') this._fireTorpedo(this.ship2);
+            if (e.code === 'KeyU' || e.code === 'Slash') this._hyperspace(this.ship2);
             if (e.code === 'KeyP') this.paused = !this.paused;
             if (e.code === 'Escape') { this.running = false; }
         }
@@ -292,7 +297,10 @@ export class SpacewarGame {
         if (this.paused || this.gameOver) return;
         this.roundTimer += dt;
         this._updateShip(this.ship1, dt, this.keys['KeyA'], this.keys['KeyD'], this.keys['KeyW']);
-        this._updateShip(this.ship2, dt, this.keys['ArrowLeft'], this.keys['ArrowRight'], this.keys['ArrowUp']);
+        this._updateShip(this.ship2, dt,
+            this.keys['KeyJ'] || this.keys['ArrowLeft'],
+            this.keys['KeyL'] || this.keys['ArrowRight'],
+            this.keys['KeyI'] || this.keys['ArrowUp']);
         this._updateTorpedoes(this.ship1, this.ship2, dt);
         this._updateTorpedoes(this.ship2, this.ship1, dt);
         this._checkShipCollision();
@@ -335,17 +343,16 @@ export class SpacewarGame {
     }
 
     _drawStar(ctx) {
-        // Central star: bright dot with radiating lines (vector display style)
-        const n = 8;
-        for (let i = 0; i < n; i++) {
-            const a = (i / n) * TAU;
-            const r1 = STAR_RADIUS * 0.5;
-            const r2 = STAR_RADIUS * 1.5;
-            this._vecLine(ctx,
-                this.cx + Math.cos(a) * r1, this.cy + Math.sin(a) * r1,
-                this.cx + Math.cos(a) * r2, this.cy + Math.sin(a) * r2, 0.7);
+        // Central star: bright flickering dot (PDP-1 scope phosphor bloom)
+        // The original was just a point that the beam dwelled on, causing it
+        // to bloom brightly and vary in intensity frame-to-frame.
+        const flicker = 0.6 + Math.random() * 0.4;
+        const size = 3 + Math.random() * 2.5;
+        this._vecDot(ctx, this.cx, this.cy, size, flicker);
+        // Occasional bright flash
+        if (Math.random() < 0.15) {
+            this._vecDot(ctx, this.cx, this.cy, size + 2, 0.3);
         }
-        this._vecDot(ctx, this.cx, this.cy, 4, 1.0);
     }
 
     _drawShipShape(ctx, ship) {
@@ -411,7 +418,7 @@ export class SpacewarGame {
             ? (() => { const w = this.ship1.score >= this.winsNeeded ? 'NEEDLE' : 'WEDGE';
                        return `${w} WINS -- SPACE TO RESTART -- ESC TO QUIT`; })()
             : this.roundTimer < 10
-                ? 'A/D W S Q needle   arrows/Up . / wedge   P pause  ESC quit'
+                ? 'A/D W S Q needle   J/L I K U wedge   P pause  ESC quit'
                 : '';
         if (newRow23 !== this._lastRow23) {
             d.clearRow(23);
@@ -458,8 +465,10 @@ export class SpacewarGame {
         this.running = true;
         this.lastTime = performance.now();
 
-        // Clear terminal except rows 0 and 23 (HUD rows)
+        // Hide cursor during gameplay
         if (this.display) {
+            this.display.cursorVisible = 0;
+            this.display.setCursor(0, 0);
             this.display.clearScreen();
             this._updateTerminalHUD();
         }
@@ -469,6 +478,10 @@ export class SpacewarGame {
                 if (!this.running) {
                     document.removeEventListener('keydown', this._onKey);
                     document.removeEventListener('keyup', this._onKey);
+                    // Restore cursor
+                    if (this.display) {
+                        this.display.cursorVisible = 1;
+                    }
                     resolve();
                     return;
                 }
