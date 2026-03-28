@@ -373,7 +373,8 @@ export class Display extends Terminal {
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
             this.messageNeedsMore = true;
-            this.toplin = 1;
+            // C ref: addtopl sets toplin = TOPLINE_NEED_MORE (2).
+            this.toplin = 2;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {

@@ -696,11 +696,11 @@ export async function run_command(game, ch, opts = {}) {
     const _isExtCmdPrefix = (chCode === '#'.charCodeAt(0));
     const _suppressFreshRunstep = _isCountDigit || _isExtCmdPrefix;
     // C ref: tty_clearmsg() — clear topline at start of command processing.
-    // toplin == 1 (NEED_MORE): fire more() so player reads the message first.
-    // toplin == 2 (NON_EMPTY): just clear (already acknowledged by keypress).
+    // toplin == 2 (NEED_MORE): fire more() so player reads the message first.
+    // toplin == 1 (NON_EMPTY): just clear (already acknowledged by keypress).
     // toplin == 0 (EMPTY): nothing to do.
     if (!_isCountDigit && game.display && game.display.topMessage) {
-        if (game.display.toplin === 1 && game.display._nhgetch) {
+        if (game.display.toplin === 2 && game.display._nhgetch) {
             // Message not yet acknowledged — fire more() before clearing.
             // This handles Phase B messages that arrive after the previous
             // command and before nhgetch transitions toplin 1→2.

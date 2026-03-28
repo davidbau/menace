@@ -496,11 +496,12 @@ function nhgetch_raw() {
     const snap = beginOriginAwait(activeGame, 'input');
     return Promise.resolve(activeInputRuntime.nhgetch())
         .then((ch) => {
-            // C ref: tty_nhgetch transitions toplin 1→2 (NEED_MORE → NON_EMPTY).
+            // C ref: tty_nhgetch (wintty.c:4098-4099) transitions toplin
+            // TOPLINE_NEED_MORE(2) → TOPLINE_NON_EMPTY(1).
             // The message is now "acknowledged" — tty_clearmsg will just clear it
             // without firing more(). Does NOT transition to 0 (EMPTY).
             if (display) {
-                if (display.toplin === 1) display.toplin = 2;
+                if (display.toplin === 2) display.toplin = 1;
                 display.messageNeedsMore = false;
                 display.moreMarkerActive = false;
                 display.messageNeedsMoreBoundary = false;
@@ -521,7 +522,7 @@ function nhgetch_raw() {
 function _nhgetchToplinTransition() {
     const display = getRuntimeDisplay();
     if (display) {
-        if (display.toplin === 1) display.toplin = 2;
+        if (display.toplin === 2) display.toplin = 1;
         display.messageNeedsMore = false;
         display.moreMarkerActive = false;
         display.messageNeedsMoreBoundary = false;

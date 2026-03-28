@@ -57,7 +57,7 @@ describe('wizard mode init and commands', () => {
 
         for (let depth = 2; depth <= 5; depth++) {
             // Dismiss any pending --More-- from previous command's message
-            if (game.display?.toplin === 1) {
+            if (game.display?.toplin === 2) { // TOPLINE_NEED_MORE
                 game.input.pushInput(' '.charCodeAt(0));
             }
             queueLine(game.input, String(depth));
