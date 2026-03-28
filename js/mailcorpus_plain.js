@@ -7031,6 +7031,14 @@ export const TALK_CORPUS = {
     greeting: '(oh hey|hey) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'rodney (seriously|come on)\nit is jonathan payne\ni wrote jove, the editor you (use every day|have been using all semester)',
+          'it is payne\n(jonathan payne|jon)\nthe guy who keeps telling you emacs is (too big|bloated) and wrote something better',
+          'rodney you (literally|just) asked me about the macro system yesterday\nit is payne\njove guy\n(ring any bells|remember now)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(good|not bad)\nbeen working on the macro system for jove\nit is the one feature i actually miss from emacs',
@@ -7227,6 +7235,14 @@ export const TALK_CORPUS = {
     greeting: '(hi|hey) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'kelly. (jay\'s sister|fenlason). i keep the club records.',
+          'rodney. it is kelly. we have met (several times|more than once).',
+          'kelly fenlason. i do the (bookkeeping|records) for the club. you know this.',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(fine|ok). you',
@@ -7420,6 +7436,14 @@ export const TALK_CORPUS = {
     greeting: '(hey|hi) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'rodney it is josh sirota\nwe have been (debugging|talking about) network protocols together\n(you really forgot|come on)',
+          'sirota. josh.\nthe one who keeps (finding failure modes|pointing out race conditions) in your code\n(ring a bell|remember now)',
+          'it is josh\nrodney we literally discussed (packet routing|the routing problem) last week\nare you (serious|ok)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(good|not bad)\nstill thinking about the routing problem\nit is the unsolved one in networking and nobody is talking about it (enough|seriously)',
@@ -7609,6 +7633,14 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: '(hey|yo) rodney (what\'s up|what is going on)',
     patterns: [
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'rodney (come on|seriously) it is thome\nmike thome\nthe guy who designed the (chameleon|mimic)\nyou have been fighting my monsters all week',
+          'it is mike\nrodney we (literally|just) talked about the shapeshifter mechanic yesterday\n(are you ok|you serious)',
+          'thome\ni design the monsters\nyou (die to them|keep dying to them)\n(that should be enough of a hint|remember now)',
+        ],
+      },
       {
         re: /\bhow are you\b|\bhow\'s it going\b|\bwhat\'s up\b|\bwassup\b/i,
         responses: [
@@ -7808,6 +7840,14 @@ export const TALK_CORPUS = {
     greeting: '(oh hi|hey) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'rodney it is kenny woodland\ni do the level layouts\nyou have been (walking through|playing) my maps all week',
+          'woodland\nkenny\nthe one who (designs the rooms|does the spatial layouts)\n(you know this|come on rodney)',
+          'it is kenny\nrodney i built the level you (died on|got lost in) yesterday\n(remember now|ring a bell)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(good|ok)\nstill staring at the level 12 southeast bug\ni know where it is, i just have not (written the fix yet|fixed it yet)',
@@ -7985,6 +8025,14 @@ export const TALK_CORPUS = {
     triggerWords: 5,
     greeting: '(hey|hi) rodney',
     patterns: [
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'rodney (come on|seriously)\nit is michael toy\ni made rogue with glenn\nyou have been playing (our game|it) for months',
+          'toy\nmichael toy\nrodney we (created|built) the roguelike you keep dying in\n(you really forgot|how do you not know this)',
+          'it is mike\nthe rogue guy\nrodney you (literally|just) asked me about the combat system\n(remember now|ring a bell)',
+        ],
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
@@ -8170,6 +8218,14 @@ export const TALK_CORPUS = {
     greeting: '(what|yes), rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'arnold. i wrote curses.',
+          'ken arnold. rodney. you use my library (every time you run rogue|daily).',
+          'it is arnold. the curses guy. (come on|seriously).',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
         responses: [
           'fine',
@@ -8326,6 +8382,14 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: '(yes|what is it), rodney?',
     patterns: [
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'walz. janet walz. sysadmin.\nrodney i sent you a disk quota warning (last week|three days ago).\ndid you even read it.',
+          'it is walz. i run the (pdp|system) you are logged into right now.\n(seriously rodney|come on).',
+          'rodney it is janet.\nthe person who keeps your account from getting (deleted|suspended).\nyou are welcome.',
+        ],
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
@@ -8520,6 +8584,14 @@ export const TALK_CORPUS = {
     greeting: '(ah|ah yes), rodney. (welcome|good to see you).',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'ah, rodney. it is izchak. izchak miller.\nyour shopkeeper on level (4|5).\nwe have done business many times.\n(you have forgotten me already|surely you remember)',
+          'it is izchak, rodney.\nthe general store.\ni sell you (wands and scrolls|supplies) and you (haggle with me|try to haggle).\n(this is familiar, yes|does that ring a bell)',
+          'miller. izchak miller.\na shopkeeper and, (i would like to think|perhaps), something of a philosopher.\nrodney we have (spoken many times|had many conversations).\nthe memory of a customer is a fragile thing.',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(well enough|not bad)\nbusiness is steady at level 5\nadventurers always need something at this depth\n(torches, scrolls, the occasional wand|the usual supplies)',
@@ -8697,6 +8769,14 @@ export const TALK_CORPUS = {
     greeting: '(hi|hey) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'rodney it is glenn wichman\ni made rogue with toy\nthe procedural dungeon was (my idea|my contribution)\n(you really forgot|come on)',
+          'wichman. glenn.\nrodney every time you enter a level that is different from the last one\nthat is (my algorithm|because of me)\n(remember now|ring a bell)',
+          'it is glenn\nthe rogue co-creator\nrodney we have talked about (room generation|procedural layouts) multiple times\n(are you serious|you ok)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(good|not bad)\nworking on corridor routing\ntrying to make the passages feel (less like a grid and more like they grew|more organic)',
@@ -8857,6 +8937,14 @@ export const TALK_CORPUS = {
     greeting: '(hey|hi) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'corley. dave corley.\nrodney i work on the (low-level stuff|systems code)\ninterrupt handlers, memory layout, that kind of thing\n(you know this|come on)',
+          'it is dave\nrodney we were (just talking|talking last week) about the (assembler listing|interrupt vector table)\n(you forgot already|seriously)',
+          'dave corley\nthe one who reads (hex dumps|assembler listings) for fun\nrodney you have asked me about (memory maps|the hardware) before\n(remember now|ring a bell)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(good|not bad)\nfinished the interrupt handler yesterday\nit is (cleaner|nicer) than i expected',
@@ -9011,6 +9099,14 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: '(hey|hi) rodney',
     patterns: [
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'it is abbott. mike abbott.\nrodney we have been (comparing rogue and hack|discussing game design) together\n(you forgot|come on)',
+          'mike abbott\nthe one who (takes careful notes|documents everything)\nrodney you (literally|just) asked me about level 7 strategy\n(remember now|ring a bell)',
+          'abbott\nrodney we are in the same (club|group)\ni am the (methodical one|careful one)\n(that should narrow it down|you know this)',
+        ],
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
@@ -9181,6 +9277,14 @@ export const TALK_CORPUS = {
     greeting: '(hey|hi) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'mark sirota\nrodney we have talked about (file permissions|security) multiple times\ni am the one who keeps telling you your password is (too short|weak)\n(remember now|come on)',
+          'it is mark\njosh\'s brother\nthe one who (audits passwords|worries about setuid bits)\nrodney you should (know this|remember)',
+          'sirota. mark.\nrodney i literally sent you a note about your (account permissions|file permissions) last week\n(you forgot already|seriously)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(good|fine)\nrunning a password audit this week\nresults (not great|pretty bad) but expected',
@@ -9341,6 +9445,14 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: '(hey|hi) rodney',
     patterns: [
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'ruddy. kevin ruddy.\nrodney i (fixed your terminal|helped you with the termcap entry) like two days ago\n(you forgot already|come on)',
+          'it is kevin\nthe one who (fixes things|solves the practical problems) around here\nrodney you asked me about the adm-3a (last week|recently)\n(remember now|ring a bell)',
+          'kevin ruddy\nrodney we sit in the same (room|lab)\ni am the one who (troubleshoots the hardware|keeps the terminals working)\n(seriously|you know this)',
+        ],
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
@@ -9503,6 +9615,14 @@ export const TALK_CORPUS = {
     greeting: '(hey|hi) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'texeira. mike texeira.\nrodney i am the one who (traces bugs|does the debugging) when things go wrong\nwe have (worked on this together|debugged together before)\n(you forgot|come on)',
+          'it is mike\nrodney we literally (traced that crash|debugged that core dump) together last week\ni do (tracing and diagnostics|debugging)\n(remember now|ring a bell)',
+          'mike texeira\nthe debugging guy\nrodney if something breaks and nobody can figure out why\nthey come to me\n(you have done this|you know this)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
         responses: [
           '(good|not bad)\nreading kernel source again\nthe filesystem code is more interesting than i (expected|thought)',
@@ -9662,6 +9782,14 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: '(hey|hi) rodney',
     patterns: [
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'fraize. scott fraize.\nrodney i do the (testing|QA) around here\nif something is broken i am usually the one who (finds it|noticed first)\n(you know this|come on)',
+          'it is scott\nrodney we (just tested|were testing) that file transfer protocol together\ni am the one who (checks everything twice|runs the verification)\n(remember now|ring a bell)',
+          'scott fraize\nthe QA guy\nrodney if you shipped something and it did not blow up\nthat is probably because i (tested it first|caught the bugs)\n(you forgot already|seriously)',
+        ],
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
         responses: [
@@ -9824,6 +9952,14 @@ export const TALK_CORPUS = {
     greeting: '(hey|hi) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'brown. robert brown.\nrodney i am the one who (handles error cases|writes the error handling code)\nwe talked about the (tokenizer|parser) recently\n(you forgot|come on)',
+          'it is rob\nrodney you asked me about (quoted strings|the pipe implementation) last week\ni am careful about (edge cases|error paths)\n(remember now|ring a bell)',
+          'robert brown\nrodney we are in the same group\ni am the one who (worries about what happens when things go wrong|checks the error returns)\n(you know this|seriously)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
         responses: [
           '(good|not bad)\nfixed the tokenizer bug fenlason found\nquoted strings now work (correctly|right)\n(been testing edge cases all morning|still testing edge cases)',
@@ -9985,6 +10121,14 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: '(hello|hey) rodney',
     patterns: [
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'rodney, it is dave lebling.\nwe wrote zork together, marc and i.\nyou have played it, (surely you remember|i would hope).\nthe white house, the mailbox, the (thief|underground empire).',
+          'lebling. dave lebling.\nrodney we have discussed (interactive fiction|text adventures) at length.\ni am one of the people who (built zork|created the great underground empire).\n(you really do not remember|come on)',
+          'it is dave.\nthe zork (author|co-author).\nrodney you asked me about the parser (last week|not long ago).\na writer does not (easily forget|forget) being forgotten.',
+        ],
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
@@ -10175,6 +10319,14 @@ export const TALK_CORPUS = {
     greeting: '(hey|hi) rodney',
     patterns: [
       {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'marc blank\nrodney we wrote zork together, dave and i\ni designed the (parser|language system)\n(you have used it|you played it)\n(come on|surely you remember)',
+          'it is blank. marc blank.\nthe one who built the z-machine\nrodney every game you play on that (virtual machine|interpreter) runs my code\n(you forgot|really)',
+          'rodney it is marc\nthe parser guy from zork\nwe have talked about (language design|natural language input) before\n(remember now|ring a bell)',
+        ],
+      },
+      {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
           '(fine|good)\ndeep in the z-machine instruction set right now\ntrying to get the branch encoding right so (short branches fit in one byte|it compresses well)',
@@ -10362,6 +10514,14 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: '(hello|good day) rodney',
     patterns: [
+      {
+        re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
+        responses: [
+          'it is Andries Brouwer, rodney.\nI forked Hack and added (many features|quite a few improvements).\nwe have corresponded about (dungeon topology|level connectivity) before.\n(surely you recall|you do remember)',
+          'Brouwer. Andries Brouwer.\nrodney I am the mathematician from Amsterdam who has been (analyzing|improving) the dungeon generator.\nwe have discussed graph connectivity (at length|several times).\n(this is not our first conversation|come now)',
+          'rodney, it is Andries.\nI maintain the (Hack fork|NetHack codebase).\nyou sent me a question about level 26 topology (not long ago|recently).\nI would (hope|expect) you remember.',
+        ],
+      },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
