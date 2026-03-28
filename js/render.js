@@ -27,6 +27,7 @@ import { strongmonst } from './mondata.js';
 import { acurr } from './attrib.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA } from './const.js';
 import { near_capacity } from './hack.js';
+import { depth as _depth } from './dungeon.js';
 
 // Re-export shared render constants from const.js for existing imports.
 export {
@@ -494,7 +495,13 @@ export function formatStatusLine2(player) {
     const level = Number.isFinite(player?.ulevel) ? player.ulevel : (player?.level || 1);
     const parts = [];
     const levelLabel = player.inTutorial ? 'Tutorial' : 'Dlvl';
-    parts.push(`${levelLabel}:${player.dungeonLevel}`);
+    // C ref: botl.c bot1() uses depth(&u.uz), which is the canonical dungeon
+    // depth (depth_start + dlevel - 1), NOT the branch-local dlevel.
+    // player.uz = { dnum, dlevel } mirrors C's u.uz.
+    const dlvl = (player.uz && typeof _depth === 'function')
+        ? _depth(player.uz)
+        : player.dungeonLevel;
+    parts.push(`${levelLabel}:${dlvl}`);
     parts.push(`$:${player.gold}`);
     parts.push(`HP:${heroHp}(${heroHpMax})`);
     parts.push(`Pw:${player.pw}(${player.pwmax})`);
