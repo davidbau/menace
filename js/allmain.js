@@ -1076,6 +1076,8 @@ async function syncTimedTurnPreInputState(game) {
     const ctx = game.context || {};
     const canUpdateVision = !ctx.mv || player?.blind;
     const hallucinating = !!(player?.Hallucination || player?.hallucinating);
+    // Mark pre-input as done so the fresh_cmd path doesn't repeat it.
+    game._preInputRanThisStep = true;
     if (canUpdateVision) {
         if (hallucinating) {
             see_monsters(game.map);
@@ -2494,6 +2496,7 @@ export class NetHackGame {
         }
 
         while (true) {
+            this._preInputRanThisStep = false;
             const hasPositiveMoveContinuation = !!(this.multi > 0 && this.context?.mv && !this?.playerDied);
 
             // Travel continuation fallback. Keep this behind the positive-move
@@ -2590,6 +2593,9 @@ export class NetHackGame {
                 await this.renderAndAutosave({ commandResult, autosave: true });
                 continue;
             }
+            // C ref: pre-input phase is handled by:
+            // - syncTimedTurnPreInputState (for timed commands, after timed turn)
+            // - renderAndAutosave (for non-timed commands, after command)
             pushRngLogEntry(`^mlc[phase=fresh_cmd]`);
             const firstCh = await nhgetch();
             const commandResult = await this.runOneCommandCycle(firstCh);
@@ -2643,16 +2649,26 @@ export class NetHackGame {
         autosave = false,
         forceRender = false,
     } = {}) {
-        // C ref: allmain.c:564-582 — once-per-player-input: when hallucinating,
-        // see_monsters/see_objects/see_traps refreshes hallucinated glyphs.
-        // For timed commands, syncTimedTurnPreInputState already calls these
-        // (inside advanceTimedTurn). For non-timed commands (inventory, look,
-        // etc.), we need to call them here to match C's pre-input phase.
-        // C ref: allmain.c:564-582 — hallu see_monsters/see_objects/see_traps.
-        // C's pre-input runs once between timed turns, attributed to the timed
-        // step. For non-timed commands, C's pre-input already ran at the
-        // previous timed step and isn't repeated. JS matches this by calling
-        // see_monsters/see_objects/see_traps only in syncTimedTurnPreInputState.
+        // C ref: allmain.c:563-593 — once-per-player-input pre-input phase.
+        // For timed commands, syncTimedTurnPreInputState already ran see_monsters
+        // (flag _preInputRanThisStep). For non-timed commands, run it here.
+        // C ref: context.mv is set by movement commands (including 'm' prefix).
+        // C's pre-input checks !context.mv: when mv is true, pre-input is skipped.
+        // This matches C where 'm' prefix doesn't get its own moveloop_core.
+        if (!this._preInputRanThisStep) {
+            const _pi_ctx = this.context || {};
+            const _pi_canUpdate = !_pi_ctx.mv || this.u?.blind;
+            const _pi_hallu = !!(this.u?.Hallucination || this.u?.hallucinating);
+            if (this.map && _pi_canUpdate) {
+                if (_pi_hallu) {
+                    see_monsters(this.map);
+                    see_objects();
+                    see_traps();
+                } else if (this.u?.Blind_telepat || this.u?.warning || this.u?.warnOfMon) {
+                    see_monsters(this.map);
+                }
+            }
+        }
         const terminalScreenOwned = !!commandResult?.terminalScreenOwned || !!this._terminalScreenOwnedByInput;
         const suppressUntimedTailRender = !forceRender
             && !terminalScreenOwned

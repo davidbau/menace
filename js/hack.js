@@ -1590,6 +1590,8 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
     // C ref: cmd.c rhack() DOMOVE_RUSH first-entry handling resets
     // u.last_str_turn before ordinary run/rush processing begins.
     player.last_str_turn = 0;
+    // C ref: cmd.c:4219 — DOMOVE_RUSH always sets context.mv = TRUE
+    ctx.mv = true;
     ctx.run = runModeValue;
     game.running = true;
     while (steps < 80) { // safety limit

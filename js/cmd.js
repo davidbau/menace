@@ -160,7 +160,11 @@ export async function rhack(ch, game) {
         ch = queued.key;
     }
 
-    // C ref: cmd.c rhack() clears travel state before handling most commands.
+    // C ref: cmd.c reset_cmd_vars() clears movement/travel state.
+    // context.mv is set TRUE only for movement commands (DOMOVE_WALK with
+    // multi, DOMOVE_RUSH, and travel). Pre-input phase checks !context.mv
+    // to decide whether to run see_monsters/see_objects/see_traps.
+    context.mv = false;
     context.travel = 0;
     context.travel1 = 0;
 
@@ -239,6 +243,8 @@ export async function rhack(ch, game) {
             }
             return do_run(DIRECTION_KEYS[c], player, map, display, fov, game);
         }
+        // C ref: cmd.c:4207-4208 — DOMOVE_WALK sets context.mv when multi
+        if (game.multi) context.mv = true;
         return await domove(DIRECTION_KEYS[c], player, map, display, game);
     }
 
