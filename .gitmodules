@@ -10,3 +10,6 @@
 [submodule "rogue/rogue-c/upstream"]
 	path = rogue/rogue-c/upstream
 	url = https://github.com/RoguelikeRestorationProject/rogue3.6.git
+[submodule "adventure/adventure-c/original"]
+	path = adventure/adventure-c/original
+	url = https://github.com/Leprechaun817/open-adventure.git
