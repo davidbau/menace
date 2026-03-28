@@ -2735,8 +2735,13 @@ export class NetHackGame {
             if (map && typeof this.display?.renderMap === 'function') {
                 this.display.renderMap(map, player, this.fov, this.flags);
             }
-            if (player && typeof this.display?.renderStatus === 'function') {
+            // C ref: bot() only runs when disp.botl is set. The status line
+            // should NOT be unconditionally refreshed — during monster attack
+            // sequences, intermediate --More-- steps should show the HP from
+            // the last flush_screen bot() call, not the final post-attack HP.
+            if (player && player._botl && typeof this.display?.renderStatus === 'function') {
                 this.display.renderStatus(player);
+                player._botl = false;
             }
             if (player && typeof this.display?.cursorOnPlayer === 'function') {
                 this.display.cursorOnPlayer(player);
