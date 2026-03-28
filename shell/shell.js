@@ -163,6 +163,8 @@ export class Shell {
 
         // Enable blinking cursor
         if (typeof this.display.cursSet === 'function') this.display.cursSet(1);
+        // Preserve any lines added by runLoginProfile() (e.g., MOTD)
+        const profileLines = this.scrollBuffer.slice();
         this.scrollBuffer = [];
 
         if (options.gameoverLines) {
@@ -199,6 +201,8 @@ export class Shell {
             for (const row of options.loginLines) this.scrollBuffer.push(row);
             this._addLine(lastLoginLine(), OUTPUT_COLOR);
             this._addLine('', OUTPUT_COLOR);
+            // Append MOTD and other profile output
+            for (const row of profileLines) this.scrollBuffer.push(row);
         } else {
             this.display.clearScreen();
             // Show login banner (generated with current date/time)
