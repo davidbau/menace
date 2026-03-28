@@ -26,6 +26,14 @@ async function startGame() {
   const g = new GameState();
   g.display = display;
   g.input = input;
+  // Sync display cursor to game curx/cury before blocking for input.
+  // In C, the terminal cursor naturally follows output; in JS the Terminal
+  // cursor is separate and must be explicitly positioned.
+  input.beforeWait = () => {
+    if (g.curx != null && g.cury != null) {
+      display.moveCursor(g.curx, g.cury);
+    }
+  };
   setGame(g);
 
   // Wire up dependency injection to break circular imports

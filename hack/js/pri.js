@@ -329,8 +329,6 @@ export async function pline(line, ...args) {
   game.display.putString(formatted);
   game.savx = formatted.length + 1;
   game.curx = game.savx;
-  // Position cursor at end of message (C: cursor naturally follows putstr output)
-  curs(game.curx, 1);
   game.display.flush();
 }
 

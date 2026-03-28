@@ -76,10 +76,17 @@ export class Input {
     for (const ch of keys) this.inject(ch);
   }
 
+  // Hook called before waiting for input — sync display cursor to game state.
+  // Set by the game after construction: input.beforeWait = () => { ... }
+  beforeWait = null;
+
   // await getKey() — returns next key pressed, or throws Interrupted on ^C
   getKey() {
     if (this._interrupted) { this._interrupted = false; return Promise.reject(new Interrupted()); }
     if (this._queue.length > 0) return Promise.resolve(this._queue.shift());
+    // Sync display cursor before blocking for input (C: cursor is already
+    // at the right position because terminal output moves it naturally)
+    if (this.beforeWait) this.beforeWait();
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
