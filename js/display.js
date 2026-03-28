@@ -1737,8 +1737,20 @@ export function curs_on_u() {
 
 
 function docrtRecalc(ctx) {
-  if (!ctx?.map || !ctx?.player) return;
-  vision_recalc(ctx.fov || null, ctx.map, ctx.player);
+  if (!ctx?.map || !ctx?.player || !ctx?.fov) return;
+  // C ref: docrt_flags calls vision_recalc(0) AFTER show_glyph loop.
+  // vision_recalc detects visibility changes and calls newsym for each.
+  // To produce the same transitions, clear visible state first (matching
+  // C's vision_recalc(2) at the top of docrt_flags), then recompute.
+  const fov = ctx.fov;
+  if (fov.visible) {
+    for (let x = 0; x < COLNO; x++) {
+      for (let y = 0; y < ROWNO; y++) {
+        fov.visible[x][y] = 0;
+      }
+    }
+  }
+  vision_recalc(fov, ctx.map, ctx.player);
 }
 
 // Autotranslated from display.c:1704
@@ -1746,12 +1758,20 @@ export function docrt_flags(recalc = null, ctxOrMap = null) {
   const ctx = _resolveDisplayCtx(ctxOrMap);
   if (!ctx?.display || !ctx?.map) return;
   cosmic_display_push_owner('docrt_flags');
-  if (typeof recalc === 'function') recalc(ctx);
+  // C ref: docrt_flags does vision_recalc(2) (shut down vision), then
+  // show_glyph loop (display stored glyphs), then vision_recalc(0)
+  // (recompute + newsym for visibility changes).
+  // JS: newsym loop first (combines show_glyph + initial display),
+  // then vision_recalc (which calls newsym for visibility transitions).
   for (let x = 1; x < COLNO; x++) {
     for (let y = 0; y < ROWNO; y++) {
       newsym(x, y, ctx);
     }
   }
+  // C ref: vision_recalc(0) after show_glyph loop — recompute FOV and
+  // call newsym for cells where visibility changed. This is a second
+  // pass that consumes additional display RNG during hallucination.
+  if (typeof recalc === 'function') recalc(ctx);
   flush_screen(0);
   cosmic_display_pop_owner('docrt_flags');
 }
