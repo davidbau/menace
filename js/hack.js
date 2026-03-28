@@ -469,11 +469,14 @@ function hero_data(player) {
 }
 
 function could_move_onto_boulder(_sx, _sy, player) {
+    // C ref: hack.c could_move_onto_boulder()
     if (player?.passesWalls) return true;
     if (player?.usteed) return false;
     if (throws_rocks(hero_data(player) || {})) return true;
     if (player?.verysmall) return true;
-    return inv_weight(player) <= -850; // extremely light inventory
+    // C ref: squeezeablylightinvent() = !gi.invent || inv_weight() <= -850
+    if (!player?.inventory || player.inventory.length === 0) return true;
+    return inv_weight(player) <= -850;
 }
 
 // C ref: hack.c cannot_push_msg()
@@ -1083,8 +1086,16 @@ export async function domove_core(dir, player, map, display, game) {
     if (sobj_at(BOULDER, nx, ny, map) && (sokoban || !player?.passesWalls)) {
         const moved = await moverock(nx, ny, moveDir[0], moveDir[1], player, map, display, game);
         if (moved < 0) {
-            domoveNotime('moverock-refused');
-            return { moved: false, tookTime: false };
+            // C ref: hack.c — moverock < 0 means can't push. Check squeeze.
+            // cannot_push already showed "try to move... but in vain".
+            if (could_move_onto_boulder(nx, ny, player)) {
+                await display.putstr_message(
+                    "However, you can squeeze yourself into a small opening.");
+                // Fall through to normal movement — hero moves onto boulder's square
+            } else {
+                domoveNotime('moverock-refused');
+                return { moved: false, tookTime: false };
+            }
         }
     }
 
