@@ -4,6 +4,7 @@
 import { VirtualFS, USERNAME, HOMEDIR, loginBanner, loginHeader, lastLoginLine, initDefaultVfsFiles, initDefaultEtcFiles, checkPassword, getHostname } from './filesystem.js';
 import { getBuiltinCommands, getShellBuiltins } from './commands.js';
 import { ViEditor } from './vi.js';
+import { SpacewarGame } from './spacewar.js';
 import { Sh, ShAction, ExitSignal } from './sh/index.js';
 import {
     CLR_GREEN, CLR_GRAY, CLR_WHITE, CLR_CYAN, CLR_YELLOW,
@@ -70,9 +71,70 @@ export class Shell {
     }
 
     // Called by the sh interpreter when it encounters a game executable.
-    // Throws ShAction so it propagates back to _execute.
-    launch(gameName) {
+    // In-shell games (spacewar) run directly; others throw ShAction to navigate.
+    async launch(gameName) {
+        if (gameName === 'spacewar') {
+            await this._runInShellGame(gameName);
+            return;
+        }
         throw new ShAction({ action: gameName === 'dungeon' ? 'dungeon' : 'launch', game: gameName });
+    }
+
+    // Run a canvas-overlay game in-shell (spacewar, etc.)
+    async _runInShellGame(gameName) {
+        const display = this.display;
+        const container = display.getPreElement()?.parentElement;
+        if (!container) return;
+
+        // Create or reuse canvas behind the terminal <pre>
+        let canvas = container.querySelector('canvas.shell-game-canvas');
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.className = 'shell-game-canvas';
+            canvas.style.position = 'absolute';
+            canvas.style.zIndex = '0';
+            container.insertBefore(canvas, container.firstChild);
+        }
+
+        // Size canvas to match terminal <pre>
+        const pre = display.getPreElement();
+        function sizeCanvas() {
+            if (!pre) return;
+            const preRect = pre.getBoundingClientRect();
+            const contRect = container.getBoundingClientRect();
+            canvas.style.left = (preRect.left - contRect.left) + 'px';
+            canvas.style.top = (preRect.top - contRect.top) + 'px';
+            canvas.style.width = preRect.width + 'px';
+            canvas.style.height = preRect.height + 'px';
+            canvas.width = 1024;
+            canvas.height = Math.round(1024 * (preRect.height / preRect.width));
+        }
+        sizeCanvas();
+        const resizeHandler = () => requestAnimationFrame(sizeCanvas);
+        window.addEventListener('resize', resizeHandler);
+
+        // Transparent terminal background so canvas shows through
+        if (pre) pre.style.background = 'transparent';
+        canvas.style.display = 'block';
+
+        try {
+            if (gameName === 'spacewar') {
+                const game = new SpacewarGame(canvas, display);
+                await game.run();
+            }
+        } catch (e) {
+            console.error(`${gameName} crash:`, e);
+        }
+
+        // Cleanup
+        canvas.style.display = 'none';
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        if (pre) pre.style.background = '';
+        window.removeEventListener('resize', resizeHandler);
+
+        // Restore shell display
+        display.clearScreen();
+        this._renderScrollBuffer();
     }
 
     // Entry point: takes over the display, returns when shell exits.

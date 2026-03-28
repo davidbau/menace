@@ -68,7 +68,6 @@ function navigateToGame(game) {
     else if (game === 'rogue') window.location.href = '/rogue/';
     else if (game === 'basic') window.location.href = '/basic/';
     else if (game === 'logo')  window.location.href = '/logo/';
-    else if (game === 'spacewar') window.location.href = '/spacewar/';
 }
 
 window.addEventListener('DOMContentLoaded', async () => {

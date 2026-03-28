@@ -171,7 +171,6 @@ export function getBuiltinCommands() {
         rogue: launchGame('rogue'),
         basic: launchGame('basic'),
         logo: launchGame('logo'),
-        spacewar: launchGame('spacewar'),
         dungeon: launchDungeon,
         zork: launchZork,
         exit: doExit,
@@ -804,6 +803,7 @@ async function talk(args, shell) {
     shell._renderScrollBuffer();
 }
 
+// -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
 // mail(1) -- BSD-style mail reader / composer
 // -------------------------------------------------------------------------
