@@ -17902,3 +17902,21 @@ This is the root cause of the --More-- boundary mismatches in #392.
     - `rng_step_diff --step 638` becomes the next real seam
   - `seed032_manual_direct`: unchanged at `437`
   - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+
+### seed328 Medusa level divergence
+- Hero teleports to level 25 (Medusa). Level gen matches 5388/6014 entries (89.6%).
+- Divergence at medusa_fixup statue creation: JS's `get_rnd_toptenentry()` returns
+  a synthetic Valkyrie entry; C returns a real scoreboard entry with potentially
+  different role. Different statue monster types → different reroll loops → RNG drift.
+- This is a known limitation: JS uses `_assumeNonEmptyScoreboard` with a fixed
+  Valkyrie entry. C's actual scoreboard varies per recording environment.
+- Additional divergence: between steps 201-227, gremlin multiplication (434 RNG)
+  and monster-monster combat (passivemm) interactions cascade from the initial
+  level gen difference.
+
+### seed033 post-tutorial-dnum fix
+- Tutorial dnum fix (game.dnum = TUTORIAL) enables correct Tutorial:2 generation.
+- Events improved 1827→2010 (+183). Hero falls to correct tutorial level.
+- Remaining divergence at step 628: distfleeck brave flag differs (1 vs 0) for
+  monster 20 at same position. Caused by --More-- timing difference during boulder
+  squeeze sequence.
