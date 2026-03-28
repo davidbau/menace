@@ -411,7 +411,7 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         exitModal('menu');
     }
 
-    restoreOverlayMenu(display, currentLines, menuOffx);
+    await restoreOverlayMenu(display, currentLines, menuOffx);
 
     if (!allowCountPrefix) return selection;
     const parsedCount = countDigits.length > 0 ? parseInt(countDigits, 10) : null;
@@ -421,16 +421,23 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     };
 }
 
-function restoreOverlayMenu(display, lines, menuOffx) {
+async function restoreOverlayMenu(display, lines, menuOffx) {
     const last = display?._lastMapState;
-    if (last?.gameMap && typeof display.renderMap === 'function') {
-        // C tty parity: closing a menu restores map/status/message display.
-        display.renderMap(last.gameMap, last.player, last.fov, last.flags || display.flags || {});
-        if (typeof display.renderStatus === 'function') {
-            display.renderStatus(last.player);
-        }
-        if (typeof display.renderMessageWindow === 'function') {
-            display.renderMessageWindow();
+    if (last?.gameMap) {
+        // C ref: wintty.c erase_menu_or_text — fullscreen overlays (offx==0,
+        // JS menuOffx<=1) call docrt() to restore the full screen including
+        // newsym loop. Corner overlays call docorner/row_refresh.
+        const fullScreen = (menuOffx <= 1) || lines.length >= (display.rows || 24);
+        if (fullScreen) {
+            await docrt();
+        } else if (typeof display.renderMap === 'function') {
+            display.renderMap(last.gameMap, last.player, last.fov, last.flags || display.flags || {});
+            if (typeof display.renderStatus === 'function') {
+                display.renderStatus(last.player);
+            }
+            if (typeof display.renderMessageWindow === 'function') {
+                display.renderMessageWindow();
+            }
         }
         return;
     }
@@ -564,7 +571,7 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
             }
         }
         if (ch === 27 || ch === 'q'.charCodeAt(0)) {
-            restoreOverlayMenu(display, currentLines, menuOffx);
+            await restoreOverlayMenu(display, currentLines, menuOffx);
             return null;
         }
         if (ch === 13 || ch === 10 || ch === 32) {
@@ -573,7 +580,7 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
                 const invlet = lineInvlet(line);
                 if (invlet && selected.has(invlet)) ordered.push(invlet);
             }
-            restoreOverlayMenu(display, currentLines, menuOffx);
+            await restoreOverlayMenu(display, currentLines, menuOffx);
             return ordered;
         }
         if (ch === '.'.charCodeAt(0)) {
@@ -1020,6 +1027,12 @@ export async function handleInventory(player, display, game) {
         continue;
     }
     clearTopline();
+    // C ref: wintty.c erase_menu_or_text — fullscreen inventory dismiss
+    // calls docrt() to restore the map. During hallucination, docrt's
+    // newsym loop consumes display RNG for hallucinated cells.
+    if (fullScreenInventory) {
+        await docrt();
+    }
 
     return { moved: false, tookTime: false };
     } finally {

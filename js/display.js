@@ -1791,10 +1791,13 @@ export async function docrt() {
   // C ref: docrt_flags() newsym grid rebuild
   docrt_flags(docrtRecalc);
 
-  // C ref: vision_recalc(0) → see_monsters → bot/curs_on_u
-  // FOV + renderMap + renderStatus + cursor (was game.docrt's job)
+  // C ref: docrt_flags calls vision_recalc(0) then see_monsters().
+  // NOT see_objects or see_traps — only see_monsters is part of docrt.
   if (player && fov && typeof fov.compute === 'function') {
     fov.compute(map, player.x, player.y, do_light_sources, player);
+  }
+  if (map) {
+    see_monsters(map);
   }
   if (typeof display.renderMap === 'function') {
     display.renderMap(map, player, fov, flags);
