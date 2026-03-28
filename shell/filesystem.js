@@ -466,6 +466,7 @@ function buildTree() {
                             hack:    { type: 'exec', game: 'hack',    owner: 'root', group: 'games', date: 'Dec  8  1984', size: 155648, perms: '-rwxr-sr-x' },
                             nethack: { type: 'exec', game: 'nethack', owner: 'root', group: 'games', date: 'Mar  1  2026', size: 2097152, perms: '-rwxr-sr-x' },
                             logo:    { type: 'exec', game: 'logo',    owner: 'root', group: 'games', date: 'Sep  1  1982', size: 32768,  perms: '-rwxr-sr-x' },
+                            spacewar: { type: 'exec', game: 'spacewar', owner: 'root', group: 'games', date: 'Apr  1  1962', size: 9216,  perms: '-rwxr-sr-x' },
                             basic:   { type: 'exec', game: 'basic',   owner: 'root', group: 'games', date: 'Jan  1  1978', size: 40960,  perms: '-rwxr-sr-x' },
                             lib: {
                                 type: 'dir', children: {

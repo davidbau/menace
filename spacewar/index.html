@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spacewar! (1962) -- Mazes of Menace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="preload" href="../assets/fonts/DejaVuSansMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/fonts/dejavu-sans-mono.css">
+  <style>
+    :root {
+      --color-bg: #111;
+      --color-text: #ccc;
+      --color-accent: #6b2c2c;
+      --font-mono: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace;
+      --font-serif: 'EB Garamond', Georgia, serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      color: var(--color-text);
+      font-family: var(--font-serif);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    #spacewar-container {
+      position: relative;
+      display: inline-block;
+      background: #000;
+      border: 2px solid #222;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(100, 200, 100, 0.05),
+                  inset 0 0 80px rgba(0, 0, 0, 0.8);
+    }
+
+    #spacewar-canvas {
+      display: block;
+      border-radius: 50%;
+    }
+
+    /* PDP-1 scope phosphor glow effect */
+    #spacewar-container::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      box-shadow: inset 0 0 60px rgba(0, 50, 0, 0.15),
+                  inset 0 0 120px rgba(0, 0, 0, 0.5);
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+    }
+
+    #controls button {
+      background: #222;
+      border: 1px solid #444;
+      color: #888;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    #controls button:hover {
+      background: #333;
+      color: #ccc;
+    }
+
+    #title-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    #title-overlay h1 {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      color: #00ff88;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+      letter-spacing: 4px;
+      margin-bottom: 12px;
+    }
+
+    #title-overlay .subtitle {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    #title-overlay .prompt {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: #888;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="page">
+    <div id="spacewar-container">
+      <canvas id="spacewar-canvas"></canvas>
+      <div id="title-overlay">
+        <h1>SPACEWAR!</h1>
+        <div class="subtitle">MIT 1962 &mdash; Russell, Graetz, Wiitanen</div>
+        <div class="subtitle">Expensive Planetarium by Samson</div>
+        <div class="prompt">PRESS SPACE TO START</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button id="btn-shell" title="Return to shell">&#x23CE; Shell</button>
+  </div>
+
+  <script type="module">
+    import { SpacewarGame } from './js/spacewar.js';
+
+    const canvas = document.getElementById('spacewar-canvas');
+    const container = document.getElementById('spacewar-container');
+    const titleOverlay = document.getElementById('title-overlay');
+
+    // Size canvas to fit viewport as a circle (PDP-1 round scope)
+    function sizeCanvas() {
+      const maxDim = Math.min(window.innerWidth, window.innerHeight) - 40;
+      const size = Math.max(400, Math.min(900, maxDim));
+      canvas.width = size;
+      canvas.height = size;
+      container.style.width = size + 'px';
+      container.style.height = size + 'px';
+    }
+    sizeCanvas();
+    window.addEventListener('resize', sizeCanvas);
+
+    // Draw initial star field on title screen
+    const game = new SpacewarGame(canvas);
+    game.render();
+
+    // Wait for space to start
+    async function waitForStart() {
+      return new Promise(resolve => {
+        function onKey(e) {
+          if (e.code === 'Space') {
+            document.removeEventListener('keydown', onKey);
+            resolve();
+          }
+        }
+        document.addEventListener('keydown', onKey);
+      });
+    }
+
+    async function main() {
+      while (true) {
+        // Title screen
+        titleOverlay.classList.remove('hidden');
+        sizeCanvas();
+        const titleGame = new SpacewarGame(canvas);
+        titleGame.render();
+        await waitForStart();
+        titleOverlay.classList.add('hidden');
+
+        // Play
+        sizeCanvas();
+        const g = new SpacewarGame(canvas);
+        await g.run();
+
+        // If ESC was pressed, return to shell
+        break;
+      }
+
+      // Return to shell
+      try {
+        const ctx = { app: 'spacewar' };
+        localStorage.setItem('menace-shell-context', JSON.stringify(ctx));
+      } catch (e) {}
+      window.location.href = '/shell/';
+    }
+
+    // Shell button
+    document.getElementById('btn-shell').addEventListener('click', () => {
+      try {
+        localStorage.setItem('menace-shell-context', JSON.stringify({ app: 'spacewar' }));
+      } catch (e) {}
+      window.location.href = '/shell/';
+    });
+
+    main();
+  </script>
+</body>
+</html>
