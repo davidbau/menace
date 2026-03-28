@@ -371,13 +371,28 @@ class RemoteEngine {
         return events;
     }
 
-    // Substitute {word} with a recent user word, if any (Feature 3 echo)
+    // Expand templates: {word} → recent user word, (a|b|c) → random choice.
+    // Supports nesting: (a|b (c|d)) → "a" or "b c" or "b d".
     _resolveTemplate(text) {
-        if (!text.includes('{word}')) return text;
-        const words = [...this._userWords];
-        if (words.length === 0) return text.replace(/\{word\}/g, '');
-        const w = words[Math.floor(Math.random() * words.length)];
-        return text.replace(/\{word\}/g, w);
+        // First expand (a|b|c) groups (innermost first for nesting)
+        let result = text;
+        let safety = 20;
+        while (result.includes('(') && --safety > 0) {
+            result = result.replace(/\(([^()]+)\)/g, (_, inner) => {
+                const opts = inner.split('|');
+                return opts[Math.floor(Math.random() * opts.length)];
+            });
+        }
+        // Then expand {word}
+        if (result.includes('{word}')) {
+            const words = [...this._userWords];
+            if (words.length === 0) result = result.replace(/\{word\}/g, '');
+            else {
+                const w = words[Math.floor(Math.random() * words.length)];
+                result = result.replace(/\{word\}/g, w);
+            }
+        }
+        return result;
     }
 
     _startTyping(text) {

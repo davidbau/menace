@@ -6094,9 +6094,9 @@ export const TALK_CORPUS = {
       {
         re: /\b(thanks|thank\s+you|thx|ty|thnx|thks|cheers)\b/i,
         responses: [
-          'yeah no problem',
-          'sure',
-          'ok good luck with it',
+          '(yeah|yep) (no problem|no worries|anytime)',
+          '(sure|sure thing) rodney',
+          'ok (good luck with it|let me know how it goes)',
         ],
       },
       {
@@ -6249,23 +6249,23 @@ export const TALK_CORPUS = {
       {
         re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
         responses: [
-          'ok\nso what is the actual question',
-          'right\nso what are you working on',
-          'cool\nwhat do you need',
+          '(ok|right)\nso what is (the actual question|on your mind)',
+          '(right|ok)\nso what are you (working on|up to)',
+          '(cool|ok)\nwhat do you (need|want to know)',
         ],
       },
       {
         re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
         responses: [
-          'ok\nwhat then',
-          'alright\nwhat are you actually asking',
-          'fine\nso what is going on',
+          '(ok|alright)\nwhat (then|else)',
+          '(alright|fair enough)\nwhat are you (actually asking|getting at)',
+          '(fine|ok)\nso what is (going on|up)',
         ],
       },
       {
         re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
         responses: [
-          'ok well what do you know\nstart from there and we can figure out the rest',
+          'ok well what do you know\nstart from there and we can (figure out the rest|work backwards)',
           'not knowing is fine\ntell me what you observed and we can work backwards',
           'fair\nbut what is your best guess and why',
         ],
@@ -6312,14 +6312,14 @@ export const TALK_CORPUS = {
       },
     ],
     fallbacks: [
-      'yeah',
-      'hm\nidk\ntry it and see what happens',
-      'not really my area\nbut probably someone in the club knows',
-      'why are you asking me specifically',
-      'look at the source if youre curious\nits documented\nkind of',
-      '{word}?\nyeah thats a real thing\ni ran into that too actually',
-      'hm\n{word}\nlet me think about where that comes up in the code',
-      'what exactly do you mean by {word}\nthere are like three different things that could mean',
+      '(yeah|yep|sure)',
+      '(hm|hmm)\n(idk|not sure)\n(try it and see what happens|just test it)',
+      '(not really my area|thats not something i know much about)\nbut (probably someone in the club knows|ask brouwer maybe)',
+      '(why are you asking me specifically|what made you think of that)',
+      '(look at the source|read the code) if youre curious\nits (documented|pretty readable)\n(kind of|mostly)',
+      '{word}?\n(yeah|yep) thats (a real thing|interesting)\ni (ran into|hit) that too (actually|last week)',
+      '(hm|hmm)\n{word}\nlet me think about where that (comes up|shows up) in the code',
+      'what (exactly|specifically) do you mean by {word}\nthere are like (three|a few) different things that could mean',
     ],
     spontaneous: [
       'hey are you playing hack right now\ncurious how deep people are getting',
