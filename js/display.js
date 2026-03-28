@@ -2075,6 +2075,11 @@ export function newsym(x, y, ctxOrMap = null) {
         // selection still consumes display RNG.
         map_location(x, y, 0, ctx);
         const heroGlyph = playerMapGlyph(player);
+        // Cache the hero cell so renderMap doesn't re-newsym it.
+        // map_location(show=0) above consumed display RNG for hallucinated
+        // objects but doesn't cache via putMapCell. Without this cache,
+        // renderMap would call newsym again, doubling the display RNG.
+        cacheMapCell(loc, map, heroGlyph.ch, heroGlyph.color);
         display.setCell(col, row, heroGlyph.ch, heroGlyph.color);
         cosmic_display_clear_newsym_branch();
         cosmic_display_clear_maploc_branch();

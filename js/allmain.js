@@ -1071,7 +1071,9 @@ async function syncTimedTurnPreInputState(game) {
     const hallucinating = !!(player?.Hallucination || player?.hallucinating);
     if (canUpdateVision) {
         if (hallucinating) {
-            // Hallu see_monsters/see_objects/see_traps moved to renderAndAutosave.
+            see_monsters(game.map);
+            see_objects();
+            see_traps();
             if (player?.uswallow) {
                 await swallowed(0);
             }
@@ -1155,13 +1157,16 @@ async function postRender(game, result) { // async-ok: called via await; may nee
     // curs_on_u() runs before waiting for the next key.
     const player = game.u || game.u;
     // C ref: allmain.c:564-582 — pre-input see_monsters/see_objects/see_traps
-    // runs for EVERY command during hallucination, regardless of screen
-    // ownership or --More-- state. Must fire before any early returns.
+    // runs for EVERY command during hallucination. For timed commands,
+    // syncTimedTurnPreInputState already called these (before display_sync
+    // renderMap, so the hero cell is cached). For non-timed commands, call
+    // them here. Must fire before any early returns.
     {
         const _mapReady = !!(game?.lev || game?.map);
         const _ctx = game.context || {};
         const _hallu = !!(player?.Hallucination || player?.hallucinating);
-        if (_mapReady && player && (!_ctx.mv || player?.blind) && _hallu) {
+        const _timedTurnRan = !!result?.tookTime;
+        if (_mapReady && player && (!_ctx.mv || player?.blind) && _hallu && !_timedTurnRan) {
             see_monsters(game.map);
             see_objects();
             see_traps();
