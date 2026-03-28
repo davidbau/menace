@@ -168,19 +168,9 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
             comparableActual[row] = '';
             comparableExpected[row] = '';
             hasPopupOverlay = true;
-        } else if (row >= 22 && isStatusLineHpOnlyDiff(comparableActual[row], comparableExpected[row])) {
-            // C bot() timing: status line HP may be stale during --More--
-            comparableActual[row] = '';
-            comparableExpected[row] = '';
-        } else if (row >= 22 && isStatusLineAcOnlyDiff(comparableActual[row], comparableExpected[row])) {
-            // C bot() timing: AC may be stale at startup
-            comparableActual[row] = '';
-            comparableExpected[row] = '';
-        } else if (row >= 22 && isStatusLineEncumbranceOnlyDiff(comparableActual[row], comparableExpected[row])) {
-            // C bot() timing: encumbrance level may lag by one step
-            comparableActual[row] = '';
-            comparableExpected[row] = '';
         }
+        // Status line masks removed (#397): _botl audit + _botDisabled
+        // during level transitions match C's bot() discipline.
     }
     // C popup windows don't obscure status bars (rows 22-23); JS pager clears
     // the full screen.  When popup centering was detected, mask status bars too.
@@ -316,16 +306,8 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, session, { st
             actualAnsi[row] = '';
             expectedMasked[row] = '';
             hasPopupOverlayColor = true;
-        } else if (row >= 22 && isStatusLineHpOnlyDiff(actualPlain[row], expectedPlain[row])) {
-            actualAnsi[row] = '';
-            expectedMasked[row] = '';
-        } else if (row >= 22 && isStatusLineAcOnlyDiff(actualPlain[row], expectedPlain[row])) {
-            actualAnsi[row] = '';
-            expectedMasked[row] = '';
-        } else if (row >= 22 && isStatusLineEncumbranceOnlyDiff(actualPlain[row], expectedPlain[row])) {
-            actualAnsi[row] = '';
-            expectedMasked[row] = '';
         }
+        // Status line masks removed (#397).
     }
     if (hasPopupOverlayColor) {
         for (let row = 22; row < Math.min(24, actualAnsi.length, expectedMasked.length); row++) {
