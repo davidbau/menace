@@ -2212,14 +2212,41 @@ async function domagictrap(player, game, map) {
 }
 
 // C ref: trap.c:603 fall_through() — player falls through hole/trapdoor
-// inverted: FALSE for hole, TRUE for trapdoor (you fall up?)
-// C: complex level migration; stub outputs message and notes TODO
-async function fall_through(inverted, plunged, player, game, map) {
-    seetrap(t_at(player.x, player.y, map) || {});
-    await You('%s through the %s.',
-              inverted ? 'fall' : (plunged ? 'plunge' : 'fall'),
-              inverted ? 'trap door' : 'hole');
-    // TODO: full level migration (newlevel, etc.) not yet ported
+async function fall_through(td, plunged, player, game, map) {
+    const trap = t_at(player.x, player.y, map);
+    if (trap) feeltrap(trap);
+
+    // C ref: trap.c:621-625 — trap door / hole message
+    if (td) {
+        if (trap?.ttyp === TRAPDOOR) {
+            await pline('A trap door opens up under you!');
+        } else {
+            await pline("There's a gaping hole under you!");
+        }
+    }
+
+    // C ref: trap.c:628-650 — check if hero actually falls
+    // Simplified: skip levitation/flying/clinging/pet checks for now
+    // (most tutorial/wizard sessions don't have these conditions)
+
+    // C ref: trap.c:671-688 — determine destination level
+    let destDlevel;
+    let destDnum;
+    if (trap?.dst) {
+        // Trap has an explicit destination (set by special level scripts)
+        destDnum = trap.dst.dnum ?? (player.uz?.dnum ?? 0);
+        destDlevel = trap.dst.dlevel ?? ((player.uz?.dlevel ?? 1) + 1);
+    } else {
+        // Default: one level deeper in the same branch
+        destDnum = player.uz?.dnum ?? 0;
+        destDlevel = (player.uz?.dlevel ?? 1) + 1;
+    }
+
+    // C ref: trap.c:694 — schedule_goto(&dtmp, ...)
+    // In JS, directly call changeLevel.
+    if (game && typeof game.changeLevel === 'function') {
+        await game.changeLevel(destDlevel, 'down', { targetDnum: destDnum });
+    }
 }
 
 // ========================================================================
@@ -2560,7 +2587,9 @@ async function trapeffect_hole_you(trap, trflags, player, game, map) {
         seetrap(trap);
         return Trap_Effect_Finished;
     }
-    await fall_through(false, (trflags & TOOKPLUNGE) !== 0, player, game, map);
+    // C ref: trap.c — td = TRUE for TRAPDOOR/HOLE traps
+    const td = (trap?.ttyp === TRAPDOOR || trap?.ttyp === HOLE);
+    await fall_through(td, (trflags & TOOKPLUNGE) !== 0, player, game, map);
     return Trap_Effect_Finished;
 }
 
