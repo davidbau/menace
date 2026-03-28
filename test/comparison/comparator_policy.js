@@ -32,8 +32,11 @@ function stepAnsiLines(step) {
 function resolveGameplayComparableLines(plainLines, ansiLines, session) {
     const ansi = Array.isArray(ansiLines) ? ansiLines : [];
     const decgraphics = (session?.meta?.options?.symset ?? session?.options?.symset) === 'DECgraphics';
+    // C's tmux capture-pane right-trims each line (terminal cells beyond the
+    // last written character are not captured). JS renders full-width rows.
+    // trimEnd both sides to compare only meaningful content.
     if (ansi.length > 0) {
-        return ansi.map((line) => ansiCellsToPlainLine(line));
+        return ansi.map((line) => ansiCellsToPlainLine(line).trimEnd());
     }
     // No ANSI cell data available — strip any embedded ANSI escape sequences
     // from plain lines so JS output with embedded escapes compares correctly
@@ -41,11 +44,12 @@ function resolveGameplayComparableLines(plainLines, ansiLines, session) {
     const plain = (Array.isArray(plainLines) ? plainLines : [])
         .map((line) => stripAnsiSequences(line));
     if (!decgraphics) {
-        return plain.map(decodeSOSILine);
+        return plain.map(decodeSOSILine).map((line) => line.trimEnd());
     }
     return plain
         .map((line) => String(line || '').replace(/\r$/, '').replace(/[\x0e\x0f]/g, ''))
-        .map((line) => [...line].map((ch) => decodeDecSpecialChar(ch)).join(''));
+        .map((line) => [...line].map((ch) => decodeDecSpecialChar(ch)).join(''))
+        .map((line) => line.trimEnd());
 }
 
 function compareGameplayScreens(actualLines, expectedLines, session, {
