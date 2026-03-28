@@ -212,9 +212,12 @@ class RemoteEngine {
     }
 
     // Track non-trivial words the user has used (Feature 3)
+    // Excludes the character's own names to avoid weird self-echo like "is walz a system issue"
     _trackUserWords(text) {
+        const nameWords = new Set(this._names.flatMap(n => n.toLowerCase().split(/\s+/)));
+        nameWords.add('rodney'); // also exclude the user's own name
         for (const w of text.toLowerCase().split(/\W+/)) {
-            if (w.length > 2 && !STOP_WORDS.has(w)) this._userWords.add(w);
+            if (w.length > 2 && !STOP_WORDS.has(w) && !nameWords.has(w)) this._userWords.add(w);
         }
     }
 

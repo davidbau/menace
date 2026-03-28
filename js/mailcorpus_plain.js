@@ -7438,25 +7438,34 @@ export const TALK_CORPUS = {
       {
         re: /\bwho\s+(are\s+)?(you|u)\b|\bwho\s+is\s+this\b|\byour\s+name\b|\btell\s+me\s+about\s+(yourself|you)\b|\b(forgot|forget|remind)\s+(me\s+)?(who|your\s+name)\b|\babout\s+yourself\b/i,
         responses: [
-          'rodney it is josh sirota\nwe have been (debugging|talking about) network protocols together\n(you really forgot|come on)',
-          'sirota. josh.\nthe one who keeps (finding failure modes|pointing out race conditions) in your code\n(ring a bell|remember now)',
-          'it is josh\nrodney we literally discussed (packet routing|the routing problem) last week\nare you (serious|ok)',
+          'rodney (come on|seriously) it is josh\njosh sirota\nwe are in the same (computer club|class) at lincoln-sudbury\ni am the one who keeps asking about (distributed systems|networking|how the arpanet works)',
+          '(sirota|josh sirota)\nrodney we have been working on the (pdp|system) together all semester\ni am the one who (found the race condition in the file locking|keeps talking about routing protocols)\n(you seriously forgot|how do you not know this)',
+          'it is josh\nrodney you and i (were just talking|talked) about (how to get hack distributed to other schools|the modem transfer problem) (like two days ago|this week)\n(are you ok|what is wrong with you)',
+        ],
+      },
+      {
+        re: /\b(hello|hi|hey|greetings|howdy|yo|sup|wassup)\b/i,
+        topic: 'greeting',
+        responses: [
+          '(hey|hi) rodney\nhow is (the hack stuff going|your dungeon thing going)',
+          'rodney (hey|hi)\ni was (just thinking about you actually|going to talk to you)\ni have a question about (the pdp|something)',
+          '(hey|yo) rodney\n(what is up|how is it going)',
         ],
       },
       {
         re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
         responses: [
-          '(good|not bad)\nstill thinking about the routing problem\nit is the unsolved one in networking and nobody is talking about it (enough|seriously)',
-          '(fine|ok)\ntired of slow modem transfers\nbut (what can you do|it is what it is)',
-          '(ok|good)\nyou',
+          '(good|not bad) rodney\nbeen (thinking about|working on) the routing problem\n(it is the unsolved one in networking and nobody is talking about it|the more i think about it the more interesting it gets)',
+          '(fine|ok)\ntired of slow modem transfers\n(me and fraize|fraize and i) have been trying to get a clean 1200 baud connection (all week|for days)\nbut (what can you do|the phone lines are garbage)',
+          '(ok|good)\nhey have you tried playing hack over the modem yet\ni am curious if the latency is playable',
         ],
       },
       {
         re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
         responses: [
-          'thinking about routing protocols\nright now packets get passed around the arpanet kind of by hand\nnodes forward to adjacent nodes that seem to know the destination\nbut that does not scale\nyou need something more systematic',
-          'been trying to get a clean modem transfer working at 1200 baud\nline quality is the problem\nfraize has a checksum protocol that helps but it is slow',
-          'topology research mostly\ntrying to understand how the arpanet grows over time and whether the current routing approach survives',
+          'thinking about how to get hack to other schools\nright now the only way is sneakernet which means someone has to physically carry a tape\nbut if we could get a clean modem transfer working we could send it to (stanford|anywhere with a modem)\nfraize is working on the checksum part',
+          'been trying to get a clean modem transfer working at 1200 baud\nthe line quality is terrible\n(fraize has a checksum protocol that helps but it is slow|every third transfer corrupts)\nrodney you should come look at the error patterns, they are (interesting|kind of beautiful actually)',
+          'working on my systems notes\ni keep a file of (distributed systems questions|things i think about on the walk home)\nlike what happens when two processes on different machines modify the same file\nunix does not know\nnobody knows',
         ],
       },
       {
@@ -7619,6 +7628,9 @@ export const TALK_CORPUS = {
     spontaneous: [
       'been thinking about the routing problem (again|some more)',
       'the three open questions are still open. (obviously|unsurprisingly).',
+      'rodney i had an idea\nwhat if we could distribute hack to other schools over the modem\nnot the whole game, just the diffs\nlike you send a base version on tape and then patches go over the wire\nfraize is working on the checksum part\nif the transfer is reliable enough we could update remote copies without sneakernet\nthat changes everything for how software spreads',
+      'hey rodney so i was looking at the pdp scheduler today\nand i realized something about how hack runs\nwhen a monster is pathfinding it computes the whole path before yielding\nwhich means on a busy system with multiple users hack freezes everyone\nnot just the person playing\neveryone on the pdp\n(jay|fenlason) probably does not know this because he tests when nobody else is logged in',
+      'rodney i have been writing up my systems notes\nquestions i think about on the walk home\nlike: if two processes on different machines both modify the same shared file what happens\nor: what is the minimum information a network node needs to route a packet correctly\nor: how do you detect that a distributed system is in an inconsistent state\nnobody has good answers to these yet\nbut i think they are the right questions',
     ],
   },
 
