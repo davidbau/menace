@@ -533,14 +533,16 @@ export class Display extends Terminal {
                 const loc = gameMap.at?.(x, y);
                 const cached = getCachedMapCell(loc, gameMap);
                 // C ref: hero cell always needs newsym to render '@' glyph.
-                // During hallucination, prefer cached data (set by see_monsters)
-                // to avoid re-consuming display RNG. Only fall through to newsym
-                // when cache is empty (first render) or not hallucinating.
+                // Non-hero cells use cached data when available; during
+                // hallucination, skip newsym fallback for non-hero cells to
+                // avoid consuming display RNG (C uses see_monsters/see_objects
+                // cache only). Hero cell always gets newsym regardless of
+                // hallucination state — newsym for the hero position doesn't
+                // consume display RNG (hero glyph is deterministic).
                 const isHeroCell = player && x === player.x && y === player.y && !player.usteed;
-                const hallu = !!(player?.Hallucination || player?.hallucinating);
-                if (cached && !(isHeroCell && !hallu)) {
+                if (cached && !isHeroCell) {
                     this.setCell(x - 1, row, cached.ch, cached.color, cached.attr || 0);
-                } else if (isHeroCell || !hallu) {
+                } else if (isHeroCell || (!player?.Hallucination && !player?.hallucinating)) {
                     newsym(x, y, renderCtx);
                 }
             }
