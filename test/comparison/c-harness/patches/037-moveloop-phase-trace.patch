@@ -1,0 +1,113 @@
+diff --git a/src/allmain.c b/src/allmain.c
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -274,6 +274,10 @@
+ moveloop_core(void)
+ {
+     boolean monscanmove = FALSE;
++    event_log("mlc[phase=entry move=%d mv=%d multi=%ld moves=%ld hallu=%d blind=%d]",
++              svc.context.move, svc.context.mv, gm.multi, svm.moves,
++              (int) !!Hallucination, (int) !!Blind);
++
+
+ #ifdef SAFERHANGUP
+     if (program_state.done_hup)
+@@ -300,6 +304,7 @@
+     if (svc.context.move) {
+         /* actual time passed */
+         u.umovement -= NORMAL_SPEED;
++        event_log("mlc[phase=timed_start umovement=%d]", u.umovement);
+
+         do { /* hero can't move this turn loop */
+             encumber_msg();
+@@ -320,6 +325,7 @@
+             if (!monscanmove && u.umovement < NORMAL_SPEED) {
+                 /* both hero and monsters are out of steam this round */
+                 struct monst *mtmp;
++                event_log("mlc[phase=turnend moves=%ld]", svm.moves);
+
+                 /* set up for a new turn */
+                 gw.were_changes = 0L;
+@@ -499,6 +505,8 @@
+             }
+         } while (u.umovement < NORMAL_SPEED); /* hero can't move */
+
++        event_log("mlc[phase=post_timed moves=%ld hero_seq=%ld]", svm.moves, gh.hero_seq);
++
+         /******************************************/
+         /* once-per-hero-took-time things go here */
+         /******************************************/
+@@ -549,6 +557,9 @@
+     } /* actual time passed */
+
+     /****************************************/
++    event_log("mlc[phase=pre_input move=%d mv=%d multi=%ld hallu=%d blind=%d]",
++              svc.context.move, svc.context.mv, gm.multi,
++              (int) !!Hallucination, (int) !!Blind);
+     /* once-per-player-input things go here */
+     /****************************************/
+
+@@ -563,10 +574,14 @@
+     find_ac();
+     if (!svc.context.mv || Blind) {
+         /* redo monsters if hallu or wearing a helm of telepathy */
+-        if (Hallucination) { /* update screen randomly */
++        if (Hallucination) {
++            event_log("mlc[phase=pre_input_hallu_see]");
+             see_monsters();
+             see_objects();
+             see_traps();
++        } else if (Unblind_telepat || Warning || Warn_of_mon
++                   || any_visible_region()) {
++            event_log("mlc[phase=pre_input_telepathy_see]");
+             if (u.uswallow)
+                 swallowed(0);
+         } else if (Unblind_telepat || Warning || Warn_of_mon
+@@ -580,8 +595,10 @@
+     if (disp.botl || disp.botlx) {
+         bot();
+         curs_on_u();
++        event_log("mlc[phase=bot]");
+     } else if (disp.time_botl) {
+         timebot();
++        event_log("mlc[phase=timebot]");
+         curs_on_u();
+     }
+
+@@ -593,24 +610,30 @@
+     svc.context.move = 1;
+
+     if (gm.multi >= 0 && go.occupation) {
++        event_log("mlc[phase=occupation]");
+         /* ... occupation handling ... */
+         return;
+     }
+
+     u.umoved = FALSE;
+
+     if (gm.multi > 0) {
++        event_log("mlc[phase=multi_positive mv=%d multi=%ld]",
++                  svc.context.mv, gm.multi);
+         RUNSTEP_EVENT(svc.context.mv ? "repeat_mv" : "repeat_cmd", gc.cmd_key);
+         lookaround();
+         runmode_delay_output();
+@@ -639,12 +662,16 @@
+             if (svc.context.mv) {
+                 domove();
+             }
+         }
+     } else if (gm.multi == 0) {
++        event_log("mlc[phase=fresh_cmd]");
+         rhack(0);
+     }
+     if (u.utotype)
+         deferred_goto();
+
+-    if (gv.vision_full_recalc)
++    if (gv.vision_full_recalc) {
++        event_log("mlc[phase=post_cmd_vision_recalc]");
+         vision_recalc(0);
++    }
++    event_log("mlc[phase=exit move=%d mv=%d multi=%ld]",
++              svc.context.move, svc.context.mv, gm.multi);
+ }

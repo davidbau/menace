@@ -175,6 +175,8 @@ async function com_pager_quest_common(msgid, player) {
 export async function moveloop_core(game, opts = {}) {
     assertNotInModal('moveloop_core');
     const player = (game.u || game.u);
+    const _ctx = game.context || {};
+    pushRngLogEntry(`^mlc[phase=entry move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${game.multi||0} moves=${game.turnCount||0} hallu=${player?.Hallucination?1:0} blind=${player?.blind?1:0}]`);
     const setMonsterPhase = (isMonsterPhase) => {
         const v = !!isMonsterPhase;
         game.mon_moving = v;
@@ -192,6 +194,7 @@ export async function moveloop_core(game, opts = {}) {
     }
     // C ref: allmain.c:197 — actual time passed.
     player.umovement -= NORMAL_SPEED;
+    pushRngLogEntry(`^mlc[phase=timed_start umovement=${player.umovement}]`);
 
     let abortMoveLoop = false;
     let stopAfterTurnend = false;
@@ -246,6 +249,7 @@ export async function moveloop_core(game, opts = {}) {
             && player.umovement < NORMAL_SPEED
             && !abortMoveLoop
             && !(game?.playerDied)) {
+            pushRngLogEntry(`^mlc[phase=turnend moves=${game.turnCount||0}]`);
             await moveloop_turnend(game);
         }
     } while (player.umovement < NORMAL_SPEED
@@ -253,6 +257,7 @@ export async function moveloop_core(game, opts = {}) {
         && !stopAfterTurnend
         && !(game?.playerDied));
 
+    pushRngLogEntry(`^mlc[phase=post_timed moves=${game.turnCount||0}]`);
     // C ref: allmain.c:397-402 — second encumber_msg() after the hero-can't-move
     // loop.  Inventory weight may have changed during nh_timeout() or other
     // turn-end processing; this gives the player immediate feedback.
@@ -1062,6 +1067,8 @@ async function promptStep(game, chCode, {
 async function syncTimedTurnPreInputState(game) {
     const player = game.u || game.u;
     find_ac(player);
+    const _hallu = !!(player?.Hallucination || player?.hallucinating);
+    pushRngLogEntry(`^mlc[phase=pre_input move=${game.context?.move||0} mv=${game.context?.mv||0} multi=${game.multi||0} hallu=${_hallu?1:0} blind=${player?.blind?1:0}]`);
     // C ref: allmain.c:564-582 — the see_monsters/see_objects/see_traps
     // hallucination refresh is now in renderAndAutosave (single call site
     // matching C's single pre-input block). Non-hallucination see_monsters
@@ -2583,6 +2590,7 @@ export class NetHackGame {
                 await this.renderAndAutosave({ commandResult, autosave: true });
                 continue;
             }
+            pushRngLogEntry(`^mlc[phase=fresh_cmd]`);
             const firstCh = await nhgetch();
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
