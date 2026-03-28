@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "commit": "ca2e1fda2",
+  "parent": "6c692ab",
+  "date": "2026-03-28T11:07:55-04:00",
+  "author": "David Bau",
+  "message": "parity: use live map for scroll punishment",
+  "stats": {
+    "total": 0,
+    "pass": 0,
+    "fail": 0,
+    "skip": 0,
+    "duration": 0
+  },
+  "categories": {},
+  "sessions": {},
+  "tests": {
+    "pass": [],
+    "fail": [],
+    "skip": []
+  },
+  "codeMetrics": {
+  "filesChanged": 2,
+  "linesAdded": 32,
+  "linesRemoved": 1,
+  "netLines": 31,
+  "categories": {
+    "js": {
+      "files": 1,
+      "added": 2,
+      "removed": 1
+    },
+    "test": {
+      "files": 0,
+      "added": 0,
+      "removed": 0
+    },
+    "session": {
+      "files": 0,
+      "added": 0,
+      "removed": 0
+    },
+    "docs": {
+      "files": 1,
+      "added": 30,
+      "removed": 0
+    },
+    "other": {
+      "files": 0,
+      "added": 0,
+      "removed": 0
+    }
+  }
+},
+  "regression": false,
+  "regressedTests": [],
+  "newlyPassing": [],
+  "testSkipped": true,
+  "testSkipReason": "code-only mode"
+}
