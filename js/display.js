@@ -2257,6 +2257,36 @@ export function newsym(x, y, ctxOrMap = null) {
     }
     if (monsterShownOnMap(mon, player, map)) {
         cosmic_display_log_newsym(x, y, 'visible-mon', true);
+        // C ref: display.c:1047 — _map_location(x, y, show) maps the
+        // location UNDER the monster before display_monster(). During
+        // hallucination this consumes display RNG for random_obj_to_glyph.
+        const hallu = !!(player?.Hallucination || player?.hallucinating);
+        if (hallu) {
+            map_location(x, y, 0, ctx);
+        } else {
+            // Non-hallu: record underlying object/engraving for mem display
+            // when the monster moves away. No display RNG consumed.
+            const underObjs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
+            if (underObjs.length > 0) {
+                const underTop = underObjs[underObjs.length - 1];
+                const underGlyph = objectMapGlyph(underTop, false, {
+                    player, x, y, observe: false
+                });
+                loc.mem_obj = underGlyph.ch || 0;
+                loc.mem_obj_color = Number.isInteger(underGlyph.color)
+                    ? underGlyph.color : CLR_GRAY;
+            } else {
+                const engr = map.engravingAt(x, y);
+                if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
+                    const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+                    loc.mem_obj = engrCh;
+                    loc.mem_obj_color = CLR_BRIGHT_BLUE;
+                } else {
+                    loc.mem_obj = 0;
+                    loc.mem_obj_color = 0;
+                }
+            }
+        }
         // C ref: display.c:1008-1014 — trapped monster reveals physical traps
         if (mon.mtrapped) {
             const trap = map.trapAt ? map.trapAt(x, y) : null;
@@ -2267,27 +2297,6 @@ export function newsym(x, y, ctxOrMap = null) {
             }
         }
         loc.mem_invis = false;
-        const underObjs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
-        if (underObjs.length > 0) {
-            const underTop = underObjs[underObjs.length - 1];
-            const underGlyph = objectMapGlyph(underTop, false, {
-                player, x, y, observe: false
-            });
-            loc.mem_obj = underGlyph.ch || 0;
-            loc.mem_obj_color = Number.isInteger(underGlyph.color)
-                ? underGlyph.color : CLR_GRAY;
-        } else {
-            const engr = map.engravingAt(x, y);
-            if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
-                const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                loc.mem_obj = engrCh;
-                loc.mem_obj_color = CLR_BRIGHT_BLUE;
-            } else {
-                loc.mem_obj = 0;
-                loc.mem_obj_color = 0;
-            }
-        }
-        const hallu = !!(player?.Hallucination || player?.hallucinating);
         const glyph = monsterMapGlyph(mon, hallu);
         // Monster overrides any magic-mapped trap display (level.glyph equivalent).
         loc.mem_magic_trap = false;
