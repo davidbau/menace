@@ -78,7 +78,7 @@ import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { pline, You, Your, You_cant, You_hear,
          pline_The, There, pline_mon, verbalize, impossible } from './pline.js';
-import { Monnam, mon_nam } from './do_name.js';
+import { Monnam, mon_nam, l_monnam } from './do_name.js';
 import { nolimbs, has_head, unsolid, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
@@ -89,7 +89,7 @@ import { mons, PM_LONG_WORM, MS_SILENT,
 import { dist2, distu, s_suffix } from './hacklib.js';
 import { u_at, confdir } from './hack.js';
 import { mstatusline, ustatusline } from './insight.js';
-import { newsym, canspotmon } from './display.js';
+import { newsym, canspotmon, map_invisible, unmap_invisible } from './display.js';
 import { setnotworn } from './worn.js';
 import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
@@ -113,7 +113,7 @@ import { useupall, update_inventory, sobj_at, compactInvletPromptChars,
          buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { cansee } from './vision.js';
 import { cmap_to_glyph } from './display.js';
-import { S_flashbeam, S_goodpos } from './symbols.js';
+import { S_flashbeam, S_goodpos, glyph_is_invisible } from './symbols.js';
 import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
@@ -436,11 +436,88 @@ export function leashable(mtmp) {
   return  (mtmp.mnum !== PM_LONG_WORM && !unsolid(mtmp.data) && (!nolimbs(mtmp.data) || has_head(mtmp.data)));
 }
 
-// cf. apply.c:765 -- STUB: use_leash
-export async function use_leash() { await pline("You need to get closer to use a leash."); }
+// cf. apply.c:765 -- use_leash
+export async function use_leash(obj, player, map) {
+    const cc = {
+        x: player.x + (player.dx || 0),
+        y: player.y + (player.dy || 0),
+    };
+    let mtmp;
 
-// cf. apply.c:817 -- STUB: use_leash_core
-export function use_leash_core() {}
+    if (player.uswallow) {
+        const stuckName = mon_nam(player.ustuck);
+        await You_cant((!obj.leashmon
+            ? 'leash %s from inside.'
+            : (obj.leashmon === player.ustuck?.m_id)
+                ? 'unleash %s from inside.'
+                : 'unleash anything from inside %s.'), stuckName);
+        return false;
+    }
+    if (!obj.leashmon && number_leashed(player) >= MAXLEASHED) {
+        await You('cannot leash any more pets.');
+        return false;
+    }
+
+    if (u_at(player, cc.x, cc.y)) {
+        if (player.usteed && player.dz > 0) {
+            await use_leash_core(obj, player.usteed, cc, true, player, map);
+            return true;
+        }
+        await pline('Leash yourself?  Very funny...');
+        return false;
+    }
+
+    mtmp = map?.monsterAt?.(cc.x, cc.y) || null;
+    if (!mtmp) {
+        await There('is no creature there.');
+        unmap_invisible(cc.x, cc.y, map);
+        return true;
+    }
+
+    await use_leash_core(obj, mtmp, cc, canspotmon(mtmp, player, null, map), player, map);
+    return true;
+}
+
+// cf. apply.c:817 -- use_leash_core
+export async function use_leash_core(obj, mtmp, cc, spotmon, player, map) {
+    const loc = map?.at?.(cc.x, cc.y) || null;
+    if (!spotmon && !glyph_is_invisible(loc?.glyph)) {
+        await You(`fail to ${obj.leashmon ? 'un' : ''}leash something.`);
+        map_invisible(map, cc.x, cc.y, player);
+    } else if (!mtmp.mtame) {
+        await pline(`${Monnam(mtmp)} ${!obj.leashmon ? 'cannot be' : 'is not'} leashed!`);
+    } else if (!obj.leashmon) {
+        if (mtmp.mleashed) {
+            await pline(`This ${spotmon ? l_monnam(mtmp) : 'creature'} is already leashed.`);
+        } else if (unsolid(mtmp.data || mons[mtmp.mnum])) {
+            await pline('The leash would just fall off.');
+        } else if (nolimbs(mtmp.data || mons[mtmp.mnum]) && !has_head(mtmp.data || mons[mtmp.mnum])) {
+            await pline(`${Monnam(mtmp)} has no extremities the leash would fit.`);
+        } else if (!leashable(mtmp)) {
+            let leashName = l_monnam(mtmp);
+            if (cc.x !== mtmp.mx || cc.y !== mtmp.my) leashName = `${s_suffix(leashName)} tail`;
+            await pline(`The leash won't fit onto ${spotmon ? 'your ' : ''}${leashName}.`);
+        } else {
+            await You(`slip the leash around ${spotmon ? 'your ' : ''}${l_monnam(mtmp)}.`);
+            mtmp.mleashed = 1;
+            obj.leashmon = mtmp.m_id;
+            mtmp.msleeping = 0;
+            update_inventory();
+        }
+    } else {
+        if (obj.leashmon !== mtmp.m_id) {
+            await pline('This leash is not attached to that creature.');
+        } else if (obj.cursed) {
+            await pline_The('leash would not come off!');
+            obj.bknown = 1;
+        } else {
+            mtmp.mleashed = 0;
+            obj.leashmon = 0;
+            update_inventory();
+            await You(`remove the leash from ${spotmon ? 'your ' : ''}${l_monnam(mtmp)}.`);
+        }
+    }
+}
 
 
 // cf. apply.c:927 -- check_leash: leash range enforcement
@@ -1240,6 +1317,7 @@ export async function handleApply(player, map, display, game) {
         }
 
         if (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK
+            || selected.otyp === LEASH
             || selected.otyp === BULLWHIP || selected.otyp === STETHOSCOPE
             || selected.otyp === EXPENSIVE_CAMERA || selected.otyp === MIRROR
             || selected.otyp === FIGURINE || isApplyPolearm(selected)) {
@@ -1305,6 +1383,10 @@ export async function handleApply(player, map, display, game) {
             player.dy = dir[1];
             player.dz = 0;
             confdir(false, player);
+            if (selected.otyp === LEASH) {
+                const tookTime = await use_leash(selected, player, map);
+                return { moved: false, tookTime: !!tookTime };
+            }
             if (selected.otyp === MIRROR) {
                 await use_mirror(selected, player);
                 return { moved: false, tookTime: true };

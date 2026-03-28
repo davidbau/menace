@@ -17499,3 +17499,33 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - remaining mismatches are screen/color/cursor only
   - `seed033_manual_direct` unchanged on its unrelated startup seam
   - `seed328_ranger_wizard_gameplay` unchanged on its unrelated early seam
+
+## 2026-03-28 — implementing `#apply` leash handling fixed the `seed032` leash seam
+
+- Current `main` had no real leash apply path in `js/apply.js`:
+  - `use_leash()` and `use_leash_core()` were still stubs
+  - `handleApply()` had no `LEASH` branch in its direction-tool handling
+- On `seed032_manual_direct`, the raw key window around the seam is:
+  - `394: a`
+  - `395: ?`
+  - `396: v`
+  - `397: b`
+- The C ground truth for that window is a real leash interaction:
+  - select leash from the overlay list
+  - choose adjacent kitten direction
+  - `You slip the leash around your kitten.`
+- JS was instead escaping the selection into the wrong generic command lifecycle because the leash path was missing.
+- Fixes:
+  - implement `use_leash()` and `use_leash_core()` from C in `js/apply.js`
+  - add `LEASH` to the direction-handled `#apply` tool branch
+  - return a timed command result for real leash use
+  - fix a newly exposed latent bug in `js/shk.js` by importing `OBJ_FREE`
+- Validated effect on clean current `main`:
+  - `seed032_manual_direct`: first RNG divergence `392 -> 437`
+  - `seed033_manual_direct`: unchanged at `571`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+- New active `seed032` seam after the fix:
+  - first RNG divergence at `437`
+  - JS: `rn2(5)=2 @ dochug(monmove.js:847)`
+  - C: `rn2(1)=0 @ move_special(priest.c:85)`
+  - event seam is nearby on a later priest/pet movement window, not on the old leash interaction anymore
