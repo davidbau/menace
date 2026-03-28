@@ -1156,22 +1156,12 @@ async function postRender(game, result) { // async-ok: called via await; may nee
     // after all command processing. In C, bot() runs at end-of-turn and
     // curs_on_u() runs before waiting for the next key.
     const player = game.u || game.u;
-    // C ref: allmain.c:564-582 — pre-input see_monsters/see_objects/see_traps
-    // runs for EVERY command during hallucination. For timed commands,
-    // syncTimedTurnPreInputState already called these (before display_sync
-    // renderMap, so the hero cell is cached). For non-timed commands, call
-    // them here. Must fire before any early returns.
-    {
-        const _mapReady = !!(game?.lev || game?.map);
-        const _ctx = game.context || {};
-        const _hallu = !!(player?.Hallucination || player?.hallucinating);
-        const _timedTurnRan = !!result?.tookTime;
-        if (_mapReady && player && (!_ctx.mv || player?.blind) && _hallu && !_timedTurnRan) {
-            see_monsters(game.map);
-            see_objects();
-            see_traps();
-        }
-    }
+    // C ref: allmain.c:564-582 — pre-input see_monsters/see_objects/see_traps.
+    // C runs this once between commands, attributed to the timed turn step.
+    // For timed commands, syncTimedTurnPreInputState handles this.
+    // For non-timed commands (like 'm' prefix), C's pre-input already ran
+    // at the end of the PREVIOUS timed turn — no additional see_monsters
+    // should fire here.
     if (!game.display || !player || result?.terminalScreenOwned || game?._terminalScreenOwnedByInput) return;
     if (game.display.messageNeedsMore) {
         flush_screen(1);
@@ -2650,8 +2640,11 @@ export class NetHackGame {
         // For timed commands, syncTimedTurnPreInputState already calls these
         // (inside advanceTimedTurn). For non-timed commands (inventory, look,
         // etc.), we need to call them here to match C's pre-input phase.
-        // C ref: hallu see_monsters/see_objects/see_traps is in postRender
-        // (before renderMap) so the hero cell is cached before renderMap runs.
+        // C ref: allmain.c:564-582 — hallu see_monsters/see_objects/see_traps.
+        // C's pre-input runs once between timed turns, attributed to the timed
+        // step. For non-timed commands, C's pre-input already ran at the
+        // previous timed step and isn't repeated. JS matches this by calling
+        // see_monsters/see_objects/see_traps only in syncTimedTurnPreInputState.
         const terminalScreenOwned = !!commandResult?.terminalScreenOwned || !!this._terminalScreenOwnedByInput;
         const suppressUntimedTailRender = !forceRender
             && !terminalScreenOwned
