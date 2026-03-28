@@ -1550,6 +1550,11 @@ function getShopQuoteForFloorObject(obj, player, map) {
     if (!obj || obj.oclass === COIN_CLASS) return null;
     if (!Number.isInteger(obj.ox) || !Number.isInteger(obj.oy)) return null;
 
+    // C ref: doname_with_price uses costly_spot(x,y) to determine if an
+    // object's location is within the shop's billed area. The doorway is
+    // in the shop room but is NOT a costly spot — objects there don't
+    // show prices. Use costly_spot instead of just in_rooms.
+    if (!costly_spot(obj.ox, obj.oy, map)) return null;
     const playerShops = in_rooms(map, player.x, player.y, SHOPBASE);
     if (playerShops.length === 0) return null;
     const objShops = in_rooms(map, obj.ox, obj.oy, SHOPBASE);
