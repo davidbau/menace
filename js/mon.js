@@ -103,6 +103,7 @@ import { pmname, Mgender, x_monnam, y_monnam, mon_nam, Monnam } from './do_name.
 import { place_monster } from './steed.js';
 import { Role_if } from './role.js';
 import { dochug, m_everyturn_effect } from './monmove.js';
+import { flooreffects } from './do.js';
 import { assertNotInModal } from './modal_guard.js';
 
 // C macro: ismnum(mndx) — valid monster index check
@@ -1117,7 +1118,9 @@ export async function xkilled(mon, xkill_flags, map, player) {
                 } else if ((mdat.msize || 0) < MZ_HUMAN && otyp !== FIGURINE
                     && (otmp.owt > 30 || objectData[otyp]?.oc_big)) {
                     delobj(otmp);
-                } else {
+                } else if (!await flooreffects(otmp, x, y, nomsg ? '' : 'fall', player, map)) {
+                    // C ref: mon.c:3606 — flooreffects checks lava/pool/etc.
+                    // Object survives floor effects → place on map.
                     place_object(otmp, x, y, map);
                     stackobj(otmp, map);
                 }
