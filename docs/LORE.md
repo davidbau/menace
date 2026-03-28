@@ -17658,3 +17658,33 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - first RNG divergence at `534`
   - JS: `rn2(19)=5 @ seffects(read.js:1662)`
   - C: `rn2(5)=4 @ distfleeck(monmove.c:539)`
+
+## 2026-03-28 — unpaid pickup quote must not split into a second pickup ack owner
+
+- The next `seed032` seam after deliberate shop-drop sell state was still not a `read.js` bug first.
+- The decisive JS raw window was:
+  - `533`: `,` removes the wand and runs `addtobill(...)`
+  - `534`: quote-dismiss key returns through `pickup_quote_more`
+  - `535`: next gameplay key was being swallowed with only `^mlc[phase=fresh_cmd]`
+  - `536`: another gameplay key was swallowed the same way
+  - `537`: only then did JS finally run the delayed timed turn
+- Expected C behavior from the recorded session:
+  - `534 ,`: shop quote `"For you, esteemed hiril; only 200 zorkmids for this brass wand."--More--`
+  - `535 Space`: same boundary resumes the pickup, runs monster turns, and shows the unpaid inventory line
+  - later gameplay keys are not consumed by a synthetic extra pickup-ack owner
+- Root cause in `js/pickup.js`:
+  - `pickup_quote_more.onKey(...)` correctly resumed into `finishPickupAfterBilling(...)`
+  - but `finishPickupAfterBilling(...)` still called `deferTimedPickupUntilMore(...)`
+  - that created a second `pickup_more_ack` prompt owner for the unpaid inventory message
+  - the second owner swallowed later gameplay keys until a later `Space`, shifting monster turns from `534/535/536` into `537+`
+- Fix:
+  - remove the synthetic `pickup_more_ack` defer from the unpaid pickup path
+  - let the quote-resume key complete `finishPickupAfterBilling(...)` as a timed command
+- Validated effect on clean current `main`:
+  - `seed032_manual_direct`: first RNG divergence `534 -> 548`
+  - `seed033_manual_direct`: unchanged at `571`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+- New active `seed032` seam after the fix:
+  - first RNG divergence at `548`
+  - JS: `rn2(3)=1 @ dochug(monmove.js:847)`
+  - C: `rn2(100)=85 @ obj_resists(zap.c:1467)`

@@ -1151,24 +1151,6 @@ function burden_prefix(enc) {
 }
 
 async function handlePickup(player, map, display, game = null) {
-    const deferTimedPickupUntilMore = (pickedObj, inventoryObj, gameCtx = game, displayCtx = display) => {
-        if (!(pickedObj?.unpaid || inventoryObj?.unpaid)) return null;
-        if (!gameCtx || !displayCtx?.messageNeedsMore) return null;
-        gameCtx.pendingPrompt = {
-            type: 'pickup_more_ack',
-            onKey: async (chCode, nextGameCtx) => {
-                if (chCode !== 32 && chCode !== 10 && chCode !== 13
-                    && chCode !== 27 && chCode !== 16) {
-                    return { handled: true, moved: false, tookTime: false, prompt: true };
-                }
-                dismissOwnedMore(nextGameCtx);
-                nextGameCtx.pendingPrompt = null;
-                return { handled: true, moved: false, tookTime: true, prompt: true };
-            },
-        };
-        return { moved: false, tookTime: false, prompt: true };
-    };
-
     const dismissOwnedMore = (gameCtx) => {
         if (!gameCtx?.display) return;
         if (Object.hasOwn(gameCtx.display, 'messageNeedsMore')) {
@@ -1388,8 +1370,7 @@ async function handlePickup(player, map, display, game = null) {
             // extra step boundaries that consume keys C doesn't consume.
             await pline("%s", pickupMsg);
             await encumber_msg(player);
-            const deferred = deferTimedPickupUntilMore(pickedObj, inventoryObj, gameCtx, displayCtx);
-            return deferred || { moved: false, tookTime: true };
+            return { moved: false, tookTime: true };
         };
 
         // C ref: pick_obj() — obj_extract_self BEFORE addtobill, then addinv.
