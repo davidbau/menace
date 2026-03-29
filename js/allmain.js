@@ -1133,6 +1133,9 @@ async function advanceTimedTurn(game, coreOpts) {
     pushRngLogEntry(`^mlc[phase=exit move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${game.multi||0}]`);
     await moveloop_core(game, coreOpts);
     await syncTimedTurnPreInputState(game);
+    // Signal to the non-timed marker emitter that markers were already emitted
+    game._timedTurnAdvanced = true;
+    game._mlcExitEmitted = true;
 }
 
 // C ref: allmain.c moveloop_core() `gm.multi < 0` branch.
@@ -2642,18 +2645,24 @@ export class NetHackGame {
             // C emits exit/entry/pre_input markers before every fresh_cmd.
             // For timed commands, advanceTimedTurn emits them. For non-timed
             // and first steps, emit them here (markers only, no side effects).
-            {
+            // C emits exit/entry/pre_input before fresh_cmd. For TIMED
+            // commands, advanceTimedTurn already emits these markers. Only
+            // emit here for NON-timed commands (no advanceTimedTurn ran).
+            if (!this._timedTurnAdvanced) {
                 const _ctx = this.context || {};
                 const _p = this.u;
                 const _hallu = !!(_p?.Hallucination || _p?.hallucinating);
-                pushRngLogEntry(`^mlc[phase=exit move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0}]`);
-                // C ref: svm.moves starts at 1; JS turnCount starts at 0.
-                // Use turnCount+1 to match C's convention (consistent with
-                // exerchk, dogmove, and other +1 compensations).
+                // C ref: step 0 (first command) has entry/pre_input/fresh_cmd
+                // but NO exit (no previous command to exit from).
+                if (this._mlcExitEmitted) {
+                    pushRngLogEntry(`^mlc[phase=exit move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0}]`);
+                }
+                this._mlcExitEmitted = true;
                 const _moves = (this.turnCount || 0) + 1;
                 pushRngLogEntry(`^mlc[phase=entry move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0} moves=${_moves} hallu=${_hallu?1:0} blind=${_p?.blind?1:0}]`);
                 pushRngLogEntry(`^mlc[phase=pre_input move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0} hallu=${_hallu?1:0} blind=${_p?.blind?1:0}]`);
             }
+            this._timedTurnAdvanced = false;
             pushRngLogEntry(`^mlc[phase=fresh_cmd]`);
             const firstCh = await nhgetch();
             const commandResult = await this.runOneCommandCycle(firstCh);
