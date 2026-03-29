@@ -3802,11 +3802,14 @@ export function saving_grace(dmg, player, game) {
 
 // C ref: hack.c showdamage() — display HP loss
 export async function showdamage(dmg, player, display, game) {
+    // C ref: hack.c showdamage() uses tmp_at() to show a brief damage
+    // indicator on the MAP square, NOT via pline/message line. The JS
+    // implementation previously used putstr_message, which triggered
+    // flush_screen → _botl consumption → premature status HP update
+    // (showing post-damage HP at --More-- boundaries where C shows
+    // pre-damage HP).
+    // TODO: implement as tmp_at map annotation for full parity.
     if (!game?.iflags?.showdamage || !dmg) return;
-    const hp = player.upolyd
-        ? (player.mh || 0)
-        : (Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0));
-    if (display) await display.putstr_message(`[HP ${-dmg}, ${hp} left]`);
 }
 
 // C ref: hack.c Maybe_Half_Phys() macro — halve physical damage if player has Half_physical_damage
