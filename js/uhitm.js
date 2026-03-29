@@ -2685,6 +2685,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
     // with damage > 1 before death handling — stun if roll < skill level.
     const unarmedStaggerRolled = (!player.weapon && damage > 1);
     let unarmedStaggerHit = false;
+    let alreadyKilledByStagger = false;
     if (unarmedStaggerRolled) {
         const mdat = monster.data || monster.type || {};
         const isThickSkinned = !!((mdat.mflags1 || 0) & M1_THICK_HIDE);
@@ -2693,12 +2694,18 @@ export async function do_attack_core(player, monster, display, map, game = null)
         if (rnd(100) < skillLevel && !isBig && !isThickSkinned) {
             monster.mstun = 1;
             unarmedStaggerHit = true;
+            // C ref: uhitm.c:1558-1560 — mhurtle_to_doom after stagger stun
+            if (await mhurtle_to_doom(monster, damage, { mdat: monster.data || monster.type })) {
+                alreadyKilledByStagger = true;
+            }
         }
     }
 
-    // Apply damage
-    // cf. uhitm.c -- "You hit the <monster>!"
-    monster.mhp -= damage;
+    // Apply damage (skip if stagger knockback already killed)
+    // cf. uhitm.c:1192 — hmon_hitmon phase 6 skips if already_killed
+    if (!alreadyKilledByStagger) {
+        monster.mhp -= damage;
+    }
 
     const destroyed = (monster.mhp <= 0);
     const tameLike = !!(Number(monster.mtame || 0) > 0);
