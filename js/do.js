@@ -1774,7 +1774,7 @@ function getTeleportArrivalPosition(map, opts = {}) {
 //   'teleport' -> random placement via place_lregion
 //   'falling' -> trap-door/hole arrival via u_on_rndspot/place_lregion
 //   null   -> normal non-teleport arrival behavior
-export function getArrivalPosition(map, dungeonLevel, transitionDir = null) {
+export function getArrivalPosition(map, dungeonLevel, transitionDir = null, opts = {}) {
     if (transitionDir === 'teleport') {
         return getTeleportArrivalPosition(map, { up: false, wasInWTower: false });
     }
@@ -1786,12 +1786,17 @@ export function getArrivalPosition(map, dungeonLevel, transitionDir = null) {
     const hasDownstair = !!(map?.dnstair && map.dnstair.x > 0 && map.dnstair.y > 0);
     const hasUpdest = !!(map?.updest && Number.isFinite(map.updest.lx) && Number.isFinite(map.updest.ly));
     const hasDndest = !!(map?.dndest && Number.isFinite(map.dndest.lx) && Number.isFinite(map.dndest.ly));
+    const isBranch = !!opts.branchTransition;
 
-    if (transitionDir === 'down' && hasUpdest) {
-        return { x: map.updest.lx, y: map.updest.ly };
-    }
-    if (transitionDir === 'up' && hasDndest) {
-        return { x: map.dndest.lx, y: map.dndest.ly };
+    // C ref: do.c goto_level() — dndest/updest (sstairs) are only used for
+    // branch transitions. Regular within-branch stairs use dnstair/upstair.
+    if (isBranch) {
+        if (transitionDir === 'down' && hasUpdest) {
+            return { x: map.updest.lx, y: map.updest.ly };
+        }
+        if (transitionDir === 'up' && hasDndest) {
+            return { x: map.dndest.lx, y: map.dndest.ly };
+        }
     }
 
     if (transitionDir === 'down' && hasUpstair) {
@@ -1799,6 +1804,14 @@ export function getArrivalPosition(map, dungeonLevel, transitionDir = null) {
     }
     if (transitionDir === 'up' && hasDownstair) {
         return { x: map.dnstair.x, y: map.dnstair.y };
+    }
+
+    // Fallback: if no regular stairs, try dest regions
+    if (transitionDir === 'down' && hasUpdest) {
+        return { x: map.updest.lx, y: map.updest.ly };
+    }
+    if (transitionDir === 'up' && hasDndest) {
+        return { x: map.dndest.lx, y: map.dndest.ly };
     }
 
     // C-like default for normal arrival: upstairs when available.
@@ -2026,7 +2039,9 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     (game.u || game.u).inTutorial = !!(game.map || game.map)?.flags?.is_tutorial;
 
     // C ref: dungeon.c u_on_rndspot() / stairs.c u_on_upstairs()
-    const pos = getArrivalPosition((game.map || game.map), depth, transitionDir);
+    // C ref: do.c goto_level() — only branch transitions (new dungeon) use
+    // sstairs (dndest/updest); regular within-branch stairs use dnstair/upstair.
+    const pos = getArrivalPosition((game.map || game.map), depth, transitionDir, { branchTransition: newdungeon });
     (game.u || game.u).x = pos.x;
     (game.u || game.u).y = pos.y;
 
