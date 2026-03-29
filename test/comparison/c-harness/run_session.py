@@ -2751,14 +2751,14 @@ def main():
             output_json,
             move_str,
             raw_moves=raw_moves,
-            record_more_spaces=record_more_spaces,
             character=char_override,
             wizard_mode=wizard_mode,
             startup_mode=startup_mode,
+            nethackrc_contents=nethackrc_override,
         )
 
 
-def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces=False, character=None, wizard_mode=True, startup_mode='ready'):
+def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces=False, character=None, wizard_mode=True, startup_mode='ready', nethackrc_contents=None):
     """Run a session replaying the given move string.
 
     Args:
@@ -2767,15 +2767,15 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         move_str: String of moves to replay
         raw_moves: If True, move_str is treated as raw keylog input (for example,
                    including explicit spaces used to dismiss --More-- prompts).
-        record_more_spaces: If True, when a step captures '--More--' and the next
-                   queued key is not space, inject a space key into the recorded
-                   move stream (migration helper for older sessions).
+        record_more_spaces: Deprecated, ignored.
         character: Character config dict (name, role, race, gender, align).
                    Uses default CHARACTER if None.
         wizard_mode: If True, launch C NetHack with -D and capture typGrid via #dumpmap.
         startup_mode: 'ready' (default) = auto-advance through chargen before replaying
                       moves; 'from-keylog' = do not auto-advance, move_str includes the
                       full key sequence starting from game launch (chargen + gameplay).
+        nethackrc_contents: If set, use this exact string as .nethackrc contents
+                   (overrides character-based generation).
     """
     char = character or CHARACTER
     output_json = os.path.abspath(output_json)
@@ -2786,7 +2786,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         sys.exit(1)
 
     setup_home(char, chargen_in_keys=(startup_mode == 'from-keylog'),
-               nethackrc_contents=nethackrc_override)
+               nethackrc_contents=nethackrc_contents)
 
     # Temp files for RNG log, explicit dumpsnap checkpoints, and auto-mapdump checkpoints
     tmpdir = tempfile.mkdtemp(prefix='webhack-session-')
