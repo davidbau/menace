@@ -2296,7 +2296,7 @@ export class AdventureGame {
         this._output = outputFn;
         this._printBuf = '';
         this._lineBuf = '';
-        _resetRng(1); // deterministic: match C's default srand(1) / no-srand behavior
+        _resetRng(this._seedOverride ?? 1); // deterministic: match C's default seed
 
         // Initialize everything
         this._buildVocabulary();
@@ -3786,4 +3786,7 @@ export class AdventureGame {
         this._have_tried_to_get_knife = state.have_tried_to_get_knife;
         if (state.rngState != null) _rngState = state.rngState;
     }
+
+    /** Set PRNG seed before run() — for testing. Must call before run(). */
+    setSeed(seed) { _resetRng(seed); this._seedOverride = seed; }
 }
