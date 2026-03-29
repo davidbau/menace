@@ -14,6 +14,59 @@ For the full narratives of how these lessons were discovered, see the
 
 ---
 
+## 2026-03-29 - Death sequence status bar timing (HP=0 at --More--)
+
+- **Bug**: JS shows HP=0 on the status bar during the "The jackal bites!--More--"
+  screen, while C shows HP=1 (pre-damage). Affects ~3 sessions (s350, hi11,
+  t11_s744) where the player dies from a monster bite.
+
+- **C's flow**: `hitmsg("The jackal bites!")` → `vpline` → `flush_screen(1)` →
+  `bot()` renders HP=1 (damage not yet applied) → `putmesg` → `update_topl` →
+  overflow → `more()` waits → key dismisses → "The jackal bites!" displayed with
+  `toplin=TOPLINE_NEED_MORE`. Then `mdamageu()` sets `disp.botl=TRUE`, HP→0. Then
+  `done_in_by` → `You("die...")` → `vpline` → `flush_screen(1)` → `bot()` renders
+  HP=0. Then `putmesg("You die...")` → `update_topl` → sees
+  `toplin==TOPLINE_NEED_MORE` → calls `more()` which shows "--More--" on
+  "The jackal bites!". The screen captured at this `more()` SHOULD show HP=0 (bot
+  already rendered it), yet C consistently shows HP=1.
+
+- **Why C shows HP=1**: Empirically confirmed across multiple sessions. The exact
+  mechanism by which C's tty suppresses the HP=0 render at this `more()` boundary
+  is not fully understood — the `bot_via_windowport` → `evaluate_and_notify_windowport`
+  → `status_update(BL_FLUSH)` → `make_things_fit` → `render_status` path should
+  update the terminal, but something prevents it from being visible. Possibly the
+  tty cursor/redraw sequencing means the status row output from `render_status()`
+  gets overwritten before the `more()` capture. C only visibly updates HP=0 at the
+  "Die?" wizard prompt, when `done()` calls `disp.botlx=TRUE; bot()` (end.c:1048).
+
+- **JS's flow**: `putstr_message("You die...", {urgent: true})` at line 290 checks
+  for pending `topMessage` → `flush_screen(1)` → `renderStatus(HP=0)` because
+  `_botl=true` (set by `mdamageu`). The `more()` for "The jackal bites!" then shows
+  the already-updated status bar with HP=0.
+
+- **Root cause**: The `flush_screen(1)` at `putstr_message` line 290 fires for the
+  NEXT message ("You die..."), consuming `_botl` set by `mdamageu` and rendering
+  HP=0 before the PENDING message's --More-- is displayed.
+
+- **Fix constraint**: Suppressing `renderStatus` during ALL urgent messages causes
+  7+ regressions in other sessions where the status SHOULD update. The fix must be
+  precisely scoped: only suppress the status update at the specific --More--
+  boundary where a pending message is being dismissed due to an arriving urgent
+  message — not for all urgent messages globally.
+
+- **Candidate fix**: Save/restore `_botl` around `flush_screen(1)` AND suppress
+  `refreshStatus` in `more()` AND skip the `freshAfterMore` `renderStatus` —
+  but ONLY when `isUrgent && topMessage && messageNeedsMore` (the exact scenario
+  where a pending --More-- is about to be shown with stale status). Also add the
+  missing `disp.botlx=TRUE; bot()` to JS's `done()` (matching end.c:1048-1049)
+  so that HP=0 IS rendered at the "Die?" prompt. The 7 regressions from the naive
+  fix all came from suppressing status updates in contexts where there was NO
+  pending --More-- — the precise scoping above should avoid those.
+
+- **Related**: `done()` in JS (end.js:385) is missing C's `disp.botlx=TRUE; bot()`
+  call (end.c:1048-1049) which forces a full status refresh before the wizard "Die?"
+  prompt. Adding this is part of the fix.
+
 ## Comparison-window triage stack
 
 - `scripts/comparison-window.mjs` now supports:
