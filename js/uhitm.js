@@ -482,6 +482,7 @@ function hmon_hitmon_barehands(hmd, mon) {
     } else {
         // C: rnd(!martial_bonus() ? 2 : 4)
         hmd.dmg = rnd(martial_bonus(hmd.player) ? 4 : 2);
+        hmd.get_dmg_bonus = true; // C ref: uhitm.c:846 — strength bonus applies to barehand
         hmd.use_weapon_skill = true;
         hmd.train_weapon_skill = (hmd.dmg > 1);
     }
@@ -2665,11 +2666,11 @@ export async function do_attack_core(player, monster, display, map, game = null)
     }
 
     // cf. uhitm.c:1414 hmon_hitmon_dmg_recalc() — add strength and skill bonuses
+    // C ref: hmon_hitmon_barehands sets use_weapon_skill=TRUE; weapon_dam_bonus
+    // is called for ALL melee attacks including barehand/martial arts.
     if (applyDmgBonus) {
         damage += dbon(acurr(player, A_STR));
-        if (weaponLike) {
-            damage += weapon_dam_bonus(player.weapon);
-        }
+        damage += weapon_dam_bonus(player.weapon); // null → P_BARE_HANDED_COMBAT
         // cf. uhitm.c — artifact damage bonus
         if (weaponLike && player.weapon && player.weapon.oartifact) {
             const [bonus] = spec_dbon(player.weapon, monster, damage);

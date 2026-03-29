@@ -29,6 +29,7 @@ import { rn2, rnd, rnl } from './rng.js';
 import { hits_bars } from './mthrowu.js';
 import { shade_miss } from './uhitm.js';
 import { closed_door } from './monmove.js';
+import { mintrap_postmove } from './trap.js';
 import { is_swimmer } from './mondata.js';
 import { more, nhgetch } from './input.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
@@ -831,6 +832,15 @@ async function mhurtle_step(mon, x, y, map, player) {
         if (typeof map.placeMonster === 'function') map.placeMonster(mon, x, y);
         newsym(_omx, _omy);
         newsym(x, y);
+        // C ref: dothrow.c mhurtle_step() calls mintrap(mon, FORCEBUNGLE)
+        // after moving the monster. Trap activation may kill the monster
+        // (e.g., falling through a hole or into a pit).
+        if (map.trapAt && map.trapAt(x, y)) {
+            const display = player?.game?.display || null;
+            const fov = null;
+            await mintrap_postmove(mon, map, player, display, fov);
+            if (mon.mhp <= 0) return false; // trap killed monster
+        }
         return true;
     }
     const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;
