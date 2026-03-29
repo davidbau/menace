@@ -17920,3 +17920,23 @@ This is the root cause of the --More-- boundary mismatches in #392.
 - Remaining divergence at step 628: distfleeck brave flag differs (1 vs 0) for
   monster 20 at same position. Caused by --More-- timing difference during boulder
   squeeze sequence.
+
+### seed033 stair arrival + boulder squeeze inline (March 29, 2026)
+- **Boulder squeeze inline**: Replaced pendingPrompt chain in domove_core with
+  inline await for cannot_push_msg and squeeze message. Matches C's single-call
+  domove flow where both --More-- prompts are internal nhgetch calls. Fixed step
+  boundary offset at steps 623-624.
+- **Stair arrival position**: getArrivalPosition was using dndest (branch stair
+  destination, (12,6) tutorial start) instead of dnstair (regular downstairs,
+  (61,13)) for within-branch stair transitions. C's goto_level only uses sstairs
+  (dndest/updest) for branch transitions; regular stairs use u_on_dnstairs().
+  Fixed by gating dndest/updest on branchTransition flag.
+- **Tutorial exit messages**: Added "Resuming regular play." and "Resetting time
+  to move #1." from C's nhl_gamestate("restore"). Also reset game.turnCount/moves.
+- **Remaining issue**: Main dungeon level 1 is generated at different RNG position.
+  C pre-generates level 1 during init (before tutorial), caches it, and restores
+  it when exiting tutorial. JS generates level 1 fresh during tutorial exit via
+  changeLevel. This produces different level content (different monsters/objects).
+  Fixing requires matching C's init ordering: generate level 1 → enter tutorial →
+  restore level 1 from cache on tutorial exit.
+- seed033 progress: RNG 5840→6356, events 2010→2113, screens 518→526.
