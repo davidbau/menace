@@ -3,8 +3,17 @@
 // Single-file JavaScript ES module
 
 // ========== Random ==========
-function ran(range) { return Math.floor(Math.random() * range); }
+// Deterministic PRNG matching C's rand() with default seed 1.
+// MINSTD Park-Miller LCG: next = (prev * 16807) % 2147483647
+let _rngState = 1; // default seed (same as C srand(1) or no srand call)
+function _rand() {
+    // Use BigInt to avoid floating-point precision loss for large products
+    _rngState = Number((BigInt(_rngState) * 16807n) % 2147483647n);
+    return _rngState;
+}
+function ran(range) { return _rand() % range; }
 function pct(percent) { return ran(100) < percent; }
+function _resetRng(seed) { _rngState = seed || 1; }
 function streq(a, b) { return a.slice(0,5) === b.slice(0,5); }
 
 // ========== Vocabulary ==========
@@ -2287,6 +2296,7 @@ export class AdventureGame {
         this._output = outputFn;
         this._printBuf = '';
         this._lineBuf = '';
+        _resetRng(1); // deterministic: match C's default srand(1) / no-srand behavior
 
         // Initialize everything
         this._buildVocabulary();
@@ -3728,6 +3738,7 @@ export class AdventureGame {
             west_count: this._west_count,
             first_kill: this._first_kill,
             have_tried_to_get_knife: this._have_tried_to_get_knife,
+            rngState: _rngState,
         };
         for (let t = MIN_OBJ; t <= MAX_OBJ; t++) {
             state.objs[t] = { ...this._objs[t] };
@@ -3773,5 +3784,6 @@ export class AdventureGame {
         this._west_count = state.west_count;
         this._first_kill = state.first_kill;
         this._have_tried_to_get_knife = state.have_tried_to_get_knife;
+        if (state.rngState != null) _rngState = state.rngState;
     }
 }

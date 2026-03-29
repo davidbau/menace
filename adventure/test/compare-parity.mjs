@@ -42,9 +42,12 @@ try {
 // Compare line by line
 // Normalize: trim trailing spaces, collapse multiple blank lines
 function normalize(lines) {
-    return lines
+    let result = lines
         .map(l => l.trimEnd())
         .filter((l, i, arr) => !(l === '' && i > 0 && arr[i-1] === ''));
+    // Trim trailing empty lines
+    while (result.length > 0 && result[result.length - 1] === '') result.pop();
+    return result;
 }
 
 const normC = normalize(cLines);
