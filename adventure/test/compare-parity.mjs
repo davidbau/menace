@@ -17,8 +17,13 @@ const inputs = readFileSync(inputFile, 'utf8').trim().split('\n');
 const cOutput = readFileSync(cOutputFile, 'utf8');
 const cLines = cOutput.split('\n');
 
+// Parse optional --seed flag
+const seedIdx = process.argv.indexOf('--seed');
+const seed = seedIdx >= 0 ? parseInt(process.argv[seedIdx + 1]) : null;
+
 // Run JS version with same inputs
 const game = new AdventureGame();
+if (seed != null) game.setSeed(seed);
 
 const jsLines = [];
 let inputIdx = 0;
