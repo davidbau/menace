@@ -78,6 +78,7 @@ import { envFlag } from './runtime_env.js';
 import { cuss } from './wizard.js';
 import { add_damage, after_shk_move, inhishop, shk_fixes_damage } from './shk.js';
 import { gd_move } from './vault.js';
+import { pri_move } from './priest.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
@@ -1943,14 +1944,15 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         }
         return MMOVE_NOTHING;
     }
-    if (mon.ispriest) {
-        if (mon.epri && mon.epri.shrpos) {
-            const omx = mon.mx, omy = mon.my;
-            const ggx = mon.epri.shrpos.x + (rn2(3) - 1);
-            const ggy = mon.epri.shrpos.y + (rn2(3) - 1);
-            move_special(mon, map, player, false, 1, false, true, ggx, ggy);
+    if (mon.ispriest && mon.epri) {
+        // C ref: monmove.c m_move() → pri_move() for priests
+        // pri_move returns 1 (moved), 0 (didn't move), or -1 (not in temple → fall through)
+        const omx = mon.mx, omy = mon.my;
+        const priResult = await pri_move(mon, map, player, display, fov);
+        if (priResult >= 0) {
             return (mon.mx !== omx || mon.my !== omy) ? MMOVE_MOVED : MMOVE_NOTHING;
         }
+        // priResult === -1: priest not in temple, fall through to normal AI
     }
     if (mon.isgd) {
         const xm = await gd_move(mon, map, player, fov);
