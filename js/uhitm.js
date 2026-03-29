@@ -2791,6 +2791,16 @@ export async function do_attack_core(player, monster, display, map, game = null)
             const fleetime = !rn2(3) ? rnd(100) : 0;
             applyMonflee(monster, fleetime, false);
         }
+        // cf. uhitm.c:1889-1896 — umconf hand-glow confusion touch
+        if (monster.mhp > 0 && !player.weapon && player.umconf) {
+            await nohandglow(monster, player);
+            if (!monster.mconf && !resist(monster, SPBOOK_CLASS)) {
+                monster.mconf = 1;
+                if (!monster.mstun && display && canspotmon(monster)) {
+                    await display.putstr_message(`${Monnam(monster)} appears confused.`);
+                }
+            }
+        }
         // cf. uhitm.c:788 passive() after surviving hit
         if (monster.mhp > 0) {
             await passive(monster, player.weapon || null, true, true, AT_WEAP, false, {
