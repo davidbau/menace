@@ -2688,6 +2688,15 @@ def main():
         wizard_mode = True
         args.remove('--wizard')
 
+    # Parse --nethackrc <string> flag: use exact .nethackrc contents
+    # This is the authoritative way to set character options during re-recording.
+    # The nethackrc string is written directly to .nethackrc, bypassing --character.
+    nethackrc_override = None
+    if '--nethackrc' in args:
+        idx = args.index('--nethackrc')
+        nethackrc_override = args[idx + 1]
+        args = args[:idx] + args[idx+2:]
+
     # Parse character override flags
     char_override = None
     if '--role' in args:
@@ -2773,7 +2782,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         print(f"Run setup.sh first: bash {os.path.join(SCRIPT_DIR, 'setup.sh')}")
         sys.exit(1)
 
-    setup_home(char, chargen_in_keys=(startup_mode == 'from-keylog'))
+    setup_home(char, chargen_in_keys=(startup_mode == 'from-keylog'),
+               nethackrc_contents=nethackrc_override)
 
     # Temp files for RNG log, explicit dumpsnap checkpoints, and auto-mapdump checkpoints
     tmpdir = tempfile.mkdtemp(prefix='webhack-session-')

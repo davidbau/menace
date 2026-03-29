@@ -163,6 +163,7 @@ def build_command(session_path, data, force_record_more_spaces=False):
             options,
             data.get('steps'),
             force_record_more_spaces=force_record_more_spaces,
+            nethackrc=data.get('nethackrc'),
         )
     elif mode == 'chargen':
         return _build_chargen(seed, output, regen)
@@ -290,24 +291,27 @@ def _normalize_regen_env(regen):
     return out
 
 
-def _build_gameplay(seed, output, regen, options, steps, force_record_more_spaces=False):
+def _build_gameplay(seed, output, regen, options, steps, force_record_more_spaces=False,
+                    nethackrc=None):
     moves = regen.get('moves', '...........')
     cmd = ['python3', RUN_SESSION, str(seed), output, moves]
 
-    # Character matching
-    preset = find_preset(options)
-    if preset:
-        if preset != 'valkyrie':  # valkyrie is the default
-            cmd += ['--character', preset]
+    # Character matching: prefer exact nethackrc from session (authoritative)
+    if nethackrc:
+        cmd += ['--nethackrc', nethackrc]
     else:
-        # No preset match — use --role and --name flags (the only individual overrides
-        # supported by run_session.py)
-        role = options.get('role')
-        name = options.get('name')
-        if role and role != DEFAULT_CHARACTER['role']:
-            cmd += ['--role', role]
-        if name and name != DEFAULT_CHARACTER['name']:
-            cmd += ['--name', name]
+        preset = find_preset(options)
+        if preset:
+            if preset != 'valkyrie':  # valkyrie is the default
+                cmd += ['--character', preset]
+        else:
+            # No preset match — use --role and --name flags
+            role = options.get('role')
+            name = options.get('name')
+            if role and role != DEFAULT_CHARACTER['role']:
+                cmd += ['--role', role]
+            if name and name != DEFAULT_CHARACTER['name']:
+                cmd += ['--name', name]
 
     startup_mode = regen.get('startup_mode') or regen.get('startupMode')
     if startup_mode:
