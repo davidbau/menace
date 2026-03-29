@@ -144,7 +144,7 @@ def _infer_interface_keys_from_session(data, regen):
     return None
 
 
-def build_command(session_path, data, force_record_more_spaces=False):
+def build_command(session_path, data):
     """Build the command to re-record a session. Returns (cmd, description) or (None, reason)."""
     regen = data.get('regen')
     if not regen or not regen.get('mode'):
@@ -162,8 +162,7 @@ def build_command(session_path, data, force_record_more_spaces=False):
             regen,
             options,
             data.get('steps'),
-            force_record_more_spaces=force_record_more_spaces,
-            nethackrc=data.get('nethackrc'),
+                        nethackrc=data.get('nethackrc'),
         )
     elif mode == 'chargen':
         return _build_chargen(seed, output, regen)
@@ -185,16 +184,14 @@ def build_command(session_path, data, force_record_more_spaces=False):
             output,
             data,
             options,
-            force_record_more_spaces=force_record_more_spaces,
-        )
+                    )
     elif mode == 'keylog':
         cmd, description = _build_from_steps(
             seed,
             output,
             data,
             options,
-            force_record_more_spaces=force_record_more_spaces,
-        )
+                    )
         if cmd is not None:
             return cmd, description
         return _build_keylog(session_path, output, regen, data)
@@ -291,7 +288,7 @@ def _normalize_regen_env(regen):
     return out
 
 
-def _build_gameplay(seed, output, regen, options, steps, force_record_more_spaces=False,
+def _build_gameplay(seed, output, regen, options, steps,
                     nethackrc=None):
     moves = regen.get('moves', '...........')
     cmd = ['python3', RUN_SESSION, str(seed), output, moves]
@@ -318,8 +315,7 @@ def _build_gameplay(seed, output, regen, options, steps, force_record_more_space
         cmd += ['--startup-mode', startup_mode]
     if regen.get('raw_moves') or regen.get('rawMoves'):
         cmd.append('--raw-moves')
-    if force_record_more_spaces:
-        cmd.append('--record-more-spaces')
+    # --record-more-spaces removed: use --raw-moves instead
     if options.get('wizard') is False:
         cmd.append('--no-wizard')
 
@@ -371,7 +367,7 @@ def _append_character_and_mode_flags(cmd, options):
     return cmd
 
 
-def _build_from_steps(seed, output, data, options, force_record_more_spaces=False):
+def _build_from_steps(seed, output, data, options):
     """Build a raw-moves replay command from in-session step keys."""
     steps = data.get('steps')
     if not isinstance(steps, list) or not steps:
@@ -392,8 +388,7 @@ def _build_from_steps(seed, output, data, options, force_record_more_spaces=Fals
 
     move_str = ''.join(keys)
     cmd = ['python3', RUN_SESSION, str(seed), output, move_str, '--raw-moves']
-    if force_record_more_spaces:
-        cmd.append('--record-more-spaces')
+    # --record-more-spaces removed: use --raw-moves instead
     cmd = _append_character_and_mode_flags(cmd, options)
     regen = data.get('regen') if isinstance(data, dict) else None
     env_prefix = _normalize_regen_env(regen if isinstance(regen, dict) else {})
@@ -637,11 +632,7 @@ def main():
     parser.add_argument('--all', action='store_true', help='Re-record all sessions')
     parser.add_argument('--type', dest='filter_type', help='Only re-record sessions with this regen.mode')
     parser.add_argument('--dry-run', action='store_true', help='Show commands without executing')
-    parser.add_argument(
-        '--record-more-spaces',
-        action='store_true',
-        help='Force --record-more-spaces for gameplay sessions',
-    )
+    # --record-more-spaces removed: sessions should use exact keys
     parser.add_argument('--parallel', nargs='?', const=4, type=int, default=None,
                         help='Run up to N sessions in parallel (default 4)')
     args = parser.parse_args()
@@ -678,7 +669,6 @@ def main():
         cmd, description = build_command(
             path,
             data,
-            force_record_more_spaces=args.record_more_spaces,
         )
         if cmd is None:
             skipped += 1

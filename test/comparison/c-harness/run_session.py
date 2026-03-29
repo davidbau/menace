@@ -2674,10 +2674,13 @@ def main():
     if raw_moves:
         args.remove('--raw-moves')
 
-    # Parse --record-more-spaces flag (migration helper).
-    record_more_spaces = '--record-more-spaces' in args
-    if record_more_spaces:
+    # --record-more-spaces removed: sessions should be recorded with exact
+    # keys (--raw-moves). Auto-inserting spaces changes the key sequence
+    # and produces sessions that can't be faithfully re-recorded.
+    if '--record-more-spaces' in args:
+        print("WARNING: --record-more-spaces is deprecated and ignored. Use --raw-moves instead.")
         args.remove('--record-more-spaces')
+    record_more_spaces = False
 
     # Parse wizard mode flags for gameplay capture.
     wizard_mode = True
@@ -2720,7 +2723,7 @@ def main():
         print(f"       {sys.argv[0]} --from-config")
         print(f"Options:")
         print(f"  --raw-moves: Moves include --More-- responses (from keylog)")
-        print(f"  --record-more-spaces: Auto-insert missing space keys when '--More--' appears")
+        print(f"  --nethackrc <string>: Use exact .nethackrc contents (from session JSON)")
         print(f"  --no-wizard: Run gameplay capture without -D (non-wizard mode)")
         print(f"Character presets: {', '.join(CHARACTER_PRESETS.keys())} (default: valkyrie)")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42.session.json ':hhlhhhh.hhs'")
