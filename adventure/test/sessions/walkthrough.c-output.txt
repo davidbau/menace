@@ -1,0 +1,242 @@
+Welcome to Adventure!!  Would you like instructions?
+** OK.
+
+You are standing at the end of a road before a small brick building.
+Around you is a forest.  A small stream flows out of the building and
+down a gully.
+* 
+You are inside a building, a well house for a large spring.
+There are some keys on the ground here.
+There is a shiny brass lamp nearby.
+There is food here.
+There is a bottle of water here.
+* OK.
+* 
+It is now pitch dark.  If you proceed you will most likely fall into a pit.
+* 
+You are crawling over cobbles in a low passage.  There is a dim light
+at the east end of the passage.
+There is a small wicker cage discarded nearby.
+* OK.
+* 
+It is now pitch dark.  If you proceed you will most likely fall into a pit.
+* Your lamp is now on.
+
+At your feet is a small pit breathing traces of white mist. An east
+passage ends here except for a small crack leading on.
+Rough stone steps lead down the pit.
+* 
+You are in a splendid chamber thirty feet high. The walls are frozen
+rivers of orange stone. An awkward canyon and a good passage exit
+from east and west sides of the chamber.
+A cheerful little bird is sitting here singing.
+* OK.
+* 
+You are in a debris room filled with stuff washed in from the surface.
+A low wide passage with cobbles becomes plugged with mud and debris
+here, but an awkward canyon leads upward and west.  A note on the wall
+says "MAGIC WORD XYZZY".
+A three-foot black rod with a rusty star on an end lies nearby.
+* OK.
+* 
+You're at top of small pit.
+Rough stone steps lead down the pit.
+* 
+You are at one end of a vast hall stretching forward out of sight to
+the west.  There are openings to either side.  Nearby, a wide stone
+staircase leads downward.  The hall is filled with wisps of white mist
+swaying to and fro almost as if alive.  A cold wind blows up the
+staircase.  There is a passage at the top of a dome behind you.
+Rough stone steps lead up the dome.
+* 
+This is a low room with a crude note on the wall. The note says,
+"You won't get it up the steps".
+There is a large sparkling nugget of gold here!
+* OK.
+* 
+You're in Hall of Mists.
+* 
+You are on the east bank of a fissure slicing clear across the hall.
+The mist is quite thick here, and the fissure is too wide to jump.
+* A crystal bridge now spans the fissure.
+* OK.
+* 
+You are on the west side of the fissure in the Hall of Mists.
+A crystal bridge now spans the fissure.
+There are diamonds here!
+* OK.
+* 
+You are at the west end of the Hall of Mists. A low wide crawl
+continues west and another goes north. To the south is a little
+passage 6 feet off the floor.
+* 
+You are at the east end of a very long hall apparently without side
+chambers.  To the east a low wide crawl slants up.  To the north a
+round two-foot hole slants down.
+* 
+You are at the west end of a very long featureless hall.  The hall
+joins up with a narrow north/south passage.
+* 
+You are at a crossover of a high N/S passage and a low E/W one.
+* 
+You are in the west side chamber of the Hall of the Mountain King.
+A passage continues west and up here.
+There are many coins here!
+* OK.
+* 
+You are in the Hall of the Mountain King, with passages off in all
+directions.
+A huge green fierce snake bars the way!
+* The little bird attacks the green snake, and in an astounding flurry
+drives the snake away.
+* OK.
+* 
+You are in the south side chamber.
+There is precious jewelry here!
+* 
+You're in Hall of Mt King.
+There is a small wicker cage discarded nearby.
+A cheerful little bird is sitting here singing.
+* 
+You are in a low N/S passage at a hole in the floor.  The hole goes
+down to an E/W passage.
+There are bars of silver here!
+* OK.
+* 
+You are in a large room, with a passage to the south, a passage to the
+west, and a wall of broken rock to the east.  There is a large "Y2" on
+a rock in the room's center.
+* Your lamp is now off.
+It is now pitch dark.  If you proceed you will most likely fall into a pit.
+* 
+You're inside building.
+There are some keys on the ground here.
+There is food here.
+There is a bottle of water here.
+* OK.
+* OK.
+* OK.
+* I see no jewels here.
+* OK.
+* OK.
+* OK.
+* OK.
+* A little dwarf just walked around a corner, saw you, threw a little
+axe at you which missed, cursed, and ran away.
+
+It is now pitch dark.  If you proceed you will most likely fall into a pit.
+A hollow voice says "PLUGH".
+* Your lamp is now on.
+
+You're at "Y2".
+There is a little axe here.
+* 
+You're in N/S passage.
+* 
+You are in a dirty broken passage.  To the east is a crawl.  To the
+west is a large passage.  Above you is a hole to another passage.
+* I don't know how to apply that word here.
+
+You're in dirty passage.
+* There is no way to go in that direction.
+
+You're in dirty passage.
+* There is no way to go in that direction.
+
+You're in dirty passage.
+* I see no plant here.
+* 
+You're in N/S passage.
+* There is no way to go in that direction.
+There is a threatening little dwarf in the room with you!
+
+You're in N/S passage.
+* There is no way to go in that direction.
+There is a threatening little dwarf in the room with you!
+One sharp nasty knife is thrown at you!
+It misses!
+
+You're in N/S passage.
+* I don't know how to apply that word here.
+There is a threatening little dwarf in the room with you!
+One sharp nasty knife is thrown at you!
+It misses!
+
+You are in a low N/S passage at a hole in the floor.  The hole goes
+down to an E/W passage.
+* Your bottle is already full.
+* There are 2 threatening little dwarves in the room with you!
+
+You're in Hall of Mt King.
+There is a small wicker cage discarded nearby.
+A cheerful little bird is sitting here singing.
+* There are 2 threatening little dwarves in the room with you!
+
+You are in the south side chamber.
+There is precious jewelry here!
+* There is no way to go in that direction.
+There are 2 threatening little dwarves in the room with you!
+2 of them throw knives at you!
+None of them hit you!
+
+You are in the south side chamber.
+There is precious jewelry here!
+* There is no way to go in that direction.
+There are 2 threatening little dwarves in the room with you!
+2 of them throw knives at you!
+One of them gets you!
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+**  Please answer Yes or No.
+Oh dear, you seem to have gotten yourself killed.  I might be able to
+help you out, but I've never really done this before.  Do you want me
+to try to reincarnate you?
+** OK.
+You scored 101 out of a possible 350, using 62 turns.
+You have achieved the rating "Experienced Adventurer".
+To achieve the next higher rating, you need 30 more points.
