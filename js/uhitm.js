@@ -458,6 +458,20 @@ async function hitum(player, mon, uattk, display, map, game = null) {
     if (tmp > dieroll) await exercise(player, A_DEX, true);
 
     const malive = await known_hitum(player, mon, weapon, mhit, tmp, 0, uattk, dieroll, display, map);
+
+    // C ref: uhitm.c:788 — mhitm_knockback() called after known_hitum,
+    // before passive. Consumes rn2(3) + rn2(6) unconditionally for every
+    // armed melee attack. The knockback effect only activates if the
+    // rn2(6) gate passes AND the attacker is much larger than the defender.
+    const weapon_used = !!weapon;
+    mhitm_knockback(
+        player.youmonst || player,  // hero as attacker (monster data)
+        mon,                         // defender
+        uattk || { aatyp: AT_WEAP, adtyp: AD_PHYS },
+        mhit ? M_ATTK_HIT : M_ATTK_MISS,
+        weapon_used
+    );
+
     await passive(mon, weapon, mhit, malive, uattk?.aatyp ?? AT_WEAP, false, {
         player, display, map, game,
     });
