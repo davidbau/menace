@@ -737,6 +737,8 @@ export async function peffect_speed(player, otmp, display) {
             fastProp.intrinsic = Number(fastProp.intrinsic || 0) | FROMOUTSIDE;
         }
     }
+    // C ref: potion.c peffect_speed() → makeknown(otmp->otyp) for POT_SPEED only
+    if (is_speed) await discoverObject(otmp.otyp, true, true);
 }
 
 // cf. potion.c peffect_sleeping()
@@ -868,6 +870,8 @@ export async function peffect_healing(player, otmp, display) {
     // C ref: potion.c peffect_healing() sets context.botl = 1
     player._botl = true;
     await exercise(player, A_CON, true);
+    // C ref: potion.c peffect_healing() → makeknown(otmp->otyp)
+    await discoverObject(otmp.otyp, true, true);
     return false;
 }
 
@@ -883,6 +887,8 @@ export async function peffect_extra_healing(player, otmp, display) {
     await exercise(player, A_CON, true);
     await exercise(player, A_STR, true);
     await You_feel("much better.");
+    // C ref: potion.c peffect_extra_healing() → makeknown(otmp->otyp)
+    await discoverObject(otmp.otyp, true, true);
     return false;
 }
 
@@ -902,6 +908,8 @@ export async function peffect_full_healing(player, otmp, display) {
     // C: exercise order is A_STR then A_CON
     await exercise(player, A_STR, true);
     await exercise(player, A_CON, true);
+    // C ref: potion.c peffect_full_healing() → makeknown(otmp->otyp)
+    await discoverObject(otmp.otyp, true, true);
     return false;
 }
 
@@ -918,6 +926,8 @@ export async function peffect_gain_level(player, otmp, display) {
     // C: blessed also calls rndexp(TRUE) to randomize experience
     if (otmp.blessed)
         player.uexp = rndexp(player, true);
+    // C ref: potion.c peffect_gain_level() → makeknown(POT_GAIN_LEVEL)
+    await discoverObject(POT_GAIN_LEVEL, true, true);
     return false;
 }
 
@@ -1098,6 +1108,8 @@ export async function peffect_gain_ability(player, otmp, display) {
         if (await adjattrib(player, i, 1, itmp) && !otmp.blessed)
             break;
     }
+    // C ref: potion.c peffect_gain_ability() → makeknown(POT_GAIN_ABILITY)
+    await discoverObject(POT_GAIN_ABILITY, true, true);
     return false;
 }
 
@@ -2368,6 +2380,8 @@ export async function peffect_levitation(otmp, map, player) {
         );
     }
     float_vs_flight(gameRef, player);
+    // C ref: potion.c peffect_levitation() → makeknown(otmp->otyp) for POT only
+    if (otmp.otyp === POT_LEVITATION) await discoverObject(otmp.otyp, true, true);
 }
 
 // Autotranslated from potion.c:1313
