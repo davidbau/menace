@@ -18001,3 +18001,28 @@ This is the root cause of the --More-- boundary mismatches in #392.
   (seed1: HP:0 shown at step 17). Same code path, different behavior.
 - The _botl save/restore approach fixes some sessions but breaks others.
 - Blocking: needs C source to understand exact flush_screen/bot() timing.
+
+### `seed033` upstairs return must prefer actual stairway arrival over `dndest`
+- After the boulder-squeeze fix, the next live `seed033` seam was the first
+  move after returning upstairs to Tutorial:1.
+- JS replay probes showed the hero returning to `(12,6)`, the instructional
+  engraving square, and spending an extra `maybe_smudge_engr()` roll on the
+  first move away from it.
+- The restored Tutorial:1 map still had:
+  - `map.dnstair = { x: 61, y: 13 }`
+  - `map.dndest = { lx: 12, ly: 6 }`
+- The bug was in [js/do.js](/tmp/mazes-seed033-ftjcip/js/do.js):
+  - `getArrivalPosition(..., 'up')` preferred `dndest` before the real
+    downstairs stair coordinate
+  - that is backwards for ordinary stair travel
+- C source confirms the correct rule:
+  - `goto_level()` uses `u_on_dnstairs()` for ordinary upward travel
+  - only special/s- stair fallback paths use alternate destinations
+- Fix:
+  - for ordinary `'up'`/`'down'` arrivals, prefer `dnstair`/`upstair`
+    before `dndest`/`updest`
+  - keep `dndest`/`updest` only as fallback when no real stair coordinate exists
+- Validated effect:
+  - `seed033_manual_direct`: first divergence `628 -> 713`
+  - `seed032_manual_direct`: unchanged at `437`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`

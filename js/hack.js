@@ -87,6 +87,23 @@ import { notake } from './mondata.js';
 import { enterModal, exitModal, assertNotInModal } from './modal_guard.js';
 import { drag_ball, move_bc } from './ball.js';
 
+function dismissOwnedMore(gameCtx) {
+    if (!gameCtx?.display) return;
+    if (Object.hasOwn(gameCtx.display, 'messageNeedsMore')) {
+        gameCtx.display.messageNeedsMore = false;
+    }
+    if (Object.hasOwn(gameCtx.display, 'moreMarkerActive')) {
+        gameCtx.display.moreMarkerActive = false;
+    }
+    if (typeof gameCtx.display.clearRow === 'function') {
+        gameCtx.display.clearRow(0);
+        if (gameCtx.display._topMessageRow1 !== undefined) {
+            gameCtx.display.clearRow(1);
+            gameCtx.display._topMessageRow1 = undefined;
+        }
+    }
+}
+
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
 }
@@ -1130,6 +1147,7 @@ export async function domove_core(dir, player, map, display, game, opts = {}) {
     const sokoban = !!(map?.flags?.is_sokoban || map?.flags?.in_sokoban || game?.flags?.sokoban);
     if (sobj_at(BOULDER, nx, ny, map) && (sokoban || !player?.passesWalls) && !bypassBoulderSqueeze) {
         const boulder = sobj_at(BOULDER, nx, ny, map);
+        const isDismissKey = (ch) => (ch === 32 || ch === 27 || ch === 10 || ch === 13 || ch === 16);
         const pushState = await cannot_push(
             boulder,
             nx + moveDir[0],
@@ -1146,24 +1164,52 @@ export async function domove_core(dir, player, map, display, game, opts = {}) {
             // Match C by handling everything inline with await, not via
             // pendingPrompt which would split across key-handler steps.
             await cannot_push_msg(boulder, nx + moveDir[0], ny + moveDir[1], map, display, player);
-            await display?.putstr_message('However, you can squeeze yourself into a small opening.');
-            // Fall through to normal movement — hero moves onto boulder's square
-        } else {
-            const moved = await moverock(nx, ny, moveDir[0], moveDir[1], player, map, display, game);
-            if (moved < 0) {
-                // C ref: hack.c — moverock < 0 means can't push. Check squeeze.
-                // cannot_push already showed "try to move... but in vain".
-                if (could_move_onto_boulder(nx, ny, player)) {
-                    await display.putstr_message(
-                        "However, you can squeeze yourself into a small opening.");
-                    // Fall through to normal movement — hero moves onto boulder's square
-                } else {
-                    domoveNotime('moverock-refused');
-                    return { moved: false, tookTime: false };
-                }
-            }
+            game.pendingPrompt = {
+                type: 'boulder_squeeze_more',
+                onKey: async (chCode, gameCtx) => {
+                    if (!isDismissKey(chCode)) {
+                        return { handled: true, moved: false, tookTime: false, prompt: true };
+                    }
+                    dismissOwnedMore(gameCtx);
+                    await gameCtx.display.putstr_message('However, you can squeeze yourself into a small opening.');
+                    gameCtx.pendingPrompt = {
+                        type: 'boulder_squeeze_resume',
+                        onKey: async (resumeCh, resumeGame) => {
+                            if (!isDismissKey(resumeCh)) {
+                                return { handled: true, moved: false, tookTime: false, prompt: true };
+                            }
+                            dismissOwnedMore(resumeGame);
+                            resumeGame.pendingPrompt = null;
+                            const resumed = await domove_core(
+                                moveDir,
+                                player,
+                                map,
+                                display,
+                                resumeGame,
+                                { bypassBoulderSqueeze: true }
+                            );
+                            return { handled: true, ...(resumed || { moved: false, tookTime: false }) };
+                        },
+                    };
+                    return { handled: true, moved: false, tookTime: false, prompt: true };
+                },
+            };
+            return { moved: false, tookTime: false, prompt: true };
         }
-    }
+        const moved = await moverock(nx, ny, moveDir[0], moveDir[1], player, map, display, game);
+        if (moved < 0) {
+            // C ref: hack.c — moverock < 0 means can't push. Check squeeze.
+            // cannot_push already showed "try to move... but in vain".
+             if (could_move_onto_boulder(nx, ny, player)) {
+                 await display.putstr_message(
+                     "However, you can squeeze yourself into a small opening.");
+                 // Fall through to normal movement — hero moves onto boulder's square
+             } else {
+                 domoveNotime('moverock-refused');
+                 return { moved: false, tookTime: false };
+             }
+         }
+     }
 
     loc = map.at(nx, ny);
     if (await domove_fight_empty(nx, ny, map, display, game)) {
