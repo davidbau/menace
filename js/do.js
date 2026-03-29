@@ -2046,7 +2046,9 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     // C ref: dungeon.c u_on_rndspot() / stairs.c u_on_upstairs()
     // C ref: do.c goto_level() — only branch transitions (new dungeon) use
     // sstairs (dndest/updest); regular within-branch stairs use dnstair/upstair.
-    const pos = getArrivalPosition((game.map || game.map), depth, transitionDir, { branchTransition: newdungeon });
+    const pos = (Number.isInteger(opts?.arrivalPos?.x) && Number.isInteger(opts?.arrivalPos?.y))
+        ? { x: opts.arrivalPos.x, y: opts.arrivalPos.y }
+        : getArrivalPosition((game.map || game.map), depth, transitionDir, { branchTransition: newdungeon });
     (game.u || game.u).x = pos.x;
     (game.u || game.u).y = pos.y;
 

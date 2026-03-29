@@ -18026,3 +18026,28 @@ This is the root cause of the --More-- boundary mismatches in #392.
   - `seed033_manual_direct`: first divergence `628 -> 713`
   - `seed032_manual_direct`: unchanged at `437`
   - `seed328_ranger_wizard_gameplay`: unchanged at `226`
+
+### `seed033` tutorial exit must restore cached main level and hero position
+- After the stair-arrival fix, the next live `seed033` seam was still inside
+  tutorial exit.
+- JS was still doing two C-inaccurate things in the portal restore path:
+  - regenerating main dungeon level 1 instead of resuming the pre-tutorial map
+  - choosing a fresh teleport arrival square instead of restoring the saved
+    pre-tutorial hero position
+- The active path was:
+  - [js/chargen.js](/tmp/mazes-seed033-ftjcip/js/chargen.js) `enterTutorial()`
+    only stored inventory/equipment/spells
+  - [js/teleport.js](/tmp/mazes-seed033-ftjcip/js/teleport.js) tutorial portal
+    restore then called `changeLevel(1, 'teleport', { targetDnum: 0 })`
+  - [js/do.js](/tmp/mazes-seed033-ftjcip/js/do.js) therefore generated or
+    randomly placed onto level 1 instead of restoring it faithfully
+- Fix:
+  - tutorial save now also stores the pre-tutorial cached main-dungeon map and
+    hero coordinates
+  - tutorial restore passes that cached map into `changeLevel()`
+  - `changeLevel()` now accepts an explicit `arrivalPos` override and uses it
+    before normal arrival selection
+- Validated effect:
+  - `seed033_manual_direct`: first divergence `713 -> 741`
+  - `seed032_manual_direct`: unchanged at `437`
+  - `seed328_ranger_wizard_gameplay`: unchanged at `226`

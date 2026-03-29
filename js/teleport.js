@@ -1031,7 +1031,13 @@ export async function domagicportal(trap, game) {
         game.turnCount = 0;  // will become 1 at next turn boundary
         game.moves = 1;
         await pline("Resetting time to move #1.");
-        await game.changeLevel(1, 'teleport', { targetDnum: 0 });
+        await game.changeLevel(1, 'teleport', {
+            targetDnum: 0,
+            arrivalPos: (Number.isInteger(stored?.x) && Number.isInteger(stored?.y))
+                ? { x: stored.x, y: stored.y }
+                : undefined,
+            map: stored?.returnMap || undefined,
+        });
         return;
     }
 

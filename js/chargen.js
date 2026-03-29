@@ -312,8 +312,17 @@ export async function enterTutorial(game, opts = {}) {
     const player = game.u || game.u;
     const applyTutorialStrip = () => {
         if (!game._tutorialStoredState) {
+            const mainDnum = 0;
+            const currentDepth = Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel : 1;
+            const branchKey = `${mainDnum}:${currentDepth}`;
+            const storedMainMap = game.levelsByBranch?.[branchKey]
+                || game.levels?.[currentDepth]
+                || game.map
+                || null;
             game._tutorialStoredState = {
                 inventory: Array.isArray(player.inventory) ? player.inventory.slice() : [],
+                x: Number.isInteger(player.x) ? player.x : null,
+                y: Number.isInteger(player.y) ? player.y : null,
                 weapon: player.weapon || null,
                 swapWeapon: player.swapWeapon || null,
                 quiver: player.quiver || null,
@@ -332,6 +341,7 @@ export async function enterTutorial(game, opts = {}) {
                 lastInvlet: Number.isInteger(player.lastInvlet) ? player.lastInvlet : null,
                 // C ref: nhlua.c nhl_gamestate("save") — saves and clears spl_book
                 spells: Array.isArray(player.spells) ? player.spells.slice() : [],
+                returnMap: storedMainMap,
             };
         }
 
