@@ -17960,3 +17960,17 @@ This is the root cause of the --More-- boundary mismatches in #392.
 - _topMessageEncumbrance snapshot wired up for --More-- display.
 - Root cause still open: C's exact bot()/flush_screen timing at death --More--
   needs C source investigation.
+
+### Priest AI dispatch + do_attack_core area sweep (March 29, 2026)
+- `m_move` had a simplified priest handler calling `move_special` directly
+  with hardcoded parameters. Replaced with full `pri_move()` from priest.js
+  which checks `histemple_at` (falls through to normal AI when outside temple).
+- Shade damage minimum: do_attack_core gave 1 minimum damage to shades; C
+  gives 0 (shades immune to non-silver/blessed barehand). Fixed.
+- Dead stagger rnd(100) fallback was unreachable code — removed.
+- HP display timing: confirmed C's behavior is CONTEXT-DEPENDENT. The
+  `_botl save/restore` approach (removed by a0d14111b) helps theme43 but
+  breaks seed1_gameplay. The two cases show OPPOSITE HP display at --More--
+  despite identical message patterns. Root cause is in the SPECIFIC sequence
+  of pline/flush_screen/bot calls, not in the general _botl mechanism.
+  Investigation exhausted without C source access.
