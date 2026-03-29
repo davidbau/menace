@@ -17940,3 +17940,23 @@ This is the root cause of the --More-- boundary mismatches in #392.
   Fixing requires matching C's init ordering: generate level 1 → enter tutorial →
   restore level 1 from cache on tutorial exit.
 - seed033 progress: RNG 5840→6356, events 2010→2113, screens 518→526.
+
+### Dead monster flee/passive guard (March 29, 2026)
+- `do_attack_core` was running `rn2(25)` flee check and `passive()` on dead
+  monsters after stagger knockback kills. C's `known_hitum()` checks
+  `DEADMONSTER` before both. Fixed with `monster.mhp > 0` guards.
+- Pending monk session (s55_monk_combat992) diverges at step 978 from a damage
+  calculation difference: JS's `hmd.dmg >= mon.mhp` at stagger time (no hurtle),
+  while C's `tmp < mhp` (hurtle → trap → dies). Root cause: barehand damage
+  bonus differences between JS and C. Needs martial arts damage audit.
+
+### HP display timing investigation (March 29, 2026)
+- 7+ sessions show post-damage HP (HP:0) at --More-- while C shows pre-damage HP
+  (HP:1). Traced with theme43: mdamageu sets _botl and reduces HP, then
+  done_in_by → pline("You die...") → putstr_message → flush_screen → _botl
+  consumed → renders HP:0. In C, either the screen capture happens before
+  flush_screen renders, or C's done processing uses a different display path.
+- showdamage was changed to no-op (C uses tmp_at map annotation, not pline).
+- _topMessageEncumbrance snapshot wired up for --More-- display.
+- Root cause still open: C's exact bot()/flush_screen timing at death --More--
+  needs C source investigation.
