@@ -2759,15 +2759,19 @@ export async function do_attack_core(player, monster, display, map, game = null)
             rnd(100);
         }
         // cf. uhitm.c:624-628 known_hitum() — 1/25 morale/flee check on surviving hit
-        if (!rn2(25) && monster.mhp < Math.floor((monster.mhpmax || 1) / 2)) {
+        // C ref: known_hitum checks DEADMONSTER before flee; if monster died
+        // from stagger/knockback, the function returns without this check.
+        if (monster.mhp > 0 && !rn2(25) && monster.mhp < Math.floor((monster.mhpmax || 1) / 2)) {
             // cf. monflee(mon, !rn2(3) ? rnd(100) : 0, ...) — flee timer
             const fleetime = !rn2(3) ? rnd(100) : 0;
             applyMonflee(monster, fleetime, false);
         }
         // cf. uhitm.c:788 passive() after surviving hit
-        await passive(monster, player.weapon || null, true, true, AT_WEAP, false, {
-            player, display, map, game,
-        });
+        if (monster.mhp > 0) {
+            await passive(monster, player.weapon || null, true, true, AT_WEAP, false, {
+                player, display, map, game,
+            });
+        }
         return false;
     }
 }
