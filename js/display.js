@@ -340,6 +340,9 @@ export class Display extends Terminal {
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
+                // C ref: snapshot encumbrance at message time so --More-- shows
+                // the encumbrance that was current when the message was flushed.
+                this._topMessageEncumbrance = this._lastMapState?.player?.encumbrance;
                 this.messageNeedsMore = true;
                 this.messageCursorCol = Math.min(combined.length, this.cols - 1);
                 this.messageCursorRow = 0;
@@ -377,6 +380,7 @@ export class Display extends Terminal {
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
+            this._topMessageEncumbrance = this._lastMapState?.player?.encumbrance;
             this.messageNeedsMore = true;
             // C ref: addtopl sets toplin = TOPLINE_NEED_MORE (2).
             this.toplin = 2;
@@ -430,6 +434,7 @@ export class Display extends Terminal {
         this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
             ? this._lastMapState.gameMap._replayStepIndex
             : null;
+        this._topMessageEncumbrance = this._lastMapState?.player?.encumbrance;
         this.messageNeedsMore = true;
         this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
         this.messageCursorRow = 0;
