@@ -17983,3 +17983,21 @@ This is the root cause of the --More-- boundary mismatches in #392.
   by 2 RNG per melee attack.
 - Fixed by adding mhitm_knockback between known_hitum and passive in hitum.
 - Also verified do_attack_core's inline knockback matches C's pattern.
+
+### Potion makeknown calls (March 29, 2026)
+- Added 7 missing discoverObject (≡ makeknown) calls to potion effects:
+  healing (3), speed, gain_level, gain_ability, levitation.
+- Each call triggers exercise(A_WIS) which consumes rn2(19), fixing
+  RNG drift in sessions with potion use.
+- Potion-only calls (POT_SPEED, POT_LEVITATION) correctly skip SPE_* types.
+
+### Display-only failure class analysis (March 29, 2026)
+- 12 sessions fail with perfect RNG+events, only screen mismatches
+- All are HP (7) or encumbrance (3) or AC (1) timing at status line
+- Root pattern: JS's flush_screen consumes _botl and renders updated
+  game state at --More-- boundaries. C retains stale status values.
+- C session data confirms: HP updates are DELAYED for some sessions
+  (theme43: HP:1 shown until step 26) but IMMEDIATE for others
+  (seed1: HP:0 shown at step 17). Same code path, different behavior.
+- The _botl save/restore approach fixes some sessions but breaks others.
+- Blocking: needs C source to understand exact flush_screen/bot() timing.
