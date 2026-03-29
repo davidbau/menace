@@ -757,12 +757,9 @@ export class Shell {
 
     async _runAdventure() {
         try {
-            const { AdventureGame } = await import('../adventure/js/game.js');
-            const dataModule = await import('../adventure/js/adventure-data.enc.js');
-            const data = dataModule.default;
+            const { AdventureGame } = await import('../adventure/js/advent.js');
 
             const game = new AdventureGame();
-            game.init(data);
 
             // Wire save/restore to localStorage
             const SAVE_KEY = 'menace-adventure';
