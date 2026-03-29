@@ -3,8 +3,7 @@
 // Usage: node adventure/test/compare-parity.mjs <input-file> <c-output-file>
 
 import { readFileSync } from 'fs';
-import { AdventureGame } from '../js/game.js';
-import adventureData from '../js/adventure-data.enc.js';
+import { AdventureGame } from '../js/advent.js';
 
 const inputFile = process.argv[2];
 const cOutputFile = process.argv[3];
@@ -20,7 +19,6 @@ const cLines = cOutput.split('\n');
 
 // Run JS version with same inputs
 const game = new AdventureGame();
-game.init(adventureData);
 
 const jsLines = [];
 let inputIdx = 0;
