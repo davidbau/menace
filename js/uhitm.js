@@ -2678,8 +2678,12 @@ export async function do_attack_core(player, monster, display, map, game = null)
         }
     }
 
-    // Minimum 1 damage on a hit
-    if (damage < 1) damage = 1;
+    // C ref: uhitm.c:1473 hmon_hitmon phase 4 — minimum damage.
+    // Shades take 0 from non-silver/non-blessed barehand; others take 1.
+    if (damage < 1) {
+        const monIsShade = (monster.mndx ?? -1) === PM_SHADE;
+        damage = monIsShade ? 0 : 1;
+    }
 
     // C ref: uhitm.c hmon_hitmon_stagger() rolls rnd(100) for unarmed hits
     // with damage > 1 before death handling — stun if roll < skill level.
@@ -2762,10 +2766,9 @@ export async function do_attack_core(player, monster, display, map, game = null)
                     }
                 }
             }
-        } else if (!player.weapon && damage > 1 && !unarmedStaggerRolled) {
-            // cf. uhitm.c:1554 hmon_hitmon_stagger — rnd(100) stun chance check
-            rnd(100);
         }
+        // (Removed dead code: unarmed stagger rnd(100) fallback was unreachable
+        // because unarmedStaggerRolled is always true when !player.weapon && damage > 1)
         // cf. uhitm.c:624-628 known_hitum() — 1/25 morale/flee check on surviving hit
         // C ref: known_hitum checks DEADMONSTER before flee; if monster died
         // from stagger/knockback, the function returns without this check.
