@@ -1,0 +1,135 @@
+Welcome to Adventure!!  Would you like instructions?
+** OK.
+
+You are standing at the end of a road before a small brick building.
+Around you is a forest.  A small stream flows out of the building and
+down a gully.
+* 
+You are inside a building, a well house for a large spring.
+There are some keys on the ground here.
+There is a shiny brass lamp nearby.
+There is food here.
+There is a bottle of water here.
+* OK.
+* Your lamp is now on.
+* OK.
+* OK.
+* OK.
+* 
+You're at end of road again.
+* 
+You are in a valley in the forest beside a stream tumbling along a
+rocky bed.
+* 
+At your feet all the water of the stream splashes into a 2-inch slit
+in the rock.  Downstream the streambed is bare rock.
+* I don't know how to apply that word here.
+
+You're at slit in streambed.
+* You don't fit through a two-inch slit!
+
+You're at slit in streambed.
+* You don't fit through a two-inch slit!
+
+You're at slit in streambed.
+* 
+You are in open forest, with a deep valley to one side.
+* I see no cage here.
+* 
+You're in forest.
+* I see no bird here.
+* 
+You're in valley.
+* 
+You're in forest.
+* I see no cage here.
+* I see no rod here.
+* 
+You're in forest.
+* 
+You're in forest.
+* 
+You are in open forest, with a deep valley to one side.
+* I see no bird here.
+* 
+You're in forest.
+* I see no rod here.
+* I see no bird here.
+* I see no cage here.
+* 
+You're in valley.
+* 
+You're in forest.
+* 
+You're in valley.
+* I see no cage here.
+* I see no rod here.
+* I see no bird here.
+* 
+You're in forest.
+* 
+You're in forest.
+* I see no jewelry here.
+* 
+You are in open forest, with a deep valley to one side.
+* 
+You're in forest.
+* 
+You're in forest.
+* 
+You're in forest.
+* Sorry, but I am not allowed to give more detail.  I will repeat the
+long description of your location.
+
+You are in open forest, with a deep valley to one side.
+* You are currently holding the following:
+ Set of keys
+ Brass lantern
+ Tasty food
+ Small bottle
+ Water in the bottle
+* 
+You're in valley.
+* 
+You're in forest.
+* I see no jewelry here.
+* 
+You are in a valley in the forest beside a stream tumbling along a
+rocky bed.
+* Nothing happens.
+
+You're in valley.
+* Your lamp is now on.
+* 
+You're at slit in streambed.
+* 
+You are in a 20-foot depression floored with bare dirt.  Set into the
+dirt is a strong steel grate mounted in concrete.  A dry streambed
+leads into the depression.
+The grate is locked.
+* 
+You're in forest.
+* 
+You're in valley.
+* 
+You're in forest.
+* 
+You are in open forest near both a valley and a road.
+* 
+You're in valley.
+* Sorry, but I am not allowed to give more detail.  I will repeat the
+long description of your location.
+
+You are in a valley in the forest beside a stream tumbling along a
+rocky bed.
+* You are currently holding the following:
+ Set of keys
+ Brass lantern
+ Tasty food
+ Small bottle
+ Water in the bottle
+* Do you really want to quit now?
+** OK.
+You scored 32 out of a possible 350, using 59 turns.
+You are obviously a rank amateur.  Better luck next time.
+To achieve the next higher rating, you need 4 more points.

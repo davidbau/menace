@@ -12,4 +12,4 @@
 	url = https://github.com/RoguelikeRestorationProject/rogue3.6.git
 [submodule "adventure/adventure-c/original"]
 	path = adventure/adventure-c/original
-	url = https://github.com/Leprechaun817/open-adventure.git
+	url = https://github.com/Quuxplusone/Advent.git

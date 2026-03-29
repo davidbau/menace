@@ -1,0 +1,61 @@
+no
+east
+get lamp
+on lamp
+get keys
+get food
+get water
+west
+south
+south
+open grate
+down
+down
+west
+get cage
+west
+get bird
+east
+east
+drop cage
+get rod
+west
+west
+west
+drop bird
+west
+wave rod
+get bird
+get cage
+east
+east
+east
+drop cage
+drop rod
+drop bird
+east
+south
+get jewelry
+north
+north
+west
+west
+look
+inventory
+east
+east
+drop jewelry
+east
+xyzzy
+on lamp
+south
+south
+south
+east
+east
+north
+east
+look
+inventory
+quit
+yes
