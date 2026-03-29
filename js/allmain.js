@@ -1125,6 +1125,11 @@ async function syncTimedTurnPreInputState(game) {
 // Current JS Gate-1 unit: run the timed-turn core, then the pre-input sync
 // that JS still keeps outside moveloop_core().
 async function advanceTimedTurn(game, coreOpts) {
+    // C ref: allmain.c moveloop_core() emits ^mlc[phase=exit] at the start
+    // of each iteration, before the entry marker. This signals the end of
+    // the previous command's processing.
+    const _ctx = game.context || {};
+    pushRngLogEntry(`^mlc[phase=exit move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${game.multi||0}]`);
     await moveloop_core(game, coreOpts);
     await syncTimedTurnPreInputState(game);
 }
