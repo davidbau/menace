@@ -176,7 +176,8 @@ export async function moveloop_core(game, opts = {}) {
     assertNotInModal('moveloop_core');
     const player = (game.u || game.u);
     const _ctx = game.context || {};
-    pushRngLogEntry(`^mlc[phase=entry move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${game.multi||0} moves=${game.turnCount||0} hallu=${player?.Hallucination?1:0} blind=${player?.blind?1:0}]`);
+    // C ref: svm.moves starts at 1; JS turnCount starts at 0. Add 1 to match.
+    pushRngLogEntry(`^mlc[phase=entry move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${game.multi||0} moves=${(game.turnCount||0)+1} hallu=${player?.Hallucination?1:0} blind=${player?.blind?1:0}]`);
     const setMonsterPhase = (isMonsterPhase) => {
         const v = !!isMonsterPhase;
         game.mon_moving = v;
@@ -252,7 +253,7 @@ export async function moveloop_core(game, opts = {}) {
             // even when the hero died during movemon (wizard mode resurrection).
             // Previously JS skipped this when playerDied, causing 1-turn drift
             // per wizard-mode death → regen_hp / exercise timing offset.
-            pushRngLogEntry(`^mlc[phase=turnend moves=${game.turnCount||0}]`);
+            pushRngLogEntry(`^mlc[phase=turnend moves=${(game.turnCount||0)+1}]`);
             await moveloop_turnend(game);
         }
     } while (player.umovement < NORMAL_SPEED
@@ -260,7 +261,7 @@ export async function moveloop_core(game, opts = {}) {
         && !stopAfterTurnend
         && !(game?.playerDied));
 
-    pushRngLogEntry(`^mlc[phase=post_timed moves=${game.turnCount||0}]`);
+    pushRngLogEntry(`^mlc[phase=post_timed moves=${(game.turnCount||0)+1}]`);
     // C ref: allmain.c:397-402 — second encumber_msg() after the hero-can't-move
     // loop.  Inventory weight may have changed during nh_timeout() or other
     // turn-end processing; this gives the player immediate feedback.
@@ -2646,7 +2647,11 @@ export class NetHackGame {
                 const _p = this.u;
                 const _hallu = !!(_p?.Hallucination || _p?.hallucinating);
                 pushRngLogEntry(`^mlc[phase=exit move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0}]`);
-                pushRngLogEntry(`^mlc[phase=entry move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0} moves=${this.turnCount||0} hallu=${_hallu?1:0} blind=${_p?.blind?1:0}]`);
+                // C ref: svm.moves starts at 1; JS turnCount starts at 0.
+                // Use turnCount+1 to match C's convention (consistent with
+                // exerchk, dogmove, and other +1 compensations).
+                const _moves = (this.turnCount || 0) + 1;
+                pushRngLogEntry(`^mlc[phase=entry move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0} moves=${_moves} hallu=${_hallu?1:0} blind=${_p?.blind?1:0}]`);
                 pushRngLogEntry(`^mlc[phase=pre_input move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0} hallu=${_hallu?1:0} blind=${_p?.blind?1:0}]`);
             }
             pushRngLogEntry(`^mlc[phase=fresh_cmd]`);
