@@ -17974,3 +17974,12 @@ This is the root cause of the --More-- boundary mismatches in #392.
   despite identical message patterns. Root cause is in the SPECIFIC sequence
   of pline/flush_screen/bot calls, not in the general _botl mechanism.
   Investigation exhausted without C source access.
+
+### hitum mhitm_knockback parity fix (March 29, 2026)
+- C's hitum() calls mhitm_knockback() after known_hitum() for every
+  armed melee attack. This consumes rn2(3) + rn2(6) unconditionally.
+- JS's hitum was missing this call — only do_attack_core had knockback
+  RNG. Sessions using the hitum → known_hitum → hmon path were drifting
+  by 2 RNG per melee attack.
+- Fixed by adding mhitm_knockback between known_hitum and passive in hitum.
+- Also verified do_attack_core's inline knockback matches C's pattern.
