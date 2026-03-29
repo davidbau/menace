@@ -1804,13 +1804,6 @@ export function getArrivalPosition(map, dungeonLevel, transitionDir = null, opts
     if (transitionDir === 'up' && hasDownstair) {
         return { x: map.dnstair.x, y: map.dnstair.y };
     }
-    if (transitionDir === 'down' && hasUpdest) {
-        return { x: map.updest.lx, y: map.updest.ly };
-    }
-    if (transitionDir === 'up' && hasDndest) {
-        return { x: map.dndest.lx, y: map.dndest.ly };
-    }
-
     // Fallback: if no regular stairs, try dest regions
     if (transitionDir === 'down' && hasUpdest) {
         return { x: map.updest.lx, y: map.updest.ly };
