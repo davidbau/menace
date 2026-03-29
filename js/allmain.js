@@ -2638,6 +2638,17 @@ export class NetHackGame {
             // C ref: pre-input phase is handled by:
             // - syncTimedTurnPreInputState (for timed commands, after timed turn)
             // - renderAndAutosave (for non-timed commands, after command)
+            // C emits exit/entry/pre_input markers before every fresh_cmd.
+            // For timed commands, advanceTimedTurn emits them. For non-timed
+            // and first steps, emit them here (markers only, no side effects).
+            {
+                const _ctx = this.context || {};
+                const _p = this.u;
+                const _hallu = !!(_p?.Hallucination || _p?.hallucinating);
+                pushRngLogEntry(`^mlc[phase=exit move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0}]`);
+                pushRngLogEntry(`^mlc[phase=entry move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0} moves=${this.turnCount||0} hallu=${_hallu?1:0} blind=${_p?.blind?1:0}]`);
+                pushRngLogEntry(`^mlc[phase=pre_input move=${_ctx.move||0} mv=${_ctx.mv||0} multi=${this.multi||0} hallu=${_hallu?1:0} blind=${_p?.blind?1:0}]`);
+            }
             pushRngLogEntry(`^mlc[phase=fresh_cmd]`);
             const firstCh = await nhgetch();
             const commandResult = await this.runOneCommandCycle(firstCh);
