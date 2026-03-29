@@ -1024,6 +1024,13 @@ export async function domagicportal(trap, game) {
             if (Array.isArray(stored.spells)) player.spells = stored.spells.slice();
             game._tutorialStoredState = null;
         }
+        // C ref: nhlua.c nhl_gamestate("restore") → "Resuming regular play."
+        await pline("Resuming regular play.");
+        // C ref: nhlua.c nhl_gamestate("restore") → reset svm.moves to 1
+        // and show "Resetting time to move #1."
+        game.turnCount = 0;  // will become 1 at next turn boundary
+        game.moves = 1;
+        await pline("Resetting time to move #1.");
         await game.changeLevel(1, 'teleport', { targetDnum: 0 });
         return;
     }
