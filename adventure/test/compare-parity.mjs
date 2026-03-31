@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // Compare C adventure output with JS adventure output for parity testing.
-// Usage: node adventure/test/compare-parity.mjs <input-file> <c-output-file>
+// Supports multi-session: #SAVE saves JS state, #RESTORE restores it.
+// For C, these directives are stripped (C runs as one continuous game).
+//
+// Usage: node compare-parity.mjs <input-file> <c-output-file> [--seed N]
 
 import { readFileSync } from 'fs';
 import { AdventureGame } from '../js/advent.js';
@@ -9,28 +12,52 @@ const inputFile = process.argv[2];
 const cOutputFile = process.argv[3];
 
 if (!inputFile || !cOutputFile) {
-    console.error('Usage: node compare-parity.mjs <input-file> <c-output-file>');
+    console.error('Usage: node compare-parity.mjs <input-file> <c-output-file> [--seed N]');
     process.exit(1);
 }
 
-const inputs = readFileSync(inputFile, 'utf8').trim().split('\n');
+const rawInputs = readFileSync(inputFile, 'utf8').trim().split('\n');
 const cOutput = readFileSync(cOutputFile, 'utf8');
 const cLines = cOutput.split('\n');
 
-// Parse optional --seed flag
 const seedIdx = process.argv.indexOf('--seed');
 const seed = seedIdx >= 0 ? parseInt(process.argv[seedIdx + 1]) : null;
 
-// Run JS version with same inputs
+// Parse inputs: #SAVE and #RESTORE are directives, not game commands
+const inputs = [];
+const directives = new Map(); // index -> 'save' | 'restore'
+for (const line of rawInputs) {
+    const trimmed = line.trim();
+    if (trimmed === '#SAVE') {
+        directives.set(inputs.length, 'save');
+    } else if (trimmed === '#RESTORE') {
+        directives.set(inputs.length, 'restore');
+    } else {
+        inputs.push(trimmed);
+    }
+}
+
+// Run JS version with same inputs, handling save/restore
 const game = new AdventureGame();
 if (seed != null) game.setSeed(seed);
 
+let savedState = null;
 const jsLines = [];
 let inputIdx = 0;
 
 try {
     await game.run(
         async () => {
+            // Check for directives at current input position
+            while (directives.has(inputIdx)) {
+                const dir = directives.get(inputIdx);
+                directives.delete(inputIdx);
+                if (dir === 'save') {
+                    savedState = game.getSaveState();
+                } else if (dir === 'restore' && savedState) {
+                    game.setSaveState(savedState);
+                }
+            }
             if (inputIdx >= inputs.length) throw new Error('END_OF_INPUT');
             return inputs[inputIdx++];
         },
@@ -45,12 +72,10 @@ try {
 }
 
 // Compare line by line
-// Normalize: trim trailing spaces, collapse multiple blank lines
 function normalize(lines) {
     let result = lines
         .map(l => l.trimEnd())
         .filter((l, i, arr) => !(l === '' && i > 0 && arr[i-1] === ''));
-    // Trim trailing empty lines
     while (result.length > 0 && result[result.length - 1] === '') result.pop();
     return result;
 }
