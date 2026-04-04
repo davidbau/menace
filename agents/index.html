@@ -332,14 +332,32 @@
 let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true,'subagent-work':true,watchdog:false,commit:true,doc:true};
 
 async function init() {
-  // Load timeline data
-  const DATA_URLS = ['data/timeline.jsonl', 'https://davidbau.github.io/menace-agents/data/timeline.jsonl'];
-  let text = null;
-  for (const url of DATA_URLS) {
-    try { const r = await fetch(url); if (r.ok) { text = await r.text(); break; } } catch {}
+  // Load timeline data (split into parts for size limits)
+  const BASE_URLS = ['data/', 'https://davidbau.github.io/menace-agents/data/'];
+  const PARTS = ['timeline-part1.jsonl', 'timeline-part2.jsonl'];
+  let allLines = [];
+  for (const part of PARTS) {
+    for (const base of BASE_URLS) {
+      try {
+        const r = await fetch(base + part);
+        if (r.ok) {
+          const text = await r.text();
+          allLines.push(...text.trim().split('\n'));
+          break;
+        }
+      } catch {}
+    }
   }
-  if (!text) { document.getElementById('timeline').textContent = 'Failed to load timeline data.'; return; }
-  DATA = text.trim().split('\n').map(l=>JSON.parse(l));
+  if (!allLines.length) {
+    for (const base of BASE_URLS) {
+      try {
+        const r = await fetch(base + 'timeline.jsonl');
+        if (r.ok) { allLines = (await r.text()).trim().split('\n'); break; }
+      } catch {}
+    }
+  }
+  if (!allLines.length) { document.getElementById('timeline').textContent = 'Failed to load timeline data.'; return; }
+  DATA = allLines.map(l=>JSON.parse(l));
 
   // Load chapters
   const CH_URLS = ['data/chapters.json', 'https://davidbau.github.io/menace-agents/data/chapters.json'];
