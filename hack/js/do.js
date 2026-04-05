@@ -825,8 +825,23 @@ export async function rhack(cmd) {
       try {
         const { Shell } = await import('../../shell/shell.js');
         const d = game.display;
-        const shell = new Shell(d, () => game.input.getKey());
+        // Disable hack's cursor-sync hook during subshell
+        const savedBeforeWait = game.input.beforeWait;
+        game.input.beforeWait = null;
+        // Shell getch expects numeric char codes; hack getKey returns string chars.
+        // Hack's Ctrl-C throws Interrupted — catch it and return char code 3.
+        const shell = new Shell(d, async () => {
+          try {
+            const ch = await game.input.getKey();
+            return ch.charCodeAt(0);
+          } catch (e) {
+            if (e.constructor?.name === 'Interrupted') return 3; // Ctrl-C
+            throw e;
+          }
+        });
         await shell.run({ subshell: true });
+        // Restore hack state
+        game.input.beforeWait = savedBeforeWait;
         d.clearScreen();
         await docrt();
         bot();
