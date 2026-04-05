@@ -77,7 +77,7 @@ export class Shell {
             await this._runInShellGame(gameName);
             return;
         }
-        const inShellGames = { dungeon: 'dungeon', adventure: 'adventure', zork: 'dungeon' };
+        const inShellGames = { dungeon: 'dungeon', advent: 'adventure', zork: 'dungeon' };
         if (inShellGames[gameName]) {
             throw new ShAction({ action: inShellGames[gameName], game: gameName });
         }
@@ -257,6 +257,7 @@ export class Shell {
     }
 
     _promptString() {
+        if (this._promptOverride) return this._promptOverride;
         const cwd = this.fs.cwd;
         const display = cwd === HOMEDIR ? '~' :
                         cwd.startsWith(HOMEDIR + '/') ? '~' + cwd.slice(HOMEDIR.length) : cwd;
@@ -795,14 +796,14 @@ export class Shell {
 
             this.display.clearScreen();
             this.scrollBuffer = [];
+            this._promptOverride = '> ';
 
             const input = async () => {
                 // Page buffered output
                 await this._flushDungeonBuffer(pendingLines);
                 pendingLines.length = 0;
 
-                // Show prompt
-                this.printPrompt('> ');
+                // Show prompt (uses _promptOverride = '> ')
                 const line = await this._readLine();
                 this._addLine('> ' + line, PROMPT_COLOR);
                 return line;
@@ -815,6 +816,7 @@ export class Shell {
                 await this._flushDungeonBuffer(pendingLines);
                 pendingLines.length = 0;
             }
+            this._promptOverride = null;
         } catch (e) {
             this._addLine(`adventure: ${e.message || e}`, OUTPUT_COLOR);
         }
