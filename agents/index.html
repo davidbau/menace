@@ -333,7 +333,12 @@ let DATA=[], CHAPTERS=[], SHOW={human:true,'ai-work':true,'agent-directive':true
 
 async function init() {
   // Load timeline data (split into parts for size limits)
-  const BASE_URLS = ['data/', 'https://davidbau.github.io/menace-agents/data/'];
+  // When hosted on mazesofmenace.net, skip the local data/ path (it doesn't exist)
+  // and go straight to the GitHub Pages fallback.
+  const isRemote = location.hostname.includes('mazesofmenace');
+  const BASE_URLS = isRemote
+    ? ['https://davidbau.github.io/menace-agents/data/']
+    : ['data/', 'https://davidbau.github.io/menace-agents/data/'];
   const PARTS = ['timeline-part1.jsonl', 'timeline-part2.jsonl'];
   let allLines = [];
   for (const part of PARTS) {
@@ -360,7 +365,9 @@ async function init() {
   DATA = allLines.map(l=>JSON.parse(l));
 
   // Load chapters
-  const CH_URLS = ['data/chapters.json', 'https://davidbau.github.io/menace-agents/data/chapters.json'];
+  const CH_URLS = isRemote
+    ? ['https://davidbau.github.io/menace-agents/data/chapters.json']
+    : ['data/chapters.json', 'https://davidbau.github.io/menace-agents/data/chapters.json'];
   for (const url of CH_URLS) {
     try { const r = await fetch(url); if (r.ok) { CHAPTERS = await r.json(); break; } } catch {}
   }
