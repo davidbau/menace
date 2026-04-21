@@ -54,8 +54,9 @@ through.
 - [Appendix A: The Complete Treasure List](#appendix-a-the-complete-treasure-list)
 - [Appendix B: The Master Map](#appendix-b-the-master-map)
 - [Appendix C: Magic Words, Verbs, and Shortcuts](#appendix-c-magic-words-verbs-and-shortcuts)
-- [Appendix D: Death Scenarios and Prevention](#appendix-d-death-scenarios-and-prevention)
-- [Appendix E: The Last Point](#appendix-e-the-last-point)
+- [Appendix D: The Combat Arithmetic](#appendix-d-the-combat-arithmetic)
+- [Appendix E: Death Scenarios and Prevention](#appendix-e-death-scenarios-and-prevention)
+- [Appendix F: The Last Point](#appendix-f-the-last-point)
 
 ---
 
@@ -1125,7 +1126,59 @@ lieu of reproducing it inline, the essential junctions are:
 
 ---
 
-## Appendix D: Death Scenarios and Prevention
+## Appendix D: The Combat Arithmetic
+
+Before the list of death scenarios, here is the math that governs
+combat. It is small and finite and worth memorizing if you plan on
+fighting anything more dangerous than the troll.
+
+**Your base fight strength** is derived from your score:
+
+```
+strength = 2 + floor((5 * score + 308) / 616)
+```
+
+Which yields:
+
+- 0–61: strength 2
+- 62–184: strength 3
+- 185–307: strength 4
+- 308–430: strength 5
+- 431–554: strength 6
+- 555+: strength 7
+
+**Your effective strength** in any given exchange is base strength
+plus a wound penalty (your `astren`, which is 0 when healthy and
+negative when injured; recovers +1 every 30 turns via the cure clock).
+*DIAGNOSE* reports the remaining recovery time.
+
+**Villain strengths**: Troll = 2, Thief = 5, Cyclops = 10000,
+Gnome ≈ 1, minor maze denizens = 1 or 2.
+
+**Per-exchange win probability.** Let `ps = villain − you`. The
+villain wins the exchange with:
+
+- `ps > 3`: 90%
+- `ps > 0`: 75%
+- `ps = 0`: 50%
+- `ps < 0` and villain still has some capacity: 25%
+- `ps < 0` and villain is nearly broken: 10%
+
+Villain capacity falls by roughly one per successful blow against
+them. You similarly accumulate wounds from successful blows against
+you.
+
+**Strategic corollary.** To fight the thief fairly (50/50), you need
+strength 5, which requires score 308 or higher. To fight him
+*favorably*, you need strength 6 — score 431+. This is why the
+walkthrough has you collect the easier treasures before visiting his
+lair. The walkthrough puts the egg in his hands *early* (he opens it
+for you) but kills him *late*, after roughly half the trophy case is
+full.
+
+---
+
+## Appendix E: Death Scenarios and Prevention
 
 The following cause instant death. For each, the preventative is in
 brackets.
@@ -1159,7 +1212,7 @@ brackets.
 
 ---
 
-## Appendix E: The Last Point
+## Appendix F: The Last Point
 
 The 616th point is traditionally the hardest to locate because it
 appears only once, from an unobtrusive action, and it is easy to

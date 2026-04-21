@@ -228,13 +228,125 @@ mazes. Finding them is half the reward.</p>
 </section>
 <section id="strength-death-and-the-twice-dead-rule" class="level3">
 <h3>Strength, Death, and the Twice-Dead Rule</h3>
-<p>Your character has a notional fighting strength which falls during
-combat, falls further when you are wounded, and recovers with time. The
-<strong>DIAGNOSE</strong> command will tell you roughly how damaged you
-are and roughly how long recovery will take. Recovery happens on its own
-— you don’t have to do anything — so after a hard fight, it is often
-wise to walk somewhere safe, sit down, and <em>WAIT</em> for a few
-turns.</p>
+<p>Your character has two things that affect combat. One is a permanent
+<strong>base strength</strong> that grows as you play. The other is a
+temporary <strong>wound penalty</strong> that shrinks when you get hit
+and recovers with time. Understanding both is essential to knowing when
+to fight.</p>
+<p><strong>Base strength grows with your score.</strong> This is the
+single most important and least obvious mechanic in the game. Your score
+— the number the <em>SCORE</em> command reports — is not only a measure
+of how well you are doing. It is also your <em>character level</em>. The
+game uses a simple linear formula: a score of zero gives you the minimum
+strength of 2, and a maximum score of 616 gives you 7. The thresholds,
+roughly, are:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Score</th>
+<th style="text-align: left;">Strength</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0–61</td>
+<td style="text-align: left;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;">62–184</td>
+<td style="text-align: left;">3</td>
+</tr>
+<tr>
+<td style="text-align: right;">185–307</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr>
+<td style="text-align: right;">308–430</td>
+<td style="text-align: left;">5</td>
+</tr>
+<tr>
+<td style="text-align: right;">431–554</td>
+<td style="text-align: left;">6</td>
+</tr>
+<tr>
+<td style="text-align: right;">555+</td>
+<td style="text-align: left;">7</td>
+</tr>
+</tbody>
+</table>
+<p>Every 62 to 123 points you accumulate pushes you up another step. The
+points can come from <em>anything</em> that scores: picking up a
+treasure (half points), putting it in the trophy case (the other half),
+or visiting a special room for the first time. The game does not
+distinguish between “earned through combat” and “earned through
+housekeeping.” Dropping the platinum bar in the case makes you
+measurably better at swinging a sword. That is not a metaphor; it is the
+formula.</p>
+<p><strong>Wounds subtract from your effective strength
+temporarily.</strong> Every landed blow by an enemy sets an internal
+“stamina” value to a small negative number. The stamina recovers by one
+unit every thirty turns of game time. While you are wounded, your
+<em>effective</em> fight strength is the base strength
+<strong>plus</strong> the (negative) stamina. A fresh wound easily
+brings you back to where you were fifty points ago.</p>
+<p>The <strong>DIAGNOSE</strong> command reports both values indirectly:
+a message about a “slight” or “serious” injury tells you how much
+stamina you’ve lost, and the “you will be cured after X moves” line
+tells you how long until you’re back to zero. If <em>DIAGNOSE</em> says
+you’re injured, <strong>don’t pick a second fight</strong>. Find a lit
+room, <em>WAIT</em>, and check again. Recovery is free; dying is
+not.</p>
+<p><strong>Villain strengths, for comparison.</strong> Because the
+underlying table is small and finite, it’s worth knowing it:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Opponent</th>
+<th style="text-align: right;">Strength</th>
+<th style="text-align: left;">Fair Match At</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Troll</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Score 0 (50/50 from the start)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Thief</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">Score 300+ (coin flip); 430+
+(favored)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Cyclops</td>
+<td style="text-align: right;">10,000</td>
+<td style="text-align: left;">Never — do not fight him</td>
+</tr>
+<tr>
+<td style="text-align: left;">Gnome of Zurich</td>
+<td style="text-align: right;">low</td>
+<td style="text-align: left;">Any score</td>
+</tr>
+</tbody>
+</table>
+<p>The troll is designed to be a fair fight at the beginning of the
+game. The thief is emphatically not. A player who walks into the thief’s
+lair at score 25 is executing the same plan as a player who walks into a
+chainsaw. The thief is a late-game opponent, in combat terms; you are
+<em>supposed</em> to meet him earlier, let him rob you blind, and come
+back for your things when you’re strong.</p>
+<p><strong>Other combat modifiers.</strong> A handful of weapons are
+preferred against specific opponents. The <strong>elvish sword</strong>
+is the all-purpose weapon and glows blue near danger. The <strong>nasty
+knife</strong> (from the attic) is slightly better against the
+<strong>thief</strong> specifically — the game recognizes the dramatic
+appropriateness of stabbing him with a stiletto-analogue. A few villains
+are resistant to particular weapons, and the game will say so when you
+try.</p>
+<p>Combat in Dungeon is less about tactics and more about <em>when</em>.
+Most of your decisions come down to one question: is my score high
+enough for this?</p>
 <p>You can die. Most of your deaths will not end the game. When you are
 killed (by the troll, by the thief, by a fall, by darkness, by an
 ill-advised <em>LEAP</em>), your possessions are scattered through the
@@ -292,8 +404,17 @@ reclaim them from his lair.</li>
 <li><strong>Give him something you want opened.</strong> He is a skilled
 jeweler. The jewel-encrusted egg, in particular, has a lock too delicate
 for your fingers. He has no such difficulty.</li>
-<li><strong>Kill him, in his lair.</strong> Use the elvish sword, or
-something sharper, and bring your health with you.</li>
+<li><strong>Kill him, in his lair.</strong> Use the nasty knife
+(slightly better than the sword, against him), bring your health with
+you, and — critically — bring your <em>score</em>. See the previous
+section: your fight strength scales with the total points you’ve
+accumulated. The thief is a 5. You start as a 2. He dominates you
+three-to-one on every exchange until your score climbs past 300, reaches
+parity around 400, and tilts in your favor at 430 and above. This is why
+the conventional order is: gather the easy treasures first, bank them in
+the trophy case, <em>then</em> pay the thief a visit. A player who tries
+to kill him at score 25 is attempting a task that the game’s own
+arithmetic rejects.</li>
 </ol>
 <p>The thief is the game’s best-designed antagonist. Treat him well.</p>
 <hr />

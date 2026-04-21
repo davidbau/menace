@@ -91,9 +91,11 @@ Complete Treasure List</a></li>
 Map</a></li>
 <li><a href="#appendix-c-magic-words-verbs-and-shortcuts">Appendix C:
 Magic Words, Verbs, and Shortcuts</a></li>
-<li><a href="#appendix-d-death-scenarios-and-prevention">Appendix D:
+<li><a href="#appendix-d-the-combat-arithmetic">Appendix D: The Combat
+Arithmetic</a></li>
+<li><a href="#appendix-e-death-scenarios-and-prevention">Appendix E:
 Death Scenarios and Prevention</a></li>
-<li><a href="#appendix-e-the-last-point">Appendix E: The Last
+<li><a href="#appendix-f-the-last-point">Appendix F: The Last
 Point</a></li>
 </ul>
 <hr />
@@ -1089,8 +1091,53 @@ Endgame quiz</li>
 </ul>
 <hr />
 </section>
-<section id="appendix-d-death-scenarios-and-prevention" class="level2">
-<h2>Appendix D: Death Scenarios and Prevention</h2>
+<section id="appendix-d-the-combat-arithmetic" class="level2">
+<h2>Appendix D: The Combat Arithmetic</h2>
+<p>Before the list of death scenarios, here is the math that governs
+combat. It is small and finite and worth memorizing if you plan on
+fighting anything more dangerous than the troll.</p>
+<p><strong>Your base fight strength</strong> is derived from your
+score:</p>
+<pre><code>strength = 2 + floor((5 * score + 308) / 616)</code></pre>
+<p>Which yields:</p>
+<ul>
+<li>0–61: strength 2</li>
+<li>62–184: strength 3</li>
+<li>185–307: strength 4</li>
+<li>308–430: strength 5</li>
+<li>431–554: strength 6</li>
+<li>555+: strength 7</li>
+</ul>
+<p><strong>Your effective strength</strong> in any given exchange is
+base strength plus a wound penalty (your <code>astren</code>, which is 0
+when healthy and negative when injured; recovers +1 every 30 turns via
+the cure clock). <em>DIAGNOSE</em> reports the remaining recovery
+time.</p>
+<p><strong>Villain strengths</strong>: Troll = 2, Thief = 5, Cyclops =
+10000, Gnome ≈ 1, minor maze denizens = 1 or 2.</p>
+<p><strong>Per-exchange win probability.</strong> Let
+<code>ps = villain − you</code>. The villain wins the exchange with:</p>
+<ul>
+<li><code>ps &gt; 3</code>: 90%</li>
+<li><code>ps &gt; 0</code>: 75%</li>
+<li><code>ps = 0</code>: 50%</li>
+<li><code>ps &lt; 0</code> and villain still has some capacity: 25%</li>
+<li><code>ps &lt; 0</code> and villain is nearly broken: 10%</li>
+</ul>
+<p>Villain capacity falls by roughly one per successful blow against
+them. You similarly accumulate wounds from successful blows against
+you.</p>
+<p><strong>Strategic corollary.</strong> To fight the thief fairly
+(50/50), you need strength 5, which requires score 308 or higher. To
+fight him <em>favorably</em>, you need strength 6 — score 431+. This is
+why the walkthrough has you collect the easier treasures before visiting
+his lair. The walkthrough puts the egg in his hands <em>early</em> (he
+opens it for you) but kills him <em>late</em>, after roughly half the
+trophy case is full.</p>
+<hr />
+</section>
+<section id="appendix-e-death-scenarios-and-prevention" class="level2">
+<h2>Appendix E: Death Scenarios and Prevention</h2>
 <p>The following cause instant death. For each, the preventative is in
 brackets.</p>
 <ul>
@@ -1126,8 +1173,8 @@ robot first.]</li>
 </ul>
 <hr />
 </section>
-<section id="appendix-e-the-last-point" class="level2">
-<h2>Appendix E: The Last Point</h2>
+<section id="appendix-f-the-last-point" class="level2">
+<h2>Appendix F: The Last Point</h2>
 <p>The 616th point is traditionally the hardest to locate because it
 appears only once, from an unobtrusive action, and it is easy to miss on
 a casual run. The official hint, from the game itself:</p>
