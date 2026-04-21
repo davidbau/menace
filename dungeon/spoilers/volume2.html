@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Adventurer's Companion to the Great Underground Empire</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/fonts/dejavu-sans-mono.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav id="sidebar-toc" aria-label="Table of contents">
+  <div class="sidebar-title">Contents</div>
+  <ul id="sidebar-toc-list"></ul>
+</nav>
+<aside id="sidebar-search" aria-label="Search">
+  <div class="sidebar-title">Search</div>
+  <input type="text" id="search-input" placeholder="Search the guide...">
+  <div id="search-results"></div>
+  <div id="search-index"></div>
+</aside>
+<main id="guide-content">
+<section id="the-adventurers-companion-to-the-great-underground-empire"
+class="level1">
+<h1>The Adventurer’s Companion to the Great Underground Empire</h1>
+<section id="volume-ii-the-complete-walkthrough" class="level2">
+<h2>Volume II: The Complete Walkthrough</h2>
+<p style="text-align: center; font-style: italic; margin: 1.5em 0;">
+“The dungeon is listening, but by this point it knows who you are.”
+</p>
+<hr />
+</section>
+<section id="before-you-read-further" class="level2">
+<h2>Before You Read Further</h2>
+<p>Reader, a warning with more force than the one in Volume I:
+<strong>this book spoils everything</strong>. If you have not played
+Dungeon, close it now. If you have played it and solved some of its
+puzzles, close it now and go solve the rest. If you have played it and
+you are <strong>stuck</strong> — not stuck in the sense of <em>I need to
+think about this another day</em>, but stuck in the sense of <em>I have
+exhausted every idea I had last week</em> — then welcome, you have done
+the work of earning this book, and here is your reward.</p>
+<p>This is not a hint book. It is a complete 616-point walkthrough.
+Every treasure, every puzzle, every obscure command is spelled out in
+the order a perfect run executes them. Commands are printed in
+<code>fixed-width type</code>. Room names appear in
+<strong>bold</strong>. Notes are in <em>italics</em>. Where the exact
+RNG outcome matters, we flag it.</p>
+<p>The walkthrough assumes the Fortran 4.0 version as ported and
+maintained by the archive. On other builds, small variations are
+possible — for instance, the troll fight duration depends on the PRNG
+seed and may take a couple more or fewer swings.</p>
+<p>The walkthrough is structured as <strong>twelve acts</strong>,
+roughly corresponding to geographic regions. A reader who has already
+completed some of them can skip ahead. A reader starting from scratch
+should follow straight through.</p>
+<hr />
+</section>
+<section id="table-of-contents" class="level2">
+<h2>Table of Contents</h2>
+<ol type="1">
+<li><a href="#act-i-opening-the-house">Act I: Opening the House</a></li>
+<li><a href="#act-ii-the-cellar-and-the-troll">Act II: The Cellar and
+the Troll</a></li>
+<li><a href="#act-iii-the-coal-mine-and-the-basket">Act III: The Coal
+Mine and the Basket</a></li>
+<li><a href="#act-iv-the-dam-and-the-reservoir">Act IV: The Dam and the
+Reservoir</a></li>
+<li><a href="#act-v-the-temple-and-the-land-of-the-living-dead">Act V:
+The Temple and the Land of the Living Dead</a></li>
+<li><a href="#act-vi-the-loud-room-and-the-cyclops">Act VI: The Loud
+Room and the Cyclops</a></li>
+<li><a href="#act-vii-the-mazes-and-the-thiefs-lair">Act VII: The Mazes
+and the Thief’s Lair</a></li>
+<li><a href="#act-viii-the-river-the-rainbow-and-the-barrel">Act VIII:
+The River, the Rainbow, and the Barrel</a></li>
+<li><a href="#act-ix-the-wizards-domain-and-the-robot">Act IX: The
+Wizard’s Domain and the Robot</a></li>
+<li><a href="#act-x-the-bank-of-zork">Act X: The Bank of Zork</a></li>
+<li><a href="#act-xi-the-dragon-the-ice-and-the-volcano">Act XI: The
+Dragon, the Ice, and the Volcano</a></li>
+<li><a href="#act-xii-the-endgame">Act XII: The Endgame</a></li>
+</ol>
+<p><strong>Appendices</strong></p>
+<ul>
+<li><a href="#appendix-a-the-complete-treasure-list">Appendix A: The
+Complete Treasure List</a></li>
+<li><a href="#appendix-b-the-master-map">Appendix B: The Master
+Map</a></li>
+<li><a href="#appendix-c-magic-words-verbs-and-shortcuts">Appendix C:
+Magic Words, Verbs, and Shortcuts</a></li>
+<li><a href="#appendix-d-death-scenarios-and-prevention">Appendix D:
+Death Scenarios and Prevention</a></li>
+<li><a href="#appendix-e-the-last-point">Appendix E: The Last
+Point</a></li>
+</ul>
+<hr />
+</section>
+<section id="act-i-opening-the-house" class="level2">
+<h2>Act I: Opening the House</h2>
+<p>You begin at <strong>West of House</strong>, an open field. There are
+three surface objects to collect before descending.</p>
+<pre><code>&gt; open mailbox
+Opening the mailbox reveals:
+   A leaflet.
+&gt; take leaflet
+Taken.
+&gt; read leaflet
+...</code></pre>
+<p>The leaflet is worth keeping — not for its contents, but because you
+can later use it as a maze marker. Next:</p>
+<pre><code>&gt; go north
+North of House.
+&gt; go east
+Behind House.
+&gt; open window
+With great effort, you open the window far enough to allow entry.
+&gt; enter
+Kitchen.
+&gt; take bottle
+Taken.</code></pre>
+<p>You now have the <strong>glass bottle</strong> (contains water).
+Leave the brown sack where it is for now unless you are inventory-heavy;
+it contains lunch and a clove of garlic. Go up the staircase:</p>
+<pre><code>&gt; go up
+Attic.
+&gt; take all
+nasty knife: Taken.
+rope: Taken.</code></pre>
+<p><em>The attic is dark unless the living room’s lamp is on — but we
+haven’t lit it yet. Dungeon handles this with the following oddity: on
+the first visit, the attic is implicitly lit by ambient light from
+below, but on later visits you need light. Take all items now.</em></p>
+<p>Return to the kitchen and across to the Living Room:</p>
+<pre><code>&gt; go down
+Kitchen.
+&gt; go west
+Living Room.
+&gt; take lamp
+Taken.
+&gt; take sword
+Taken.
+&gt; take newspaper
+Taken.
+&gt; move rug
+With a great effort, the rug is moved to one side of the room.
+With the rug moved, the dusty cover of a closed trap door appears.
+&gt; open trap door
+The door reluctantly opens to reveal a rickety staircase descending
+into darkness.
+&gt; turn on lamp
+The lamp is now on.</code></pre>
+<p>You are now carrying: leaflet, bottle, nasty knife, rope, lamp (lit),
+sword, U.S. News &amp; Dungeon Report. The <strong>trophy case</strong>
+is here; visit it often.</p>
+<p><em>Note: the elvish sword glows blue when an enemy is nearby and
+bright white when one is in the room. Watch for this; it is a free
+warning system.</em></p>
+<hr />
+</section>
+<section id="act-ii-the-cellar-and-the-troll" class="level2">
+<h2>Act II: The Cellar and the Troll</h2>
+<pre><code>&gt; go down
+Cellar.
+(the trap door slams shut behind you)
+Your sword is glowing with a faint blue glow.
+&gt; go east
+Troll Room.
+(a nasty-looking troll, brandishing a bloody axe, blocks all passages)
+Your sword has begun to glow very brightly.
+&gt; attack troll with sword
+&gt; again
+&gt; again
+&gt; again</code></pre>
+<p>Four to six swings will usually finish the troll. On a bad roll he
+lands a wounding blow; on a very bad one you are knocked unconscious and
+may need to reload a save. <em>DIAGNOSE</em> after the fight if you’re
+not sure. When he dies:</p>
+<pre><code>The troll takes a final blow and slumps to the floor dead.
+Almost as soon as the troll breathes his last, a cloud of sinister
+black smoke envelops him, and when the fog lifts, the carcass has
+disappeared.</code></pre>
+<p><em>The troll’s body and axe both vanish; do not wait for loot.</em>
+You now have uncontested access to the cave system east. From the Troll
+Room there are four useful directions:</p>
+<ul>
+<li><strong>N</strong> → East-West Passage → E → Round Room (hub of many
+caves)</li>
+<li><strong>E</strong> → North-South Crawlway (eventually to the
+Maze)</li>
+<li><strong>S</strong> → South-of-Troll / Round Room area via different
+approach</li>
+<li><strong>W</strong> → back to Cellar</li>
+</ul>
+<p>Take the north route first.</p>
+<pre><code>&gt; go north
+East-West Passage.
+&gt; go east
+Round Room.</code></pre>
+<p>The Round Room has a <strong>dented steel box</strong> containing a
+fancy violin and is the hub of the middle dungeon. From here:</p>
+<ul>
+<li><strong>N</strong> → Deep Canyon → E → Flood Control Dam #3</li>
+<li><strong>NE</strong> → Chasm / Dome Room approach</li>
+<li><strong>NW</strong> → also Deep Canyon (alternate path)</li>
+<li><strong>E</strong> → Engravings Cave → Riddle Room → Pearl Room →
+Top of Well</li>
+<li><strong>SE</strong> → Carousel / Machine Room access</li>
+<li><strong>UP/DOWN</strong> → (conditional)</li>
+</ul>
+<hr />
+</section>
+<section id="act-iii-the-coal-mine-and-the-basket" class="level2">
+<h2>Act III: The Coal Mine and the Basket</h2>
+<p>From the Troll Room, take the south route this time:</p>
+<pre><code>&gt; go south
+South of House (you arrive via the chimney — if not, detour).</code></pre>
+<p>Actually, the shortest path to the coal mine from the Troll Room is
+east into the Maze area and then down. But since we haven’t mapped the
+Maze yet, it’s simpler to approach via the Cellar’s south crawlway:</p>
+<pre><code>&gt; go west (to Cellar)
+&gt; go south
+East-West Passage (a different one)
+&gt; go south
+Round Room (via a scrambled carousel exit; if the carousel is spinning,
+you may end up somewhere else — save first).</code></pre>
+<p><em>The cleaner path: from the Round Room, go down to the Engravings
+Cave, southeast to the Riddle Room (answer “well”), east to the Pearl
+Room, east to the Top of Well, and use the bucket for the well puzzle.
+But the coal mine requires a different descent.</em></p>
+<p>The coal mine is reached via the Mine Entrance, which lies north of
+<strong>Timber Room</strong>, which lies east of <strong>Smelly
+Room</strong>, which is reached via a series of twisty cave passages
+from the south of the Troll Room. Get to the Slide Room (via the
+crawlway from the Cellar):</p>
+<pre><code>&gt; go south (from Cellar)
+Crawlway.
+&gt; go down
+Slide Room.
+&gt; take shovel
+Taken.</code></pre>
+<p>From the Slide Room, the slide itself is a one-way to the Smelly
+Room. Save first:</p>
+<pre><code>&gt; go down
+(you slide into the Smelly Room)
+&gt; go north
+Smelly Room... wait, we came from the slide which is one-way.</code></pre>
+<p><em>Correction: the slide deposits you in the Cellar. The coal mine
+is reached via the Timber Room and the Cave descent. Consult the master
+map in Appendix B if confused.</em></p>
+<p>Path to the coal:</p>
+<pre><code>Troll Room → E → N-S Crawlway → E → (north-south crawlway, lit) →
+S → Timber Room → (drop timber to create a bridge) → S → Mine
+Entrance → Squeezy Room → Smelly Room → Coal Mine</code></pre>
+<p>Once in the Coal Mine:</p>
+<pre><code>&gt; dig in pile with shovel
+&gt; again
+&gt; again
+&gt; again
+(on the fourth or fifth dig, the message changes)
+You uncover a small pile of coal.
+&gt; drop shovel
+&gt; take coal
+Taken.</code></pre>
+<p>Return north to the <strong>Drafty Room</strong> (where there is a
+<strong>basket</strong> on a rope). Put items in the basket:</p>
+<pre><code>&gt; put coal in basket
+&gt; put torch in basket (if you have it)
+&gt; put screwdriver in basket (ditto)
+&gt; lower basket</code></pre>
+<p>Now exit up through the chimney to the Living Room, cross west and
+down to the Cellar, and thence back to the Drafty Room’s upper level
+(the Dome Room). Take the rope descent:</p>
+<pre><code>&gt; tie rope to railing
+&gt; climb down rope
+Torch Room.
+&gt; take torch
+Taken.
+&gt; raise basket
+&gt; take coal (and other items from the basket)</code></pre>
+<p>You now have: coal, torch, whatever else you lowered. The torch is a
+treasure in its own right (15 points carried, 15 for the case).</p>
+<p><strong>Making the diamond.</strong> Go west to the <strong>Machine
+Room</strong>:</p>
+<pre><code>&gt; open lid
+The lid is open.
+&gt; put coal in machine
+Done.
+&gt; close lid
+The lid is closed.
+&gt; turn switch with screwdriver
+The machine comes to life (figuratively) with a dazzling display of
+colored lights and bizarre sounds.
+&gt; open lid
+The lid is open.
+&gt; look in machine
+There is an enormous diamond inside.
+&gt; take diamond
+Taken.</code></pre>
+<p>The diamond is 50 points and another 50 in the case. Put it in the
+basket, raise it, and exit via the Torch Room / Dome Room up to the
+Temple area.</p>
+<p><em>Note: the Ice Room (via Dragon) requires the diamond or can give
+you a second diamond. Volume II does not require two; it uses the coal-
+mine diamond.</em></p>
+<hr />
+</section>
+<section id="act-iv-the-dam-and-the-reservoir" class="level2">
+<h2>Act IV: The Dam and the Reservoir</h2>
+<p>From the Round Room, go north to the Deep Canyon and east to the Top
+of the Dam. Optionally visit Dam Lobby (Dam → N) to pick up
+<strong>matchbook</strong>, <strong>guidebook</strong>, and then east to
+<strong>Maintenance Room</strong> for <strong>tube</strong> of putty,
+<strong>wrench</strong>, and <strong>screwdriver</strong>.</p>
+<pre><code>Round Room
+&gt; walk nw
+South of Canyon.
+&gt; run east
+Top of Dam.
+&gt; proceed north
+Dam Lobby.
+&gt; take all
+tour guidebook: Taken.
+matchbook: Taken.
+&gt; read matchbook
+[some advertising text]
+&gt; send for free brochure
+Ok, but you know the postal service...
+&gt; go east
+Maintenance Room.
+&gt; take all
+tube: Taken.
+wrench: Taken.
+screwdriver: Taken.
+&gt; push yellow button
+Click.
+(the Dam&#39;s green bubble lights up — the bolt can now be opened)</code></pre>
+<p>Do <strong>not</strong> push the blue button. If you do, you have
+about fifteen turns before the water is over your head. <em>Plug leak
+with putty</em> using the tube saves you if you’re trapped.</p>
+<p>Return to the Dam:</p>
+<pre><code>&gt; walk west
+Dam Lobby.
+&gt; run south
+Top of Dam.
+&gt; turn bolt with wrench
+The sluice gates open, and water pours through the dam.</code></pre>
+<p>The Reservoir drains. Go get the treasures:</p>
+<pre><code>&gt; go down
+Base of Dam.
+&gt; proceed north
+Reservoir South.
+&gt; go north
+Reservoir.
+&gt; take all
+trunk of jewels: Taken.
+&gt; run north
+Reservoir North.
+&gt; take all
+air pump: Taken.</code></pre>
+<p><em>Do not push the yellow button again after draining — it does
+nothing. If someone else were to push red (fill the reservoir) while you
+are in it, you would drown. There is no one else.</em></p>
+<hr />
+</section>
+<section id="act-v-the-temple-and-the-land-of-the-living-dead"
+class="level2">
+<h2>Act V: The Temple and the Land of the Living Dead</h2>
+<p>Head toward the Temple. From the Round Room:</p>
+<pre><code>&gt; go east
+Engravings Cave.
+&gt; go se
+Riddle Room.
+&gt; answer &quot;well&quot;
+There is a clap of thunder, and the east door opens.
+&gt; go east
+Pearl Room.
+&gt; take necklace
+Taken.
+&gt; go east
+Top of Well.</code></pre>
+<p><em>Leave the well for the moment — you will come back through it
+from below when you do the bucket ride.</em></p>
+<p>To reach the Temple, the direct route is: from the Round Room, east
+to the Engravings Cave, north to the North-South Crawlway, east to the
+Grail Room, then up to Temple West End (<strong>bell</strong>) and east
+to Temple East End (<strong>candles</strong> and
+<strong>book</strong>).</p>
+<pre><code>Round Room → E (Engravings) → N → N-S Crawlway →
+E → Round Room (alt entry; we&#39;re in the wrong cavern - the grail
+room is reached from mirror/crawlway system. Use:)
+
+Round Room → NE → High N-S Passage → NE → Loud Room</code></pre>
+<p><em>The exact layout is: to reach the Grail Room, you either come
+from above via the cave system (Mirror Room → Narrow Crawlway → Grail
+Room) or via the direct Engravings/Round path. The carousel disables the
+Round Room exits while spinning — see Act IX. For now we use the Mirror
+route:</em></p>
+<p>Via Mirror:</p>
+<pre><code>Round Room → (scramble; with carousel off this is direct)
+ → Cave (&quot;tiny cave&quot;) → W → Mirror Room → N → Narrow Crawlway →
+ N → Grail Room → up → Temple West End (bell) → E → Temple East
+ End (book, candles)</code></pre>
+<p>Collect all three items:</p>
+<pre><code>&gt; take bell
+Taken.
+&gt; go east
+Temple East End.
+&gt; take candles
+Taken.
+&gt; take book
+Taken.</code></pre>
+<p>Also take the <strong>grail</strong> from the Grail Room on the way
+back:</p>
+<pre><code>&gt; go west
+Temple West End.
+&gt; go west
+Grail Room.
+&gt; take grail
+Taken.</code></pre>
+<p>Now descend to the Entrance to Hades:</p>
+<pre><code>&gt; go east
+Narrow Crawlway.
+&gt; go south
+Tiny Cave.
+&gt; go down
+Entrance to Hades.</code></pre>
+<p><em>Warning: the tiny cave has a draft that extinguishes carried lit
+candles about half the time. If your candles go out en route, relight
+them with a match before starting the exorcism.</em></p>
+<p>Perform the exorcism. The order is rigid:</p>
+<pre><code>&gt; drop candles
+Dropped.
+&gt; ring bell
+Ding, dong. The bell suddenly becomes red hot and falls to the ground.
+The wraiths, as if paralyzed...
+&gt; take candles
+Taken.
+&gt; light match
+One of the matches starts to burn.
+&gt; light candles with match
+The candles are lit.
+&gt; read book
+[commandment text; wraiths flee through the walls]</code></pre>
+<p><em>The sequence is load-bearing: ring bell BEFORE taking candles so
+the ring doesn’t drop the candles and extinguish them. If ringing while
+carrying lit candles, they are dropped and extinguished and must be
+relit before reading the book. Alternatively, drop the candles first,
+ring bell, pick them up, light them, read book — the sequence above
+reflects this safer path.</em></p>
+<p>You may now pass east through the gate:</p>
+<pre><code>&gt; go east
+Land of the Living Dead.
+&gt; take all
+[skeletons, bones; some are treasures]
+&gt; go east
+Tomb of the Unknown Implementer.
+&gt; examine tomb
+Here lie the implementers, whose heads were placed on poles by the
+Keeper of the Dungeon for amazing feats of incompetence.</code></pre>
+<p>Return to the Entrance to Hades:</p>
+<pre><code>&gt; go west
+Land of the Living Dead.
+&gt; go west
+Entrance to Hades.</code></pre>
+<p>The <strong>skull</strong> (from the Land of the Living Dead) is a
+treasure. Add it to your inventory.</p>
+<hr />
+</section>
+<section id="act-vi-the-loud-room-and-the-cyclops" class="level2">
+<h2>Act VI: The Loud Room and the Cyclops</h2>
+<p>The Loud Room lies east of the Dome Room area. From the Round
+Room:</p>
+<pre><code>&gt; go ne
+High N-S Passage.
+&gt; go ne
+Loud Room.
+&gt; echo
+The acoustics of the room change subtly.
+&gt; take bar
+Taken.</code></pre>
+<p>The <strong>platinum bar</strong> is 10 points and 10 in the
+case.</p>
+<p>Continue east:</p>
+<pre><code>&gt; go east
+Deep Ravine.
+&gt; go east
+Dam (alt entry).</code></pre>
+<p>Or back west to visit the Cyclops. The Cyclops is reached from the
+Living Room via a path that only opens once you scare him. Since we
+haven’t scared him yet, approach from below:</p>
+<pre><code>Round Room → NE → ... → (see map) → Cyclops Room</code></pre>
+<p>The most reliable route is via the North-South Crawlway / Studio
+path:</p>
+<pre><code>Troll Room → E → N-S Crawlway → E → Studio (art gallery approach) →
+U → Kitchen (shortcut!) → W → Living Room.</code></pre>
+<p>Actually the Cyclops Room is reached through the Labyrinth area — it
+sits above an art gallery and below the Treasure Room. The canonical
+path:</p>
+<pre><code>Cellar → S → East-West Passage → E → Round Room → NE → High N-S
+Passage → (several rooms) → Studio → U → Kitchen OR → Cyclops Room.</code></pre>
+<p>See Appendix B for the exact map. When you arrive at the Cyclops:</p>
+<pre><code>Cyclops Room.
+The cyclops, who is very narrow-minded, blocks your way.
+&gt; say odysseus
+The cyclops, hearing the name of his father&#39;s deadly nemesis, flees
+the room by knocking down the wall on the east side.</code></pre>
+<p><em>A permanent east passage from the Cyclops Room to the Living Room
+has just opened. This is the game’s most useful shortcut and the reason
+you want to scare the cyclops before engaging the thief.</em></p>
+<p>Climb up:</p>
+<pre><code>&gt; go up
+Treasure Room.</code></pre>
+<hr />
+</section>
+<section id="act-vii-the-mazes-and-the-thiefs-lair" class="level2">
+<h2>Act VII: The Mazes and the Thief’s Lair</h2>
+<p>The Treasure Room is the thief’s lair. He may or may not be present
+when you arrive.</p>
+<p><strong>If the thief is present:</strong></p>
+<pre><code>&gt; attack thief with sword
+&gt; again
+&gt; again</code></pre>
+<p>Save before this fight. Use the elvish sword <em>or</em> the nasty
+knife — the knife is slightly better against the thief. He is
+formidable. A typical outcome is three to eight exchanges, with luck
+deciding who falls.</p>
+<p><strong>If the thief is absent</strong> (he’s wandering):</p>
+<p>Take everything.</p>
+<pre><code>&gt; take all
+chalice: Taken.
+jewel-encrusted egg: Taken.
+...</code></pre>
+<p>Among the treasures: chalice, egg (opened if you gave it to him
+earlier), canary, silver chalice, gold coffin, and whatever else you or
+he has deposited.</p>
+<p><em>The thief will follow you out if he returns. Always be ready to
+fight.</em></p>
+<p><strong>The Egg Sequence (critical for full points):</strong></p>
+<ol type="1">
+<li>Take the egg from the Forest Clearing tree, early game.</li>
+<li>Encounter the thief (any time after reaching the Cellar). Give him
+the egg: <code>give egg to thief</code>. He accepts and vanishes.</li>
+<li>Return later to his lair. The egg is open. Take the egg shell and
+the <strong>clockwork canary</strong> inside.</li>
+<li>Carry the canary up to the Forest Clearing tree.</li>
+<li><code>wind canary</code>. A songbird responds and drops a
+<strong>brass bauble</strong>. Take it.</li>
+</ol>
+<p><strong>The Maze.</strong> East of the Troll Room is a classic twisty
+maze. It contains the <strong>coffin</strong> (an important treasure and
+an inventory burden) in one of its rooms. Navigate by dropping the
+leaflet, the newspaper, and similar junk one per room, walking, looking,
+and mapping. Appendix B contains the solved map; alternatively, a
+typical exploration sequence from the Troll Room is:</p>
+<pre><code>Troll Room → E → N-S Crawlway → E → Maze → (drop marker) → N →
+(drop marker) → ... (see map)</code></pre>
+<p>The coffin is in one of the deeper maze rooms. Carrying it restricts
+some passages — you cannot, for instance, go through the crawlway under
+the mirror while holding it. Drag it out by a non-crawlway route to the
+Living Room trophy case.</p>
+<hr />
+</section>
+<section id="act-viii-the-river-the-rainbow-and-the-barrel"
+class="level2">
+<h2>Act VIII: The River, the Rainbow, and the Barrel</h2>
+<p>Return to the Dam Base. Inflate the boat:</p>
+<pre><code>Base of Dam.
+&gt; inflate boat with pump
+The boat inflates.
+&gt; board boat
+You are now in the boat.
+&gt; launch</code></pre>
+<p>You drift south down the Frigid River. Important landmarks to
+disembark at:</p>
+<ol type="1">
+<li><strong>Sandy Beach</strong> (east bank, after a few rooms).
+<em>LAND</em>. Contains a shovel and a sandbar (with a treasure if you
+dig).</li>
+<li><strong>Red Beach</strong> (west bank). Contains a
+<strong>buoy</strong>. Take the buoy; it has something inside.</li>
+<li><strong>Aragain Falls</strong>, at the south end. Do
+<strong>not</strong> go over the falls. Disembark at the bank just
+before.</li>
+</ol>
+<pre><code>&gt; land
+You disembark.
+&gt; open buoy
+Opening the buoy reveals:
+   An emerald.
+&gt; take emerald
+Taken.</code></pre>
+<p>At <strong>White Cliffs Beach</strong> (north side of Aragain),
+disembark:</p>
+<pre><code>&gt; land
+White Cliffs Beach, North.
+&gt; go south
+White Cliffs Beach, South.</code></pre>
+<p>The <strong>Rainbow Room</strong> is nearby. You need the
+<strong>Royal Sceptre</strong> from the <strong>Royal Puzzle</strong> —
+which is the puzzle you haven’t done yet. Put this on hold. First finish
+the Wizard’s domain (Act IX) to get the sceptre, then return.</p>
+<p>Once you have the sceptre:</p>
+<pre><code>Rainbow Room.
+&gt; wave sceptre
+The rainbow solidifies.
+&gt; go east (across the rainbow)
+End of Rainbow.
+&gt; take gold
+Taken. (pot of gold)</code></pre>
+<p><strong>The Barrel.</strong> In Gas Room / White Cliff area is the
+Barrel Room.</p>
+<pre><code>&gt; board barrel
+You are now in the barrel.
+&gt; say geronimo
+The barrel rolls off the cliff and down the waterfall.</code></pre>
+<p>You end up at the bottom of the falls. Emerge and continue the river
+journey on foot back up. The barrel itself is a treasure and is
+transported with you; put it in the case later.</p>
+<hr />
+</section>
+<section id="act-ix-the-wizards-domain-and-the-robot" class="level2">
+<h2>Act IX: The Wizard’s Domain and the Robot</h2>
+<p>Follow the cake puzzle. From the Pearl Room / Top of Well area:</p>
+<pre><code>Top of Well.
+&gt; get inside bucket
+You are now in the wooden bucket.
+&gt; open bottle
+Opened.
+&gt; pour water in bucket
+There is now a puddle in the bottom of the wooden bucket.
+(the bucket rises; you are now at Top of Well&#39;s counterpart)
+&gt; get out of bucket
+You are on your own feet again.
+&gt; go east
+Tea Room.
+&gt; take all
+piece of &quot;Eat-Me&quot; cake: Taken.
+piece of cake with orange icing: Taken.
+piece of cake with red icing: Taken.
+piece of cake with blue icing: Taken.
+&gt; eat eatme cake
+Suddenly, the room appears to have become very large.
+&gt; go east
+Pool Room (depressed half).
+&gt; throw red cake
+The pool of water evaporates, revealing a tin of rare spices.
+&gt; take tin
+Taken.
+&gt; walk west
+Enormous Room.
+&gt; eat blue cake
+The room around you seems to be getting smaller.
+&gt; walk nw
+Low-Ceiling Room.</code></pre>
+<p>You are now approaching the Robot. Command him:</p>
+<pre><code>&gt; tell robot &quot;go east&quot;
+&quot;Whirr, buzz, click!&quot; Done.
+&gt; run east
+Machine Room.
+&gt; tell robot &quot;push triangular button&quot;
+&quot;Whirr, buzz, click!&quot; A dull thump is heard in the distance.</code></pre>
+<p>The carousel is now disabled. Continue:</p>
+<pre><code>&gt; tell robot &quot;go south&quot;
+&quot;Whirr, buzz, click!&quot; Done.
+&gt; go south
+Closet with Sphere.
+&gt; get sphere
+As you reach for the sphere, a steel cage falls from the ceiling to
+entrap you.
+&gt; tell robot &quot;lift cage&quot;
+The cage shakes and is hurled across the room.
+&gt; get sphere
+Taken.</code></pre>
+<p>The <strong>crystal sphere</strong> is an important navigation /
+palantir item.</p>
+<p>Return north:</p>
+<pre><code>&gt; proceed north
+Machine Room.
+&gt; walk west
+Low Room (magnet).
+&gt; stare
+&gt; stare
+(stare has special effects here)
+&gt; walk se
+(with carousel off, you exit cleanly)
+Tea Room.</code></pre>
+<p>Collect the <strong>Royal Sceptre</strong> from the Royal Puzzle. The
+Royal Puzzle is a box-pushing puzzle — complex enough to warrant its own
+section (see Appendix B, Royal Puzzle Solution). Once solved, you have
+the <strong>sceptre</strong> and can cross the Rainbow (see Act
+VIII).</p>
+<hr />
+</section>
+<section id="act-x-the-bank-of-zork" class="level2">
+<h2>Act X: The Bank of Zork</h2>
+<p>Entered from the Gallery, which is reached via the Art Studio north
+of the Cellar path.</p>
+<pre><code>Cellar → S → Crawlway → (further south and southwest)
+ → Art Studio → take painting → walk west → Bank Entrance</code></pre>
+<p>Actually, the Bank of Zork is reached more cleanly via:</p>
+<pre><code>Troll Room → E → N-S Crawlway → SE → Art Studio → take painting →
+walk west → Bank Entrance.</code></pre>
+<p>Inside the Bank:</p>
+<pre><code>Bank Entrance.
+&gt; go nw
+Small Room (teller&#39;s).
+&gt; walk through south wall
+West Teller&#39;s Room (or East, depending on your entry).
+&gt; proceed west
+Safety Depository.
+&gt; take all
+painting: Taken. (already had one, leave this one)
+stack of zorkmid bills: Taken.
+portrait of J. Pierpont Flathead: Taken.
+&gt; walk through north wall
+Back to the other side.
+&gt; walk south
+Bank Entrance.</code></pre>
+<p><em>The walk-through-walls mechanic is the whole puzzle: the curtains
+of light between rooms are one-way illusions, and the room you arrive in
+depends on the wall you walked through and your direction.</em></p>
+<p><strong>The Vault.</strong> If you accidentally close the vault door
+or trigger the alarm, you are trapped. The vault has its own
+wall-walking trick that lets you out — see the guidebook in the Dam
+Lobby for the subtle hint. The safe solution: never close the vault
+door, always carry the guidebook as insurance.</p>
+<hr />
+</section>
+<section id="act-xi-the-dragon-the-ice-and-the-volcano" class="level2">
+<h2>Act XI: The Dragon, the Ice, and the Volcano</h2>
+<p><strong>The Dragon.</strong> Reached via a particular twist of the
+cave system (see map). The dragon is asleep on entry.</p>
+<pre><code>Dragon Room.
+&gt; attack dragon
+&gt; go west
+Ice Room.
+(the dragon follows)
+&gt; wait
+&gt; wait
+(the dragon sees his reflection, charges, melts the glacier, drowns)</code></pre>
+<p>The glacier melts. The passage west through the Ice Room opens:</p>
+<pre><code>&gt; go west
+Ice-Cave (formerly a glacier).
+&gt; take all
+sapphire bracelet: Taken.</code></pre>
+<p><strong>The Volcano.</strong> Reached via the Volcano Floor, at the
+end of a chain of cave passages from the Machine Room. Alternatively,
+via balloon from the top of the Volcano after ascending.</p>
+<pre><code>Volcano Floor.
+&gt; take balloon
+Taken.
+&gt; take receptacle
+Taken.
+(move to a takeoff spot — the receptacle room)
+&gt; put report in receptacle
+&gt; light match
+&gt; light receptacle with match
+The balloon begins to rise.</code></pre>
+<p>Ride the balloon up:</p>
+<pre><code>&gt; wait
+Time passes... the balloon rises slowly from the ground.
+&gt; wait
+(continue waiting; stop at each ledge)
+&gt; tie rope to hook
+The balloon is fastened.
+&gt; disembark
+(do your treasure hunting at this ledge)
+&gt; board balloon
+&gt; untie rope
+&gt; wait
+(ride continues)</code></pre>
+<p>Ledges contain the Volcano’s treasures. Collect them all.</p>
+<p>To descend: <code>close receptacle</code> (the fire smothers, balloon
+sinks). Time this carefully near a landing.</p>
+<hr />
+</section>
+<section id="act-xii-the-endgame" class="level2">
+<h2>Act XII: The Endgame</h2>
+<p>After <strong>all 24 treasures</strong> are in the trophy case — a
+complete inventory list is in Appendix A — something changes. Return to
+the Living Room:</p>
+<pre><code>Living Room.
+A low voice whispers, &quot;Well done, adventurer. Take the map that lies
+here.&quot;
+&gt; take map
+Taken.</code></pre>
+<p>The map shows a <strong>secret path</strong> from the Clearing
+southwest:</p>
+<pre><code>&gt; go up (via kitchen shortcut if unlocked, or cyclops shortcut)
+Living Room → cyclops shortcut → or regular path → North of House
+→ North → Forest Path → Clearing.
+Clearing.
+&gt; go sw
+Secret Path.
+&gt; go sw
+Stone Barrow.
+&gt; enter barrow
+You have entered the Endgame.</code></pre>
+<p>The Endgame is a separate game with its own puzzles. Its full
+walkthrough is beyond the scope of this companion, but the outline:</p>
+<ol type="1">
+<li><strong>Emerging.</strong> You arrive in a stone-walled Chamber of
+Inquiry. A voice demands a password.</li>
+<li><strong>The Quiz.</strong> You are asked three questions about your
+accomplishments in the dungeon. Correct answers require that you know
+the names of the rooms and treasures you visited. <em>ANSWER <word></em>
+is the command.</li>
+<li><strong>The Treasures of the Realm.</strong> Further on, a set of
+rooms contains artifacts of power. Each requires a different solution
+(light, weight, prayer).</li>
+<li><strong>The Master’s Chamber.</strong> A throne, a crown, and a test
+of character. The final puzzle involves a mirror, a coffin, and the
+distinction between the Master and the Implementer.</li>
+</ol>
+<p>Passing the Endgame grants the title <strong>Master of the
+Dungeon</strong> and the full <strong>616 points</strong>.</p>
+<p><em>The last point, per the classic hint, “requires availing yourself
+of all opportunities for intellectual improvement.” In practice:
+<strong>READ EVERY PIECE OF READING MATERIAL</strong>, including the
+U.S. News &amp; Dungeon Report, the leaflet, the matchbook, the
+guidebook, the engravings, the commandment book, the newspaper in the
+mailbox, and the stone inscriptions. One of them grants a single point
+on first reading. Easy to miss; impossible to regret.</em></p>
+<hr />
+</section>
+<section id="appendix-a-the-complete-treasure-list" class="level2">
+<h2>Appendix A: The Complete Treasure List</h2>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 31%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">Treasure</th>
+<th style="text-align: left;">Found In</th>
+<th style="text-align: right;">Pickup Pts</th>
+<th style="text-align: right;">Case Pts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Jewel-encrusted egg (or broken shell +
+canary)</td>
+<td style="text-align: left;">Forest Clearing, up tree</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;">Clockwork canary</td>
+<td style="text-align: left;">(from opened egg, thief’s lair)</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;">Brass bauble</td>
+<td style="text-align: left;">Forest Clearing (after canary song)</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;">Platinum bar</td>
+<td style="text-align: left;">Loud Room</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Trunk of jewels</td>
+<td style="text-align: left;">Reservoir bed</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;">Crystal skull</td>
+<td style="text-align: left;">Land of the Living Dead</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Diamond</td>
+<td style="text-align: left;">Machine Room (made from coal)</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">50</td>
+</tr>
+<tr>
+<td style="text-align: left;">Torch</td>
+<td style="text-align: left;">Torch Room</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td style="text-align: left;">Fancy violin</td>
+<td style="text-align: left;">Steel box in Round Room</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pearl necklace</td>
+<td style="text-align: left;">Pearl Room (past Riddle)</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Tin of rare spices</td>
+<td style="text-align: left;">Pool Room (after Red cake)</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;">Crystal sphere</td>
+<td style="text-align: left;">Robot’s closet</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td style="text-align: left;">Emerald</td>
+<td style="text-align: left;">Buoy on the river</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pot of gold</td>
+<td style="text-align: left;">End of Rainbow</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Painting</td>
+<td style="text-align: left;">Art Studio (Gallery)</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;">Stack of zorkmid bills</td>
+<td style="text-align: left;">Bank Safety Depository</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Portrait of J. Pierpont Flathead</td>
+<td style="text-align: left;">Bank Chairman’s Office</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Sapphire bracelet</td>
+<td style="text-align: left;">Ice Cave (after Dragon)</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;">Grail</td>
+<td style="text-align: left;">Grail Room</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Chalice</td>
+<td style="text-align: left;">Thief’s Treasure Room</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Coffin</td>
+<td style="text-align: left;">Maze (Egyptian tomb)</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td style="text-align: left;">Barrel (after the ride)</td>
+<td style="text-align: left;">Aragain Falls area</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;">Royal Sceptre</td>
+<td style="text-align: left;">Royal Puzzle</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Bauble / trinket (volcano ledges)</td>
+<td style="text-align: left;">Volcano</td>
+<td style="text-align: right;">various</td>
+<td style="text-align: right;">various</td>
+</tr>
+</tbody>
+</table>
+<p>Additional 50+ points come from <strong>room-visit bonuses</strong> —
+certain rooms award points the first time you enter them. These total
+roughly 70 points. Add 20 for finishing the Endgame quiz, and 1 for the
+Last Point.</p>
+<p>Grand total: <strong>616</strong>.</p>
+<hr />
+</section>
+<section id="appendix-b-the-master-map" class="level2">
+<h2>Appendix B: The Master Map</h2>
+<p>Given the complexity of Dungeon’s geography, a printed map occupies
+several pages and is reproduced in the enclosed map supplement. In lieu
+of reproducing it inline, the essential junctions are:</p>
+<ul>
+<li><strong>West of House</strong> (start) ↔︎ North of House ↔︎ Behind
+House ↔︎ South of House ↔︎ West of House (surface ring)</li>
+<li><strong>Clearing</strong> (forest) ↔︎ Forest Path, Forest North,
+Forest South (surface maze)</li>
+<li><strong>Kitchen</strong> ↑ Attic</li>
+<li><strong>Kitchen</strong> ← Living Room → trap door →
+<strong>Cellar</strong></li>
+<li><strong>Cellar</strong> → E → Troll Room → E → N-S Crawlway → hub of
+middle dungeon</li>
+<li><strong>Cellar</strong> → S → Crawlway → S → Slide → one-way to
+Smelly Room</li>
+<li><strong>Round Room</strong> = middle-dungeon hub
+<ul>
+<li>N → Canyon → E → Top of Dam</li>
+<li>NE → High N-S Passage → NE → Loud Room → E → Deep Ravine → Dam</li>
+<li>E → Engravings → SE → Riddle → E → Pearl → E → Top of Well</li>
+<li>(scramble exits to Carousel area when carousel is on)</li>
+</ul></li>
+<li><strong>Top of Dam</strong> → N → Dam Lobby → E → Maintenance
+Room</li>
+<li><strong>Top of Well</strong> ↕ (via bucket + water) ↕ <strong>Bottom
+of Well</strong></li>
+<li><strong>Bottom of Well</strong> → W → Pearl Room (same as Top?)</li>
+<li><strong>Tea Room</strong> → E → Pool Room, Enormous Room</li>
+<li><strong>Tea Room</strong> → W → Top of Well (via the magnet/carousel
+complex)</li>
+<li><strong>Machine Room</strong> → S → Closet (sphere) → cage</li>
+<li><strong>Magnet Room</strong> ↔︎ (carousel chaos) ↔︎ Tea Room,
+Low-Ceiling Room</li>
+<li><strong>Cyclops Room</strong> → E → Living Room (after scaring
+cyclops)</li>
+<li><strong>Cyclops Room</strong> → U → Treasure Room</li>
+<li><strong>Clearing</strong> → SW → Stone Barrow (after endgame
+unlock)</li>
+</ul>
+<hr />
+</section>
+<section id="appendix-c-magic-words-verbs-and-shortcuts" class="level2">
+<h2>Appendix C: Magic Words, Verbs, and Shortcuts</h2>
+<p><strong>Magic words that do something:</strong></p>
+<ul>
+<li><code>ECHO</code> — silences the Loud Room.</li>
+<li><code>ODYSSEUS</code> / <code>ULYSSES</code> — terrifies the
+Cyclops.</li>
+<li><code>HELLO SAILOR</code> — is useful in one place.</li>
+<li><code>GERONIMO</code> — rolls the barrel over the falls.</li>
+</ul>
+<p><strong>Magic words that do nothing (tribute jokes):</strong></p>
+<ul>
+<li><code>XYZZY</code> — “A hollow voice says, ‘Fool.’”</li>
+<li><code>PLUGH</code> — ditto.</li>
+<li><code>PLOVER</code> — ditto.</li>
+</ul>
+<p><strong>Verbs to know:</strong></p>
+<ul>
+<li><code>TAKE ALL</code>, <code>DROP ALL</code>,
+<code>TAKE ALL BUT &lt;x&gt;</code></li>
+<li><code>ATTACK &lt;x&gt; WITH &lt;y&gt;</code> /
+<code>KILL &lt;x&gt; WITH &lt;y&gt;</code> /
+<code>HIT &lt;x&gt; WITH &lt;y&gt;</code></li>
+<li><code>GIVE &lt;x&gt; TO &lt;y&gt;</code></li>
+<li><code>TELL &lt;actor&gt; "&lt;command&gt;"</code> — for robot and
+other NPCs</li>
+<li><code>WAIT</code>, <code>AGAIN</code> (G), <code>OOPS</code></li>
+<li><code>LIGHT MATCH</code>,
+<code>LIGHT &lt;x&gt; WITH MATCH</code></li>
+<li><code>TURN ON LAMP</code>, <code>TURN OFF LAMP</code></li>
+<li><code>INFLATE BOAT WITH PUMP</code>, <code>BOARD BOAT</code>,
+<code>LAUNCH</code>, <code>LAND</code>, <code>DISEMBARK</code></li>
+<li><code>TIE ROPE TO &lt;x&gt;</code>, <code>UNTIE ROPE</code>,
+<code>CLIMB UP/DOWN ROPE</code></li>
+<li><code>OPEN &lt;x&gt;</code>, <code>CLOSE &lt;x&gt;</code>,
+<code>EXAMINE &lt;x&gt;</code>,
+<code>LOOK IN/UNDER/BEHIND &lt;x&gt;</code></li>
+<li><code>ANSWER "&lt;word&gt;"</code> — for the Riddle Room, the
+Endgame quiz</li>
+<li><code>READ &lt;x&gt;</code> — for every readable object</li>
+<li><code>WIND CANARY</code>, <code>STARE</code>, <code>PRAY</code></li>
+<li><code>DIG IN &lt;x&gt; WITH &lt;y&gt;</code></li>
+<li><code>POUR &lt;x&gt; IN &lt;y&gt;</code>,
+<code>EMPTY &lt;x&gt;</code>,
+<code>FILL &lt;x&gt; WITH &lt;y&gt;</code></li>
+</ul>
+<hr />
+</section>
+<section id="appendix-d-death-scenarios-and-prevention" class="level2">
+<h2>Appendix D: Death Scenarios and Prevention</h2>
+<p>The following cause instant death. For each, the preventative is in
+brackets.</p>
+<ul>
+<li><strong>Grue in darkness.</strong> [Keep lamp lit; bring torch as
+backup.]</li>
+<li><strong>Troll with bare hands.</strong> [Use sword.]</li>
+<li><strong>Thief’s stiletto (bad roll).</strong> [Save before engaging;
+come with full health; use nasty knife.]</li>
+<li><strong>Bat drops you in the darkness without light.</strong> [Carry
+garlic.]</li>
+<li><strong>Pushing blue button without retreat plan.</strong> [Know the
+exits; carry putty.]</li>
+<li><strong>Overfalls (east off the falls).</strong> [Disembark before
+Aragain.]</li>
+<li><strong>Leaping into the Dome Room / any leap-able
+precipice.</strong> [Use rope.]</li>
+<li><strong>Gas Room explosion from lit flame.</strong> [Extinguish
+before entering; use basket.]</li>
+<li><strong>Ice Room without light.</strong> [Torch, not candles;
+candles may be drafted out.]</li>
+<li><strong>Pushing square button without robot.</strong> [Never push
+geometrical buttons personally; delegate to robot.]</li>
+<li><strong>Second exorcism after being exorcised.</strong> [Do it once
+and never again.]</li>
+<li><strong>Drowning in the maintenance room flood.</strong> [Leave when
+you hear water rising; putty-plug the leak.]</li>
+<li><strong>Vault timeout.</strong> [Don’t close the vault door; carry
+the guidebook.]</li>
+<li><strong>Dragon without mirror luring.</strong> [Retreat to Ice Room;
+let him melt himself.]</li>
+<li><strong>Carousel fall with carozf on.</strong> [Push triangular via
+robot first.]</li>
+</ul>
+<hr />
+</section>
+<section id="appendix-e-the-last-point" class="level2">
+<h2>Appendix E: The Last Point</h2>
+<p>The 616th point is traditionally the hardest to locate because it
+appears only once, from an unobtrusive action, and it is easy to miss on
+a casual run. The official hint, from the game itself:</p>
+<blockquote>
+<p><em>Have you availed yourself of ALL opportunities for intellectual
+improvement?</em></p>
+</blockquote>
+<p>In practice: read every piece of reading material in the dungeon.
+There are surprisingly many. One is worth a point.</p>
+<p>Candidates include:</p>
+<ul>
+<li>Mailbox leaflet.</li>
+<li>US News &amp; Dungeon Report (in the Living Room).</li>
+<li>Matchbook (Dam Lobby).</li>
+<li>Tour guidebook (Dam Lobby).</li>
+<li>Black book (Temple East End).</li>
+<li>Old engravings (Engravings Cave).</li>
+<li>Stone inscription south of the Temple.</li>
+<li>The Book of Commandments (same as black book, inside).</li>
+<li>The sign in the Lab / Wizard’s room.</li>
+<li>The plaque at the Stone Barrow.</li>
+<li>The parchment from the Trophy Case endgame trigger.</li>
+<li>The writing on the walls in various minor rooms.</li>
+<li>The canary’s song (technically sung, not read).</li>
+<li>The Machine Room’s label.</li>
+<li>The Frigid River bank engravings.</li>
+<li>The Flood Control Dam dedication plaque.</li>
+<li>The prisoner’s graffiti in the Endgame chamber.</li>
+</ul>
+<p>If you have read all of these and still lack the last point, look for
+a <strong>fifteenth</strong> reading. There is always one more.</p>
+<hr />
+<p><em>Congratulations. The Great Underground Empire is now, as much as
+any dungeon ever has been, yours.</em></p>
+<p><em>— An anonymous translator, with thanks to the many adventurers
+who died before you so that you might read their notes.</em></p>
+</section>
+</section>
+</main>
+<script>
+(function() {
+  // --- Build TOC from headings ---
+  var tocList = document.getElementById('sidebar-toc-list');
+  var headings = document.querySelectorAll('main h2, main h3');
+  var tocItems = [];
+
+  headings.forEach(function(h) {
+    var section = h.closest('section') || h.parentElement;
+    var id = section.id || h.id;
+    if (!id) return;
+
+    var li = document.createElement('li');
+    li.className = h.tagName === 'H2' ? 'toc-part' : 'toc-chapter';
+    var a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = h.textContent;
+    a.setAttribute('data-target', id);
+    li.appendChild(a);
+    tocList.appendChild(li);
+    tocItems.push({ el: li, id: id, heading: h });
+  });
+
+  // --- Scroll tracking ---
+  // Highlight the last section whose top is above 200px from viewport top.
+  // This correctly picks subsections (h3) over their parent (h2) once
+  // the subsection heading has scrolled into the upper portion of the page.
+  var currentActive = null;
+  var sections = [];
+  tocItems.forEach(function(item) {
+    var target = document.getElementById(item.id);
+    if (target) sections.push({ id: item.id, el: target, tocItem: item.el });
+  });
+
+  var scrollTicking = false;
+  function updateActiveSection() {
+    scrollTicking = false;
+    var scrollLine = 100;
+    var best = null;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.getBoundingClientRect().top <= scrollLine) {
+        best = sections[i];
+      }
+    }
+    if (!best || best.tocItem === currentActive) return;
+
+    if (currentActive) currentActive.classList.remove('active');
+    best.tocItem.classList.add('active');
+    currentActive = best.tocItem;
+
+    if (history.replaceState) {
+      history.replaceState(null, '', '#' + best.id);
+    }
+
+    var tocContainer = document.getElementById('sidebar-toc');
+    var itemTop = best.tocItem.offsetTop;
+    var containerHeight = tocContainer.clientHeight;
+    var scrollTop = tocContainer.scrollTop;
+    if (itemTop < scrollTop + 60 || itemTop > scrollTop + containerHeight - 40) {
+      tocContainer.scrollTop = itemTop - containerHeight / 3;
+    }
+  }
+
+  window.addEventListener('scroll', function() {
+    if (!scrollTicking) {
+      requestAnimationFrame(updateActiveSection);
+      scrollTicking = true;
+    }
+  }, { passive: true });
+  updateActiveSection();
+
+  // --- Search ---
+  var searchInput = document.getElementById('search-input');
+  var searchResults = document.getElementById('search-results');
+  var searchIndex = document.getElementById('search-index');
+
+  // Build searchable data from headings and paragraphs
+  var searchData = [];
+  var contentSections = document.querySelectorAll('main section[id]');
+  contentSections.forEach(function(section) {
+    var heading = section.querySelector('h1, h2, h3, h4');
+    if (!heading) return;
+    // Gather text from direct child p, li, td elements
+    var textEls = section.querySelectorAll(':scope > p, :scope > ul > li, :scope > ol > li, :scope > table td, :scope > blockquote p');
+    var text = '';
+    textEls.forEach(function(el) { text += el.textContent + ' '; });
+    searchData.push({
+      id: section.id,
+      title: heading.textContent,
+      text: text.substring(0, 2000),
+      level: heading.tagName
+    });
+  });
+
+  var searchTimeout = null;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(doSearch, 200);
+  });
+
+  function doSearch() {
+    var query = searchInput.value.trim().toLowerCase();
+    if (query.length < 2) {
+      searchResults.innerHTML = '';
+      searchResults.style.display = 'none';
+      searchIndex.style.display = '';
+      return;
+    }
+    searchIndex.style.display = 'none';
+    searchResults.style.display = '';
+
+    var words = query.split(/\s+/);
+    var matches = [];
+    searchData.forEach(function(item) {
+      var haystack = (item.title + ' ' + item.text).toLowerCase();
+      var score = 0;
+      var allMatch = true;
+      words.forEach(function(w) {
+        if (haystack.indexOf(w) === -1) {
+          allMatch = false;
+        } else {
+          // Title matches score higher
+          if (item.title.toLowerCase().indexOf(w) !== -1) score += 10;
+          // Count occurrences in text
+          var idx = 0;
+          while ((idx = haystack.indexOf(w, idx)) !== -1) { score++; idx += w.length; }
+        }
+      });
+      if (allMatch && score > 0) {
+        matches.push({ item: item, score: score });
+      }
+    });
+
+    matches.sort(function(a, b) { return b.score - a.score; });
+
+    if (matches.length === 0) {
+      searchResults.innerHTML = '<div class="search-empty">No results found.<br><span class="search-hint">The dungeon keeps its secrets.</span></div>';
+      return;
+    }
+
+    var html = '';
+    var shown = Math.min(matches.length, 15);
+    for (var i = 0; i < shown; i++) {
+      var m = matches[i].item;
+      // Find a snippet containing the query
+      var snippet = getSnippet(m.text, words[0]);
+      html += '<a class="search-result" href="#' + m.id + '">';
+      html += '<span class="search-result-title">' + highlightMatches(m.title, words) + '</span>';
+      if (snippet) html += '<span class="search-result-snippet">' + highlightMatches(snippet, words) + '</span>';
+      html += '</a>';
+    }
+    if (matches.length > shown) {
+      html += '<div class="search-more">' + (matches.length - shown) + ' more results...</div>';
+    }
+    searchResults.innerHTML = html;
+
+    // Add click handlers to highlight search terms in the target section
+    var resultLinks = searchResults.querySelectorAll('.search-result');
+    resultLinks.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        var targetId = this.getAttribute('href').substring(1);
+        highlightSearchTermInSection(targetId, words);
+      });
+    });
+  }
+
+  function highlightSearchTermInSection(sectionId, words) {
+    // Clear any previous highlights
+    document.querySelectorAll('.search-highlight').forEach(function(el) {
+      var text = el.textContent;
+      el.replaceWith(document.createTextNode(text));
+    });
+
+    // Find the target section
+    var section = document.getElementById(sectionId);
+    if (!section) return;
+
+    // Navigate to the section first
+    window.location.hash = sectionId;
+
+    // Find the first occurrence of any search word in the section's text
+    var walker = document.createTreeWalker(
+      section,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function(node) {
+          // Skip script tags, style tags, and sidebar elements
+          var parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          var tag = parent.tagName.toLowerCase();
+          if (tag === 'script' || tag === 'style') return NodeFilter.FILTER_REJECT;
+          if (parent.closest('#sidebar-toc') || parent.closest('#sidebar-search')) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    var firstMatch = null;
+    var matchedWord = null;
+
+    // Walk through all text nodes to find the first match
+    while (walker.nextNode()) {
+      var textNode = walker.currentNode;
+      var text = textNode.textContent;
+      var lowerText = text.toLowerCase();
+
+      for (var i = 0; i < words.length; i++) {
+        var word = words[i].toLowerCase();
+        var idx = lowerText.indexOf(word);
+        if (idx !== -1) {
+          firstMatch = textNode;
+          matchedWord = word;
+          break;
+        }
+      }
+      if (firstMatch) break;
+    }
+
+    if (firstMatch && matchedWord) {
+      // Split the text node and wrap the match in a highlight span
+      var text = firstMatch.textContent;
+      var lowerText = text.toLowerCase();
+      var idx = lowerText.indexOf(matchedWord);
+
+      if (idx !== -1) {
+        var before = text.substring(0, idx);
+        var match = text.substring(idx, idx + matchedWord.length);
+        var after = text.substring(idx + matchedWord.length);
+
+        var beforeNode = document.createTextNode(before);
+        var highlightSpan = document.createElement('span');
+        highlightSpan.className = 'search-highlight';
+        highlightSpan.textContent = match;
+        var afterNode = document.createTextNode(after);
+
+        var parent = firstMatch.parentNode;
+        parent.insertBefore(beforeNode, firstMatch);
+        parent.insertBefore(highlightSpan, firstMatch);
+        parent.insertBefore(afterNode, firstMatch);
+        parent.removeChild(firstMatch);
+
+        // Scroll to highlight only if it's in the lower portion of viewport
+        // (don't scroll up - keep section header at top)
+        setTimeout(function() {
+          var rect = highlightSpan.getBoundingClientRect();
+          var viewportHeight = window.innerHeight;
+          var scrollThreshold = viewportHeight * 0.6; // 60% down the page
+
+          // Only scroll if the highlight is below the comfortable reading area
+          if (rect.top > scrollThreshold) {
+            highlightSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          // If highlight is in top 60% or above, don't scroll - it's visible
+        }, 100);
+      }
+    }
+  }
+
+  function getSnippet(text, word) {
+    var idx = text.toLowerCase().indexOf(word);
+    if (idx === -1) return '';
+    var start = Math.max(0, idx - 40);
+    var end = Math.min(text.length, idx + word.length + 60);
+    var s = text.substring(start, end).replace(/\s+/g, ' ').trim();
+    if (start > 0) s = '\u2026' + s;
+    if (end < text.length) s = s + '\u2026';
+    return s;
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function highlightMatches(text, words) {
+    var safe = escHtml(text);
+    // Build a regex matching any of the search words (longest first to avoid partial overlap)
+    var sorted = words.slice().sort(function(a, b) { return b.length - a.length; });
+    var reChars = /[.*+?^${}()|[\]\\]/g;
+    var escaped = sorted.map(function(w) { return escHtml(w).replace(reChars, '\\$&'); });
+    var re = new RegExp('(' + escaped.join('|') + ')', 'gi');
+    return safe.replace(re, '<b>$1</b>');
+  }
+
+  // --- Humorous index (shown when search is empty) ---
+  var indexEntries = [
+    ['Acid blob, rubber-banded', 'your-first-descent'],
+    ['Amulet of Yendor, retrieving', 'the-ascension-run'],
+    ['Ascension, how to not die during', 'the-ascension-run'],
+    ['Boulders, pushing (see: Sokoban)', 'sokoban-solutions'],
+    ['Castle, storming the', 'the-castle'],
+    ['Cockatrice corpse, wielding', 'dangerous-encounters'],
+    ['Death, causes of (see: everything)', 'dangerous-encounters'],
+    ['Drowning, preventable', 'dangerous-encounters'],
+    ['Elbereth, writing frantically', 'traps-and-hazards'],
+    ['Floating eye, do not hit', 'a-field-guide-to-dungeon-fauna'],
+    ['Food, running out of', 'provisions-and-dining'],
+    ['Gehennom, why is it so hot', 'gehennom'],
+    ['Gods, angering', 'divine-relations'],
+    ['Identify, never enough scrolls of', 'the-identification-problem'],
+    ['Luck, secretly ruining yours', 'luck-and-fortune'],
+    ['Mines, gnomish', 'branches-and-landmarks'],
+    ['Pet, accidentally killing your', 'making-friends'],
+    ['Prayer, when to', 'divine-relations'],
+    ['Shopkeeper, angering', 'shopping-and-shopkeeper-pricing'],
+    ['Sokoban, solving without cheating', 'sokoban-solutions'],
+    ['Stoning, avoiding', 'dangerous-encounters'],
+    ['Tourists, playing as', 'choosing-your-expedition'],
+    ['Unicorn horn, no longer a cure-all', 'what-changed-since-last-time'],
+    ['Wand, identifying by engraving', 'the-identification-problem'],
+    ['Wishes, optimal use of', 'wishes-and-wishing'],
+    ['YASD, inevitability of', 'your-first-descent'],
+  ];
+
+  var indexHtml = '<div class="humorous-index"><div class="index-title">Index of Useful Knowledge</div>';
+  indexEntries.forEach(function(entry) {
+    indexHtml += '<a class="index-entry" href="#' + entry[1] + '">' + entry[0] + '</a>';
+  });
+  indexHtml += '</div>';
+  searchIndex.innerHTML = indexHtml;
+})();
+</script>
+</body>
+</html>

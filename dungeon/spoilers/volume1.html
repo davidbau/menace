@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Adventurer's Companion to the Great Underground Empire</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/fonts/dejavu-sans-mono.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav id="sidebar-toc" aria-label="Table of contents">
+  <div class="sidebar-title">Contents</div>
+  <ul id="sidebar-toc-list"></ul>
+</nav>
+<aside id="sidebar-search" aria-label="Search">
+  <div class="sidebar-title">Search</div>
+  <input type="text" id="search-input" placeholder="Search the guide...">
+  <div id="search-results"></div>
+  <div id="search-index"></div>
+</aside>
+<main id="guide-content">
+<section id="the-adventurers-companion-to-the-great-underground-empire"
+class="level1">
+<h1>The Adventurer’s Companion to the Great Underground Empire</h1>
+<section id="volume-i-whispers-from-the-deep" class="level2">
+<h2>Volume I: Whispers from the Deep</h2>
+<p style="text-align: center; font-style: italic; margin: 1.5em 0;">
+“It is pitch black. You are likely to be eaten by a grue.”
+</p>
+<hr />
+</section>
+<section id="before-you-read-further" class="level2">
+<h2>Before You Read Further</h2>
+<p>You are holding the first of two volumes prepared for those foolhardy
+souls who have decided to descend into the dungeon beneath the white
+house west of the forest. The entrance is a mailbox in an open field.
+The treasures lie somewhere below. Whether you reach them is, in large
+part, a matter of how prepared you are to be inconvenienced.</p>
+<p>This volume is a <strong>hint book</strong>. It will not solve the
+game for you. It will nudge, prod, and on occasion gently mock. Each
+significant puzzle appears here as a question with a series of answers —
+a gentle first hint, a pointed second hint, and, for the truly stuck, a
+nearly-complete third. You are trusted to read only as far as you need
+and to put the book down when the nudge is enough. This is an old
+convention, inherited from the physical <em>InvisiClues</em> booklets
+Infocom sold in the 1980s, whose answers were printed in invisible ink
+and revealed one at a time with a chemical developer pen. You had to
+<em>want</em> the spoiler before you got it. We have preserved the
+spirit, if not the pen.</p>
+<p>If you want the complete walkthrough — every move, every treasure —
+that is <strong>Volume II</strong>. Keep it on a shelf where you cannot
+accidentally read it during a difficult evening.</p>
+<p>A word on the game itself. What you are about to play is,
+technically, <strong>Dungeon</strong> — a 616-point Fortran port of the
+original MDL game written at MIT between 1977 and 1979 by Tim Anderson,
+Marc Blank, Bruce Daniels, and Dave Lebling. It was called Zork on the
+PDP-10 and renamed Dungeon when Bob Supnik and friends ported it out of
+the lab and into the wider world. When Infocom commercialized the game,
+they split it into Zork I, II, and III — three smaller, polished games
+totaling fewer points than their common ancestor. This dungeon is the
+whole thing: the Great Underground Empire, the Flood Control Dam, the
+Bank of Zork, the Wizard’s domain, the Volcano, and the Endgame, all in
+one unbroken descent. It is older, stranger, and rougher around the
+edges than the Infocom trilogy. It also has 616 points of treasure
+waiting to be found.</p>
+<p>Good luck. You will need it, though less than you fear.</p>
+<hr />
+</section>
+<section id="table-of-contents" class="level2">
+<h2>Table of Contents</h2>
+<p><strong>Part One: Preparations</strong></p>
+<ol type="1">
+<li><a href="#getting-your-bearings">Getting Your Bearings</a> — The
+parser, directions, and the commands that save lives</li>
+<li><a href="#the-art-of-mapping">The Art of Mapping</a> — On graph
+paper, dropped objects, and the geography of confusion</li>
+<li><a href="#strength-death-and-the-twice-dead-rule">Strength, Death,
+and the Twice-Dead Rule</a> — How your body works and when it stops
+working</li>
+<li><a href="#the-thief">The Thief</a> — A man of few words, many
+pockets, and one stiletto</li>
+</ol>
+<p><strong>Part Two: A Field Guide to Trouble</strong></p>
+<ol start="5" type="1">
+<li><a href="#the-surface-and-the-white-house">The Surface and the White
+House</a> — Leaves, mailboxes, and the thing in the attic</li>
+<li><a href="#light-in-the-dungeon">Light in the Dungeon</a> — Lamp,
+torch, candles, match, and the grue</li>
+<li><a href="#the-forest">The Forest</a> — Not a maze, but it pretends
+to be</li>
+<li><a href="#the-troll">The Troll</a> — The first honest fight</li>
+<li><a href="#the-coal-mine-and-the-bat">The Coal Mine and the Bat</a> —
+Going dark, going deep, coming back with coal</li>
+<li><a href="#the-dam-and-the-reservoir">The Dam and the Reservoir</a> —
+Four buttons, one bolt, one enormous relief valve</li>
+<li><a href="#the-loud-room">The Loud Room</a> — Where a single word is
+the whole puzzle</li>
+<li><a href="#the-cyclops">The Cyclops</a> — A hungry classicist</li>
+<li><a href="#the-thiefs-treasure-room">The Thief’s Treasure Room</a> —
+The room from which all stolen items can be reclaimed</li>
+<li><a href="#the-temple-and-the-land-of-the-living-dead">The Temple and
+the Land of the Living Dead</a> — Exorcism by bell, book, and
+candle</li>
+<li><a href="#the-rainbow-the-barrel-and-the-river">The Rainbow, the
+Barrel, and the River</a> — All the ways the Frigid River wants you
+dead</li>
+<li><a href="#the-wizards-domain">The Wizard’s Domain</a> — Alice,
+cakes, a robot, and a carousel</li>
+<li><a href="#the-bank-of-zork">The Bank of Zork</a> — Where the walls
+are suggestions</li>
+<li><a href="#the-dragon-and-the-ice-room">The Dragon and the Ice
+Room</a> — Vanity has its uses</li>
+<li><a href="#the-volcano">The Volcano</a> — The hot-air balloon and
+what lies above</li>
+<li><a href="#the-palantirs">The Palantirs</a> — Seeing, being seen, and
+getting lost in the looking</li>
+<li><a href="#the-endgame">The Endgame</a> — After all the treasures are
+in the case</li>
+</ol>
+<p><strong>Part Three: Appendices</strong></p>
+<ol start="22" type="1">
+<li><a href="#magic-words">Magic Words</a> — Plugh, Xyzzy, Plover, and
+the ones that work</li>
+<li><a href="#have-you-ever">Have You Ever …?</a> — A partial list of
+things worth trying at least once</li>
+<li><a href="#ranks-and-titles">Ranks and Titles</a> — What the game
+will call you</li>
+<li><a href="#on-style">On Style</a> — Acknowledgments and a note about
+the voice of this guide</li>
+</ol>
+<hr />
+</section>
+<section id="part-one-preparations" class="level2">
+<h2>Part One: Preparations</h2>
+<hr />
+<section id="getting-your-bearings" class="level3">
+<h3>Getting Your Bearings</h3>
+<p>Before you enter the dungeon, it is worth knowing what the game will
+understand. The parser is described in the manual as “moderately
+stupid,” which is a self-deprecating way of saying it is the finest
+English-sentence parser that existed in 1979. It recognizes the first
+<strong>eight letters</strong> of every word, so <em>DISASSEMBLE</em>
+and <em>DISASSEMBLY</em> look identical to it. It accepts multiple
+commands on a line, separated by periods or semicolons
+(<code>TAKE SWORD. ATTACK TROLL WITH SWORD</code>). It accepts lists
+with <em>AND</em> or commas (<code>TAKE LAMP AND SWORD</code>). It
+accepts the collective nouns <em>EVERYTHING</em>, <em>VALUABLES</em>,
+and <em>POSSESSIONS</em>, each optionally qualified by <em>EXCEPT</em>
+(<code>DROP EVERYTHING EXCEPT THE LAMP</code>).</p>
+<p>The following commands have no in-game cost and should be burned into
+your fingers:</p>
+<p><strong>LOOK</strong> (or <strong>L</strong>) redescribes your
+surroundings. Use it whenever you return to a room after combat, after
+dropping things, or whenever you suspect something has changed.</p>
+<p><strong>INVENTORY</strong> (or <strong>I</strong>) lists what you are
+carrying. Check it before and after any encounter with the thief.</p>
+<p><strong>DIAGNOSE</strong> reports your current state of health. If it
+tells you about a “serious” wound, don’t pick a fight.</p>
+<p><strong>SCORE</strong> reports your running total and your rank.
+Watching the rank rise from “Beginner” through “Amateur Adventurer,”
+“Novice Adventurer,” “Junior Adventurer,” “Adventurer,” “Master,”
+“Master Adventurer,” “Wizard,” and finally “Master Adventurer” is most
+of the reward. (The game will also cheerfully tell you when you have a
+<em>negative</em> score and will say something condescending about
+it.)</p>
+<p><strong>WAIT</strong> passes one turn. It is surprisingly useful:
+certain events happen on a clock and certain people like the thief must
+be allowed to arrive.</p>
+<p><strong>AGAIN</strong> (or <strong>G</strong>) repeats the last
+successful command. Invaluable in combat:
+<code>ATTACK TROLL WITH SWORD</code>, then <code>G</code>, then
+<code>G</code>, and so on.</p>
+<p><strong>SAVE</strong> writes your progress to a file;
+<strong>RESTORE</strong> loads it back. Save <em>often</em>, and always
+before you push a colored button, before you give anything to the thief,
+and before you try any sentence containing the word “dragon.”</p>
+<p><strong>VERBOSE / BRIEF / SUPERBRIEF</strong> control how loquacious
+the game is. <em>BRIEF</em> is the default (full description on first
+visit, short descriptions thereafter). <em>VERBOSE</em> makes the game
+re-describe every room every time. <em>SUPERBRIEF</em> gives you only
+the room name, which is what you want once you know the map. Swap
+between them depending on your mood.</p>
+<p>Finally, <strong>OOPS</strong> corrects a misspelled word. If you get
+<code>[I don't know the word "swrod"]</code>, you can reply
+<code>OOPS SWORD</code> without retyping the whole command.</p>
+<hr />
+</section>
+<section id="the-art-of-mapping" class="level3">
+<h3>The Art of Mapping</h3>
+<p>The dungeon is not randomly generated. It is a fixed, elaborate
+geography which is nonetheless easy to get lost in because it contains
+mazes, one-way passages, and rooms whose “obvious” exits are only
+sometimes obvious. You will need a map. Most adventurers use graph
+paper, one square per room, with arrows for exits. The game’s
+abbreviations (N, S, E, W, NE, NW, SE, SW, U, D, IN, OUT) work well as
+arrow labels.</p>
+<p>Two warnings:</p>
+<p><strong>Not every passage is symmetric.</strong> A room whose
+description says “passages lead off to the north and east” may have
+non-obvious exits to the south, down, or through a window.
+<em>EXAMINE</em> things. Look for adjectives like “dusty,” which often
+mark trap doors.</p>
+<p><strong>Some passages are one-way.</strong> The slide in Cellar
+doesn’t let you back up. The chimney only goes up once the trap door has
+shut behind you.</p>
+<p>When a room is described in a way that makes the exits unclear — the
+Cellar, anything in a maze — <strong>drop an object</strong> as a
+marker. The Fortran parser does not refuse to drop items simply because
+a room is labeled the same as another. Use <strong>junk</strong> for
+markers: the leaflet from the mailbox, a torn piece of newspaper, the
+<em>Dungeon Report</em>. <strong>Do not use treasures for
+markers.</strong> The thief wanders, and the thief will find them.</p>
+<p>The mazes are where this technique earns its keep. From the Troll
+Room there is a maze (“twisty passages, all alike”). There is another,
+more insidious region of unreliable exits near the Forest. Drop one item
+per room, walk, look, note which item is now present. Two rooms with the
+same description but different dropped items are different rooms. Two
+“different” rooms with the same dropped item are actually the same room,
+reached from another direction.</p>
+<p>Many adventurers keep a <strong>separate sheet</strong> for each
+maze, labeling rooms M1, M2, M3, etc., until the shape emerges. There is
+a well-known “Grating Room” and a “Cyclops Room” hidden inside these
+mazes. Finding them is half the reward.</p>
+<hr />
+</section>
+<section id="strength-death-and-the-twice-dead-rule" class="level3">
+<h3>Strength, Death, and the Twice-Dead Rule</h3>
+<p>Your character has a notional fighting strength which falls during
+combat, falls further when you are wounded, and recovers with time. The
+<strong>DIAGNOSE</strong> command will tell you roughly how damaged you
+are and roughly how long recovery will take. Recovery happens on its own
+— you don’t have to do anything — so after a hard fight, it is often
+wise to walk somewhere safe, sit down, and <em>WAIT</em> for a few
+turns.</p>
+<p>You can die. Most of your deaths will not end the game. When you are
+killed (by the troll, by the thief, by a fall, by darkness, by an
+ill-advised <em>LEAP</em>), your possessions are scattered through the
+upper rooms of the dungeon and you are restored to life, minus ten
+points, in a place you will quickly recognize as the Entrance to Hades.
+This is not a friendly place. The gates are barred by wraiths. You can
+wander, but you cannot buy passage through, and you cannot retrieve your
+belongings from here.</p>
+<p>You are allowed <strong>two deaths</strong>. The third is permanent.
+The game charges ten points each time and will, after the third, deliver
+a valedictory message about suicidal maniacs and remove you from
+play.</p>
+<p>There is, however, a way to be exorcised — to leave the Land of the
+Living Dead as an adventurer rather than a ghost. It is the Temple
+puzzle, covered later. Solving it improves your standing in the
+afterlife considerably; in particular, a subsequent death delivers a
+rather different message about the dungeon mistaking you for an evil
+spirit. The rules about two-and-out still apply. Exorcism is not
+resurrection. It is more like a character reference.</p>
+<hr />
+</section>
+<section id="the-thief" class="level3">
+<h3>The Thief</h3>
+<p>The thief is the most beloved and most feared of the dungeon’s
+inhabitants. He carries a large bag. He steals. He does it with a
+smile.</p>
+<p>Some facts you should know before you meet him, but need not believe
+until you do:</p>
+<ul>
+<li>He can appear in any <em>lit</em> room you are in. He announces
+himself: <em>“Someone carrying a large bag is casually leaning against
+one of the walls here.”</em></li>
+<li>He picks pockets. If you see <em>“The other occupant just left
+carrying his large bag. You may not have noticed that he robbed you
+blind first,”</em> check your inventory. He will usually have taken
+whatever is most valuable.</li>
+<li>He carries a <strong>stiletto</strong>. In combat, you may be lucky
+and knock him unconscious; you may be less lucky and be knocked
+unconscious yourself; in the worst case, he ends the fight with a formal
+bow and a murder.</li>
+<li>He has a home. Everything he steals ends up there. If you find his
+home with him absent, you may collect his hoard. If you find his home
+with him present, you will have a serious fight on your hands.</li>
+<li>He can be <strong>killed</strong>. Once dead, he drops the stiletto
+and anything he happens to be holding.</li>
+</ul>
+<p>Strategic options for dealing with him, in approximate order of
+sophistication:</p>
+<ol type="1">
+<li><strong>Avoid him</strong> until you are strong, have a good weapon,
+and know where his lair is. (This is harder than it sounds — he has a
+habit of visiting you when you’re busy.)</li>
+<li><strong>Let him rob you</strong> of <em>useful</em> things. You can
+reclaim them from his lair.</li>
+<li><strong>Give him something you want opened.</strong> He is a skilled
+jeweler. The jewel-encrusted egg, in particular, has a lock too delicate
+for your fingers. He has no such difficulty.</li>
+<li><strong>Kill him, in his lair.</strong> Use the elvish sword, or
+something sharper, and bring your health with you.</li>
+</ol>
+<p>The thief is the game’s best-designed antagonist. Treat him well.</p>
+<hr />
+</section>
+</section>
+<section id="part-two-a-field-guide-to-trouble" class="level2">
+<h2>Part Two: A Field Guide to Trouble</h2>
+<p>From here on, this volume is organized by puzzle. Each puzzle is
+presented in the InvisiClues style: a question, followed by a series of
+progressively more detailed hints, followed — if you are truly stuck —
+by something very close to a full answer.</p>
+<p>The rule is: <strong>read one hint, close the book, and try
+again.</strong> The pleasure of Dungeon is in solving its puzzles, and
+the book will ruin that pleasure if you let it.</p>
+<hr />
+<section id="the-surface-and-the-white-house" class="level3">
+<h3>The Surface and the White House</h3>
+<p>You begin in an open field west of a white house. There is a mailbox,
+a rubber mat, and an unhelpful mention of a boarded front door. What
+now?</p>
+<p><strong>Q1. How do I get into the house?</strong></p>
+<blockquote>
+<p>Hint 1. The front door is, as mentioned, boarded. But a white house
+has more than one side.</p>
+<p>Hint 2. Walk around the house. One of the sides has a window. One of
+the windows is unusual.</p>
+<p>Hint 3. Go north, then east. Open the window. Enter.</p>
+</blockquote>
+<p><strong>Q2. Is there anything useful in the mailbox?</strong></p>
+<blockquote>
+<p>Hint 1. Yes.</p>
+<p>Hint 2. Open the mailbox.</p>
+<p>Hint 3. There is a leaflet inside. Read it. It will not help you
+solve any puzzles, but it does explain what the game is about, and it
+makes useful maze-marker litter.</p>
+</blockquote>
+<p><strong>Q3. What’s in the kitchen?</strong></p>
+<blockquote>
+<p>Hint 1. A table. On the table, a sack and a bottle.</p>
+<p>Hint 2. Take the bottle. The water in it is worth bringing along. The
+sack is a useful container.</p>
+</blockquote>
+<p><strong>Q4. What’s in the living room?</strong></p>
+<blockquote>
+<p>Hint 1. A lantern. A sword. A rug. A trophy case. Some reading
+material.</p>
+<p>Hint 2. Take the lantern and the sword. The lantern has a limited
+battery; don’t turn it on until you need it.</p>
+<p>Hint 3. The rug is not decoration. Try <em>MOVE RUG</em>.</p>
+</blockquote>
+<p><strong>Q5. What is the trophy case for?</strong></p>
+<blockquote>
+<p>Hint 1. It is the destination of your career. The game rewards you
+for depositing treasures here.</p>
+<p>Hint 2. You get points for <em>picking up</em> a treasure and
+additional points for <em>putting it in the trophy case</em>. Don’t
+forget the second half.</p>
+</blockquote>
+<p><strong>Q6. How do I get upstairs?</strong></p>
+<blockquote>
+<p>Hint 1. The kitchen has a staircase going up. It leads to the
+attic.</p>
+<p>Hint 2. The attic is dark. Bring a light.</p>
+<p>Hint 3. There is a useful object in the attic. Take it.</p>
+</blockquote>
+<hr />
+</section>
+<section id="light-in-the-dungeon" class="level3">
+<h3>Light in the Dungeon</h3>
+<p>Everything below the cellar is dark. Without a light source, you will
+hear the words <em>“It is pitch black. You are likely to be eaten by a
+grue,”</em> and shortly thereafter, you will be.</p>
+<p><strong>Q1. What light sources exist?</strong></p>
+<blockquote>
+<p>Hint 1. A <strong>brass lantern</strong> in the living room. A
+<strong>torch</strong>, found deeper. <strong>Candles</strong> and
+<strong>matches</strong>, also found deeper.</p>
+<p>Hint 2. The lantern is your workhorse. It has a finite battery — turn
+it off when you don’t need it.</p>
+<p>Hint 3. The torch never runs out, but it attracts hazards in certain
+rooms. The candles are needed for the Temple puzzle and should be kept
+lit only as briefly as necessary. The matches are consumable.</p>
+</blockquote>
+<p><strong>Q2. What is a grue?</strong></p>
+<blockquote>
+<p>Hint 1. A sinister, lurking presence that never ventures into the
+light, but which is never far from the darkest recesses.</p>
+<p>Hint 2. You will never see one. Grues cannot abide light; wherever
+one is, the darkness prevents you from seeing it; and wherever light is,
+there is no grue.</p>
+<p>Hint 3. The only safe rooms in darkness are those naturally lit. In
+the absence of natural light, carry a working lamp. Always.</p>
+</blockquote>
+<p><strong>Q3. My candles went out. Why?</strong></p>
+<blockquote>
+<p>Hint 1. Some rooms have drafts. The tiny cave above the Entrance to
+Hades is particularly drafty. Candles blown out by drafts cannot relight
+themselves.</p>
+<p>Hint 2. You can always relight them. Bring the matches.</p>
+<p>Hint 3. <em>LIGHT MATCH</em>, then <em>LIGHT CANDLES WITH
+MATCH</em>.</p>
+</blockquote>
+<p><strong>Q4. My lamp is getting dim.</strong></p>
+<blockquote>
+<p>Hint 1. The battery is running low. You have a few dozen turns
+left.</p>
+<p>Hint 2. There is a spare in the dungeon, but you have to find it.</p>
+<p>Hint 3. Look in the Machine Room.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-forest" class="level3">
+<h3>The Forest</h3>
+<p>North of the white house, the forest looks like a maze. It isn’t,
+quite. But it will act like one if you don’t pay attention.</p>
+<p><strong>Q1. Where are the exits?</strong></p>
+<blockquote>
+<p>Hint 1. The forest is small — four rooms, connected in a circle with
+the Clearing at one corner.</p>
+<p>Hint 2. From the Clearing, there is a way <em>down</em> (through a
+grating, once you find it) and a way back to North of House.</p>
+</blockquote>
+<p><strong>Q2. The clearing mentions a pile of leaves. What do I do with
+it?</strong></p>
+<blockquote>
+<p>Hint 1. <em>MOVE LEAVES</em>. You will find something underneath.</p>
+<p>Hint 2. A grating, but it’s locked from this side.</p>
+<p>Hint 3. The grating can be unlocked from the <em>other</em> side,
+which is below. When you arrive there, unlock it, and the Clearing
+becomes a handy shortcut.</p>
+</blockquote>
+<p><strong>Q3. There’s a tree. What do I do with it?</strong></p>
+<blockquote>
+<p>Hint 1. Climb it.</p>
+<p>Hint 2. <em>GO UP</em> or <em>CLIMB TREE</em>. You must not be
+carrying too much.</p>
+<p>Hint 3. The treetop contains a bird’s nest. In the nest is a
+jewel-encrusted egg. Take it. Do not try to open it here.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-troll" class="level3">
+<h3>The Troll</h3>
+<p>Down through the cellar (via the trap door under the rug in the
+living room) and east, you meet a troll. He carries a bloody axe. He
+blocks all the passages out of the room. He is your first fight.</p>
+<p><strong>Q1. How do I get past the troll?</strong></p>
+<blockquote>
+<p>Hint 1. You have to kill him. There is no way around.</p>
+<p>Hint 2. Bring the sword. Do not try this with bare hands unless you
+are trying to die.</p>
+<p>Hint 3. <em>ATTACK TROLL WITH SWORD</em>, then <em>G</em>, and keep
+at it. He may parry, miss, stagger, or land a blow; eventually one of
+you falls.</p>
+</blockquote>
+<p><strong>Q2. The sword is glowing. What does that mean?</strong></p>
+<blockquote>
+<p>Hint 1. The sword senses danger.</p>
+<p>Hint 2. Faint blue = something unpleasant is nearby. Bright = it’s in
+this room.</p>
+<p>Hint 3. When the sword stops glowing, you are — at least for the
+moment — safe.</p>
+</blockquote>
+<p><strong>Q3. Can I use the axe?</strong></p>
+<blockquote>
+<p>Hint 1. The troll’s axe is described but does not survive his
+death.</p>
+<p>Hint 2. When the troll dies, a black fog envelops his carcass and
+everything he was carrying. The axe vanishes with him. Keep your
+sword.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-coal-mine-and-the-bat" class="level3">
+<h3>The Coal Mine and the Bat</h3>
+<p>South of the Troll Room, a series of passages takes you through the
+Mine Entrance, past a Vampire Bat, and into the coal country.</p>
+<p><strong>Q1. The bat grabs me and drops me somewhere random. How do I
+get past him?</strong></p>
+<blockquote>
+<p>Hint 1. The bat is repelled by something pungent.</p>
+<p>Hint 2. There is a clove of garlic somewhere in the dungeon.</p>
+<p>Hint 3. The garlic is in the brown sack on the kitchen table. Carry
+it, and the bat will leave you alone.</p>
+</blockquote>
+<p><strong>Q2. What do I do in the Coal Mine?</strong></p>
+<blockquote>
+<p>Hint 1. You need coal. To get coal, you need a tool.</p>
+<p>Hint 2. There is a shovel in the Slide Room. Dig with it.</p>
+<p>Hint 3. <em>DIG IN PILE WITH SHOVEL</em>. After a few tries you will
+uncover a small pile of coal.</p>
+</blockquote>
+<p><strong>Q3. The coal has no visible value. Why do I want
+it?</strong></p>
+<blockquote>
+<p>Hint 1. It is not a treasure in itself.</p>
+<p>Hint 2. It is an ingredient in a much larger puzzle.</p>
+<p>Hint 3. Coal + machine + pressure = diamond.</p>
+</blockquote>
+<p><strong>Q4. How do I get the coal out of the mine without being eaten
+by a grue?</strong></p>
+<blockquote>
+<p>Hint 1. You cannot carry a lit torch through the Gas Room — it
+explodes. You cannot carry the unlit lamp <em>and</em> have enough
+light. The Gas Room is a bottleneck.</p>
+<p>Hint 2. Find a way to move objects through the Gas Room without
+carrying them yourself.</p>
+<p>Hint 3. The basket in the Drafty Room connects to a room near the
+coal. Put the coal (and whatever else you need) in the basket and
+retrieve it from the other side via the elevator rope.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-dam-and-the-reservoir" class="level3">
+<h3>The Dam and the Reservoir</h3>
+<p>North of the Round Room is the Flood Control Dam #3, built by the
+Frobozz Magic Flood Control Company and maintained somewhat
+intermittently. The dam has a control panel. The control panel has
+colored buttons.</p>
+<p><strong>Q1. What do the buttons do?</strong></p>
+<blockquote>
+<p>Hint 1. Three of them are harmless. One of them is very much not.</p>
+<p>Hint 2. The buttons’ colors correspond, in a cute way, to the colors
+of the events they cause. The blue one is the one you should not push
+while standing in the maintenance room.</p>
+<p>Hint 3. <strong>Yellow</strong> turns on the bolt’s indicator (so the
+dam can be opened). <strong>Brown</strong> drains the reservoir.
+<strong>Red</strong> fills it back up. <strong>Blue</strong> opens a
+pipe valve, flooding the maintenance room itself. Do not push blue and
+then decide to stay for tea.</p>
+</blockquote>
+<p><strong>Q2. I pushed blue and I can hear water rising. What do I
+do?</strong></p>
+<blockquote>
+<p>Hint 1. Leave.</p>
+<p>Hint 2. You have about fifteen turns before the water goes over your
+head.</p>
+<p>Hint 3. If you are trapped — say, because you came by a one-way slide
+— pray that you have the screwdriver. <em>Plug leak with putty</em>.</p>
+</blockquote>
+<p><strong>Q3. How do I drain the reservoir?</strong></p>
+<blockquote>
+<p>Hint 1. Open the sluice gates at the dam.</p>
+<p>Hint 2. You need a tool. The bolt is tight.</p>
+<p>Hint 3. Find the <strong>wrench</strong> in the maintenance room,
+return to the dam, and <em>TURN BOLT WITH WRENCH</em>. The gates open
+and the reservoir drains.</p>
+</blockquote>
+<p><strong>Q4. What’s in the drained reservoir?</strong></p>
+<blockquote>
+<p>Hint 1. Treasures that were under the water.</p>
+<p>Hint 2. A <strong>platinum bar</strong> — no, that’s elsewhere. A
+<strong>trunk of jewels</strong> is in the reservoir bed. Walk across
+and take it.</p>
+<p>Hint 3. Don’t dawdle. If someone refills the reservoir while you are
+in it, you will drown.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-loud-room" class="level3">
+<h3>The Loud Room</h3>
+<p>The Loud Room lives up to its name. Your voice echoes off the walls.
+So does every other sound. There is a <strong>platinum bar</strong>
+here, but if you try to take it, you hear yourself say “take bar” in a
+roar and the parser refuses.</p>
+<p><strong>Q1. How do I quiet the room?</strong></p>
+<blockquote>
+<p>Hint 1. The room is a giant echo chamber. Echoes cancel.</p>
+<p>Hint 2. The right word — one that describes exactly what the room is
+doing — will cancel the acoustics.</p>
+<p>Hint 3. Say <em>ECHO</em>. The echoes neutralize each other, the room
+subsides, and the bar is takeable.</p>
+</blockquote>
+<p><strong>Q2. The room echoes everything I say. Is there anything else
+I should say in here?</strong></p>
+<blockquote>
+<p>Hint 1. Most phrases echo harmlessly. A handful do something.</p>
+<p>Hint 2. The game has two small easter eggs: <em>BUG</em> and
+<em>FEATURE</em>. They do nothing of use. They are amusing.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-cyclops" class="level3">
+<h3>The Cyclops</h3>
+<p>A Cyclops sits in the Cyclops Room, hungry and thirsty. He blocks the
+stairs up to the Thief’s Treasure Room. He will, given the chance, eat
+you.</p>
+<p><strong>Q1. How do I get past him?</strong></p>
+<blockquote>
+<p>Hint 1. You can fight him, but he is very strong.</p>
+<p>Hint 2. You can feed him, but he is also very thirsty, and feeding
+him is a temporary solution.</p>
+<p>Hint 3. He is afraid of a particular name from classical
+literature.</p>
+</blockquote>
+<p><strong>Q2. What name?</strong></p>
+<blockquote>
+<p>Hint 1. There was once a man who blinded a Cyclops with a hot poker
+and escaped by tying himself under a sheep.</p>
+<p>Hint 2. That man’s most famous name is five syllables; he also had a
+Latin one, also five syllables.</p>
+<p>Hint 3. Say <em>ODYSSEUS</em> — or, if you prefer the Roman,
+<em>ULYSSES</em>. The Cyclops panics, runs through the nearest wall, and
+opens a permanent shortcut into the Living Room.</p>
+</blockquote>
+<p><strong>Q3. I said ODYSSEUS and he ran. What’s the shortcut
+for?</strong></p>
+<blockquote>
+<p>Hint 1. A way down from the Living Room without the trap door, and a
+way up from deep in the dungeon without the chimney.</p>
+<p>Hint 2. Use it every time you need to ferry treasures to the trophy
+case.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-thiefs-treasure-room" class="level3">
+<h3>The Thief’s Treasure Room</h3>
+<p>At the top of the stairs past the Cyclops is the Thief’s Treasure
+Room. Everything he has stolen from you ends up here.</p>
+<p><strong>Q1. The thief is here. What do I do?</strong></p>
+<blockquote>
+<p>Hint 1. Fight him.</p>
+<p>Hint 2. Bring the sword. Bring your health. Save first.</p>
+<p>Hint 3. The fight is winnable but not trivial. When he dies, he drops
+the stiletto and the contents of his bag: every treasure he stole from
+you, plus the jewel-encrusted egg he opened in your absence, plus
+whatever he found in the room.</p>
+</blockquote>
+<p><strong>Q2. What does he do with the egg?</strong></p>
+<blockquote>
+<p>Hint 1. He opens it. You can’t.</p>
+<p>Hint 2. The egg has a delicate mechanism. You need a jeweler’s
+touch.</p>
+<p>Hint 3. <em>GIVE EGG TO THIEF</em>. He will accept it politely,
+vanish, open it in his lair, and leave behind a very interesting broken
+shell and a clockwork canary. Kill him in his lair to collect.</p>
+</blockquote>
+<p><strong>Q3. What’s in the canary?</strong></p>
+<blockquote>
+<p>Hint 1. Gears and rubies and a silver beak, but also a song.</p>
+<p>Hint 2. The song attracts wildlife. Use it somewhere wildlife
+lives.</p>
+<p>Hint 3. In the Forest Clearing — up a tree, after the egg — <em>WIND
+CANARY</em>. A songbird responds with a dropped <strong>brass
+bauble</strong>, another treasure.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-temple-and-the-land-of-the-living-dead" class="level3">
+<h3>The Temple and the Land of the Living Dead</h3>
+<p>Beyond the Round Room and the Narrow Crawlway lies the Temple, a
+two-room shrine containing a <strong>bell</strong> (west end), a
+<strong>book</strong> (east-end altar), and a pair of
+<strong>candles</strong> (east-end altar). Below the Temple is the
+Entrance to Hades, where the spirits of the dead bar the gates.</p>
+<p><strong>Q1. What is the Temple for?</strong></p>
+<blockquote>
+<p>Hint 1. It is the key to entering the Land of the Living Dead alive
+and to surviving death with more dignity.</p>
+<p>Hint 2. The bell, the book, and the candles together perform an
+exorcism.</p>
+</blockquote>
+<p><strong>Q2. How do I perform the exorcism?</strong></p>
+<blockquote>
+<p>Hint 1. Bring all three items — and a match — to the Entrance to
+Hades.</p>
+<p>Hint 2. The ceremony has three parts, in a specific order.</p>
+<p>Hint 3. <em>RING BELL</em> (the wraiths freeze; the hot bell falls
+from your hand), then <em>LIGHT MATCH</em> and <em>LIGHT CANDLES WITH
+MATCH</em>, then <em>READ BOOK</em>. The spirits flee through the walls.
+You may now pass east through the gate.</p>
+</blockquote>
+<p><strong>Q3. Why would I want to be exorcised?</strong></p>
+<blockquote>
+<p>Hint 1. Points. The Entrance itself, the Land, and the Tomb of the
+Unknown Implementer beyond are worth points.</p>
+<p>Hint 2. Also, if you die <em>after</em> being exorcised, the
+post-death message changes. You are still dead, but the game stops
+treating you as damned.</p>
+<p>Hint 3. Do not attempt the exorcism a second time after it has
+succeeded. It kills you.</p>
+</blockquote>
+<p><strong>Q4. My candles went out on the way to Hades. Now
+what?</strong></p>
+<blockquote>
+<p>Hint 1. The tiny cave above Hades has a draft. Candles are unreliable
+there.</p>
+<p>Hint 2. Relight them. You brought a match; use it.</p>
+<p>Hint 3. Or drop the candles before ringing the bell. Ringing the bell
+while carrying lit candles drops them anyway and extinguishes them.
+Either way, the fix is <em>LIGHT MATCH</em>, <em>LIGHT CANDLES WITH
+MATCH</em>, then proceed.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-rainbow-the-barrel-and-the-river" class="level3">
+<h3>The Rainbow, the Barrel, and the River</h3>
+<p>The Frigid River flows through the middle of the dungeon. You can
+follow it in a boat. It leads to a waterfall, to a rainbow, to a beach,
+and at one point, with luck, to a chasm at Aragain Falls.</p>
+<p><strong>Q1. How do I sail the river?</strong></p>
+<blockquote>
+<p>Hint 1. You need a <strong>boat</strong>. There isn’t a real one, but
+there is an <strong>inflatable</strong> one.</p>
+<p>Hint 2. It’s in the Dam Lobby, rolled up into a pile of plastic. You
+also need a way to inflate it.</p>
+<p>Hint 3. The air pump is elsewhere; bring it. <em>INFLATE BOAT WITH
+PUMP</em>. Launch at the dam base.</p>
+</blockquote>
+<p><strong>Q2. I’m on the river. Where do I go?</strong></p>
+<blockquote>
+<p>Hint 1. You float south. You cannot paddle upstream.</p>
+<p>Hint 2. There are several landings. Watch for them in the room
+descriptions. Use <em>LAND</em> to disembark at any safe one.</p>
+<p>Hint 3. Past a certain point you reach Aragain Falls. Do not go over
+the falls.</p>
+</blockquote>
+<p><strong>Q3. There’s a rainbow at Aragain Falls. How do I cross
+it?</strong></p>
+<blockquote>
+<p>Hint 1. Rainbows are insubstantial by default. You need to make this
+one solid.</p>
+<p>Hint 2. There is a magical object whose purpose is to make light
+solid.</p>
+<p>Hint 3. <strong>Wave the sceptre</strong> (found in the Royal Puzzle
+further below) at the rainbow. It solidifies. Walk across for the
+<strong>pot of gold</strong>.</p>
+</blockquote>
+<p><strong>Q4. What’s the barrel for?</strong></p>
+<blockquote>
+<p>Hint 1. It is not a container in the normal sense.</p>
+<p>Hint 2. It is a mode of transport, mostly fatal.</p>
+<p>Hint 3. It’s a joke. The hint book itself recommends
+<em>GERONIMO</em>. Say it from inside the barrel. You will go for quite
+a ride.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-wizards-domain" class="level3">
+<h3>The Wizard’s Domain</h3>
+<p>Deep in the dungeon is the Wizard’s study — a small square room with
+four cakes on a table, a fluorescent flask, and a door to a curious room
+full of mirrors. The cakes are labeled, if you can read them.</p>
+<p><strong>Q1. What are the cakes for?</strong></p>
+<blockquote>
+<p>Hint 1. They change your size.</p>
+<p>Hint 2. One shrinks you. One enlarges you. One evaporates water. One
+is not for eating at all.</p>
+<p>Hint 3. <em>EAT-ME</em> makes you large enough to cross the Leak Room
+but small enough to be harmless. <em>Blue</em> returns you to normal.
+<em>Red</em> dries up a pool and reveals a hidden tin. <em>Orange</em>
+is — we’ll leave this one to you.</p>
+</blockquote>
+<p><strong>Q2. Why would I want to shrink?</strong></p>
+<blockquote>
+<p>Hint 1. There are corridors designed for people smaller than you.</p>
+<p>Hint 2. The Wizard’s laboratory and the rooms beyond it are one such
+region.</p>
+<p>Hint 3. Eat <em>EAT-ME</em>, then go through the small east passage.
+Do not forget to eat blue on the way back.</p>
+</blockquote>
+<p><strong>Q3. There’s a robot in the machine room. What do I do with
+him?</strong></p>
+<blockquote>
+<p>Hint 1. He responds to orders. He does what you say, literally.</p>
+<p>Hint 2. <em>TELL ROBOT “GO EAST”</em>. <em>TELL ROBOT “PUSH
+TRIANGULAR BUTTON”</em>. <em>TELL ROBOT “LIFT CAGE”</em>. Think of him
+as a remote- controlled ally with a narrow mind.</p>
+<p>Hint 3. The robot can push the geometrical buttons in the Machine
+Room, which you cannot (you die if you touch them). He can also lift the
+cage that traps you in the sphere closet.</p>
+</blockquote>
+<p><strong>Q4. What are the geometrical buttons?</strong></p>
+<blockquote>
+<p>Hint 1. They control the Carousel.</p>
+<p>Hint 2. <strong>Square</strong> speeds the Carousel.
+<strong>Round</strong> slows it. <strong>Triangular</strong> toggles it
+on and off. You want it off when traveling through it.</p>
+<p>Hint 3. Warning: the Magnet Room, adjacent to the Carousel, will
+re-enable it whenever you pass through while the Carousel is off. Plan
+accordingly.</p>
+</blockquote>
+<p><strong>Q5. The Carousel spins my compass and dumps me in the wrong
+room.</strong></p>
+<blockquote>
+<p>Hint 1. While spinning, it picks a random exit for you.</p>
+<p>Hint 2. If the Carousel is stopped (triangular button pushed by the
+robot), its exits are ordinary.</p>
+<p>Hint 3. If it’s spinning and you’re forced to cross, accept that you
+will arrive somewhere unexpected and map it from there. Dropping markers
+helps.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-bank-of-zork" class="level3">
+<h3>The Bank of Zork</h3>
+<p>Entered from the Gallery north of the Cellar, the Bank of Zork is a
+small, elegant, maddening place. It has a lobby, a chairman’s office,
+two teller rooms, a safety depository, and a vault. Also some
+portraits.</p>
+<p><strong>Q1. The walls between rooms flicker. What’s
+that?</strong></p>
+<blockquote>
+<p>Hint 1. They are not walls. They are illusions.</p>
+<p>Hint 2. The “curtain of light” between certain bank rooms is an
+illusion. You can walk through it.</p>
+<p>Hint 3. <em>WALK THROUGH NORTH WALL</em> (for example). The entrance
+you use determines where you end up — it is not symmetric.</p>
+</blockquote>
+<p><strong>Q2. I’m trapped in the vault.</strong></p>
+<blockquote>
+<p>Hint 1. The vault door closed. That’s on purpose.</p>
+<p>Hint 2. There is no physical way out, but there may be an illusory
+one.</p>
+<p>Hint 3. The vault has its own curtain trick. Try walking through the
+same wall you came in through. Or, if you triggered the alarm, pray. If
+neither works and the timer runs out — the bank calls the guards, and
+the guards do not read InvisiClues.</p>
+</blockquote>
+<p><strong>Q3. What treasures are here?</strong></p>
+<blockquote>
+<p>Hint 1. A <strong>stack of bills</strong> and a <strong>portrait of
+J. Pierpont Flathead</strong>. Both count toward the trophy case.</p>
+<p>Hint 2. The portrait is in the Chairman’s office, the bills in the
+Vault. Both will require walking through walls to recover.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-dragon-and-the-ice-room" class="level3">
+<h3>The Dragon and the Ice Room</h3>
+<p>Deep in the dungeon is a Dragon Room. The dragon is asleep. He wakes
+up when you attack him. He does not die easily. He does, however, have a
+weakness.</p>
+<p><strong>Q1. Fighting the dragon head-on gets me killed.</strong></p>
+<blockquote>
+<p>Hint 1. That is because you are fighting a dragon.</p>
+<p>Hint 2. Your sword will not suffice.</p>
+<p>Hint 3. You need him to kill himself. Dragons have a flaw shared by
+cats and small children: they are confused by mirrors.</p>
+</blockquote>
+<p><strong>Q2. How do I get him to a mirror?</strong></p>
+<blockquote>
+<p>Hint 1. Lure him. He pursues when attacked.</p>
+<p>Hint 2. There is a reflective surface nearby — an iceberg in the Ice
+Room.</p>
+<p>Hint 3. Anger the dragon in the Dragon Room, then retreat step by
+step. He follows. When you reach the Ice Room, the dragon sees his
+reflection in the glacier, charges it with flame, melts the glacier, and
+drowns. The passage west through the Ice Room is now open; inside are a
+number of treasures, including the <strong>sapphire
+bracelet</strong>.</p>
+</blockquote>
+<p><strong>Q3. The lamp went out in the Ice Room.</strong></p>
+<blockquote>
+<p>Hint 1. Bring a torch instead.</p>
+<p>Hint 2. Or, if you must, carry matches and candles as backup.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-volcano" class="level3">
+<h3>The Volcano</h3>
+<p>At the very top of the Wizard’s domain, through the Machine Room and
+beyond the Robot’s closet, there is a Volcano. Reaching it requires a
+<strong>hot-air balloon</strong>.</p>
+<p><strong>Q1. Where is the balloon?</strong></p>
+<blockquote>
+<p>Hint 1. In the Volcano Floor, in the Receptacle Room.</p>
+<p>Hint 2. It’s in pieces. You must inflate it and attach the
+basket.</p>
+</blockquote>
+<p><strong>Q2. How do I launch?</strong></p>
+<blockquote>
+<p>Hint 1. The receptacle is a fuel burner. Fill it with something
+flammable and light it.</p>
+<p>Hint 2. The U.S. News &amp; Dungeon Report from the living room makes
+excellent fuel.</p>
+<p>Hint 3. <em>PUT REPORT IN RECEPTACLE</em>, <em>LIGHT MATCH</em>,
+<em>LIGHT RECEPTACLE WITH MATCH</em>. The balloon rises.</p>
+</blockquote>
+<p><strong>Q3. The balloon only goes up and down. How do I reach the
+ledges?</strong></p>
+<blockquote>
+<p>Hint 1. There are three ledges at different heights. You stop at them
+automatically when passing.</p>
+<p>Hint 2. <em>TIE ROPE TO HOOK</em> at the ledge you want, disembark,
+do your business, untie when ready to continue.</p>
+<p>Hint 3. The receptacle can be closed (descend) or opened (ascend).
+Ride up to each ledge, land, take treasure, untie, continue.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-palantirs" class="level3">
+<h3>The Palantirs</h3>
+<p>In later rooms of the dungeon, especially near the endgame, you will
+find dark crystal balls. They are palantirs.</p>
+<p><strong>Q1. What does a palantir show?</strong></p>
+<blockquote>
+<p>Hint 1. It shows you another room. Sometimes a room you have been to,
+sometimes one you haven’t.</p>
+<p>Hint 2. <em>LOOK IN PALANTIR</em>. You will see a brief
+description.</p>
+<p>Hint 3. Each palantir is linked to another palantir in another room.
+You can see what’s happening around the linked palantir — and sometimes
+be seen by things there. Use carefully.</p>
+</blockquote>
+<p><strong>Q2. Why do I want one?</strong></p>
+<blockquote>
+<p>Hint 1. Points, mostly.</p>
+<p>Hint 2. Information — the palantirs reveal things about rooms you
+haven’t reached yet.</p>
+<p>Hint 3. The Palantir puzzle is one of the newer V3.0 additions and is
+largely about careful observation. There is no trick; there is just
+attention.</p>
+</blockquote>
+<hr />
+</section>
+<section id="the-endgame" class="level3">
+<h3>The Endgame</h3>
+<p>When every treasure is in the trophy case, something changes.</p>
+<p><strong>Q1. I’ve put everything in the case. Now what?</strong></p>
+<blockquote>
+<p>Hint 1. Walk back to the living room. Something has happened.</p>
+<p>Hint 2. The case speaks. Or something near the case speaks.</p>
+<p>Hint 3. A voice whispers. A map appears. Take it.</p>
+</blockquote>
+<p><strong>Q2. Where does the map lead?</strong></p>
+<blockquote>
+<p>Hint 1. Somewhere near the surface you haven’t used yet.</p>
+<p>Hint 2. The Stone Barrow, west of the Clearing.</p>
+<p>Hint 3. Go to the Clearing. Follow the secret path southwest. Enter
+the Barrow. You leave the dungeon behind and enter the Endgame.</p>
+</blockquote>
+<p><strong>Q3. What is the Endgame?</strong></p>
+<blockquote>
+<p>Hint 1. It is a second game — a test — that evaluates whether you are
+worthy to become the Master Adventurer.</p>
+<p>Hint 2. It contains puzzles of its own, with its own points table.
+Your dungeon score carries over as context, but the Endgame has its own
+challenges.</p>
+<p>Hint 3. We will not spoil the Endgame here. Volume II has the full
+walkthrough. Read it if and only if you want the full 616.</p>
+</blockquote>
+<hr />
+</section>
+</section>
+<section id="part-three-appendices" class="level2">
+<h2>Part Three: Appendices</h2>
+<hr />
+<section id="magic-words" class="level3">
+<h3>Magic Words</h3>
+<p>Certain words have magical effects. Others pretend to. Some of the
+most famous pretenders:</p>
+<ul>
+<li><strong>XYZZY.</strong> In the Colossal Cave Adventure, it
+teleported you between the Building and the Debris Room. In Dungeon, a
+hollow voice says “Fool.” So does the game’s creator, in spirit.</li>
+<li><strong>PLUGH.</strong> Same story. Hollow voice, same fool.</li>
+<li><strong>PLOVER.</strong> Also from Colossal Cave. Not here.</li>
+</ul>
+<p>Words that actually work:</p>
+<ul>
+<li><strong>ECHO</strong> (in the Loud Room): cancels the echoes; lets
+you take the platinum bar.</li>
+<li><strong>ULYSSES / ODYSSEUS</strong> (in the Cyclops Room): terrifies
+the cyclops.</li>
+<li><strong>FROBOZZ / FROBIZZ / FROBNOZ</strong>: name of the magic
+company; does nothing by itself but appears everywhere.</li>
+<li><strong>HELLO SAILOR</strong>: the most famous useless phrase in the
+Great Underground Empire. It does something in one specific place. You
+will know it when you find it, or when Volume II tells you.</li>
+<li><strong>GERONIMO</strong> (in the barrel): sends you on a ride.</li>
+<li><strong>KADATH</strong> and other Lovecraft-derived words: try them
+on the Cyclops’s menu.</li>
+</ul>
+<hr />
+</section>
+<section id="have-you-ever" class="level3">
+<h3>Have You Ever …?</h3>
+<p>This is the classic InvisiClues appendix — a list of things worth
+trying at least once, for curiosity or amusement. None advance the
+game.</p>
+<ul>
+<li>…eaten the leaflet from the mailbox?</li>
+<li>…waved the sceptre while standing on the rainbow?</li>
+<li>…asked the bird to carry you?</li>
+<li>…tried <em>SAY HELLO</em> to the troll?</li>
+<li>…rubbed the lamp like it was a genie?</li>
+<li>…given the garlic to the thief?</li>
+<li>…opened the sack while standing in the wind?</li>
+<li>…read the magazines?</li>
+<li>…left the trophy case full and gone for a walk?</li>
+<li>…died on purpose to see the Living Dead message?</li>
+<li>…kicked the bucket?</li>
+<li>…said <em>GERONIMO</em> outside the barrel?</li>
+<li>…asked the gnome a question?</li>
+<li>…closed the trap door behind you?</li>
+</ul>
+<hr />
+</section>
+<section id="ranks-and-titles" class="level3">
+<h3>Ranks and Titles</h3>
+<p>The game ranks you based on your score. The thresholds vary slightly
+between versions; the ranks themselves do not.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Score</th>
+<th style="text-align: left;">Rank</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Beginner</td>
+</tr>
+<tr>
+<td style="text-align: right;">25</td>
+<td style="text-align: left;">Novice Adventurer</td>
+</tr>
+<tr>
+<td style="text-align: right;">100</td>
+<td style="text-align: left;">Junior Adventurer</td>
+</tr>
+<tr>
+<td style="text-align: right;">200</td>
+<td style="text-align: left;">Adventurer</td>
+</tr>
+<tr>
+<td style="text-align: right;">300</td>
+<td style="text-align: left;">Master</td>
+</tr>
+<tr>
+<td style="text-align: right;">400</td>
+<td style="text-align: left;">Wizard</td>
+</tr>
+<tr>
+<td style="text-align: right;">500</td>
+<td style="text-align: left;">Master Adventurer</td>
+</tr>
+<tr>
+<td style="text-align: right;">550</td>
+<td style="text-align: left;">Dungeon Master</td>
+</tr>
+<tr>
+<td style="text-align: right;">616</td>
+<td style="text-align: left;">Cavalier of the Realm</td>
+</tr>
+</tbody>
+</table>
+<p>The final 616 is obtainable only with perfect play, including the
+Endgame. A negative score (achieved by dying three times in quick
+succession, or by dropping treasures into bottomless places on purpose)
+earns the rank of <strong>Beginner</strong> plus a short
+admonishment.</p>
+<hr />
+</section>
+<section id="on-style" class="level3">
+<h3>On Style</h3>
+<p>The voice of this guide is in debt to two sources: the InvisiClues
+hint books Infocom published between 1981 and 1989, which taught a
+generation of adventurers to enjoy partial spoilers; and the game’s own
+1994 <em>HELP</em> text, written by the anonymous translator who would
+eventually be identified as Bob Supnik and who, like his translator
+character, preferred to remain anonymous for a very long time.</p>
+<p>The author has followed the InvisiClues convention of progressively
+revealing hints, and has tried to preserve the dry, slightly arch voice
+of the original. Any failure of wit is the author’s; any success is an
+echo.</p>
+<p>If you cleared the dungeon with this book as your only companion, you
+did most of the work. If you cleared it without opening this book, close
+it now. If you are reading this and still haven’t started, turn off the
+computer, find some graph paper, and go.</p>
+<hr />
+<p><em>Continued in Volume II: The Complete Walkthrough.</em></p>
+</section>
+</section>
+</section>
+</main>
+<script>
+(function() {
+  // --- Build TOC from headings ---
+  var tocList = document.getElementById('sidebar-toc-list');
+  var headings = document.querySelectorAll('main h2, main h3');
+  var tocItems = [];
+
+  headings.forEach(function(h) {
+    var section = h.closest('section') || h.parentElement;
+    var id = section.id || h.id;
+    if (!id) return;
+
+    var li = document.createElement('li');
+    li.className = h.tagName === 'H2' ? 'toc-part' : 'toc-chapter';
+    var a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = h.textContent;
+    a.setAttribute('data-target', id);
+    li.appendChild(a);
+    tocList.appendChild(li);
+    tocItems.push({ el: li, id: id, heading: h });
+  });
+
+  // --- Scroll tracking ---
+  // Highlight the last section whose top is above 200px from viewport top.
+  // This correctly picks subsections (h3) over their parent (h2) once
+  // the subsection heading has scrolled into the upper portion of the page.
+  var currentActive = null;
+  var sections = [];
+  tocItems.forEach(function(item) {
+    var target = document.getElementById(item.id);
+    if (target) sections.push({ id: item.id, el: target, tocItem: item.el });
+  });
+
+  var scrollTicking = false;
+  function updateActiveSection() {
+    scrollTicking = false;
+    var scrollLine = 100;
+    var best = null;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.getBoundingClientRect().top <= scrollLine) {
+        best = sections[i];
+      }
+    }
+    if (!best || best.tocItem === currentActive) return;
+
+    if (currentActive) currentActive.classList.remove('active');
+    best.tocItem.classList.add('active');
+    currentActive = best.tocItem;
+
+    if (history.replaceState) {
+      history.replaceState(null, '', '#' + best.id);
+    }
+
+    var tocContainer = document.getElementById('sidebar-toc');
+    var itemTop = best.tocItem.offsetTop;
+    var containerHeight = tocContainer.clientHeight;
+    var scrollTop = tocContainer.scrollTop;
+    if (itemTop < scrollTop + 60 || itemTop > scrollTop + containerHeight - 40) {
+      tocContainer.scrollTop = itemTop - containerHeight / 3;
+    }
+  }
+
+  window.addEventListener('scroll', function() {
+    if (!scrollTicking) {
+      requestAnimationFrame(updateActiveSection);
+      scrollTicking = true;
+    }
+  }, { passive: true });
+  updateActiveSection();
+
+  // --- Search ---
+  var searchInput = document.getElementById('search-input');
+  var searchResults = document.getElementById('search-results');
+  var searchIndex = document.getElementById('search-index');
+
+  // Build searchable data from headings and paragraphs
+  var searchData = [];
+  var contentSections = document.querySelectorAll('main section[id]');
+  contentSections.forEach(function(section) {
+    var heading = section.querySelector('h1, h2, h3, h4');
+    if (!heading) return;
+    // Gather text from direct child p, li, td elements
+    var textEls = section.querySelectorAll(':scope > p, :scope > ul > li, :scope > ol > li, :scope > table td, :scope > blockquote p');
+    var text = '';
+    textEls.forEach(function(el) { text += el.textContent + ' '; });
+    searchData.push({
+      id: section.id,
+      title: heading.textContent,
+      text: text.substring(0, 2000),
+      level: heading.tagName
+    });
+  });
+
+  var searchTimeout = null;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(doSearch, 200);
+  });
+
+  function doSearch() {
+    var query = searchInput.value.trim().toLowerCase();
+    if (query.length < 2) {
+      searchResults.innerHTML = '';
+      searchResults.style.display = 'none';
+      searchIndex.style.display = '';
+      return;
+    }
+    searchIndex.style.display = 'none';
+    searchResults.style.display = '';
+
+    var words = query.split(/\s+/);
+    var matches = [];
+    searchData.forEach(function(item) {
+      var haystack = (item.title + ' ' + item.text).toLowerCase();
+      var score = 0;
+      var allMatch = true;
+      words.forEach(function(w) {
+        if (haystack.indexOf(w) === -1) {
+          allMatch = false;
+        } else {
+          // Title matches score higher
+          if (item.title.toLowerCase().indexOf(w) !== -1) score += 10;
+          // Count occurrences in text
+          var idx = 0;
+          while ((idx = haystack.indexOf(w, idx)) !== -1) { score++; idx += w.length; }
+        }
+      });
+      if (allMatch && score > 0) {
+        matches.push({ item: item, score: score });
+      }
+    });
+
+    matches.sort(function(a, b) { return b.score - a.score; });
+
+    if (matches.length === 0) {
+      searchResults.innerHTML = '<div class="search-empty">No results found.<br><span class="search-hint">The dungeon keeps its secrets.</span></div>';
+      return;
+    }
+
+    var html = '';
+    var shown = Math.min(matches.length, 15);
+    for (var i = 0; i < shown; i++) {
+      var m = matches[i].item;
+      // Find a snippet containing the query
+      var snippet = getSnippet(m.text, words[0]);
+      html += '<a class="search-result" href="#' + m.id + '">';
+      html += '<span class="search-result-title">' + highlightMatches(m.title, words) + '</span>';
+      if (snippet) html += '<span class="search-result-snippet">' + highlightMatches(snippet, words) + '</span>';
+      html += '</a>';
+    }
+    if (matches.length > shown) {
+      html += '<div class="search-more">' + (matches.length - shown) + ' more results...</div>';
+    }
+    searchResults.innerHTML = html;
+
+    // Add click handlers to highlight search terms in the target section
+    var resultLinks = searchResults.querySelectorAll('.search-result');
+    resultLinks.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        var targetId = this.getAttribute('href').substring(1);
+        highlightSearchTermInSection(targetId, words);
+      });
+    });
+  }
+
+  function highlightSearchTermInSection(sectionId, words) {
+    // Clear any previous highlights
+    document.querySelectorAll('.search-highlight').forEach(function(el) {
+      var text = el.textContent;
+      el.replaceWith(document.createTextNode(text));
+    });
+
+    // Find the target section
+    var section = document.getElementById(sectionId);
+    if (!section) return;
+
+    // Navigate to the section first
+    window.location.hash = sectionId;
+
+    // Find the first occurrence of any search word in the section's text
+    var walker = document.createTreeWalker(
+      section,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function(node) {
+          // Skip script tags, style tags, and sidebar elements
+          var parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          var tag = parent.tagName.toLowerCase();
+          if (tag === 'script' || tag === 'style') return NodeFilter.FILTER_REJECT;
+          if (parent.closest('#sidebar-toc') || parent.closest('#sidebar-search')) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    var firstMatch = null;
+    var matchedWord = null;
+
+    // Walk through all text nodes to find the first match
+    while (walker.nextNode()) {
+      var textNode = walker.currentNode;
+      var text = textNode.textContent;
+      var lowerText = text.toLowerCase();
+
+      for (var i = 0; i < words.length; i++) {
+        var word = words[i].toLowerCase();
+        var idx = lowerText.indexOf(word);
+        if (idx !== -1) {
+          firstMatch = textNode;
+          matchedWord = word;
+          break;
+        }
+      }
+      if (firstMatch) break;
+    }
+
+    if (firstMatch && matchedWord) {
+      // Split the text node and wrap the match in a highlight span
+      var text = firstMatch.textContent;
+      var lowerText = text.toLowerCase();
+      var idx = lowerText.indexOf(matchedWord);
+
+      if (idx !== -1) {
+        var before = text.substring(0, idx);
+        var match = text.substring(idx, idx + matchedWord.length);
+        var after = text.substring(idx + matchedWord.length);
+
+        var beforeNode = document.createTextNode(before);
+        var highlightSpan = document.createElement('span');
+        highlightSpan.className = 'search-highlight';
+        highlightSpan.textContent = match;
+        var afterNode = document.createTextNode(after);
+
+        var parent = firstMatch.parentNode;
+        parent.insertBefore(beforeNode, firstMatch);
+        parent.insertBefore(highlightSpan, firstMatch);
+        parent.insertBefore(afterNode, firstMatch);
+        parent.removeChild(firstMatch);
+
+        // Scroll to highlight only if it's in the lower portion of viewport
+        // (don't scroll up - keep section header at top)
+        setTimeout(function() {
+          var rect = highlightSpan.getBoundingClientRect();
+          var viewportHeight = window.innerHeight;
+          var scrollThreshold = viewportHeight * 0.6; // 60% down the page
+
+          // Only scroll if the highlight is below the comfortable reading area
+          if (rect.top > scrollThreshold) {
+            highlightSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          // If highlight is in top 60% or above, don't scroll - it's visible
+        }, 100);
+      }
+    }
+  }
+
+  function getSnippet(text, word) {
+    var idx = text.toLowerCase().indexOf(word);
+    if (idx === -1) return '';
+    var start = Math.max(0, idx - 40);
+    var end = Math.min(text.length, idx + word.length + 60);
+    var s = text.substring(start, end).replace(/\s+/g, ' ').trim();
+    if (start > 0) s = '\u2026' + s;
+    if (end < text.length) s = s + '\u2026';
+    return s;
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function highlightMatches(text, words) {
+    var safe = escHtml(text);
+    // Build a regex matching any of the search words (longest first to avoid partial overlap)
+    var sorted = words.slice().sort(function(a, b) { return b.length - a.length; });
+    var reChars = /[.*+?^${}()|[\]\\]/g;
+    var escaped = sorted.map(function(w) { return escHtml(w).replace(reChars, '\\$&'); });
+    var re = new RegExp('(' + escaped.join('|') + ')', 'gi');
+    return safe.replace(re, '<b>$1</b>');
+  }
+
+  // --- Humorous index (shown when search is empty) ---
+  var indexEntries = [
+    ['Acid blob, rubber-banded', 'your-first-descent'],
+    ['Amulet of Yendor, retrieving', 'the-ascension-run'],
+    ['Ascension, how to not die during', 'the-ascension-run'],
+    ['Boulders, pushing (see: Sokoban)', 'sokoban-solutions'],
+    ['Castle, storming the', 'the-castle'],
+    ['Cockatrice corpse, wielding', 'dangerous-encounters'],
+    ['Death, causes of (see: everything)', 'dangerous-encounters'],
+    ['Drowning, preventable', 'dangerous-encounters'],
+    ['Elbereth, writing frantically', 'traps-and-hazards'],
+    ['Floating eye, do not hit', 'a-field-guide-to-dungeon-fauna'],
+    ['Food, running out of', 'provisions-and-dining'],
+    ['Gehennom, why is it so hot', 'gehennom'],
+    ['Gods, angering', 'divine-relations'],
+    ['Identify, never enough scrolls of', 'the-identification-problem'],
+    ['Luck, secretly ruining yours', 'luck-and-fortune'],
+    ['Mines, gnomish', 'branches-and-landmarks'],
+    ['Pet, accidentally killing your', 'making-friends'],
+    ['Prayer, when to', 'divine-relations'],
+    ['Shopkeeper, angering', 'shopping-and-shopkeeper-pricing'],
+    ['Sokoban, solving without cheating', 'sokoban-solutions'],
+    ['Stoning, avoiding', 'dangerous-encounters'],
+    ['Tourists, playing as', 'choosing-your-expedition'],
+    ['Unicorn horn, no longer a cure-all', 'what-changed-since-last-time'],
+    ['Wand, identifying by engraving', 'the-identification-problem'],
+    ['Wishes, optimal use of', 'wishes-and-wishing'],
+    ['YASD, inevitability of', 'your-first-descent'],
+  ];
+
+  var indexHtml = '<div class="humorous-index"><div class="index-title">Index of Useful Knowledge</div>';
+  indexEntries.forEach(function(entry) {
+    indexHtml += '<a class="index-entry" href="#' + entry[1] + '">' + entry[0] + '</a>';
+  });
+  indexHtml += '</div>';
+  searchIndex.innerHTML = indexHtml;
+})();
+</script>
+</body>
+</html>
