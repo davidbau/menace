@@ -187,6 +187,15 @@ M1, M2, M3, etc., until the shape emerges. There is a well-known
 "Grating Room" and a "Cyclops Room" hidden inside these mazes. Finding
 them is half the reward.
 
+**A note for the impatient.** A complete map of the Great Underground
+Empire, hand-drawn by David Bau from repeated mainframe-era plays, is
+reproduced in **Volume II, Appendix A2**. Looking at it will not spoil
+any puzzles, only the geography, and it will save you a very large
+number of hours of confusion if you prefer to understand the shape of
+the place before you explore it. Alternatively: don't look. Draw your
+own. There is a particular satisfaction in the fully-annotated
+hand-drawn dungeon map that no reproduced one can match.
+
 ---
 
 ### Strength, Death, and the Twice-Dead Rule

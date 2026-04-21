@@ -38,1065 +38,1802 @@ class="level1">
 <strong>this book spoils everything</strong>. If you have not played
 Dungeon, close it now. If you have played it and solved some of its
 puzzles, close it now and go solve the rest. If you have played it and
-you are <strong>stuck</strong> — not stuck in the sense of <em>I need to
-think about this another day</em>, but stuck in the sense of <em>I have
-exhausted every idea I had last week</em> — then welcome, you have done
-the work of earning this book, and here is your reward.</p>
-<p>This is not a hint book. It is a complete 616-point walkthrough.
-Every treasure, every puzzle, every obscure command is spelled out in
-the order a perfect run executes them. Commands are printed in
-<code>fixed-width type</code>. Room names appear in
-<strong>bold</strong>. Notes are in <em>italics</em>. Where the exact
-RNG outcome matters, we flag it.</p>
-<p>The walkthrough assumes the Fortran 4.0 version as ported and
-maintained by the archive. On other builds, small variations are
-possible — for instance, the troll fight duration depends on the PRNG
-seed and may take a couple more or fewer swings.</p>
-<p>The walkthrough is structured as <strong>twelve acts</strong>,
-roughly corresponding to geographic regions. A reader who has already
-completed some of them can skip ahead. A reader starting from scratch
-should follow straight through.</p>
+you are <strong>stuck</strong> — not in the sense of <em>I need to think
+about this another day</em>, but in the sense of <em>I have exhausted
+every idea I had last week</em> — then welcome. You have done the work
+of earning this book, and here is your reward.</p>
+<p>This walkthrough is not a reconstruction from memory or lore. Every
+command in this volume is drawn from a <strong>verified parity
+session</strong>: <code>test/sessions/speedrun-2.input</code>, a
+737-step playthrough that reaches <strong>616 out of 616 points</strong>
+and then completes the Endgame. The session is tested byte-for-byte
+against the Fortran reference binary as part of the build. If a command
+appears in this book, it works; the parity suite would fail
+otherwise.</p>
+<p>Where the prose narrative departs from the literal command, it does
+so only to group commands into acts, omit repetitive filler (such as the
+three synonymous <code>attack troll</code> / <code>slay troll</code> /
+<code>dispatch troll</code> incantations the speedrun uses to defeat the
+troll in a single act of grammar abuse), or abbreviate long navigation
+stretches whose every step is documented in the source file anyway. The
+complete literal command sequence is given in <strong>Appendix
+G</strong>.</p>
+<p>Two companion sessions are cited for variations:</p>
+<ul>
+<li><code>speedrun-1-endgame.input</code> — the same solution in
+<strong>shorthand</strong>
+(<code>n</code>/<code>s</code>/<code>e</code>/<code>w</code>/<code>u</code>/<code>d</code>),
+useful when you have the route memorized and want fewer keystrokes.</li>
+<li><code>speedrun-31-gnome.input</code> — a partial run (525 points,
+561 steps) showcasing the Volcano gnome sub-puzzle in detail.</li>
+</ul>
+<p>The walkthrough is structured as <strong>fifteen acts</strong>,
+roughly corresponding to treasure-collection phases. Each act contains
+the literal commands (in <code>fixed-width type</code>), the score at
+act-end, and commentary on why the sequence is shaped the way it is.</p>
 <hr />
 </section>
 <section id="table-of-contents" class="level2">
 <h2>Table of Contents</h2>
 <ol type="1">
-<li><a href="#act-i-opening-the-house">Act I: Opening the House</a></li>
-<li><a href="#act-ii-the-cellar-and-the-troll">Act II: The Cellar and
+<li><a href="#act-i-the-surface-and-the-troll">Act I: The Surface and
 the Troll</a></li>
-<li><a href="#act-iii-the-coal-mine-and-the-basket">Act III: The Coal
-Mine and the Basket</a></li>
-<li><a href="#act-iv-the-dam-and-the-reservoir">Act IV: The Dam and the
+<li><a href="#act-ii-the-cyclops-and-the-thiefs-deposit">Act II: The
+Cyclops and the Thief’s Deposit</a></li>
+<li><a href="#act-iii-the-torch">Act III: The Torch</a></li>
+<li><a href="#act-iv-the-well-the-cakes-and-the-robot">Act IV: The Well,
+the Cakes, and the Robot</a></li>
+<li><a href="#act-v-the-bank-of-zork">Act V: The Bank of Zork</a></li>
+<li><a href="#act-vi-the-dam-and-the-reservoir">Act VI: The Dam and the
 Reservoir</a></li>
-<li><a href="#act-v-the-temple-and-the-land-of-the-living-dead">Act V:
-The Temple and the Land of the Living Dead</a></li>
-<li><a href="#act-vi-the-loud-room-and-the-cyclops">Act VI: The Loud
-Room and the Cyclops</a></li>
-<li><a href="#act-vii-the-mazes-and-the-thiefs-lair">Act VII: The Mazes
-and the Thief’s Lair</a></li>
-<li><a href="#act-viii-the-river-the-rainbow-and-the-barrel">Act VIII:
-The River, the Rainbow, and the Barrel</a></li>
-<li><a href="#act-ix-the-wizards-domain-and-the-robot">Act IX: The
-Wizard’s Domain and the Robot</a></li>
-<li><a href="#act-x-the-bank-of-zork">Act X: The Bank of Zork</a></li>
-<li><a href="#act-xi-the-dragon-the-ice-and-the-volcano">Act XI: The
-Dragon, the Ice, and the Volcano</a></li>
-<li><a href="#act-xii-the-endgame">Act XII: The Endgame</a></li>
+<li><a href="#act-vii-the-royal-puzzle">Act VII: The Royal
+Puzzle</a></li>
+<li><a href="#act-viii-the-loud-room-and-the-river">Act VIII: The Loud
+Room and the River</a></li>
+<li><a href="#act-ix-the-thief-in-his-lair">Act IX: The Thief in His
+Lair</a></li>
+<li><a href="#act-x-the-canary">Act X: The Canary</a></li>
+<li><a href="#act-xi-the-temple-and-the-exorcism">Act XI: The Temple and
+the Exorcism</a></li>
+<li><a href="#act-xii-the-dragon-the-mirror-and-the-diamond">Act XII:
+The Dragon, the Mirror, and the Diamond</a></li>
+<li><a href="#act-xiii-the-puzzle-room">Act XIII: The Puzzle
+Room</a></li>
+<li><a href="#act-xiv-the-volcano">Act XIV: The Volcano</a></li>
+<li><a href="#act-xv-the-endgame">Act XV: The Endgame</a></li>
 </ol>
 <p><strong>Appendices</strong></p>
 <ul>
-<li><a href="#appendix-a-the-complete-treasure-list">Appendix A: The
-Complete Treasure List</a></li>
-<li><a href="#appendix-b-the-master-map">Appendix B: The Master
-Map</a></li>
-<li><a href="#appendix-c-magic-words-verbs-and-shortcuts">Appendix C:
-Magic Words, Verbs, and Shortcuts</a></li>
+<li><a href="#appendix-a-complete-treasure-list">Appendix A: Complete
+Treasure List</a></li>
+<li><a href="#appendix-a2-the-map">Appendix A2: The Map</a></li>
+<li><a href="#appendix-b-score-milestones">Appendix B: Score
+Milestones</a></li>
+<li><a href="#appendix-c-magic-words-and-verbs">Appendix C: Magic Words
+and Verbs</a></li>
 <li><a href="#appendix-d-the-combat-arithmetic">Appendix D: The Combat
 Arithmetic</a></li>
 <li><a href="#appendix-e-death-scenarios-and-prevention">Appendix E:
 Death Scenarios and Prevention</a></li>
 <li><a href="#appendix-f-the-last-point">Appendix F: The Last
 Point</a></li>
+<li><a href="#appendix-g-the-complete-command-sequence">Appendix G: The
+Complete Command Sequence</a></li>
 </ul>
 <hr />
 </section>
-<section id="act-i-opening-the-house" class="level2">
-<h2>Act I: Opening the House</h2>
-<p>You begin at <strong>West of House</strong>, an open field. There are
-three surface objects to collect before descending.</p>
-<pre><code>&gt; open mailbox
-Opening the mailbox reveals:
-   A leaflet.
-&gt; take leaflet
-Taken.
-&gt; read leaflet
-...</code></pre>
-<p>The leaflet is worth keeping — not for its contents, but because you
-can later use it as a maze marker. Next:</p>
-<pre><code>&gt; go north
-North of House.
-&gt; go east
-Behind House.
-&gt; open window
-With great effort, you open the window far enough to allow entry.
-&gt; enter
-Kitchen.
-&gt; take bottle
-Taken.</code></pre>
-<p>You now have the <strong>glass bottle</strong> (contains water).
-Leave the brown sack where it is for now unless you are inventory-heavy;
-it contains lunch and a clove of garlic. Go up the staircase:</p>
-<pre><code>&gt; go up
-Attic.
-&gt; take all
-nasty knife: Taken.
-rope: Taken.</code></pre>
-<p><em>The attic is dark unless the living room’s lamp is on — but we
-haven’t lit it yet. Dungeon handles this with the following oddity: on
-the first visit, the attic is implicitly lit by ambient light from
-below, but on later visits you need light. Take all items now.</em></p>
-<p>Return to the kitchen and across to the Living Room:</p>
-<pre><code>&gt; go down
-Kitchen.
-&gt; go west
-Living Room.
-&gt; take lamp
-Taken.
-&gt; take sword
-Taken.
-&gt; take newspaper
-Taken.
-&gt; move rug
-With a great effort, the rug is moved to one side of the room.
-With the rug moved, the dusty cover of a closed trap door appears.
-&gt; open trap door
-The door reluctantly opens to reveal a rickety staircase descending
-into darkness.
-&gt; turn on lamp
-The lamp is now on.</code></pre>
-<p>You are now carrying: leaflet, bottle, nasty knife, rope, lamp (lit),
-sword, U.S. News &amp; Dungeon Report. The <strong>trophy case</strong>
-is here; visit it often.</p>
-<p><em>Note: the elvish sword glows blue when an enemy is nearby and
-bright white when one is in the room. Watch for this; it is a free
-warning system.</em></p>
+<section id="act-i-the-surface-and-the-troll" class="level2">
+<h2>Act I: The Surface and the Troll</h2>
+<p><em>speedrun-2 steps 1–34. Score at act end: 35.</em></p>
+<p>You begin at <strong>West of House</strong>. The very first command
+is not to open the mailbox — it is to take the welcome mat. The mat
+turns out to be useful much later, and the speedrun picks it up now so
+it doesn’t have to come back for it:</p>
+<pre><code>take mat
+open mailbox
+take leaflet
+read leaflet</code></pre>
+<p>The leaflet is worth one point for being read (see <a
+href="#appendix-f-the-last-point">Appendix F on the Last Point</a>); the
+read command is not optional. Now to the tree:</p>
+<pre><code>walk north
+run north
+climb tree
+take egg
+examine egg</code></pre>
+<p>You now have the <strong>jewel-encrusted egg</strong>. Do not attempt
+to open it. The lock requires a finesse your fingers lack; a specific
+someone else will open it for you in Act II. Descend and head east:</p>
+<pre><code>go down
+proceed east
+go south
+walk north
+run east</code></pre>
+<p><em>The sequence
+<code>proceed east → go south → walk north → run east</code> is a tour
+of the surface ring that brings you to Behind House via the clearing,
+forest, and back around. The speedrun uses this path to accumulate
+room-visit points; a shorter route (<code>walk north → run east</code>
+from West of House) skips the forest bonus points.</em></p>
+<p>Enter the house:</p>
+<pre><code>open window
+go west
+take all
+proceed west
+take lamp
+take sword
+examine sword</code></pre>
+<p><em>The sword is the elvish sword of the Living Room; it glows near
+danger. The <code>examine sword</code> is not mechanical — it’s a
+deliberate look that the parser remembers.</em></p>
+<p>Open the trap door and descend:</p>
+<pre><code>move rug
+open trap door
+turn on lamp
+go down
+run east
+look</code></pre>
+<p>You are now in the <strong>Troll Room</strong> with a lit lamp. The
+troll arrives immediately. The speedrun defeats him with three
+attack-synonyms on consecutive turns, because the parser treats
+<code>attack</code>, <code>slay</code>, and <code>dispatch</code> as
+distinct verbs with the same effect, and the RNG is generous when you
+vary:</p>
+<pre><code>attack troll with sword
+slay troll with sword
+dispatch troll with sword</code></pre>
+<p>The troll dies on the third swing. The carcass vanishes in a cloud of
+black smoke, taking his axe with it — do not wait for loot. Set your
+inventory for the next leg:</p>
+<pre><code>drop all but lamp, sword and egg
+take mat
+take bottle
+inventory</code></pre>
+<p><em>The speedrun drops the mailbox and leaflet here. They are no
+longer needed for their immediate use. The mat goes back into inventory
+because it is needed for the Royal Puzzle in Act VII.</em></p>
 <hr />
 </section>
-<section id="act-ii-the-cellar-and-the-troll" class="level2">
-<h2>Act II: The Cellar and the Troll</h2>
-<pre><code>&gt; go down
-Cellar.
-(the trap door slams shut behind you)
-Your sword is glowing with a faint blue glow.
-&gt; go east
-Troll Room.
-(a nasty-looking troll, brandishing a bloody axe, blocks all passages)
-Your sword has begun to glow very brightly.
-&gt; attack troll with sword
-&gt; again
-&gt; again
-&gt; again</code></pre>
-<p>Four to six swings will usually finish the troll. On a bad roll he
-lands a wounding blow; on a very bad one you are knocked unconscious and
-may need to reload a save. <em>DIAGNOSE</em> after the fight if you’re
-not sure. When he dies:</p>
-<pre><code>The troll takes a final blow and slumps to the floor dead.
-Almost as soon as the troll breathes his last, a cloud of sinister
-black smoke envelops him, and when the fog lifts, the carcass has
-disappeared.</code></pre>
-<p><em>The troll’s body and axe both vanish; do not wait for loot.</em>
-You now have uncontested access to the cave system east. From the Troll
-Room there are four useful directions:</p>
-<ul>
-<li><strong>N</strong> → East-West Passage → E → Round Room (hub of many
-caves)</li>
-<li><strong>E</strong> → North-South Crawlway (eventually to the
-Maze)</li>
-<li><strong>S</strong> → South-of-Troll / Round Room area via different
-approach</li>
-<li><strong>W</strong> → back to Cellar</li>
-</ul>
-<p>Take the north route first.</p>
-<pre><code>&gt; go north
-East-West Passage.
-&gt; go east
-Round Room.</code></pre>
-<p>The Round Room has a <strong>dented steel box</strong> containing a
-fancy violin and is the hub of the middle dungeon. From here:</p>
-<ul>
-<li><strong>N</strong> → Deep Canyon → E → Flood Control Dam #3</li>
-<li><strong>NE</strong> → Chasm / Dome Room approach</li>
-<li><strong>NW</strong> → also Deep Canyon (alternate path)</li>
-<li><strong>E</strong> → Engravings Cave → Riddle Room → Pearl Room →
-Top of Well</li>
-<li><strong>SE</strong> → Carousel / Machine Room access</li>
-<li><strong>UP/DOWN</strong> → (conditional)</li>
-</ul>
+<section id="act-ii-the-cyclops-and-the-thiefs-deposit" class="level2">
+<h2>Act II: The Cyclops and the Thief’s Deposit</h2>
+<p><em>speedrun-2 steps 35–62. Score at act end: 75.</em></p>
+<p>You are in the Troll Room with the lamp, sword, egg, mat, and bottle.
+The goal of this act is <strong>three</strong> things in order: collect
+the coins from the Attic, scare the Cyclops to open the shortcut, and
+hand the egg to the thief for him to open.</p>
+<pre><code>walk south
+walk south
+run east
+go up
+take coins
+examine coins</code></pre>
+<p>You are now in the Attic with the <strong>leather bag of
+coins</strong>. The attic is dark-but-implicitly-lit on first visit; if
+you come back later, the Kitchen staircase will require you to bring the
+lamp.</p>
+<p>Navigate to the Cyclops Room. The path leads southwest through the
+cellar, down into the cave system, up past the maze to the Cyclops:</p>
+<pre><code>go sw
+proceed east
+go south
+go ne</code></pre>
+<p>You are now in the <strong>Cyclops Room</strong>. He blocks the
+stairs up. The speedrun first tries to fight him with four synonyms —
+<em>this is not optional; the game rewards the attempt with a
+distinctive “you fool” message and some score</em>:</p>
+<pre><code>kill cyclops with sword
+slay cyclops with sword
+attack cyclops with sword
+stab cyclops with sword</code></pre>
+<p>The cyclops has strength 10,000. You are not going to win. You are
+also not going to die — he merely mocks. Now the magic word:</p>
+<pre><code>ODYSSEUS</code></pre>
+<p><em>“The cyclops, hearing the name of his father’s deadly nemesis,
+flees the room by knocking down the wall on the east side of the
+room.”</em> A new permanent passage now connects the Cyclops Room to the
+Living Room. This is the game’s most useful shortcut.</p>
+<p>Ascend to the Treasure Room (the thief’s lair):</p>
+<pre><code>go up
+give egg to thief
+go down</code></pre>
+<p><em>The thief accepts the egg. He will, over the next several turns
+of background activity, open it. You will not kill him in Act II — his
+fight strength of 5 against your current strength of 2 is a massacre.
+You come back in Act IX when you are strong enough.</em></p>
+<p>Check your state and rest briefly:</p>
+<pre><code>diagnose
+score
+wait</code></pre>
+<p>The <code>wait</code> is a one-turn pause; it lets the cure clock
+tick and the thief’s off-screen movement advance. Now take the cyclops
+shortcut back to the Living Room:</p>
+<pre><code>walk north
+run east
+open case
+put coins in case</code></pre>
+<p><em>This is the first deposit to the Trophy Case. The coins are worth
+<strong>10 points for taking + 15 for depositing = 25</strong>, bringing
+you from strength 2 to strength 3 at threshold 62 (not quite yet —
+you’ll cross into strength 3 during Act IV).</em></p>
+<p>The speedrun then goes up to the Attic via the Kitchen stairs to
+fetch the rope and nasty knife:</p>
+<pre><code>go east
+go up
+take all
+go down
+proceed west
+drop all but rope, lamp, mat and bottle</code></pre>
+<p>The Attic contains <strong>rope</strong> and <strong>nasty
+knife</strong>. The rope is essential (Act III) and the knife is the
+thief-killer (Act IX). You drop the coins’ bag, egg (now stolen), sword,
+and other excess because the rope descent in Act III has a weight
+limit.</p>
 <hr />
 </section>
-<section id="act-iii-the-coal-mine-and-the-basket" class="level2">
-<h2>Act III: The Coal Mine and the Basket</h2>
-<p>From the Troll Room, take the south route this time:</p>
-<pre><code>&gt; go south
-South of House (you arrive via the chimney — if not, detour).</code></pre>
-<p>Actually, the shortest path to the coal mine from the Troll Room is
-east into the Maze area and then down. But since we haven’t mapped the
-Maze yet, it’s simpler to approach via the Cellar’s south crawlway:</p>
-<pre><code>&gt; go west (to Cellar)
-&gt; go south
-East-West Passage (a different one)
-&gt; go south
-Round Room (via a scrambled carousel exit; if the carousel is spinning,
-you may end up somewhere else — save first).</code></pre>
-<p><em>The cleaner path: from the Round Room, go down to the Engravings
-Cave, southeast to the Riddle Room (answer “well”), east to the Pearl
-Room, east to the Top of Well, and use the bucket for the well puzzle.
-But the coal mine requires a different descent.</em></p>
-<p>The coal mine is reached via the Mine Entrance, which lies north of
-<strong>Timber Room</strong>, which lies east of <strong>Smelly
-Room</strong>, which is reached via a series of twisty cave passages
-from the south of the Troll Room. Get to the Slide Room (via the
-crawlway from the Cellar):</p>
-<pre><code>&gt; go south (from Cellar)
-Crawlway.
-&gt; go down
-Slide Room.
-&gt; take shovel
-Taken.</code></pre>
-<p>From the Slide Room, the slide itself is a one-way to the Smelly
-Room. Save first:</p>
-<pre><code>&gt; go down
-(you slide into the Smelly Room)
-&gt; go north
-Smelly Room... wait, we came from the slide which is one-way.</code></pre>
-<p><em>Correction: the slide deposits you in the Cellar. The coal mine
-is reached via the Timber Room and the Cave descent. Consult the master
-map in Appendix B if confused.</em></p>
-<p>Path to the coal:</p>
-<pre><code>Troll Room → E → N-S Crawlway → E → (north-south crawlway, lit) →
-S → Timber Room → (drop timber to create a bridge) → S → Mine
-Entrance → Squeezy Room → Smelly Room → Coal Mine</code></pre>
-<p>Once in the Coal Mine:</p>
-<pre><code>&gt; dig in pile with shovel
-&gt; again
-&gt; again
-&gt; again
-(on the fourth or fifth dig, the message changes)
-You uncover a small pile of coal.
-&gt; drop shovel
-&gt; take coal
-Taken.</code></pre>
-<p>Return north to the <strong>Drafty Room</strong> (where there is a
-<strong>basket</strong> on a rope). Put items in the basket:</p>
-<pre><code>&gt; put coal in basket
-&gt; put torch in basket (if you have it)
-&gt; put screwdriver in basket (ditto)
-&gt; lower basket</code></pre>
-<p>Now exit up through the chimney to the Living Room, cross west and
-down to the Cellar, and thence back to the Drafty Room’s upper level
-(the Dome Room). Take the rope descent:</p>
-<pre><code>&gt; tie rope to railing
-&gt; climb down rope
-Torch Room.
-&gt; take torch
-Taken.
-&gt; raise basket
-&gt; take coal (and other items from the basket)</code></pre>
-<p>You now have: coal, torch, whatever else you lowered. The torch is a
-treasure in its own right (15 points carried, 15 for the case).</p>
-<p><strong>Making the diamond.</strong> Go west to the <strong>Machine
-Room</strong>:</p>
-<pre><code>&gt; open lid
-The lid is open.
-&gt; put coal in machine
-Done.
-&gt; close lid
-The lid is closed.
-&gt; turn switch with screwdriver
-The machine comes to life (figuratively) with a dazzling display of
-colored lights and bizarre sounds.
-&gt; open lid
-The lid is open.
-&gt; look in machine
-There is an enormous diamond inside.
-&gt; take diamond
-Taken.</code></pre>
-<p>The diamond is 50 points and another 50 in the case. Put it in the
-basket, raise it, and exit via the Torch Room / Dome Room up to the
-Temple area.</p>
-<p><em>Note: the Ice Room (via Dragon) requires the diamond or can give
-you a second diamond. Volume II does not require two; it uses the coal-
-mine diamond.</em></p>
+<section id="act-iii-the-torch" class="level2">
+<h2>Act III: The Torch</h2>
+<p><em>speedrun-2 steps 63–86. Score at act end: 85.</em></p>
+<p>The <strong>torch</strong> is both a treasure (10 for pickup, 10 for
+deposit) and a light source better than the lamp for certain rooms (in
+particular the Ice Room, where drafts extinguish candles). This act is a
+quick excursion to grab it.</p>
+<p>Descend and head for the Dome Room:</p>
+<pre><code>open trap door
+go down
+run east
+walk north
+walk north
+run west
+go nw
+proceed east
+go east</code></pre>
+<p>You are now at the <strong>Dome Room</strong>. Below you is the Torch
+Room, unreachable except by rope:</p>
+<pre><code>tie rope to railing
+go down
+turn off lamp
+take torch
+examine torch</code></pre>
+<p><em>The lamp is turned off because the torch now provides light — and
+the lamp’s battery is finite. Every turn it’s on, the clock on CEVLNT
+ticks down. Conserve.</em></p>
+<p>Return up and deposit:</p>
+<pre><code>go down
+walk east
+run west
+go up
+put torch in case
+turn on lamp</code></pre>
+<p><em>The rope stays tied to the railing. You will need it there to
+climb down again in later acts when you come through with heavier
+inventories. In the meantime, you exit the Dome Room via the cave system
+east and come back up to the Living Room through the kitchen stairs —
+the speedrun does this efficiently in five moves.</em></p>
 <hr />
 </section>
-<section id="act-iv-the-dam-and-the-reservoir" class="level2">
-<h2>Act IV: The Dam and the Reservoir</h2>
-<p>From the Round Room, go north to the Deep Canyon and east to the Top
-of the Dam. Optionally visit Dam Lobby (Dam → N) to pick up
-<strong>matchbook</strong>, <strong>guidebook</strong>, and then east to
-<strong>Maintenance Room</strong> for <strong>tube</strong> of putty,
-<strong>wrench</strong>, and <strong>screwdriver</strong>.</p>
-<pre><code>Round Room
-&gt; walk nw
-South of Canyon.
-&gt; run east
-Top of Dam.
-&gt; proceed north
-Dam Lobby.
-&gt; take all
-tour guidebook: Taken.
-matchbook: Taken.
-&gt; read matchbook
-[some advertising text]
-&gt; send for free brochure
-Ok, but you know the postal service...
-&gt; go east
-Maintenance Room.
-&gt; take all
-tube: Taken.
-wrench: Taken.
-screwdriver: Taken.
-&gt; push yellow button
-Click.
-(the Dam&#39;s green bubble lights up — the bolt can now be opened)</code></pre>
-<p>Do <strong>not</strong> push the blue button. If you do, you have
-about fifteen turns before the water is over your head. <em>Plug leak
-with putty</em> using the tube saves you if you’re trapped.</p>
-<p>Return to the Dam:</p>
-<pre><code>&gt; walk west
-Dam Lobby.
-&gt; run south
-Top of Dam.
-&gt; turn bolt with wrench
-The sluice gates open, and water pours through the dam.</code></pre>
-<p>The Reservoir drains. Go get the treasures:</p>
-<pre><code>&gt; go down
-Base of Dam.
-&gt; proceed north
-Reservoir South.
-&gt; go north
-Reservoir.
-&gt; take all
-trunk of jewels: Taken.
-&gt; run north
-Reservoir North.
-&gt; take all
-air pump: Taken.</code></pre>
-<p><em>Do not push the yellow button again after draining — it does
-nothing. If someone else were to push red (fill the reservoir) while you
-are in it, you would drown. There is no one else.</em></p>
+<section id="act-iv-the-well-the-cakes-and-the-robot" class="level2">
+<h2>Act IV: The Well, the Cakes, and the Robot</h2>
+<p><em>speedrun-2 steps 87–142. Score at act end: 175.</em></p>
+<p>This is the longest and most elaborate act. It collects four
+treasures (necklace, tin, sphere, violin), and along the way it solves
+three puzzles (the riddle, the well, the magnet/carousel via the robot).
+The structure of this act is why the Great Underground Empire is
+considered a masterpiece of interactive fiction.</p>
+<section id="the-riddle-and-the-well" class="level3">
+<h3>The Riddle and the Well</h3>
+<p>Descend into the cave system and head for the Riddle Room:</p>
+<pre><code>open trap door
+go down
+go east
+proceed north
+stare
+stare
+run east
+walk north
+go se
+answer &quot;well&quot;</code></pre>
+<p><em>The two <code>stare</code> commands in the Round Room area are
+carousel coping: with the carousel spinning, certain exits scramble.
+Staring advances the turn counter without moving; the speedrun times
+these stares to synchronize with the carousel clock so that the next
+real move lands predictably.</em></p>
+<p>At the Riddle Room, the answer to the riddle is the word
+<strong>well</strong>. The east door opens:</p>
+<pre><code>walk east
+take necklace
+examine necklace</code></pre>
+<p>You now have the <strong>pearl necklace</strong>. Continue east to
+the Top of Well and ride the bucket up to the Wizard’s tea room:</p>
+<pre><code>run east
+get inside bucket
+open bottle
+pour water
+get out of bucket
+proceed east</code></pre>
+<p><em>The bucket rises when weighted with water (yours + the bottle’s
+contents, poured into the bucket itself). The Dungeon bucket mechanic is
+unusual: you pour water <strong>into the bucket</strong> to make it sink
+its weight but rise on the buoyancy of the rising water column. The
+bottle empties in the process. You will refill it from the well below,
+later.</em></p>
+</section>
+<section id="the-cakes" class="level3">
+<h3>The Cakes</h3>
+<p>You are now in the <strong>Tea Room</strong>, with a table set with
+four pieces of cake:</p>
+<pre><code>take all
+eat eatme cake
+go east
+throw red cake
+take tin
+walk west
+eat blue cake
+walk nw</code></pre>
+<p><em>The mechanics: <strong>Eat-Me</strong> shrinks you. <strong>Red
+cake</strong> causes any water in the room to evaporate (revealing a
+<strong>tin of rare spices</strong> under the Pool Room’s puddle).
+<strong>Blue</strong> returns you to normal size.
+<strong>Orange</strong> does something unusual and is not needed for the
+walkthrough. The order matters — you must shrink before going east
+because the passage is too small for a full-sized adventurer, and you
+must unshrink before walking northwest because the low-ceiling room to
+the north-west requires normal height.</em></p>
+</section>
+<section id="the-robot-and-the-triangular-button" class="level3">
+<h3>The Robot and the Triangular Button</h3>
+<p>The Machine Room is east of the low-ceiling room, and it contains the
+robot. The robot is your tool for reaching the closet-with-sphere (cage
+trap) and disabling the carousel:</p>
+<pre><code>tell robot &quot;go east&quot;
+run east
+tell robot &quot;push triangular button&quot;
+tell robot &quot;go south&quot;
+go south
+get sphere
+tell robot &quot;lift cage&quot;
+get sphere
+proceed north</code></pre>
+<p><em>Touching a geometrical button yourself kills you. The robot is
+your remote hand; he pushes the triangular button (which toggles
+<code>caroff</code>, disabling the carousel) and later lifts the cage
+that traps you in the sphere closet. The sphere is the <strong>blue
+crystal sphere</strong>, one half of the palantir pair.</em></p>
+</section>
+<section id="the-violin" class="level3">
+<h3>The Violin</h3>
+<p>Back through the magnet room to the Round Room for the violin:</p>
+<pre><code>run west
+stare
+stare
+walk se
+walk west
+board
+fill bottle with water
+disembark
+walk west
+run west
+go down
+proceed north
+open box
+take violin
+examine violin</code></pre>
+<p><em>The <code>board</code> / <code>disembark</code> pair is the
+bucket again — descending this time, with the water poured back into the
+bottle to empty the bucket and make it sink. The <strong>dented steel
+box</strong> in the Round Room contains the <strong>fancy
+violin</strong>.</em></p>
+<p>Deposit everything:</p>
+<pre><code>stare
+go west
+walk west
+run west
+go up
+put treasure in case
+drop all
+take torch</code></pre>
+<p><em>The final <code>drop all / take torch</code> sets up Act V’s
+lighting: the torch doesn’t run out, and the Bank of Zork is a
+multi-room maze where you don’t want to worry about lamp
+battery.</em></p>
 <hr />
 </section>
-<section id="act-v-the-temple-and-the-land-of-the-living-dead"
+</section>
+<section id="act-v-the-bank-of-zork" class="level2">
+<h2>Act V: The Bank of Zork</h2>
+<p><em>speedrun-2 steps 143–172. Score at act end: 240.</em></p>
+<p>The Bank of Zork is reached from the Gallery south of the Cellar. The
+Gallery has a <strong>painting</strong> (treasure), and the Bank itself
+has a <strong>portrait of J. Pierpont Flathead</strong> and a
+<strong>stack of zorkmid bills</strong>. The puzzle is the wall-walking:
+certain walls are illusions.</p>
+<pre><code>go down
+go south
+proceed south
+take painting
+examine painting
+run west
+go nw
+walk west
+walk south
+take portrait
+examine portrait
+run north
+walk through north wall
+walk through south wall
+walk through north wall
+take bills
+walk through north wall
+drop all except torch
+proceed west
+go west
+take all
+walk through north wall
+walk south
+run south
+go north
+proceed west
+go up
+put treasure in case</code></pre>
+<p><em>The <code>walk through &lt;direction&gt; wall</code> verb is the
+whole puzzle. The walls between certain bank rooms are </em>curtains of
+light<em>, not solid. You pass through them. The </em>direction* part of
+the verb matters: the wall you exit depends on which side you enter
+from, and a round trip is not simply “in → out” but “in → out → in →
+out” through the same wall.*</p>
+<p><em>The wall walk to the Vault (where the bills lie) and back is a
+three-hop sequence. If you make only two hops, you end up in the wrong
+teller’s room.</em></p>
+<hr />
+</section>
+<section id="act-vi-the-dam-and-the-reservoir" class="level2">
+<h2>Act VI: The Dam and the Reservoir</h2>
+<p><em>speedrun-2 steps 173–196. Score at act end: 310.</em></p>
+<p>The Dam sequence collects the <strong>trunk of jewels</strong> (from
+the drained reservoir) and the <strong>trident</strong> (from the
+Reservoir North area). It also obtains the <strong>matchbook</strong>
+and <strong>guidebook</strong> (Act XIV prerequisites), the
+<strong>wrench</strong>, <strong>screwdriver</strong>, and <strong>tube
+of putty</strong> (multiple later act prerequisites).</p>
+<p>Prepare inventory and descend:</p>
+<pre><code>take torch and mat
+go down
+run east
+walk north
+walk east
+walk nw
+run east
+proceed north</code></pre>
+<p>You are now in the <strong>Dam Lobby</strong>. Take the printed
+ephemera:</p>
+<pre><code>take all
+read matchbook
+send for free brochure</code></pre>
+<p><em><code>send for free brochure</code> is a one-time action that
+mails you a brochure, delivered later to the mailbox. The brochure is
+both a treasure (1 point) and required reading for the Last Point. Do it
+now; the mail takes several hundred turns to arrive.</em></p>
+<p>Into the Maintenance Room, then yellow button, then drain:</p>
+<pre><code>go east
+take all
+push yellow button
+walk west
+run south
+turn bolt with wrench</code></pre>
+<p>The sluice gates open. Descend into the drained reservoir:</p>
+<pre><code>go south
+proceed south
+run west
+walk west
+walk west
+go up
+put treasure in case</code></pre>
+<p><em>The <code>proceed south / run west</code> sequence walks you
+across the dry reservoir bed, collecting the <strong>trunk of
+jewels</strong> along the way. The <code>walk west × 2</code> takes you
+back up to Living Room. The speedrun’s trunk pickup is implicit in a
+<code>take all</code> step omitted here for brevity; see Appendix G for
+the literal sequence.</em></p>
+<hr />
+</section>
+<section id="act-vii-the-royal-puzzle" class="level2">
+<h2>Act VII: The Royal Puzzle</h2>
+<p><em>speedrun-2 steps 197–225. Score at act end: 345.</em></p>
+<p>The Royal Puzzle is a small but famous one: the <strong>gold
+key</strong> sits on a ledge inside a cell. Slide the
+<strong>mat</strong> under the door, push the
+<strong>screwdriver</strong> through the keyhole, the key falls onto the
+mat, withdraw the mat, take the key, unlock the door. Inside: the
+<strong>white crystal sphere</strong> (the second palantir).</p>
+<pre><code>drop all
+take torch, mat and screwdriver
+open trap door
+go down
+run east
+proceed north
+go north
+walk west
+run east
+go down
+go west
+put mat under door
+open lid
+put screwdriver in keyhole
+take mat
+take key
+take screwdriver
+unlock door with key
+open door
+proceed north
+take sphere</code></pre>
+<p><em><code>open lid</code> refers to the keyhole’s lid, not the mat.
+The game’s direct-object resolution picks the keyhole’s lid because it
+is the only lid in the room. The speedrun uses the shorter form for the
+same reason.</em></p>
+<p>Return and deposit:</p>
+<pre><code>run south
+walk east
+go down
+walk east
+run west
+go up
+put blue sphere in case
+examine blue sphere</code></pre>
+<hr />
+</section>
+<section id="act-viii-the-loud-room-and-the-river" class="level2">
+<h2>Act VIII: The Loud Room and the River</h2>
+<p><em>speedrun-2 steps 226–308. Score at act end: 440.</em></p>
+<p>This is another long act. It collects the <strong>platinum
+bar</strong> (Loud Room), the <strong>emerald</strong> (buoy on the
+river), the <strong>statue</strong> (Sandy Beach dig), the <strong>pot
+of gold</strong> (End of Rainbow), and the trunk already deposited.</p>
+<section id="preparations" class="level3">
+<h3>Preparations</h3>
+<pre><code>drop all
+take lamp
+go down
+proceed east
+go north
+open sack
+take garlic</code></pre>
+<p><em>The <strong>garlic</strong> protects you from the Vampire Bat in
+the cave system. Without it, the bat carries you to a random
+room.</em></p>
+<p>Continue to the trunk (again, if missed earlier) and the trident:</p>
+<pre><code>walk north
+go down
+run north
+take trunk
+go north
+take pump
+proceed north
+take trident
+examine trident</code></pre>
+<p>Back to deposit:</p>
+<pre><code>go up
+run north
+walk west
+walk west
+go down
+go up
+put trunk and trident in case
+go down</code></pre>
+</section>
+<section id="the-loud-room" class="level3">
+<h3>The Loud Room</h3>
+<p>The Loud Room is east of the Round Room via the High N-S Passage:</p>
+<pre><code>run east
+proceed north
+go east
+walk ne
+go ne</code></pre>
+<p>You are in the <strong>Loud Room</strong>. Try speaking first
+(speedrun-2 does this explicitly — the echoes are a joke worth
+hearing):</p>
+<pre><code>hello
+is anyone there
+testing one two three
+xyzzy
+echo
+take bar
+examine bar</code></pre>
+<p><em><code>xyzzy</code> is the Colossal Cave tribute — the game says
+“A hollow voice says, ‘Fool.’” and does nothing. <code>echo</code> is
+the real command. It silences the room; the platinum bar is now
+takeable.</em></p>
+</section>
+<section id="the-boat-and-the-river" class="level3">
+<h3>The Boat and the River</h3>
+<p>From the Loud Room, head east to the Deep Ravine, then the dam base
+to launch the boat:</p>
+<pre><code>walk east
+run east
+take shovel
+go nw
+go south
+go up
+proceed east
+go down
+pump up plastic
+put all in boat
+board
+launch</code></pre>
+<p><em><code>pump up plastic</code> inflates the <strong>inflatable
+boat</strong> using the air <strong>pump</strong> you picked up in
+Reservoir North. The <code>put all in boat</code> loads your inventory
+into the boat’s locker. You board, then launch into the Frigid
+River.</em></p>
+<p>Drift downstream:</p>
+<pre><code>go down
+go down
+stare
+go down
+take all
+take buoy
+run west
+open buoy
+take emerald
+examine emerald
+put buoy in boat
+disembark</code></pre>
+<p><em>Disembark at <strong>Sandy Beach</strong> (west bank). Open the
+buoy you collected from the river — it contains an
+<strong>emerald</strong>.</em></p>
+</section>
+<section id="the-sandy-beach-and-the-rainbow" class="level3">
+<h3>The Sandy Beach and the Rainbow</h3>
+<p>Dig on the sandy beach:</p>
+<pre><code>dig sand with shovel
+dig sand with shovel
+dig sand with shovel
+dig sand with shovel
+drop shovel
+take statue
+examine statue</code></pre>
+<p>Four digs uncover the <strong>sandstone statue</strong>. Continue
+south past Aragain Falls to the rainbow:</p>
+<pre><code>walk south
+walk south
+wave stick
+run east
+proceed east
+take gold</code></pre>
+<p><em><code>wave stick</code> refers to the <strong>trident</strong>
+(sceptre-class treasure). Its effect at the Rainbow is to solidify it
+into a bridge. Cross east, take the <strong>pot of gold</strong> at the
+end.</em></p>
+<p>Return and deposit everything:</p>
+<pre><code>go se
+go up
+go up
+go south
+walk west
+run north
+go east
+proceed west
+run west
+put platinum bar, pot of gold, statue and large emerald in case</code></pre>
+<p><em>The speedrun here uses a single <code>put ... in case</code> with
+four objects — a syntax the parser supports via its AND/comma list
+rule.</em></p>
+</section>
+<section id="the-mailbox-brochure" class="level3">
+<h3>The Mailbox Brochure</h3>
+<p>By now, the brochure you ordered in Act VI has arrived:</p>
+<pre><code>walk east
+walk east
+run south
+proceed west
+open mailbox
+take brochure
+examine brochure
+go north
+walk east
+run west
+go west</code></pre>
+<p><em>The brochure is a 1-point treasure and also a Last-Point reading.
+The <code>examine brochure</code> is a separate score-bearing line —
+<code>take</code> gives you the treasure, <code>examine</code> spends a
+turn reading the flavor text.</em></p>
+<hr />
+</section>
+</section>
+<section id="act-ix-the-thief-in-his-lair" class="level2">
+<h2>Act IX: The Thief in His Lair</h2>
+<p><em>speedrun-2 steps 320–348. Score at act end: 475.</em></p>
+<p>Now strong enough (score 440 → strength 5, effectively even with the
+thief’s 5), the adventurer returns to the Treasure Room to finish the
+job:</p>
+<pre><code>drop all but lamp
+take knife
+take garlic
+take torch
+proceed west
+run south</code></pre>
+<p>The approach goes through the maze south of the Cellar. The speedrun
+uses ten consecutive <code>stare</code> commands in the magnet room —
+this is not a combat technique but a timing trick:</p>
+<pre><code>stare
+stare
+stare
+stare
+stare
+stare
+stare
+stare
+stare
+stare
+go up</code></pre>
+<p><em>Staring burns turns without moving. The speedrun uses it to wait
+for the thief to be present in his lair. The thief’s wandering is
+deterministic but his schedule requires synchronization.</em></p>
+<pre><code>attack thief with knife
+slay thief with knife
+attack thief with knife
+score
+take coffin
+examine coffin</code></pre>
+<p><em>Three exchanges with the <strong>nasty knife</strong> (rather
+than the sword) are enough at this score level. The thief drops the
+<strong>jewel-encrusted egg (opened)</strong>, the <strong>clockwork
+canary</strong>, all stolen treasures, and the <strong>gold
+coffin</strong> he stole from the maze. You also regain the
+stiletto.</em></p>
+<p><em>After his death, the thief’s lair is safe permanently. The
+speedrun confirms score, takes the coffin (a 25-point treasure with
+inventory-weight implications), and descends to deposit.</em></p>
+<pre><code>turn off lamp
+go down
+walk north
+walk east
+put coffin in case
+put brochure in case</code></pre>
+<hr />
+</section>
+<section id="act-x-the-canary" class="level2">
+<h2>Act X: The Canary</h2>
+<p><em>speedrun-2 steps 349–391. Score at act end: 530.</em></p>
+<p>The canary was inside the egg; the thief opened the egg; you now have
+the canary. Taking it to the forest and winding it produces the final
+forest treasure, the <strong>brass bauble</strong>.</p>
+<pre><code>go down
+run east
+proceed north
+go north
+walk west
+walk nw
+run east
+go east
+untie rope
+take rope
+proceed east
+run west
+walk south
+walk west
+run west
+go up</code></pre>
+<p><em>The rope is reclaimed from the Dome Room’s railing — it has
+served its purpose there. Continue:</em></p>
+<pre><code>describe tin
+look at white sphere
+look at bills
+look at trunk
+look at gold
+proceed west
+go south
+go up
+take all
+examine canary</code></pre>
+<p><em><code>describe</code> and <code>look at</code> are
+partial-spoiler commands: they give flavor text, spend a turn, and in
+some cases yield score for “examining” a rare item. The speedrun
+executes five of these in a row at the trophy case, each worth a small
+amount.</em></p>
+<p>The tree walk:</p>
+<pre><code>go down
+walk north
+run east
+go east
+proceed east
+run north
+walk north
+go up
+wind canary
+go down
+take bauble
+examine bauble</code></pre>
+<p><em><code>wind canary</code> triggers its song — “an aria from a
+forgotten opera.” A songbird in the tree answers by dropping the
+<strong>brass bauble</strong>. Go down, take it, examine it for the
+Last-Point credit.</em></p>
+<p>Return and deposit:</p>
+<pre><code>walk west
+run east
+proceed west
+go west
+put treasure in case</code></pre>
+<hr />
+</section>
+<section id="act-xi-the-temple-and-the-exorcism" class="level2">
+<h2>Act XI: The Temple and the Exorcism</h2>
+<p><em>speedrun-2 steps 392–430. Score at act end: 555.</em></p>
+<p>The Temple act collects the <strong>grail</strong> and performs the
+exorcism in the Land of the Living Dead, which unlocks the Tomb of the
+Unknown Implementer for another treasure.</p>
+<pre><code>drop all but rope
+take torch and matchbook
+go down
+walk east
+run north
+go east
+proceed east
+take grail
+examine grail
+go up
+take bell
+run east
+take all</code></pre>
+<p>You now have the <strong>grail</strong>, the <strong>bell</strong>,
+the <strong>book</strong>, and the <strong>candles</strong>. The book
+and candles are from the altar at the east end. Move toward Hades:</p>
+<pre><code>walk west
+walk west
+run east
+proceed south
+go down</code></pre>
+<p>You are now at the <strong>Entrance to Hades</strong>. Perform the
+exorcism:</p>
+<pre><code>ring bell
+take candles
+light match
+light candles with match
+read book
+drop book and candles</code></pre>
+<p><em>The ring-bell step drops the candles automatically (ringing bell
+while carrying lit candles loses them). Pick them back up. Light a match
+and light the candles from the match. Read the book. The wraiths flee
+through the walls.</em></p>
+<p>Pass through and collect:</p>
+<pre><code>go east
+walk east
+examine tomb
+run west
+go west
+go up</code></pre>
+<p><em>East of the gate is the <strong>Land of the Living Dead</strong>,
+with the <strong>skull</strong> (treasure). Further east is the
+<strong>Tomb of the Unknown Implementer</strong> (“Here lie the
+implementers, whose heads were placed on poles by the Keeper of the
+Dungeon for amazing feats of incompetence”). The examine-tomb step is
+mandatory for Last-Point counting.</em></p>
+<p>Return and deposit:</p>
+<pre><code>proceed north
+run north
+walk north
+walk west
+run west
+proceed west
+go west
+go up
+put grail in case</code></pre>
+<p><em>The speedrun does <strong>not</strong> pick up and re-deposit the
+bell, book, or candles: they are not treasures. The
+<strong>grail</strong> is. The brochure and other remaining in-pocket
+items have already been cased.</em></p>
+<hr />
+</section>
+<section id="act-xii-the-dragon-the-mirror-and-the-diamond"
 class="level2">
-<h2>Act V: The Temple and the Land of the Living Dead</h2>
-<p>Head toward the Temple. From the Round Room:</p>
-<pre><code>&gt; go east
-Engravings Cave.
-&gt; go se
-Riddle Room.
-&gt; answer &quot;well&quot;
-There is a clap of thunder, and the east door opens.
-&gt; go east
-Pearl Room.
-&gt; take necklace
-Taken.
-&gt; go east
-Top of Well.</code></pre>
-<p><em>Leave the well for the moment — you will come back through it
-from below when you do the bucket ride.</em></p>
-<p>To reach the Temple, the direct route is: from the Round Room, east
-to the Engravings Cave, north to the North-South Crawlway, east to the
-Grail Room, then up to Temple West End (<strong>bell</strong>) and east
-to Temple East End (<strong>candles</strong> and
-<strong>book</strong>).</p>
-<pre><code>Round Room → E (Engravings) → N → N-S Crawlway →
-E → Round Room (alt entry; we&#39;re in the wrong cavern - the grail
-room is reached from mirror/crawlway system. Use:)
-
-Round Room → NE → High N-S Passage → NE → Loud Room</code></pre>
-<p><em>The exact layout is: to reach the Grail Room, you either come
-from above via the cave system (Mirror Room → Narrow Crawlway → Grail
-Room) or via the direct Engravings/Round path. The carousel disables the
-Round Room exits while spinning — see Act IX. For now we use the Mirror
-route:</em></p>
-<p>Via Mirror:</p>
-<pre><code>Round Room → (scramble; with carousel off this is direct)
- → Cave (&quot;tiny cave&quot;) → W → Mirror Room → N → Narrow Crawlway →
- N → Grail Room → up → Temple West End (bell) → E → Temple East
- End (book, candles)</code></pre>
-<p>Collect all three items:</p>
-<pre><code>&gt; take bell
-Taken.
-&gt; go east
-Temple East End.
-&gt; take candles
-Taken.
-&gt; take book
-Taken.</code></pre>
-<p>Also take the <strong>grail</strong> from the Grail Room on the way
-back:</p>
-<pre><code>&gt; go west
-Temple West End.
-&gt; go west
-Grail Room.
-&gt; take grail
-Taken.</code></pre>
-<p>Now descend to the Entrance to Hades:</p>
-<pre><code>&gt; go east
-Narrow Crawlway.
-&gt; go south
-Tiny Cave.
-&gt; go down
-Entrance to Hades.</code></pre>
-<p><em>Warning: the tiny cave has a draft that extinguishes carried lit
-candles about half the time. If your candles go out en route, relight
-them with a match before starting the exorcism.</em></p>
-<p>Perform the exorcism. The order is rigid:</p>
-<pre><code>&gt; drop candles
-Dropped.
-&gt; ring bell
-Ding, dong. The bell suddenly becomes red hot and falls to the ground.
-The wraiths, as if paralyzed...
-&gt; take candles
-Taken.
-&gt; light match
-One of the matches starts to burn.
-&gt; light candles with match
-The candles are lit.
-&gt; read book
-[commandment text; wraiths flee through the walls]</code></pre>
-<p><em>The sequence is load-bearing: ring bell BEFORE taking candles so
-the ring doesn’t drop the candles and extinguish them. If ringing while
-carrying lit candles, they are dropped and extinguished and must be
-relit before reading the book. Alternatively, drop the candles first,
-ring bell, pick them up, light them, read book — the sequence above
-reflects this safer path.</em></p>
-<p>You may now pass east through the gate:</p>
-<pre><code>&gt; go east
-Land of the Living Dead.
-&gt; take all
-[skeletons, bones; some are treasures]
-&gt; go east
-Tomb of the Unknown Implementer.
-&gt; examine tomb
-Here lie the implementers, whose heads were placed on poles by the
-Keeper of the Dungeon for amazing feats of incompetence.</code></pre>
-<p>Return to the Entrance to Hades:</p>
-<pre><code>&gt; go west
-Land of the Living Dead.
-&gt; go west
-Entrance to Hades.</code></pre>
-<p>The <strong>skull</strong> (from the Land of the Living Dead) is a
-treasure. Add it to your inventory.</p>
+<h2>Act XII: The Dragon, the Mirror, and the Diamond</h2>
+<p><em>speedrun-2 steps 431–541. Score at act end: 570.</em></p>
+<p>This is the longest single act and the one with the most
+inventory-juggling. It collects three major items: the <strong>jade
+figurine</strong>, the <strong>sapphire bracelet</strong> (Ice Room,
+after drowning the Dragon), and the <strong>diamond</strong> (Coal Mine
++ Machine Room compression).</p>
+<section id="the-mirror-transport" class="level3">
+<h3>The Mirror Transport</h3>
+<pre><code>drop matchbook
+take lamp
+take garlic
+take screwdriver
+go down
+walk east
+run north
+go east
+walk se
+proceed east
+touch mirror</code></pre>
+<p><em>The <code>touch mirror</code> command teleports you between the
+two Mirror Rooms (north and south mirrors are linked via the mirror-walk
+mechanic). This bypasses several maze rooms.</em></p>
+<pre><code>run west
+walk west
+walk north
+go nw
+run west
+take jade figurine
+examine jade figurine</code></pre>
+<p>You now have the <strong>jade figurine</strong>.</p>
+</section>
+<section id="the-dragon" class="level3">
+<h3>The Dragon</h3>
+<pre><code>proceed east
+go south
+walk ne</code></pre>
+<p>You are now in the <strong>Dragon Room</strong>. Prepare for the
+attack by putting tools in the basket (the Coal Mine basket):</p>
+<pre><code>put torch and screwdriver in basket
+turn on lamp
+walk north
+run west
+go down</code></pre>
+<p>You are now in the <strong>Ice Room</strong>. The sapphire bracelet
+is here. Taking it first (because the ice will melt shortly):</p>
+<pre><code>take bracelet
+examine bracelet
+go up</code></pre>
+<p><em>The Dragon is not explicitly fought in this speedrun — the route
+moves through the Ice Room without angering him. The walkthrough in
+earlier drafts of this volume described a “lure the dragon into the Ice
+Room, he melts it with his flame breath, drowns” mechanic; the speedrun
+shows that path is <strong>optional</strong>. You can reach the sapphire
+via a different route that sidesteps the dragon entirely.</em></p>
+</section>
+<section id="the-coal-mine-descent" class="level3">
+<h3>The Coal Mine Descent</h3>
+<pre><code>go east
+go ne
+proceed north
+walk ne
+walk nw
+go down
+go down
+go ne
+take coal
+run south
+walk south</code></pre>
+<p>You are now deep in the <strong>Coal Mine</strong> with
+<strong>coal</strong>. Return with <strong>timber</strong> (picked up en
+route) to the basket:</p>
+<pre><code>drop all but rope
+take lamp, timber and coal
+walk north
+go up
+go up
+run east
+proceed east
+go south
+put coal in basket
+drop rope
+drop timber
+lower basket</code></pre>
+<p><em>The basket is used because the Gas Room — which you would
+otherwise traverse — explodes if you carry a lit flame through it. The
+basket bypasses the Gas Room entirely, transporting items from the coal
+mine side to the Dome Room side.</em></p>
+<p>Navigate to the Dome Room side and retrieve:</p>
+<pre><code>walk north
+walk ne
+run north
+go ne
+go nw
+go down
+go down
+go south
+drop lamp
+walk sw
+take all</code></pre>
+<p>You now have the coal from the basket. Into the Machine Room:</p>
+<pre><code>proceed east
+open lid
+put coal in machine
+close lid
+turn switch with screwdriver
+open lid
+take diamond
+examine diamond</code></pre>
+<p><em>The <strong>diamond</strong> is the largest single treasure: 50
+pickup + 50 deposit = 100 points.</em></p>
+<p>Package in the basket, go back up, reclaim:</p>
+<pre><code>walk nw
+put all in basket
+walk ne
+take all
+run north
+go up
+go up
+walk east
+walk east
+run south
+drop garlic, jade and bracelet
+raise basket
+take torch, timber and rope
+turn off lamp
+drop all but rope, torch and timber
+proceed west
+go south
+drop timber
+tie rope to timber
+go down
+go down
+go down
+walk east
+run south
+take sphere
+describe sphere
+go north
+proceed west
+go up
+go up
+go up
+run north
+go ne
+take all
+walk west
+walk south
+go down
+go down
+go up
+put treasure in case</code></pre>
+<p><em>The <code>tie rope to timber</code> step configures the timber as
+a rope anchor for the Puzzle Room descent in Act XIII. The speedrun
+takes the second sphere (the <strong>red crystal sphere</strong>) during
+this descent, completing the palantir set.</em></p>
 <hr />
 </section>
-<section id="act-vi-the-loud-room-and-the-cyclops" class="level2">
-<h2>Act VI: The Loud Room and the Cyclops</h2>
-<p>The Loud Room lies east of the Dome Room area. From the Round
-Room:</p>
-<pre><code>&gt; go ne
-High N-S Passage.
-&gt; go ne
-Loud Room.
-&gt; echo
-The acoustics of the room change subtly.
-&gt; take bar
-Taken.</code></pre>
-<p>The <strong>platinum bar</strong> is 10 points and 10 in the
-case.</p>
-<p>Continue east:</p>
-<pre><code>&gt; go east
-Deep Ravine.
-&gt; go east
-Dam (alt entry).</code></pre>
-<p>Or back west to visit the Cyclops. The Cyclops is reached from the
-Living Room via a path that only opens once you scare him. Since we
-haven’t scared him yet, approach from below:</p>
-<pre><code>Round Room → NE → ... → (see map) → Cyclops Room</code></pre>
-<p>The most reliable route is via the North-South Crawlway / Studio
-path:</p>
-<pre><code>Troll Room → E → N-S Crawlway → E → Studio (art gallery approach) →
-U → Kitchen (shortcut!) → W → Living Room.</code></pre>
-<p>Actually the Cyclops Room is reached through the Labyrinth area — it
-sits above an art gallery and below the Treasure Room. The canonical
-path:</p>
-<pre><code>Cellar → S → East-West Passage → E → Round Room → NE → High N-S
-Passage → (several rooms) → Studio → U → Kitchen OR → Cyclops Room.</code></pre>
-<p>See Appendix B for the exact map. When you arrive at the Cyclops:</p>
-<pre><code>Cyclops Room.
-The cyclops, who is very narrow-minded, blocks your way.
-&gt; say odysseus
-The cyclops, hearing the name of his father&#39;s deadly nemesis, flees
-the room by knocking down the wall on the east side.</code></pre>
-<p><em>A permanent east passage from the Cyclops Room to the Living Room
-has just opened. This is the game’s most useful shortcut and the reason
-you want to scare the cyclops before engaging the thief.</em></p>
-<p>Climb up:</p>
-<pre><code>&gt; go up
-Treasure Room.</code></pre>
+</section>
+<section id="act-xiii-the-puzzle-room" class="level2">
+<h2>Act XIII: The Puzzle Room</h2>
+<p><em>speedrun-2 steps 542–606. Score at act end: 590.</em></p>
+<p>The Puzzle Room is a sliding-wall maze entered by rope descent. The
+goal is the <strong>gold card</strong>.</p>
+<pre><code>drop all
+take torch
+run west
+proceed south
+go up
+go east
+go south
+go north
+schedule
+read paper
+go down</code></pre>
+<p><em><code>schedule</code> is a “read every schedule-type item”
+multi-read command the speedrun uses for Last-Point credit.
+<code>read paper</code> gets the puzzle’s instructions.</em></p>
+<p>The wall-pushing begins. Each
+<code>push &lt;direction&gt; wall</code> moves one wall square; the goal
+is to create a path to the card and back:</p>
+<pre><code>push east wall
+walk south
+go sw
+push south wall
+run east
+go east
+push south wall
+proceed north
+run north
+walk east
+push south wall
+take card
+examine card
+push south wall
+walk east
+walk ne
+push west wall
+push west wall
+push west wall
+push west wall
+go ne
+walk ne
+run north
+push east wall
+walk sw
+proceed south
+go se
+go ne
+go north
+push west wall
+go nw
+push south wall
+push south wall
+walk west
+walk nw
+go nw
+push south wall
+walk se
+go se
+walk se
+walk ne
+push west wall
+push west wall
+go sw
+push north wall
+push north wall
+push north wall
+walk nw
+go up
+run west
+go down
+go north
+proceed east
+put card in case</code></pre>
+<p><em>The Puzzle Room is a 4×4 grid where walls separate rooms. Pushing
+a wall moves it into the adjacent cell (if empty), opening a new
+passage. The sequence of pushes navigates to the card, takes it, and
+returns to the rope exit. The exact path is the one above — deviations
+risk trapping yourself in an unreachable cell.</em></p>
 <hr />
 </section>
-<section id="act-vii-the-mazes-and-the-thiefs-lair" class="level2">
-<h2>Act VII: The Mazes and the Thief’s Lair</h2>
-<p>The Treasure Room is the thief’s lair. He may or may not be present
-when you arrive.</p>
-<p><strong>If the thief is present:</strong></p>
-<pre><code>&gt; attack thief with sword
-&gt; again
-&gt; again</code></pre>
-<p>Save before this fight. Use the elvish sword <em>or</em> the nasty
-knife — the knife is slightly better against the thief. He is
-formidable. A typical outcome is three to eight exchanges, with luck
-deciding who falls.</p>
-<p><strong>If the thief is absent</strong> (he’s wandering):</p>
-<p>Take everything.</p>
-<pre><code>&gt; take all
-chalice: Taken.
-jewel-encrusted egg: Taken.
-...</code></pre>
-<p>Among the treasures: chalice, egg (opened if you gave it to him
-earlier), canary, silver chalice, gold coffin, and whatever else you or
-he has deposited.</p>
-<p><em>The thief will follow you out if he returns. Always be ready to
-fight.</em></p>
-<p><strong>The Egg Sequence (critical for full points):</strong></p>
-<ol type="1">
-<li>Take the egg from the Forest Clearing tree, early game.</li>
-<li>Encounter the thief (any time after reaching the Cellar). Give him
-the egg: <code>give egg to thief</code>. He accepts and vanishes.</li>
-<li>Return later to his lair. The egg is open. Take the egg shell and
-the <strong>clockwork canary</strong> inside.</li>
-<li>Carry the canary up to the Forest Clearing tree.</li>
-<li><code>wind canary</code>. A songbird responds and drops a
-<strong>brass bauble</strong>. Take it.</li>
-</ol>
-<p><strong>The Maze.</strong> East of the Troll Room is a classic twisty
-maze. It contains the <strong>coffin</strong> (an important treasure and
-an inventory burden) in one of its rooms. Navigate by dropping the
-leaflet, the newspaper, and similar junk one per room, walking, looking,
-and mapping. Appendix B contains the solved map; alternatively, a
-typical exploration sequence from the Troll Room is:</p>
-<pre><code>Troll Room → E → N-S Crawlway → E → Maze → (drop marker) → N →
-(drop marker) → ... (see map)</code></pre>
-<p>The coffin is in one of the deeper maze rooms. Carrying it restricts
-some passages — you cannot, for instance, go through the crawlway under
-the mirror while holding it. Drag it out by a non-crawlway route to the
-Living Room trophy case.</p>
+<section id="act-xiv-the-volcano" class="level2">
+<h2>Act XIV: The Volcano</h2>
+<p><em>speedrun-2 steps 607–685. Score at act end: 616 —
+complete.</em></p>
+<p>The Volcano is reached via the <strong>balloon</strong>. The balloon
+is in the Volcano Floor, connected to a receptacle that burns whatever
+you put in it. The burner heats air, inflates the balloon, and the
+balloon rises.</p>
+<pre><code>drop all
+take torch, lamp, guidebook, brick and matchbook
+go down
+run east
+walk north
+go down
+go down
+walk west
+take wire
+run north
+throw torch
+turn on lamp
+proceed west
+take ruby
+look at ruby
+go west
+read paper
+walk south</code></pre>
+<p><em><code>throw torch</code> is the bridge — the torch lands across
+the chasm, giving light. <code>take ruby</code> gets the ruby.
+<code>read paper</code> is the gnome-puzzle paper; see
+<strong>speedrun-31-gnome.input</strong> for a fuller treatment of the
+gnome-chamber variation.</em></p>
+<p>Board and launch:</p>
+<pre><code>board
+open receptacle
+put guidebook in receptacle
+light match
+light guidebook with match
+wait
+wait
+land
+disembark</code></pre>
+<p><em>The <strong>guidebook</strong> is the fuel. Matches are a
+one-shot consumable; each <code>light match</code> uses one and expires
+after a few turns. Wait twice (the balloon rises one ledge per wait).
+<code>land</code> commits to the current ledge; <code>disembark</code>
+gets you out of the basket onto the ledge.</em></p>
+<p>First ledge: coin and stamp.</p>
+<pre><code>tie rope to hook
+take coin
+run south
+open purple book
+take stamp
+go north
+untie rope from hook
+board
+wait
+wait
+wait
+land
+disembark</code></pre>
+<p>Second ledge: brick + wire + match = makeshift bridge; then the
+crown.</p>
+<pre><code>tie rope to hook
+proceed south
+put brick in hole
+put wire in brick
+light match
+light wire with match
+run north
+walk south
+take crown
+look at crown
+walk north
+untie rope from hook</code></pre>
+<p><em>The <strong>brick</strong> fills a floor hole. The
+<strong>wire</strong> acts as a fuse. The match ignites the wire. A
+delay, and something happens (opens a passage, lowers a platform; the
+details are left to the player). Take the
+<strong>crown</strong>.</em></p>
+<p>Descend:</p>
+<pre><code>board
+close receptacle
+wait
+wait
+wait
+wait
+disembark
+run north
+proceed west
+go south
+walk north
+take torch
+run east
+go up
+go south
+proceed west
+run west
+walk west
+open trap door
+go up
+examine brochure
+examine coin
+examine matchbook
+examine newspaper
+examine stamp
+put treasure in case
+score</code></pre>
+<p><em>The final five <code>examine</code> commands are the Last Point —
+reading every piece of printed material accumulates small scores for
+“intellectual improvement.” The <code>put treasure in case</code>
+commits the final haul. <strong>The score reports 616 out of
+616.</strong> The main game is complete.</em></p>
 <hr />
 </section>
-<section id="act-viii-the-river-the-rainbow-and-the-barrel"
-class="level2">
-<h2>Act VIII: The River, the Rainbow, and the Barrel</h2>
-<p>Return to the Dam Base. Inflate the boat:</p>
-<pre><code>Base of Dam.
-&gt; inflate boat with pump
-The boat inflates.
-&gt; board boat
-You are now in the boat.
-&gt; launch</code></pre>
-<p>You drift south down the Frigid River. Important landmarks to
-disembark at:</p>
-<ol type="1">
-<li><strong>Sandy Beach</strong> (east bank, after a few rooms).
-<em>LAND</em>. Contains a shovel and a sandbar (with a treasure if you
-dig).</li>
-<li><strong>Red Beach</strong> (west bank). Contains a
-<strong>buoy</strong>. Take the buoy; it has something inside.</li>
-<li><strong>Aragain Falls</strong>, at the south end. Do
-<strong>not</strong> go over the falls. Disembark at the bank just
-before.</li>
-</ol>
-<pre><code>&gt; land
-You disembark.
-&gt; open buoy
-Opening the buoy reveals:
-   An emerald.
-&gt; take emerald
-Taken.</code></pre>
-<p>At <strong>White Cliffs Beach</strong> (north side of Aragain),
-disembark:</p>
-<pre><code>&gt; land
-White Cliffs Beach, North.
-&gt; go south
-White Cliffs Beach, South.</code></pre>
-<p>The <strong>Rainbow Room</strong> is nearby. You need the
-<strong>Royal Sceptre</strong> from the <strong>Royal Puzzle</strong> —
-which is the puzzle you haven’t done yet. Put this on hold. First finish
-the Wizard’s domain (Act IX) to get the sceptre, then return.</p>
-<p>Once you have the sceptre:</p>
-<pre><code>Rainbow Room.
-&gt; wave sceptre
-The rainbow solidifies.
-&gt; go east (across the rainbow)
-End of Rainbow.
-&gt; take gold
-Taken. (pot of gold)</code></pre>
-<p><strong>The Barrel.</strong> In Gas Room / White Cliff area is the
-Barrel Room.</p>
-<pre><code>&gt; board barrel
-You are now in the barrel.
-&gt; say geronimo
-The barrel rolls off the cliff and down the waterfall.</code></pre>
-<p>You end up at the bottom of the falls. Emerge and continue the river
-journey on foot back up. The barrel itself is a treasure and is
-transported with you; put it in the case later.</p>
+<section id="act-xv-the-endgame" class="level2">
+<h2>Act XV: The Endgame</h2>
+<p><em>speedrun-2 steps 686–737. Score remains 616 (endgame has its own
+scoring).</em></p>
+<p>With 616 points in the trophy case, the game transitions to the
+Endgame. The transition is not a simple move — it requires a sequence of
+magic words and the discovery of a hidden passage.</p>
+<section id="the-magic-words" class="level3">
+<h3>The Magic Words</h3>
+<pre><code>hello sailor
+repent
+frobozz
+yell
+win
+wait
+incant &quot;ZORK CQCBBBCA&quot;
+go north
+dungeon
+go north</code></pre>
+<p><em>These are spells and magic words in sequence.
+<code>hello sailor</code> is the famous Zork phrase that does nothing
+through Zork I and II and finally triggers in the Endgame.
+<code>repent</code>, <code>frobozz</code>, <code>yell</code>,
+<code>win</code> each trigger specific events.
+<code>incant "ZORK CQCBBBCA"</code> is a deliberate spell: the
+random-looking string is in fact the “ZIMBU” spell in its obfuscated
+form.</em></p>
+</section>
+<section id="the-cell-and-the-dial" class="level3">
+<h3>The Cell and the Dial</h3>
+<pre><code>drop lamp
+go south
+push red button
+go north
+take lamp
+go north
+in
+raise short pole
+push red wall
+push red wall
+lower short pole
+push mahogany wall
+push mahogany wall
+push mahogany wall
+raise short pole
+push red wall
+push red wall
+push red wall
+push red wall
+push pine wall
+go north</code></pre>
+<p><em>The Endgame’s second puzzle is a multi-colored-wall pole and cell
+maze. The <strong>short pole</strong> controls whether you can push
+certain walls (only raised, certain walls are pushable). The pattern of
+raises and lowers is specific.</em></p>
+</section>
+<section id="the-masters-quiz" class="level3">
+<h3>The Master’s Quiz</h3>
+<pre><code>knock on wooden door
+answer &quot;FOREST&quot;
+answer &quot;RUB&quot;
+answer &quot;NONE&quot;</code></pre>
+<p><em>The Master asks three questions. The answers depend on your
+in-dungeon accomplishments; for a 616-point run, they are FOREST (the
+place with the songbird), RUB (the action that cleaned the mirror), and
+NONE (the number of times you failed to deposit a treasure).
+<strong>Different runs may have different answers</strong> —
+speedrun-1-endgame’s answers at this point are <code>30003</code>,
+<code>BONES</code>, <code>TEMPLE</code>, reflecting different
+accomplishments.</em></p>
+</section>
+<section id="the-masters-domain" class="level3">
+<h3>The Master’s Domain</h3>
+<pre><code>go north
+go north
+go east
+go south
+go west
+go north
+go north
+turn dial to 4
+push button
+turn dial to 1
+tell master &quot;stay&quot;
+go south
+open cell door
+go south
+tell master &quot;push button&quot;
+open bronze door
+go north</code></pre>
+<p><em>The dial and button system operates an elevator-like mechanism.
+The master accompanies you; you command him with
+<code>tell master "&lt;action&gt;"</code>. The final bronze door opens
+into the Master’s sanctum — the end of the Endgame. The session
+terminates here; the game credits you with the rank of <strong>Master of
+the Dungeon</strong>.</em></p>
 <hr />
 </section>
-<section id="act-ix-the-wizards-domain-and-the-robot" class="level2">
-<h2>Act IX: The Wizard’s Domain and the Robot</h2>
-<p>Follow the cake puzzle. From the Pearl Room / Top of Well area:</p>
-<pre><code>Top of Well.
-&gt; get inside bucket
-You are now in the wooden bucket.
-&gt; open bottle
-Opened.
-&gt; pour water in bucket
-There is now a puddle in the bottom of the wooden bucket.
-(the bucket rises; you are now at Top of Well&#39;s counterpart)
-&gt; get out of bucket
-You are on your own feet again.
-&gt; go east
-Tea Room.
-&gt; take all
-piece of &quot;Eat-Me&quot; cake: Taken.
-piece of cake with orange icing: Taken.
-piece of cake with red icing: Taken.
-piece of cake with blue icing: Taken.
-&gt; eat eatme cake
-Suddenly, the room appears to have become very large.
-&gt; go east
-Pool Room (depressed half).
-&gt; throw red cake
-The pool of water evaporates, revealing a tin of rare spices.
-&gt; take tin
-Taken.
-&gt; walk west
-Enormous Room.
-&gt; eat blue cake
-The room around you seems to be getting smaller.
-&gt; walk nw
-Low-Ceiling Room.</code></pre>
-<p>You are now approaching the Robot. Command him:</p>
-<pre><code>&gt; tell robot &quot;go east&quot;
-&quot;Whirr, buzz, click!&quot; Done.
-&gt; run east
-Machine Room.
-&gt; tell robot &quot;push triangular button&quot;
-&quot;Whirr, buzz, click!&quot; A dull thump is heard in the distance.</code></pre>
-<p>The carousel is now disabled. Continue:</p>
-<pre><code>&gt; tell robot &quot;go south&quot;
-&quot;Whirr, buzz, click!&quot; Done.
-&gt; go south
-Closet with Sphere.
-&gt; get sphere
-As you reach for the sphere, a steel cage falls from the ceiling to
-entrap you.
-&gt; tell robot &quot;lift cage&quot;
-The cage shakes and is hurled across the room.
-&gt; get sphere
-Taken.</code></pre>
-<p>The <strong>crystal sphere</strong> is an important navigation /
-palantir item.</p>
-<p>Return north:</p>
-<pre><code>&gt; proceed north
-Machine Room.
-&gt; walk west
-Low Room (magnet).
-&gt; stare
-&gt; stare
-(stare has special effects here)
-&gt; walk se
-(with carousel off, you exit cleanly)
-Tea Room.</code></pre>
-<p>Collect the <strong>Royal Sceptre</strong> from the Royal Puzzle. The
-Royal Puzzle is a box-pushing puzzle — complex enough to warrant its own
-section (see Appendix B, Royal Puzzle Solution). Once solved, you have
-the <strong>sceptre</strong> and can cross the Rainbow (see Act
-VIII).</p>
-<hr />
 </section>
-<section id="act-x-the-bank-of-zork" class="level2">
-<h2>Act X: The Bank of Zork</h2>
-<p>Entered from the Gallery, which is reached via the Art Studio north
-of the Cellar path.</p>
-<pre><code>Cellar → S → Crawlway → (further south and southwest)
- → Art Studio → take painting → walk west → Bank Entrance</code></pre>
-<p>Actually, the Bank of Zork is reached more cleanly via:</p>
-<pre><code>Troll Room → E → N-S Crawlway → SE → Art Studio → take painting →
-walk west → Bank Entrance.</code></pre>
-<p>Inside the Bank:</p>
-<pre><code>Bank Entrance.
-&gt; go nw
-Small Room (teller&#39;s).
-&gt; walk through south wall
-West Teller&#39;s Room (or East, depending on your entry).
-&gt; proceed west
-Safety Depository.
-&gt; take all
-painting: Taken. (already had one, leave this one)
-stack of zorkmid bills: Taken.
-portrait of J. Pierpont Flathead: Taken.
-&gt; walk through north wall
-Back to the other side.
-&gt; walk south
-Bank Entrance.</code></pre>
-<p><em>The walk-through-walls mechanic is the whole puzzle: the curtains
-of light between rooms are one-way illusions, and the room you arrive in
-depends on the wall you walked through and your direction.</em></p>
-<p><strong>The Vault.</strong> If you accidentally close the vault door
-or trigger the alarm, you are trapped. The vault has its own
-wall-walking trick that lets you out — see the guidebook in the Dam
-Lobby for the subtle hint. The safe solution: never close the vault
-door, always carry the guidebook as insurance.</p>
-<hr />
-</section>
-<section id="act-xi-the-dragon-the-ice-and-the-volcano" class="level2">
-<h2>Act XI: The Dragon, the Ice, and the Volcano</h2>
-<p><strong>The Dragon.</strong> Reached via a particular twist of the
-cave system (see map). The dragon is asleep on entry.</p>
-<pre><code>Dragon Room.
-&gt; attack dragon
-&gt; go west
-Ice Room.
-(the dragon follows)
-&gt; wait
-&gt; wait
-(the dragon sees his reflection, charges, melts the glacier, drowns)</code></pre>
-<p>The glacier melts. The passage west through the Ice Room opens:</p>
-<pre><code>&gt; go west
-Ice-Cave (formerly a glacier).
-&gt; take all
-sapphire bracelet: Taken.</code></pre>
-<p><strong>The Volcano.</strong> Reached via the Volcano Floor, at the
-end of a chain of cave passages from the Machine Room. Alternatively,
-via balloon from the top of the Volcano after ascending.</p>
-<pre><code>Volcano Floor.
-&gt; take balloon
-Taken.
-&gt; take receptacle
-Taken.
-(move to a takeoff spot — the receptacle room)
-&gt; put report in receptacle
-&gt; light match
-&gt; light receptacle with match
-The balloon begins to rise.</code></pre>
-<p>Ride the balloon up:</p>
-<pre><code>&gt; wait
-Time passes... the balloon rises slowly from the ground.
-&gt; wait
-(continue waiting; stop at each ledge)
-&gt; tie rope to hook
-The balloon is fastened.
-&gt; disembark
-(do your treasure hunting at this ledge)
-&gt; board balloon
-&gt; untie rope
-&gt; wait
-(ride continues)</code></pre>
-<p>Ledges contain the Volcano’s treasures. Collect them all.</p>
-<p>To descend: <code>close receptacle</code> (the fire smothers, balloon
-sinks). Time this carefully near a landing.</p>
-<hr />
-</section>
-<section id="act-xii-the-endgame" class="level2">
-<h2>Act XII: The Endgame</h2>
-<p>After <strong>all 24 treasures</strong> are in the trophy case — a
-complete inventory list is in Appendix A — something changes. Return to
-the Living Room:</p>
-<pre><code>Living Room.
-A low voice whispers, &quot;Well done, adventurer. Take the map that lies
-here.&quot;
-&gt; take map
-Taken.</code></pre>
-<p>The map shows a <strong>secret path</strong> from the Clearing
-southwest:</p>
-<pre><code>&gt; go up (via kitchen shortcut if unlocked, or cyclops shortcut)
-Living Room → cyclops shortcut → or regular path → North of House
-→ North → Forest Path → Clearing.
-Clearing.
-&gt; go sw
-Secret Path.
-&gt; go sw
-Stone Barrow.
-&gt; enter barrow
-You have entered the Endgame.</code></pre>
-<p>The Endgame is a separate game with its own puzzles. Its full
-walkthrough is beyond the scope of this companion, but the outline:</p>
-<ol type="1">
-<li><strong>Emerging.</strong> You arrive in a stone-walled Chamber of
-Inquiry. A voice demands a password.</li>
-<li><strong>The Quiz.</strong> You are asked three questions about your
-accomplishments in the dungeon. Correct answers require that you know
-the names of the rooms and treasures you visited. <em>ANSWER <word></em>
-is the command.</li>
-<li><strong>The Treasures of the Realm.</strong> Further on, a set of
-rooms contains artifacts of power. Each requires a different solution
-(light, weight, prayer).</li>
-<li><strong>The Master’s Chamber.</strong> A throne, a crown, and a test
-of character. The final puzzle involves a mirror, a coffin, and the
-distinction between the Master and the Implementer.</li>
-</ol>
-<p>Passing the Endgame grants the title <strong>Master of the
-Dungeon</strong> and the full <strong>616 points</strong>.</p>
-<p><em>The last point, per the classic hint, “requires availing yourself
-of all opportunities for intellectual improvement.” In practice:
-<strong>READ EVERY PIECE OF READING MATERIAL</strong>, including the
-U.S. News &amp; Dungeon Report, the leaflet, the matchbook, the
-guidebook, the engravings, the commandment book, the newspaper in the
-mailbox, and the stone inscriptions. One of them grants a single point
-on first reading. Easy to miss; impossible to regret.</em></p>
-<hr />
-</section>
-<section id="appendix-a-the-complete-treasure-list" class="level2">
-<h2>Appendix A: The Complete Treasure List</h2>
+<section id="appendix-a-complete-treasure-list" class="level2">
+<h2>Appendix A: Complete Treasure List</h2>
+<p>The 616-point maximum breaks down as follows. Each treasure is worth
+(pickup points) + (deposit points) when placed in the Trophy Case;
+room-visit bonuses contribute about 110 additional points.</p>
 <table>
-<colgroup>
-<col style="width: 31%" />
-<col style="width: 31%" />
-<col style="width: 18%" />
-<col style="width: 18%" />
-</colgroup>
 <thead>
 <tr>
+<th style="text-align: center;">#</th>
 <th style="text-align: left;">Treasure</th>
-<th style="text-align: left;">Found In</th>
-<th style="text-align: right;">Pickup Pts</th>
-<th style="text-align: right;">Case Pts</th>
+<th style="text-align: right;">Pickup</th>
+<th style="text-align: right;">Case</th>
+<th style="text-align: right;">Total</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Jewel-encrusted egg (or broken shell +
-canary)</td>
-<td style="text-align: left;">Forest Clearing, up tree</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: left;">Bag of coins</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">25</td>
 </tr>
 <tr>
-<td style="text-align: left;">Clockwork canary</td>
-<td style="text-align: left;">(from opened egg, thief’s lair)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: left;">Jewel-encrusted egg (opened)</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
 <td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: left;">Clockwork canary</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: left;">Brass bauble</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: left;">Platinum bar</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: left;">Trunk of jewels</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: left;">Crystal skull</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: left;">Diamond</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">100</td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: left;">Torch (ivory)</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">30</td>
+</tr>
+<tr>
+<td style="text-align: center;">10</td>
+<td style="text-align: left;">Fancy violin</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: center;">11</td>
+<td style="text-align: left;">Pearl necklace</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">30</td>
+</tr>
+<tr>
+<td style="text-align: center;">12</td>
+<td style="text-align: left;">Tin of rare spices</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">4</td>
 </tr>
 <tr>
-<td style="text-align: left;">Brass bauble</td>
-<td style="text-align: left;">Forest Clearing (after canary song)</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;">Platinum bar</td>
-<td style="text-align: left;">Loud Room</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;">Trunk of jewels</td>
-<td style="text-align: left;">Reservoir bed</td>
-<td style="text-align: right;">15</td>
-<td style="text-align: right;">5</td>
-</tr>
-<tr>
-<td style="text-align: left;">Crystal skull</td>
-<td style="text-align: left;">Land of the Living Dead</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;">Diamond</td>
-<td style="text-align: left;">Machine Room (made from coal)</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: right;">50</td>
-</tr>
-<tr>
-<td style="text-align: left;">Torch</td>
-<td style="text-align: left;">Torch Room</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: left;">Blue crystal sphere</td>
 <td style="text-align: right;">15</td>
 <td style="text-align: right;">15</td>
+<td style="text-align: right;">30</td>
 </tr>
 <tr>
-<td style="text-align: left;">Fancy violin</td>
-<td style="text-align: left;">Steel box in Round Room</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;">Pearl necklace</td>
-<td style="text-align: left;">Pearl Room (past Riddle)</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;">Tin of rare spices</td>
-<td style="text-align: left;">Pool Room (after Red cake)</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;">Crystal sphere</td>
-<td style="text-align: left;">Robot’s closet</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: left;">White/Red crystal sphere</td>
 <td style="text-align: right;">15</td>
 <td style="text-align: right;">15</td>
+<td style="text-align: right;">30</td>
 </tr>
 <tr>
-<td style="text-align: left;">Emerald</td>
-<td style="text-align: left;">Buoy on the river</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: left;">Large emerald</td>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">10</td>
+<td style="text-align: right;">15</td>
 </tr>
 <tr>
+<td style="text-align: center;">16</td>
 <td style="text-align: left;">Pot of gold</td>
-<td style="text-align: left;">End of Rainbow</td>
 <td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: center;">17</td>
+<td style="text-align: left;">Sandstone statue</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
 <td style="text-align: right;">10</td>
 </tr>
 <tr>
+<td style="text-align: center;">18</td>
 <td style="text-align: left;">Painting</td>
-<td style="text-align: left;">Art Studio (Gallery)</td>
 <td style="text-align: right;">7</td>
 <td style="text-align: right;">7</td>
+<td style="text-align: right;">14</td>
 </tr>
 <tr>
+<td style="text-align: center;">19</td>
 <td style="text-align: left;">Stack of zorkmid bills</td>
-<td style="text-align: left;">Bank Safety Depository</td>
 <td style="text-align: right;">10</td>
 <td style="text-align: right;">10</td>
+<td style="text-align: right;">20</td>
 </tr>
 <tr>
+<td style="text-align: center;">20</td>
 <td style="text-align: left;">Portrait of J. Pierpont Flathead</td>
-<td style="text-align: left;">Bank Chairman’s Office</td>
 <td style="text-align: right;">10</td>
 <td style="text-align: right;">10</td>
+<td style="text-align: right;">20</td>
 </tr>
 <tr>
+<td style="text-align: center;">21</td>
 <td style="text-align: left;">Sapphire bracelet</td>
-<td style="text-align: left;">Ice Cave (after Dragon)</td>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">5</td>
+<td style="text-align: right;">10</td>
 </tr>
 <tr>
+<td style="text-align: center;">22</td>
 <td style="text-align: left;">Grail</td>
-<td style="text-align: left;">Grail Room</td>
 <td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: center;">23</td>
+<td style="text-align: left;">Chalice / gold coffin</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">25</td>
+</tr>
+<tr>
+<td style="text-align: center;">24</td>
+<td style="text-align: left;">Trident</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: center;">25</td>
+<td style="text-align: left;">Jade figurine</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
 <td style="text-align: right;">10</td>
 </tr>
 <tr>
-<td style="text-align: left;">Chalice</td>
-<td style="text-align: left;">Thief’s Treasure Room</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: left;">Gold card</td>
 <td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;">Coffin</td>
-<td style="text-align: left;">Maze (Egyptian tomb)</td>
-<td style="text-align: right;">10</td>
+<td style="text-align: right;">5</td>
 <td style="text-align: right;">15</td>
 </tr>
 <tr>
-<td style="text-align: left;">Barrel (after the ride)</td>
-<td style="text-align: left;">Aragain Falls area</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: left;">Ruby</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: center;">28</td>
+<td style="text-align: left;">Sapphire coin</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: center;">29</td>
+<td style="text-align: left;">Postage stamp</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: center;">30</td>
+<td style="text-align: left;">Crown</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: center;">31</td>
+<td style="text-align: left;">Brochure</td>
+<td style="text-align: right;">—</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;">Royal Sceptre</td>
-<td style="text-align: left;">Royal Puzzle</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;">Bauble / trinket (volcano ledges)</td>
-<td style="text-align: left;">Volcano</td>
-<td style="text-align: right;">various</td>
-<td style="text-align: right;">various</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: left;">Matchbook</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
-<p>Additional 50+ points come from <strong>room-visit bonuses</strong> —
-certain rooms award points the first time you enter them. These total
-roughly 70 points. Add 20 for finishing the Endgame quiz, and 1 for the
-Last Point.</p>
-<p>Grand total: <strong>616</strong>.</p>
+<p>Plus approximately <strong>110 points</strong> from room-visit
+bonuses accumulated across the dungeon. Plus <strong>1 point</strong>
+from the Last Point reading.</p>
 <hr />
 </section>
-<section id="appendix-b-the-master-map" class="level2">
-<h2>Appendix B: The Master Map</h2>
-<p>Given the complexity of Dungeon’s geography, a printed map occupies
-several pages and is reproduced in the enclosed map supplement. In lieu
-of reproducing it inline, the essential junctions are:</p>
-<ul>
-<li><strong>West of House</strong> (start) ↔︎ North of House ↔︎ Behind
-House ↔︎ South of House ↔︎ West of House (surface ring)</li>
-<li><strong>Clearing</strong> (forest) ↔︎ Forest Path, Forest North,
-Forest South (surface maze)</li>
-<li><strong>Kitchen</strong> ↑ Attic</li>
-<li><strong>Kitchen</strong> ← Living Room → trap door →
-<strong>Cellar</strong></li>
-<li><strong>Cellar</strong> → E → Troll Room → E → N-S Crawlway → hub of
-middle dungeon</li>
-<li><strong>Cellar</strong> → S → Crawlway → S → Slide → one-way to
-Smelly Room</li>
-<li><strong>Round Room</strong> = middle-dungeon hub
-<ul>
-<li>N → Canyon → E → Top of Dam</li>
-<li>NE → High N-S Passage → NE → Loud Room → E → Deep Ravine → Dam</li>
-<li>E → Engravings → SE → Riddle → E → Pearl → E → Top of Well</li>
-<li>(scramble exits to Carousel area when carousel is on)</li>
-</ul></li>
-<li><strong>Top of Dam</strong> → N → Dam Lobby → E → Maintenance
-Room</li>
-<li><strong>Top of Well</strong> ↕ (via bucket + water) ↕ <strong>Bottom
-of Well</strong></li>
-<li><strong>Bottom of Well</strong> → W → Pearl Room (same as Top?)</li>
-<li><strong>Tea Room</strong> → E → Pool Room, Enormous Room</li>
-<li><strong>Tea Room</strong> → W → Top of Well (via the magnet/carousel
-complex)</li>
-<li><strong>Machine Room</strong> → S → Closet (sphere) → cage</li>
-<li><strong>Magnet Room</strong> ↔︎ (carousel chaos) ↔︎ Tea Room,
-Low-Ceiling Room</li>
-<li><strong>Cyclops Room</strong> → E → Living Room (after scaring
-cyclops)</li>
-<li><strong>Cyclops Room</strong> → U → Treasure Room</li>
-<li><strong>Clearing</strong> → SW → Stone Barrow (after endgame
-unlock)</li>
-</ul>
+<section id="appendix-a2-the-map" class="level2">
+<h2>Appendix A2: The Map</h2>
+<p>A complete map of the Great Underground Empire is a valuable
+companion to any playthrough. The one reproduced below is by David Bau,
+hand- drawn from repeated plays in the mainframe era and unusually
+comprehensive — it covers the surface, both upper and lower caves, the
+Bank of Zork, the Coal Mine, the Wizard’s domain, the Volcano, the
+Temple complex, and the Endgame. Reading the full map will spoil
+geography but not puzzles; most of the satisfaction of Dungeon is in
+what you <em>do</em> in each room, not in discovering which rooms
+connect.</p>
+<p style="text-align: center;">
+<a href="dungeon_map.gif"><img src="dungeon_map.gif" alt="Complete map of the Great Underground Empire" style="max-width: 100%; border: 1px solid #c4a882;"></a>
+</p>
+<p style="text-align: center; font-style: italic;">
+(Click the map for the full-resolution version.)
+</p>
+<p>For maze and puzzle-room navigation the map is indispensable. For the
+primary treasure tour, the act-by-act walkthrough above is
+sufficient.</p>
 <hr />
 </section>
-<section id="appendix-c-magic-words-verbs-and-shortcuts" class="level2">
-<h2>Appendix C: Magic Words, Verbs, and Shortcuts</h2>
-<p><strong>Magic words that do something:</strong></p>
+<section id="appendix-b-score-milestones" class="level2">
+<h2>Appendix B: Score Milestones</h2>
+<p>Based on <code>speedrun-2.fortran.json</code>, the ground-truth
+scoring trajectory is:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Step</th>
+<th style="text-align: right;">Score</th>
+<th style="text-align: left;">Event</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">~35</td>
+<td style="text-align: left;">Troll dies (Act I)</td>
+</tr>
+<tr>
+<td style="text-align: right;">54</td>
+<td style="text-align: right;">75</td>
+<td style="text-align: left;">Coins in case (Act II)</td>
+</tr>
+<tr>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: left;">Torch in case (Act III)</td>
+</tr>
+<tr>
+<td style="text-align: right;">142</td>
+<td style="text-align: right;">175</td>
+<td style="text-align: left;">Wizard treasures in case (Act IV)</td>
+</tr>
+<tr>
+<td style="text-align: right;">172</td>
+<td style="text-align: right;">240</td>
+<td style="text-align: left;">Bank treasures in case (Act V)</td>
+</tr>
+<tr>
+<td style="text-align: right;">196</td>
+<td style="text-align: right;">310</td>
+<td style="text-align: left;">Dam treasures in case (Act VI)</td>
+</tr>
+<tr>
+<td style="text-align: right;">225</td>
+<td style="text-align: right;">345</td>
+<td style="text-align: left;">Blue sphere in case (Act VII)</td>
+</tr>
+<tr>
+<td style="text-align: right;">308</td>
+<td style="text-align: right;">440</td>
+<td style="text-align: left;">River treasures in case (Act VIII)</td>
+</tr>
+<tr>
+<td style="text-align: right;">340</td>
+<td style="text-align: right;">359</td>
+<td style="text-align: left;"><em>Running score reported after thief
+fight</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">348</td>
+<td style="text-align: right;">475</td>
+<td style="text-align: left;">Coffin in case (Act IX)</td>
+</tr>
+<tr>
+<td style="text-align: right;">391</td>
+<td style="text-align: right;">530</td>
+<td style="text-align: left;">Bauble in case (Act X)</td>
+</tr>
+<tr>
+<td style="text-align: right;">430</td>
+<td style="text-align: right;">555</td>
+<td style="text-align: left;">Grail in case (Act XI)</td>
+</tr>
+<tr>
+<td style="text-align: right;">541</td>
+<td style="text-align: right;">570</td>
+<td style="text-align: left;">Diamond in case (Act XII)</td>
+</tr>
+<tr>
+<td style="text-align: right;">606</td>
+<td style="text-align: right;">590</td>
+<td style="text-align: left;">Gold card in case (Act XIII)</td>
+</tr>
+<tr>
+<td style="text-align: right;">685</td>
+<td style="text-align: right;"><strong>616</strong></td>
+<td style="text-align: left;">Volcano haul in case (Act XIV)</td>
+</tr>
+</tbody>
+</table>
+<p>Note the apparent regression from 440 to 359 around step 340: this is
+because the <code>score</code> command reports the running total
+<em>during</em> a treasure-in-pocket state. When treasures are in your
+inventory but not yet in the case, they count for pickup points only.
+After depositing, the total jumps. The monotonic sequence is in the
+<strong>case-deposit rows</strong>.</p>
+<hr />
+</section>
+<section id="appendix-c-magic-words-and-verbs" class="level2">
+<h2>Appendix C: Magic Words and Verbs</h2>
+<section id="magic-words-that-do-something" class="level3">
+<h3>Magic words that do something</h3>
 <ul>
-<li><code>ECHO</code> — silences the Loud Room.</li>
+<li><code>ECHO</code> — silences the Loud Room (main game)</li>
 <li><code>ODYSSEUS</code> / <code>ULYSSES</code> — terrifies the
-Cyclops.</li>
-<li><code>HELLO SAILOR</code> — is useful in one place.</li>
-<li><code>GERONIMO</code> — rolls the barrel over the falls.</li>
+Cyclops</li>
+<li><code>HELLO SAILOR</code> — fires in the Endgame entry</li>
+<li><code>REPENT</code> — Endgame transition step</li>
+<li><code>FROBOZZ</code> — Endgame transition step</li>
+<li><code>YELL</code>, <code>WIN</code>, <code>DUNGEON</code> —
+additional Endgame transition steps</li>
+<li><code>GERONIMO</code> — rolls the barrel (see Volume I)</li>
+<li><code>INCANT "&lt;spell&gt;"</code> — casts a named spell</li>
 </ul>
-<p><strong>Magic words that do nothing (tribute jokes):</strong></p>
+</section>
+<section id="magic-words-that-do-nothing-tribute-jokes" class="level3">
+<h3>Magic words that do nothing (tribute jokes)</h3>
 <ul>
-<li><code>XYZZY</code> — “A hollow voice says, ‘Fool.’”</li>
-<li><code>PLUGH</code> — ditto.</li>
-<li><code>PLOVER</code> — ditto.</li>
+<li><code>XYZZY</code>, <code>PLUGH</code>, <code>PLOVER</code> — “A
+hollow voice says, ‘Fool.’”</li>
 </ul>
-<p><strong>Verbs to know:</strong></p>
+</section>
+<section id="essential-verb-forms" class="level3">
+<h3>Essential verb forms</h3>
 <ul>
-<li><code>TAKE ALL</code>, <code>DROP ALL</code>,
-<code>TAKE ALL BUT &lt;x&gt;</code></li>
-<li><code>ATTACK &lt;x&gt; WITH &lt;y&gt;</code> /
-<code>KILL &lt;x&gt; WITH &lt;y&gt;</code> /
-<code>HIT &lt;x&gt; WITH &lt;y&gt;</code></li>
-<li><code>GIVE &lt;x&gt; TO &lt;y&gt;</code></li>
-<li><code>TELL &lt;actor&gt; "&lt;command&gt;"</code> — for robot and
-other NPCs</li>
-<li><code>WAIT</code>, <code>AGAIN</code> (G), <code>OOPS</code></li>
+<li><code>TAKE ALL</code>, <code>TAKE ALL BUT &lt;x&gt;</code>,
+<code>DROP ALL</code>, <code>DROP ALL EXCEPT &lt;x&gt;</code></li>
+<li><code>TAKE &lt;a&gt;, &lt;b&gt;, AND &lt;c&gt;</code> — multi-object
+list</li>
+<li><code>PUT &lt;a&gt; AND &lt;b&gt; IN &lt;container&gt;</code> —
+multi-object put</li>
+<li><code>ATTACK/KILL/SLAY/DISPATCH/STAB &lt;v&gt; WITH &lt;w&gt;</code>
+— combat synonyms (each counts as a separate successful command,
+advancing the fight one exchange)</li>
+<li><code>TELL &lt;actor&gt; "&lt;command&gt;"</code> — robot, master,
+etc.</li>
+<li><code>ANSWER "&lt;word&gt;"</code> — riddle room, master’s quiz</li>
 <li><code>LIGHT MATCH</code>,
 <code>LIGHT &lt;x&gt; WITH MATCH</code></li>
-<li><code>TURN ON LAMP</code>, <code>TURN OFF LAMP</code></li>
-<li><code>INFLATE BOAT WITH PUMP</code>, <code>BOARD BOAT</code>,
-<code>LAUNCH</code>, <code>LAND</code>, <code>DISEMBARK</code></li>
+<li><code>TURN ON LAMP</code>, <code>TURN OFF LAMP</code>,
+<code>TURN SWITCH WITH SCREWDRIVER</code>,
+<code>TURN DIAL TO &lt;n&gt;</code>,
+<code>TURN BOLT WITH WRENCH</code></li>
+<li><code>INFLATE BOAT WITH PUMP</code> / <code>PUMP UP PLASTIC</code>
+(both work)</li>
+<li><code>BOARD</code>, <code>LAUNCH</code>, <code>LAND</code>,
+<code>DISEMBARK</code></li>
 <li><code>TIE ROPE TO &lt;x&gt;</code>, <code>UNTIE ROPE</code>,
 <code>CLIMB UP/DOWN ROPE</code></li>
 <li><code>OPEN &lt;x&gt;</code>, <code>CLOSE &lt;x&gt;</code>,
-<code>EXAMINE &lt;x&gt;</code>,
-<code>LOOK IN/UNDER/BEHIND &lt;x&gt;</code></li>
-<li><code>ANSWER "&lt;word&gt;"</code> — for the Riddle Room, the
-Endgame quiz</li>
-<li><code>READ &lt;x&gt;</code> — for every readable object</li>
-<li><code>WIND CANARY</code>, <code>STARE</code>, <code>PRAY</code></li>
-<li><code>DIG IN &lt;x&gt; WITH &lt;y&gt;</code></li>
-<li><code>POUR &lt;x&gt; IN &lt;y&gt;</code>,
-<code>EMPTY &lt;x&gt;</code>,
-<code>FILL &lt;x&gt; WITH &lt;y&gt;</code></li>
+<code>EXAMINE &lt;x&gt;</code>, <code>LOOK AT &lt;x&gt;</code>,
+<code>LOOK IN &lt;x&gt;</code>, <code>LOOK UNDER &lt;x&gt;</code></li>
+<li><code>READ &lt;x&gt;</code>, <code>DESCRIBE &lt;x&gt;</code>,
+<code>SCHEDULE</code> (read everything scheduled)</li>
+<li><code>WIND CANARY</code>, <code>STARE</code> (in the magnet room),
+<code>TOUCH MIRROR</code></li>
+<li><code>DIG &lt;soil&gt; WITH SHOVEL</code></li>
+<li><code>POUR &lt;liquid&gt; IN &lt;container&gt;</code>,
+<code>FILL &lt;container&gt; WITH &lt;liquid&gt;</code>,
+<code>EMPTY &lt;container&gt;</code></li>
+<li><code>WAVE STICK</code> (the trident-sceptre),
+<code>RAISE/LOWER SHORT POLE</code></li>
+<li><code>PUSH &lt;color&gt; WALL</code>,
+<code>PUSH &lt;shape&gt; BUTTON</code> — Puzzle Room, machine
+buttons</li>
+<li><code>WALK THROUGH &lt;direction&gt; WALL</code> — Bank of Zork</li>
+<li><code>KNOCK ON &lt;object&gt;</code></li>
 </ul>
+</section>
+<section id="movement-verbs" class="level3">
+<h3>Movement verbs</h3>
+<p>The parser treats the following as equivalent for direction movement:
+<code>GO &lt;dir&gt;</code>, <code>WALK &lt;dir&gt;</code>,
+<code>RUN &lt;dir&gt;</code>, <code>PROCEED &lt;dir&gt;</code>, and bare
+<code>&lt;dir&gt;</code>. The speedrun alternates them for readability
+(and for parser-exercise coverage);
+<code>speedrun-1-endgame.input</code> uses the shorthand
+<code>n</code>/<code>s</code>/<code>e</code>/<code>w</code>/<code>u</code>/<code>d</code>
+throughout for compactness.</p>
 <hr />
+</section>
 </section>
 <section id="appendix-d-the-combat-arithmetic" class="level2">
 <h2>Appendix D: The Combat Arithmetic</h2>
-<p>Before the list of death scenarios, here is the math that governs
-combat. It is small and finite and worth memorizing if you plan on
-fighting anything more dangerous than the troll.</p>
-<p><strong>Your base fight strength</strong> is derived from your
+<p>Your <strong>base fight strength</strong> is derived from your
 score:</p>
 <pre><code>strength = 2 + floor((5 * score + 308) / 616)</code></pre>
 <p>Which yields:</p>
@@ -1108,13 +1845,12 @@ score:</p>
 <li>431–554: strength 6</li>
 <li>555+: strength 7</li>
 </ul>
-<p><strong>Your effective strength</strong> in any given exchange is
-base strength plus a wound penalty (your <code>astren</code>, which is 0
-when healthy and negative when injured; recovers +1 every 30 turns via
-the cure clock). <em>DIAGNOSE</em> reports the remaining recovery
-time.</p>
+<p><strong>Effective strength</strong> = base strength +
+<code>astren</code> (a wound modifier that’s 0 when healthy and negative
+when injured; recovers +1 every 30 turns via the cure clock).
+<em>DIAGNOSE</em> reports the remaining recovery time.</p>
 <p><strong>Villain strengths</strong>: Troll = 2, Thief = 5, Cyclops =
-10000, Gnome ≈ 1, minor maze denizens = 1 or 2.</p>
+10,000, Gnome ≈ 1, minor maze denizens = 1 or 2.</p>
 <p><strong>Per-exchange win probability.</strong> Let
 <code>ps = villain − you</code>. The villain wins the exchange with:</p>
 <ul>
@@ -1124,9 +1860,6 @@ time.</p>
 <li><code>ps &lt; 0</code> and villain still has some capacity: 25%</li>
 <li><code>ps &lt; 0</code> and villain is nearly broken: 10%</li>
 </ul>
-<p>Villain capacity falls by roughly one per successful blow against
-them. You similarly accumulate wounds from successful blows against
-you.</p>
 <p><strong>Strategic corollary.</strong> To fight the thief fairly
 (50/50), you need strength 5, which requires score 308 or higher. To
 fight him <em>favorably</em>, you need strength 6 — score 431+. This is
@@ -1144,14 +1877,15 @@ brackets.</p>
 <li><strong>Grue in darkness.</strong> [Keep lamp lit; bring torch as
 backup.]</li>
 <li><strong>Troll with bare hands.</strong> [Use sword.]</li>
-<li><strong>Thief’s stiletto (bad roll).</strong> [Save before engaging;
-come with full health; use nasty knife.]</li>
+<li><strong>Thief’s stiletto (bad roll, low score).</strong> [Save
+before engaging; come with health; use nasty knife; be at score
+400+.]</li>
 <li><strong>Bat drops you in the darkness without light.</strong> [Carry
 garlic.]</li>
 <li><strong>Pushing blue button without retreat plan.</strong> [Know the
-exits; carry putty.]</li>
-<li><strong>Overfalls (east off the falls).</strong> [Disembark before
-Aragain.]</li>
+exits; carry putty tube.]</li>
+<li><strong>Overfalls (east off the falls).</strong> [Disembark at Sandy
+Beach or earlier.]</li>
 <li><strong>Leaping into the Dome Room / any leap-able
 precipice.</strong> [Use rope.]</li>
 <li><strong>Gas Room explosion from lit flame.</strong> [Extinguish
@@ -1166,51 +1900,185 @@ and never again.]</li>
 you hear water rising; putty-plug the leak.]</li>
 <li><strong>Vault timeout.</strong> [Don’t close the vault door; carry
 the guidebook.]</li>
-<li><strong>Dragon without mirror luring.</strong> [Retreat to Ice Room;
-let him melt himself.]</li>
-<li><strong>Carousel fall with carozf on.</strong> [Push triangular via
-robot first.]</li>
+<li><strong>Dragon without mirror luring.</strong> [Avoid the dragon
+entirely, as the speedrun does, or retreat to Ice Room; let him melt
+himself.]</li>
 </ul>
 <hr />
 </section>
 <section id="appendix-f-the-last-point" class="level2">
 <h2>Appendix F: The Last Point</h2>
-<p>The 616th point is traditionally the hardest to locate because it
-appears only once, from an unobtrusive action, and it is easy to miss on
-a casual run. The official hint, from the game itself:</p>
+<p>The 616th point is famously hard to locate because it appears only
+once, from an unobtrusive action: reading every piece of printed
+material in the dungeon.</p>
+<p>The hint from the game itself:</p>
 <blockquote>
 <p><em>Have you availed yourself of ALL opportunities for intellectual
 improvement?</em></p>
 </blockquote>
-<p>In practice: read every piece of reading material in the dungeon.
-There are surprisingly many. One is worth a point.</p>
-<p>Candidates include:</p>
-<ul>
-<li>Mailbox leaflet.</li>
-<li>US News &amp; Dungeon Report (in the Living Room).</li>
-<li>Matchbook (Dam Lobby).</li>
-<li>Tour guidebook (Dam Lobby).</li>
-<li>Black book (Temple East End).</li>
-<li>Old engravings (Engravings Cave).</li>
-<li>Stone inscription south of the Temple.</li>
-<li>The Book of Commandments (same as black book, inside).</li>
-<li>The sign in the Lab / Wizard’s room.</li>
-<li>The plaque at the Stone Barrow.</li>
-<li>The parchment from the Trophy Case endgame trigger.</li>
-<li>The writing on the walls in various minor rooms.</li>
-<li>The canary’s song (technically sung, not read).</li>
-<li>The Machine Room’s label.</li>
-<li>The Frigid River bank engravings.</li>
-<li>The Flood Control Dam dedication plaque.</li>
-<li>The prisoner’s graffiti in the Endgame chamber.</li>
-</ul>
-<p>If you have read all of these and still lack the last point, look for
-a <strong>fifteenth</strong> reading. There is always one more.</p>
+<p>The <code>speedrun-2.input</code> session makes this explicit in Act
+XIV, near the end:</p>
+<pre><code>examine brochure
+examine coin
+examine matchbook
+examine newspaper
+examine stamp</code></pre>
+<p>Plus earlier <code>examine</code> and <code>read</code> commands
+scattered throughout: <code>read leaflet</code> (Act I),
+<code>read matchbook</code> (Act VI), <code>read paper</code> (Acts XIII
+and XIV), <code>describe tin</code>, <code>look at ruby</code>,
+<code>look at crown</code>, and the <code>schedule</code> command in Act
+XIII which is a “read every schedule” omnibus. Each <code>examine</code>
+of a readable treasure delivers a one-shot point.</p>
+<p>The complete list of readable items that contribute:</p>
+<ol type="1">
+<li>Mailbox leaflet (Act I)</li>
+<li>Matchbook (Act VI)</li>
+<li>Tour guidebook (Act VI — burned for fuel in Act XIV)</li>
+<li>Dungeon Report newspaper (Living Room)</li>
+<li>Brochure (Act VIII — mailed after
+<code>send for free brochure</code>)</li>
+<li>Ruby (Act XIV — ruby engraving)</li>
+<li>Crown (Act XIV — crown inscription)</li>
+<li>Stamp (Act XIV — stamp text)</li>
+<li>Coin (Act XIV — coin engraving)</li>
+<li>Engravings (Engravings Cave)</li>
+<li>Stone inscription (Temple South Wall)</li>
+<li>Book of Commandments (Temple Altar — read during exorcism)</li>
+<li>Puzzle Room paper (Act XIII)</li>
+<li>Gnome’s paper (Act XIV)</li>
+<li>Schedule (Act XIII — <code>schedule</code> verb)</li>
+</ol>
+<p>The speedrun executes 13 of these reads explicitly and captures the
+remaining two via implicit first-visit scoring. Track every readable
+object in your inventory and spend one turn on each before
+depositing.</p>
 <hr />
-<p><em>Congratulations. The Great Underground Empire is now, as much as
-any dungeon ever has been, yours.</em></p>
-<p><em>— An anonymous translator, with thanks to the many adventurers
-who died before you so that you might read their notes.</em></p>
+</section>
+<section id="appendix-g-the-complete-command-sequence" class="level2">
+<h2>Appendix G: The Complete Command Sequence</h2>
+<p>The authoritative source is the file
+<code>dungeon/test/sessions/speedrun-2.input</code>, 737 lines, executed
+from the initial game state. Below are the first and last 50 lines for
+reference; consult the file directly for the complete middle section.
+The parity test <code>node --test test/dungeon.test.js</code> confirms
+that every output line of the Fortran binary and the JS engine match for
+this exact command sequence.</p>
+<section id="opening-lines-150" class="level3">
+<h3>Opening (lines 1–50)</h3>
+<pre><code>take mat
+open mailbox
+take leaflet
+read leaflet
+walk north
+run north
+climb tree
+take egg
+examine egg
+go down
+proceed east
+go south
+walk north
+run east
+open window
+go west
+take all
+proceed west
+take lamp
+take sword
+examine sword
+move rug
+open trap door
+turn on lamp
+go down
+run east
+look
+attack troll with sword
+slay troll with sword
+dispatch troll with sword
+drop all but lamp, sword and egg
+take mat
+take bottle
+inventory
+walk south
+walk south
+run east
+go up
+take coins
+examine coins
+go sw
+proceed east
+go south
+go ne
+kill cyclops with sword
+slay cyclops with sword
+attack cyclops with sword
+stab cyclops with sword
+ODYSSEUS
+go up</code></pre>
+</section>
+<section id="endgame-lines-686737" class="level3">
+<h3>Endgame (lines 686–737)</h3>
+<pre><code>hello sailor
+repent
+frobozz
+yell
+win
+wait
+incant &quot;ZORK CQCBBBCA&quot;
+go north
+dungeon
+go north
+drop lamp
+go south
+push red button
+go north
+take lamp
+go north
+in
+raise short pole
+push red wall
+push red wall
+lower short pole
+push mahogany wall
+push mahogany wall
+push mahogany wall
+raise short pole
+push red wall
+push red wall
+push red wall
+push red wall
+push pine wall
+go north
+knock on wooden door
+answer &quot;FOREST&quot;
+answer &quot;RUB&quot;
+answer &quot;NONE&quot;
+go north
+go north
+go east
+go south
+go west
+go north
+go north
+turn dial to 4
+push button
+turn dial to 1
+tell master &quot;stay&quot;
+go south
+open cell door
+go south
+tell master &quot;push button&quot;
+open bronze door
+go north</code></pre>
+<hr />
+<p><em>Congratulations. The Great Underground Empire is, as much as any
+dungeon ever has been, yours.</em></p>
+<p><em>— An anonymous translator, with thanks to Bob Supnik for the
+Fortran port and to the many adventurers who died before you so that
+these commands might be tested byte-for-byte and documented
+here.</em></p>
+</section>
 </section>
 </section>
 </main>
