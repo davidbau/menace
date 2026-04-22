@@ -996,3 +996,139 @@ section.level1 > p:nth-last-of-type(2) {
     font-size: 10pt;
   }
 }
+
+/* ============================================================
+   Progressive-reveal hint sliders
+   ============================================================ */
+
+.hint-tier {
+  margin: 0.6em 0;
+  padding: 0.7em 0.9em;
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
+  background: var(--color-blockquote-bg);
+  transition: opacity 0.2s ease;
+}
+
+.hint-tier.hint-locked {
+  opacity: 0.55;
+}
+
+.hint-header {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  margin-bottom: 0.35em;
+  font-size: 0.9em;
+}
+
+.hint-label {
+  font-weight: 600;
+  color: var(--color-accent);
+  white-space: nowrap;
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+}
+
+.hint-slider {
+  flex: 1;
+  position: relative;
+  padding: 0.6em 0;
+  user-select: none;
+  touch-action: none;
+  cursor: ew-resize;
+  outline: none;
+}
+
+.hint-slider:focus-visible .hint-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(107, 44, 44, 0.25);
+}
+
+.hint-tier.hint-locked .hint-slider {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.hint-slider-track {
+  position: relative;
+  height: 6px;
+  background: #e8dfd0;
+  border-radius: 3px;
+}
+
+.hint-slider-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.05s linear;
+}
+
+.hint-slider-thumb {
+  position: absolute;
+  left: 0%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  background: var(--color-link);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--color-blockquote-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: width 0.05s linear, height 0.05s linear;
+}
+
+.hint-slider-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.8em;
+  color: #8a6e4b;
+  font-style: italic;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.hint-tier.hint-locked .hint-slider-hint::after {
+  content: " (reveal the previous hint first)";
+  font-variant: normal;
+}
+
+.hint-content {
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 0.1s linear, filter 0.1s linear;
+  min-height: 1.4em;
+  margin: 0;
+}
+
+.hint-tier[data-revealed="true"] .hint-content {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.hint-tier[data-revealed="true"] .hint-slider {
+  cursor: default;
+}
+
+.hint-tier[data-revealed="true"] .hint-slider-hint {
+  opacity: 0;
+}
+
+.hint-tier[data-revealed="true"] .hint-slider-thumb {
+  width: 12px;
+  height: 12px;
+  opacity: 0.6;
+}
+
+/* Print: always show fully, no sliders */
+@media print {
+  .hint-slider { display: none; }
+  .hint-content { opacity: 1 !important; filter: none !important; }
+  .hint-tier.hint-locked { opacity: 1; }
+}

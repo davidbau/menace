@@ -2372,32 +2372,39 @@ here.</em></p>
 
   // --- Humorous index (shown when search is empty) ---
   var indexEntries = [
-    ['Acid blob, rubber-banded', 'your-first-descent'],
-    ['Amulet of Yendor, retrieving', 'the-ascension-run'],
-    ['Ascension, how to not die during', 'the-ascension-run'],
-    ['Boulders, pushing (see: Sokoban)', 'sokoban-solutions'],
-    ['Castle, storming the', 'the-castle'],
-    ['Cockatrice corpse, wielding', 'dangerous-encounters'],
-    ['Death, causes of (see: everything)', 'dangerous-encounters'],
-    ['Drowning, preventable', 'dangerous-encounters'],
-    ['Elbereth, writing frantically', 'traps-and-hazards'],
-    ['Floating eye, do not hit', 'a-field-guide-to-dungeon-fauna'],
-    ['Food, running out of', 'provisions-and-dining'],
-    ['Gehennom, why is it so hot', 'gehennom'],
-    ['Gods, angering', 'divine-relations'],
-    ['Identify, never enough scrolls of', 'the-identification-problem'],
-    ['Luck, secretly ruining yours', 'luck-and-fortune'],
-    ['Mines, gnomish', 'branches-and-landmarks'],
-    ['Pet, accidentally killing your', 'making-friends'],
-    ['Prayer, when to', 'divine-relations'],
-    ['Shopkeeper, angering', 'shopping-and-shopkeeper-pricing'],
-    ['Sokoban, solving without cheating', 'sokoban-solutions'],
-    ['Stoning, avoiding', 'dangerous-encounters'],
-    ['Tourists, playing as', 'choosing-your-expedition'],
-    ['Unicorn horn, no longer a cure-all', 'what-changed-since-last-time'],
-    ['Wand, identifying by engraving', 'the-identification-problem'],
-    ['Wishes, optimal use of', 'wishes-and-wishing'],
-    ['YASD, inevitability of', 'your-first-descent'],
+    ['Axe, troll\u2019s (never yours)', 'the-troll'],
+    ['Bank, walking through walls of', 'the-bank-of-zork'],
+    ['Bat, why you brought garlic', 'the-coal-mine-and-the-bat'],
+    ['Bucket, riding up the well in a', 'the-wizards-domain'],
+    ['Cakes, four-course cautionary', 'the-wizards-domain'],
+    ['Carousel, making it stop', 'the-wizards-domain'],
+    ['Cyclops, Homeric dismissal of', 'the-cyclops'],
+    ['Dam, how not to flood yourself', 'the-dam-and-the-reservoir'],
+    ['Death, fully recoverable (up to twice)', 'strength-death-and-the-twice-dead-rule'],
+    ['Diamond, made from coal at great effort', 'the-coal-mine-and-the-bat'],
+    ['Egg, who to trust with your', 'the-thiefs-treasure-room'],
+    ['Grue, not meeting in person', 'light-in-the-dungeon'],
+    ['Hades, exorcising with bell, book, candle', 'the-temple-and-the-land-of-the-living-dead'],
+    ['Implementers, Tomb of the', 'the-temple-and-the-land-of-the-living-dead'],
+    ['Leaflet, surprisingly reading-worth', 'the-surface-and-the-white-house'],
+    ['Loud Room, silencing', 'the-loud-room'],
+    ['Magic words, useless tributes', 'magic-words'],
+    ['Mailbox, brochure delivery to', 'the-surface-and-the-white-house'],
+    ['Mapping, with dropped objects', 'the-art-of-mapping'],
+    ['Odysseus, saying aloud to a cyclops', 'the-cyclops'],
+    ['Palantir, looking into', 'the-palantirs'],
+    ['Rainbow, making solid', 'the-rainbow-the-barrel-and-the-river'],
+    ['Robot, commanding', 'the-wizards-domain'],
+    ['Sceptre, waving at rainbows', 'the-rainbow-the-barrel-and-the-river'],
+    ['Score, literally your strength', 'strength-death-and-the-twice-dead-rule'],
+    ['Sword, glows blue near', 'the-troll'],
+    ['Thief, robbed you blind first', 'the-thief'],
+    ['Thief, when to kill', 'the-thiefs-treasure-room'],
+    ['Treasure case, destination of all your woes', 'the-surface-and-the-white-house'],
+    ['Troll, axe of the', 'the-troll'],
+    ['Volcano, balloon ride above', 'the-volcano'],
+    ['Well, bringing water to', 'the-wizards-domain'],
+    ['Xyzzy, not actually working', 'magic-words'],
   ];
 
   var indexHtml = '<div class="humorous-index"><div class="index-title">Index of Useful Knowledge</div>';
@@ -2406,6 +2413,131 @@ here.</em></p>
   });
   indexHtml += '</div>';
   searchIndex.innerHTML = indexHtml;
+
+  // --- Progressive-reveal hint sliders ---
+  // Any blockquote whose first paragraph begins with "Hint N." becomes a
+  // tiered hint block. Each hint is hidden behind a slider that must be
+  // dragged to the right to reveal it; sliders for later hints only
+  // activate once the previous hint has been fully revealed.
+  function initHintSliders() {
+    document.querySelectorAll('blockquote').forEach(function(bq) {
+      var paragraphs = Array.prototype.filter.call(bq.children, function(el) {
+        return el.tagName === 'P' && /^\s*Hint\s+\d+\./.test(el.textContent);
+      });
+      if (paragraphs.length === 0) return;
+      if (!/^\s*Hint\s+1\./.test(paragraphs[0].textContent)) return;
+      bq.classList.add('hint-block');
+
+      var tiers = [];
+      paragraphs.forEach(function(p, i) {
+        var m = p.textContent.match(/^\s*Hint\s+(\d+)\.\s*/);
+        var label = m ? ('Hint ' + m[1]) : ('Hint ' + (i + 1));
+        var text = p.innerHTML.replace(/^\s*Hint\s+\d+\.\s*/, '');
+
+        var tier = document.createElement('div');
+        tier.className = 'hint-tier';
+        tier.dataset.level = String(i + 1);
+        tier.dataset.revealed = 'false';
+        if (i > 0) tier.classList.add('hint-locked');
+
+        tier.innerHTML =
+          '<div class="hint-header">' +
+            '<span class="hint-label">' + label + '</span>' +
+            '<div class="hint-slider" role="slider" ' +
+              'aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" ' +
+              'aria-label="Drag right to reveal ' + label.toLowerCase() + '" ' +
+              'tabindex="0">' +
+              '<div class="hint-slider-track">' +
+                '<div class="hint-slider-fill"></div>' +
+                '<div class="hint-slider-thumb"></div>' +
+              '</div>' +
+              '<span class="hint-slider-hint">Drag right to reveal</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="hint-content"></div>';
+        tier.querySelector('.hint-content').innerHTML = text;
+        p.replaceWith(tier);
+        tiers.push(tier);
+      });
+
+      tiers.forEach(function(tier, idx) {
+        var slider = tier.querySelector('.hint-slider');
+        var track = tier.querySelector('.hint-slider-track');
+        var fill = tier.querySelector('.hint-slider-fill');
+        var thumb = tier.querySelector('.hint-slider-thumb');
+        var content = tier.querySelector('.hint-content');
+        var hintLabel = tier.querySelector('.hint-slider-hint');
+        var pct = 0;
+        var dragging = false;
+
+        function apply(newPct) {
+          if (tier.classList.contains('hint-locked')) return;
+          if (tier.dataset.revealed === 'true') return;
+          pct = Math.max(0, Math.min(100, newPct));
+          fill.style.width = pct + '%';
+          thumb.style.left = pct + '%';
+          content.style.opacity = String(pct / 100);
+          content.style.filter = 'blur(' + ((1 - pct / 100) * 8).toFixed(2) + 'px)';
+          slider.setAttribute('aria-valuenow', String(Math.round(pct)));
+          if (pct >= 98) {
+            tier.dataset.revealed = 'true';
+            hintLabel.textContent = 'Revealed';
+            var next = tiers[idx + 1];
+            if (next && next.classList.contains('hint-locked')) {
+              next.classList.remove('hint-locked');
+            }
+          }
+        }
+
+        function pctFromX(clientX) {
+          var rect = track.getBoundingClientRect();
+          return ((clientX - rect.left) / rect.width) * 100;
+        }
+
+        slider.addEventListener('pointerdown', function(e) {
+          if (tier.classList.contains('hint-locked')) return;
+          if (tier.dataset.revealed === 'true') return;
+          dragging = true;
+          try { slider.setPointerCapture(e.pointerId); } catch (_) {}
+          apply(pctFromX(e.clientX));
+          e.preventDefault();
+        });
+        slider.addEventListener('pointermove', function(e) {
+          if (!dragging) return;
+          apply(pctFromX(e.clientX));
+        });
+        function endDrag(e) {
+          if (!dragging) return;
+          dragging = false;
+          try { slider.releasePointerCapture(e.pointerId); } catch (_) {}
+          // If they didn't drag far enough, snap back gently to 0
+          if (pct < 98) {
+            var start = pct;
+            var t0 = performance.now();
+            function snap(t) {
+              var f = Math.min(1, (t - t0) / 200);
+              apply(start * (1 - f));
+              if (f < 1) requestAnimationFrame(snap);
+            }
+            requestAnimationFrame(snap);
+          }
+        }
+        slider.addEventListener('pointerup', endDrag);
+        slider.addEventListener('pointercancel', endDrag);
+
+        slider.addEventListener('keydown', function(e) {
+          if (tier.classList.contains('hint-locked')) return;
+          if (tier.dataset.revealed === 'true') return;
+          if (e.key === 'ArrowRight') { apply(pct + 10); e.preventDefault(); }
+          else if (e.key === 'ArrowLeft') { apply(pct - 10); e.preventDefault(); }
+          else if (e.key === 'End') { apply(100); e.preventDefault(); }
+          else if (e.key === 'Home') { apply(0); e.preventDefault(); }
+          else if (e.key === 'Enter' || e.key === ' ') { apply(100); e.preventDefault(); }
+        });
+      });
+    });
+  }
+  initHintSliders();
 })();
 </script>
 </body>

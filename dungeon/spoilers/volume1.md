@@ -19,11 +19,14 @@ will nudge, prod, and on occasion gently mock. Each significant puzzle
 appears here as a question with a series of answers — a gentle first
 hint, a pointed second hint, and, for the truly stuck, a nearly-complete
 third. You are trusted to read only as far as you need and to put the
-book down when the nudge is enough. This is an old convention, inherited
-from the physical *InvisiClues* booklets Infocom sold in the 1980s,
-whose answers were printed in invisible ink and revealed one at a time
-with a chemical developer pen. You had to *want* the spoiler before you
-got it. We have preserved the spirit, if not the pen.
+book down when the nudge is enough. This is an old convention from the
+age of printed hint books, whose answers were hidden behind invisible
+ink and revealed one at a time with a chemical developer pen: you had
+to *want* the spoiler before you got it. We have preserved the spirit.
+The pen has been replaced by a small slider beside each hint: drag it
+to the right to reveal that hint, and the slider for the next one will
+become available. You can always leave a hint unread, and you can
+always stop.
 
 If you want the complete walkthrough — every move, every treasure —
 that is **Volume II**. Keep it on a shelf where you cannot accidentally
@@ -353,9 +356,10 @@ The thief is the game's best-designed antagonist. Treat him well.
 ## Part Two: A Field Guide to Trouble
 
 From here on, this volume is organized by puzzle. Each puzzle is
-presented in the InvisiClues style: a question, followed by a series of
-progressively more detailed hints, followed — if you are truly stuck —
-by something very close to a full answer.
+presented as a question, followed by a series of progressively more
+detailed hints, followed — if you are truly stuck — by something very
+close to a full answer. Each hint has its own reveal slider; the next
+hint's slider only activates once you've read the previous one.
 
 The rule is: **read one hint, close the book, and try again.** The
 pleasure of Dungeon is in solving its puzzles, and the book will ruin
@@ -942,7 +946,7 @@ portraits.
 > Hint 3. The vault has its own curtain trick. Try walking through
 > the same wall you came in through. Or, if you triggered the alarm,
 > pray. If neither works and the timer runs out — the bank calls
-> the guards, and the guards do not read InvisiClues.
+> the guards, and the guards do not read hint books.
 
 **Q3. What treasures are here?**
 
@@ -1124,7 +1128,7 @@ Words that actually work:
 
 ### Have You Ever …?
 
-This is the classic InvisiClues appendix — a list of things worth
+This is the traditional hint-book appendix — a list of things worth
 trying at least once, for curiosity or amusement. None advance the
 game.
 
@@ -1171,17 +1175,18 @@ purpose) earns the rank of **Beginner** plus a short admonishment.
 
 ### On Style
 
-The voice of this guide is in debt to two sources: the InvisiClues
-hint books Infocom published between 1981 and 1989, which taught a
-generation of adventurers to enjoy partial spoilers; and the game's
-own 1994 *HELP* text, written by the anonymous translator who would
-eventually be identified as Bob Supnik and who, like his translator
-character, preferred to remain anonymous for a very long time.
+The voice of this guide is in debt to two sources: the printed
+hint-book tradition of the 1980s, which taught a generation of
+adventurers to enjoy partial spoilers by revealing them one layer
+at a time; and the game's own 1994 *HELP* text, written by the
+anonymous translator who would eventually be identified as Bob
+Supnik and who, like his translator character, preferred to remain
+anonymous for a very long time.
 
-The author has followed the InvisiClues convention of progressively
+The author has followed the old convention of progressively
 revealing hints, and has tried to preserve the dry, slightly arch
-voice of the original. Any failure of wit is the author's; any
-success is an echo.
+voice of that era. Any failure of wit is the author's; any success
+is an echo.
 
 If you cleared the dungeon with this book as your only companion, you
 did most of the work. If you cleared it without opening this book,
