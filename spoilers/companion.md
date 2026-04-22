@@ -1418,6 +1418,13 @@ and in the endgame.
 breathing lets you survive underwater. Levitation keeps you above
 the water entirely. Kill sea monsters at range whenever possible.
 
+**A note on piranhas.** Current editions buffed piranhas: they
+move faster than before and land an extra bite attack per round.
+Individually they're still a nuisance rather than a threat, but a
+pool of them (common in themed rooms and on the Plane of Water)
+can turn a single misstep into a flurry of chipping damage that
+softens you for the next real enemy. Don't wade casually.
+
 #### The Touch of Death
 
 Some monsters, most notably Death (one of the Riders on the Astral
@@ -1573,6 +1580,38 @@ that take a paragraph to explain to other players afterward.
 Kill the genetic engineer first. Always. It is not a hard rule to
 remember, because the reason is self-evident the moment you see what it
 made.
+
+#### Saving Grace
+
+There is a mechanic that the game does not advertise and that no
+message in the log will ever announce. It is called **saving grace**,
+and it is the difference between "impossible instadeath" and "you
+escaped by a thread" in rare, specific circumstances.
+
+The rule: if a **single** source of damage would reduce you from
+more than 90% of your maximum hit points directly to zero or below
+— in other words, you were at full health and the Wizard's finger-of-
+death came for you — the game silently leaves you at **1 HP** instead
+of killing you. You survive. The saving grace fires **once per game**.
+After it triggers, you have no safety net.
+
+Saving grace also interrupts long actions: if you were resting,
+sleeping, or on a multi-turn action (like eating) when a fatal hit
+landed, you wake up and are at 1 HP with your hostile visitor still
+staring at you.
+
+**What it does not do:** It does not protect you from instadeath
+effects (stoning, sliming, drowning while burdened, digestion inside
+a purple worm), from starvation, from the Touch of Death's max-HP
+reduction chain, from multiple smaller simultaneous hits, from a hit
+that takes you from less than 90% health to death, or from anything
+after the first trigger. It is specifically a one-shot against a
+catastrophic single-source blow at high health.
+
+**How to exploit it:** Don't. Exploiting a mechanic that triggers once
+and silently is exactly how you die to the second instadeath. Treat
+saving grace as an extra-life coupon for a situation you wouldn't
+have survived anyway — not a planning input.
 
 #### The Essential Kit
 
@@ -2311,6 +2350,17 @@ enchant weapon. You will never have enough holy water.
 reaching quest eligibility quickly, or converting into something
 better through alchemy.
 
+**Polymorph.** Transforms a creature or, if drunk by you, your own
+form. In current editions, a **blessed** potion of polymorph prompts
+you to pick the target form explicitly — you name the monster and
+become it, instead of rolling the dice. This turns polymorph from a
+gamble into a tool. Uncursed and cursed versions still roll randomly.
+If you drink a polymorph potion while polymorphed into a **vampire**
+and then use `#monster`, you perform a real vampire shapeshift —
+bat, fog, wolf — rather than a one-shot polymorph. Other polymorph
+sources (wand, scroll) work the same way; the blessed-potion prompt
+is the controlled-target highlight.
+
 #### Alchemy
 
 Here's where potions get interesting. Dip one potion into another
@@ -2435,7 +2485,12 @@ and it crumbles to dust. So choose your standing spot wisely.
 **Teleportation.** Uncursed teleports you randomly on the level.
 Cursed or confused reading sends you to a random dungeon level.
 With teleport control, *you* choose where you land—making this
-one of the most versatile escape tools in the game.
+one of the most versatile escape tools in the game. In current
+editions, a **blessed** scroll of teleportation also gives you
+one controlled teleport even without the intrinsic, provided you
+have the ambient awareness to aim (i.e., you've seen the square
+you want to land on). Consider this the poor adventurer's teleport
+control.
 
 #### Confused Reading
 
@@ -2706,6 +2761,18 @@ single controlled polyself. The ring remains useful if you want ongoing
 control for repeated transformations, but it's no longer a hard
 prerequisite for the opening act of any polymorph strategy. Save that
 wish for something else.
+
+**Fire and cold resistance, re-evaluated.** In current editions,
+wearing extrinsic fire or cold resistance (from a ring, amulet, or
+piece of dragon scale mail) gives your carried items approximately
+a **99% save per roll** against being burned or frozen. This is a
+huge change from earlier editions, where even a fire-resistant hero
+could lose scrolls and potions to an incautiously-timed fire attack.
+The practical effect: rings of fire/cold resistance are now genuinely
+inventory-protection items, not merely personal-damage-mitigation
+ones. If you're about to enter Gehennom and you have both a spare
+ring slot and a ring of fire resistance, wear it even if your intrinsic
+fire resistance is already set. The scrolls thank you.
 
 **The hidden cost:** Every ring you wear increases your hunger rate.
 Two rings drain food noticeably faster. The veteran habit is to
@@ -3706,7 +3773,10 @@ The Castle contains:
 - **Barracks** full of soldiers carrying decent equipment, which is
   to say *your* equipment once you've dealt with them.
 - **Four outer rooms** along the north and south walls. One contains
-  the **wand of wishing** in a chest. *Search them all.*
+  a **chest**, and inside that chest is the **wand of wishing** —
+  plus, in current editions, a **potion of gain level**. *Search
+  them all.* The gain-level potion is not to be sniffed at; think of
+  it as a small consolation prize for the wand's own nerf (see below).
 - A **maze section** with a minotaur guarding it. The minotaur hits
   hard but isn't especially resistant to having a wand pointed at it.
 
@@ -3770,34 +3840,57 @@ ascenders. Everything you've prepared for has been leading here.
 - **Mazes.** Nearly every level is a maze. A wand of digging or
   pickaxe isn't optional here—it's as essential as your weapon.
   Dig straight lines to the stairs and don't look back
+- **Walls of water and icy floors.** Current editions vary the maze
+  levels with **walls of water** — which you can walk through only
+  with magical breathing and at the cost of losing turns — and
+  **icy floors** that prevent fire attacks from working normally and
+  that shatter dropped potions just by existing. Plan your route
+  around these features; don't fight them
+- **Cavernous open levels.** Some Gehennom levels are not mazes at
+  all but enormous cavern rooms surrounded by lava. Sight lines are
+  long, monsters come at you in waves, and falling (or being pushed)
+  into the lava is a short obituary. Reflection and levitation both
+  earn their keep here
 
 #### Key Objectives in Gehennom
 
-You're here for three artifacts, one ritual, and one extremely
-dangerous robbery:
+You're here for three artifacts, one lesser tool pickup, one ritual,
+and one extremely dangerous robbery:
 
 1. **Vlad's Tower.** A three-level tower where Vlad the Impaler
    (a vampire lord) guards the Candelabrum of Invocation at the
-   top. Kill Vlad. Take the Candelabrum. Don't linger.
+   top. Kill Vlad. Take the Candelabrum. Don't linger. *In current
+   editions, Vlad's throne (on the top level) persists until it
+   grants a wish — you can keep sitting on it and re-rolling — but
+   the negative outcomes (zap of hostile monsters, cursed gear, stat
+   drain) are harsher than before. Only sit if you're prepared to
+   roll with the bad results.*
 
-2. **The Wizard's Tower.** The Wizard of Yendor waits here with
+2. **Orcus-town.** The level ruled by Orcus always contains, somewhere
+   on the floor or on his person, a **magic lamp or a magic marker**.
+   (Roll: whichever the game decides at level creation.) Both are
+   excellent: the lamp is a source of a wish, and the marker is the
+   best tool in the game for patching gaps in your inventory. Search
+   Orcus-town thoroughly; the item does not come to you.
+
+3. **The Wizard's Tower.** The Wizard of Yendor waits here with
    the Book of the Dead. He is the most dangerous enemy in the
    game—not because he's the strongest fighter, but because he
    never stops. He teleports, summons monsters, steals the Amulet,
    curses your gear, and once you wake him, he *will not leave you
    alone* for the rest of the game. Kill him. Take the Book.
 
-3. **The vibrating square.** Somewhere on the level directly above
+4. **The vibrating square.** Somewhere on the level directly above
    Moloch's Sanctum, a single square vibrates when you step on it.
    This is the ritual site. Finding it in a maze is part of the
    challenge—scrolls of magic mapping help enormously.
 
-4. **The Invocation.** At the vibrating square, light the
+5. **The Invocation.** At the vibrating square, light the
    Candelabrum (with 7 candles attached), ring the Bell of Opening,
    and read the Book of the Dead. The passage to Moloch's Sanctum
    opens.
 
-5. **Moloch's Sanctum.** The high priest of Moloch guards the
+6. **Moloch's Sanctum.** The high priest of Moloch guards the
    Amulet of Yendor. Defeat him and take it. Then turn around and
    realize you must carry it all the way back up through the entire
    dungeon you just descended.
@@ -3879,6 +3972,20 @@ you packed well at the Castle and your resistances are solid, this
 is a sprint, not a marathon. Once you reach the top of the Dungeons
 of Doom, the final staircase leads to the Elemental Planes — the
 last obstacle between you and divinity.
+
+**A counter-intuitive warning for the planes: anti-magic fields.**
+In current editions, the damage from anti-magic fields — environmental
+and monster-generated — is **amplified** for characters who have
+magic resistance, not mitigated. This is the opposite of what you
+would guess, and the opposite of how it worked in older editions.
+The logic, if it helps: a creature with no magical protections has
+no magical fabric for the anti-magic to *tear*; a magic-resistant
+hero is wrapped in magical protections, and the field rends them.
+The practical corollary is that on the **Plane of Earth** in
+particular, where anti-magic pockets appear, you may take more
+damage than a notionally squishier hero would in the same square.
+Reflection doesn't help. Fire/cold/shock resistance doesn't help.
+Move through these squares; don't stand in them.
 
 ---
 
@@ -4067,6 +4174,53 @@ You don't need to memorize all of these at once. Start with command counts (`10s
 The prefix commands can wait until you need them. The first time you suspect an invisible monster, you'll remember `F` exists and look it up. The first time you're running across a long corridor, you'll remember `G` or capital letters exist. Let the game teach you when the tools are useful.
 
 The dungeon rewards efficiency, but it doesn't demand it on day one.
+
+#### New in Current Editions
+
+A handful of commands are genuinely new, and a few old ones have
+been broadened. If you're returning from an earlier edition, these
+are worth learning explicitly.
+
+**`#retravel`** repeats your most recent `_` travel route. If you
+walked from the Castle back up to the Oracle yesterday and want to
+go again, `#retravel` does it. The game remembers the destination
+across the session; it doesn't save across game sessions.
+
+**`#lookaround`** is an accessibility command. It reports nearby
+points of interest — stairs, altars, shops, fountains — in text
+form, so that visually-impaired players and screen-reader users don't
+have to parse the ASCII map. It's also surprisingly useful for sighted
+players who want a quick audit of "what's on this level that I should
+remember."
+
+**`#vanquished`** now works in normal games (previously wizard mode
+only). It lists every monster you've killed this game, sorted by
+count. A useful end-of-game reflection or mid-game morale check.
+
+**`#genocided`** lists species you've wiped out with scrolls of
+genocide — helpful when you've forgotten whether you've already
+nuked the liches this run, before you burn another blessed scroll
+of genocide.
+
+**`#saveoptions`** writes your current session's options back to your
+config file. Useful after you've fiddled with settings at the `O`
+menu and want the changes to persist.
+
+**Fire command autowields.** The `f` (fire) command now auto-wields
+an appropriate launcher if you have one quivered — bow for arrows,
+sling for rocks, crossbow for bolts — and unwields afterward. The
+boolean option `fireassist` controls this; on by default. Older
+adventurers who wielded-and-unwielded manually can let it go.
+
+**`safe_wait`** is a new option that prevents `s` (search) and `.`
+(wait) from executing when a hostile monster is adjacent. Off by
+default. Turn it on if you've ever died because you typed `10s` while
+a grid bug was sneaking up on you.
+
+**Default options changed.** Two notable defaults flipped: `autopickup`
+is now **off** by default (was on), and `color` is on by default (was
+off on many builds). If your muscle memory expects items to be picked
+up as you walk over them, re-enable `autopickup` in your config.
 
 #### Related Options
 
@@ -5166,6 +5320,29 @@ significant:
   dissolved with acid or broken with a war hammer.
 - **Mummies** now cause withering instead of draining experience.
   Withering can be cured by prayer.
+- **Saving grace** is a silent once-per-game mechanic: a single
+  source of damage that would kill you from more than 90% of your
+  max HP leaves you at 1 HP instead. It triggers without a message.
+- **Castle chest** now contains a potion of gain level alongside the
+  (single-charge) wand of wishing.
+- **Piranhas** are faster and gain an extra bite attack per round.
+- **Vampire polyself** uses `#monster` as a real shapeshift (bat,
+  fog, wolf), not a one-shot poly.
+- **Blessed scroll of teleportation** gives one controlled teleport
+  even without the intrinsic.
+- **Fire and cold resistance** extrinsics now protect carried items
+  with approximately a 99% save per hit; inventory-destruction by
+  fire/cold attacks is effectively solved.
+- **Anti-magic fields** deal *more* damage to characters with magic
+  resistance, not less. A notable ascension-run pitfall on the
+  Plane of Earth.
+- **New commands**: `#retravel` (repeat last travel route),
+  `#lookaround` (accessibility: describe surroundings in text),
+  `#vanquished` / `#genocided` (kill and genocide logs in normal
+  games), `#saveoptions` (persist current option settings),
+  `fireassist` (auto-wield for the `f` fire command), `safe_wait`
+  (prevents `s` and `.` from running next to hostiles). Default
+  `autopickup` is now off; default `color` is on.
 
 ---
 
