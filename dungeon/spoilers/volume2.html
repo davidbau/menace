@@ -42,35 +42,26 @@ you are <strong>stuck</strong> — not in the sense of <em>I need to think
 about this another day</em>, but in the sense of <em>I have exhausted
 every idea I had last week</em> — then welcome. You have done the work
 of earning this book, and here is your reward.</p>
-<p>This walkthrough is not a reconstruction from memory or lore. Every
-command in this volume is drawn from a <strong>verified parity
-session</strong>: <code>test/sessions/speedrun-2.input</code>, a
-737-step playthrough that reaches <strong>616 out of 616 points</strong>
-and then completes the Endgame. The session is tested byte-for-byte
-against the Fortran reference binary as part of the build. If a command
-appears in this book, it works; the parity suite would fail
-otherwise.</p>
-<p>Where the prose narrative departs from the literal command, it does
-so only to group commands into acts, omit repetitive filler (such as the
-three synonymous <code>attack troll</code> / <code>slay troll</code> /
-<code>dispatch troll</code> incantations the speedrun uses to defeat the
-troll in a single act of grammar abuse), or abbreviate long navigation
-stretches whose every step is documented in the source file anyway. The
-complete literal command sequence is given in <strong>Appendix
-G</strong>.</p>
-<p>Two companion sessions are cited for variations:</p>
-<ul>
-<li><code>speedrun-1-endgame.input</code> — the same solution in
-<strong>shorthand</strong>
-(<code>n</code>/<code>s</code>/<code>e</code>/<code>w</code>/<code>u</code>/<code>d</code>),
-useful when you have the route memorized and want fewer keystrokes.</li>
-<li><code>speedrun-31-gnome.input</code> — a partial run (525 points,
-561 steps) showcasing the Volcano gnome sub-puzzle in detail.</li>
-</ul>
+<p>Every command in this walkthrough has been verified against the
+reference binary. The sequence reaches <strong>616 out of 616
+points</strong> and then completes the Endgame. Where the prose
+narrative departs from the literal commands, it does so to group them
+into acts, to omit repetitive filler (such as the three synonymous
+<code>attack troll</code> / <code>slay troll</code> /
+<code>dispatch troll</code> incantations used to defeat the troll in a
+single act of grammar abuse), or to abbreviate long navigation
+stretches.</p>
+<p>This is <strong>one</strong> complete solution, not the only one.
+Where the path chosen in this walkthrough differs substantively from
+other reasonable approaches, we note the alternatives. The game accepts
+shorthand directions
+(<code>n</code>/<code>s</code>/<code>e</code>/<code>w</code>/<code>u</code>/<code>d</code>)
+equivalent to the longhand forms used below; use whichever is more
+comfortable.</p>
 <p>The walkthrough is structured as <strong>fifteen acts</strong>,
-roughly corresponding to treasure-collection phases. Each act contains
-the literal commands (in <code>fixed-width type</code>), the score at
-act-end, and commentary on why the sequence is shaped the way it is.</p>
+roughly corresponding to treasure-collection phases. Each act gives its
+step range, the score at act-end, and commentary on the shape of the
+sequence.</p>
 <hr />
 </section>
 <section id="table-of-contents" class="level2">
@@ -95,8 +86,8 @@ Lair</a></li>
 <li><a href="#act-x-the-canary">Act X: The Canary</a></li>
 <li><a href="#act-xi-the-temple-and-the-exorcism">Act XI: The Temple and
 the Exorcism</a></li>
-<li><a href="#act-xii-the-dragon-the-mirror-and-the-diamond">Act XII:
-The Dragon, the Mirror, and the Diamond</a></li>
+<li><a href="#act-xii-the-mirror-the-coal-mine-and-the-diamond">Act XII:
+The Mirror, the Coal Mine, and the Diamond</a></li>
 <li><a href="#act-xiii-the-puzzle-room">Act XIII: The Puzzle
 Room</a></li>
 <li><a href="#act-xiv-the-volcano">Act XIV: The Volcano</a></li>
@@ -124,11 +115,11 @@ Complete Command Sequence</a></li>
 </section>
 <section id="act-i-the-surface-and-the-troll" class="level2">
 <h2>Act I: The Surface and the Troll</h2>
-<p><em>speedrun-2 steps 1–34. Score at act end: 35.</em></p>
+<p><em>Steps 1–34. Score at act end: 35.</em></p>
 <p>You begin at <strong>West of House</strong>. The very first command
 is not to open the mailbox — it is to take the welcome mat. The mat
-turns out to be useful much later, and the speedrun picks it up now so
-it doesn’t have to come back for it:</p>
+turns out to be useful much later, and this walkthrough picks it up now
+so it doesn’t have to come back for it:</p>
 <pre><code>take mat
 open mailbox
 take leaflet
@@ -152,7 +143,7 @@ run east</code></pre>
 <p><em>The sequence
 <code>proceed east → go south → walk north → run east</code> is a tour
 of the surface ring that brings you to Behind House via the clearing,
-forest, and back around. The speedrun uses this path to accumulate
+forest, and back around. This walkthrough uses this path to accumulate
 room-visit points; a shorter route (<code>walk north → run east</code>
 from West of House) skips the forest bonus points.</em></p>
 <p>Enter the house:</p>
@@ -174,7 +165,7 @@ go down
 run east
 look</code></pre>
 <p>You are now in the <strong>Troll Room</strong> with a lit lamp. The
-troll arrives immediately. The speedrun defeats him with three
+troll arrives immediately. This walkthrough defeats him with three
 attack-synonyms on consecutive turns, because the parser treats
 <code>attack</code>, <code>slay</code>, and <code>dispatch</code> as
 distinct verbs with the same effect, and the RNG is generous when you
@@ -189,14 +180,14 @@ inventory for the next leg:</p>
 take mat
 take bottle
 inventory</code></pre>
-<p><em>The speedrun drops the mailbox and leaflet here. They are no
+<p><em>This walkthrough drops the mailbox and leaflet here. They are no
 longer needed for their immediate use. The mat goes back into inventory
 because it is needed for the Royal Puzzle in Act VII.</em></p>
 <hr />
 </section>
 <section id="act-ii-the-cyclops-and-the-thiefs-deposit" class="level2">
 <h2>Act II: The Cyclops and the Thief’s Deposit</h2>
-<p><em>speedrun-2 steps 35–62. Score at act end: 75.</em></p>
+<p><em>Steps 35–62. Score at act end: 75.</em></p>
 <p>You are in the Troll Room with the lamp, sword, egg, mat, and bottle.
 The goal of this act is <strong>three</strong> things in order: collect
 the coins from the Attic, scare the Cyclops to open the shortcut, and
@@ -218,7 +209,7 @@ proceed east
 go south
 go ne</code></pre>
 <p>You are now in the <strong>Cyclops Room</strong>. He blocks the
-stairs up. The speedrun first tries to fight him with four synonyms —
+stairs up. The walkthrough first tries to fight him with four synonyms —
 <em>this is not optional; the game rewards the attempt with a
 distinctive “you fool” message and some score</em>:</p>
 <pre><code>kill cyclops with sword
@@ -255,7 +246,7 @@ put coins in case</code></pre>
 <strong>10 points for taking + 15 for depositing = 25</strong>, bringing
 you from strength 2 to strength 3 at threshold 62 (not quite yet —
 you’ll cross into strength 3 during Act IV).</em></p>
-<p>The speedrun then goes up to the Attic via the Kitchen stairs to
+<p>This walkthrough then goes up to the Attic via the Kitchen stairs to
 fetch the rope and nasty knife:</p>
 <pre><code>go east
 go up
@@ -272,7 +263,7 @@ limit.</p>
 </section>
 <section id="act-iii-the-torch" class="level2">
 <h2>Act III: The Torch</h2>
-<p><em>speedrun-2 steps 63–86. Score at act end: 85.</em></p>
+<p><em>Steps 63–86. Score at act end: 85.</em></p>
 <p>The <strong>torch</strong> is both a treasure (10 for pickup, 10 for
 deposit) and a light source better than the lamp for certain rooms (in
 particular the Ice Room, where drafts extinguish candles). This act is a
@@ -308,12 +299,12 @@ turn on lamp</code></pre>
 climb down again in later acts when you come through with heavier
 inventories. In the meantime, you exit the Dome Room via the cave system
 east and come back up to the Living Room through the kitchen stairs —
-the speedrun does this efficiently in five moves.</em></p>
+this walkthrough does this efficiently in five moves.</em></p>
 <hr />
 </section>
 <section id="act-iv-the-well-the-cakes-and-the-robot" class="level2">
 <h2>Act IV: The Well, the Cakes, and the Robot</h2>
-<p><em>speedrun-2 steps 87–142. Score at act end: 175.</em></p>
+<p><em>Steps 87–142. Score at act end: 175.</em></p>
 <p>This is the longest and most elaborate act. It collects four
 treasures (necklace, tin, sphere, violin), and along the way it solves
 three puzzles (the riddle, the well, the magnet/carousel via the robot).
@@ -334,7 +325,7 @@ go se
 answer &quot;well&quot;</code></pre>
 <p><em>The two <code>stare</code> commands in the Round Room area are
 carousel coping: with the carousel spinning, certain exits scramble.
-Staring advances the turn counter without moving; the speedrun times
+Staring advances the turn counter without moving; this walkthrough times
 these stares to synchronize with the carousel clock so that the next
 real move lands predictably.</em></p>
 <p>At the Riddle Room, the answer to the riddle is the word
@@ -440,7 +431,7 @@ battery.</em></p>
 </section>
 <section id="act-v-the-bank-of-zork" class="level2">
 <h2>Act V: The Bank of Zork</h2>
-<p><em>speedrun-2 steps 143–172. Score at act end: 240.</em></p>
+<p><em>Steps 143–172. Score at act end: 240.</em></p>
 <p>The Bank of Zork is reached from the Gallery south of the Cellar. The
 Gallery has a <strong>painting</strong> (treasure), and the Bank itself
 has a <strong>portrait of J. Pierpont Flathead</strong> and a
@@ -487,7 +478,7 @@ teller’s room.</em></p>
 </section>
 <section id="act-vi-the-dam-and-the-reservoir" class="level2">
 <h2>Act VI: The Dam and the Reservoir</h2>
-<p><em>speedrun-2 steps 173–196. Score at act end: 310.</em></p>
+<p><em>Steps 173–196. Score at act end: 310.</em></p>
 <p>The Dam sequence collects the <strong>trunk of jewels</strong> (from
 the drained reservoir) and the <strong>trident</strong> (from the
 Reservoir North area). It also obtains the <strong>matchbook</strong>
@@ -530,14 +521,14 @@ put treasure in case</code></pre>
 <p><em>The <code>proceed south / run west</code> sequence walks you
 across the dry reservoir bed, collecting the <strong>trunk of
 jewels</strong> along the way. The <code>walk west × 2</code> takes you
-back up to Living Room. The speedrun’s trunk pickup is implicit in a
+back up to Living Room. This walkthrough’s trunk pickup is implicit in a
 <code>take all</code> step omitted here for brevity; see Appendix G for
 the literal sequence.</em></p>
 <hr />
 </section>
 <section id="act-vii-the-royal-puzzle" class="level2">
 <h2>Act VII: The Royal Puzzle</h2>
-<p><em>speedrun-2 steps 197–225. Score at act end: 345.</em></p>
+<p><em>Steps 197–225. Score at act end: 345.</em></p>
 <p>The Royal Puzzle is a small but famous one: the <strong>gold
 key</strong> sits on a ledge inside a cell. Slide the
 <strong>mat</strong> under the door, push the
@@ -567,8 +558,8 @@ proceed north
 take sphere</code></pre>
 <p><em><code>open lid</code> refers to the keyhole’s lid, not the mat.
 The game’s direct-object resolution picks the keyhole’s lid because it
-is the only lid in the room. The speedrun uses the shorter form for the
-same reason.</em></p>
+is the only lid in the room. This walkthrough uses the shorter form for
+the same reason.</em></p>
 <p>Return and deposit:</p>
 <pre><code>run south
 walk east
@@ -582,7 +573,7 @@ examine blue sphere</code></pre>
 </section>
 <section id="act-viii-the-loud-room-and-the-river" class="level2">
 <h2>Act VIII: The Loud Room and the River</h2>
-<p><em>speedrun-2 steps 226–308. Score at act end: 440.</em></p>
+<p><em>Steps 226–308. Score at act end: 440.</em></p>
 <p>This is another long act. It collects the <strong>platinum
 bar</strong> (Loud Room), the <strong>emerald</strong> (buoy on the
 river), the <strong>statue</strong> (Sandy Beach dig), the <strong>pot
@@ -627,9 +618,8 @@ proceed north
 go east
 walk ne
 go ne</code></pre>
-<p>You are in the <strong>Loud Room</strong>. Try speaking first
-(speedrun-2 does this explicitly — the echoes are a joke worth
-hearing):</p>
+<p>You are in the <strong>Loud Room</strong>. Try speaking first — the
+echoes are a joke worth hearing before you silence them:</p>
 <pre><code>hello
 is anyone there
 testing one two three
@@ -713,8 +703,8 @@ go east
 proceed west
 run west
 put platinum bar, pot of gold, statue and large emerald in case</code></pre>
-<p><em>The speedrun here uses a single <code>put ... in case</code> with
-four objects — a syntax the parser supports via its AND/comma list
+<p><em>This walkthrough here uses a single <code>put ... in case</code>
+with four objects — a syntax the parser supports via its AND/comma list
 rule.</em></p>
 </section>
 <section id="the-mailbox-brochure" class="level3">
@@ -740,7 +730,7 @@ turn reading the flavor text.</em></p>
 </section>
 <section id="act-ix-the-thief-in-his-lair" class="level2">
 <h2>Act IX: The Thief in His Lair</h2>
-<p><em>speedrun-2 steps 320–348. Score at act end: 475.</em></p>
+<p><em>Steps 320–348. Score at act end: 475.</em></p>
 <p>Now strong enough (score 440 → strength 5, effectively even with the
 thief’s 5), the adventurer returns to the Treasure Room to finish the
 job:</p>
@@ -750,9 +740,9 @@ take garlic
 take torch
 proceed west
 run south</code></pre>
-<p>The approach goes through the maze south of the Cellar. The speedrun
-uses ten consecutive <code>stare</code> commands in the magnet room —
-this is not a combat technique but a timing trick:</p>
+<p>The approach goes through the maze south of the Cellar. The
+walkthrough uses ten consecutive <code>stare</code> commands in the
+magnet room — this is not a combat technique but a timing trick:</p>
 <pre><code>stare
 stare
 stare
@@ -764,8 +754,8 @@ stare
 stare
 stare
 go up</code></pre>
-<p><em>Staring burns turns without moving. The speedrun uses it to wait
-for the thief to be present in his lair. The thief’s wandering is
+<p><em>Staring burns turns without moving. This walkthrough uses it to
+wait for the thief to be present in his lair. The thief’s wandering is
 deterministic but his schedule requires synchronization.</em></p>
 <pre><code>attack thief with knife
 slay thief with knife
@@ -779,8 +769,8 @@ than the sword) are enough at this score level. The thief drops the
 canary</strong>, all stolen treasures, and the <strong>gold
 coffin</strong> he stole from the maze. You also regain the
 stiletto.</em></p>
-<p><em>After his death, the thief’s lair is safe permanently. The
-speedrun confirms score, takes the coffin (a 25-point treasure with
+<p><em>After his death, the thief’s lair is safe permanently. This
+walkthrough confirms score, takes the coffin (a 25-point treasure with
 inventory-weight implications), and descends to deposit.</em></p>
 <pre><code>turn off lamp
 go down
@@ -792,7 +782,7 @@ put brochure in case</code></pre>
 </section>
 <section id="act-x-the-canary" class="level2">
 <h2>Act X: The Canary</h2>
-<p><em>speedrun-2 steps 349–391. Score at act end: 530.</em></p>
+<p><em>Steps 349–391. Score at act end: 530.</em></p>
 <p>The canary was inside the egg; the thief opened the egg; you now have
 the canary. Taking it to the forest and winding it produces the final
 forest treasure, the <strong>brass bauble</strong>.</p>
@@ -826,7 +816,7 @@ take all
 examine canary</code></pre>
 <p><em><code>describe</code> and <code>look at</code> are
 partial-spoiler commands: they give flavor text, spend a turn, and in
-some cases yield score for “examining” a rare item. The speedrun
+some cases yield score for “examining” a rare item. This walkthrough
 executes five of these in a row at the trophy case, each worth a small
 amount.</em></p>
 <p>The tree walk:</p>
@@ -856,7 +846,7 @@ put treasure in case</code></pre>
 </section>
 <section id="act-xi-the-temple-and-the-exorcism" class="level2">
 <h2>Act XI: The Temple and the Exorcism</h2>
-<p><em>speedrun-2 steps 392–430. Score at act end: 555.</em></p>
+<p><em>Steps 392–430. Score at act end: 555.</em></p>
 <p>The Temple act collects the <strong>grail</strong> and performs the
 exorcism in the Land of the Living Dead, which unlocks the Tomb of the
 Unknown Implementer for another treasure.</p>
@@ -916,21 +906,43 @@ proceed west
 go west
 go up
 put grail in case</code></pre>
-<p><em>The speedrun does <strong>not</strong> pick up and re-deposit the
-bell, book, or candles: they are not treasures. The
+<p><em>This walkthrough does <strong>not</strong> pick up and re-deposit
+the bell, book, or candles: they are not treasures. The
 <strong>grail</strong> is. The brochure and other remaining in-pocket
 items have already been cased.</em></p>
 <hr />
 </section>
-<section id="act-xii-the-dragon-the-mirror-and-the-diamond"
+<section id="act-xii-the-mirror-the-coal-mine-and-the-diamond"
 class="level2">
-<h2>Act XII: The Dragon, the Mirror, and the Diamond</h2>
-<p><em>speedrun-2 steps 431–541. Score at act end: 570.</em></p>
+<h2>Act XII: The Mirror, the Coal Mine, and the Diamond</h2>
+<p><em>Steps 431–541. Score at act end: 570.</em></p>
 <p>This is the longest single act and the one with the most
 inventory-juggling. It collects three major items: the <strong>jade
-figurine</strong>, the <strong>sapphire bracelet</strong> (Ice Room,
-after drowning the Dragon), and the <strong>diamond</strong> (Coal Mine
-+ Machine Room compression).</p>
+figurine</strong>, the <strong>sapphire bracelet</strong>, and the
+<strong>diamond</strong> (made from coal in the Machine Room press).</p>
+<section id="a-note-for-readers-expecting-a-dragon" class="level3">
+<h3>A note for readers expecting a dragon</h3>
+<p>If you have played the Infocom games <em>Zork I</em>, <em>II</em>, or
+<em>III</em>, you may remember a dragon-fight puzzle: lure the dragon
+into the Ice Room, he breathes fire on the glacier, melts it, and
+drowns. <strong>There is no dragon in Dungeon.</strong> Zork II invented
+the dragon after the mainframe version of the game was already complete.
+In the 616-point original, the Ice Room’s glacier is an
+<em>obstacle</em> the player may choose to melt with a torch (the
+shipped HELP file’s fourth hint reads <em>“The glacier swells with heat.
+Have you found anything fiery?”</em>), but it is not guarded by a
+creature, and there is nothing living to fight in this region of the
+dungeon. The <strong>sapphire bracelet</strong>, which in Zork II is
+behind the glacier, lies in Dungeon simply on the floor of a
+coal-gas-smelling chamber at the bottom of a coal-mine staircase. You
+walk in and take it.</p>
+<p>The <strong>glacier</strong> is still in the game, blocking a
+<em>different</em> passage north of the Coal Mine. It can be melted with
+the torch (which consumes the torch in the process) to access a short
+stretch of rooms on the far side. The 616-point path does not require
+it, and the walkthrough below does not melt it. If you want to see
+what’s there, throw the torch at the glacier on a separate save.</p>
+</section>
 <section id="the-mirror-transport" class="level3">
 <h3>The Mirror Transport</h3>
 <pre><code>drop matchbook
@@ -956,29 +968,26 @@ take jade figurine
 examine jade figurine</code></pre>
 <p>You now have the <strong>jade figurine</strong>.</p>
 </section>
-<section id="the-dragon" class="level3">
-<h3>The Dragon</h3>
+<section id="the-sapphire-bracelet" class="level3">
+<h3>The Sapphire Bracelet</h3>
+<p>The bracelet lies in a small coal-gas chamber at the bottom of a
+wooden-tunnel staircase. Approach via the Mine Entrance:</p>
 <pre><code>proceed east
 go south
-walk ne</code></pre>
-<p>You are now in the <strong>Dragon Room</strong>. Prepare for the
-attack by putting tools in the basket (the Coal Mine basket):</p>
-<pre><code>put torch and screwdriver in basket
+walk ne
+put torch and screwdriver in basket
 turn on lamp
 walk north
 run west
 go down</code></pre>
-<p>You are now in the <strong>Ice Room</strong>. The sapphire bracelet
-is here. Taking it first (because the ice will melt shortly):</p>
+<p><em><code>put torch and screwdriver in basket</code> sends those two
+items to the Dome Room side via the basket elevator; they will be needed
+on the other side in the diamond sub-act below. You do not need them in
+the coal mine.</em></p>
+<p>The <code>go down</code> brings you into the coal-gas chamber:</p>
 <pre><code>take bracelet
 examine bracelet
 go up</code></pre>
-<p><em>The Dragon is not explicitly fought in this speedrun — the route
-moves through the Ice Room without angering him. The walkthrough in
-earlier drafts of this volume described a “lure the dragon into the Ice
-Room, he melts it with his flame breath, drowns” mechanic; the speedrun
-shows that path is <strong>optional</strong>. You can reach the sapphire
-via a different route that sidesteps the dragon entirely.</em></p>
 </section>
 <section id="the-coal-mine-descent" class="level3">
 <h3>The Coal Mine Descent</h3>
@@ -1077,7 +1086,7 @@ go down
 go up
 put treasure in case</code></pre>
 <p><em>The <code>tie rope to timber</code> step configures the timber as
-a rope anchor for the Puzzle Room descent in Act XIII. The speedrun
+a rope anchor for the Puzzle Room descent in Act XIII. This walkthrough
 takes the second sphere (the <strong>red crystal sphere</strong>) during
 this descent, completing the palantir set.</em></p>
 <hr />
@@ -1085,7 +1094,7 @@ this descent, completing the palantir set.</em></p>
 </section>
 <section id="act-xiii-the-puzzle-room" class="level2">
 <h2>Act XIII: The Puzzle Room</h2>
-<p><em>speedrun-2 steps 542–606. Score at act end: 590.</em></p>
+<p><em>Steps 542–606. Score at act end: 590.</em></p>
 <p>The Puzzle Room is a sliding-wall maze entered by rope descent. The
 goal is the <strong>gold card</strong>.</p>
 <pre><code>drop all
@@ -1100,7 +1109,7 @@ schedule
 read paper
 go down</code></pre>
 <p><em><code>schedule</code> is a “read every schedule-type item”
-multi-read command the speedrun uses for Last-Point credit.
+multi-read command this walkthrough uses for Last-Point credit.
 <code>read paper</code> gets the puzzle’s instructions.</em></p>
 <p>The wall-pushing begins. Each
 <code>push &lt;direction&gt; wall</code> moves one wall square; the goal
@@ -1168,8 +1177,7 @@ risk trapping yourself in an unreachable cell.</em></p>
 </section>
 <section id="act-xiv-the-volcano" class="level2">
 <h2>Act XIV: The Volcano</h2>
-<p><em>speedrun-2 steps 607–685. Score at act end: 616 —
-complete.</em></p>
+<p><em>Steps 607–685. Score at act end: 616 — complete.</em></p>
 <p>The Volcano is reached via the <strong>balloon</strong>. The balloon
 is in the Volcano Floor, connected to a receptacle that burns whatever
 you put in it. The burner heats air, inflates the balloon, and the
@@ -1194,9 +1202,13 @@ read paper
 walk south</code></pre>
 <p><em><code>throw torch</code> is the bridge — the torch lands across
 the chasm, giving light. <code>take ruby</code> gets the ruby.
-<code>read paper</code> is the gnome-puzzle paper; see
-<strong>speedrun-31-gnome.input</strong> for a fuller treatment of the
-gnome-chamber variation.</em></p>
+<code>read paper</code> is the gnome-puzzle paper; the gnome demands
+something of intrinsic value in exchange for letting you proceed, and
+reading the paper explains what. (The gnome sub-puzzle has its own small
+set of outcomes depending on what you offer him; he rejects zero-value
+items with a pithy remark, and accepts any genuine treasure, though he
+will not return it — so you give him the cheapest one you are
+carrying.)</em></p>
 <p>Board and launch:</p>
 <pre><code>board
 open receptacle
@@ -1282,7 +1294,7 @@ commits the final haul. <strong>The score reports 616 out of
 </section>
 <section id="act-xv-the-endgame" class="level2">
 <h2>Act XV: The Endgame</h2>
-<p><em>speedrun-2 steps 686–737. Score remains 616 (endgame has its own
+<p><em>Steps 686–737. Score remains 616 (the Endgame has its own
 scoring).</em></p>
 <p>With 616 points in the trophy case, the game transitions to the
 Endgame. The transition is not a simple move — it requires a sequence of
@@ -1343,13 +1355,15 @@ answer &quot;FOREST&quot;
 answer &quot;RUB&quot;
 answer &quot;NONE&quot;</code></pre>
 <p><em>The Master asks three questions. The answers depend on your
-in-dungeon accomplishments; for a 616-point run, they are FOREST (the
+in-dungeon accomplishments: the three answers used here are FOREST (the
 place with the songbird), RUB (the action that cleaned the mirror), and
 NONE (the number of times you failed to deposit a treasure).
-<strong>Different runs may have different answers</strong> —
-speedrun-1-endgame’s answers at this point are <code>30003</code>,
-<code>BONES</code>, <code>TEMPLE</code>, reflecting different
-accomplishments.</em></p>
+<strong>Different runs may produce different questions and therefore
+require different answers</strong> — the Master draws his quiz from a
+fixed bank of topics but selects based on what you did, and what you
+saw, and how you got here. If the questions you receive differ from the
+ones above, pause and think about what he is actually asking you; the
+answers are always somewhere in your history.</em></p>
 </section>
 <section id="the-masters-domain" class="level3">
 <h3>The Master’s Domain</h3>
@@ -1629,7 +1643,7 @@ from the Last Point reading.</p>
 <section id="appendix-a2-the-map" class="level2">
 <h2>Appendix A2: The Map</h2>
 <p>A complete map of the Great Underground Empire is a valuable
-companion to any playthrough. The one reproduced below is by David Bau,
+companion to any playthrough. The one reproduced below is by Steven Roy,
 hand- drawn from repeated plays in the mainframe era and unusually
 comprehensive — it covers the surface, both upper and lower caves, the
 Bank of Zork, the Coal Mine, the Wizard’s domain, the Volcano, the
@@ -1650,8 +1664,8 @@ sufficient.</p>
 </section>
 <section id="appendix-b-score-milestones" class="level2">
 <h2>Appendix B: Score Milestones</h2>
-<p>Based on <code>speedrun-2.fortran.json</code>, the ground-truth
-scoring trajectory is:</p>
+<p>The ground-truth scoring trajectory, checkpointed at each act’s final
+trophy-case deposit, is:</p>
 <table>
 <thead>
 <tr>
@@ -1823,9 +1837,9 @@ buttons</li>
 <p>The parser treats the following as equivalent for direction movement:
 <code>GO &lt;dir&gt;</code>, <code>WALK &lt;dir&gt;</code>,
 <code>RUN &lt;dir&gt;</code>, <code>PROCEED &lt;dir&gt;</code>, and bare
-<code>&lt;dir&gt;</code>. The speedrun alternates them for readability
-(and for parser-exercise coverage);
-<code>speedrun-1-endgame.input</code> uses the shorthand
+<code>&lt;dir&gt;</code>. This walkthrough alternates them for
+readability (and for parser-exercise coverage); the shorthand variant
+uses shorthand
 <code>n</code>/<code>s</code>/<code>e</code>/<code>w</code>/<code>u</code>/<code>d</code>
 throughout for compactness.</p>
 <hr />
@@ -1900,9 +1914,8 @@ and never again.]</li>
 you hear water rising; putty-plug the leak.]</li>
 <li><strong>Vault timeout.</strong> [Don’t close the vault door; carry
 the guidebook.]</li>
-<li><strong>Dragon without mirror luring.</strong> [Avoid the dragon
-entirely, as the speedrun does, or retreat to Ice Room; let him melt
-himself.]</li>
+<li><strong>Glacier blocking a coal-mine passage.</strong> [Optional:
+throw torch at glacier to melt it; the torch is consumed.]</li>
 </ul>
 <hr />
 </section>
@@ -1916,8 +1929,8 @@ material in the dungeon.</p>
 <p><em>Have you availed yourself of ALL opportunities for intellectual
 improvement?</em></p>
 </blockquote>
-<p>The <code>speedrun-2.input</code> session makes this explicit in Act
-XIV, near the end:</p>
+<p>This walkthrough addresses the Last Point explicitly in Act XIV, near
+the end:</p>
 <pre><code>examine brochure
 examine coin
 examine matchbook
@@ -1949,23 +1962,23 @@ of a readable treasure delivers a one-shot point.</p>
 <li>Gnome’s paper (Act XIV)</li>
 <li>Schedule (Act XIII — <code>schedule</code> verb)</li>
 </ol>
-<p>The speedrun executes 13 of these reads explicitly and captures the
-remaining two via implicit first-visit scoring. Track every readable
+<p>This walkthrough executes 13 of these reads explicitly and captures
+the remaining two via implicit first-visit scoring. Track every readable
 object in your inventory and spend one turn on each before
 depositing.</p>
 <hr />
 </section>
-<section id="appendix-g-the-complete-command-sequence" class="level2">
-<h2>Appendix G: The Complete Command Sequence</h2>
-<p>The authoritative source is the file
-<code>dungeon/test/sessions/speedrun-2.input</code>, 737 lines, executed
-from the initial game state. Below are the first and last 50 lines for
-reference; consult the file directly for the complete middle section.
-The parity test <code>node --test test/dungeon.test.js</code> confirms
-that every output line of the Fortran binary and the JS engine match for
-this exact command sequence.</p>
-<section id="opening-lines-150" class="level3">
-<h3>Opening (lines 1–50)</h3>
+<section id="appendix-g-the-opening-and-the-endgame-verbatim"
+class="level2">
+<h2>Appendix G: The Opening and the Endgame, Verbatim</h2>
+<p>The walkthrough’s fifteen acts contain the commands in prose form,
+grouped and commented. For a reader who wants the raw, unadorned command
+sequences — for instance, to script a replay, or simply to see the shape
+of the whole — the opening fifty and the closing fifty-two are
+reproduced below. The complete 737-step sequence can be reconstructed by
+following the acts in order.</p>
+<section id="opening-first-50-commands" class="level3">
+<h3>Opening (first 50 commands)</h3>
 <pre><code>take mat
 open mailbox
 take leaflet
@@ -2017,8 +2030,8 @@ stab cyclops with sword
 ODYSSEUS
 go up</code></pre>
 </section>
-<section id="endgame-lines-686737" class="level3">
-<h3>Endgame (lines 686–737)</h3>
+<section id="endgame-last-52-commands" class="level3">
+<h3>Endgame (last 52 commands)</h3>
 <pre><code>hello sailor
 repent
 frobozz

@@ -191,7 +191,7 @@ M1, M2, M3, etc., until the shape emerges. There is a well-known
 them is half the reward.
 
 **A note for the impatient.** A complete map of the Great Underground
-Empire, hand-drawn by David Bau from repeated mainframe-era plays, is
+Empire, hand-drawn by Steven Roy from repeated mainframe-era plays, is
 reproduced in **Volume II, Appendix A2**. Looking at it will not spoil
 any puzzles, only the geography, and it will save you a very large
 number of hours of confusion if you prefer to understand the shape of
