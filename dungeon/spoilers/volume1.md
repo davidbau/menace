@@ -701,7 +701,7 @@ eat you.
 > Cyclops panics, runs through the nearest wall, and opens a
 > permanent shortcut into the Living Room.
 
-**Q3. I said ODYSSEUS and he ran. What's the shortcut for?**
+**Q3. He has fled through the wall. What is the shortcut for?**
 
 > Hint 1. A way down from the Living Room without the trap door, and
 > a way up from deep in the dungeon without the chimney.
