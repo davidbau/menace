@@ -1195,4 +1195,4 @@ turn off the computer, find some graph paper, and go.
 
 ---
 
-*Continued in Volume II: The Complete Walkthrough.*
+*Continued in [Volume II: The Complete Walkthrough](volume2.html).*
